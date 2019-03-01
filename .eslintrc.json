@@ -1,0 +1,22 @@
+{
+    "extends": "airbnb-base",
+    "env": {
+        "amd": true,
+        "browser": true
+    },
+    "plugins": [
+        "eslint-plugin-requirejs",
+        "mocha"
+    ],
+    "rules": {
+        "import/no-extraneous-dependencies": 0,
+        "requirejs/no-invalid-define": 2,
+        "requirejs/no-invalid-require":1,
+        "requirejs/no-multiple-define": 2,
+        "requirejs/no-named-define": 2,
+        "requirejs/no-commonjs-wrapper": 2,
+        "requirejs/no-object-define": 1,
+        "import/no-amd":0,
+        "no-console":0
+    }
+}

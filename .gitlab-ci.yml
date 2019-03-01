@@ -1,0 +1,82 @@
+stages:
+  - test
+  - build
+  - deploy
+
+cache:
+  paths:
+  - node_modules
+
+before_script:
+  - test ! -z "$CI_NPM_REGISTRY" && npm config set registry $CI_NPM_REGISTRY || true
+  - unset HTTP_PROXY
+  - unset ALL_PROXY
+  - npm install
+
+javascript_lint_test:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: test
+  tags:
+  - build
+  script:
+  - npm add eslint
+  - ./node_modules/.bin/eslint menuconfig/init.js
+  - ./node_modules/.bin/eslint menuconfig/js/viewModels/ConfigViewModel.js
+  - ./node_modules/.bin/eslint menuconfig/js/viewModels/MenuViewModel.js
+  - ./node_modules/.bin/eslint menuconfig/js/viewModels/ParamViewModel.js
+  - ./node_modules/.bin/eslint menuconfig/js/koCustomComponents.js
+  - ./node_modules/.bin/eslint menuconfig/js/HtmlFormatter.js
+
+javascript_test:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: test
+  tags:
+  - build
+  script:
+  - ./node_modules/mocha/bin/mocha menuconfig/js/test/htmlFormatterTest.js
+
+build_tar:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: build
+  tags:
+    - build
+  artifacts:
+    paths:
+      - espressif-esp-idf-extension-*.tar.gz
+  script:
+    - PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    - cd ..
+    - tar -pczf espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME --exclude "$CI_PROJECT_NAME/node_modules" --exclude "$CI_PROJECT_NAME/.git"
+    - mv espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME
+    - cd $CI_PROJECT_NAME
+
+build_vsix:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: build
+  tags:
+    - build
+  artifacts:
+    paths:
+      - esp-idf-extension-*.vsix
+  script:
+    - npm add vsce
+    - npm add gulp
+    - ./node_modules/.bin/gulp build
+    - VERSION_STR=${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}
+    - ./node_modules/.bin/vsce package -o esp-idf-extension-${VERSION_STR}.vsix
+
+deploy_github:
+  stage: deploy
+  tags:
+    - deploy
+  before_script:
+    - echo "Skipping before_script"
+  script:
+    - echo -n $GH_PUSH_KEY > ~/.ssh/id_rsa_base64
+    - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - git remote remove github &>/dev/null || true
+    - git remote add github git@github.com:espressif/{VSCODE_ESP_IDF_REPO}.git
+    - git push github "${CI_COMMIT_TAG}"
+  when: manual

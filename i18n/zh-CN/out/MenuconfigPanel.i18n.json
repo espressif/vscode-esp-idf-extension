@@ -1,0 +1,8 @@
+{
+    "menuconfig.panelName": "IDF Menu Configuration",
+    "menuconfig.loadDefaultValues": "Loaded default settings in GUI menuconfig",
+    "menuconfig.saveValues": "Saved changes in GUI menuconfig",
+    "menuconfig.discardValues": "Discarded changes in GUI menuconfig",
+    "menuconfig.wrongIdfPath": "Wrong IDF_PATH in workspace settings. Would you like to set it?",
+    "menuconfig.enterIdfPath": "Enter IDF_PATH Path"
+}

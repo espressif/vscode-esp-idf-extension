@@ -1,0 +1,6 @@
+out
+node_modules
+.vscode-test/
+*.vsix
+!i18n/*/out
+package.nls.*.json

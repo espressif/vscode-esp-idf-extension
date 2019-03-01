@@ -1,0 +1,338 @@
+{
+  "name": "esp-idf-extension",
+  "displayName": "Espressif IDF",
+  "description": "Espressif IoT Development Framework",
+  "version": "0.1.0",
+  "publisher": "espressif",
+  "icon": "espressif_icon.png",
+  "galleryBanner": {
+    "color": "#636363",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.23.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/espressif/esp-idf.git"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.setPath",
+    "onCommand:espIdf.configDevice",
+    "onCommand:menuconfig.start",
+    "onCommand:espIdf.setDefaultConfig",
+    "onCommand:espIdf.selectPort",
+    "onCommand:espIdf.buildDevice",
+    "onCommand:espIdf.flashDevice",
+    "onCommand:espIdf.monitorDevice",
+    "onCommand:espIdf.pickAWorkspaceFolder",
+    "onCommand:espIdf.buildFlashMonitor",
+    "workspaceContains:**/project_description.json",
+    "workspaceContains:**/sdkconfig"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "idfComponents",
+          "name": "%view.components.name%"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "espIdf.createFiles",
+        "key": "ctrl+e c",
+        "mac": "cmd+e c"
+      },
+      {
+        "command": "espIdf.buildDevice",
+        "key": "ctrl+e b",
+        "mac": "cmd+e b"
+      },
+      {
+        "command": "espIdf.flashDevice",
+        "key": "ctrl+e f",
+        "mac": "cmd+e f"
+      },
+      {
+        "command": "espIdf.monitorDevice",
+        "key": "ctrl+e m",
+        "mac": "cmd+e m"
+      },
+      {
+        "command": "espIdf.selectPort",
+        "key": "ctrl+e p",
+        "mac": "cmd+e p"
+      },
+      {
+        "command": "espIdf.buildFlashMonitor",
+        "key": "ctrl+e d",
+        "mac": "cmd+e d"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "%configuration.title%",
+        "properties": {
+          "idf.espIdfPath": {
+            "type": "string",
+            "default": "${env:HOME}/esp/esp-idf",
+            "description": "%param.espIdfPath%",
+            "scope": "resource"
+          },
+          "idf.xtensaEsp32Path": {
+            "type": "string",
+            "default": "${env:HOME}/esp/xtensa-esp32-elf",
+            "description": "%param.xtensaEsp32Path%",
+            "scope": "resource"
+          },
+          "idf.openOcdBin": {
+            "type": "string",
+            "default": "${env:HOME}/esp/openocd-esp32/bin/openocd",
+            "description": "%param.openOcdBin%",
+            "scope": "resource"
+          },
+          "idf.openOcdScriptsPath": {
+            "type": "string",
+            "default": "${env:HOME}/esp/openocd-esp32/share/openocd/scripts",
+            "description": "%param.openOcdScripts%",
+            "scope": "resource"
+          },
+          "idf.espIdfPathWin": {
+            "type": "string",
+            "default": "${env:USERPROFILE}\\esp\\esp-idf",
+            "description": "%param.espIdfPath%",
+            "scope": "resource"
+          },
+          "idf.xtensaEsp32PathWin": {
+            "type": "string",
+            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools",
+            "description": "%param.xtensaEsp32Path%",
+            "scope": "resource"
+          },
+          "idf.openOcdBinWin": {
+            "type": "string",
+            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools\\bin\\openocd.exe",
+            "description": "%param.openOcdBin%",
+            "scope": "resource"
+          },
+          "idf.openOcdScriptsPathWin": {
+            "type": "string",
+            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools\\share\\openocd\\scripts",
+            "description": "%param.openOcdScripts%",
+            "scope": "resource"
+          },
+          "idf.port": {
+            "type": "string",
+            "default": "/dev/ttyUSB1",
+            "description": "%param.port%",
+            "scope": "resource"
+          },
+          "idf.portWin": {
+            "type": "string",
+            "default": "COM1",
+            "description": "%param.port%",
+            "scope": "resource"
+          },
+          "idf.baudRate": {
+            "type": "string",
+            "default": "115200",
+            "description": "%param.baudRate%",
+            "scope": "resource"
+          },
+          "idf.projectName": {
+            "type": "string",
+            "default": "app-template",
+            "description": "%param.projectName%",
+            "scope": "resource"
+          },
+          "idf.deviceInterface": {
+            "type": "string",
+            "default": "interface/ftdi/esp32_devkitj_v1.cfg",
+            "description": "%param.deviceInterface%",
+            "scope": "resource"
+          },
+          "idf.board": {
+            "type": "string",
+            "default": "board/esp32-wrover.cfg",
+            "description": "%param.board%",
+            "scope": "resource"
+          },
+          "idf.deviceInterfaceWin": {
+            "type": "string",
+            "default": "interface\\ftdi\\esp32_devkitj_v1.cfg",
+            "description": "%param.deviceInterface%",
+            "scope": "resource"
+          },
+          "idf.boardWin": {
+            "type": "string",
+            "default": "board\\esp32-wrover.cfg",
+            "description": "%param.board%",
+            "scope": "resource"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "espIdf.createFiles",
+        "title": "%espIdf.createFiles.title%"
+      },
+      {
+        "command": "espIdf.setPath",
+        "title": "%espIdf.setPath.title%"
+      },
+      {
+        "command": "espIdf.configDevice",
+        "title": "%espIdf.configDevice.title%"
+      },
+      {
+        "command": "menuconfig.start",
+        "title": "%menuconfig.start.title%"
+      },
+      {
+        "command": "espIdf.setDefaultConfig",
+        "title": "%espIdf.setDefaultConfig.title%"
+      },
+      {
+        "command": "espIdf.selectPort",
+        "title": "%espIdf.selectPort.title%"
+      },
+      {
+        "command": "espIdf.buildDevice",
+        "title": "%espIdf.buildDevice.title%"
+      },
+      {
+        "command": "espIdf.flashDevice",
+        "title": "%espIdf.flashDevice.title%"
+      },
+      {
+        "command": "espIdf.monitorDevice",
+        "title": "%espIdf.monitorDevice.title%"
+      },
+      {
+        "command": "espIdf.buildFlashMonitor",
+        "title": "%espIdf.buildFlashMonitor.title%"
+      },
+      {
+        "command": "espIdf.pickAWorkspaceFolder",
+        "title": "%espIdf.pickAWorkspaceFolder.title%"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "espidf",
+        "label": "ESP-IDF",
+        "initialConfigurations": [
+          {
+            "name": "%debug.initConfig.name%",
+            "type": "cppdbg",
+            "request": "launch",
+            "MIMode": "gdb",
+            "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
+            "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
+            "cwd": "${workspaceFolder}",
+            "setupCommands": [
+              {
+                "text": "target remote :3333"
+              },
+              {
+                "text": "mon reset halt"
+              },
+              {
+                "text": "thb app_main"
+              },
+              {
+                "text": "flushregs"
+              }
+            ],
+            "externalConsole": false,
+            "logging": {
+              "engineLogging": true
+            }
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "%debug.initConfig.name%",
+            "description": "%debug.initConfig.description%",
+            "body": {
+              "type": "cppdbg",
+              "request": "launch",
+              "MIMode": "gdb",
+              "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
+              "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
+              "cwd": "${workspaceFolder}",
+              "setupCommands": [
+                {
+                  "text": "target remote :3333"
+                },
+                {
+                  "text": "mon reset halt"
+                },
+                {
+                  "text": "thb app_main"
+                },
+                {
+                  "text": "flushregs"
+                }
+              ],
+              "externalConsole": false,
+              "logging": {
+                "engineLogging": true
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "./node_modules/.bin/tsc -p ./",
+    "watch": "./node_modules/.bin/tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test",
+    "build_vsix": "node ./node_modules/.bin/gulp vscePkg",
+    "gulp_clean": "node ./node_modules/.bin/gulp clean"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^7.0.65",
+    "del": "^3.0.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-mocha": "^5.2.1",
+    "eslint-plugin-requirejs": "^3.2.0",
+    "gulp": "^4.0.0",
+    "gulp-cli": "^2.0.1",
+    "gulp-typescript": "^5.0.0-alpha.3",
+    "mocha": "^5.2.0",
+    "requirejs": "^2.3.6",
+    "run-sequence": "^2.2.1",
+    "tslint": "^5.12.1",
+    "typescript": "^2.9.2",
+    "typescript-tslint-plugin": "^0.3.1",
+    "vsce": "^1.52.0",
+    "vscode": "^1.1.29",
+    "vscode-nls-dev": "^3.2.3"
+  },
+  "dependencies": {
+    "es6-promisify": "^6.0.0",
+    "jquery": "^3.3.1",
+    "vscode-debugadapter": "^1.33.0",
+    "vscode-debugprotocol": "^1.33.0",
+    "vscode-nls": "^4.0.0"
+  }
+}
