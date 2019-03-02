@@ -79,5 +79,5 @@ deploy_github:
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     - git remote remove github &>/dev/null || true
     - git remote add github git@github.com:espressif/{VSCODE_ESP_IDF_REPO}.git
-    - git push github "${CI_COMMIT_TAG}"
+    - ./push_to_github.sh
   when: manual
