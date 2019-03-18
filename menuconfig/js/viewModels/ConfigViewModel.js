@@ -67,20 +67,25 @@ define(
       $('.another').animate({ scrollTop: endPosition }, 'slow');
     };
 
-    self.updateSelectConf = function updateSelectConf(obj) {
+    self.updateSelectConf = function updateSelectConf(obj, event) {
       const value = obj.selectedValue();
       const args = {
         paramName: value.choiceName,
-        newValue: true,
-        comp_folder: self.selectedMenuSection(),
+        newValue: value.choiceValue,
+        compFolder: self.selectedMenuSection(),
+        isModifiedByUser: false,
       };
+      if (event.originalEvent) { // User modified a select field.
+        args.newValue = true;
+        args.isModifiedByUser = true;
+      }
       vscode.postMessage({
         command: 'updateValue',
         text: args,
       });
     };
 
-    self.updateConf = function updateConf(obj) {
+    self.updateConf = function updateConf(obj, event) {
       let value = Object.hasOwnProperty.call(obj, 'isChecked') ? obj.isChecked() : obj.chosenValue();
       if (obj.isText) {
         value = `"${value}"`;
@@ -89,7 +94,11 @@ define(
         paramName: obj.name(),
         newValue: value,
         comp_folder: self.selectedMenuSection(),
+        isModifiedByUser: false,
       };
+      if (event.originalEvent) { // User modified a select field.
+        args.isModifiedByUser = true;
+      }
       vscode.postMessage({
         command: 'updateValue',
         text: args,
@@ -113,7 +122,6 @@ define(
         command: 'setDefault',
       });
     };
-
     self.requestInitValues = function requestInitValues() {
       if ($('#compList').children().length === self.configMenues().length) {
         vscode.postMessage({

@@ -18,8 +18,8 @@ define(['knockout', 'koSubmenuComponent'], (ko) => {
             <label data-bind="text: description" style="display: inline-block;"> </label>
             <img src='./assets/info.png' class="info-collapse" data-bind="click: toggleHelp, attr: { src: helpIcon }">
             <br>
-            <select class="form-control" data-bind="options: menuOptions, value: selectedValue().choiceName, 
-                optionsText: 'choiceTitle', optionsValue: 'choiceName',
+            <select class="form-control" data-bind="options: menuOptions, value: selectedValue,
+                optionsText: 'choiceTitle',
                 event: { change: $root.updateSelectConf}" style="display: inline-block;"></select>
             <div class="content" data-bind="visible: isHelpVisible">
               <p data-bind="html: help"></p>
@@ -133,12 +133,12 @@ define(['knockout', 'koSubmenuComponent'], (ko) => {
     },
     template:
             `<div class="submenu" data-bind="attr: { id : nameId }, css: {'openedSection': isCollapsed() }, 
-              visible: isMenuVisible">
+              visible: isVisible">
                   <h3 data-bind="text: $data.title, click: collapse"></h3>
                   <!-- ko if: isMenuconfig() -->
                     <kconfig-checkbox params='isChecked: chosenValue,
                       description: $data.title,
-                      isVisible: (chosenValue() != undefined && title() != undefined),
+                      isVisible: $data.isVisible,
                       name: name, help: help, helpIcon: helpIcon, css : { 'menuconfig': is_menuconfig()}'>
                     </kconfig-checkbox>
                   <!-- /ko -->

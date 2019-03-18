@@ -1,5 +1,8 @@
+dist
+local-utils
 out
 node_modules
+.cache
 .vscode-test/
 *.vsix
 !i18n/*/out

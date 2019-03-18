@@ -4,5 +4,9 @@
     "menuconfig.saveValues": "Se han guardado los parametros modificados.",
     "menuconfig.discardValues": "Se han ignorado los valores modificados",
     "menuconfig.wrongIdfPath": "La ruta de IDF_PATH es incorrecta. ¿Quisiera introducirla?",
-    "menuconfig.enterIdfPath": "Introduzca la ruta de IDF_PATH"
+    "menuconfig.enterIdfPath": "Introduzca la ruta de IDF_PATH",
+    "menuconfig.changesNotSaved": "Los cambios en GUI Menuconfig no se han guardado. Desea guardarlos?",
+    "menuconfig.save": "Guardar",
+    "menuconfig.discard": "No guardar",
+    "menuconfig.returnGuiconfig": "Regresar a GUI Menuconfig"
 }
