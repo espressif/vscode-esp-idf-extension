@@ -29,7 +29,7 @@ define(
 
       configVM.query.subscribe(configVM.search);
 
-      const getMenuDefinition = function getMenuDefinition() {
+      const getMenu = function getMenu() {
         $.getJSON(kconfigJson, (menuJS) => {
           menuList = menu.generate_menu_list(menuJS);
           configVM.configMenues(menuList());
@@ -37,13 +37,11 @@ define(
         });
       };
 
-      getMenuDefinition();
-
       window.addEventListener('message', (event) => {
         const message = event.data;
         switch (message.command) {
           case 'init':
-            getMenuDefinition();
+            getMenu();
             break;
           case 'new_values':
             if (message.new_values) {

@@ -122,16 +122,13 @@ export function createSkeleton(curWorkspaceFsPath: string, chosenTemplateDir: st
 }
 
 export function setDefaultConfigFile(workspaceRoot) {
-    const sdkconfigFile = path.join(templateDir, "sdkconfig");
-    const outputFile = path.join(workspaceRoot.fsPath, "sdkconfig");
+    const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
+    fs.unlinkSync(sdkconfigFile);
+}
 
-    fs.readFile(sdkconfigFile, (err, data) => {
-        if (err) {
-            vscode.window.showErrorMessage(err.message);
-            return;
-        }
-        copyTarget(sdkconfigFile, outputFile );
-    });
+export function delTmpConfigFile(givenPath) {
+    const sdkconfigFile = path.join(givenPath, "sdkconfig.tmp");
+    fs.unlinkSync(sdkconfigFile);
 }
 
 export function fileExists(filePath) {
@@ -176,4 +173,9 @@ export function isJson(jsonString: string) {
         return false;
     }
     return true;
+}
+
+export function isStringNotEmpty(str: string) {
+    // Check if there is at least 1 alphanumeric character in the string.
+    return !!str.trim();
 }

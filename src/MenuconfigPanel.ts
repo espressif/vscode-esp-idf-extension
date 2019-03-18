@@ -9,15 +9,14 @@ import * as webviewContentGen from "./webViewContent";
 const locDic = new LocDictionary("MenuconfigPanel");
 
 export class MenuConfigPanel {
-    /*
-     * Track current panel, allowing only one to exist.
-     */
-    // public static confServerProcess;
     public static currentPanel: MenuConfigPanel | undefined;
 
     public static createOrShow(extensionPath: string, curWorkspaceFolder: vscode.Uri) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
         if (MenuConfigPanel.currentPanel) {
+            if (MenuConfigPanel.currentPanel.areValuesSaved === false) {
+                return;
+            }
             MenuConfigPanel.currentPanel.panel.reveal(column);
         } else {
             MenuConfigPanel.currentPanel = new MenuConfigPanel(
@@ -25,14 +24,18 @@ export class MenuConfigPanel {
                 curWorkspaceFolder);
         }
     }
-
     private static readonly viewType = "guiconfig";
+    private areValuesSaved: boolean = true;
+    private loadSavedValuesFlag: boolean = false;
     private guiConfigProcess: ChildProcess;
-    private guiConfigProcessLog: string = "";
+    private guiConfigProcessBuffer: string = "";
     private readonly panel: vscode.WebviewPanel;
     private readonly extensionPath: string;
     private disposables: vscode.Disposable[] = [];
     private confServerChannel: vscode.OutputChannel;
+    private readonly tmpConf: string;
+    private readonly configFile: string;
+    private readonly curWorkspaceFolder: string;
 
     private initLayout = (() => {
         let executed = false;
@@ -45,6 +48,9 @@ export class MenuConfigPanel {
     })();
 
     private constructor(extensionPath: string, column: vscode.ViewColumn, curWorkspaceFolder: vscode.Uri) {
+        this.tmpConf = path.join(curWorkspaceFolder.fsPath, "sdkconfig.tmp");
+        this.configFile = path.join(curWorkspaceFolder.fsPath, "sdkconfig");
+        this.curWorkspaceFolder = curWorkspaceFolder.fsPath;
         this._initGuiConfigProcess(curWorkspaceFolder);
         this.extensionPath = extensionPath;
         const panelTitle = locDic.localize("menuconfig.panelName", "IDF Menu Configuration");
@@ -55,26 +61,54 @@ export class MenuConfigPanel {
 
         this._update(curWorkspaceFolder);
 
-        this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+        this.panel.onDidDispose(async () => {
+            if (!this.areValuesSaved) {
+                const saveRequest = JSON.stringify(`{"version": 2, "save": "${this.tmpConf}" }\n`);
+                this.confServerChannel.appendLine(saveRequest);
+                this.guiConfigProcess.stdin.write(saveRequest);
+
+                const changesNotSavedMessage = locDic.localize("menuconfig.changesNotSaved",
+                                "Changes in GUI Menuconfig have not been saved. Would you like to save them?");
+                const saveMsg = locDic.localize("menuconfig.save", "Save");
+                const discardMsg = locDic.localize("menuconfig.discard", "Don't save");
+                const returnToGuiconfigMsg = locDic.localize("menuconfig.returnGuiconfig", "Return to GUI Menuconfig");
+
+                const selected = await vscode.window.showInformationMessage(changesNotSavedMessage,
+                    { modal: true },
+                    { title: saveMsg, isCloseAffordance: false },
+                    { title: returnToGuiconfigMsg, isCloseAffordance: false },
+                    { title: discardMsg, isCloseAffordance: true });
+                if (selected.title === saveMsg) {
+                    this._saveGuiConfigValues();
+                } else if (selected.title === returnToGuiconfigMsg) {
+                    this.dispose();
+                    vscode.commands.executeCommand("menuconfig.start");
+                    return;
+                }
+                this._delTmpFileIfExists();
+            }
+            this.dispose();
+        }, null, this.disposables);
 
         this.panel.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
                 case "setDefault":
                     try {
+                        this.areValuesSaved = false;
                         utils.setDefaultConfigFile(curWorkspaceFolder);
-                        this._loadGuiConfigValues();
-                        const loadMessage = locDic.localize("menuconfig.loadDefaultValues",
-                            "Loaded default settings in GUI menuconfig");
-                        vscode.window.showInformationMessage(loadMessage);
+                        this._generateSdkconfigFile(curWorkspaceFolder);
                     } catch (error) {
                         vscode.window.showErrorMessage(error.message);
+                        this._printErrorInOutputChannel(error.message);
                     }
                     return;
                 case "updateValue":
                     try {
+                        this.loadSavedValuesFlag = false;
                         this._updateGuiConfigValues(message.text);
                     } catch (error) {
                         vscode.window.showErrorMessage(error.message);
+                        this._printErrorInOutputChannel(error.message);
                     }
                     return;
                 case "saveChanges":
@@ -85,10 +119,12 @@ export class MenuConfigPanel {
                         vscode.window.showInformationMessage(saveMessage);
                     } catch (error) {
                         vscode.window.showErrorMessage(error.message);
+                        this._printErrorInOutputChannel(error.message);
                     }
                     return;
                 case "discardsChanges":
                     try {
+                        this.loadSavedValuesFlag = true;
                         this._loadGuiConfigValues();
                         const discardMessage = locDic.localize("menuconfig.discardValues",
                             "Discarded changes in GUI menuconfig");
@@ -96,15 +132,17 @@ export class MenuConfigPanel {
 
                     } catch (error) {
                         vscode.window.showErrorMessage(error.message);
+                        this._printErrorInOutputChannel(error.message);
                     }
                     return;
                 case "reqInitValues":
                     try {
-                        this._reqInitValues();
+                        this.checkIfJsonIsReceived();
                     } catch (error) {
                         vscode.window.showErrorMessage(error.message);
                     }
                     return;
+
             }
         });
 
@@ -114,9 +152,12 @@ export class MenuConfigPanel {
     }
 
     public dispose() {
-        MenuConfigPanel.currentPanel = undefined;
         this.guiConfigProcess.stdin.end();
-        this.panel.dispose();
+        this.guiConfigProcess = null;
+
+        if (this.panel) {
+            this.panel.dispose();
+        }
 
         while (this.disposables.length) {
             const disp = this.disposables.pop();
@@ -127,18 +168,7 @@ export class MenuConfigPanel {
         this.confServerChannel.clear();
         this.confServerChannel.dispose();
         this.confServerChannel = null;
-        this.guiConfigProcess = null;
         MenuConfigPanel.currentPanel = null;
-    }
-
-    private _reqInitValues() {
-        const startIndex = this.guiConfigProcessLog.lastIndexOf("\n{\"ranges");
-        const lastIndex = this.guiConfigProcessLog.lastIndexOf("\n");
-        const newValuesString = this.guiConfigProcessLog.substr(startIndex + 1,
-            lastIndex + 2);
-        if (utils.isJson(newValuesString)) {
-            this._setValues(newValuesString);
-        }
     }
 
     private _update(curWorkspaceFolder: vscode.Uri) {
@@ -147,8 +177,17 @@ export class MenuConfigPanel {
 
     private _setValues(values: string) {
         const jsonValues = JSON.parse(values);
+        if (Object.keys(jsonValues.values).length <= 0) {
+            return;
+        } else {
+            if (this.loadSavedValuesFlag) {
+                this.areValuesSaved = true;
+            }
+        }
+
         if (jsonValues.error) {
             this._printErrorInOutputChannel("Invalid data error: " + jsonValues.error);
+            return;
         }
         this.panel.webview.postMessage({command: "new_values", new_values: values});
     }
@@ -180,32 +219,47 @@ export class MenuConfigPanel {
 
         process.env.IDF_TARGET = "";
         process.env.PYTHONUNBUFFERED = "0";
-        this.guiConfigProcess = spawn("python", [idfPyPath, "confserver", "-C", workspaceRoot.fsPath]);
+
+        if (utils.fileExists(this.tmpConf)) {
+            const confserverPath = path.join(guiconfigEspPath, "tools", "kconfig_new", "confserver.py");
+            const kconfigPath = path.join(guiconfigEspPath, "Kconfig");
+            const projDescJsonPath = path.join(this.curWorkspaceFolder, "build", "project_description.json");
+            const projDescJson = JSON.parse(utils.readFileSync(projDescJsonPath));
+            this.guiConfigProcess = spawn("python",
+                [
+                    confserverPath,
+                    "--config", `${this.tmpConf}`,
+                    "--kconfig", `${kconfigPath}`,
+                    "--env", `COMPONENT_KCONFIGS=${projDescJson.config_environment.COMPONENT_KCONFIGS}`,
+                    "--env",
+                    `COMPONENT_KCONFIGS_PROJBUILD=${projDescJson.config_environment.COMPONENT_KCONFIGS_PROJBUILD}`,
+                    "--env", "PYTHONUNBUFFERED = 0",
+                ]);
+            this.areValuesSaved = false;
+        } else {
+            this.guiConfigProcess = spawn("python", [idfPyPath, "confserver", "-C", workspaceRoot.fsPath]);
+        }
 
         this.guiConfigProcess.stdout.on("data", (data) => {
-            this.guiConfigProcessLog += data;
+            this.guiConfigProcessBuffer += data;
 
             if (this.confServerChannel) {
                 this.confServerChannel.appendLine(data.toString());
             }
-
-            const startIndex = this.guiConfigProcessLog.lastIndexOf("\n{\"ranges");
-            const lastIndex = this.guiConfigProcessLog.lastIndexOf("\n");
-            this.guiConfigProcessLog = this.guiConfigProcessLog.substr(startIndex + 1);
-            const newValuesString = this.guiConfigProcessLog.substr(startIndex + 1,
-                lastIndex + 2);
-            if (utils.isJson(newValuesString)) {
-                this.initLayout();
-                this._setValues(newValuesString);
-            }
+            this.checkIfJsonIsReceived();
         });
 
         this.guiConfigProcess.stderr.on("data", (data) => {
-            if (data.toString().includes("Server running, waiting for requests on stdin..") ||
-                    data.toString().includes("Saving config to") || data.toString().includes("Loading config from")) {
-                this.confServerChannel.appendLine(data.toString());
-            } else {
-                this._printErrorInOutputChannel(data.toString());
+            if (utils.isStringNotEmpty(data.toString())) {
+                if (data.toString().includes("Server running, waiting for requests on stdin..") ||
+                    data.toString().includes("Saving config to") || data.toString().includes("Loading config from") ||
+                    data.toString().includes("The following config symbol(s) were not visible so were not updated")) {
+                    if (this.confServerChannel) {
+                        this.confServerChannel.appendLine(data.toString());
+                    }
+                } else {
+                    this._printErrorInOutputChannel(data.toString());
+                }
             }
         });
 
@@ -221,21 +275,66 @@ export class MenuConfigPanel {
         });
     }
 
-    private _updateGuiConfigValues(args: { comp_folder: string, paramName: string, newValue: string }) {
-        const newValueRequest = "{\"version\": \"1\", \"set\": {\"" +
-            args.paramName + "\": " + args.newValue + " } }\n";
+    private _generateSdkconfigFile(workspaceRoot: vscode.Uri) {
+        const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
+        const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
+        const getSdkconfigProcess = spawn("python", [idfPyPath, "reconfigure", "-C", workspaceRoot.fsPath]);
+
+        getSdkconfigProcess.stderr.on("data", (data) => {
+            if (utils.isStringNotEmpty(data.toString())) {
+                this._printErrorInOutputChannel(data.toString());
+            }
+        });
+
+        getSdkconfigProcess.stdout.on("data", (data) => {
+            this.confServerChannel.appendLine(data.toString());
+        });
+        getSdkconfigProcess.on("exit", (code, signal) => {
+            if (code !== 0) {
+                this._printErrorInOutputChannel(
+                    `When loading default values received exit signal: ${signal}, code : ${code}`);
+            }
+            this._loadGuiConfigValues();
+            const loadMessage = locDic.localize("menuconfig.loadDefaultValues",
+                "Loaded default settings in GUI menuconfig");
+            vscode.window.showInformationMessage(loadMessage);
+        });
+    }
+
+    private _updateGuiConfigValues(args: {
+                                            compFolder: string,
+                                            paramName: string,
+                                            newValue: string,
+                                            isModifiedByUser: boolean,
+                                        }) {
+        if (args.newValue == null) {
+            return;
+        }
+        const newValueRequest = `{"version": 2, "set": { "${args.paramName}": ${args.newValue} }}\n`;
         this.confServerChannel.appendLine(newValueRequest);
         this.guiConfigProcess.stdin.write(newValueRequest);
+        if (args.isModifiedByUser) {
+            this.areValuesSaved = false;
+        }
+    }
+
+    private _delTmpFileIfExists() {
+        if (utils.fileExists(this.tmpConf)) {
+            utils.delTmpConfigFile(this.curWorkspaceFolder);
+        }
     }
 
     private _saveGuiConfigValues() {
-        const saveRequest = `{"version": 1, "save": null }\n`;
+        this._delTmpFileIfExists();
+        const saveRequest = JSON.stringify(`{"version": 2, "save": "${this.configFile}" }\n`);
         this.confServerChannel.appendLine(saveRequest);
         this.guiConfigProcess.stdin.write(saveRequest);
+        this.areValuesSaved = true;
     }
 
     private _loadGuiConfigValues() {
-        const loadRequest = `{"version": 1, "load": null }\n`;
+        this._delTmpFileIfExists();
+        const loadRequest = JSON.stringify(`{"version": 2, "load": "${this.configFile}" }\n`);
         this.confServerChannel.appendLine(loadRequest);
         this.guiConfigProcess.stdin.write(loadRequest);
     }
@@ -245,6 +344,21 @@ export class MenuConfigPanel {
         this.confServerChannel.appendLine("---------------------------ERROR--------------------------");
         this.confServerChannel.appendLine("\n" + data);
         this.confServerChannel.appendLine("-----------------------END OF ERROR-----------------------");
+    }
+
+    private checkIfJsonIsReceived() {
+        const newValuesJsonReceived = this.guiConfigProcessBuffer.match(/(\{[.\s\S]*?\}\})/g);
+        if ( newValuesJsonReceived !== null && newValuesJsonReceived.length > 0) {
+            if (utils.fileExists(this.tmpConf)) {
+                setTimeout(() => {
+                    this.initLayout();
+                }, 500);
+            } else {
+                this.initLayout();
+            }
+            const lastIndex = newValuesJsonReceived.length - 1;
+            this._setValues(newValuesJsonReceived[lastIndex]);
+        }
     }
 
 }
