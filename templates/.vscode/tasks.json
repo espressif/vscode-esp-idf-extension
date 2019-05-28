@@ -44,7 +44,7 @@
         {
             "label": "Flash - Flash the device",
             "type": "shell",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py flash -p ${config:idf.port} -b ${config:idf.baudRate}",
+            "command": "${env:HOME}/esp/esp-idf/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} flash",
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -62,7 +62,7 @@
             "label": "Monitor: Start the monitor",
             "type": "shell",
             "dependsOn": "Flash - Flash the device",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py monitor -p ${config:idf.port} -b ${config:idf.baudRate}"
+            "command": "${env:HOME}/esp/esp-idf/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor"
         },
         {
             "label":"OpenOCD: Start openOCD",
