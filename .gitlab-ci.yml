@@ -78,6 +78,6 @@ deploy_github:
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     - git remote remove github &>/dev/null || true
-    - git remote add github git@github.com:espressif/{VSCODE_ESP_IDF_REPO}.git
+    - git remote add github git@github.com:espressif/${VSCODE_ESP_IDF_REPO}.git
     - ./push_to_github.sh
   when: manual
