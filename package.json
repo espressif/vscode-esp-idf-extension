@@ -32,6 +32,7 @@
     "onCommand:espIdf.monitorDevice",
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
+    "onCommand:espIdf.size",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig"
   ],
@@ -75,6 +76,11 @@
         "command": "espIdf.buildFlashMonitor",
         "key": "ctrl+e d",
         "mac": "cmd+e d"
+      },
+      {
+        "command": "espIdf.size",
+        "key": "ctrl+e s",
+        "mac": "cmd+e s"
       }
     ],
     "configuration": [
@@ -224,6 +230,10 @@
       {
         "command": "espIdf.pickAWorkspaceFolder",
         "title": "%espIdf.pickAWorkspaceFolder.title%"
+      },
+      {
+        "command": "espIdf.size",
+        "title": "%espIdf.size.title%"
       }
     ],
     "debuggers": [
