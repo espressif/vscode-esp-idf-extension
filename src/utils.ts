@@ -3,6 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import { LocDictionary } from "./localizationDictionary";
+import * as childProcess from "child_process";
 const extensionName = __dirname.replace(path.sep + "out", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary("utils");
@@ -11,6 +12,34 @@ const currentFolderMsg = locDic.localize("utils.currentFolder", "IDF Current Pro
 export function isFolderOpen() {
     return vscode.workspace.workspaceFolders !== undefined
     && vscode.workspace.workspaceFolders.length > 0;
+}
+
+
+export function spawn(command: string, outputChannel: vscode.OutputChannel, args: string[] = [], options: any = {}): Thenable<object> {
+    const sendToOutputChannel = (data : Buffer) => {
+        outputChannel.append(data.toString());
+    };
+    return new Promise((resolve, reject) => {
+        const stdout = "";
+        const stderr = "";
+        options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
+        const child = childProcess.spawn(command, args, options);
+
+        if (outputChannel) {
+            child.stdout.on("data", sendToOutputChannel);
+            child.stderr.on("data", sendToOutputChannel);
+        }
+
+        child.on("error", (error) => reject({ error, stderr, stdout }));
+
+        child.on("exit", (code) => {
+            if (code === 0) {
+                resolve({ code, stdout, stderr });
+            } else {
+                reject({ code, stdout, stderr });
+            }
+        });
+    });
 }
 
 export function updateStatus(

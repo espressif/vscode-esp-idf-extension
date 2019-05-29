@@ -10,6 +10,7 @@
 	"espIdf.monitorDevice.title": "ESP-IDF: Monitorear el dispositivo",
 	"espIdf.buildFlashMonitor.title": "ESP-IDF: Construir, Programar y empezar monitor de dispositivo",
 	"espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Elige una carpeta de trabajo",
+	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
 	"debug.initConfig.name": "Lanzar ESP-IDF:",
 	"debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
 	"param.board": "Tarjeta para OpenOCD",

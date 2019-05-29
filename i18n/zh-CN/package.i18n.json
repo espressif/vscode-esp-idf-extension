@@ -10,6 +10,7 @@
 	"espIdf.monitorDevice.title": "ESP-IDF: Monitor your device.",
 	"espIdf.buildFlashMonitor.title": "ESP-IDF: Build, Flash and start a monitor on your device",
 	"espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Pick a workspace folder",
+	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
 	"debug.initConfig.name": "ESP-IDF: Launch",
 	"debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
 	"param.board": "Board for OpenOCD",

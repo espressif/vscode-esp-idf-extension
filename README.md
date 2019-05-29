@@ -146,6 +146,7 @@ Type ESP-IDF to see possible actions.
     1. ESP Path. Set the ESP-IDF directory path (default: /esp/esp-idf).
     2. Xtensa-ESP32 Path. Set the Xtensa-ESP32 path (default: /esp/xtensa-esp32-elf).
     3. OpenOCD Path. Set the OpenOCD path directory (default: /esp/openocd).
+11. ESP-IDF: Size analysis of the binaries
 
 ## Keyboard shortcuts
 
@@ -162,6 +163,8 @@ ESP-IDF: Monitor your device: `ctrl+e m` in Windows/Linux or `cmd+e m` in MacOS.
 ESP-IDF: Select port to use: `ctrl+e p` in Windows/Linux or `cmd+e p` in MacOS.
 
 ESP-IDF: Build, Flash and start a monitor on your device: `ctrl+e d` in Windows/Linux or `cmd+e d` in MacOS.
+
+ESP-IDF: Size analysis of the binaries: `ctrl+e s` in Windows/Linux or `cmd+e s` in MacOS.
 
 All the previous keyboard shortcut can be modified on Visual Studio Code by clicking F1 and typing `Preferences: Open Keyboard Shortcuts` or by manually defining a keybindings.json in your current workspace `.vscode` directory.
 

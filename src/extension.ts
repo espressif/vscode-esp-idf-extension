@@ -364,6 +364,16 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
     context.subscriptions.push(disposable);
+
+    //register for the idf_size.py
+    disposable = vscode.commands.registerCommand("espIdf.size", ()=>{
+        if (!utils.isFolderOpen()) {
+            vscode.window.showInformationMessage(openFolderMsg);
+            return;
+        }
+        idfSizeFacade()
+    });
+    context.subscriptions.push(disposable);
 }
 
 function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false) {
@@ -545,6 +555,44 @@ export function startOpenOcdServer() {
             isMainProcessRunning = false;
         }
     }
+}
+
+function idfSizeFacade(){
+    const projectName = idfConf.readParameter("idf.projectName", workspaceRoot);
+    const mapFilePath = path.join(workspaceRoot.fsPath, 'build', `${projectName}.map`);
+    const mapFileDontExistsErrorMessage = locDic.localize("extension.mapFileDontExistsErrorMessage", "Build is required for a size analysis, build your project first");
+
+    if (!utils.fileExists(mapFilePath)) {
+        vscode.window.showErrorMessage(mapFileDontExistsErrorMessage)
+        return
+    }
+    
+    if (idfChannel === undefined) {
+        idfChannel = vscode.window.createOutputChannel("ESP-IDF");
+    }
+
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: Size analyzing..."
+    }, async ()=>{
+        try {
+            idfChannel.show()
+            idfChannel.clear()
+            await calculateIDFBinarySize(mapFilePath, idfChannel)
+        } catch (error) {
+            console.log(`Something went wrong while retriving the size of the binaries, please see the error below\n${error}`)
+            vscode.window.showErrorMessage("Something went wrong while retriving the size for the binaries!")
+        }
+    })
+}
+
+async function calculateIDFBinarySize(mapFilePath : string, channel : vscode.OutputChannel){
+    const command = `python`
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
+    const idfPath = path.join(idfPathDir, "tools");
+    await utils.spawn(command, channel, ['idf_size.py', mapFilePath], {
+        cwd: idfPath
+    })
 }
 
 export function endOpenOcdServer() {
