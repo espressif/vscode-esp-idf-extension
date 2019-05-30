@@ -63,9 +63,10 @@ export class MenuConfigPanel {
 
         this.panel.onDidDispose(async () => {
             if (!this.areValuesSaved) {
-                const saveRequest = JSON.stringify(`{"version": 2, "save": "${this.tmpConf}" }\n`);
+                const saveRequest = JSON.stringify({ version: 2, save: this.tmpConf });
                 this.confServerChannel.appendLine(saveRequest);
                 this.guiConfigProcess.stdin.write(saveRequest);
+                this.guiConfigProcess.stdin.write("\n");
 
                 const changesNotSavedMessage = locDic.localize("menuconfig.changesNotSaved",
                                 "Changes in GUI Menuconfig have not been saved. Would you like to save them?");
@@ -216,7 +217,6 @@ export class MenuConfigPanel {
         if (!process.env.PATH.includes(xtensaEsp32Path)) {
             process.env.PATH = xtensaEsp32Path + path.delimiter + process.env.PATH;
         }
-
         process.env.IDF_TARGET = "";
         process.env.PYTHONUNBUFFERED = "0";
 
@@ -225,15 +225,16 @@ export class MenuConfigPanel {
             const kconfigPath = path.join(guiconfigEspPath, "Kconfig");
             const projDescJsonPath = path.join(this.curWorkspaceFolder, "build", "project_description.json");
             const projDescJson = JSON.parse(utils.readFileSync(projDescJsonPath));
+
+            process.env.COMPONENT_KCONFIGS =
+                projDescJson.config_environment.COMPONENT_KCONFIGS.replace(/(;)/g, " ");
+            process.env.COMPONENT_KCONFIGS_PROJBUILD =
+                projDescJson.config_environment.COMPONENT_KCONFIGS_PROJBUILD.replace(/(;)/g, " ");
             this.guiConfigProcess = spawn("python",
                 [
                     confserverPath,
                     "--config", `${this.tmpConf}`,
                     "--kconfig", `${kconfigPath}`,
-                    "--env", `COMPONENT_KCONFIGS=${projDescJson.config_environment.COMPONENT_KCONFIGS}`,
-                    "--env",
-                    `COMPONENT_KCONFIGS_PROJBUILD=${projDescJson.config_environment.COMPONENT_KCONFIGS_PROJBUILD}`,
-                    "--env", "PYTHONUNBUFFERED = 0",
                 ]);
             this.areValuesSaved = false;
         } else {
