@@ -12,45 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as childProcess from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import { LocDictionary } from "./localizationDictionary";
-import * as childProcess from "child_process";
 const extensionName = __dirname.replace(path.sep + "out", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary("utils");
 const currentFolderMsg = locDic.localize("utils.currentFolder", "ESP-IDF Current Project");
 
-export function isFolderOpen() {
-    return vscode.workspace.workspaceFolders !== undefined
-    && vscode.workspace.workspaceFolders.length > 0;
+export class PreCheck {
+    public static perform(preCheckFn: () => boolean, failureMessage: string, proceed: () => any): any {
+        if (preCheckFn()) {
+            return proceed();
+        }
+        vscode.window.showErrorMessage(failureMessage);
+    }
+    public static isWorkspaceFolderOpen(): boolean {
+        return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+    }
 }
 
-
-export function spawn(command: string, outputChannel: vscode.OutputChannel, args: string[] = [], options: any = {}): Thenable<object> {
-    const sendToOutputChannel = (data : Buffer) => {
-        outputChannel.append(data.toString());
+export function spawn(command: string, args: string[] = [], options: any = {}): Promise<Buffer> {
+    let buff = Buffer.alloc(0);
+    const sendToOutputChannel = (data: Buffer) => {
+        buff = Buffer.concat([buff, data]);
     };
     return new Promise((resolve, reject) => {
-        const stdout = "";
-        const stderr = "";
         options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
         const child = childProcess.spawn(command, args, options);
 
-        if (outputChannel) {
-            child.stdout.on("data", sendToOutputChannel);
-            child.stderr.on("data", sendToOutputChannel);
-        }
+        child.stdout.on("data", sendToOutputChannel);
+        child.stderr.on("data", sendToOutputChannel);
 
-        child.on("error", (error) => reject({ error, stderr, stdout }));
+        child.on("error", (error) => reject({ error }));
 
         child.on("exit", (code) => {
             if (code === 0) {
-                resolve({ code, stdout, stderr });
+                resolve(buff);
             } else {
-                reject({ code, stdout, stderr });
+                reject({ error : new Error("non zero exit code " + code) });
             }
         });
     });
