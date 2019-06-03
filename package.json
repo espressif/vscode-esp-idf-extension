@@ -33,6 +33,8 @@
     "onCommand:espIdf.monitorDevice",
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
+    "onCommand:espIdf.cleanProject",
+    "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig"
@@ -231,6 +233,14 @@
       {
         "command": "espIdf.pickAWorkspaceFolder",
         "title": "%espIdf.pickAWorkspaceFolder.title%"
+      },
+      {
+        "command": "espIdf.cleanProject",
+        "title": "%espIdf.cleanProject.title%"
+      },
+      {
+        "command": "espIdf.eraseFlash",
+        "title": "%espIdf.eraseFlash.title%"
       },
       {
         "command": "espIdf.size",
