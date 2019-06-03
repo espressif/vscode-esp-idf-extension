@@ -473,7 +473,7 @@ function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false
         process.env.IDF_PATH = idfPathDir;
     }
 
-    const args = [].concat(idfPath, target, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath);
+    const args = [].concat(idfPath, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath, target);
     if (mainProcess === undefined) {
         mainProcess = spawn(
             "python",

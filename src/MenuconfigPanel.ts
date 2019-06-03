@@ -252,7 +252,7 @@ export class MenuConfigPanel {
                 ]);
             this.areValuesSaved = false;
         } else {
-            this.guiConfigProcess = spawn("python", [idfPyPath, "confserver", "-C", workspaceRoot.fsPath]);
+            this.guiConfigProcess = spawn("python", [idfPyPath, "-C", workspaceRoot.fsPath, "confserver"]);
         }
 
         this.guiConfigProcess.stdout.on("data", (data) => {
@@ -293,7 +293,7 @@ export class MenuConfigPanel {
     private _generateSdkconfigFile(workspaceRoot: vscode.Uri) {
         const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
         const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-        const getSdkconfigProcess = spawn("python", [idfPyPath, "reconfigure", "-C", workspaceRoot.fsPath]);
+        const getSdkconfigProcess = spawn("python", [idfPyPath, "-C", workspaceRoot.fsPath, "reconfigure"]);
 
         getSdkconfigProcess.stderr.on("data", (data) => {
             if (utils.isStringNotEmpty(data.toString())) {
