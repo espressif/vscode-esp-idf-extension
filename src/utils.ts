@@ -21,7 +21,7 @@ import * as childProcess from "child_process";
 const extensionName = __dirname.replace(path.sep + "out", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary("utils");
-const currentFolderMsg = locDic.localize("utils.currentFolder", "IDF Current Project");
+const currentFolderMsg = locDic.localize("utils.currentFolder", "ESP-IDF Current Project");
 
 export function isFolderOpen() {
     return vscode.workspace.workspaceFolders !== undefined
@@ -63,8 +63,8 @@ export function updateStatus(
         tooltip: string,
         clickCommand: string,
     }): void {
-        status.text = info ? `$(file-submodule) ${currentFolderMsg}: ${info.currentWorkSpace}` : void 0;
-        status.tooltip = info ? info.tooltip : void 0;
+        status.text = info ? `$(file-submodule)` : void 0;
+        status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
         status.command = info ? info.clickCommand : void 0;
 
         if (info) {

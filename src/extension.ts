@@ -47,6 +47,9 @@ export function activate(context: vscode.ExtensionContext) {
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000000);
     context.subscriptions.push(status);
 
+    // Status Bar Item with common commands
+    creatCmdsStatusBarItems();
+
     if (utils.isFolderOpen()) {
         workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
         projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
@@ -54,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
         const workspaceFolderInfo = {
             clickCommand: "espIdf.pickAWorkspaceFolder",
             currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
-            tooltip: vscode.workspace.workspaceFolders[0].uri.path,
+            tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
         };
         utils.updateStatus(status, workspaceFolderInfo);
     }
@@ -344,6 +347,16 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposable);
 
+    disposable = vscode.commands.registerCommand("espIdf.cleanProject", () => {
+        buildOrFlash("fullclean");
+    });
+    context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand("espIdf.eraseFlash", () => {
+        buildOrFlash("erase_flash");
+    });
+    context.subscriptions.push(disposable);
+
     const debugProvider = new IdfDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider("cppdbg", debugProvider));
 
@@ -388,6 +401,44 @@ export function activate(context: vscode.ExtensionContext) {
         idfSizeFacade()
     });
     context.subscriptions.push(disposable);
+}
+
+function creatCmdsStatusBarItems() {
+    const guiconfigStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 101);
+    guiconfigStatusItem.text = "$(gear)";
+    guiconfigStatusItem.tooltip = "ESP-IDF Launch GUI Configuration tool";
+    guiconfigStatusItem.command = "menuconfig.start";
+    guiconfigStatusItem.show();
+    const buildStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    buildStatusItem.text = "$(database)";
+    buildStatusItem.tooltip = "ESP-IDF Build project";
+    buildStatusItem.command = "espIdf.buildDevice";
+    buildStatusItem.show();
+    const flashStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+    flashStatusItem.text = "$(zap)";
+    flashStatusItem.tooltip = "ESP-IDF Flash device";
+    flashStatusItem.command = "espIdf.flashDevice";
+    flashStatusItem.show();
+    const monitorStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
+    monitorStatusItem.text = "$(device-desktop)";
+    monitorStatusItem.tooltip = "ESP-IDF Monitor device";
+    monitorStatusItem.command = "espIdf.monitorDevice";
+    monitorStatusItem.show();
+    const selectPortStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 97);
+    selectPortStatusItem.text = "$(plug)";
+    selectPortStatusItem.tooltip = "ESP-IDF Select device port";
+    selectPortStatusItem.command = "espIdf.selectPort";
+    selectPortStatusItem.show();
+    const cleanProjectStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 96);
+    cleanProjectStatusItem.text = "$(paintcan)";
+    cleanProjectStatusItem.tooltip = "ESP-IDF Full Clean project";
+    cleanProjectStatusItem.command = "espIdf.cleanProject";
+    cleanProjectStatusItem.show();
+    const eraseFlashStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 95);
+    eraseFlashStatusItem.text = "$(trashcan)";
+    eraseFlashStatusItem.tooltip = "ESP-IDF Erase flash";
+    eraseFlashStatusItem.command = "espIdf.eraseFlash";
+    eraseFlashStatusItem.show();
 }
 
 function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false) {
