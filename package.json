@@ -3,6 +3,7 @@
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
   "galleryBanner": {
