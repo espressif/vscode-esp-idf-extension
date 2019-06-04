@@ -567,7 +567,7 @@ function idfSizeFacade() {
             idfChannel.append(buff.toString());
         } catch (error) {
             Logger.error("Something went wrong while retrieving the size of the binaries", error);
-            vscode.window.showErrorMessage("Something went wrong while retrieving the size for the binaries!")
+            vscode.window.showErrorMessage("Something went wrong while retrieving the size for the binaries!");
         }
     });
 }

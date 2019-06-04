@@ -1,4 +1,5 @@
 stages:
+  - lint
   - test
   - build
   - deploy
@@ -13,9 +14,17 @@ before_script:
   - unset ALL_PROXY
   - npm install
 
+typescript_lint_test:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: lint
+  tags:
+    - lint
+  script:
+    - npm run tslint
+
 javascript_lint_test:
   image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
-  stage: test
+  stage: lint
   tags:
   - build
   script:

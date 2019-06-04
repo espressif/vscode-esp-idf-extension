@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
+import { Logger } from "../../logger/logger";
 import { PreCheck, spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
@@ -38,7 +39,7 @@ export class SerialPort {
             }
         } catch (error) {
             vscode.window.showErrorMessage(`Something went wrong while getting the serial port list`);
-            console.error(`Something went wrong while getting the serial port list.\n${error}`);
+            Logger.error("Something went wrong while getting the serial port list", error);
         }
     }
 

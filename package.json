@@ -319,6 +319,7 @@
     "ms-vscode.cpptools"
   ],
   "scripts": {
+    "tslint": "tslint -c tslint.json -p .",
     "vscode:prepublish": "npm run compile",
     "compile": "./node_modules/.bin/tsc -p ./",
     "watch": "./node_modules/.bin/tsc -watch -p ./",
