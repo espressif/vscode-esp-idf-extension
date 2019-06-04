@@ -7,3 +7,4 @@ node_modules
 *.vsix
 !i18n/*/out
 package.nls.*.json
+*.log
