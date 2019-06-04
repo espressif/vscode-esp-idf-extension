@@ -21,6 +21,7 @@ import { SerialPort } from "./espIdf/serial/serialPort";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
+import { Logger } from "./logger/logger";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
@@ -43,6 +44,7 @@ const locDic = new LocDictionary("extension");
 const openFolderMsg = locDic.localize("extension.openFolderFirst", "Open a folder first.");
 
 export function activate(context: vscode.ExtensionContext) {
+    Logger.init(context);
 
     const registerIDFCommand =
         (name: string, callback: (...args: any[]) => any): number => {
@@ -564,8 +566,8 @@ function idfSizeFacade() {
             const buff = await calculateIDFBinarySize(mapFilePath);
             idfChannel.append(buff.toString());
         } catch (error) {
-            console.log(`Something went wrong while retriving the size of the binaries, please see the error below\n${error}`);
-            vscode.window.showErrorMessage("Something went wrong while retriving the size for the binaries!");
+            Logger.error("Something went wrong while retrieving the size of the binaries", error);
+            vscode.window.showErrorMessage("Something went wrong while retrieving the size for the binaries!")
         }
     });
 }
