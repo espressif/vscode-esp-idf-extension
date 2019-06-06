@@ -14,6 +14,16 @@ before_script:
   - unset ALL_PROXY
   - npm install
 
+copyright_lint_test:
+  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  stage: lint
+  tags:
+    - lint
+  before_script:
+    - echo "Skipping before_script"
+  script:
+    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib -e js ts py
+
 typescript_lint_test:
   image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
   stage: lint
@@ -26,7 +36,7 @@ javascript_lint_test:
   image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
   stage: lint
   tags:
-  - build
+    - lint
   script:
   - npm add eslint
   - ./node_modules/.bin/eslint menuconfig/init.js
