@@ -46,6 +46,25 @@ javascript_lint_test:
   - ./node_modules/.bin/eslint menuconfig/js/koCustomComponents.js
   - ./node_modules/.bin/eslint menuconfig/js/HtmlFormatter.js
 
+python_lint_test:
+  image: $CI_DOCKER_REGISTRY/ubuntu-test-env
+  stage: lint
+  tags:
+    - build
+  artifacts:
+    when: on_failure
+    paths:
+      - flake8_output.txt
+      - bandit_output.txt
+    expire_in: 1 week
+  before_script:
+    - source /opt/pyenv/activate 
+    - pyenv global 2.7.15 
+    - python -m pip install bandit flake8
+  script:
+    - python -m bandit -r -f txt -o bandit_output.txt .
+    - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee 
+
 javascript_test:
   image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
   stage: test
