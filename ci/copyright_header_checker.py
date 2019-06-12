@@ -27,7 +27,7 @@ EXCLUDE_DIRS = ['node_modules']
 DEFAULT_EXTENSIONS = ["js", "ts", "py"]
 
 COPYRIGHT_REGEX = re.compile(r"Copyright [0-9]{4} Espressif Systems \(Shanghai\) CO\.? LTD\.?",
-                             flags=(re.MULTILINE | re.IGNORECASE))
+                             flags=re.MULTILINE | re.IGNORECASE)
 
 
 def contain_copyright_message(file_path):
