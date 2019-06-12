@@ -6,7 +6,7 @@ stages:
 
 cache:
   paths:
-  - node_modules
+    - node_modules
 
 before_script:
   - test ! -z "$CI_NPM_REGISTRY" && npm config set registry $CI_NPM_REGISTRY || true
@@ -15,7 +15,7 @@ before_script:
   - npm install
 
 copyright_lint_test:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: lint
   tags:
     - lint
@@ -25,7 +25,7 @@ copyright_lint_test:
     - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib -e js ts py
 
 typescript_lint_test:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: lint
   tags:
     - lint
@@ -33,18 +33,31 @@ typescript_lint_test:
     - npm run tslint
 
 javascript_lint_test:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: lint
   tags:
     - lint
   script:
-  - npm add eslint
-  - ./node_modules/.bin/eslint menuconfig/init.js
-  - ./node_modules/.bin/eslint menuconfig/js/viewModels/ConfigViewModel.js
-  - ./node_modules/.bin/eslint menuconfig/js/viewModels/MenuViewModel.js
-  - ./node_modules/.bin/eslint menuconfig/js/viewModels/ParamViewModel.js
-  - ./node_modules/.bin/eslint menuconfig/js/koCustomComponents.js
-  - ./node_modules/.bin/eslint menuconfig/js/HtmlFormatter.js
+    - npm run eslint
+
+python_lint_test:
+  image: $CI_DOCKER_REGISTRY/ubuntu-test-env
+  stage: lint
+  tags:
+    - build
+  artifacts:
+    when: on_failure
+    paths:
+      - flake8_output.txt
+      - bandit_output.txt
+    expire_in: 1 week
+  before_script:
+    - source /opt/pyenv/activate 
+    - pyenv global 2.7.15 
+    - python -m pip install bandit flake8
+  script:
+    - python -m bandit -r -f txt -o bandit_output.txt .
+    - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee 
 
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
@@ -66,15 +79,15 @@ python_lint_test:
     - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee 
 
 javascript_test:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: test
   tags:
-  - build
+    - build
   script:
-  - ./node_modules/mocha/bin/mocha menuconfig/js/test/htmlFormatterTest.js
+    - npm run mocha_test
 
 build_tar:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: build
   tags:
     - build
@@ -89,7 +102,7 @@ build_tar:
     - cd $CI_PROJECT_NAME
 
 build_vsix:
-  image: $CI_DOCKER_REGISTRY/electron_userland_builder:9
+  image: electronuserland/builder:11
   stage: build
   tags:
     - build

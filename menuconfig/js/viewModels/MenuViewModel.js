@@ -24,9 +24,12 @@ define(['knockout', 'ParamsViewModel'], (ko, ParamsViewModel) => function MenuVi
   this.title = ko.observable();
   this.chosenValue = ko.observable();
 
-  this.menuChildren = ko.pureComputed(() =>
-    ko.utils.arrayFilter(this.submenues(), submenu => submenu.selectedType() === 'menu' &&
-      submenu.isMenuVisible()).length);
+  this.menuChildren = ko.pureComputed(
+    () => ko.utils.arrayFilter(
+      this.submenues(),
+      submenu => submenu.selectedType() === 'menu' && submenu.isMenuVisible(),
+    ).length,
+  );
 
   this.collapse = function collapse() {
     this.isCollapsed(!this.isCollapsed());
@@ -41,7 +44,10 @@ define(['knockout', 'ParamsViewModel'], (ko, ParamsViewModel) => function MenuVi
     const menuList = ko.observableArray();
 
     Object.keys(menuJson).forEach((key) => {
-      if (Object.prototype.hasOwnProperty.call(menuJson[key], 'children') && menuJson[key].children.length > 0) {
+      if (
+        Object.prototype.hasOwnProperty.call(menuJson[key], 'children')
+          && menuJson[key].children.length > 0
+      ) {
         const menu = new MenuViewModel();
         menu.title(menuJson[key].title);
         menu.nameId(menuJson[key].title.replace(/ /g, '').replace('++', ''));
@@ -58,7 +64,10 @@ define(['knockout', 'ParamsViewModel'], (ko, ParamsViewModel) => function MenuVi
           menu.name(menuJson[key].name);
         }
 
-        if (Object.prototype.hasOwnProperty.call(menuJson[key], 'children') && menuJson[key].children.length > 0) {
+        if (
+          Object.prototype.hasOwnProperty.call(menuJson[key], 'children')
+            && menuJson[key].children.length > 0
+        ) {
           Object.keys(menuJson[key].children).forEach((submenu) => {
             const item = menuJson[key].children[submenu];
             const paramVM = new ParamsViewModel();
