@@ -14,7 +14,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import * as vscode from "vscode";
+import { Logger } from "./logger/logger";
 
 export class LocDictionary {
     private dictionary;
@@ -28,7 +28,7 @@ export class LocDictionary {
             try {
                 this.dictionary = JSON.parse(fs.readFileSync(locJsonPath).toString());
             } catch (error) {
-                vscode.window.showErrorMessage("Localization file error.");
+                Logger.errorNotify("Localization file error.", error);
             }
         }
     }

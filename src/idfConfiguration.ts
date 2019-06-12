@@ -14,6 +14,7 @@
 
 import * as vscode from "vscode";
 import { LocDictionary } from "./localizationDictionary";
+import { Logger } from "./logger/logger";
 
 const locDic = new LocDictionary("idfConfiguration");
 
@@ -49,7 +50,7 @@ export function updateConfParameter(confParamName, confParamDescription,
             if (newValue !== undefined || newValue !== "") {
                     writeParameter(confParamName, newValue, workspaceUri);
                     const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
-                    vscode.window.showInformationMessage(label + updateMessage);
+                    Logger.infoNotify(label + updateMessage);
                     resolve(newValue);
                 } else {
                     reject(newValue);

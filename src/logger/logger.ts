@@ -18,6 +18,7 @@
 
 import * as vscode from "vscode";
 import * as winston from "winston";
+import UserNotificationManagerTransport from "../userNotificationManager/userNotificationManager";
 
 export class Logger {
 
@@ -26,14 +27,38 @@ export class Logger {
         return Logger.instance;
     }
 
+    public static infoNotify(message: string, metadata?: any) {
+        if (!metadata) {
+            metadata = {};
+        }
+        metadata.user = true;
+        Logger.info(message, metadata);
+    }
+
     public static info(message: string, metadata?: any) {
         Logger.checkInitialized();
         winston.info(message, metadata);
     }
 
+    public static warnNotify(message: string, metadata?: any) {
+        if (!metadata) {
+            metadata = {};
+        }
+        metadata.user = true;
+        Logger.warn(message, metadata);
+    }
+
     public static warn(message: string, metadata?: any) {
         Logger.checkInitialized();
         winston.warn(message, metadata);
+    }
+
+    public static errorNotify(message: string, error: Error, metadata?: any) {
+        if (!metadata) {
+            metadata = {};
+        }
+        metadata.user = true;
+        Logger.error(message, error, metadata);
     }
 
     public static error(message: string, error: Error, metadata?: any) {
@@ -57,6 +82,9 @@ export class Logger {
                 new (winston.transports.File)({
                     filename: context.asAbsolutePath(this.LOG_FILE_NAME),
                     level: "warn",
+                }),
+                new UserNotificationManagerTransport({
+                    level: "info",
                 }),
             ],
         });

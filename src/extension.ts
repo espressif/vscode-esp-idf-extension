@@ -99,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
             utils.createSkeleton(workspaceRoot.fsPath, option.target);
             const defaultFoldersMsg = locDic.localize("extension.defaultFoldersGeneratedMessage",
                 "Default folders were generated.");
-            vscode.window.showInformationMessage(defaultFoldersMsg);
+            Logger.infoNotify(defaultFoldersMsg);
         });
     });
 
@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
                     if (option === undefined) {
                         const noFolderMsg = locDic.localize("extension.noFolderMessage",
                             "No workspace selected.");
-                        vscode.window.showInformationMessage(noFolderMsg);
+                        Logger.infoNotify(noFolderMsg);
                         return;
                     } else {
                         workspaceRoot = option.uri;
@@ -147,7 +147,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (option === undefined) {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
-                    vscode.window.showInformationMessage(noOptionMsg);
+                    Logger.infoNotify(noOptionMsg);
                     return;
                 }
                 let currentValue;
@@ -189,7 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
                     default:
                         const noPathUpdatedMsg = locDic.localize("extension.noPathUpdatedMessage",
                             "No path has been updated");
-                        vscode.window.showInformationMessage(noPathUpdatedMsg);
+                        Logger.infoNotify(noPathUpdatedMsg);
                         break;
                 }
             });
@@ -212,7 +212,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (option === undefined) {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
-                    vscode.window.showInformationMessage(noOptionMsg);
+                    Logger.infoNotify(noOptionMsg);
                     return;
                 }
                 let currentValue;
@@ -264,7 +264,7 @@ export function activate(context: vscode.ExtensionContext) {
                     default:
                         const noParamUpdatedMsg = locDic.localize("extension.noParamUpdatedMessage",
                             "No device parameter has been updated");
-                        vscode.window.showInformationMessage(noParamUpdatedMsg);
+                        Logger.infoNotify(noParamUpdatedMsg);
                         break;
                 }
             });
@@ -284,7 +284,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.createVsCodeFolder", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
             utils.createVscodeFolder(workspaceRoot.fsPath);
-            vscode.window.showInformationMessage("ESP-IDF VSCode files have been added to project.");
+            Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
         });
     });
 
@@ -298,7 +298,7 @@ export function activate(context: vscode.ExtensionContext) {
             utils.setDefaultConfigFile(workspaceRoot);
             const defaultSdkconfigGeneratedMsg = locDic.localize("extension.defaultSdkconfigGeneratedMessage",
                 "Default sdkconfig file restored.");
-            vscode.window.showInformationMessage(defaultSdkconfigGeneratedMsg);
+            Logger.infoNotify(defaultSdkconfigGeneratedMsg);
         });
     });
 
@@ -437,7 +437,7 @@ function createMonitor(): any {
         if (mainProcess !== undefined) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
-            vscode.window.showErrorMessage(waitProcessIsFinishedMsg);
+            Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
             return;
         }
 
@@ -477,7 +477,7 @@ function updateProjName() {
 
     fs.readFile(projDescPath, (err, data) => {
         if (err) {
-            vscode.window.showErrorMessage(err.message);
+            Logger.errorNotify(err.message, err);
             return;
         }
         const projDescJson = JSON.parse(data.toString());
@@ -548,7 +548,7 @@ function idfSizeFacade() {
         "Build is required for a size analysis, build your project first");
 
     if (!utils.fileExists(mapFilePath)) {
-        vscode.window.showErrorMessage(mapFileDontExistsErrorMessage);
+        Logger.errorNotify(mapFileDontExistsErrorMessage, new Error("FILE_NOT_FOUND"));
         return;
     }
 
@@ -566,8 +566,7 @@ function idfSizeFacade() {
             const buff = await calculateIDFBinarySize(mapFilePath);
             idfChannel.append(buff.toString());
         } catch (error) {
-            Logger.error("Something went wrong while retrieving the size of the binaries", error);
-            vscode.window.showErrorMessage("Something went wrong while retrieving the size for the binaries!");
+            Logger.errorNotify("Something went wrong while retrieving the size of the binaries", error);
         }
     });
 }
