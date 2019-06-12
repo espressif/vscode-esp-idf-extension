@@ -56,8 +56,7 @@ export class SerialPort {
                 this.updatePortListStatus(chosen.label);
             }
         } catch (error) {
-            vscode.window.showErrorMessage(`Something went wrong while getting the serial port list`);
-            Logger.error("Something went wrong while getting the serial port list", error);
+            Logger.errorNotify("Something went wrong while getting the serial port list", error);
         }
     }
 
@@ -67,7 +66,7 @@ export class SerialPort {
             idfConf.writeParameter("idf.port", l, workspaceRoot);
             const portHasBeenSelectedMsg = this.locDic.localize("serial.portHasBeenSelectedMessage",
                 "Port has been updated to ");
-            vscode.window.showInformationMessage(portHasBeenSelectedMsg + l);
+            Logger.infoNotify(portHasBeenSelectedMsg + l);
         });
     }
 

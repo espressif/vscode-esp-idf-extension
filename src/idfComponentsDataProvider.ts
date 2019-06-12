@@ -17,6 +17,7 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
+import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 const locDic = new LocDictionary("idfComponentsDataProvider");
 
@@ -93,8 +94,8 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 
             return sortedUserList.concat(sortedDefaultList);
         } else {
-            vscode.window.showErrorMessage(locDic.localize("idfComponentDataProvider.proj_desc_not_found",
-                 "File project_description.json cannot be found."));
+            Logger.errorNotify(locDic.localize("idfComponentDataProvider.proj_desc_not_found",
+            "File project_description.json cannot be found."), new Error("File-Not-Found"));
             return null;
         }
     }

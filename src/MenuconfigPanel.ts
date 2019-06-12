@@ -17,6 +17,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
+import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import * as webviewContentGen from "./webViewContent";
 
@@ -113,7 +114,7 @@ export class MenuConfigPanel {
                         utils.setDefaultConfigFile(curWorkspaceFolder);
                         this._generateSdkconfigFile(curWorkspaceFolder);
                     } catch (error) {
-                        vscode.window.showErrorMessage(error.message);
+                        Logger.errorNotify(error.message, error);
                         this._printErrorInOutputChannel(error.message);
                     }
                     return;
@@ -122,7 +123,7 @@ export class MenuConfigPanel {
                         this.loadSavedValuesFlag = false;
                         this._updateGuiConfigValues(message.text);
                     } catch (error) {
-                        vscode.window.showErrorMessage(error.message);
+                        Logger.errorNotify(error.message, error);
                         this._printErrorInOutputChannel(error.message);
                     }
                     return;
@@ -131,9 +132,9 @@ export class MenuConfigPanel {
                         this._saveGuiConfigValues();
                         const saveMessage = locDic.localize("menuconfig.saveValues",
                             "Saved changes in GUI menuconfig");
-                        vscode.window.showInformationMessage(saveMessage);
+                        Logger.infoNotify(saveMessage);
                     } catch (error) {
-                        vscode.window.showErrorMessage(error.message);
+                        Logger.errorNotify(error.message, error);
                         this._printErrorInOutputChannel(error.message);
                     }
                     return;
@@ -143,10 +144,10 @@ export class MenuConfigPanel {
                         this._loadGuiConfigValues();
                         const discardMessage = locDic.localize("menuconfig.discardValues",
                             "Discarded changes in GUI menuconfig");
-                        vscode.window.showInformationMessage(discardMessage);
+                        Logger.infoNotify(discardMessage);
 
                     } catch (error) {
-                        vscode.window.showErrorMessage(error.message);
+                        Logger.errorNotify(error.message, error);
                         this._printErrorInOutputChannel(error.message);
                     }
                     return;
@@ -154,7 +155,7 @@ export class MenuConfigPanel {
                     try {
                         this.checkIfJsonIsReceived();
                     } catch (error) {
-                        vscode.window.showErrorMessage(error.message);
+                        Logger.errorNotify(error.message, error);
                     }
                     return;
 
@@ -312,7 +313,7 @@ export class MenuConfigPanel {
             this._loadGuiConfigValues();
             const loadMessage = locDic.localize("menuconfig.loadDefaultValues",
                 "Loaded default settings in GUI menuconfig");
-            vscode.window.showInformationMessage(loadMessage);
+            Logger.infoNotify(loadMessage);
         });
     }
 

@@ -18,6 +18,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import { LocDictionary } from "./localizationDictionary";
+import { Logger } from "./logger/logger";
 const extensionName = __dirname.replace(path.sep + "out", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary("utils");
@@ -28,7 +29,7 @@ export class PreCheck {
         if (preCheckFn()) {
             return proceed();
         }
-        vscode.window.showErrorMessage(failureMessage);
+        Logger.errorNotify(failureMessage, new Error("PRECHECK_FAILED"));
     }
     public static isWorkspaceFolderOpen(): boolean {
         return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
@@ -87,7 +88,7 @@ export function copyTarget(source, target) {
         writeStream.on("finish", resolve);
         readStream.pipe(writeStream);
     }).catch((error) => {
-        vscode.window.showErrorMessage(error.message);
+        Logger.errorNotify(error.message, error);
         readStream.destroy();
         writeStream.close();
     });
@@ -99,12 +100,12 @@ export function createVscodeFolder(curWorkspaceFsPath: string) {
 
     fs.mkdir(settingsDir, (err) => {
         if (err && err.code !== "EEXIST") {
-            vscode.window.showErrorMessage(err.message);
+            Logger.errorNotify(err.message, err);
         }
     });
     fs.readdir(vscodeTemplateFolder, (error, files) => {
         if (error) {
-            vscode.window.showErrorMessage(error.message);
+            Logger.errorNotify(error.message, error);
             return;
         }
         files.forEach((file) => {
@@ -140,12 +141,12 @@ export function createSkeleton(curWorkspaceFsPath: string, chosenTemplateDir: st
             const curTemplateDir = path.join(templateDirToUse, dir);
             fs.mkdir(curDir, (err) => {
                 if (err && err.code !== "EEXIST") {
-                    vscode.window.showErrorMessage(err.message);
+                    Logger.errorNotify(err.message, err);
                 }
             });
             fs.readdir(curTemplateDir, (err, files) => {
                 if (err) {
-                    vscode.window.showErrorMessage(err.message);
+                    Logger.errorNotify(err.message, err);
                     return;
                 }
                 files.forEach((file) => {
@@ -156,7 +157,7 @@ export function createSkeleton(curWorkspaceFsPath: string, chosenTemplateDir: st
 
         fs.readdir(templateDirToUse, (error, files) => {
             if (error) {
-                vscode.window.showErrorMessage(error.message);
+                Logger.errorNotify(error.message, error);
                 return;
             }
             files.forEach((file) => {
