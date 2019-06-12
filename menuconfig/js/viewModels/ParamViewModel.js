@@ -31,9 +31,11 @@ define(['knockout', 'HtmlFormatter'], (ko, HtmlFormatter) => function ParamViewM
   this.isVisible = ko.observable();
 
   this.isMenuVisible = ko.pureComputed(() => {
-    const childrenLength = ko.utils.arrayFilter(this.submenues(), submenu =>
-      submenu.chosenValue() !== undefined && submenu.chosenValue() !== null &&
-        submenu.title() !== null && submenu.title() !== undefined).length;
+    const childrenLength = ko.utils.arrayFilter(
+      this.submenues(),
+      submenu => submenu.chosenValue() !== undefined && submenu.chosenValue() !== null
+      && submenu.title() !== null && submenu.title() !== undefined,
+    ).length;
     return ((this.isMenuconfig() && (this.chosenValue() !== undefined)
       && (this.chosenValue() !== null)) || (childrenLength > 0));
   });
@@ -55,8 +57,8 @@ define(['knockout', 'HtmlFormatter'], (ko, HtmlFormatter) => function ParamViewM
     if (this.name() !== undefined && this.name() !== null
     && this.name().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
       results.push(this);
-    } else if (this.title() !== undefined && this.title() !== null &&
-    this.title().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+    } else if (this.title() !== undefined && this.title() !== null
+    && this.title().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
       results.push(this);
     } else {
       ko.utils.arrayForEach(this.submenues(), (submenu) => {
@@ -157,8 +159,8 @@ define(['knockout', 'HtmlFormatter'], (ko, HtmlFormatter) => function ParamViewM
     if (this.selectedType() === 'choice') {
       ko.utils.arrayForEach(this.menuOptions(), (option) => {
         if (option.choiceName in newValues.values) {
-          const optionVisibility = option.choiceName in newValues.visible ?
-            newValues.visible[option.choiceName] : option.optionVisibility;
+          const optionVisibility = option.choiceName in newValues.visible
+            ? newValues.visible[option.choiceName] : option.optionVisibility;
           const newOption = new ChoiceOption(
             option.id,
             option.choiceName,

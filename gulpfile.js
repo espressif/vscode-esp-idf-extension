@@ -34,7 +34,8 @@ function clean(done) {
 }
 
 function addI18n(done) {
-  gulp.src(['package.nls.json'])
+  gulp
+    .src(['package.nls.json'])
     .pipe(nls.createAdditionalLanguageFiles(languages, 'i18n'))
     .pipe(gulp.dest('.'));
   done();
@@ -56,4 +57,3 @@ exports.build = build;
 exports.publish = gulp.series(build, vscePublish);
 exports.vscePkg = gulp.series(build, vscePackage);
 exports.default = build;
-

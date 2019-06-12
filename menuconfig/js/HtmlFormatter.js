@@ -21,8 +21,8 @@ define([], () => function HtmlFormatter() {
   const newLineRegex = /\n\n/g;
 
   this.formatRedText = function formatRedText(htmlString) {
-    if (htmlString !== null && htmlString !== undefined &&
-        htmlString.match(redTextRegex) !== null) {
+    if (htmlString !== null && htmlString !== undefined
+        && htmlString.match(redTextRegex) !== null) {
       // Replaces ``function-name`` with <span>function-name</span>
       let newHtmlString = htmlString;
       const matches = htmlString.match(redTextRegex);
@@ -36,8 +36,8 @@ define([], () => function HtmlFormatter() {
   };
 
   this.formatLinkText = function formatLinkText(htmlString) {
-    if (htmlString !== null && htmlString !== undefined &&
-      htmlString.match(linkRegex) !== null) {
+    if (htmlString !== null && htmlString !== undefined
+      && htmlString.match(linkRegex) !== null) {
       // Replace links with <a href="link">link</a>
       let newHtmlString = htmlString;
       const linkMatches = htmlString.match(linkRegex);
@@ -68,9 +68,9 @@ define([], () => function HtmlFormatter() {
   };
 
   this.formatEndBulletPoint = function formatEndBulletPoint(htmlString) {
-    if (htmlString !== null && htmlString !== undefined &&
-        htmlString.match(middleTextBulletRegex) === null &&
-        htmlString.indexOf(bulletPointStart) > 0) {
+    if (htmlString !== null && htmlString !== undefined
+        && htmlString.match(middleTextBulletRegex) === null
+        && htmlString.indexOf(bulletPointStart) > 0) {
       // End of text list of bullet points case
       const newHtmlString = `${htmlString.replace(bulletPointStart, '<ul><li>')
         .replace(bulletPointRegex, '</li><li>')}</li></ul>`;

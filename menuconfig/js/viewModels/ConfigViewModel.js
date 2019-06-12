@@ -44,11 +44,11 @@ define(
         const resultConfigMenues = ko.observableArray();
         const resultParams = ko.observableArray();
         ko.utils.arrayForEach(self.configMenues(), (menu) => {
-          if (menu.name() !== null && menu.name() !== undefined &&
-          menu.name().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+          if (menu.name() !== null && menu.name() !== undefined
+          && menu.name().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
             resultConfigMenues.push(menu);
-          } else if (menu.title() !== null && menu.title() !== undefined &&
-          menu.title().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+          } else if (menu.title() !== null && menu.title() !== undefined
+          && menu.title().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
             resultConfigMenues.push(menu);
           } else {
             ko.utils.arrayForEach(menu.submenues(), (submenu) => {
