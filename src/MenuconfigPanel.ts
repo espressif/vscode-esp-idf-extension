@@ -342,17 +342,19 @@ export class MenuConfigPanel {
 
     private _saveGuiConfigValues() {
         this._delTmpFileIfExists();
-        const saveRequest = JSON.stringify(`{"version": 2, "save": "${this.configFile}" }\n`);
+        const saveRequest = JSON.stringify({ version: 2, save: this.configFile });
         this.confServerChannel.appendLine(saveRequest);
         this.guiConfigProcess.stdin.write(saveRequest);
+        this.guiConfigProcess.stdin.write("\n");
         this.areValuesSaved = true;
     }
 
     private _loadGuiConfigValues() {
         this._delTmpFileIfExists();
-        const loadRequest = JSON.stringify(`{"version": 2, "load": "${this.configFile}" }\n`);
+        const loadRequest = JSON.stringify({ version: 2, load: this.configFile });
         this.confServerChannel.appendLine(loadRequest);
         this.guiConfigProcess.stdin.write(loadRequest);
+        this.guiConfigProcess.stdin.write("\n");
     }
 
     private _printErrorInOutputChannel(data: string) {
