@@ -174,6 +174,10 @@ Click F5 to start debugging. For correct debug experience, first build and flash
 
 When you start debug, a OpenOCD process start in the background, which create a OpenOCD Output log in Visual Studio Code lower panel.
 
+# Kconfig files editor
+
+When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file you get syntax highlighting (and ESP-IDF Kconfig style diagnostics if `idf.useIDFKconfigStyle` is enabled, such as indent validation and blocks that are not properly closed (Example: menu-endmenu)). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
+
 ## Available Tasks in tasks.json
 
 There is also some tasks defined in Tasks.json, which can be executed by running F1 and writing `Tasks: Run task` and selecting one of
@@ -198,6 +202,7 @@ This extension contributes the following settings that can be later updated in s
 * `idf.board`: OpenOCD defined board for currently debugged device. Need to specify the full path of board definition file.
 * `idf.port`: USB port of your currently used ESP device.
 * `idf.baudRate`: Baud Rate of your ESP-IDF board.
+* `idf.useIDFKconfigStyle`: Enable or Disable ESP-IDF Kconfig style validation on Kconfig files text editor.
 
 The previously shown settings are used for tasks defined in tasks.json, the extension itself and the debugger. Make sure they correspond with your device as shown in the esp-idf documentation.
 
@@ -216,6 +221,7 @@ Debugging session needs to be executed a couple of times before working. These i
 - [x] Implement Finite State Machine Build-Flash-Debug Process.
 - [x] Update gui-menuconfig to work with IDF-server.
 - [x] Custom project treeview with external components.
+- [x] Kconfig files linter.
 - [ ] ESP-IDF Profiler
 - [ ] More cool stuff to come.
 

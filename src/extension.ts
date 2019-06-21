@@ -17,6 +17,7 @@ import { ChildProcess, spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
@@ -32,6 +33,9 @@ let workspaceRoot: vscode.Uri;
 // OpenOCD Server Process and Output Channel
 let ocdServer: ChildProcess;
 let openOCDChannel: vscode.OutputChannel;
+
+// Kconfig Language Client
+let kconfigLangClient: LanguageClient;
 
 // Process to execute build, debug or monitor
 let idfDataProvider: IdfTreeDataProvider;
@@ -69,6 +73,9 @@ export function activate(context: vscode.ExtensionContext) {
         };
         utils.updateStatus(status, workspaceFolderInfo);
     });
+
+    // Create Kconfig Language Server Client
+    startKconfigLangServer(context);
 
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
         if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
@@ -496,6 +503,11 @@ export function deactivate() {
         idfChannel.dispose();
     }
     endOpenOcdServer();
+
+    if (!kconfigLangClient) {
+        return undefined;
+    }
+    kconfigLangClient.stop();
 }
 
 export function startOpenOcdServer() {
@@ -621,4 +633,38 @@ class IdfDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 
         return config;
     }
+}
+
+export function startKconfigLangServer(context: vscode.ExtensionContext) {
+    const serverModule = context.asAbsolutePath(path.join("out", "kconfig", "server.js"));
+
+    const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
+
+    const serverOptions: ServerOptions = {
+        debug: {
+            module: serverModule,
+            options: debugOptions,
+            transport: TransportKind.ipc,
+        },
+        run: { module: serverModule, transport: TransportKind.ipc},
+    };
+
+    const clientOptions: LanguageClientOptions = {
+        documentSelector: [
+            { scheme: "file", pattern: "**/Kconfig"},
+            { scheme: "file", pattern: "**/Kconfig.projbuild"},
+        ],
+        synchronize: {
+            fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),
+        },
+    };
+
+    kconfigLangClient = new LanguageClient(
+        "kconfigServer",
+        "Kconfig Language Server",
+        serverOptions,
+        clientOptions,
+    );
+    kconfigLangClient.start();
+
 }
