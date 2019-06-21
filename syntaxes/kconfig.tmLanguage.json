@@ -1,0 +1,126 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Kconfig",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+        },
+        {
+            "include": "#stringsValues"
+        },
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#modifiers"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#operators"
+        },
+        {
+            "include": "#lineComment"
+        }
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+                {
+                    "name": "variable.language.kconfig",
+                    "match": "^(\\s*)\\b(config|choice|endchoice|menuconfig|endmenu|if|endif|source|comment)\\b"
+                }
+            ]
+		},
+		"strings": {
+			"begin": "^(\\s*)(menu|mainmenu)",
+            "end": "\n",
+            "name": "variable.language.kconfig",
+			"patterns": [
+				{
+					"name": "constant.character.escape.kconfig",
+					"match": "\\\\."
+                },
+                {
+                    "name": "string.quoted.double.kconfig",
+			        "begin": "\"",
+			        "end": "\""
+                }
+            ]            
+        },
+        "stringsValues": {
+			"begin": "^(\\s*)(bool|prompt|default|int)",
+            "end": "\n",
+            "name": "storage.modifier.kconfig",
+			"patterns": [
+				{
+					"name": "constant.character.escape.kconfig",
+					"match": "\\\\."
+                },
+                {
+                    "name": "string.quoted.double.kconfig",
+			        "begin": "\"",
+			        "end": "\""
+                },
+                {
+                    "name":"variable.other.constant.kconfig",
+                    "match": "\\b(?!if)\\b([\\w]+)"
+                }
+            ]            
+        },
+        "lineComment": {
+            "name":"comment.line.number-sign.kconfig",
+            "begin": "(\\s*)#",
+            "end": "\n"
+        },
+        "types": {
+            "name": "storage.modifier.kconfig",
+            "patterns": [
+                {
+                    "name": "storage.modifier.kconfig",
+                    "match": "^(\\s*)\\b(bool|int|string|tristate|hex|prompt)\\b"
+                }
+            ]
+        },
+        "modifiers": {
+            "name": "storage.modifier.kconfig",
+            "patterns": [
+                {
+                    "name":"storage.modifier.kconfig",
+                    "match": "^(\\s*)\\b(depends on|visible if|range|help|select|option)\\b"
+                }
+            ]
+        },
+        "constants": {
+            "name": "support.type.kconfig",
+            "patterns": [
+                {
+                    "name": "support.type.kconfig",
+                    "match": "\\s(modules|defconfig_list|allnoconfig_y)\\s"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.kconfig",
+                    "match": "\\s(::=|=|!=|!|&&|)\\s"
+                },
+                {
+                    "name":"keyword.operator.kconfig",
+                    "match": "\\s(||)\\s"
+                },
+                {
+                    "begin": "^\\s+(help)[\\s\\S]+?",
+                    "end": "\n",
+                    "name": "variable.other.kconfig"
+                }
+            ]
+        }
+	},
+	"scopeName": "source.kconfig"
+}

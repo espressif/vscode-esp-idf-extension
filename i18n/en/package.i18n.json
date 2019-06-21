@@ -24,6 +24,7 @@
 	"param.openOcdBin": "Path to OpenOCD Binaries directory",
 	"param.espIdfPath": "Path to locate ESP-IDF framework (IDF_PATH)" ,
 	"param.xtensaEsp32Path": "Toolchain Path to locate xtensa-esp32-elf-gcc",
+	"param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
 	"view.components.name": "Project Components",
 	"configuration.title": "ESP-IDF Configuration"
 }

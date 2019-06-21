@@ -1,0 +1,25 @@
+{
+    "comments": {
+        "lineComment": "#"
+    },
+    // symbols used as brackets
+    "brackets": [
+        ["(", ")"],
+        ["menu", "endmenu"],
+        ["choice", "endchoice"],
+    ],
+    // symbols that are auto closed when typing
+    "autoClosingPairs": [
+        ["(", ")"],
+        ["\"", "\""],
+    ],
+    // symbols that that can be used to surround a selection
+    "surroundingPairs": [
+        ["(", ")"],
+        ["\"", "\""]
+    ],
+    "indentationRules": {
+        "increaseIndentPattern": "^([\\s]*)(menu|config|menuconfig|choice|help|comment)(.*)$",
+        "decreaseIndentPattern": "^(endmenu|endchoice|endif)(.*)$"
+    }
+}
