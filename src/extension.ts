@@ -324,42 +324,24 @@ export function activate(context: vscode.ExtensionContext) {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, idfSizeFacade);
     });
 }
+
 function creatCmdsStatusBarItems() {
-    const guiconfigStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 101);
-    guiconfigStatusItem.text = "$(gear)";
-    guiconfigStatusItem.tooltip = "ESP-IDF Launch GUI Configuration tool";
-    guiconfigStatusItem.command = "menuconfig.start";
-    guiconfigStatusItem.show();
-    const buildStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    buildStatusItem.text = "$(database)";
-    buildStatusItem.tooltip = "ESP-IDF Build project";
-    buildStatusItem.command = "espIdf.buildDevice";
-    buildStatusItem.show();
-    const flashStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
-    flashStatusItem.text = "$(zap)";
-    flashStatusItem.tooltip = "ESP-IDF Flash device";
-    flashStatusItem.command = "espIdf.flashDevice";
-    flashStatusItem.show();
-    const monitorStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
-    monitorStatusItem.text = "$(device-desktop)";
-    monitorStatusItem.tooltip = "ESP-IDF Monitor device";
-    monitorStatusItem.command = "espIdf.monitorDevice";
-    monitorStatusItem.show();
-    const selectPortStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 97);
-    selectPortStatusItem.text = "$(plug)";
-    selectPortStatusItem.tooltip = "ESP-IDF Select device port";
-    selectPortStatusItem.command = "espIdf.selectPort";
-    selectPortStatusItem.show();
-    const cleanProjectStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 96);
-    cleanProjectStatusItem.text = "$(paintcan)";
-    cleanProjectStatusItem.tooltip = "ESP-IDF Full Clean project";
-    cleanProjectStatusItem.command = "espIdf.cleanProject";
-    cleanProjectStatusItem.show();
-    const eraseFlashStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 95);
-    eraseFlashStatusItem.text = "$(trashcan)";
-    eraseFlashStatusItem.tooltip = "ESP-IDF Erase flash";
-    eraseFlashStatusItem.command = "espIdf.eraseFlash";
-    eraseFlashStatusItem.show();
+    createStatusBarItem("$(plug)", "ESP-IDF Select device port", "espIdf.selectPort", 100);
+    createStatusBarItem("$(gear)", "ESP-IDF Launch GUI Configuration tool", "menuconfig.start", 99);
+    createStatusBarItem("$(database)", "ESP-IDF Build project", "espIdf.buildDevice", 98);
+    createStatusBarItem("$(zap)", "ESP-IDF Flash device", "espIdf.flashDevice", 97);
+    createStatusBarItem("$(device-desktop)", "ESP-IDF Monitor device", "espIdf.monitorDevice", 96);
+    createStatusBarItem("$(paintcan)", "ESP-IDF Full Clean project", "espIdf.cleanProject", 95);
+    createStatusBarItem("$(trashcan)", "ESP-IDF Erase device flash", "espIdf.eraseFlash", 94);
+}
+
+function createStatusBarItem(icon: string, tooltip: string, cmd: string, priority: number) {
+    const alignment: vscode.StatusBarAlignment = vscode.StatusBarAlignment.Left;
+    const statusBarItem = vscode.window.createStatusBarItem(alignment, priority);
+    statusBarItem.text = icon;
+    statusBarItem.tooltip = tooltip;
+    statusBarItem.command = cmd;
+    statusBarItem.show();
 }
 
 const build = () => {
@@ -401,7 +383,7 @@ function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false
             process.env.IDF_PATH = idfPathDir;
         }
 
-        const args = [].concat(idfPath, target, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath);
+        const args = [].concat(idfPath, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath, target);
         if (mainProcess === undefined) {
             mainProcess = spawn(
                 "python",
@@ -450,7 +432,6 @@ function createMonitor(): any {
 
         const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
         const port = idfConf.readParameter("idf.port", workspaceRoot);
-        const baudRate = idfConf.readParameter("idf.baudRate", workspaceRoot);
         const idfPath = path.join(
             idfPathDir,
             "tools", "idf.py");
@@ -465,8 +446,8 @@ function createMonitor(): any {
             monitorTerminal = vscode.window.createTerminal({ name: "IDF Monitor", env: process.env });
         }
         monitorTerminal.show();
-        monitorTerminal.sendText("cd " + workspaceRoot.fsPath);
-        monitorTerminal.sendText(idfPath + " monitor -p " + port + " -b " + baudRate);
+        monitorTerminal.sendText(`cd ${workspaceRoot.fsPath}`);
+        monitorTerminal.sendText(`${idfPath} -p ${port} monitor`);
     });
 }
 
