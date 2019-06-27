@@ -1,0 +1,5 @@
+{
+    "hooks": {
+        "pre-commit": "(npm run tslint & npm run eslint & npm run mocha_test) && npm run compile"
+    }
+}

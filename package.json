@@ -379,6 +379,7 @@
     "gulp": "^4.0.2",
     "gulp-cli": "^2.0.1",
     "gulp-typescript": "^5.0.0-alpha.3",
+    "husky": "^2.5.0",
     "mocha": "^6.1.4",
     "requirejs": "^2.3.6",
     "run-sequence": "^2.2.1",
