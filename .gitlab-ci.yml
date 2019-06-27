@@ -22,7 +22,7 @@ copyright_lint_test:
   before_script:
     - echo "Skipping before_script"
   script:
-    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../views  -e js ts py
+    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../src/views  -e js ts py
 
 typescript_lint_test:
   image: electronuserland/builder:11

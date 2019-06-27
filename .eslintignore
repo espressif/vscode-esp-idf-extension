@@ -1,4 +1,4 @@
 out
 dist
-views/*
-!views/espSize.js
+src/views/*
+!src/views/espSize.js
