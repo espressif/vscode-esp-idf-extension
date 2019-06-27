@@ -19,6 +19,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { SerialPort } from "./espIdf/serial/serialPort";
+import { IDFSize } from "./espIdf/size/idfSize";
+import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
@@ -321,7 +323,34 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
     registerIDFCommand("espIdf.size", () => {
-        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, idfSizeFacade);
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+            const idfSize = new IDFSize(workspaceRoot);
+            try {
+                if (IDFSizePanel.isCreatedAndHidden()) {
+                    IDFSizePanel.createOrShow(context);
+                    return;
+                }
+
+                vscode.window.withProgress({
+                    cancellable: true,
+                    location: vscode.ProgressLocation.Notification,
+                    title: "ESP-IDF: Size",
+                    // tslint:disable-next-line: max-line-length
+                }, async (progress: vscode.Progress<{ message: string, increment: number }>, cancelToken: vscode.CancellationToken) => {
+                    try {
+                        cancelToken.onCancellationRequested(idfSize.cancel);
+                        const results = await idfSize.calculateWithProgress(progress);
+                        if (!cancelToken.isCancellationRequested) {
+                            IDFSizePanel.createOrShow(context, results);
+                        }
+                    } catch (error) {
+                        Logger.errorNotify(error.message, error);
+                    }
+                });
+            } catch (error) {
+                Logger.errorNotify(error.message, error);
+            }
+        });
     });
 }
 
@@ -532,45 +561,6 @@ export function startOpenOcdServer() {
             isMainProcessRunning = false;
         }
     }
-}
-
-function idfSizeFacade() {
-    const projectName = idfConf.readParameter("idf.projectName", workspaceRoot);
-    const mapFilePath = path.join(workspaceRoot.fsPath, "build", `${projectName}.map`);
-    const mapFileDontExistsErrorMessage = locDic.localize("extension.mapFileDontExistsErrorMessage",
-        "Build is required for a size analysis, build your project first");
-
-    if (!utils.fileExists(mapFilePath)) {
-        Logger.errorNotify(mapFileDontExistsErrorMessage, new Error("FILE_NOT_FOUND"));
-        return;
-    }
-
-    if (idfChannel === undefined) {
-        idfChannel = vscode.window.createOutputChannel("ESP-IDF");
-    }
-
-    vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: Size analyzing...",
-    }, async () => {
-        try {
-            idfChannel.show();
-            idfChannel.clear();
-            const buff = await calculateIDFBinarySize(mapFilePath);
-            idfChannel.append(buff.toString());
-        } catch (error) {
-            Logger.errorNotify("Something went wrong while retrieving the size of the binaries", error);
-        }
-    });
-}
-
-async function calculateIDFBinarySize(mapFilePath: string): Promise<Buffer> {
-    const command = `python`;
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
-    const idfPath = path.join(idfPathDir, "tools");
-    return await utils.spawn(command, ["idf_size.py", mapFilePath], {
-        cwd: idfPath,
-    });
 }
 
 export function endOpenOcdServer() {

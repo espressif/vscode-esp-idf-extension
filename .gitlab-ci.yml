@@ -22,7 +22,7 @@ copyright_lint_test:
   before_script:
     - echo "Skipping before_script"
   script:
-    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib -e js ts py
+    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../views  -e js ts py
 
 typescript_lint_test:
   image: electronuserland/builder:11
@@ -44,7 +44,7 @@ python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
   stage: lint
   tags:
-    - build
+    - lint
   artifacts:
     when: on_failure
     paths:
@@ -57,26 +57,7 @@ python_lint_test:
     - python -m pip install bandit flake8
   script:
     - python -m bandit -r -f txt -o bandit_output.txt .
-    - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee 
-
-python_lint_test:
-  image: $CI_DOCKER_REGISTRY/ubuntu-test-env
-  stage: lint
-  tags:
-    - build
-  artifacts:
-    when: on_failure
-    paths:
-      - flake8_output.txt
-      - bandit_output.txt
-    expire_in: 1 week
-  before_script:
-    - source /opt/pyenv/activate 
-    - pyenv global 2.7.15 
-    - python -m pip install bandit flake8
-  script:
-    - python -m bandit -r -f txt -o bandit_output.txt .
-    - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee 
+    - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee
 
 javascript_test:
   image: electronuserland/builder:11
