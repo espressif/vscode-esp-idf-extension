@@ -1,11 +1,12 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TSLintPlugin = require('tslint-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     entry: './espSize.ts',
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, '../', '../', 'out', 'views'),
         filename: 'espSize.bundle.js'
     },
     module: {
@@ -52,6 +53,10 @@ module.exports = {
         }),
         new TSLintPlugin({
             files: ['./*.ts']
+        }),
+        new HtmlWebpackPlugin({
+            filename: "espSize.html",
+            template: `${__dirname}/espSize.html`,
         }),
     ],
     devServer: {

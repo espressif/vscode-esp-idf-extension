@@ -35,7 +35,7 @@ export class IDFSizePanel {
             IDFSizePanel.viewTitle, column || vscode.ViewColumn.One,
             {
                 enableScripts: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "views"))],
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "out", "views"))],
                 retainContextWhenHidden: true,
             });
         IDFSizePanel.currentPanel = new IDFSizePanel(panel, context.extensionPath, webviewData);
@@ -83,7 +83,7 @@ export class IDFSizePanel {
         }, null, this._disposables);
     }
     private getHtmlContent(): string {
-        const htmlFilePath = path.join(this._extensionPath, "views", "espSize.html");
+        const htmlFilePath = path.join(this._extensionPath, "out", "views", "espSize.html");
         if (!fs.existsSync(htmlFilePath)) {
             return this.notFoundStaticHtml();
         }
