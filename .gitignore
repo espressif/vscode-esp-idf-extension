@@ -8,3 +8,6 @@ node_modules
 !i18n/*/out
 package.nls.*.json
 *.log
+.DS_Store
+bandit_output.txt
+flake8_output.txt

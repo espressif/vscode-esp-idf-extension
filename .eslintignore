@@ -1,0 +1,4 @@
+out
+dist
+views/*
+!views/espSize.js
