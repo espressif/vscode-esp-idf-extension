@@ -1,0 +1,8 @@
+{
+    "idfSize.canceledError" : "Cannot proceed with size analysis on a canceled context",
+    "idfSize.buildFirstError": "Build is required for a size analysis, build your project first",
+    "idfSize.filesMsg": "Calculating File Sizes for all the archives",
+    "idfSize.archivesMsg": "Gathering Archive List",
+    "idfSize.overviewMsg": "Gathering Overview",
+    "idfSize.commandError": "Error encountered while calling idf_size.py"
+}

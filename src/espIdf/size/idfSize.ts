@@ -19,36 +19,46 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
+import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
 
 export class IDFSize {
     private readonly workspaceRoot: vscode.Uri;
     private isCanceled: boolean;
+    private locDict: LocDictionary;
     constructor(workspaceRoot: vscode.Uri) {
         this.workspaceRoot = workspaceRoot;
+        this.locDict = new LocDictionary("idfSize");
     }
     public cancel() {
         this.isCanceled = true;
-     }
+    }
     public async calculateWithProgress(progress: vscode.Progress<{ message: string, increment: number }>) {
         if (this.isCanceled) {
-            throw new Error("calculate() on canceled context is not allowed!");
+            throw new Error(
+                this.locDict.localize(
+                    "idfSize.canceledError", "Cannot proceed with size analysis on a canceled context"));
         }
         if (!this.isBuiltAlready()) {
-            throw new Error("Build is required for a size analysis, build your project first");
+            throw new Error(
+                this.locDict.localize(
+                    "idfSize.buildFirstError", "Build is required for a size analysis, build your project first"));
         }
         try {
             const mapFilePath = this.mapFilePath();
 
+            let locMsg = this.locDict.localize("idfSize.overviewMsg", "Gathering Overview");
             const overview = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--json"]);
-            progress.report({ increment: 30, message: "Gathering Overview" });
+            progress.report({ increment: 30, message: locMsg });
 
+            locMsg = this.locDict.localize("idfSize.archivesMsg", "Gathering Archive List");
             const archives = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--archives", "--json"]);
-            progress.report({ increment: 30, message: "Gathering Archive List" });
+            progress.report({ increment: 30, message: locMsg });
 
+            locMsg = this.locDict.localize("idfSize.filesMsg", "Calculating File Sizes for all the archives");
             const files = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--file", "--json"]);
-            progress.report({ increment: 30, message: "Calculating File Sizes for all the archives" });
+            progress.report({ increment: 30, message: locMsg });
 
             return { archives, files, overview };
         } catch (error) {
@@ -80,7 +90,9 @@ export class IDFSize {
             const buffObj = JSON.parse(buffStr);
             return buffObj;
         } catch (error) {
-            const throwableError =  new Error("Some error occurred while computing the idf_size!");
+            const throwableError = new Error(
+                this.locDict.localize(
+                    "idfSize.commandError", "Error encountered while calling idf_size.py"));
             Logger.error(error.message, error);
             throw throwableError;
         }

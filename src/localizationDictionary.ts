@@ -17,9 +17,9 @@ import * as path from "path";
 import { Logger } from "./logger/logger";
 
 export class LocDictionary {
-    private dictionary;
+    private dictionary: object;
 
-    constructor(filename) {
+    constructor(filename: string) {
         const extensionName = __dirname.replace(path.sep + "out", "");
         const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
         const locDirPath = path.join(extensionName, "i18n", localeConf.locale, "out");
@@ -28,13 +28,13 @@ export class LocDictionary {
             try {
                 this.dictionary = JSON.parse(fs.readFileSync(locJsonPath).toString());
             } catch (error) {
-                Logger.errorNotify("Localization file error.", error);
+                Logger.errorNotify("Failed to load localization, by default will only display in English", error);
             }
         }
     }
 
     public localize(key: string, defaultMsg: string): string {
-        if (this.dictionary !== undefined && key in this.dictionary) {
+        if (this.dictionary && this.dictionary.hasOwnProperty(key)) {
             return this.dictionary[key];
         }
         return defaultMsg;
