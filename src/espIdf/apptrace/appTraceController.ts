@@ -20,7 +20,7 @@ import { EventEmitter } from "events";
 import * as Telnet from "telnet-client";
 import { OpenOCDController } from "./openOCDController";
 
-export class AppTraceSession extends EventEmitter{
+export class AppTraceSession extends EventEmitter {
     private openOCDController: OpenOCDController;
     private telnetController: Telnet;
 
