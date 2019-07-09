@@ -1,5 +1,5 @@
 {
     "hooks": {
-        "pre-commit": "(npm run tslint & npm run eslint & npm run mocha_test) && npm run compile"
+        "pre-commit": "(npm run tslint & npm run eslint & npm run mocha_test & (cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../src/views  -e js ts py)) && npm run compile"
     }
 }
