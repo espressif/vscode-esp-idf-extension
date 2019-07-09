@@ -37,6 +37,7 @@
     "onCommand:espIdf.cleanProject",
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
+    "onCommand:espIdf.apptrace",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig"
   ],
@@ -252,6 +253,10 @@
       {
         "command": "espIdf.size",
         "title": "%espIdf.size.title%"
+      },
+      {
+        "command": "espIdf.apptrace",
+        "title": "%espIdf.apptrace.title%"
       }
     ],
     "debuggers": [
@@ -408,6 +413,7 @@
   "dependencies": {
     "es6-promisify": "^6.0.0",
     "jquery": "^3.4.1",
+    "telnet-client": "^1.0.3",
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugprotocol": "^1.33.0",
     "vscode-languageclient": "^5.2.1",

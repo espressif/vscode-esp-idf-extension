@@ -18,6 +18,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
+import { AppTraceSession } from "./espIdf/apptrace/appTraceController";
+import { OpenOCDController } from "./espIdf/apptrace/openOCDController";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -352,6 +354,22 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
     });
+
+    registerIDFCommand("espIdf.apptrace", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+            const binPath = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
+            const scriptPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
+            const deviceInterface = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
+            const board = idfConf.readParameter("idf.board", workspaceRoot);
+            const openOcdController = new OpenOCDController({ binPath, scriptPath, deviceInterface, board });
+            const appTrace = new AppTraceSession(openOcdController);
+            try {
+                await appTrace.start();
+            } catch (error) {
+                Logger.errorNotify("App trace start has failed!", error);
+            }
+        });
+    });
 }
 
 function creatCmdsStatusBarItems() {
@@ -617,13 +635,13 @@ export function startKconfigLangServer(context: vscode.ExtensionContext) {
             options: debugOptions,
             transport: TransportKind.ipc,
         },
-        run: { module: serverModule, transport: TransportKind.ipc},
+        run: { module: serverModule, transport: TransportKind.ipc },
     };
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
-            { scheme: "file", pattern: "**/Kconfig"},
-            { scheme: "file", pattern: "**/Kconfig.projbuild"},
+            { scheme: "file", pattern: "**/Kconfig" },
+            { scheme: "file", pattern: "**/Kconfig.projbuild" },
         ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),
