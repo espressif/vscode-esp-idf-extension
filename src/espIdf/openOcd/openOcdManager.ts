@@ -78,7 +78,9 @@ export class OpenOCDManager extends EventEmitter {
             "-s", this.scriptPath,
             "-f", this.deviceInterface,
             "-f", this.board,
-        ]);
+        ], {
+            cwd: vscode.workspace.workspaceFolders[0].uri.path,
+        });
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
@@ -88,7 +90,7 @@ export class OpenOCDManager extends EventEmitter {
             if (!matchArr) {
                 this.emit("data", this.chan);
             } else {
-                this.stop();
+                // this.stop();
                 const errorMsg: string = `OpenOCD server failed to start ${matchArr.join(" ")}`;
                 this.emit("error", new Error(errorMsg), this.chan);
             }
