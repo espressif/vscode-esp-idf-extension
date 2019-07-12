@@ -17,8 +17,12 @@
  */
 
 import { EventEmitter } from "events";
+import { mkdirSync } from "fs";
+import { join } from "path";
 import * as Telnet from "telnet-client";
+import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
+import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 
 export interface IAppTraceManagerConfig {
@@ -39,9 +43,16 @@ export class AppTraceManager extends EventEmitter {
     public async start() {
         try {
             await this.launchOpenOCDServer();
-            process.nextTick(async () => {
-                await this.connectTelnetSession({host: "127.0.0.1", port: 4444});
-            });
+            setTimeout(async () => {
+                await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
+                const workspace = vscode.workspace.workspaceFolders[0].uri.path;
+                if (!fileExists(join(workspace, ".trace"))) {
+                    mkdirSync(join(workspace, ".trace"));
+                }
+                const resp = await this.sendCommandToTelnetSession(
+                    `esp32 apptrace start file://${join(workspace, ".trace")}/trace.log 1 2048 5 0 0`,
+                );
+            }, 2000);
         } catch (error) {
             Logger.errorNotify(error.message, error);
         }
@@ -61,7 +72,7 @@ export class AppTraceManager extends EventEmitter {
     private async connectTelnetSession(config: IAppTraceManagerConfig) {
         return await this.controller.connect({
             shellPrompt: config.shellPrompt || ">",
-            timeout: config.timeout || 60000,
+            timeout: config.timeout,
             host: config.host,
             port: config.port,
         });
