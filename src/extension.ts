@@ -362,7 +362,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            appTracer.toggleStartAppTraceButton()
+            appTracer.toggleStartAppTraceButton();
         });
     });
 }
