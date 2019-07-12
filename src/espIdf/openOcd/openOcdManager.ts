@@ -44,11 +44,13 @@ export class OpenOCDManager extends EventEmitter {
     private board: string;
     private server: ChildProcess;
     private chan: Buffer;
+    private displayChan: vscode.OutputChannel;
 
     private constructor() {
         super();
         this.configureServerWithDefaultParam();
         this.chan = Buffer.alloc(0);
+        this.displayChan = vscode.window.createOutputChannel("OpenOCD");
     }
 
     public configureServer(config: IOpenOCDConfig) {
@@ -90,6 +92,8 @@ export class OpenOCDManager extends EventEmitter {
                 const errorMsg: string = `OpenOCD server failed to start ${matchArr.join(" ")}`;
                 this.emit("error", new Error(errorMsg), this.chan);
             }
+            this.displayChan.show();
+            this.displayChan.append(data.toString());
         });
         this.server.stdout.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
@@ -112,6 +116,7 @@ export class OpenOCDManager extends EventEmitter {
         if (this.server && !this.server.killed) {
             this.server.kill("SIGKILL");
         }
+        OpenOCDManager.instance.displayChan.dispose();
         OpenOCDManager.instance = undefined;
     }
 
