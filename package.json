@@ -23,6 +23,7 @@
     "Other"
   ],
   "activationEvents": [
+    "*",
     "onCommand:espIdf.createFiles",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",
@@ -38,12 +39,34 @@
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.apptrace",
+    "onView:idfAppTracer",
+    "onView:idfAppTraceArchive",
+    "onView:idfComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig"
   ],
   "main": "./out/extension",
   "contributes": {
+    "viewsContainers": {
+			"activitybar": [
+				{
+					"id": "idfViewController",
+          "title": "ESP-IDF Explorer",
+          "icon": "media/esp.svg"
+				}
+			]
+		},
     "views": {
+      "idfViewController": [
+				{
+					"id": "idfAppTracer",
+					"name": "IDF App Tracer"
+				},
+				{
+					"id": "idfAppTraceArchive",
+					"name": "App Trace Archives"
+				}
+			],
       "explorer": [
         {
           "id": "idfComponents",

@@ -31,8 +31,8 @@ export class AppTraceSession extends EventEmitter {
     }
 
     public async start() {
-        await this.launchOpenOCDServer();
-        await this.connectTelnetSession("localhost", 4444);
+        // await this.launchOpenOCDServer();
+        await this.connectTelnetSession("127.0.0.1", 4444);
     }
 
     // public async stop() {
@@ -50,7 +50,7 @@ export class AppTraceSession extends EventEmitter {
                 const matchArr = errStr.match(regex);
                 errorMsg += ` ${matchArr.join(" ")}`;
             }
-            this.emit("openOCD-error", errorMsg, error);
+            this.emit("error", new Error(errorMsg));
         });
         await this.openOCDController.startServer();
     }
@@ -58,7 +58,8 @@ export class AppTraceSession extends EventEmitter {
         await this.telnetController.connect({
             host,
             port,
-            timeout: 1500,
+            shellPrompt: ">",
+            timeout: 60000,
         });
     }
     private async sendCommandToTelnetSession(command: string) {

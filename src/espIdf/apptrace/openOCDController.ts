@@ -67,6 +67,8 @@ export class OpenOCDController extends EventEmitter {
 
         });
         this.server.stdout.on("data", (data) => {
+            // tslint:disable-next-line: no-console
+            console.log(data.toString());
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
             this.emit("data", this.chan);
@@ -74,11 +76,19 @@ export class OpenOCDController extends EventEmitter {
         this.server.on("error", (error) => {
             this.emit("error", this.chan, error);
         });
+        this.server.on("close", (code: number, signal: string) => {
+            // tslint:disable-next-line: no-console
+            console.log("disconnect");
+        });
+        this.server.on("exit", (code: number, signal: string) => {
+            // tslint:disable-next-line: no-console
+            console.log("disconnect");
+        });
     }
 
     public stop() {
         if (this.server && !this.server.killed) {
-            this.server.kill("SIGINT");
+            this.server.kill("SIGKILL");
         }
     }
 

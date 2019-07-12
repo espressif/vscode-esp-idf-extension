@@ -4,10 +4,13 @@ const TSLintPlugin = require('tslint-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: './espSize.ts',
+    entry: {
+        espSize: './espSize.ts',
+        espTrace: './espTrace.ts'
+    },
     output: {
         path: path.resolve(__dirname, '../', '../', 'out', 'views'),
-        filename: 'espSize.bundle.js'
+        filename: '[name].bundle.js'
     },
     module: {
         rules: [{
@@ -49,14 +52,20 @@ module.exports = {
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: 'espSize.bundle.css'
+            filename: '[name].bundle.css'
         }),
         new TSLintPlugin({
             files: ['./*.ts']
         }),
         new HtmlWebpackPlugin({
+            chunks: ['espSize'],
             filename: "espSize.html",
             template: `${__dirname}/espSize.html`,
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['espTrace'],
+            filename: "espTrace.html",
+            template: `${__dirname}/espTrace.html`,
         }),
     ],
     devServer: {

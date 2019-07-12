@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IDF Tracing</title>
+</head>
+
+<body>
+    <div id="app">
+        <header class="section">
+            <div class="container">
+                <nav class="level is-mobile">
+                    <h1 class="title is-size-5-mobile" v-html="title"></h1>
+                </nav>
+                <p class="subtitle is-size-6-mobile">
+                    {{subtitle}}
+                </p>
+            </div>
+        </header>
+        <div class="section no-padding-top">
+            <div class="container">
+                <div class="notification is-uppercase">
+                    <nav class="level is-mobile is-size-7-mobile">
+                        <div class="level-left">
+                            <div class="level-item">
+                                <h1>Open OCD Server Status</h1>
+                            </div>
+                        </div>
+                        <div class="level-right">
+                            <div class="level-item">
+                                <p class="buttons">
+                                    <button class="button is-uppercase is-static">
+                                        <span class="icon is-small" v-bind:class="cssClassForOpenOcdServer()">
+                                            <i class="fas fa-circle"></i>
+                                        </span>
+                                        <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span>{{statusTextForOpenOcdServer()}}</span>
+                                    </button>
+                                    <button class="button" v-bind:class="{'is-hidden' : openOcdServerRunning}">
+                                        <span class="icon is-small">
+                                            <i class="fas fa-redo"></i>
+                                        </span>
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+                <div class="has-text-centered" style="margin-top: 2em">
+                    <button class="button is-medium" v-on:click="startTracing" v-bind:disabled="!openOcdServerRunning">Start Tracing</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -18,8 +18,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
-import { AppTraceSession } from "./espIdf/apptrace/appTraceController";
-import { OpenOCDController } from "./espIdf/apptrace/openOCDController";
+import { AppTracer } from "./espIdf/apptrace/tree/appTracer";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -37,6 +36,9 @@ let workspaceRoot: vscode.Uri;
 // OpenOCD Server Process and Output Channel
 let ocdServer: ChildProcess;
 let openOCDChannel: vscode.OutputChannel;
+
+// App Tracing
+let appTracer: AppTracer;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -80,6 +82,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create Kconfig Language Server Client
     startKconfigLangServer(context);
+
+    // Register Tree Provider for IDF Explorer
+    registerTreeProvidersForIDFExplorer(context);
 
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
         if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
@@ -357,19 +362,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            const binPath = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
-            const scriptPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
-            const deviceInterface = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
-            const board = idfConf.readParameter("idf.board", workspaceRoot);
-            const openOcdController = new OpenOCDController({ binPath, scriptPath, deviceInterface, board });
-            const appTrace = new AppTraceSession(openOcdController);
-            try {
-                await appTrace.start();
-            } catch (error) {
-                Logger.errorNotify("App trace start has failed!", error);
-            }
+            appTracer.toggleStartAppTraceButton()
         });
     });
+}
+
+function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
+    appTracer = new AppTracer();
+    context.subscriptions.push(appTracer.registerDataProviderForTree("idfAppTracer"));
 }
 
 function creatCmdsStatusBarItems() {
