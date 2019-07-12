@@ -1,6 +1,6 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Monday, 8th July 2019 11:18:09 am
+ * File Created: Friday, 12th July 2019 5:59:07 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,8 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
-
+import * as vscode from "vscode";
+import * as idfConf from "../../idfConfiguration";
 import { fileExists } from "../../utils";
 
 export interface IOpenOCDConfig {
@@ -28,25 +29,41 @@ export interface IOpenOCDConfig {
     board: string;
 }
 
-export class OpenOCDController extends EventEmitter {
-    private readonly binPath: string;
-    private readonly scriptPath: string;
-    private readonly deviceInterface: string;
-    private readonly board: string;
+export class OpenOCDManager extends EventEmitter {
+    public static init(): OpenOCDManager {
+        if (!OpenOCDManager.instance) {
+            OpenOCDManager.instance = new OpenOCDManager();
+        }
+        return OpenOCDManager.instance;
+    }
+    private static instance: OpenOCDManager;
+
+    private binPath: string;
+    private scriptPath: string;
+    private deviceInterface: string;
+    private board: string;
     private server: ChildProcess;
     private chan: Buffer;
 
-    constructor(openOCDConfig: IOpenOCDConfig) {
+    private constructor() {
         super();
-        this.binPath = openOCDConfig.binPath;
-        this.scriptPath = openOCDConfig.scriptPath;
-        this.deviceInterface = openOCDConfig.deviceInterface;
-        this.board = openOCDConfig.board;
+        this.configureServerWithDefaultParam();
         this.chan = Buffer.alloc(0);
     }
 
-    public async startServer() {
-        if (this.server && this.server.connected) {
+    public configureServer(config: IOpenOCDConfig) {
+        this.binPath = config.binPath;
+        this.scriptPath = config.scriptPath;
+        this.deviceInterface = config.deviceInterface;
+        this.board = config.board;
+    }
+
+    public isRunning(): boolean {
+        return this.server && !this.server.killed;
+    }
+
+    public async start() {
+        if (this.isRunning()) {
             return;
         }
         if (!fileExists(this.binPath)) {
@@ -63,26 +80,31 @@ export class OpenOCDController extends EventEmitter {
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
-            this.emit("error", this.chan, new Error("STDERR_CHAN_RECV"));
-
+            const regex = /^Error:.*$/gmi;
+            const errStr = data.toString();
+            const matchArr = errStr.match(regex);
+            if (!matchArr) {
+                this.emit("data", this.chan);
+            } else {
+                this.stop();
+                const errorMsg: string = `OpenOCD server failed to start ${matchArr.join(" ")}`;
+                this.emit("error", new Error(errorMsg), this.chan);
+            }
         });
         this.server.stdout.on("data", (data) => {
-            // tslint:disable-next-line: no-console
-            console.log(data.toString());
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
             this.emit("data", this.chan);
         });
         this.server.on("error", (error) => {
-            this.emit("error", this.chan, error);
+            this.emit("error", error, this.chan);
+            this.stop();
         });
         this.server.on("close", (code: number, signal: string) => {
-            // tslint:disable-next-line: no-console
-            console.log("disconnect");
+            this.stop();
         });
         this.server.on("exit", (code: number, signal: string) => {
-            // tslint:disable-next-line: no-console
-            console.log("disconnect");
+            this.stop();
         });
     }
 
@@ -90,6 +112,16 @@ export class OpenOCDController extends EventEmitter {
         if (this.server && !this.server.killed) {
             this.server.kill("SIGKILL");
         }
+        OpenOCDManager.instance = undefined;
+    }
+
+    private configureServerWithDefaultParam() {
+        const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
+
+        this.binPath = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
+        this.scriptPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
+        this.deviceInterface = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
+        this.board = idfConf.readParameter("idf.board", workspaceRoot);
     }
 
     private sendToOutputChannel(data: Buffer) {

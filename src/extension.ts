@@ -18,6 +18,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
+import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
 import { AppTracer } from "./espIdf/apptrace/tree/appTracer";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
@@ -363,6 +364,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
             appTracer.toggleStartAppTraceButton();
+            const atm = new AppTraceManager();
+            await atm.start();
         });
     });
 }
