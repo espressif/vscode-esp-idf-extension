@@ -90,12 +90,11 @@ export class OpenOCDManager extends EventEmitter {
             if (!matchArr) {
                 this.emit("data", this.chan);
             } else {
-                // this.stop();
                 const errorMsg: string = `OpenOCD server failed to start ${matchArr.join(" ")}`;
                 this.emit("error", new Error(errorMsg), this.chan);
             }
-            this.displayChan.show();
             this.displayChan.append(data.toString());
+            this.displayChan.show();
         });
         this.server.stdout.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
