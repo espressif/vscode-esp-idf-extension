@@ -20,6 +20,7 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
+import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
 
 export interface IOpenOCDConfig {
@@ -45,12 +46,47 @@ export class OpenOCDManager extends EventEmitter {
     private server: ChildProcess;
     private chan: Buffer;
     private displayChan: vscode.OutputChannel;
+    private statusBar: vscode.StatusBarItem;
 
     private constructor() {
         super();
         this.configureServerWithDefaultParam();
         this.chan = Buffer.alloc(0);
         this.displayChan = vscode.window.createOutputChannel("OpenOCD");
+        this.registerOpenOCDStatusBarItem();
+    }
+
+    public statusBarItem(): vscode.StatusBarItem {
+        return this.statusBar;
+    }
+
+    public updateStatusText(text: string) {
+        this.statusBar.text = text;
+        this.statusBar.show();
+    }
+
+    public async commandHandler() {
+        const openOCDCommandSelectionPick = [];
+        if (!OpenOCDManager.instance.isRunning()) {
+            openOCDCommandSelectionPick.push({ label: "Start OpenOCD", description: "" });
+        } else {
+            openOCDCommandSelectionPick.push({ label: "Stop OpenOCD", description: "Running" });
+        }
+        const pick = await vscode.window.showQuickPick(openOCDCommandSelectionPick);
+        if (!pick) {
+            return false;
+        }
+        switch (pick.label) {
+            case "Start OpenOCD":
+                OpenOCDManager.instance.start();
+                break;
+            case "Stop OpenOCD":
+                OpenOCDManager.instance.stop();
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
     public configureServer(config: IOpenOCDConfig) {
@@ -79,8 +115,8 @@ export class OpenOCDManager extends EventEmitter {
             "-f", this.deviceInterface,
             "-f", this.board,
         ], {
-            cwd: vscode.workspace.workspaceFolders[0].uri.path,
-        });
+                cwd: vscode.workspace.workspaceFolders[0].uri.path,
+            });
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
@@ -105,20 +141,32 @@ export class OpenOCDManager extends EventEmitter {
             this.emit("error", error, this.chan);
             this.stop();
         });
-        this.server.on("close", (code: number, signal: string) => {
-            this.stop();
-        });
         this.server.on("exit", (code: number, signal: string) => {
+            if (!signal && code && code !== 0) {
+                Logger.errorNotify(
+                    `OpenOCD Exit with non-zero error code ${code}`,
+                    new Error("Spawn exit with non-zero" + code),
+                );
+            }
             this.stop();
         });
+        this.updateStatusText("❇️ OpenOCD Server (Running)");
     }
 
     public stop() {
         if (this.server && !this.server.killed) {
             this.server.kill("SIGKILL");
+            this.server = undefined;
+            this.updateStatusText("❌ OpenOCD Server (Stopped)");
+            this.displayChan.appendLine("[Stopped] : OpenOCD Server");
         }
-        OpenOCDManager.instance.displayChan.dispose();
-        OpenOCDManager.instance = undefined;
+    }
+
+    private registerOpenOCDStatusBarItem() {
+        this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
+        this.statusBar.text = "[OpenOCD Server]";
+        this.statusBar.command = "espIdf.openOCDCommand";
+        this.statusBar.show();
     }
 
     private configureServerWithDefaultParam() {

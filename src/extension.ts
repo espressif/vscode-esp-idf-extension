@@ -19,7 +19,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
-import { AppTracer } from "./espIdf/apptrace/tree/appTracer";
+import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTracer";
+import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -37,9 +38,10 @@ let workspaceRoot: vscode.Uri;
 // OpenOCD Server Process and Output Channel
 let ocdServer: ChildProcess;
 let openOCDChannel: vscode.OutputChannel;
+const openOCDManager = OpenOCDManager.init();
 
 // App Tracing
-let appTracer: AppTracer;
+let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -86,6 +88,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register Tree Provider for IDF Explorer
     registerTreeProvidersForIDFExplorer(context);
+
+    // register openOCD status bar item
+    registerOpenOCDStatusBarItem(context);
 
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
         if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
@@ -363,16 +368,28 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            appTracer.toggleStartAppTraceButton();
-            const atm = new AppTraceManager();
-            await atm.start();
+            const atm = new AppTraceManager(appTraceTreeDataProvider);
+            if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
+                await atm.start();
+            } else {
+                await atm.stop();
+            }
         });
+    });
+
+    registerIDFCommand("espIdf.openOCDCommand", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, openOCDManager.commandHandler);
     });
 }
 
+function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
+    const statusBarItem = openOCDManager.statusBarItem();
+    context.subscriptions.push(statusBarItem);
+}
+
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
-    appTracer = new AppTracer();
-    context.subscriptions.push(appTracer.registerDataProviderForTree("idfAppTracer"));
+    appTraceTreeDataProvider = new AppTraceTreeDataProvider();
+    context.subscriptions.push(appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"));
 }
 
 function creatCmdsStatusBarItems() {

@@ -14,6 +14,7 @@
 	"espIdf.eraseFlash.title": "ESP-IDF Erase device flash",
 	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
 	"espIdf.apptrace.title": "ESP-IDF: App Trace",
+	"espIdf.openOCDCommand.title": "ESP-IDF OpenOCD Manager",
 	"debug.initConfig.name": "ESP-IDF: Launch",
 	"debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
 	"param.board": "Board for OpenOCD",

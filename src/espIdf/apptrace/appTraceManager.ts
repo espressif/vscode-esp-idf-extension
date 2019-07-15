@@ -24,6 +24,7 @@ import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { AppTraceTreeDataProvider } from "./tree/appTracer";
 
 export interface IAppTraceManagerConfig {
     host: string;
@@ -34,39 +35,43 @@ export interface IAppTraceManagerConfig {
 
 export class AppTraceManager extends EventEmitter {
     private controller: Telnet;
+    private treeDataProvider: AppTraceTreeDataProvider;
 
-    constructor() {
+    constructor(treeDataProvider: AppTraceTreeDataProvider) {
         super();
         this.controller = new Telnet();
+        this.treeDataProvider = treeDataProvider;
+        this.registerTelnetDataReceiver();
     }
 
     public async start() {
         try {
-            await this.launchOpenOCDServer();
-            setTimeout(async () => {
-                await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
-                const workspace = vscode.workspace.workspaceFolders[0].uri.path;
-                if (!fileExists(join(workspace, ".trace"))) {
-                    mkdirSync(join(workspace, ".trace"));
-                }
-                const resp = await this.sendCommandToTelnetSession(
-                    `esp32 apptrace start file://${join(workspace, ".trace")}/trace.log 1 2048 5 0 0`,
-                );
-            }, 2000);
+            if (await this.promptUserToLaunchOpenOCDServer()) {
+                this.treeDataProvider.showStopButton();
+                setTimeout(async () => {
+                    const workspace = vscode.workspace.workspaceFolders[0].uri.path;
+                    this.sendCommandToTelnetSession(
+                        `esp32 apptrace start file://${join(workspace, ".trace")}/trace.log`,
+                    );
+                }, 2000);
+            }
         } catch (error) {
             Logger.errorNotify(error.message, error);
         }
     }
 
-    // public async stop() {
-    // }
+    public async stop() {
+        this.treeDataProvider.showStartButton();
+        await this.sendCommandToTelnetSession("esp32 apptrace stop");
+        this.controller.end();
+    }
 
-    private async launchOpenOCDServer() {
+    private async promptUserToLaunchOpenOCDServer() {
         const openOCDManager = OpenOCDManager.init();
         if (!openOCDManager.isRunning()) {
-            // prompt user to start openOCD Server
-            openOCDManager.start();
+            return await openOCDManager.commandHandler();
         }
+        return true;
     }
 
     private async connectTelnetSession(config: IAppTraceManagerConfig) {
@@ -78,6 +83,23 @@ export class AppTraceManager extends EventEmitter {
         });
     }
     private async sendCommandToTelnetSession(command: string) {
+        await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
+        const workspace = vscode.workspace.workspaceFolders[0].uri.path;
+        if (!fileExists(join(workspace, ".trace"))) {
+            mkdirSync(join(workspace, ".trace"));
+        }
         return await this.controller.exec(command);
+    }
+    private registerTelnetDataReceiver() {
+        this.controller.on("data", (d) => {
+            try {
+                const isProgress = d.toString().split("\n")[0].match(/[0-9].*/gm);
+                if (isProgress) {
+                    this.treeDataProvider.updateDescription(isProgress[0].trim());
+                }
+            } catch (error) {
+                Logger.error("Failed to extract the progress from apptrace", error);
+            }
+        });
     }
 }

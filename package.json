@@ -39,6 +39,7 @@
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.apptrace",
+    "onCommand:espIdf.openOCDCommand",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:idfComponents",
@@ -280,6 +281,10 @@
       {
         "command": "espIdf.apptrace",
         "title": "%espIdf.apptrace.title%"
+      },
+      {
+        "command": "espIdf.openOCDCommand",
+        "title": "%espIdf.openOCDCommand.title%"
       }
     ],
     "debuggers": [

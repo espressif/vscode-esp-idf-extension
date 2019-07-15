@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
+import { join } from "path";
 import * as vscode from "vscode";
 
 class AppTracerItems extends vscode.TreeItem { }
 
 // tslint:disable-next-line: max-classes-per-file
-export class AppTracer implements vscode.TreeDataProvider<AppTracerItems> {
+export class AppTraceTreeDataProvider implements vscode.TreeDataProvider<AppTracerItems> {
     public OnDidChangeTreeData: vscode.EventEmitter<AppTracerItems> = new vscode.EventEmitter<AppTracerItems>();
     public readonly onDidChangeTreeData: vscode.Event<AppTracerItems> = this.OnDidChangeTreeData.event;
     public appTraceStartButton: AppTracerItems;
@@ -32,25 +33,28 @@ export class AppTracer implements vscode.TreeDataProvider<AppTracerItems> {
     public initStartAppTraceButton() {
         this.appTraceStartButton = new AppTracerItems("Start App Trace");
         this.appTraceStartButton.description = "";
-        this.appTraceStartButton.iconPath = "/Volumes/Data/source-code/vscode-plugin/media/play.svg";
+        this.appTraceStartButton.iconPath = join(__filename, "..", "..", "..", "..", "..", "media", "play.svg");
         this.appTraceStartButton.command = { command: "espIdf.apptrace", title: "" };
     }
     public registerDataProviderForTree(treeName: string): vscode.Disposable {
         return vscode.window.registerTreeDataProvider(treeName, this);
     }
-    public toggleStartAppTraceButton() {
-        if (this.appTraceStartButton.label.match(/start/gmi)) {
-            this.appTraceStartButton.label = "Stop App Trace";
-            // tslint:disable-next-line: max-line-length
-            this.appTraceStartButton.description = "10%";
-            this.appTraceStartButton.iconPath = "/Volumes/Data/source-code/vscode-plugin/media/stop.svg";
-        } else {
-            this.appTraceStartButton.label = "Start App Trace";
-            this.appTraceStartButton.description = "";
-            this.appTraceStartButton.iconPath = "/Volumes/Data/source-code/vscode-plugin/media/play.svg";
-        }
+
+    public showStartButton() {
+        this.appTraceStartButton.label = "Start App Trace";
+        this.appTraceStartButton.iconPath = join(__filename, "..", "..", "..", "..", "..", "media", "play.svg");
         this.refresh();
     }
+    public showStopButton() {
+        this.appTraceStartButton.label = "Stop App Trace";
+        this.appTraceStartButton.iconPath = join(__filename, "..", "..", "..", "..", "..", "media", "stop.svg");
+        this.refresh();
+    }
+    public updateDescription(desc: string) {
+        this.appTraceStartButton.description = desc;
+        this.refresh();
+    }
+
     public getTreeItem(element: AppTracerItems): vscode.TreeItem {
         return element;
     }
