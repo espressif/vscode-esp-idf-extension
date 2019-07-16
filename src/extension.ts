@@ -382,6 +382,12 @@ export function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.openOCDCommand", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, openOCDManager.commandHandler);
     });
+
+    registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+            appTraceArchiveTreeDataProvider.populateArchiveTree();
+        });
+    });
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {

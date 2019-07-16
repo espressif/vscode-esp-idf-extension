@@ -28,5 +28,6 @@
 	"param.xtensaEsp32Path": "Toolchain Path to locate xtensa-esp32-elf-gcc",
 	"param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
 	"view.components.name": "Project Components",
-	"configuration.title": "ESP-IDF Configuration"
+	"configuration.title": "ESP-IDF Configuration",
+	"espIdf.apptrace.archive.refresh.title": "ESP-IDF Refresh Trace Archive List"
 }

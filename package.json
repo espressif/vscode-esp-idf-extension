@@ -40,6 +40,7 @@
     "onCommand:espIdf.size",
     "onCommand:espIdf.apptrace",
     "onCommand:espIdf.openOCDCommand",
+    "onCommand:espIdf.apptrace.archive.refresh",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:idfComponents",
@@ -72,6 +73,15 @@
         {
           "id": "idfComponents",
           "name": "%view.components.name%"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "espIdf.apptrace.archive.refresh",
+          "group": "navigation",
+          "when": "view == idfAppTraceArchive"
         }
       ]
     },
@@ -285,6 +295,14 @@
       {
         "command": "espIdf.openOCDCommand",
         "title": "%espIdf.openOCDCommand.title%"
+      },
+      {
+        "command": "espIdf.apptrace.archive.refresh",
+        "title": "%espIdf.apptrace.archive.refresh.title%",
+        "icon": {
+          "dark": "media/refresh_dark.svg",
+          "light": "media/refresh_light.svg"
+        }
       }
     ],
     "debuggers": [
