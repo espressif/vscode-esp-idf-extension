@@ -63,6 +63,7 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
                 appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
                 this.appTraceArchives.push(appTraceArchiveNode);
             });
+            this.appTraceArchives = this.appTraceArchives.reverse();
             this.refresh();
         }
     }
