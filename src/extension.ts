@@ -388,6 +388,12 @@ export function activate(context: vscode.ExtensionContext) {
             appTraceArchiveTreeDataProvider.populateArchiveTree();
         });
     });
+
+    registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+            Logger.infoNotify(`Selected ${trace.filePath}`);
+        });
+    });
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {

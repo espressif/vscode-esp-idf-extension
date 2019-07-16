@@ -20,7 +20,10 @@ import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
-class AppTraceArchiveItems extends vscode.TreeItem { }
+class AppTraceArchiveItems extends vscode.TreeItem {
+    public fileName: string;
+    public filePath: string;
+}
 
 // tslint:disable-next-line: max-classes-per-file
 export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<AppTraceArchiveItems> {
@@ -56,6 +59,13 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
             readdirSync(traceFolder).filter((trace) => trace.endsWith(".trace")).forEach((trace) => {
                 const name = trace.split("_");
                 const appTraceArchiveNode = new AppTraceArchiveItems(`Trace Log #${i++}`);
+                appTraceArchiveNode.fileName = trace;
+                appTraceArchiveNode.filePath = join(traceFolder, trace);
+                appTraceArchiveNode.command = {
+                    command: "espIdf.apptrace.archive.showReport",
+                    title: "Show Report",
+                    arguments: [appTraceArchiveNode],
+                };
                 appTraceArchiveNode.iconPath = {
                     light: join(__filename, "..", "..", "..", "..", "..", "media", "log_light.svg"),
                     dark: join(__filename, "..", "..", "..", "..", "..", "media", "log_dark.svg"),

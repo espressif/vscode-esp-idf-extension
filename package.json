@@ -41,6 +41,7 @@
     "onCommand:espIdf.apptrace",
     "onCommand:espIdf.openOCDCommand",
     "onCommand:espIdf.apptrace.archive.refresh",
+    "onCommand:espIdf.apptrace.archive.showReport",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:idfComponents",
@@ -303,6 +304,10 @@
           "dark": "media/refresh_dark.svg",
           "light": "media/refresh_light.svg"
         }
+      },
+      {
+        "command": "espIdf.apptrace.archive.showReport",
+        "title": "%espIdf.apptrace.archive.showReport.title%"
       }
     ],
     "debuggers": [
