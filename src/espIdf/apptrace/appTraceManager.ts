@@ -24,7 +24,8 @@ import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { AppTraceTreeDataProvider } from "./tree/appTracer";
+import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
+import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
 export interface IAppTraceManagerConfig {
     host: string;
@@ -36,11 +37,13 @@ export interface IAppTraceManagerConfig {
 export class AppTraceManager extends EventEmitter {
     private controller: Telnet;
     private treeDataProvider: AppTraceTreeDataProvider;
+    private archiveDataProvider: AppTraceArchiveTreeDataProvider;
 
-    constructor(treeDataProvider: AppTraceTreeDataProvider) {
+    constructor(treeDataProvider: AppTraceTreeDataProvider, archiveDataProvider: AppTraceArchiveTreeDataProvider) {
         super();
         this.controller = new Telnet();
         this.treeDataProvider = treeDataProvider;
+        this.archiveDataProvider = archiveDataProvider;
         this.registerTelnetDataReceiver();
     }
 
@@ -51,7 +54,7 @@ export class AppTraceManager extends EventEmitter {
                 setTimeout(async () => {
                     const workspace = vscode.workspace.workspaceFolders[0].uri.path;
                     this.sendCommandToTelnetSession(
-                        `esp32 apptrace start file://${join(workspace, ".trace")}/trace.log`,
+                        `esp32 apptrace start file://${join(workspace, ".trace")}/trace_${new Date().getTime()}.trace`,
                     );
                 }, 2000);
             }
@@ -61,15 +64,17 @@ export class AppTraceManager extends EventEmitter {
     }
 
     public async stop() {
-        this.treeDataProvider.showStartButton();
         await this.sendCommandToTelnetSession("esp32 apptrace stop");
-        this.controller.end();
+        this.treeDataProvider.showStartButton();
+        this.archiveDataProvider.populateArchiveTree();
+        await this.controller.end();
     }
 
     private async promptUserToLaunchOpenOCDServer() {
         const openOCDManager = OpenOCDManager.init();
         if (!openOCDManager.isRunning()) {
-            return await openOCDManager.commandHandler();
+            Logger.warnNotify("Launch OpenOCD Server before starting app trace");
+            return false;
         }
         return true;
     }
@@ -77,7 +82,7 @@ export class AppTraceManager extends EventEmitter {
     private async connectTelnetSession(config: IAppTraceManagerConfig) {
         return await this.controller.connect({
             shellPrompt: config.shellPrompt || ">",
-            timeout: config.timeout,
+            timeout: config.timeout || 5000,
             host: config.host,
             port: config.port,
         });
@@ -94,7 +99,7 @@ export class AppTraceManager extends EventEmitter {
         this.controller.on("data", (d) => {
             try {
                 const isProgress = d.toString().split("\n")[0].match(/[0-9].*/gm);
-                if (isProgress) {
+                if (isProgress && this.treeDataProvider.appTraceStartButton.label.match(/stop/gi)) {
                     this.treeDataProvider.updateDescription(isProgress[0].trim());
                 }
             } catch (error) {

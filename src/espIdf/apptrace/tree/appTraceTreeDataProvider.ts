@@ -43,6 +43,7 @@ export class AppTraceTreeDataProvider implements vscode.TreeDataProvider<AppTrac
     public showStartButton() {
         this.appTraceStartButton.label = "Start App Trace";
         this.appTraceStartButton.iconPath = join(__filename, "..", "..", "..", "..", "..", "media", "play.svg");
+        this.appTraceStartButton.description = "";
         this.refresh();
     }
     public showStopButton() {

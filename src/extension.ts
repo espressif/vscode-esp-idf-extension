@@ -19,7 +19,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
-import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTracer";
+import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
+import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
@@ -42,6 +43,7 @@ const openOCDManager = OpenOCDManager.init();
 
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
+let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -368,7 +370,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            const atm = new AppTraceManager(appTraceTreeDataProvider);
+            const atm = new AppTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
             if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
                 await atm.start();
             } else {
@@ -389,7 +391,10 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
 
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     appTraceTreeDataProvider = new AppTraceTreeDataProvider();
+    appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
+
     context.subscriptions.push(appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"));
+    context.subscriptions.push(appTraceArchiveTreeDataProvider.registerDataProviderForTree("idfAppTraceArchive"));
 }
 
 function creatCmdsStatusBarItems() {
