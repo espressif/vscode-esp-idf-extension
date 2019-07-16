@@ -54,7 +54,7 @@ export class AppTraceManager extends EventEmitter {
                 setTimeout(async () => {
                     const workspace = vscode.workspace.workspaceFolders[0].uri.path;
                     this.sendCommandToTelnetSession(
-                        `esp32 apptrace start file://${join(workspace, ".trace")}/trace_${new Date().getTime()}.trace`,
+                        `esp32 apptrace start file://${join(workspace, "trace")}/trace_${new Date().getTime()}.trace`,
                     );
                 }, 2000);
             }
@@ -90,8 +90,8 @@ export class AppTraceManager extends EventEmitter {
     private async sendCommandToTelnetSession(command: string) {
         await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
         const workspace = vscode.workspace.workspaceFolders[0].uri.path;
-        if (!fileExists(join(workspace, ".trace"))) {
-            mkdirSync(join(workspace, ".trace"));
+        if (!fileExists(join(workspace, "trace"))) {
+            mkdirSync(join(workspace, "trace"));
         }
         return await this.controller.exec(command);
     }

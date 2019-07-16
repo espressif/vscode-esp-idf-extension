@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { exists, existsSync, fstat, readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
@@ -50,7 +50,7 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
     public populateArchiveTree() {
         this.appTraceArchives = Array<AppTraceArchiveItems>(0);
         const workspace = vscode.workspace.workspaceFolders[0].uri;
-        const traceFolder = join(workspace.path, ".trace");
+        const traceFolder = join(workspace.path, "trace");
         if (existsSync(traceFolder)) {
             let i = 1;
             readdirSync(traceFolder).filter((trace) => trace.endsWith(".trace")).forEach((trace) => {
@@ -72,20 +72,20 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
         const d = new Date(parseInt(epoch));
         const n = new Date();
         if (n.getFullYear() - d.getFullYear() !== 0) {
-            return `${n.getFullYear() - d.getFullYear()} years ago.`;
+            return `${n.getFullYear() - d.getFullYear()} year`;
         }
         if (n.getMonth() - d.getMonth() !== 0) {
-            return `${n.getMonth() - d.getMonth()} months ago.`;
+            return `${n.getMonth() - d.getMonth()} month`;
         }
         if (n.getDate() - d.getDate() !== 0) {
-            return `${n.getDate() - d.getDate()} days ago.`;
+            return `${n.getDate() - d.getDate()} day`;
         }
         if (n.getHours() - d.getHours() !== 0) {
-            return `${n.getHours() - d.getHours()} hours ago.`;
+            return `${n.getHours() - d.getHours()} hour`;
         }
         if (n.getMinutes() - d.getMinutes() !== 0) {
-            return `${n.getMinutes() - d.getMinutes()} minutes ago.`;
+            return `${n.getMinutes() - d.getMinutes()} minute`;
         }
-        return "a few seconds ago!";
+        return "a few seconds";
     }
 }
