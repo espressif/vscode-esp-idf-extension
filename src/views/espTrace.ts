@@ -26,25 +26,9 @@ const app = new Vue({
     data: {
         openOcdServerRunning: true,
         // tslint:disable-next-line: max-line-length
-        subtitle: "App Tracing will help you with in-depth analysis of the runtime. In a nutshell this feature allows you to transfer arbitrary data between host and ESP32 via JTAG interface with small overhead on program execution.",
-        title: "<strong>ESP-IDF</strong>&nbsp;Tracing",
-    },
-    methods: {
-        statusTextForOpenOcdServer() {
-            if (this.openOcdServerRunning) {
-                return "Running";
-            }
-            return "Stopped";
-        },
-        cssClassForOpenOcdServer() {
-            if (this.openOcdServerRunning) {
-                return "has-text-success";
-            }
-            return "has-text-danger";
-        },
-        startTracing() {
-            this.openOcdServerRunning = !this.openOcdServerRunning;
-        },
+        subtitle: "App Tracing Reporter will help you with in-depth analysis of the runtime. In a nutshell this feature allows you to transfer arbitrary data between host and ESP32 via JTAG interface with small overhead on program execution.",
+        title: "<strong>ESP-IDF</strong>&nbsp;App Tracing Reporter",
+        fileName: "",
     },
 });
 
@@ -52,4 +36,5 @@ const app = new Vue({
 declare var window: any;
 window.addEventListener("message", (m: any) => {
     const msg = m.data;
+    app.fileName = "some_file_name";
 });

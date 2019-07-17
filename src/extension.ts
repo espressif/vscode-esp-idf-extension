@@ -19,6 +19,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
+import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
@@ -392,6 +393,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
             Logger.infoNotify(`Selected ${trace.filePath}`);
+            AppTracePanel.createOrShow(context);
         });
     });
 }

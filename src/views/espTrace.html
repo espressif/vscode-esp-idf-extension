@@ -21,36 +21,7 @@
         </header>
         <div class="section no-padding-top">
             <div class="container">
-                <div class="notification is-uppercase">
-                    <nav class="level is-mobile is-size-7-mobile">
-                        <div class="level-left">
-                            <div class="level-item">
-                                <h1>Open OCD Server Status</h1>
-                            </div>
-                        </div>
-                        <div class="level-right">
-                            <div class="level-item">
-                                <p class="buttons">
-                                    <button class="button is-uppercase is-static">
-                                        <span class="icon is-small" v-bind:class="cssClassForOpenOcdServer()">
-                                            <i class="fas fa-circle"></i>
-                                        </span>
-                                        <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                        <span>{{statusTextForOpenOcdServer()}}</span>
-                                    </button>
-                                    <button class="button" v-bind:class="{'is-hidden' : openOcdServerRunning}">
-                                        <span class="icon is-small">
-                                            <i class="fas fa-redo"></i>
-                                        </span>
-                                    </button>
-                                </p>
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-                <div class="has-text-centered" style="margin-top: 2em">
-                    <button class="button is-medium" v-on:click="startTracing" v-bind:disabled="!openOcdServerRunning">Start Tracing</button>
-                </div>
+                {{fileName}}
             </div>
         </div>
     </div>
