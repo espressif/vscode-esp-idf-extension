@@ -392,8 +392,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-            Logger.infoNotify(`Selected ${trace.filePath}`);
-            AppTracePanel.createOrShow(context);
+            AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName } });
         });
     });
 }

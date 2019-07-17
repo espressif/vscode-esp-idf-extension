@@ -1,6 +1,6 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Thursday, 11th July 2019 10:52:59 am
+ * File Created: Wednesday, 17th July 2019 3:58:48 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +24,13 @@ import { Logger } from "../../logger/logger";
 
 export class AppTracePanel {
 
-    public static createOrShow(context: vscode.ExtensionContext) {
+    public static createOrShow(context: vscode.ExtensionContext, traceData?: any) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
         if (AppTracePanel.currentPanel) {
             AppTracePanel.currentPanel._panel.reveal(column);
+            if (traceData) {
+                AppTracePanel.currentPanel._panel.webview.postMessage(traceData);
+            }
             return;
         }
         const panel = vscode.window.createWebviewPanel(
@@ -38,7 +41,7 @@ export class AppTracePanel {
                 localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "out", "views"))],
                 retainContextWhenHidden: true,
             });
-        AppTracePanel.currentPanel = new AppTracePanel(panel, context.extensionPath);
+        AppTracePanel.currentPanel = new AppTracePanel(panel, context.extensionPath, traceData);
     }
 
     private static currentPanel: AppTracePanel | undefined;
@@ -49,10 +52,12 @@ export class AppTracePanel {
     private readonly _extensionPath: string;
 
     private _disposables: vscode.Disposable[] = [];
+    private _traceData: object;
 
-    private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
+    private constructor(panel: vscode.WebviewPanel, extensionPath: string, traceData: any) {
         this._panel = panel;
         this._extensionPath = extensionPath;
+        this._traceData = traceData;
         this.initWebview();
     }
     private disposeWebview() {
@@ -61,26 +66,16 @@ export class AppTracePanel {
 
     private initWebview() {
         this._panel.webview.html = this.getHtmlContent();
+        this._panel.webview.postMessage(this._traceData);
         this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
         this._panel.webview.onDidReceiveMessage((msg) => {
             switch (msg.command) {
-                case "flash":
-                    vscode.commands.executeCommand("espIdf.flashDevice");
-                    break;
-                case "retry":
-                    // this._panel.webview.postMessage(this._webviewData);
-                    break;
                 default:
-                    const err = new Error(`Unrecognized command received from webview (idf-size), file: ${__filename}`);
+                    const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
                     Logger.error(err.message, err);
                     break;
             }
         }, null, this._disposables);
-    }
-    private sendMessageToWebview(message: string, ...args: any[]) {
-        if (this._panel) {
-            this._panel.webview.postMessage({message, args});
-        }
     }
     private getHtmlContent(): string {
         const htmlFilePath = path.join(this._extensionPath, "out", "views", "espTrace.html");

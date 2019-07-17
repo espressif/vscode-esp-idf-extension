@@ -32,9 +32,15 @@ const app = new Vue({
     },
 });
 
+const updateModelWithTraceData = (trace) => {
+    if (trace) {
+        app.fileName = trace.fileName;
+    }
+};
+
 // Message Receiver
 declare var window: any;
 window.addEventListener("message", (m: any) => {
     const msg = m.data;
-    app.fileName = "some_file_name";
+    updateModelWithTraceData(msg.trace);
 });
