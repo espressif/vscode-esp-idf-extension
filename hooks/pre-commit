@@ -1,8 +1,0 @@
-#!/bin/sh
-
-echo "Pre commit validation...";
-
-npm run tslint
-npm run eslint
-
-echo "Success";

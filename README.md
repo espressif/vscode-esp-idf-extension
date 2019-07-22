@@ -1,82 +1,116 @@
-# Espressif IDF Visual Studio Code Extension
+# ESP-IDF Visual Studio Code Extension
 
-Visual Studio Code extension for improved IDE Espressif development experience.
+Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](https://github.com/espressif/esp-idf) is official development framework for the [ESP-32](https://espressif.com/en/products/hardware/esp32/overview) chip.
 
-## Requirements
+The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
 
-This plugin works on [Visual Studio Code](https://code.visualstudio.com/).
+- Quick On-boarding for first time user.
+- Quick prototyping using some examples directly baked into the extension.
+- Easily Build, Flash and Monitor your code for the ESP-32 chip.
+- Debugging support with OpenOCD integration.
+- IntelliSense and syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html)
+- Commands and Shortcuts for existing [ESP-IDF Tools](https://github.com/espressif/esp-idf/tree/master/tools) within the extension
 
-Features such as Code navigation is supported by the [C/C++ Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools). 
+## Prerequisites
+There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension.
+- Python [3.5](https://www.python.org/download/releases/3.5/)+ (recommended)
+- ESP-IDF ([CMake Version](https://docs.espressif.com/projects/esp-idf/en/latest/get-started-cmake/index.html))
 
-It also requires that you build your project since it is based on the project build's compile_commands.json to identify the header files and code navigation.
+## Quick Installation Guide
+There are several ways to install this extension to your VSCode, easiest one is from VSCode Marketplace. However if you are looking to contribute to this project we suggest you to have install in [source mode](#Source-Mode)
 
-## Installation using VSIX package file.
+### Marketplace Installation
+Launch VSCode Quick Open (<kbd>⌘</kbd>+<kbd>P</kbd> on Mac or <kbd>Ctrl</kbd>+<kbd>P</kbd> on Windows) and then paste the following command and press enter
 
-1. Install [Visual Studio Code](https://code.visualstudio.com/). Make sure you also install the C/C++ Extension from Visual Studio Code Marketplace.
+	ext install esp-idf-extension
 
-2. In Visual Studio Code, go to the extensions tab.
-
-3. Click the ... button left to the Extensions tab title.
-
-4. Click `Install from VSIX...` and select the plugin VSIX package file.
-
-5. See the [How to use](#How-to-use) section.
-
-## Installation using compressed source code (espidf-vscode.tar.gz)
-
-1. Install [NodeJS](https://nodejs.org/en/) and [Visual Studio Code](https://code.visualstudio.com/). Make sure you also install the C/C++ Extension from Visual Studio Code Marketplace.
-
-2. Install the extension "C/C++ for Visual Studio Code" inside VS Code.
-
-3. Decompress the content of espidf-vscode.tar.gz to the following location (corresponding to your operating system) which we will later identify as {VSCODE_EXTENSION_DIR}:
-    1. Windows: `%USERPROFILE%\.vscode\extensions`
-    2. macOS: `~/.vscode/extensions`
-    3. Linux: `~/.vscode/extensions`
-
-4. Run `npm install` in `{VSCODE_EXTENSION_DIR}/vscode-plugin` to download all nodeJS dependencies. NPM is a dependency manager shipped with NodeJS.
-
-5. Run `npm run compile` in `{VSCODE_EXTENSION_DIR}/vscode-plugin` to compile the source code.
-
-6. See the [How to use](#How-to-use) section.
+### Build from Source Code
+- Install [Node.js](https://nodejs.org/en/)
+- Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
+- Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
+- Install all the dependencies, using `npm i`
+- Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host
 
 ## Uninstalling the plugin
-
-1. In Visual Studio Code, go to the Extensions tab.
-
-2. Click on the EspressifIDF extension lower right icon.
-
-3. Click Uninstall.
-
-4. Go to your `{VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder. 
+- In Visual Studio Code, go to the Extensions tab.
+- Click on the EspressifIDF extension lower right icon.
+- Click Uninstall.
+- Go to your `{VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder. 
 
 ## How to use
+- First set up your Visual Studio Code as explained in the former section.
+- Then
+    - Either open Visual Studio Code and create a workspace folder.
+    - Run `code {YOUR_PROJECT_DIR}` from the command line.
+- Set the ESP path, OpenOCD and Xtensa path by pressing F1 then typing **ESP-IDF: Set binaries path** and the USB port by pressing F1 and typing **ESP-IDF: Select port to use:**. You can also manually define this parameters in {project_folder}/.vscode/settings.json as `idf.espIdfPath`,`idf.openOcdBin`,`idf.xtensaEsp32Path` and `idf.port` respectively. If you are on Windows, the parameters used are `idf.espIdfPathWin`,`idf.openOcdBinWin`,`idf.xtensaEsp32PathWin` instead of the previous ones, in case you are manually configuring the `{project_folder}/.vscode/settings.json` in your project.
 
-1. First set up your Visual Studio Code as explained in the former section. 
+	__NOTE:__ Please consider that `~` is not recognized when you set one of the previous path. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path such as `${config:idf.espIdfPath}`.
 
-2. Then,
-    1. Either open Visual Studio Code and create a workspace folder.
-    2. Run `code {YOUR_PROJECT_DIR}` from the command line.
+- Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
 
-3. Set the ESP path, OpenOCD and Xtensa path by pressing F1 then typing **ESP-IDF: Set binaries path** and the USB port by pressing F1 and typing **ESP-IDF: Select port to use:**. You can also manually define this parameters in {project_folder}/.vscode/settings.json as `idf.espIdfPath`,`idf.openOcdBin`,`idf.xtensaEsp32Path` and `idf.port` respectively. If you are on Windows, the parameters used are `idf.espIdfPathWin`,`idf.openOcdBinWin`,`idf.xtensaEsp32PathWin` instead of the previous ones, in case you are manually configuring the {project_folder}/.vscode/settings.json in your project.
+	__Note:__ If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required __compile_commands.json__ used by C/C++ extension to solve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**.
 
-NOTE: Please consider that ~ is not recognized when you set one of the previous path. You can instead set any environment variable in the path using a `${env:VARNAME}` such as ${env:HOME} or you can refer to other configuration parameter path such as `${config:idf.espIdfPath}`.
+- Do some coding!
+- Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
+- When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
+- You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.deviceInterface` and `idf.board` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
 
-4. Press F1 and type **ESP-IDF: Create ESP-IDF project** to copy a minimum set of files
- to run a ESP-IDF project.
+## Available commands
 
-5. If you want to get code navigation and ESP-IDF function references, build the project a first time.
- This will generate the required __compile_commands.json__ used by C/C++ extension to solve header/source links.
- You can do a rebuild by pressing F1 and typing **ESP-IDF: Build your project**.
+Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to see possible actions.
 
-6. Do some coding!
+| Command Description | Keyboard Shortcuts (Mac) | Keyboard Shortcuts (Windows/ Linux) |
+| --- | --- | --- |
+| Create ESP-IDF project | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> | 
+| Configure Paths |||
+| Device configuration |||
+| Launch gui configuration tool |||
+| Set default sdkconfig file in project	 |||
+| Select port to use |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
+| Build your project |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
+| Flash your project |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
+| Monitor your device |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
+| Build, Flash and start a monitor on your device |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Pick a workspace folder |||
+| Clean current project |||
+| Erase device flash |||
+| Size analysis of the binaries |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 
-7. Check you set the correct port of your device by pressing F1, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
+## ESP-IDF Settings
 
-8. When you are ready, do another rebuild as explained before. Then flash to your device by pressing F1 and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
+This extension contributes the following settings that can be later updated in settings.json:
 
-9. You can later start a monitor by pressing F1 and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
 
-10. If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.deviceInterface` and `idf.board` settings in your settings.json or by pressing F1 and typing **ESP-IDF: Device configuration**.
+| Setting | Description |
+| --- | --- |
+| `idf.espIdfPath` | Define the locations of ESP-IDF tools and components |
+| `idf.xtensaEsp32Path` | Xtensa ESP32 Path |
+| `idf.openOcdBin` | Full path of OpenOCD program |
+| `idf.openOcdScriptsPath` | Full path of OpenOCD scripts |
+| `idf.deviceInterface` | OpenOCD interface of currently debugged device. Need to specify the full path of device interface definition file |
+| `idf.board` | OpenOCD defined board for currently debugged device. Need to specify the full path of board definition file |
+| `idf.port` | USB port of your currently used ESP device |
+| `idf.baudRate` | Baud Rate of your ESP-IDF board |
+| `idf.useIDFKconfigStyle` | Enable or Disable ESP-IDF Kconfig style validation on Kconfig files text editor |
+
+### Use of environment variables in ESP-IDF settings
+
+Environment (env) variables and other ESP-IDF settings (config) current values strings can be used in other ESP-IDF setting as `${env:VARNAME}` and `${config:ESPIDFSETTING}`, respectively.
+
+Example : `idf.espIdfPath` = `"${env:HOME}/esp/esp-idf"` would be translated to `"~/esp/esp-idf"`.
+
+## Available Tasks in tasks.json
+
+There is also some tasks defined in Tasks.json, which can be executed by running <kbd>F1</kbd> and writing `Tasks: Run task` and selecting one of
+the following:
+
+1. `Build` - Build Project
+2. `Clean` - Clean the project
+3. `Flash` - Flash the device
+4. `Monitor` - Start a monitor terminal
+5. `OpenOCD` - Start the openOCD server
+6. `BuildFlash` - Execute a build followed by a flash command.
 
 ## IDF GUI Menuconfig
 
@@ -98,7 +132,7 @@ You can select the current project by clicking the __IDF Current Project__ Item 
 
 Projects folders and workspace level settings are defined in the `.code-workspace` file such as:
 
-```
+```json
 {
 	"folders": [
 		{
@@ -123,110 +157,20 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
 
-## Available commands
-
-Click F1 to show Visual studio code actions.
-
-Type ESP-IDF to see possible actions.
-
-1. ESP-IDF: Create ESP-IDF project. Create minimum set of files to start an ESP-IDF project.
-2. ESP-IDF: Build your project: Run a Cmake build in your current work folder or selected folder (multiple folders scenario).
-3. ESP-IDF: Flash your device: Flash your device on the selected `idf.port`.
-4. ESP-IDF: Monitor your device: Start a monitor of your device for the selected `idf.port`.
-5. ESP-IDF: Build, Flash and start a monitor on your device: Build the current workspace project, flash it on the selected port device and start a monitor on your device.
-6. ESP-IDF: Select port to use: Select one of the system serial port to use for flash, debug and monitor actions by showing available USB ports.
-7. ESP-IDF: Launch the gui configuration tool. GUI-menuconfig to configure our sdkconfig files.
-8. ESP-IDF: Pick a workspace folder for ESP-IDF commands. For multiple folder projects, pick the folder where to obtain the ESP-IDF Settings to Build, Flash, Monitor or Debug an ESP-IDF project.
-9. ESP-IDF: Device configuration: Define the following board parameters:
-    1. Device port. Set the device USB port (COM1, /dev/ttyUSB1) manually.
-    2. Baud Rate. Communication baud rate.
-    3. Device interface. Device interface required by OpenOCD (Example interface/ftdi/esp32_devkitj_v1.cfg)
-    4. Board. Used board required by OpenOCD (Example board/esp32-wrover.cfg)
-10. ESP-IDF: Set Binaries Path
-    1. ESP Path. Set the ESP-IDF directory path (default: /esp/esp-idf).
-    2. Xtensa-ESP32 Path. Set the Xtensa-ESP32 path (default: /esp/xtensa-esp32-elf).
-    3. OpenOCD Path. Set the OpenOCD path directory (default: /esp/openocd).
-11. ESP-IDF: Size analysis of the binaries
-
-## Keyboard shortcuts
-
-By default, the Espressif IDF Visual Studio Code extension define the following keyboard shortcuts for ESP-IDF Commands:
-
-ESP-IDF: Create ESP-IDF project : `ctrl+e c` in Windows/Linux or `cmd+e c` in MacOS.
-
-ESP-IDF: Build your project: `ctrl+e b` in Windows/Linux or `cmd+e b` in MacOS.
-
-ESP-IDF: Flash your device: `ctrl+e f` in Windows/Linux or `cmd+e f` in MacOS.
-
-ESP-IDF: Monitor your device: `ctrl+e m` in Windows/Linux or `cmd+e m` in MacOS.
-
-ESP-IDF: Select port to use: `ctrl+e p` in Windows/Linux or `cmd+e p` in MacOS.
-
-ESP-IDF: Build, Flash and start a monitor on your device: `ctrl+e d` in Windows/Linux or `cmd+e d` in MacOS.
-
-ESP-IDF: Size analysis of the binaries: `ctrl+e s` in Windows/Linux or `cmd+e s` in MacOS.
-
-All the previous keyboard shortcut can be modified on Visual Studio Code by clicking F1 and typing `Preferences: Open Keyboard Shortcuts` or by manually defining a keybindings.json in your current workspace `.vscode` directory.
-
 ## Debugging
 
-Click F5 to start debugging. For correct debug experience, first build and flash your device as explained before as well as define the correct OpenOCD and XtensaESP32 paths.
+Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `OpenOCD` and `XtensaESP32` paths.
 
 When you start debug, a OpenOCD process start in the background, which create a OpenOCD Output log in Visual Studio Code lower panel.
 
-# Kconfig files editor
+## Kconfig files editor
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file you get syntax highlighting (and ESP-IDF Kconfig style diagnostics if `idf.useIDFKconfigStyle` is enabled, such as indent validation and blocks that are not properly closed (Example: menu-endmenu)). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
 
-## Available Tasks in tasks.json
+# Code of Conduct
 
-There is also some tasks defined in Tasks.json, which can be executed by running F1 and writing `Tasks: Run task` and selecting one of
-the following:
+This project and everyone participating in it is governed by the [Code of Conduct](./docs/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [vscode@espressif.com](mailto:vscode@espressif.com).
 
-1. Build - Build Project
-2. Clean - Clean the project
-3. Flash - Flash the device
-4. Monitor - Start a monitor terminal
-5. OpenOCD - Start the openOCD server
-6. BuildFlash - Execute a build followed by a flash command.
+# License
 
-## ESP-IDF Settings
-
-This extension contributes the following settings that can be later updated in settings.json:
-
-* `idf.espIdfPath` Define the locations of ESP-IDF tools and components
-* `idf.xtensaEsp32Path`: Xtensa ESP32 Path
-* `idf.openOcdBin`: Full path of OpenOCD program.
-* `idf.openOcdScriptsPath`: Full path of OpenOCD scripts.
-* `idf.deviceInterface`: OpenOCD interface of currently debugged device. Need to specify the full path of device interface definition file.
-* `idf.board`: OpenOCD defined board for currently debugged device. Need to specify the full path of board definition file.
-* `idf.port`: USB port of your currently used ESP device.
-* `idf.baudRate`: Baud Rate of your ESP-IDF board.
-* `idf.useIDFKconfigStyle`: Enable or Disable ESP-IDF Kconfig style validation on Kconfig files text editor.
-
-The previously shown settings are used for tasks defined in tasks.json, the extension itself and the debugger. Make sure they correspond with your device as shown in the esp-idf documentation.
-
-### Use of environment variables in ESP-IDF settings
-
-Environment (env) variables and other ESP-IDF settings (config) current values strings can be used in other ESP-IDF setting as ${env:VARNAME} and ${config:ESPIDFSETTING}, respectively.
-
-Example : `idf.espIdfPath` = "${env:HOME}/esp/esp-idf" would be translated to "~/esp/esp-idf".
-
-## Known Issues
-
-Debugging session needs to be executed a couple of times before working. These issues come from debugging configuration gdb setup commands and the C/C++ gdb debug provider which still need some improvement.
-
-## Work to do
-
-- [x] Implement Finite State Machine Build-Flash-Debug Process.
-- [x] Update gui-menuconfig to work with IDF-server.
-- [x] Custom project treeview with external components.
-- [x] Kconfig files linter.
-- [ ] ESP-IDF Profiler
-- [ ] More cool stuff to come.
-
-## Contribute
-
-Post an issue or pull/merge request on Github/Gitlab and let's explore a solution together.
-
------------------------------------------------------------------------------------------------------------
+This extension is licensed under the Apache License 2.0. Please see the [LICENSE](./LICENSE) file for additional copyright notices and terms.
