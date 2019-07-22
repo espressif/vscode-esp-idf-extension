@@ -65,6 +65,13 @@ const showLog = ({ log }) => {
     }
 };
 
+const calculateFailed = ({ error }) => {
+    if (error) {
+        app.isCalculating = false;
+        app.log = null;
+    }
+};
+
 // Message Receiver
 declare var window: any;
 window.addEventListener("message", (m: any) => {
@@ -75,6 +82,8 @@ window.addEventListener("message", (m: any) => {
             break;
         case "calculated":
             showLog(msg.value);
+        case "calculateFailed":
+            calculateFailed(msg.value);
         default:
             break;
     }

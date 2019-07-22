@@ -75,6 +75,7 @@ export class AppTracePanel {
                     this.check().then((resp) => {
                         this.sendCommandToWebview("calculated", { log: resp });
                     }).catch((error) => {
+                        this.sendCommandToWebview("calculateFailed", { error });
                         Logger.errorNotify(error.message, error);
                     });
                     break;
@@ -86,13 +87,13 @@ export class AppTracePanel {
         }, null, this._disposables);
     }
     private async check() {
-        const a = new LogTraceProc(
+        const logTraceProc = new LogTraceProc(
             vscode.workspace.workspaceFolders[0].uri,
             this._traceData.trace.filePath,
             "",
         );
-        const d = await a.parse();
-        return d.toString();
+        const resp = await logTraceProc.parse();
+        return resp.toString();
     }
     private sendCommandToWebview(command: string, value: any) {
         if (this._panel.webview) {
