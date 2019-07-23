@@ -93,10 +93,23 @@ export class AppTracePanel {
         const logTraceProc = new LogTraceProc(
             workspaceRoot,
             this._traceData.trace.filePath,
-            "",
+            this.getElfFilePath(workspaceRoot),
         );
         const resp = await logTraceProc.parse();
         return resp.toString();
+    }
+    private getElfFilePath(workspaceURI: vscode.Uri): string {
+        let elfFilePath = "";
+        if (!workspaceURI) {
+            return elfFilePath;
+        }
+        const elfPath = path.join(workspaceURI.path, "build");
+        fs.readdirSync(elfPath).forEach((file) => {
+            if (file.endsWith(".elf")) {
+                elfFilePath = path.join(elfPath, file);
+            }
+        });
+        return elfFilePath;
     }
     private sendCommandToWebview(command: string, value: any) {
         if (this._panel.webview) {

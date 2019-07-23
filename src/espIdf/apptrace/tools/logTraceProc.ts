@@ -36,10 +36,10 @@ export class LogTraceProc {
 
     public async parse(): Promise<Buffer> {
         if (!existsSync(this.elfFilePath)) {
-            throw new Error("Elf file doesn't exists");
+            throw new Error(`Elf file doesn't exists, ${this.elfFilePath}`);
         }
         if (!existsSync(this.traceFilePath)) {
-            throw new Error("Trace file doesn't exists");
+            throw new Error(`Trace file doesn't exists, ${this.traceFilePath}`);
         }
         return await spawn("python", ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
             cwd: this.appTraceToolsPath(),
