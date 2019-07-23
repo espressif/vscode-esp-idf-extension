@@ -402,6 +402,12 @@ export function activate(context: vscode.ExtensionContext) {
             AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName, filePath: trace.filePath } });
         });
     });
+
+    registerIDFCommand("espIdf.apptrace.customize", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+            await AppTraceManager.saveConfiguration(workspaceRoot);
+        });
+    });
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {

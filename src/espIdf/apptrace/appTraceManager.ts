@@ -21,6 +21,7 @@ import { mkdirSync } from "fs";
 import { join } from "path";
 import * as Telnet from "telnet-client";
 import * as vscode from "vscode";
+import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -35,6 +36,89 @@ export interface IAppTraceManagerConfig {
 }
 
 export class AppTraceManager extends EventEmitter {
+
+    public static async saveConfiguration(workspaceRoot: vscode.Uri) {
+        await this.configHelper(
+            "Data polling period for apptrace",
+            "milliseconds",
+            "trace.poll_period",
+            workspaceRoot,
+            (value: string): string => {
+                if (value.match(/^[0-9]*$/g)) {
+                    return "";
+                }
+                return "Invalid poll_period value, please enter only number";
+            },
+        );
+        await this.configHelper(
+            "Maximum size of data to be collected",
+            "bytes",
+            "trace.trace_size",
+            workspaceRoot,
+            (value: string): string => {
+                if (value.match(/^(?:-1|[0-9]*)$/g)) {
+                    return "";
+                }
+                return "Invalid trace_size value, only -1 or positive integer allowed";
+            },
+        );
+        await this.configHelper(
+            "Idle timeout for apptrace",
+            "seconds",
+            "trace.stop_tmo",
+            workspaceRoot,
+            (value: string): string => {
+                if (value.match(/^[0-9]*$/g)) {
+                    return "";
+                }
+                return "Invalid stop_tmo value, please enter only number";
+            },
+        );
+        await this.configHelper(
+            "Should wait for halt?",
+            "0 = Starts Immediately; else wait",
+            "trace.wait4halt",
+            workspaceRoot,
+            (value: string): string => {
+                if (value.match(/^[0-9]*$/g)) {
+                    return "";
+                }
+                return "Invalid wait4halt value, please enter only number";
+            },
+        );
+        await this.configHelper(
+            "Number of bytes to skip at the start",
+            "bytes",
+            "trace.skip_size",
+            workspaceRoot,
+            (value: string): string => {
+                if (value.match(/^[0-9]*$/g)) {
+                    return "";
+                }
+                return "Invalid skip_size value, please enter only number";
+            },
+        );
+    }
+
+    private static async configHelper(
+        prompt: string,
+        placeholder: string,
+        paramName: string,
+        workspaceRoot: vscode.Uri,
+        validatorFunction: (value: string) => string,
+    ) {
+        const confSaved = idfConf.readParameter(paramName, workspaceRoot);
+        const skipSize = await vscode.window.showInputBox({
+            placeHolder: placeholder,
+            value: confSaved,
+            prompt,
+            ignoreFocusOut: true,
+            validateInput: validatorFunction,
+        });
+        // tslint:disable-next-line: no-unused-expression
+        skipSize ? idfConf.writeParameter(paramName, skipSize, workspaceRoot) : undefined;
+    }
+
     private controller: Telnet;
     private treeDataProvider: AppTraceTreeDataProvider;
     private archiveDataProvider: AppTraceArchiveTreeDataProvider;
@@ -53,10 +137,15 @@ export class AppTraceManager extends EventEmitter {
                 this.treeDataProvider.showStopButton();
                 setTimeout(async () => {
                     // tslint:disable-next-line: max-line-length
-                    const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
+                    const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
+                    const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
+                    const traceSize = idfConf.readParameter("trace.trace_size", workspace);
+                    const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
+                    const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
+                    const skipSize = idfConf.readParameter("trace.skip_size", workspace);
                     this.sendCommandToTelnetSession(
                         // tslint:disable-next-line: max-line-length
-                        `esp32 apptrace start file://${join(workspace, "trace")}/trace_${new Date().getTime()}.trace 1 2048 5 0 0`,
+                        `esp32 apptrace start file://${join(workspace ? workspace.path : "", "trace")}/trace_${new Date().getTime()}.trace ${pollPeriod} ${traceSize} ${stopTmo} ${wait4halt} ${skipSize}`,
                     );
                 }, 2000);
             }
