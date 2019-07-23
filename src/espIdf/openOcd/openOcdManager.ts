@@ -110,26 +110,29 @@ export class OpenOCDManager extends EventEmitter {
         if (!fileExists(this.scriptPath)) {
             throw new Error("Invalid OpenOCD script path");
         }
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
         this.server = spawn(this.binPath, [
             "-s", this.scriptPath,
             "-f", this.deviceInterface,
             "-f", this.board,
         ], {
-                cwd: vscode.workspace.workspaceFolders[0].uri.path,
+                cwd: workspace,
             });
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
-            const regex = /^Error:.*$/gmi;
+            const regex = /Error:.*/i;
             const errStr = data.toString();
             const matchArr = errStr.match(regex);
             if (!matchArr) {
                 this.emit("data", this.chan);
             } else {
-                const errorMsg: string = `OpenOCD server failed to start ${matchArr.join(" ")}`;
-                this.emit("error", new Error(errorMsg), this.chan);
+                const errorMsg = `OpenOCD server failed to start because of ${matchArr.join(" ")}`;
+                const err = new Error(errorMsg);
+                this.displayChan.append(`❌ ${errStr}`);
+                this.emit("error", err, this.chan);
             }
-            this.displayChan.append(data.toString());
+            this.displayChan.append(errStr);
             this.displayChan.show();
         });
         this.server.stdout.on("data", (data) => {
@@ -141,7 +144,7 @@ export class OpenOCDManager extends EventEmitter {
             this.emit("error", error, this.chan);
             this.stop();
         });
-        this.server.on("exit", (code: number, signal: string) => {
+        this.server.on("close", (code: number, signal: string) => {
             if (!signal && code && code !== 0) {
                 Logger.errorNotify(
                     `OpenOCD Exit with non-zero error code ${code}`,
@@ -151,6 +154,7 @@ export class OpenOCDManager extends EventEmitter {
             this.stop();
         });
         this.updateStatusText("❇️ OpenOCD Server (Running)");
+        this.displayChan.clear();
     }
 
     public stop() {
@@ -170,7 +174,8 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     private configureServerWithDefaultParam() {
-        const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
 
         this.binPath = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
         this.scriptPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);

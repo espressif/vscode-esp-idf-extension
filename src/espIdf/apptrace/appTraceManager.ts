@@ -52,9 +52,11 @@ export class AppTraceManager extends EventEmitter {
             if (await this.promptUserToLaunchOpenOCDServer()) {
                 this.treeDataProvider.showStopButton();
                 setTimeout(async () => {
-                    const workspace = vscode.workspace.workspaceFolders[0].uri.path;
+                    // tslint:disable-next-line: max-line-length
+                    const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
                     this.sendCommandToTelnetSession(
-                        `esp32 apptrace start file://${join(workspace, "trace")}/trace_${new Date().getTime()}.trace`,
+                        // tslint:disable-next-line: max-line-length
+                        `esp32 apptrace start file://${join(workspace, "trace")}/trace_${new Date().getTime()}.trace 1 2048 5 0 0`,
                     );
                 }, 2000);
             }
@@ -89,7 +91,7 @@ export class AppTraceManager extends EventEmitter {
     }
     private async sendCommandToTelnetSession(command: string) {
         await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
-        const workspace = vscode.workspace.workspaceFolders[0].uri.path;
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
         if (!fileExists(join(workspace, "trace"))) {
             mkdirSync(join(workspace, "trace"));
         }

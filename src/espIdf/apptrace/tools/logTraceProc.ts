@@ -29,9 +29,9 @@ export class LogTraceProc {
     private readonly workspaceRoot: vscode.Uri;
 
     constructor(workspaceRoot: vscode.Uri, traceFilePath: string, elfFilePath: string) {
+        this.workspaceRoot = workspaceRoot;
         this.traceFilePath = traceFilePath;
         this.elfFilePath = elfFilePath;
-        this.workspaceRoot = workspaceRoot;
     }
 
     public async parse(): Promise<Buffer> {

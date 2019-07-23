@@ -52,8 +52,8 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
 
     public populateArchiveTree() {
         this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-        const workspace = vscode.workspace.workspaceFolders[0].uri;
-        const traceFolder = join(workspace.path, "trace");
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
+        const traceFolder = join(workspace, "trace");
         if (existsSync(traceFolder)) {
             let i = 1;
             readdirSync(traceFolder).filter((trace) => trace.endsWith(".trace")).forEach((trace) => {

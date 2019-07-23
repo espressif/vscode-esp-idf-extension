@@ -30,6 +30,7 @@ export class AppTracePanel {
         if (AppTracePanel.currentPanel) {
             AppTracePanel.currentPanel._panel.reveal(column);
             if (traceData) {
+                AppTracePanel.currentPanel._traceData = traceData;
                 AppTracePanel.currentPanel.sendCommandToWebview("initialLoad", traceData);
             }
             return;
@@ -87,8 +88,10 @@ export class AppTracePanel {
         }, null, this._disposables);
     }
     private async check() {
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
         const logTraceProc = new LogTraceProc(
-            vscode.workspace.workspaceFolders[0].uri,
+            workspaceRoot,
             this._traceData.trace.filePath,
             "",
         );
