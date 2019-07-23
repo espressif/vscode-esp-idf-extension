@@ -391,6 +391,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
+        if (!trace) {
+            Logger.errorNotify(
+                "Cannot call this command directly, click on any Trace to view its report!",
+                new Error("INVALID_COMMAND"),
+            );
+            return;
+        }
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
             AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName, filePath: trace.filePath } });
         });
