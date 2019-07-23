@@ -29,6 +29,7 @@
 	"param.useIDFKConfigStyle": "Habilitar/Deshabilitar validación de estilo ESP-IDF para archivos Kconfig",
 	"view.components.name": "Componentes de proyecto",
 	"configuration.title": "Configuración ESP-IDF",
-	"espIdf.apptrace.archive.refresh.title": "ESP-IDF Refresh Trace Archive List",
-	"espIdf.apptrace.archive.showReport.title": "ESP-IDF Show Trace Report"
+	"espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
+	"espIdf.apptrace.archive.showReport.title": "Show Trace Report",
+	"espIdf.apptrace.customize.title": "Customize parameters for app trace"
 }
