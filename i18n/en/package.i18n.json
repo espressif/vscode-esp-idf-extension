@@ -31,5 +31,11 @@
 	"configuration.title": "ESP-IDF Configuration",
 	"espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
 	"espIdf.apptrace.archive.showReport.title": "Show Trace Report",
-	"espIdf.apptrace.customize.title": "Customize parameters for app trace"
+	"espIdf.apptrace.customize.title": "Customize parameters for app trace",
+	"trace.poll_period.description": "poll_period will be set for the apptrace",
+	"trace.trace_size.description": "trace_size will set for the apptrace",
+	"trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
+	"trace.wait4halt.description": "wait4halt will be set for the apptrace",
+	"trace.skip_size.description": "skip_size will be set for the apptrace"
+
 }
