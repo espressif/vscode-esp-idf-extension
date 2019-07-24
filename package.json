@@ -52,25 +52,25 @@
   "main": "./out/extension",
   "contributes": {
     "viewsContainers": {
-			"activitybar": [
-				{
-					"id": "idfViewController",
+      "activitybar": [
+        {
+          "id": "idfViewController",
           "title": "ESP-IDF Explorer",
           "icon": "media/esp.svg"
-				}
-			]
-		},
+        }
+      ]
+    },
     "views": {
       "idfViewController": [
-				{
-					"id": "idfAppTracer",
-					"name": "IDF App Tracer"
-				},
-				{
-					"id": "idfAppTraceArchive",
-					"name": "App Trace Archives"
-				}
-			],
+        {
+          "id": "idfAppTracer",
+          "name": "IDF App Tracer"
+        },
+        {
+          "id": "idfAppTraceArchive",
+          "name": "App Trace Archives"
+        }
+      ],
       "explorer": [
         {
           "id": "idfComponents",
