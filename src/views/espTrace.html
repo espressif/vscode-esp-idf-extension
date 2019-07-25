@@ -44,9 +44,7 @@
             <br>
             <div class="container" v-if="log">
                 <div class="notification">
-                    <pre>
-                        {{log}}
-                    </pre>
+                    <pre v-html="log"></pre>
                 </div>
             </div>
         </div>

@@ -17,6 +17,7 @@
  */
 
 // tslint:disable: variable-name
+import * as AnsiToHtml from "ansi-to-html";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -74,7 +75,8 @@ export class AppTracePanel {
             switch (msg.command) {
                 case "calculate":
                     this.check().then((resp) => {
-                        this.sendCommandToWebview("calculated", { log: resp });
+                        const ansiToHtmlConverter = new AnsiToHtml();
+                        this.sendCommandToWebview("calculated", { log: ansiToHtmlConverter.toHtml(resp) });
                     }).catch((error) => {
                         this.sendCommandToWebview("calculateFailed", { error });
                         Logger.errorNotify(error.message, error);

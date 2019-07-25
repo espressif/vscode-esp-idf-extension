@@ -10,3 +10,7 @@ div.notification{
     border-color: var(--vscode-foreground);
 }
 
+.notification pre {
+    color: var(--vscode-foreground);
+    background-color: transparent;
+}
