@@ -147,8 +147,8 @@ export class AppTraceManager extends EventEmitter {
                     const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
                     const skipSize = idfConf.readParameter("trace.skip_size", workspace);
                     this.sendCommandToTelnetSession(
-                        [ "esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize ]
-                        .join(" "),
+                        ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
+                            .join(" "),
                     );
                 }, 2000);
             }
@@ -158,10 +158,14 @@ export class AppTraceManager extends EventEmitter {
     }
 
     public async stop() {
-        await this.sendCommandToTelnetSession("esp32 apptrace stop");
+        try {
+            await this.sendCommandToTelnetSession("esp32 apptrace stop");
+            await this.controller.end();
+        } catch (error) {
+            Logger.errorNotify("Failed to stop apptracing", error);
+        }
         this.treeDataProvider.showStartButton();
         this.archiveDataProvider.populateArchiveTree();
-        await this.controller.end();
     }
 
     private async promptUserToLaunchOpenOCDServer() {
@@ -199,6 +203,11 @@ export class AppTraceManager extends EventEmitter {
             } catch (error) {
                 Logger.error("Failed to extract the progress from apptrace", error);
             }
+        });
+        this.controller.on("timeout", () => {
+            this.treeDataProvider.showStartButton();
+            this.treeDataProvider.updateDescription("[Timeout]");
+            this.archiveDataProvider.populateArchiveTree();
         });
     }
 }
