@@ -242,13 +242,13 @@
           },
           "trace.trace_size": {
             "type": "string",
-            "default": "-1",
+            "default": "2048",
             "scope": "resource",
             "description": "%trace.trace_size.description%"
           },
           "trace.stop_tmo": {
             "type": "string",
-            "default": "0",
+            "default": "5",
             "scope": "resource",
             "description": "%trace.stop_tmo.description%"
           },
