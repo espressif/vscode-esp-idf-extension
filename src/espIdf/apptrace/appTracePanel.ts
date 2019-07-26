@@ -79,7 +79,8 @@ export class AppTracePanel {
                         this.sendCommandToWebview("calculated", { log: ansiToHtmlConverter.toHtml(resp) });
                     }).catch((error) => {
                         this.sendCommandToWebview("calculateFailed", { error });
-                        Logger.errorNotify(error.message, error);
+                        error.message ? Logger.errorNotify(error.message, error) : Logger.errorNotify(
+                            `Failed to process the trace data`, error);
                     });
                     break;
                 default:
@@ -95,22 +96,32 @@ export class AppTracePanel {
         const logTraceProc = new LogTraceProc(
             workspaceRoot,
             this._traceData.trace.filePath,
-            this.getElfFilePath(workspaceRoot),
+            await this.getElfFilePath(workspaceRoot),
         );
         const resp = await logTraceProc.parse();
         return resp.toString();
     }
-    private getElfFilePath(workspaceURI: vscode.Uri): string {
+    private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
         let elfFilePath = "";
         if (!workspaceURI) {
             return elfFilePath;
         }
         const elfPath = path.join(workspaceURI.path, "build");
+        const elfFiles = [];
         fs.readdirSync(elfPath).forEach((file) => {
             if (file.endsWith(".elf")) {
-                elfFilePath = path.join(elfPath, file);
+                elfFiles.push({ label : file, description: path.join(elfPath, file)});
             }
         });
+        if (elfFiles.length > 1) {
+            const pickedElf = await vscode.window.showQuickPick(elfFiles);
+            if (!pickedElf) {
+                throw new Error("Select valid ELF file for showing report");
+            }
+            elfFilePath = pickedElf.description;
+        } else {
+            elfFilePath = elfFiles[0].description;
+        }
         return elfFilePath;
     }
     private sendCommandToWebview(command: string, value: any) {
