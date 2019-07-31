@@ -504,7 +504,6 @@
     "ansi-to-html": "^0.6.11",
     "es6-promisify": "^6.0.0",
     "jquery": "^3.4.1",
-    "telnet-client": "^1.0.3",
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugprotocol": "^1.33.0",
     "vscode-languageclient": "^5.2.1",

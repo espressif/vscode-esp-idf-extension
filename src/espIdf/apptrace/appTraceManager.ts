@@ -19,12 +19,11 @@
 import { EventEmitter } from "events";
 import { mkdirSync } from "fs";
 import { join } from "path";
-import * as Telnet from "telnet-client";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { TCLClient } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
@@ -120,37 +119,42 @@ export class AppTraceManager extends EventEmitter {
         }
     }
 
-    private controller: Telnet;
     private treeDataProvider: AppTraceTreeDataProvider;
     private archiveDataProvider: AppTraceArchiveTreeDataProvider;
 
     constructor(treeDataProvider: AppTraceTreeDataProvider, archiveDataProvider: AppTraceArchiveTreeDataProvider) {
         super();
-        this.controller = new Telnet();
         this.treeDataProvider = treeDataProvider;
         this.archiveDataProvider = archiveDataProvider;
-        this.registerTelnetDataReceiver();
     }
 
     public async start() {
         try {
             if (await this.promptUserToLaunchOpenOCDServer()) {
                 this.treeDataProvider.showStopButton();
-                setTimeout(async () => {
-                    // tslint:disable-next-line: max-line-length
-                    const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
-                    const workspacePath = workspace ? workspace.path : "";
-                    const fileName = `file://${join(workspacePath, "trace")}/trace_${new Date().getTime()}.trace`;
-                    const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
-                    const traceSize = idfConf.readParameter("trace.trace_size", workspace);
-                    const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
-                    const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
-                    const skipSize = idfConf.readParameter("trace.skip_size", workspace);
-                    this.sendCommandToTelnetSession(
-                        ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
-                            .join(" "),
-                    );
-                }, 2000);
+                this.treeDataProvider.updateDescription("");
+                // tslint:disable-next-line: max-line-length
+                const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
+                const workspacePath = workspace ? workspace.path : "";
+                const fileName = `file://${join(workspacePath, "trace")}/trace_${new Date().getTime()}.trace`;
+                const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
+                const traceSize = idfConf.readParameter("trace.trace_size", workspace);
+                const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
+                const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
+                const skipSize = idfConf.readParameter("trace.skip_size", workspace);
+                const startTracing = this.sendCommandToTCLSession(
+                    ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
+                        .join(" "),
+                );
+                const statusChecker = this.appTracingStatusChecker(() => {
+                    clearInterval(statusChecker);
+
+                    this.treeDataProvider.showStartButton();
+                    this.treeDataProvider.updateDescription("[Stopped]");
+                    this.archiveDataProvider.populateArchiveTree();
+
+                    startTracing.stop();
+                });
             }
         } catch (error) {
             Logger.errorNotify(error.message, error);
@@ -158,56 +162,70 @@ export class AppTraceManager extends EventEmitter {
     }
 
     public async stop() {
-        try {
-            await this.sendCommandToTelnetSession("esp32 apptrace stop");
-            await this.controller.end();
-        } catch (error) {
-            Logger.errorNotify("Failed to stop apptracing", error);
+        if (await this.promptUserToLaunchOpenOCDServer()) {
+            const stopHandler = this.sendCommandToTCLSession("esp32 apptrace stop");
+            stopHandler.on("response", (resp: Buffer) => {
+                const respStr = resp.toString();
+                if (respStr.includes("Tracing is not running!")) {
+                    stopHandler.stop();
+                    this.treeDataProvider.showStartButton();
+                    this.treeDataProvider.updateDescription("[NotRunning]");
+                }
+            });
+        } else {
+            this.treeDataProvider.showStartButton();
+            this.treeDataProvider.updateDescription("[Terminated]");
         }
-        this.treeDataProvider.showStartButton();
-        this.archiveDataProvider.populateArchiveTree();
     }
 
     private async promptUserToLaunchOpenOCDServer() {
-        const openOCDManager = OpenOCDManager.init();
-        if (!openOCDManager.isRunning()) {
+        const tclClient = new TCLClient("localhost", 6666);
+        if (!await tclClient.isOpenOCDServerRunning()) {
             Logger.warnNotify("Launch OpenOCD Server before starting app trace");
             return false;
         }
         return true;
     }
 
-    private async connectTelnetSession(config: IAppTraceManagerConfig) {
-        return await this.controller.connect({
-            shellPrompt: config.shellPrompt || ">",
-            timeout: config.timeout || 5000,
-            host: config.host,
-            port: config.port,
-        });
-    }
-    private async sendCommandToTelnetSession(command: string) {
-        await this.connectTelnetSession({ host: "127.0.0.1", port: 4444 });
+    private sendCommandToTCLSession(command: string): TCLClient {
         const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
         if (!fileExists(join(workspace, "trace"))) {
             mkdirSync(join(workspace, "trace"));
         }
-        return await this.controller.exec(command);
+        const startTracingCommandHandler = new TCLClient("localhost", 6666);
+        startTracingCommandHandler.sendCommandWithCapture(command);
+        return startTracingCommandHandler;
     }
-    private registerTelnetDataReceiver() {
-        this.controller.on("data", (d) => {
-            try {
-                const isProgress = d.toString().split("\n")[0].match(/[0-9].*/gm);
-                if (isProgress && this.treeDataProvider.appTraceStartButton.label.match(/stop/gi)) {
-                    this.treeDataProvider.updateDescription(isProgress[0].trim());
+    private appTracingStatusChecker(onStop: () => void): NodeJS.Timer {
+        const tclClient = new TCLClient("localhost", 6666, true);
+        tclClient.on("response", (resp: Buffer) => {
+            const respStr = resp.toString();
+            if (respStr.includes("Tracing is STOPPED")) {
+                tclClient.stop();
+                onStop();
+            } else {
+                const matchArr = respStr.match(/[0-9]* of [0-9]*/gm);
+                if (matchArr && matchArr.length > 0) {
+                    const progressArr = matchArr[0].split(" of ");
+                    try {
+                        const progressPercentage = (parseInt(progressArr[0], 10) / parseInt(progressArr[1], 10)) * 100;
+                        this.treeDataProvider.updateDescription(`${Math.round(progressPercentage)}%`);
+                    } catch (error) {
+                        this.treeDataProvider.updateDescription(`Tracing...`);
+                    }
                 }
-            } catch (error) {
-                Logger.error("Failed to extract the progress from apptrace", error);
             }
         });
-        this.controller.on("timeout", () => {
-            this.treeDataProvider.showStartButton();
-            this.treeDataProvider.updateDescription("[Timeout]");
-            this.archiveDataProvider.populateArchiveTree();
+
+        tclClient.on("error", (error: Error) => {
+            Logger.error(`Some error prevailed while checking the tracking status`, error);
+            tclClient.stop();
+            onStop();
         });
+
+        const tracingStatus = setInterval(() => {
+            tclClient.sendCommandWithCapture("esp32 apptrace status");
+        }, 5000);
+        return tracingStatus;
     }
 }
