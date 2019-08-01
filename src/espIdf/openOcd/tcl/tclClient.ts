@@ -91,19 +91,18 @@ export class TCLClient extends EventEmitter {
     }
 
     private sendMultipleCommandOnSameConnection(command) {
-        let flushBuffer = Buffer.alloc(0);
-
-        if (!this.isRunning || this.sock.destroyed) {
-            this.sock = new Socket();
-            this.sock.connect(this.port, this.host, () => {
-                this.emit("connect");
-                this.isRunning = true;
-                this.sock.write(`${command}${TCLClient.DELIMITER}`);
-            });
-        } else {
+        if (this.isRunning && !this.sock.destroyed) {
             this.sock.write(`${command}${TCLClient.DELIMITER}`);
+            return;
         }
 
+        let flushBuffer = Buffer.alloc(0);
+        this.sock = new Socket();
+        this.sock.connect(this.port, this.host, () => {
+            this.emit("connect");
+            this.isRunning = true;
+            this.sock.write(`${command}${TCLClient.DELIMITER}`);
+        });
         this.sock.on("data", (data) => {
             flushBuffer = Buffer.concat([flushBuffer, data]);
             if (data.includes(TCLClient.DELIMITER)) {
