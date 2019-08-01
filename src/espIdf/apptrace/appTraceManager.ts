@@ -146,14 +146,14 @@ export class AppTraceManager extends EventEmitter {
                     ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
                         .join(" "),
                 );
-                const statusChecker = this.appTracingStatusChecker(() => {
-                    clearInterval(statusChecker);
+                const statusChecker = this.appTracingStatusChecker((timer: any) => {
+                    clearInterval(timer);
+                    statusChecker.stop();
+                    startTracing.stop();
 
                     this.treeDataProvider.showStartButton();
                     this.treeDataProvider.updateDescription("[Stopped]");
                     this.archiveDataProvider.populateArchiveTree();
-
-                    startTracing.stop();
                 });
             }
         } catch (error) {
@@ -167,10 +167,12 @@ export class AppTraceManager extends EventEmitter {
             stopHandler.on("response", (resp: Buffer) => {
                 const respStr = resp.toString();
                 if (respStr.includes("Tracing is not running!")) {
-                    stopHandler.stop();
-                    this.treeDataProvider.showStartButton();
                     this.treeDataProvider.updateDescription("[NotRunning]");
+                } else if (respStr.includes("Disconnect targets")) {
+                    this.treeDataProvider.updateDescription("[Disconnected]");
                 }
+                stopHandler.stop();
+                this.treeDataProvider.showStartButton();
             });
         } else {
             this.treeDataProvider.showStartButton();
@@ -196,13 +198,12 @@ export class AppTraceManager extends EventEmitter {
         startTracingCommandHandler.sendCommandWithCapture(command);
         return startTracingCommandHandler;
     }
-    private appTracingStatusChecker(onStop: () => void): NodeJS.Timer {
+    private appTracingStatusChecker(onStop: (_: any) => void): TCLClient {
         const tclClient = new TCLClient("localhost", 6666, true);
         tclClient.on("response", (resp: Buffer) => {
             const respStr = resp.toString();
             if (respStr.includes("Tracing is STOPPED")) {
-                tclClient.stop();
-                onStop();
+                onStop(tracingStatus);
             } else {
                 const matchArr = respStr.match(/[0-9]* of [0-9]*/gm);
                 if (matchArr && matchArr.length > 0) {
@@ -219,13 +220,12 @@ export class AppTraceManager extends EventEmitter {
 
         tclClient.on("error", (error: Error) => {
             Logger.error(`Some error prevailed while checking the tracking status`, error);
-            tclClient.stop();
-            onStop();
+            onStop(tracingStatus);
         });
-
         const tracingStatus = setInterval(() => {
             tclClient.sendCommandWithCapture("esp32 apptrace status");
-        }, 5000);
-        return tracingStatus;
+        }, 1000);
+
+        return tclClient;
     }
 }
