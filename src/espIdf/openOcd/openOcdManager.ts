@@ -76,15 +76,19 @@ export class OpenOCDManager extends EventEmitter {
         if (!pick) {
             return false;
         }
-        switch (pick.label) {
-            case "Start OpenOCD":
-                OpenOCDManager.instance.start();
-                break;
-            case "Stop OpenOCD":
-                OpenOCDManager.instance.stop();
-                break;
-            default:
-                break;
+        try {
+            switch (pick.label) {
+                case "Start OpenOCD":
+                    await OpenOCDManager.instance.start();
+                    break;
+                case "Stop OpenOCD":
+                    OpenOCDManager.instance.stop();
+                    break;
+                default:
+                    break;
+            }
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
         }
         return true;
     }
