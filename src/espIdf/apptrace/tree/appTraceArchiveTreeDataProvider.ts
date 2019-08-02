@@ -82,20 +82,20 @@ export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<
         const d = new Date(parseInt(epoch));
         const n = new Date();
         if (n.getFullYear() - d.getFullYear() !== 0) {
-            return `${n.getFullYear() - d.getFullYear()} year`;
+            return `${n.getFullYear() - d.getFullYear()} year ago`;
         }
         if (n.getMonth() - d.getMonth() !== 0) {
-            return `${n.getMonth() - d.getMonth()} month`;
+            return `${n.getMonth() - d.getMonth()} month ago`;
         }
         if (n.getDate() - d.getDate() !== 0) {
-            return `${n.getDate() - d.getDate()} day`;
+            return `${n.getDate() - d.getDate()} day ago`;
         }
         if (n.getHours() - d.getHours() !== 0) {
-            return `${n.getHours() - d.getHours()} hour`;
+            return `${n.getHours() - d.getHours()} hour ago`;
         }
         if (n.getMinutes() - d.getMinutes() !== 0) {
-            return `${n.getMinutes() - d.getMinutes()} minute`;
+            return `${n.getMinutes() - d.getMinutes()} minute ago`;
         }
-        return "a few seconds";
+        return "a few seconds ago";
     }
 }
