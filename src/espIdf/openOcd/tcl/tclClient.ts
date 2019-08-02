@@ -19,21 +19,25 @@
 import { EventEmitter } from "events";
 import { Socket } from "net";
 
+// tslint:disable-next-line: interface-name
+export interface TCLConnection {
+    host: string;
+    port: number;
+}
+
 export class TCLClient extends EventEmitter {
     private static readonly DELIMITER = "\x1a";
 
     private readonly host: string;
     private readonly port: number;
-    private readonly isMultipleCommandEnabled: boolean;
     private isRunning: boolean;
     private sock: Socket;
 
-    constructor(openOCDHost: string, openOCDPort: number, multipleCommandEnabled: boolean = false) {
+    constructor(conn: TCLConnection) {
         super();
-        this.host = openOCDHost;
-        this.port = openOCDPort;
+        this.host = conn.host;
+        this.port = conn.port;
         this.sock = new Socket();
-        this.isMultipleCommandEnabled = multipleCommandEnabled;
     }
 
     public async isOpenOCDServerRunning(): Promise<boolean> {
@@ -55,44 +59,8 @@ export class TCLClient extends EventEmitter {
     }
 
     public sendCommand(command: string) {
-        if (this.isMultipleCommandEnabled) {
-            return this.sendMultipleCommandOnSameConnection(command);
-        }
-        if (this.isRunning) {
-            throw new Error("Only once command can be send per session, stop to send more");
-        }
-        this.sock = new Socket();
-        this.isRunning = true;
-        let flushBuffer = Buffer.alloc(0);
-        this.sock.connect(this.port, this.host, () => {
-            this.emit("connect");
-            this.sock.write(`${command}${TCLClient.DELIMITER}`);
-
-            this.sock.on("data", (data) => {
-                flushBuffer = Buffer.concat([flushBuffer, data]);
-                if (data.includes(TCLClient.DELIMITER)) {
-                    this.emit("response", flushBuffer);
-                    flushBuffer = Buffer.alloc(0);
-                }
-            });
-
-            this.sock.on("error", (error) => {
-                this.emit("error", error);
-            });
-        });
-    }
-
-    public stop() {
         if (this.isRunning && !this.sock.destroyed) {
-            this.sock.destroy();
-            this.sock = new Socket();
-            this.sock.removeAllListeners();
-        }
-    }
-
-    private sendMultipleCommandOnSameConnection(command) {
-        if (this.isRunning && !this.sock.destroyed) {
-            this.sock.write(`${command}${TCLClient.DELIMITER}`);
+            this.sendCommandToSocket(command);
             return;
         }
 
@@ -101,7 +69,7 @@ export class TCLClient extends EventEmitter {
         this.sock.connect(this.port, this.host, () => {
             this.emit("connect");
             this.isRunning = true;
-            this.sock.write(`${command}${TCLClient.DELIMITER}`);
+            this.sendCommandToSocket(command);
         });
         this.sock.on("data", (data) => {
             flushBuffer = Buffer.concat([flushBuffer, data]);
@@ -113,5 +81,19 @@ export class TCLClient extends EventEmitter {
         this.sock.on("error", (error) => {
             this.emit("error", error);
         });
+    }
+
+    public stop() {
+        if (this.isRunning && !this.sock.destroyed) {
+            this.isRunning = false;
+            this.sock.destroy();
+            this.sock.removeAllListeners();
+        }
+    }
+
+    private sendCommandToSocket(command: string) {
+        if (this.sock.writable) {
+            this.sock.write(`${command}${TCLClient.DELIMITER}`);
+        }
     }
 }
