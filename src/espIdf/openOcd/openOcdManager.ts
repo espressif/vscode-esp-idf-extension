@@ -137,7 +137,7 @@ export class OpenOCDManager extends EventEmitter {
                 this.emit("error", err, this.chan);
             }
             this.displayChan.append(errStr);
-            this.displayChan.show();
+            this.displayChan.show(true);
         });
         this.server.stdout.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
