@@ -45,6 +45,7 @@ const openOCDManager = OpenOCDManager.init();
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
+let appTraceManager: AppTraceManager;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -91,6 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register Tree Provider for IDF Explorer
     registerTreeProvidersForIDFExplorer(context);
+    appTraceManager = new AppTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
 
     // register openOCD status bar item
     registerOpenOCDStatusBarItem(context);
@@ -371,11 +373,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            const atm = new AppTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
             if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
-                await atm.start();
+                await appTraceManager.start();
             } else {
-                await atm.stop();
+                await appTraceManager.stop();
             }
         });
     });
