@@ -23,7 +23,7 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
-import { TCLClient } from "../openOcd/tcl/tclClient";
+import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
@@ -121,11 +121,15 @@ export class AppTraceManager extends EventEmitter {
 
     private treeDataProvider: AppTraceTreeDataProvider;
     private archiveDataProvider: AppTraceArchiveTreeDataProvider;
+    private tclConnectionParams: TCLConnection;
+    private shallContinueCheckingStatus: boolean;
 
     constructor(treeDataProvider: AppTraceTreeDataProvider, archiveDataProvider: AppTraceArchiveTreeDataProvider) {
         super();
         this.treeDataProvider = treeDataProvider;
         this.archiveDataProvider = archiveDataProvider;
+        this.tclConnectionParams = { host: "localhost", port: 6666 };
+        this.shallContinueCheckingStatus = false;
     }
 
     public async start() {
@@ -142,14 +146,13 @@ export class AppTraceManager extends EventEmitter {
                 const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
                 const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
                 const skipSize = idfConf.readParameter("trace.skip_size", workspace);
-                const startTracing = this.sendCommandToTCLSession(
+                const startTrackingHandler = this.sendCommandToTCLSession(
                     ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
                         .join(" "),
                 );
-                const statusChecker = this.appTracingStatusChecker((timer: any) => {
-                    clearInterval(timer);
-                    statusChecker.stop();
-                    startTracing.stop();
+                const tracingStatusHandler = this.appTracingStatusChecker(() => {
+                    tracingStatusHandler.stop();
+                    startTrackingHandler.stop();
 
                     this.treeDataProvider.showStartButton();
                     this.treeDataProvider.updateDescription("[Stopped]");
@@ -163,6 +166,7 @@ export class AppTraceManager extends EventEmitter {
 
     public async stop() {
         if (await this.promptUserToLaunchOpenOCDServer()) {
+            this.shallContinueCheckingStatus = false;
             const stopHandler = this.sendCommandToTCLSession("esp32 apptrace stop");
             stopHandler.on("response", (resp: Buffer) => {
                 const respStr = resp.toString();
@@ -180,8 +184,8 @@ export class AppTraceManager extends EventEmitter {
         }
     }
 
-    private async promptUserToLaunchOpenOCDServer() {
-        const tclClient = new TCLClient("localhost", 6666);
+    private async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
+        const tclClient = new TCLClient(this.tclConnectionParams);
         if (!await tclClient.isOpenOCDServerRunning()) {
             Logger.warnNotify("Launch OpenOCD Server before starting app trace");
             return false;
@@ -194,16 +198,17 @@ export class AppTraceManager extends EventEmitter {
         if (!fileExists(join(workspace, "trace"))) {
             mkdirSync(join(workspace, "trace"));
         }
-        const startTracingCommandHandler = new TCLClient("localhost", 6666);
+        const startTracingCommandHandler = new TCLClient(this.tclConnectionParams);
         startTracingCommandHandler.sendCommandWithCapture(command);
         return startTracingCommandHandler;
     }
-    private appTracingStatusChecker(onStop: (_: any) => void): TCLClient {
-        const tclClient = new TCLClient("localhost", 6666, true);
+    private appTracingStatusChecker(onStop: () => void): TCLClient {
+        const tclClient = new TCLClient(this.tclConnectionParams);
+        this.shallContinueCheckingStatus = true;
         tclClient.on("response", (resp: Buffer) => {
             const respStr = resp.toString();
             if (respStr.includes("Tracing is STOPPED")) {
-                onStop(tracingStatus);
+                onStop();
             } else {
                 const matchArr = respStr.match(/[0-9]* of [0-9]*/gm);
                 if (matchArr && matchArr.length > 0) {
@@ -220,11 +225,15 @@ export class AppTraceManager extends EventEmitter {
 
         tclClient.on("error", (error: Error) => {
             Logger.error(`Some error prevailed while checking the tracking status`, error);
-            onStop(tracingStatus);
+            onStop();
         });
-        const tracingStatus = setInterval(() => {
-            tclClient.sendCommandWithCapture("esp32 apptrace status");
-        }, 1000);
+        const statusCheckerTimer = setInterval(() => {
+            if (this.shallContinueCheckingStatus) {
+                tclClient.sendCommandWithCapture("esp32 apptrace status");
+            } else {
+                clearInterval(statusCheckerTimer);
+            }
+        }, 500);
 
         return tclClient;
     }
