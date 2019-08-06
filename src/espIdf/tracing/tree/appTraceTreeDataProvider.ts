@@ -21,47 +21,48 @@ import * as vscode from "vscode";
 
 class AppTracerItems extends vscode.TreeItem { }
 
+export enum AppTraceButtonType {
+    AppTraceButton = 0,
+    HeapTraceButton = 1,
+}
+
 // tslint:disable-next-line: max-classes-per-file
 export class AppTraceTreeDataProvider implements vscode.TreeDataProvider<AppTracerItems> {
     public OnDidChangeTreeData: vscode.EventEmitter<AppTracerItems> = new vscode.EventEmitter<AppTracerItems>();
     public readonly onDidChangeTreeData: vscode.Event<AppTracerItems> = this.OnDidChangeTreeData.event;
-    public appTraceStartButton: AppTracerItems;
+    public appTraceButton: AppTracerItems;
+    public heapTraceButton: AppTracerItems;
 
     constructor() {
-        this.initStartAppTraceButton();
-    }
-    public initStartAppTraceButton() {
-        this.appTraceStartButton = new AppTracerItems("Start App Trace");
-        this.appTraceStartButton.description = "";
-        this.appTraceStartButton.iconPath = {
-            dark: join(__filename, "..", "..", "..", "..", "..", "media", "play_dark.svg"),
-            light: join(__filename, "..", "..", "..", "..", "..", "media", "play_light.svg"),
-        };
-        this.appTraceStartButton.command = { command: "espIdf.apptrace", title: "" };
+        this.initAppTraceButton();
+        this.initHeapTraceButton();
     }
     public registerDataProviderForTree(treeName: string): vscode.Disposable {
         return vscode.window.registerTreeDataProvider(treeName, this);
     }
 
-    public showStartButton() {
-        this.appTraceStartButton.label = "Start App Trace";
-        this.appTraceStartButton.iconPath = {
+    public showStartButton(buttonType: AppTraceButtonType) {
+        const button: AppTracerItems = this.getButtonInstance(buttonType);
+        button.label = this.getLabelForButton(buttonType, "Start");
+        button.iconPath = {
             dark: join(__filename, "..", "..", "..", "..", "..", "media", "play_dark.svg"),
             light: join(__filename, "..", "..", "..", "..", "..", "media", "play_light.svg"),
         };
-        this.appTraceStartButton.description = "";
+        button.description = "";
         this.refresh();
     }
-    public showStopButton() {
-        this.appTraceStartButton.label = "Stop App Trace";
-        this.appTraceStartButton.iconPath = {
+    public showStopButton(buttonType: AppTraceButtonType) {
+        const button: AppTracerItems = this.getButtonInstance(buttonType);
+        button.label = this.getLabelForButton(buttonType, "Stop");
+        button.iconPath = {
             dark: join(__filename, "..", "..", "..", "..", "..", "media", "stop_dark.svg"),
             light: join(__filename, "..", "..", "..", "..", "..", "media", "stop_light.svg"),
         };
         this.refresh();
     }
-    public updateDescription(desc: string) {
-        this.appTraceStartButton.description = desc;
+    public updateDescription(buttonType: AppTraceButtonType, desc: string) {
+        const button: AppTracerItems = this.getButtonInstance(buttonType);
+        button.description = desc;
         this.refresh();
     }
 
@@ -69,9 +70,54 @@ export class AppTraceTreeDataProvider implements vscode.TreeDataProvider<AppTrac
         return element;
     }
     public getChildren(element?: AppTracerItems): AppTracerItems[] {
-        return [this.appTraceStartButton];
+        return [this.appTraceButton, this.heapTraceButton];
     }
     public refresh() {
         this.OnDidChangeTreeData.fire();
+    }
+    private initAppTraceButton() {
+        this.appTraceButton = new AppTracerItems("Start App Trace");
+        this.appTraceButton.description = "";
+        this.appTraceButton.iconPath = {
+            dark: join(__filename, "..", "..", "..", "..", "..", "media", "play_dark.svg"),
+            light: join(__filename, "..", "..", "..", "..", "..", "media", "play_light.svg"),
+        };
+        this.appTraceButton.command = { command: "espIdf.apptrace", title: "" };
+    }
+    private initHeapTraceButton() {
+        this.heapTraceButton = new AppTracerItems("Start Heap Trace");
+        this.heapTraceButton.description = "";
+        this.heapTraceButton.iconPath = {
+            dark: join(__filename, "..", "..", "..", "..", "..", "media", "play_dark.svg"),
+            light: join(__filename, "..", "..", "..", "..", "..", "media", "play_light.svg"),
+        };
+        this.heapTraceButton.command = { command: "espIdf.heaptrace", title: "" };
+    }
+    private getButtonInstance(buttonType: AppTraceButtonType): AppTracerItems {
+        let btn: AppTracerItems;
+        switch (buttonType) {
+            case AppTraceButtonType.AppTraceButton:
+                btn = this.appTraceButton;
+                break;
+            case AppTraceButtonType.HeapTraceButton:
+                btn = this.heapTraceButton;
+                break;
+            default:
+                break;
+        }
+        return btn;
+    }
+    private getLabelForButton(buttonType: AppTraceButtonType, prefix?: string): string {
+        let buttonLabel = prefix || "";
+        switch (buttonType) {
+            case AppTraceButtonType.AppTraceButton:
+                buttonLabel += " App Trace";
+                break;
+            case AppTraceButtonType.HeapTraceButton:
+                buttonLabel += " Heap Trace";
+            default:
+                break;
+        }
+        return buttonLabel;
     }
 }

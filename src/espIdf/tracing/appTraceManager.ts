@@ -25,7 +25,7 @@ import { Logger } from "../../logger/logger";
 import { fileExists } from "../../utils";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
+import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
 export interface IAppTraceManagerConfig {
     host: string;
@@ -135,8 +135,8 @@ export class AppTraceManager extends EventEmitter {
     public async start() {
         try {
             if (await this.promptUserToLaunchOpenOCDServer()) {
-                this.treeDataProvider.showStopButton();
-                this.treeDataProvider.updateDescription("");
+                this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
+                this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "");
                 // tslint:disable-next-line: max-line-length
                 const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
                 const workspacePath = workspace ? workspace.path : "";
@@ -154,8 +154,8 @@ export class AppTraceManager extends EventEmitter {
                     tracingStatusHandler.stop();
                     startTrackingHandler.stop();
 
-                    this.treeDataProvider.showStartButton();
-                    this.treeDataProvider.updateDescription("[Stopped]");
+                    this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
+                    this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "[Stopped]");
                     this.archiveDataProvider.populateArchiveTree();
                 });
             }
@@ -171,17 +171,17 @@ export class AppTraceManager extends EventEmitter {
             stopHandler.on("response", (resp: Buffer) => {
                 const respStr = resp.toString();
                 if (respStr.includes("Tracing is not running!")) {
-                    this.treeDataProvider.updateDescription("[NotRunning]");
+                    this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "[NotRunning]");
                 } else if (respStr.includes("Disconnect targets")) {
-                    this.treeDataProvider.updateDescription("[Disconnected]");
+                    this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "[Disconnected]");
                 }
                 stopHandler.stop();
-                this.treeDataProvider.showStartButton();
             });
         } else {
-            this.treeDataProvider.showStartButton();
-            this.treeDataProvider.updateDescription("[Terminated]");
+            this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "[Terminated]");
         }
+        this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
+        this.archiveDataProvider.refresh();
     }
 
     private async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
@@ -215,9 +215,10 @@ export class AppTraceManager extends EventEmitter {
                     const progressArr = matchArr[0].split(" of ");
                     try {
                         const progressPercentage = (parseInt(progressArr[0], 10) / parseInt(progressArr[1], 10)) * 100;
-                        this.treeDataProvider.updateDescription(`${Math.round(progressPercentage)}%`);
+                        this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton,
+                            `${Math.round(progressPercentage)}%`);
                     } catch (error) {
-                        this.treeDataProvider.updateDescription(`Tracing...`);
+                        this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, `Tracing...`);
                     }
                 }
             }
