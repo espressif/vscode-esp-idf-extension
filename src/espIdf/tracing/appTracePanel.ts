@@ -114,7 +114,9 @@ export class AppTracePanel {
             }
         });
         if (elfFiles.length > 1) {
-            const pickedElf = await vscode.window.showQuickPick(elfFiles);
+            const pickedElf = await vscode.window.showQuickPick(elfFiles, {
+                placeHolder: "Select ELF File to be use for the report generation",
+            });
             if (!pickedElf) {
                 throw new Error("Select valid ELF file for showing report");
             }
