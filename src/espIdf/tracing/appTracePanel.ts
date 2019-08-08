@@ -121,7 +121,7 @@ export class AppTracePanel {
                 throw new Error("Select valid ELF file for showing report");
             }
             elfFilePath = pickedElf.description;
-        } else {
+        } else if (elfFiles.length === 1) {
             elfFilePath = elfFiles[0].description;
         }
         return elfFilePath;
