@@ -39,6 +39,7 @@
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.apptrace",
+    "onCommand:espIdf.heaptrace",
     "onCommand:espIdf.openOCDCommand",
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
@@ -327,6 +328,10 @@
       {
         "command": "espIdf.apptrace",
         "title": "%espIdf.apptrace.title%"
+      },
+      {
+        "command": "espIdf.heaptrace",
+        "title": "%espIdf.heaptrace.title%"
       },
       {
         "command": "espIdf.openOCDCommand",

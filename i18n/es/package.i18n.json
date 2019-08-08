@@ -14,6 +14,7 @@
 	"espIdf.eraseFlash.title": "ESP-IDF: Borrar la flash del dispositivo",
 	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
 	"espIdf.apptrace.title": "ESP-IDF: App Trace",
+	"espIdf.heaptrace.title": "ESP-IDF: Heap Trace",
 	"espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",
 	"debug.initConfig.name": "Lanzar ESP-IDF:",
 	"debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",

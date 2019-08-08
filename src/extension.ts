@@ -24,6 +24,7 @@ import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
+import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
@@ -46,6 +47,7 @@ const openOCDManager = OpenOCDManager.init();
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
+let heapTraceManager: HeapTraceManager;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -93,6 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Register Tree Provider for IDF Explorer
     registerTreeProvidersForIDFExplorer(context);
     appTraceManager = new AppTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
+    heapTraceManager = new HeapTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
 
     // register openOCD status bar item
     registerOpenOCDStatusBarItem(context);
@@ -377,6 +380,16 @@ export function activate(context: vscode.ExtensionContext) {
                 await appTraceManager.start();
             } else {
                 await appTraceManager.stop();
+            }
+        });
+    });
+
+    registerIDFCommand("espIdf.heaptrace", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+            if (appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)) {
+                await heapTraceManager.start();
+            } else {
+                await heapTraceManager.stop();
             }
         });
     });
