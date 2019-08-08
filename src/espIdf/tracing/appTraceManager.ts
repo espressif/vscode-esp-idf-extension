@@ -208,6 +208,7 @@ export class AppTraceManager extends EventEmitter {
         tclClient.on("response", (resp: Buffer) => {
             const respStr = resp.toString();
             if (respStr.includes("Tracing is STOPPED")) {
+                this.shallContinueCheckingStatus = false;
                 onStop();
             } else {
                 const matchArr = respStr.match(/[0-9]* of [0-9]*/gm);
@@ -226,7 +227,7 @@ export class AppTraceManager extends EventEmitter {
 
         tclClient.on("error", (error: Error) => {
             Logger.error(`Some error prevailed while checking the tracking status`, error);
-            clearInterval(statusCheckerTimer);
+            this.shallContinueCheckingStatus = false;
             onStop();
         });
         const statusCheckerTimer = setInterval(() => {
