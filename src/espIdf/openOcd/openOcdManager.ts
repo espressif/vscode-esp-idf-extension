@@ -137,7 +137,6 @@ export class OpenOCDManager extends EventEmitter {
                 this.emit("error", err, this.chan);
             }
             this.displayChan.append(errStr);
-            this.displayChan.show(true);
         });
         this.server.stdout.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
@@ -159,6 +158,7 @@ export class OpenOCDManager extends EventEmitter {
         });
         this.updateStatusText("❇️ OpenOCD Server (Running)");
         this.displayChan.clear();
+        this.displayChan.show(true);
     }
 
     public stop() {
