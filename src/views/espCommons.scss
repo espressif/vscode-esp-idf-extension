@@ -62,6 +62,10 @@ button > span.icon > i:hover {
     border-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
 }
+.button:focus, .button.is-focused {
+    border-color: var(--vscode-button-foreground);
+    color: var(--vscode-button-foreground);
+}
 
 .input {
     background-color: var(--vscode-input-background);
