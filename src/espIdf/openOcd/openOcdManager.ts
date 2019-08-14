@@ -21,7 +21,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists } from "../../utils";
+import { canAccessFile, fileExists } from "../../utils";
 
 export interface IOpenOCDConfig {
     binPath: string;
@@ -108,11 +108,11 @@ export class OpenOCDManager extends EventEmitter {
         if (this.isRunning()) {
             return;
         }
-        if (!fileExists(this.binPath)) {
-            throw new Error("Invalid OpenOCD bin path");
+        if (!canAccessFile(this.binPath)) {
+            throw new Error("Invalid OpenOCD bin path or access is denied for the user");
         }
-        if (!fileExists(this.scriptPath)) {
-            throw new Error("Invalid OpenOCD script path");
+        if (!canAccessFile(this.scriptPath)) {
+            throw new Error("Invalid OpenOCD script path or access is denied for the user");
         }
         const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
         this.server = spawn(this.binPath, [
