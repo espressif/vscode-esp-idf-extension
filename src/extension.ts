@@ -413,7 +413,9 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-            AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName, filePath: trace.filePath } });
+            AppTracePanel.createOrShow(context, {
+                trace: { fileName: trace.fileName, filePath: trace.filePath, type: trace.type },
+            });
         });
     });
 

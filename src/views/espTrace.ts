@@ -29,6 +29,11 @@ try {
     console.error(error);
 }
 
+enum TraceType {
+    AppTrace = 0,
+    HeapTrace = 1,
+}
+
 // Vue App
 const app = new Vue({
     el: "#app",
@@ -37,11 +42,17 @@ const app = new Vue({
         subtitle: "App Tracing Reporter will help you with in-depth analysis of the runtime. In a nutshell this feature allows you to transfer arbitrary data between host and ESP32 via JTAG interface with small overhead on program execution.",
         title: "<strong>ESP-IDF</strong>&nbsp;App Tracing Reporter",
         fileName: "",
+        traceType: 0,
         isCalculating: false,
         log: null,
     },
     methods: {
         showReport() {
+            if (this.traceType === TraceType.HeapTrace) {
+                // tslint:disable-next-line: no-console
+                console.log("Not yet implemented");
+                return;
+            }
             this.isCalculating = !this.isCalculating;
             vscode.postMessage({
                 command: "calculate",
@@ -54,6 +65,7 @@ const updateModelWithTraceData = ({ trace }) => {
     if (trace) {
         app.fileName = trace.fileName;
         app.isCalculating = false;
+        app.traceType = trace.type;
         app.log = null;
     }
 };
