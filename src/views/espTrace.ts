@@ -18,6 +18,7 @@
 
 import "./espTrace.scss";
 
+import Plotly from "plotly.js";
 import Vue from "vue";
 
 declare var acquireVsCodeApi: any;
@@ -45,21 +46,40 @@ const app = new Vue({
         traceType: 0,
         isCalculating: false,
         log: null,
+        plot: false,
     },
     methods: {
         showReport() {
             if (this.traceType === TraceType.HeapTrace) {
+                this.isCalculating = !this.isCalculating;
+                vscode.postMessage({
+                    command: "calculateHeapTrace",
+                });
+            } else if (this.traceType === TraceType.AppTrace) {
+                this.isCalculating = !this.isCalculating;
+                vscode.postMessage({
+                    command: "calculate",
+                });
+            } else {
                 // tslint:disable-next-line: no-console
-                console.log("Not yet implemented");
-                return;
+                console.log("Tracing Type Not yet implemented");
             }
-            this.isCalculating = !this.isCalculating;
-            vscode.postMessage({
-                command: "calculate",
-            });
         },
     },
 });
+
+const drawPlot = (data: any[], el: string) => {
+    app.plot = true;
+    const layout = {};
+    Plotly.newPlot(el, data, layout, { displaylogo: false });
+
+    const plot = document.getElementById(el);
+    plot.addEventListener("plotly_click", (evt: any) => {
+        const index = evt.points[0].pointIndex;
+        // tslint:disable-next-line: no-console
+        console.log(evt.points[0].data.evt[index]);
+    });
+};
 
 const updateModelWithTraceData = ({ trace }) => {
     if (trace) {
@@ -84,6 +104,87 @@ const calculateFailed = ({ error }) => {
     }
 };
 
+const allocLookupTable = {};
+const eventIDs = { alloc: "", free: "", print: "" };
+
+const free = (size: number, time: number, index: number, evt: any, data: any[]) => {
+    allocFree(size, time, index, data, evt, "f");
+};
+
+const alloc = (size: number, time: number, index: number, evt: any, data: any[]) => {
+    allocFree(size, time, index, data, evt, "a");
+};
+
+const allocFree = (size: number, time: number, index: number, data: any[], evt: any, type: string) => {
+    let currentValue: number;
+    if (data[index].y.length === 0) {
+        currentValue = 0;
+    } else {
+        currentValue = data[index].y[data[index].y.length - 1];
+    }
+    if (type === "a") {
+        data[index].y.push(currentValue + size);
+    } else if (type === "f") {
+        data[index].y.push(currentValue - size);
+    }
+    data[index].x.push(time);
+    data[index].evt.push(evt);
+};
+
+const getIndex = (evt: any, data: any[]) => {
+    let index = -1;
+    data.forEach((d, i) => {
+        if (d.name === evt.ctx_name) {
+            index = i;
+        }
+    });
+    return index;
+};
+
+const injectDataToGraph = (evt: any, data: any[]) => {
+    if (evt.id === eventIDs.free) { // FREE
+        if (allocLookupTable[evt.addr]) {
+            const index = allocLookupTable[evt.addr].index;
+            const size = allocLookupTable[evt.addr].size;
+            free(size, evt.ts, index, evt, data);
+            delete allocLookupTable[evt.addr];
+        }
+    } else if (evt.id === eventIDs.alloc) { // ALLOC
+        const index = getIndex(evt, data);
+        allocLookupTable[evt.addr] = { index, size: evt.size };
+        alloc(evt.size, evt.ts, index, evt, data);
+    }
+};
+
+const traceExists = (evt: any, data: any[]): boolean => {
+    return data.filter((d) => d.name === evt.ctx_name).length > 0;
+};
+
+const plotData = ({ plot }) => {
+    if (plot && app.isCalculating) {
+        app.isCalculating = false;
+        eventIDs.alloc = plot.streams.heap.alloc;
+        eventIDs.free = plot.streams.heap.free;
+        eventIDs.print = plot.streams.log.print;
+
+        const data = [];
+        plot.events.forEach((evt: any) => {
+            if (!traceExists(evt, data)) {
+                data.push({
+                    type: "scatter",
+                    fill: "tozeroy",
+                    name: evt.ctx_name,
+                    x: [],
+                    y: [],
+                    evt: [],
+                });
+            }
+            injectDataToGraph(evt, data);
+        });
+        drawPlot(data, "plot");
+    }
+};
+
 // Message Receiver
 declare var window: any;
 window.addEventListener("message", (m: any) => {
@@ -94,8 +195,13 @@ window.addEventListener("message", (m: any) => {
             break;
         case "calculated":
             showLog(msg.value);
+            break;
+        case "calculatedHeapTrace":
+            plotData(msg.value);
+            break;
         case "calculateFailed":
             calculateFailed(msg.value);
+            break;
         default:
             break;
     }

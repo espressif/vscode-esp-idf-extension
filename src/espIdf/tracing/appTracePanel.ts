@@ -83,6 +83,10 @@ export class AppTracePanel {
                             `Failed to process the trace data`, error);
                     });
                     break;
+                case "calculateHeapTrace":
+                    const plot = {};
+                    this.sendCommandToWebview("calculatedHeapTrace", { plot });
+                    break;
                 default:
                     const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
                     Logger.error(err.message, err);
