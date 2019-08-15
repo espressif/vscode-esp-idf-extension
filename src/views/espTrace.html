@@ -42,15 +42,15 @@
                 </div>
             </div>
             <br>
-            <div class="container" v-bind:class="{ 'is-hidden': !plot }">
-                <div class="notification">
-                    <div id="plot"></div>
-                </div>
-            </div>
-            <br>
             <div class="container" v-if="log">
                 <div class="notification">
                     <pre v-html="log"></pre>
+                </div>
+            </div>
+            <br>
+            <div class="container" v-bind:class="{ 'is-hidden': !plot }">
+                <div class="notification">
+                    <div id="plot"></div>
                 </div>
             </div>
         </div>
