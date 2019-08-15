@@ -42,7 +42,7 @@
                 </div>
             </div>
             <br>
-            <div class="container" v-if="plot">
+            <div class="container" v-bind:class="{ 'is-hidden': !plot }">
                 <div class="notification">
                     <div id="plot"></div>
                 </div>
