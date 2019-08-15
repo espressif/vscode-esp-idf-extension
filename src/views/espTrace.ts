@@ -18,7 +18,7 @@
 
 import "./espTrace.scss";
 
-import Plotly from "plotly.js";
+import * as Plotly from "plotly.js";
 import Vue from "vue";
 
 declare var acquireVsCodeApi: any;
@@ -47,6 +47,7 @@ const app = new Vue({
         isCalculating: false,
         log: null,
         plot: false,
+        loaded: false,
     },
     methods: {
         showReport() {
@@ -66,19 +67,28 @@ const app = new Vue({
             }
         },
     },
+    mounted() {
+        if (!this.loaded) {
+            vscode.postMessage({
+                command: "webviewLoad",
+            });
+        }
+    },
 });
 
 const drawPlot = (data: any[], el: string) => {
     app.plot = true;
-    const layout = {};
-    Plotly.newPlot(el, data, layout, { displaylogo: false });
+    setTimeout(() => {
+        const layout = {};
+        Plotly.newPlot(el, data, layout, { displaylogo: false });
 
-    const plot = document.getElementById(el);
-    plot.addEventListener("plotly_click", (evt: any) => {
-        const index = evt.points[0].pointIndex;
-        // tslint:disable-next-line: no-console
-        console.log(evt.points[0].data.evt[index]);
-    });
+        const plot = document.getElementById(el);
+        plot.addEventListener("plotly_click", (evt: any) => {
+            const index = evt.points[0].pointIndex;
+            // tslint:disable-next-line: no-console
+            console.log(evt.points[0].data.evt[index]);
+        });
+    }, 0);
 };
 
 const updateModelWithTraceData = ({ trace }) => {
@@ -87,6 +97,8 @@ const updateModelWithTraceData = ({ trace }) => {
         app.isCalculating = false;
         app.traceType = trace.type;
         app.log = null;
+        app.plot = false;
+        app.loaded = true;
     }
 };
 

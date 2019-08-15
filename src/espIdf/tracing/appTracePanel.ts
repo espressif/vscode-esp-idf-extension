@@ -73,6 +73,9 @@ export class AppTracePanel {
         this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
         this._panel.webview.onDidReceiveMessage((msg) => {
             switch (msg.command) {
+                case "webviewLoad":
+                    this.sendCommandToWebview("initialLoad", this._traceData);
+                    break;
                 case "calculate":
                     this.check().then((resp) => {
                         const ansiToHtmlConverter = new AnsiToHtml();
