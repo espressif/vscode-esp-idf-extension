@@ -1,6 +1,6 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Thursday, 18th July 2019 12:02:14 pm
+ * File Created: Thursday, 15th August 2019 9:17:30 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,19 +18,32 @@
 
 import { constants } from "fs";
 import { join } from "path";
+import * as vscode from "vscode";
 
 import { AbstractTracingToolManager } from "./abstractTracingToolManager";
 
-export class LogTraceProc extends AbstractTracingToolManager {
+export class SysviewTraceProc extends AbstractTracingToolManager {
+    private readonly txtFilePath: string;
+
+    constructor(workspaceRoot: vscode.Uri, traceFilePath: string, txtFilePath: string) {
+        super(workspaceRoot, traceFilePath);
+        this.txtFilePath = txtFilePath;
+    }
+
     public async parse(): Promise<Buffer> {
-        if (!this.preCheck([ this.elfFilePath, this.traceFilePath ], constants.R_OK)) {
+        if (!this.preCheck([this.txtFilePath, this.traceFilePath], constants.R_OK)) {
             throw new Error("Elf File or Trace file does not exists or not accessible");
         }
-        if (!this.preCheck([ join(this.appTraceToolsPath(), "logtrace_proc.py") ], constants.X_OK)) {
-            throw new Error("logtrace_proc.py tool does not exists or is not accessible");
+        if (!this.preCheck([join(this.appTraceToolsPath(), "sysviewtrace_proc.py")], constants.X_OK)) {
+            throw new Error("systrace_proc.py tool is not found or not accessible");
         }
-        return await this.parseInternal("python", ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
-            cwd: this.appTraceToolsPath(),
-        });
+        return await this.parseInternal("python", [
+            "sysviewtrace_proc.py",
+            "-e", this.txtFilePath,
+            "-j", "heap_dump.json",
+            this.traceFilePath,
+        ], {
+                cwd: this.appTraceToolsPath(),
+            });
     }
 }

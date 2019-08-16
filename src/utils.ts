@@ -60,10 +60,11 @@ export function spawn(command: string, args: string[] = [], options: any = {}): 
     });
 }
 
-export function canAccessFile(filePath: string): boolean {
+export function canAccessFile(filePath: string, mode?: number): boolean {
     try {
         // tslint:disable-next-line: no-bitwise
-        fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+        mode = mode || fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK;
+        fs.accessSync(filePath, mode);
         return true;
     } catch (error) {
         Logger.error(`Cannot access filePath: ${filePath}`, error);

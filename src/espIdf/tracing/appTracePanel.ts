@@ -23,6 +23,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
 import { LogTraceProc } from "./tools/logTraceProc";
+import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 
 export class AppTracePanel {
 
@@ -77,7 +78,7 @@ export class AppTracePanel {
                     this.sendCommandToWebview("initialLoad", this._traceData);
                     break;
                 case "calculate":
-                    this.check().then((resp) => {
+                    this.parseTraceLogData().then((resp: string) => {
                         const ansiToHtmlConverter = new AnsiToHtml();
                         this.sendCommandToWebview("calculated", { log: ansiToHtmlConverter.toHtml(resp) });
                     }).catch((error) => {
@@ -97,7 +98,7 @@ export class AppTracePanel {
             }
         }, null, this._disposables);
     }
-    private async check() {
+    private async parseTraceLogData(): Promise<string> {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
         const logTraceProc = new LogTraceProc(
@@ -106,6 +107,17 @@ export class AppTracePanel {
             await this.getElfFilePath(workspaceRoot),
         );
         const resp = await logTraceProc.parse();
+        return resp.toString();
+    }
+    private async parseHeapTraceData(): Promise<any> {
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
+        const sysviewTraceProc = new SysviewTraceProc(
+            workspaceRoot,
+            this._traceData.trace.filePath,
+            "",
+        );
+        const resp = await sysviewTraceProc.parse();
         return resp.toString();
     }
     private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
@@ -117,7 +129,7 @@ export class AppTracePanel {
         const elfFiles = [];
         fs.readdirSync(elfPath).forEach((file) => {
             if (file.endsWith(".elf")) {
-                elfFiles.push({ label : file, description: path.join(elfPath, file)});
+                elfFiles.push({ label: file, description: path.join(elfPath, file) });
             }
         });
         if (elfFiles.length > 1) {
