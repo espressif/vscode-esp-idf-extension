@@ -22,6 +22,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
+import { canAccessFile } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 
@@ -88,8 +89,15 @@ export class AppTracePanel {
                     });
                     break;
                 case "calculateHeapTrace":
-                    const plot = {};
+                    this.parseHeapTraceData()
+                        .then((resp) => {
                     this.sendCommandToWebview("calculatedHeapTrace", { plot });
+                        })
+                        .catch((error) => {
+                            this.sendCommandToWebview("calculateFailed", { error });
+                            error.message ? Logger.errorNotify(error.message, error) : Logger.errorNotify(
+                                `Failed to process the heap trace data`, error);
+                        });
                     break;
                 default:
                     const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
@@ -112,10 +120,25 @@ export class AppTracePanel {
     private async parseHeapTraceData(): Promise<any> {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
+        const eventMapFilePath = await vscode.window.showInputBox({
+            placeHolder: `Events map file path`,
+            prompt: "Enter the events map file path",
+            ignoreFocusOut: true,
+            validateInput: (filePath: string): string => {
+                let errorMsg = "";
+                if (!canAccessFile(filePath, fs.constants.R_OK)) {
+                    errorMsg = "Invalid or inaccessible file path provided.";
+                }
+                return errorMsg;
+            },
+        });
+        if (!eventMapFilePath) {
+            throw new Error("Event map file path is empty, please provide a valid path");
+        }
         const sysviewTraceProc = new SysviewTraceProc(
             workspaceRoot,
             this._traceData.trace.filePath,
-            "",
+            eventMapFilePath,
         );
         const resp = await sysviewTraceProc.parse();
         return resp.toString();
