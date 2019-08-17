@@ -32,7 +32,7 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
 
     public async parse(): Promise<Buffer> {
         if (!this.preCheck([this.txtFilePath, this.traceFilePath], constants.R_OK)) {
-            throw new Error("Elf File or Trace file does not exists or not accessible");
+            throw new Error("Event map File or Trace file does not exists or not accessible");
         }
         if (!this.preCheck([join(this.appTraceToolsPath(), "sysviewtrace_proc.py")], constants.X_OK)) {
             throw new Error("systrace_proc.py tool is not found or not accessible");
