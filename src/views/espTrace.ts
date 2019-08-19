@@ -79,8 +79,12 @@ const app = new Vue({
 const drawPlot = (data: any[], el: string) => {
     app.plot = true;
     setTimeout(() => {
-        const layout = {};
-        Plotly.newPlot(el, data, layout, { displaylogo: false });
+        const layout = {
+            yaxis: {
+                fixedrange: true,
+            },
+        };
+        Plotly.newPlot(el, data, layout, { displaylogo: false, scrollZoom: true });
 
         const plot = document.getElementById(el);
         plot.addEventListener("plotly_click", (evt: any) => {
