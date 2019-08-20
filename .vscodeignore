@@ -6,3 +6,5 @@ src/**
 .gitignore
 tsconfig.json
 menuconfig/js/test/**
+.github
+.cache
