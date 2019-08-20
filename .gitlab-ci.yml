@@ -40,6 +40,14 @@ javascript_lint_test:
   script:
     - npm run eslint
 
+npm_vulnerabilities_test:
+  image: electronuserland/builder:11
+  stage: lint
+  tags:
+    - lint
+  script:
+    - npm audit
+
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
   stage: lint
@@ -52,8 +60,8 @@ python_lint_test:
       - bandit_output.txt
     expire_in: 1 week
   before_script:
-    - source /opt/pyenv/activate 
-    - pyenv global 2.7.15 
+    - source /opt/pyenv/activate
+    - pyenv global 2.7.15
     - python -m pip install bandit flake8
   script:
     - python -m bandit -r -f txt -o bandit_output.txt .
