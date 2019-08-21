@@ -90,8 +90,8 @@ export class AppTracePanel {
                     break;
                 case "calculateHeapTrace":
                     this.parseHeapTraceData()
-                        .then((resp) => {
-                    this.sendCommandToWebview("calculatedHeapTrace", { plot });
+                        .then((plot) => {
+                            this.sendCommandToWebview("calculatedHeapTrace", { plot });
                         })
                         .catch((error) => {
                             this.sendCommandToWebview("calculateFailed", { error });
