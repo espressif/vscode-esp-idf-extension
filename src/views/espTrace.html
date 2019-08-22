@@ -61,7 +61,7 @@
                     <button class="delete" v-on:click="tracePane = false;"></button>
                     <p class="">{{traceInfo.type}} {{traceInfo.size}} bytes in <code>{{traceInfo.task}}</code> task</p>
                     <ul v-for="caller in traceInfo.callers">
-                        <li>{{caller}}</li>
+                        <li>{{resolveAddress(caller)}}</li>
                     </ul>
                 </div>
             </div>

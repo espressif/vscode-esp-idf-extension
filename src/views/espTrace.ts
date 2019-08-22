@@ -35,6 +35,10 @@ enum TraceType {
     HeapTrace = 1,
 }
 
+const allocLookupTable = {};
+const eventIDs = { alloc: "", free: "", print: "" };
+let callersAddressTranslationTable = {};
+
 // Vue App
 const app = new Vue({
     el: "#app",
@@ -79,6 +83,13 @@ const app = new Vue({
                 this.errorMsg = "";
             }, 5000);
             this.errorMsg = err;
+        },
+        resolveAddress(addr: string) {
+            const stackInfo = callersAddressTranslationTable[addr];
+            if (stackInfo) {
+                return stackInfo.filePath;
+            }
+            return addr;
         },
     },
     mounted() {
@@ -150,9 +161,6 @@ const calculateFailed = ({ error }) => {
         app.log = null;
     }
 };
-
-const allocLookupTable = {};
-const eventIDs = { alloc: "", free: "", print: "" };
 
 const free = (size: number, time: number, index: number, evt: any, data: any[]) => {
     allocFree(size, time, index, data, evt, "f");
@@ -231,9 +239,17 @@ const plotData = ({ plot }) => {
                     evt: [],
                 });
             }
+            if (evt.callers) {
+                evt.callers.forEach((caller) => {
+                    callersAddressTranslationTable[caller] = {};
+                });
+            }
             injectDataToGraph(evt, data);
         });
-
+        vscode.postMessage({
+            command: "resolveAddresses",
+            addresses: callersAddressTranslationTable,
+        });
         if (data.length === 0) {
             return app.displayError("Tracing Data Received is Empty");
         }
@@ -258,6 +274,9 @@ window.addEventListener("message", (m: any) => {
             break;
         case "calculateFailed":
             calculateFailed(msg.value);
+            break;
+        case "addressesResolved":
+            callersAddressTranslationTable = msg.value;
             break;
         default:
             break;

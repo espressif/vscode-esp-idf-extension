@@ -25,6 +25,7 @@ import { Logger } from "../../logger/logger";
 import { canAccessFile } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
+import { Addr2Line } from "./tools/xtensa/addr2line";
 
 export class AppTracePanel {
 
@@ -99,12 +100,41 @@ export class AppTracePanel {
                                 `Failed to process the heap trace data`, error);
                         });
                     break;
+                case "resolveAddresses":
+                    this.resolveAddresses(msg);
+                    break;
                 default:
                     const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
                     Logger.error(err.message, err);
                     break;
             }
         }, null, this._disposables);
+    }
+    private resolveAddresses({ addresses }) {
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
+        if (addresses) {
+            const promises = Object.keys(addresses).map((add) => {
+                const fn =  async (address) => {
+                    const addr2line = new Addr2Line(workspaceRoot, await this.getElfFilePath(workspaceRoot), address);
+                    const resp = await addr2line.run();
+                    const respStr = resp.toString().trim();
+                    const fileSplit = respStr.split(":");
+                    const filePath = fileSplit[0];
+                    const fileName = filePath.split("/");
+                    const lineNumber = fileSplit[1];
+                    addresses[address] = {
+                        filePath,
+                        lineNumber,
+                        fileName,
+                    };
+                };
+                return fn(add);
+            });
+            Promise.all(promises).then((resp) => {
+                this.sendCommandToWebview("addressesResolved", addresses);
+            });
+        }
     }
     private async parseTraceLogData(): Promise<string> {
         const emptyURI: vscode.Uri = undefined;
