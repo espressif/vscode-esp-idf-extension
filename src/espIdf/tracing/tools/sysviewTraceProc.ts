@@ -23,24 +23,21 @@ import * as vscode from "vscode";
 import { AbstractTracingToolManager } from "./abstractTracingToolManager";
 
 export class SysviewTraceProc extends AbstractTracingToolManager {
-    private readonly txtFilePath: string;
 
-    constructor(workspaceRoot: vscode.Uri, traceFilePath: string, txtFilePath: string) {
+    constructor(workspaceRoot: vscode.Uri, traceFilePath: string) {
         super(workspaceRoot, traceFilePath);
-        this.txtFilePath = txtFilePath;
     }
 
     public async parse(): Promise<Buffer> {
-        if (!this.preCheck([this.txtFilePath, this.traceFilePath], constants.R_OK)) {
-            throw new Error("Event map File or Trace file does not exists or not accessible");
+        if (!this.preCheck([this.traceFilePath], constants.R_OK)) {
+            throw new Error("Trace file does not exists or not accessible");
         }
         if (!this.preCheck([join(this.appTraceToolsPath(), "sysviewtrace_proc.py")], constants.X_OK)) {
             throw new Error("systrace_proc.py tool is not found or not accessible");
         }
         return await this.parseInternal("python", [
             "sysviewtrace_proc.py",
-            "-e", this.txtFilePath,
-            "-j", "heap_dump.json",
+            "-j",
             this.traceFilePath,
         ], {
                 cwd: this.appTraceToolsPath(),

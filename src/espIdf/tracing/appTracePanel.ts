@@ -120,25 +120,9 @@ export class AppTracePanel {
     private async parseHeapTraceData(): Promise<any> {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
-        const eventMapFilePath = await vscode.window.showInputBox({
-            placeHolder: `Events map file path`,
-            prompt: "Enter the events map file path",
-            ignoreFocusOut: true,
-            validateInput: (filePath: string): string => {
-                let errorMsg = "";
-                if (!canAccessFile(filePath, fs.constants.R_OK)) {
-                    errorMsg = "Invalid or inaccessible file path provided.";
-                }
-                return errorMsg;
-            },
-        });
-        if (!eventMapFilePath) {
-            throw new Error("Event map file path is empty, please provide a valid path");
-        }
         const sysviewTraceProc = new SysviewTraceProc(
             workspaceRoot,
             this._traceData.trace.filePath,
-            eventMapFilePath,
         );
         const resp = await sysviewTraceProc.parse();
         return resp.toString();
