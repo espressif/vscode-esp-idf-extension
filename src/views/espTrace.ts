@@ -55,6 +55,7 @@ const app = new Vue({
             size: 0,
             callers: [],
         },
+        errorMsg: "",
     },
     methods: {
         showReport() {
@@ -72,6 +73,12 @@ const app = new Vue({
                 // tslint:disable-next-line: no-console
                 console.log("Tracing Type Not yet implemented");
             }
+        },
+        displayError(err: string) {
+            setTimeout(() => {
+                this.errorMsg = "";
+            }, 5000);
+            this.errorMsg = err;
         },
     },
     mounted() {
@@ -202,6 +209,11 @@ const traceExists = (evt: any, data: any[]): boolean => {
 
 const plotData = ({ plot }) => {
     if (plot && app.isCalculating) {
+
+        if (plot.version && plot.version !== "1.0") {
+            return app.displayError("Invalid tracing data received!");
+        }
+
         app.isCalculating = false;
         eventIDs.alloc = plot.streams.heap.alloc;
         eventIDs.free = plot.streams.heap.free;
@@ -221,6 +233,11 @@ const plotData = ({ plot }) => {
             }
             injectDataToGraph(evt, data);
         });
+
+        if (data.length === 0) {
+            return app.displayError("Tracing Data Received is Empty");
+        }
+
         drawPlot(data, "plot");
     }
 };

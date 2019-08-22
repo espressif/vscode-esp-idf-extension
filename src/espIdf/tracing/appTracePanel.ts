@@ -125,7 +125,8 @@ export class AppTracePanel {
             this._traceData.trace.filePath,
         );
         const resp = await sysviewTraceProc.parse();
-        return resp.toString();
+        const respStr = resp.toString();
+        return JSON.parse(respStr);
     }
     private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
         let elfFilePath = "";
