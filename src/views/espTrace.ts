@@ -87,7 +87,6 @@ const drawPlot = (data: any[], el: string) => {
     app.plot = true;
     setTimeout(() => {
         const layout = {
-            plot_bgcolor: "#555444",
             yaxis: {
                 fixedrange: true,
             },
