@@ -35,7 +35,9 @@
                         </div>
                         <div class="level-right">
                             <div class="level-item">
-                                <button class="button" v-on:click="showReport" v-bind:class="{ 'is-loading': isCalculating, 'is-static': isCalculating }">Show Report</button>
+                                <button class="button" v-on:click="showReport"
+                                    v-bind:class="{ 'is-loading': isCalculating, 'is-static': isCalculating }">Show
+                                    Report</button>
                             </div>
                         </div>
                     </nav>
@@ -47,10 +49,16 @@
                     <pre v-html="log"></pre>
                 </div>
             </div>
-            <br>
-            <div class="container" v-bind:class="{ 'is-hidden': !plot }">
+            <div class="container" v-if="plot">
                 <div class="notification">
                     <div id="plot"></div>
+                </div>
+                <div class="notification" v-if="tracePane">
+                    <button class="delete" v-on:click="tracePane = false;"></button>
+                    <p class="">{{traceInfo.type}} {{traceInfo.size}} bytes in <code>{{traceInfo.task}}</code> task</p>
+                    <ul v-for="caller in traceInfo.callers">
+                        <li>{{caller}}</li>
+                    </ul>
                 </div>
             </div>
         </div>

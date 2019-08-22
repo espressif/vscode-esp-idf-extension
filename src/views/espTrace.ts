@@ -18,7 +18,7 @@
 
 import "./espTrace.scss";
 
-import * as Plotly from "plotly.js";
+import * as Plotly from "plotly.js-dist";
 import Vue from "vue";
 
 declare var acquireVsCodeApi: any;
@@ -48,6 +48,13 @@ const app = new Vue({
         log: null,
         plot: false,
         loaded: false,
+        tracePane: false,
+        traceInfo: {
+            task: "",
+            type: "",
+            size: 0,
+            callers: [],
+        },
     },
     methods: {
         showReport() {
@@ -80,17 +87,35 @@ const drawPlot = (data: any[], el: string) => {
     app.plot = true;
     setTimeout(() => {
         const layout = {
+            plot_bgcolor: "#555444",
             yaxis: {
                 fixedrange: true,
             },
+            hovermode: "closest",
         };
-        Plotly.newPlot(el, data, layout, { displaylogo: false, scrollZoom: true });
+        const chartProp = {
+            displaylogo: false,
+            scrollZoom: true,
+            responsive: true,
+        };
+        Plotly.newPlot(el, data, layout, chartProp);
 
-        const plot = document.getElementById(el);
-        plot.addEventListener("plotly_click", (evt: any) => {
-            const index = evt.points[0].pointIndex;
+        const plot = document.getElementById(el) as any;
+        plot.on("plotly_click", (d) => {
+            app.tracePane = true;
+            const index = d.points[0].pointIndex;
+            const evt = Object.assign({}, d.points[0].data.evt[index]);
+            app.traceInfo.type = evt.id === eventIDs.alloc ? "Allocated" : "Freed";
+            app.traceInfo.task = evt.ctx_name;
+            app.traceInfo.callers = evt.callers;
+            if (evt.id === eventIDs.free) {
+                const yaxis = d.points[0].data.y;
+                app.traceInfo.size = index !== 0 ? yaxis[index - 1] - yaxis[index] : yaxis[index];
+            } else if (evt.id === eventIDs.alloc) {
+                app.traceInfo.size = evt.size;
+            }
             // tslint:disable-next-line: no-console
-            console.log(evt.points[0].data.evt[index]);
+            console.log(evt);
         });
     }, 0);
 };
