@@ -1,19 +1,23 @@
 {
-  "extends": ["airbnb"],
-  "env": {
-    "amd": true,
-    "browser": true
-  },
-  "plugins": ["eslint-plugin-requirejs", "mocha"],
-  "rules": {
-    "import/no-extraneous-dependencies": "off",
-    "requirejs/no-invalid-define": "off",
-    "requirejs/no-invalid-require": "warn",
-    "requirejs/no-multiple-define": "error",
-    "requirejs/no-named-define": "error",
-    "requirejs/no-commonjs-wrapper": "error",
-    "requirejs/no-object-define": "warn",
-    "import/no-amd": "off",
-    "no-console": "off"
-  }
+    "env": {
+        "amd": true,
+        "browser": true
+    },
+    "rules": {
+        "import/no-extraneous-dependencies": "off",
+        "no-console": "off"
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [
+                    ".js"
+                ]
+            }
+        }
+    },
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 2015
+    }
 }
