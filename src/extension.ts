@@ -18,6 +18,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
+import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -25,7 +26,6 @@ import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
-import { MenuConfigPanel } from "./MenuconfigPanel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 
@@ -45,6 +45,7 @@ let idfChannel: vscode.OutputChannel;
 let mainProcess: ChildProcess;
 let monitorTerminal: vscode.Terminal;
 let projDescPath: string;
+let sdkconfigFile: string;
 const locDic = new LocDictionary("extension");
 
 const openFolderMsg = locDic.localize("extension.openFolderFirst", "Open a folder first.");
@@ -67,6 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
     PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
         workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
         projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
+        sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
         updateProjName();
         const workspaceFolderInfo = {
             clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -83,6 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
             workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
             projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
+            sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
         }
     });
     const projDescriptionWatcher = vscode.workspace.createFileSystemWatcher(projDescPath, true, false, true);
@@ -98,6 +101,15 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.debug.onDidTerminateDebugSession((e) => {
         // endOpenOcdServer(); // Should openOcd restart at every debug session?
     });
+
+    const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(sdkconfigFile, true, false, true);
+    const sdkWatchDisposable = sdkconfigWatcher.onDidChange(async () => {
+        if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
+            ConfserverProcess.loadGuiConfigValues();
+        }
+        ConfserverProcess.resetSavedByUI();
+    });
+    context.subscriptions.push(sdkWatchDisposable);
 
     registerIDFCommand("espIdf.createFiles", async () => {
         const option = await vscode.window.showQuickPick(
@@ -304,7 +316,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.setDefaultConfig", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-            utils.setDefaultConfigFile(workspaceRoot);
+            utils.delConfigFile(workspaceRoot);
             const defaultSdkconfigGeneratedMsg = locDic.localize("extension.defaultSdkconfigGeneratedMessage",
                 "Default sdkconfig file restored.");
             Logger.infoNotify(defaultSdkconfigGeneratedMsg);
@@ -313,7 +325,27 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("menuconfig.start", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-            MenuConfigPanel.createOrShow(context.extensionPath, workspaceRoot);
+            try {
+                if (ConfserverProcess.exists()) {
+                    ConfserverProcess.loadExistingInstance();
+                    return;
+                }
+                vscode.window.withProgress({
+                    cancellable: false,
+                    location: vscode.ProgressLocation.Notification,
+                    title: "ESP-IDF: Menuconfig",
+                }, async (progress: vscode.Progress<{ message: string, increment: number}>,
+                          cancelToken: vscode.CancellationToken) => {
+                        try {
+                            ConfserverProcess.registerProgress(progress);
+                            await ConfserverProcess.init(workspaceRoot, context.extensionPath);
+                        } catch (error) {
+                            Logger.errorNotify(error.message, error);
+                        }
+                });
+            } catch (error) {
+                Logger.errorNotify(error.message, error);
+            }
         });
     });
 
@@ -518,6 +550,7 @@ export function deactivate() {
         return undefined;
     }
     kconfigLangClient.stop();
+    ConfserverProcess.dispose();
 }
 
 export function startOpenOcdServer() {

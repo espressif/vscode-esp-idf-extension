@@ -2,12 +2,16 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TSLintPlugin = require('tslint-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
-    entry: './espSize.ts',
+    entry: {
+        espSize: "./espSize.ts",
+        menuconfig: "./menuconfig/main.ts"
+    },
     output: {
         path: path.resolve(__dirname, '../', '../', 'out', 'views'),
-        filename: 'espSize.bundle.js'
+        filename: "[name]-bundle.js"
     },
     module: {
         rules: [{
@@ -36,15 +40,32 @@ module.exports = {
             }]
         },
         {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
+            test: /\.vue$/,
+            use: 'vue-loader',
             exclude: /node_modules/
-        },]
+        },
+        {
+            test: /\.css$/,
+            use: [
+                'vue-style-loader',
+                'css-loader',
+            ],
+        },
+        {
+            test: /\.tsx?$/,
+            use: {
+                loader: "ts-loader",
+                options: {
+                  appendTsSuffixTo: [/\.vue$/]
+                }
+            },
+            exclude: /node_modules/,
+        }]
     },
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.json'],
         alias: {
-            'vue$': 'vue/dist/vue.esm.js'
+            'vue$': 'vue/dist/vue.esm.js',
         }
     },
     plugins: [
@@ -57,7 +78,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: "espSize.html",
             template: `${__dirname}/espSize.html`,
+            chunks: ['espSize']            
         }),
+        new VueLoaderPlugin(),
     ],
     devServer: {
         contentBase: path.join(__dirname),

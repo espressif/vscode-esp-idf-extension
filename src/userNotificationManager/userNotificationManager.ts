@@ -26,7 +26,7 @@ export default class UserNotificationManagerTransport extends winston.Transport 
     }
 
     protected log(level: string, message: string, metadata?: any, callback?: (arg1, arg2) => void) {
-        if (metadata.user) {
+        if (metadata && metadata.user) {
             if (level === "info") {
                 vscode.window.showInformationMessage(message);
             } else if (level === "warn") {

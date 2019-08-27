@@ -2,3 +2,4 @@ out
 dist
 src/views/*
 !src/views/espSize.js
+!src/views/menuconfig

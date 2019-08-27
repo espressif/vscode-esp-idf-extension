@@ -168,7 +168,7 @@ export function createSkeleton(curWorkspaceFsPath: string, chosenTemplateDir: st
         });
 }
 
-export function setDefaultConfigFile(workspaceRoot) {
+export function delConfigFile(workspaceRoot) {
     const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
     fs.unlinkSync(sdkconfigFile);
 }
