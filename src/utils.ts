@@ -72,6 +72,12 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     }
 }
 
+export async function sleep(ms: number): Promise<any> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 export function updateStatus(
     status: vscode.StatusBarItem,
     info: {

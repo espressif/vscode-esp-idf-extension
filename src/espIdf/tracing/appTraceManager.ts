@@ -22,7 +22,8 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists } from "../../utils";
+import { fileExists, sleep } from "../../utils";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
@@ -187,7 +188,16 @@ export class AppTraceManager extends EventEmitter {
     private async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
         const tclClient = new TCLClient(this.tclConnectionParams);
         if (!await tclClient.isOpenOCDServerRunning()) {
-            Logger.warnNotify("Launch OpenOCD Server before starting app trace");
+            const resp = await vscode.window.showInformationMessage("OpenOCD is not running, do you want to launch it?",
+                { modal: true },
+                { title: "Yes" },
+                { title: "Cancel", isCloseAffordance: true },
+            );
+            if (resp && resp.title === "Yes") {
+                await OpenOCDManager.init().start();
+                await sleep(1000);
+                return true;
+            }
             return false;
         }
         return true;
