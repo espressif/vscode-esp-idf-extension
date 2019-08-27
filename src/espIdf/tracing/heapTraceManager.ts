@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 
-import { TCLConnection } from "../openOcd/tcl/tclClient";
+import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
@@ -35,7 +35,48 @@ export class HeapTraceManager extends EventEmitter {
     }
 
     public async start() {
-        //
+        // 1: reset halt
+        // 2: fetch breakpoint address
+        // 3. set addr_of_heap_trace_start breakpoint `bp 0x400d3598 4 hw`
+        // 4. set addr_of_heap_trace_stop breakpoint `bp 0x400d3598 4 hw`
+        // 5. resume
+        // 6. if program stops at heap_trace_start
+        //   a. esp32 sysview start ${tempFilePath}.svdat
+        // 7. resume
+        // 8. if program stops ar heap_trace_stop
+        //   a. esp32 sysview stop
+
+        const tCLClient = new TCLClient(this.tclConnectionParams);
+        tCLClient.on("response", (resp: Buffer) => {
+            // tslint:disable-next-line: no-console
+            console.log("->> " + resp);
+        });
+        tCLClient.sendCommandWithCapture("tcl_notifications on");
+
+        // tslint:disable-next-line: variable-name
+        const tCLClient_1 = new TCLClient(this.tclConnectionParams);
+        tCLClient_1.on("response", (resp: Buffer) => {
+            // tslint:disable-next-line: no-console
+            console.log("<< " + resp);
+        });
+        setTimeout(() => {
+            tCLClient_1.sendCommandWithCapture("bp 0x400d35b4 4 hw");
+            setTimeout(() => {
+                tCLClient_1.sendCommandWithCapture("bp 0x400d35d0 4 hw");
+                setTimeout(() => {
+                    tCLClient_1.sendCommandWithCapture("resume");
+                    setTimeout(() => {
+                        tCLClient_1.sendCommandWithCapture("esp32 sysview start file:///tmp/heap_log.svdat");
+                        setTimeout(() => {
+                            tCLClient_1.sendCommandWithCapture("resume");
+                            setTimeout(() => {
+                                tCLClient_1.sendCommandWithCapture("esp32 sysview stop");
+                            }, 2000);
+                        }, 2000);
+                    }, 2000);
+                }, 2000);
+            }, 2000);
+        }, 2000);
     }
 
     public async stop() {
