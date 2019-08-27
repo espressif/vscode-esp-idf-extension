@@ -46,7 +46,7 @@ npm_vulnerabilities_test:
   tags:
     - lint
   script:
-    - npm audit
+    - npm audit --registry=https://registry.npmjs.org
 
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
