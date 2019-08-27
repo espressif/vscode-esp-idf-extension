@@ -22,7 +22,7 @@ copyright_lint_test:
   before_script:
     - echo "Skipping before_script"
   script:
-    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../src/views  -e js ts py
+    - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../src/views ../src/views/menuconfig  -e js ts py
 
 typescript_lint_test:
   image: electronuserland/builder:11
@@ -66,14 +66,6 @@ python_lint_test:
   script:
     - python -m bandit -r -f txt -o bandit_output.txt .
     - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee
-
-javascript_test:
-  image: electronuserland/builder:11
-  stage: test
-  tags:
-    - build
-  script:
-    - npm run mocha_test
 
 build_tar:
   image: electronuserland/builder:11
