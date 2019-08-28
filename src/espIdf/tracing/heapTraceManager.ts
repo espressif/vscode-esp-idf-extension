@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 
+import { sleep } from "../../utils";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
@@ -46,40 +47,58 @@ export class HeapTraceManager extends EventEmitter {
         // 8. if program stops ar heap_trace_stop
         //   a. esp32 sysview stop
 
-        const tCLClient = new TCLClient(this.tclConnectionParams);
-        tCLClient.on("response", (resp: Buffer) => {
+        const commandChain = new CommandChain();
+        commandChain
+        .buildCommand("reset halt")
+        .buildCommand("bp 0x400d35b4 4 hw")
+        .buildCommand("bp 0x400d35d0 4 hw")
+        .buildCommand("resume")
+        .buildCommand("esp32 sysview start file:///tmp/heap_log.svdat")
+        .buildCommand("resume")
+        .buildCommand("esp32 sysview stop");
+
+        const notificationReceiver = new TCLClient(this.tclConnectionParams);
+        notificationReceiver.on("response", (resp: Buffer) => {
             // tslint:disable-next-line: no-console
             console.log("->> " + resp);
         });
-        tCLClient.sendCommandWithCapture("tcl_notifications on");
+        notificationReceiver.sendCommandWithCapture("tcl_notifications on");
 
-        // tslint:disable-next-line: variable-name
-        const tCLClient_1 = new TCLClient(this.tclConnectionParams);
-        tCLClient_1.on("response", (resp: Buffer) => {
+        const commandProcessor = new TCLClient(this.tclConnectionParams);
+        commandProcessor.on("response", async (resp: Buffer) => {
             // tslint:disable-next-line: no-console
-            console.log("<< " + resp);
+            console.log(">>" + resp);
+            const cmd = commandChain.next();
+            if (!cmd) {
+                notificationReceiver.stop();
+                commandProcessor.stop();
+                return;
+            }
+            await sleep(5000);
+            commandProcessor.sendCommandWithCapture(cmd);
         });
-        setTimeout(() => {
-            tCLClient_1.sendCommandWithCapture("bp 0x400d35b4 4 hw");
-            setTimeout(() => {
-                tCLClient_1.sendCommandWithCapture("bp 0x400d35d0 4 hw");
-                setTimeout(() => {
-                    tCLClient_1.sendCommandWithCapture("resume");
-                    setTimeout(() => {
-                        tCLClient_1.sendCommandWithCapture("esp32 sysview start file:///tmp/heap_log.svdat");
-                        setTimeout(() => {
-                            tCLClient_1.sendCommandWithCapture("resume");
-                            setTimeout(() => {
-                                tCLClient_1.sendCommandWithCapture("esp32 sysview stop");
-                            }, 2000);
-                        }, 2000);
-                    }, 2000);
-                }, 2000);
-            }, 2000);
-        }, 2000);
+        await sleep(1000);
+        commandProcessor.sendCommandWithCapture(commandChain.next());
     }
 
     public async stop() {
         //
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+class CommandChain {
+    private chain: string[];
+    constructor() {
+        this.chain = new Array<string>();
+    }
+
+    public buildCommand(command: string): CommandChain {
+        this.chain.push(command);
+        return this;
+    }
+
+    public next(): string {
+        return this.chain.shift();
     }
 }
