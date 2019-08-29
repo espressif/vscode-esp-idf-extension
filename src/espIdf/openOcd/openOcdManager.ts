@@ -18,6 +18,7 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
+import { lstatSync } from "fs";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -113,6 +114,10 @@ export class OpenOCDManager extends EventEmitter {
         }
         if (!canAccessFile(this.scriptPath)) {
             throw new Error("Invalid OpenOCD script path or access is denied for the user");
+        }
+        const stats = lstatSync(this.binPath);
+        if (!stats.isFile()) {
+            throw new Error("Invalid OpenOCD bin path, provide the path till the executable");
         }
         const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
         this.server = spawn(this.binPath, [
