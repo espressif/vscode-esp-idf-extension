@@ -1,10 +1,3 @@
-import { EventEmitter } from "events";
-
-import { sleep } from "../../utils";
-import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
-import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
-
 /*
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 8th August 2019 6:41:01 pm
@@ -23,6 +16,18 @@ import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
  * limitations under the License.
  */
 
+import { EventEmitter } from "events";
+import * as vscode from "vscode";
+
+import { mkdirSync } from "fs";
+import { join } from "path";
+import { Logger } from "../../logger/logger";
+import { fileExists, sleep } from "../../utils";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
+import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
+import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
+import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
+
 export class HeapTraceManager extends EventEmitter {
     private treeDataProvider: AppTraceTreeDataProvider;
     private archiveDataProvider: AppTraceArchiveTreeDataProvider;
@@ -36,44 +41,72 @@ export class HeapTraceManager extends EventEmitter {
     }
 
     public async start() {
-        const commandChain = new CommandChain();
-        commandChain
-            .buildCommand("reset halt")
-            .buildCommand("bp 0x400d35b4 4 hw")
-            .buildCommand("bp 0x400d35d0 4 hw")
-            .buildCommand("resume")
-            .buildCommand("rbp 0x400d35b4")
-            .buildCommand("esp32 sysview start file:///tmp/heap_log.svdat")
-            .buildCommand("resume")
-            .buildCommand("rbp 0x400d35d0")
-            .buildCommand("esp32 sysview stop");
+        try {
+            if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+                this.showStopButton();
+                const workspace = vscode.workspace.workspaceFolders ?
+                vscode.workspace.workspaceFolders[0].uri.path : "";
+                if (!fileExists(join(workspace, "trace"))) {
+                    mkdirSync(join(workspace, "trace"));
+                }
+                const fileName = `file://${join(workspace, "trace")}/htrace_${new Date().getTime()}.svdat`;
+                const commandChain = new CommandChain();
+                commandChain
+                    .buildCommand("reset halt")
+                    .buildCommand("bp 0x400d35b4 4 hw")
+                    .buildCommand("bp 0x400d35d0 4 hw")
+                    .buildCommand("resume")
+                    .buildCommand("rbp 0x400d35b4")
+                    .buildCommand(`esp32 sysview start ${fileName}`)
+                    .buildCommand("resume")
+                    .buildCommand("rbp 0x400d35d0")
+                    .buildCommand("esp32 sysview stop");
 
-        const notificationReceiver = new TCLClient(this.tclConnectionParams);
-        notificationReceiver.on("response", (resp: Buffer) => {
-            // tslint:disable-next-line: no-console
-            console.log("->> " + resp);
-        });
-        notificationReceiver.sendCommandWithCapture("tcl_notifications on");
+                const notificationReceiver = new TCLClient(this.tclConnectionParams);
+                notificationReceiver.on("response", (resp: Buffer) => {
+                    // tslint:disable-next-line: no-console
+                    console.log("->> " + resp);
+                });
+                notificationReceiver.sendCommandWithCapture("tcl_notifications on");
 
-        const commandProcessor = new TCLClient(this.tclConnectionParams);
-        commandProcessor.on("response", async (resp: Buffer) => {
-            // tslint:disable-next-line: no-console
-            console.log(">>" + resp);
-            const cmd = commandChain.next();
-            if (!cmd) {
-                notificationReceiver.stop();
-                commandProcessor.stop();
-                return;
+                const commandProcessor = new TCLClient(this.tclConnectionParams);
+                commandProcessor.on("response", async (resp: Buffer) => {
+                    // tslint:disable-next-line: no-console
+                    console.log(">>" + resp);
+                    const cmd = commandChain.next();
+                    if (!cmd) {
+                        notificationReceiver.stop();
+                        commandProcessor.stop();
+                        this.archiveDataProvider.populateArchiveTree();
+                        this.showStartButton();
+                        return;
+                    }
+                    await sleep(5000);
+                    commandProcessor.sendCommandWithCapture(cmd);
+                });
+                await sleep(1000);
+                commandProcessor.sendCommandWithCapture(commandChain.next());
             }
-            await sleep(5000);
-            commandProcessor.sendCommandWithCapture(cmd);
-        });
-        await sleep(1000);
-        commandProcessor.sendCommandWithCapture(commandChain.next());
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+        }
     }
 
     public async stop() {
-        //
+        try {
+            if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+                this.showStartButton();
+            }
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+        }
+    }
+
+    private showStopButton() {
+        this.treeDataProvider.showStopButton(AppTraceButtonType.HeapTraceButton);
+    }
+    private showStartButton() {
+        this.treeDataProvider.showStartButton(AppTraceButtonType.HeapTraceButton);
     }
 }
 
