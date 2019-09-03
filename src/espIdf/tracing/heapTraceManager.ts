@@ -36,26 +36,17 @@ export class HeapTraceManager extends EventEmitter {
     }
 
     public async start() {
-        // 1: reset halt
-        // 2: fetch breakpoint address
-        // 3. set addr_of_heap_trace_start breakpoint `bp 0x400d3598 4 hw`
-        // 4. set addr_of_heap_trace_stop breakpoint `bp 0x400d3598 4 hw`
-        // 5. resume
-        // 6. if program stops at heap_trace_start
-        //   a. esp32 sysview start ${tempFilePath}.svdat
-        // 7. resume
-        // 8. if program stops ar heap_trace_stop
-        //   a. esp32 sysview stop
-
         const commandChain = new CommandChain();
         commandChain
-        .buildCommand("reset halt")
-        .buildCommand("bp 0x400d35b4 4 hw")
-        .buildCommand("bp 0x400d35d0 4 hw")
-        .buildCommand("resume")
-        .buildCommand("esp32 sysview start file:///tmp/heap_log.svdat")
-        .buildCommand("resume")
-        .buildCommand("esp32 sysview stop");
+            .buildCommand("reset halt")
+            .buildCommand("bp 0x400d35b4 4 hw")
+            .buildCommand("bp 0x400d35d0 4 hw")
+            .buildCommand("resume")
+            .buildCommand("rbp 0x400d35b4")
+            .buildCommand("esp32 sysview start file:///tmp/heap_log.svdat")
+            .buildCommand("resume")
+            .buildCommand("rbp 0x400d35d0")
+            .buildCommand("esp32 sysview stop");
 
         const notificationReceiver = new TCLClient(this.tclConnectionParams);
         notificationReceiver.on("response", (resp: Buffer) => {
