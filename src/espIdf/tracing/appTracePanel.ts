@@ -26,6 +26,7 @@ import { canAccessFile } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
+import { ReadElf } from "./tools/xtensa/readelf";
 
 export class AppTracePanel {
 
@@ -59,11 +60,13 @@ export class AppTracePanel {
 
     private _disposables: vscode.Disposable[] = [];
     private _traceData: any;
+    private cache: any;
 
     private constructor(panel: vscode.WebviewPanel, extensionPath: string, traceData: any) {
         this._panel = panel;
         this._extensionPath = extensionPath;
         this._traceData = traceData;
+        this.cache = {};
         this.initWebview();
     }
     private disposeWebview() {
@@ -91,7 +94,9 @@ export class AppTracePanel {
                     break;
                 case "calculateHeapTrace":
                     this.parseHeapTraceData()
-                        .then((plot) => {
+                        .then(async (plot) => {
+                            const elfMap = await this.readElf();
+                            this.cache.elfMap = elfMap;
                             this.sendCommandToWebview("calculatedHeapTrace", { plot });
                         })
                         .catch((error) => {
@@ -110,12 +115,34 @@ export class AppTracePanel {
             }
         }, null, this._disposables);
     }
+    private async readElf(): Promise<string[][]> {
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
+        const elfFile = await this.getElfFilePath(workspaceRoot);
+        if (!elfFile) {
+            throw new Error("Select Elf file to process the addresses");
+        }
+        const readElf = new ReadElf(workspaceRoot, elfFile);
+        const resp = await readElf.run();
+        const respStr = resp.toString();
+        const respArr = respStr.split("\n");
+        respArr.shift();
+        respArr.shift();
+        respArr.shift();
+        return respArr
+            .map((value) => {
+                return value.trim().split(/\s+/);
+            })
+            .filter((value) => {
+                return value[3] === "FUNC";
+            });
+    }
     private resolveAddresses({ addresses }) {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
         if (addresses) {
             const promises = Object.keys(addresses).map((add) => {
-                const fn =  async (address) => {
+                const fn = async (address) => {
                     const addr2line = new Addr2Line(workspaceRoot, await this.getElfFilePath(workspaceRoot), address);
                     const resp = await addr2line.run();
                     const respStr = resp.toString().trim();
