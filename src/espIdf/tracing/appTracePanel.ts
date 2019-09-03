@@ -137,6 +137,24 @@ export class AppTracePanel {
                 return value[3] === "FUNC";
             });
     }
+    private functionNameForAddress(address: string): string {
+        const contains = (start: string, size: string, addr: string): boolean => {
+            const startAddrDec = parseInt(start, 16);
+            const addrDec = parseInt(addr, 16);
+            const endAddrDec = startAddrDec + parseInt(size, 10);
+            return addrDec >= startAddrDec && addrDec <= endAddrDec;
+        };
+
+        let funcName = "";
+        if (this.cache && this.cache.elfMap) {
+            const filteredArr = this.cache.elfMap.filter((e: string[]) => {
+                return contains(e[1], e[2], address);
+            });
+            funcName = filteredArr.length > 0 ? filteredArr[0][7] : "";
+        }
+
+        return funcName;
+    }
     private resolveAddresses({ addresses }) {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
@@ -150,10 +168,12 @@ export class AppTracePanel {
                     const filePath = fileSplit[0];
                     const fileName = filePath.split("/");
                     const lineNumber = fileSplit[1];
+                    const funcName = this.functionNameForAddress(address);
                     addresses[address] = {
                         filePath,
                         lineNumber,
                         fileName,
+                        funcName,
                     };
                 };
                 return fn(add);
