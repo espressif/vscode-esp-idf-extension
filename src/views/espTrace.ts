@@ -87,7 +87,7 @@ const app = new Vue({
         resolveAddress(addr: string) {
             const stackInfo = callersAddressTranslationTable[addr];
             if (stackInfo) {
-                return stackInfo.filePath;
+                return `${stackInfo.funcName}()`;
             }
             return addr;
         },
@@ -131,8 +131,6 @@ const drawPlot = (data: any[], el: string) => {
             } else if (evt.id === eventIDs.alloc) {
                 app.traceInfo.size = evt.size;
             }
-            // tslint:disable-next-line: no-console
-            console.log(evt);
         });
     }, 0);
 };
