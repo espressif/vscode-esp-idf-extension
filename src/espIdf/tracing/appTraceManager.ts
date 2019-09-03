@@ -22,7 +22,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists, sleep } from "../../utils";
+import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -135,7 +135,7 @@ export class AppTraceManager extends EventEmitter {
 
     public async start() {
         try {
-            if (await this.promptUserToLaunchOpenOCDServer()) {
+            if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
                 this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
                 this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "");
                 // tslint:disable-next-line: max-line-length
@@ -166,7 +166,7 @@ export class AppTraceManager extends EventEmitter {
     }
 
     public async stop() {
-        if (await this.promptUserToLaunchOpenOCDServer()) {
+        if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
             this.shallContinueCheckingStatus = false;
             const stopHandler = this.sendCommandToTCLSession("esp32 apptrace stop");
             stopHandler.on("response", (resp: Buffer) => {
@@ -183,24 +183,6 @@ export class AppTraceManager extends EventEmitter {
         }
         this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
         this.archiveDataProvider.refresh();
-    }
-
-    private async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
-        const tclClient = new TCLClient(this.tclConnectionParams);
-        if (!await tclClient.isOpenOCDServerRunning()) {
-            const resp = await vscode.window.showInformationMessage("OpenOCD is not running, do you want to launch it?",
-                { modal: true },
-                { title: "Yes" },
-                { title: "Cancel", isCloseAffordance: true },
-            );
-            if (resp && resp.title === "Yes") {
-                await OpenOCDManager.init().start();
-                await sleep(1000);
-                return true;
-            }
-            return false;
-        }
-        return true;
     }
 
     private sendCommandToTCLSession(command: string): TCLClient {

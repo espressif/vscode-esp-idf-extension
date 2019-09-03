@@ -22,7 +22,8 @@ import { lstatSync } from "fs";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { canAccessFile, fileExists } from "../../utils";
+import { canAccessFile, fileExists, sleep } from "../../utils";
+import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
     binPath: string;
@@ -48,12 +49,14 @@ export class OpenOCDManager extends EventEmitter {
     private chan: Buffer;
     private displayChan: vscode.OutputChannel;
     private statusBar: vscode.StatusBarItem;
+    private tclConnectionParams: TCLConnection;
 
     private constructor() {
         super();
         this.configureServerWithDefaultParam();
         this.chan = Buffer.alloc(0);
         this.displayChan = vscode.window.createOutputChannel("OpenOCD");
+        this.tclConnectionParams = { host: "localhost", port: 6666 };
         this.registerOpenOCDStatusBarItem();
     }
 
@@ -103,6 +106,24 @@ export class OpenOCDManager extends EventEmitter {
 
     public isRunning(): boolean {
         return this.server && !this.server.killed;
+    }
+
+    public async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
+        const tclClient = new TCLClient(this.tclConnectionParams);
+        if (!await tclClient.isOpenOCDServerRunning()) {
+            const resp = await vscode.window.showInformationMessage("OpenOCD is not running, do you want to launch it?",
+                { modal: true },
+                { title: "Yes" },
+                { title: "Cancel", isCloseAffordance: true },
+            );
+            if (resp && resp.title === "Yes") {
+                await OpenOCDManager.init().start();
+                await sleep(1000);
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
 
     public async start() {
