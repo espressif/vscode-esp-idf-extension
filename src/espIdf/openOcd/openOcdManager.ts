@@ -119,7 +119,7 @@ export class OpenOCDManager extends EventEmitter {
             if (resp && resp.title === "Yes") {
                 await OpenOCDManager.init().start();
                 await sleep(1000);
-                return true;
+                return await tclClient.isOpenOCDServerRunning();
             }
             return false;
         }
