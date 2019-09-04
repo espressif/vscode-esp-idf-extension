@@ -106,7 +106,7 @@ const drawPlot = (data: any[], el: string) => {
     setTimeout(() => {
         const layout = {
             yaxis: {
-                fixedrange: true,
+                fixedrange: false,
             },
             hovermode: "closest",
         };
