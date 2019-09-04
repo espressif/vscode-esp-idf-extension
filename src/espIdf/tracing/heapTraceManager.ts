@@ -31,18 +31,25 @@ import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTre
 export class HeapTraceManager extends EventEmitter {
     private treeDataProvider: AppTraceTreeDataProvider;
     private archiveDataProvider: AppTraceArchiveTreeDataProvider;
-    private tclConnectionParams: TCLConnection;
+    private heapTraceNotificationTCLClientHandler: TCLClient;
+    private heapTraceCommandChainTCLClientHandler: TCLClient;
+    private heapTraceChannel: vscode.OutputChannel;
 
     constructor(treeDataProvider: AppTraceTreeDataProvider, archiveDataProvider: AppTraceArchiveTreeDataProvider) {
         super();
         this.treeDataProvider = treeDataProvider;
         this.archiveDataProvider = archiveDataProvider;
-        this.tclConnectionParams = { host: "localhost", port: 6666 };
+        const tclConnectionParams = { host: "localhost", port: 6666 };
+        this.heapTraceNotificationTCLClientHandler = new TCLClient(tclConnectionParams);
+        this.heapTraceCommandChainTCLClientHandler = new TCLClient(tclConnectionParams);
+        this.heapTraceChannel = vscode.window.createOutputChannel("Heap Trace");
     }
 
     public async start() {
         try {
             if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+                this.heapTraceChannel.clear();
+                this.heapTraceChannel.show(true);
                 this.showStopButton();
                 const workspace = vscode.workspace.workspaceFolders ?
                 vscode.workspace.workspaceFolders[0].uri.path : "";
@@ -61,31 +68,26 @@ export class HeapTraceManager extends EventEmitter {
                     .buildCommand("resume")
                     .buildCommand("rbp 0x400d35d0")
                     .buildCommand("esp32 sysview stop");
-
-                const notificationReceiver = new TCLClient(this.tclConnectionParams);
-                notificationReceiver.on("response", (resp: Buffer) => {
-                    // tslint:disable-next-line: no-console
-                    console.log("->> " + resp);
+                this.heapTraceNotificationTCLClientHandler.on("response", (resp: Buffer) => {
+                    this.heapTraceChannel.appendLine("->> " + resp);
                 });
-                notificationReceiver.sendCommandWithCapture("tcl_notifications on");
+                this.heapTraceNotificationTCLClientHandler.sendCommandWithCapture("tcl_notifications on");
 
-                const commandProcessor = new TCLClient(this.tclConnectionParams);
-                commandProcessor.on("response", async (resp: Buffer) => {
-                    // tslint:disable-next-line: no-console
-                    console.log(">>" + resp);
+                this.heapTraceCommandChainTCLClientHandler.on("response", async (resp: Buffer) => {
+                    this.heapTraceChannel.appendLine(">> " + resp);
                     const cmd = commandChain.next();
                     if (!cmd) {
-                        notificationReceiver.stop();
-                        commandProcessor.stop();
+                        this.heapTraceNotificationTCLClientHandler.stop();
+                        this.heapTraceCommandChainTCLClientHandler.stop();
                         this.archiveDataProvider.populateArchiveTree();
                         this.showStartButton();
                         return;
                     }
                     await sleep(5000);
-                    commandProcessor.sendCommandWithCapture(cmd);
+                    this.heapTraceCommandChainTCLClientHandler.sendCommandWithCapture(cmd);
                 });
                 await sleep(1000);
-                commandProcessor.sendCommandWithCapture(commandChain.next());
+                this.heapTraceCommandChainTCLClientHandler.sendCommandWithCapture(commandChain.next());
             }
         } catch (error) {
             Logger.errorNotify(error.message, error);
@@ -96,6 +98,8 @@ export class HeapTraceManager extends EventEmitter {
         try {
             if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
                 this.showStartButton();
+                this.heapTraceNotificationTCLClientHandler.stop();
+                this.heapTraceCommandChainTCLClientHandler.stop();
             }
         } catch (error) {
             Logger.errorNotify(error.message, error);
