@@ -60,9 +60,7 @@
                 <div class="notification" v-if="tracePane">
                     <button class="delete" v-on:click="tracePane = false;"></button>
                     <p class="">{{traceInfo.type}} {{traceInfo.size}} bytes in <code>{{traceInfo.task}}</code> task</p>
-                    <ul v-for="caller in traceInfo.callers">
-                        <li>{{resolveAddress(caller)}}</li>
-                    </ul>
+                    <stack-trace v-bind:tree="createTreeFromAddressArray(traceInfo.callers)"></stack-trace>
                 </div>
             </div>
         </div>

@@ -20,7 +20,7 @@ import "./espTrace.scss";
 
 import * as Plotly from "plotly.js-dist";
 import Vue from "vue";
-
+import Tree from "./Tree.vue";
 declare var acquireVsCodeApi: any;
 let vscode: any;
 try {
@@ -39,6 +39,7 @@ const allocLookupTable = {};
 const eventIDs = { alloc: "", free: "", print: "" };
 let callersAddressTranslationTable = {};
 
+Vue.component("stack-trace", Tree);
 // Vue App
 const app = new Vue({
     el: "#app",
@@ -84,12 +85,35 @@ const app = new Vue({
             }, 5000);
             this.errorMsg = err;
         },
-        resolveAddress(addr: string) {
+        resolveAddress(addr: string): string {
             const stackInfo = callersAddressTranslationTable[addr];
             if (stackInfo) {
                 return `${stackInfo.funcName}()`;
             }
             return addr;
+        },
+        createTreeFromAddressArray(addresses: string[]): object {
+            let obj: any;
+            let lastObj: any;
+            addresses.forEach((add: string, index: number) => {
+                const address = this.resolveAddress(add);
+                const lastElem = index + 1 === addresses.length ? true : false;
+                if (!lastObj) {
+                    obj = {};
+                    obj.name = address;
+                    if (!lastElem) {
+                        obj.child = {};
+                        lastObj = obj.child;
+                    }
+                } else {
+                    lastObj.name = address;
+                    if (!lastElem) {
+                        lastObj.child = {};
+                        lastObj = lastObj.child;
+                    }
+                }
+            });
+            return obj;
         },
     },
     mounted() {
