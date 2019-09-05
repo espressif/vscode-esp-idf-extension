@@ -22,7 +22,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
-import { canAccessFile } from "../../utils";
+import { getElfFilePath } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
@@ -118,7 +118,7 @@ export class AppTracePanel {
     private async readElf(): Promise<string[][]> {
         const emptyURI: vscode.Uri = undefined;
         const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
-        const elfFile = await this.getElfFilePath(workspaceRoot);
+        const elfFile = await getElfFilePath(workspaceRoot);
         if (!elfFile) {
             throw new Error("Select Elf file to process the addresses");
         }
@@ -161,7 +161,7 @@ export class AppTracePanel {
         if (addresses) {
             const promises = Object.keys(addresses).map((add) => {
                 const fn = async (address) => {
-                    const addr2line = new Addr2Line(workspaceRoot, await this.getElfFilePath(workspaceRoot), address);
+                    const addr2line = new Addr2Line(workspaceRoot, await getElfFilePath(workspaceRoot), address);
                     const resp = await addr2line.run();
                     const respStr = resp.toString().trim();
                     const fileSplit = respStr.split(":");
@@ -189,7 +189,7 @@ export class AppTracePanel {
         const logTraceProc = new LogTraceProc(
             workspaceRoot,
             this._traceData.trace.filePath,
-            await this.getElfFilePath(workspaceRoot),
+            await getElfFilePath(workspaceRoot),
         );
         const resp = await logTraceProc.parse();
         return resp.toString();
@@ -204,31 +204,6 @@ export class AppTracePanel {
         const resp = await sysviewTraceProc.parse();
         const respStr = resp.toString();
         return JSON.parse(respStr);
-    }
-    private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
-        let elfFilePath = "";
-        if (!workspaceURI) {
-            return elfFilePath;
-        }
-        const elfPath = path.join(workspaceURI.path, "build");
-        const elfFiles = [];
-        fs.readdirSync(elfPath).forEach((file) => {
-            if (file.endsWith(".elf")) {
-                elfFiles.push({ label: file, description: path.join(elfPath, file) });
-            }
-        });
-        if (elfFiles.length > 1) {
-            const pickedElf = await vscode.window.showQuickPick(elfFiles, {
-                placeHolder: "Select ELF File to be use for the report generation",
-            });
-            if (!pickedElf) {
-                throw new Error("Select valid ELF file for showing report");
-            }
-            elfFilePath = pickedElf.description;
-        } else if (elfFiles.length === 1) {
-            elfFilePath = elfFiles[0].description;
-        }
-        return elfFilePath;
     }
     private sendCommandToWebview(command: string, value: any) {
         if (this._panel.webview) {
