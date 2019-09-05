@@ -54,7 +54,7 @@ export function spawn(command: string, args: string[] = [], options: any = {}): 
             if (code === 0) {
                 resolve(buff);
             } else {
-                reject({ error : new Error("non zero exit code " + code) });
+                reject({ error: new Error("non zero exit code " + code) });
             }
         });
     });
@@ -85,15 +85,15 @@ export function updateStatus(
         tooltip: string,
         clickCommand: string,
     }): void {
-        status.text = info ? `$(file-submodule)` : void 0;
-        status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
-        status.command = info ? info.clickCommand : void 0;
+    status.text = info ? `$(file-submodule)` : void 0;
+    status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
+    status.command = info ? info.clickCommand : void 0;
 
-        if (info) {
-            status.show();
-        } else {
-            status.hide();
-        }
+    if (info) {
+        status.show();
+    } else {
+        status.hide();
+    }
 }
 
 export function copyTarget(source, target) {
@@ -135,7 +135,7 @@ export function createVscodeFolder(curWorkspaceFsPath: string) {
 export function chooseTemplateDir() {
     const templatesAvailable = fs.readdirSync(templateDir).filter((file) => {
         return fs.statSync(path.join(templateDir, file)).isDirectory() && file !== ".vscode";
-      });
+    });
     const templates = [];
     templatesAvailable.forEach((templDir) => {
         templates.push({ label: templDir, target: templDir });
@@ -145,45 +145,45 @@ export function chooseTemplateDir() {
 
 export function getDirectories(dirPath) {
     return fs.readdirSync(dirPath).filter((file) => {
-      return fs.statSync(path.join(dirPath, file)).isDirectory();
+        return fs.statSync(path.join(dirPath, file)).isDirectory();
     });
-  }
+}
 
 export function createSkeleton(curWorkspaceFsPath: string, chosenTemplateDir: string) {
-        const templateDirToUse = path.join(templateDir, chosenTemplateDir);
-        createVscodeFolder(curWorkspaceFsPath);
-        const dirs = getDirectories(templateDirToUse);
+    const templateDirToUse = path.join(templateDir, chosenTemplateDir);
+    createVscodeFolder(curWorkspaceFsPath);
+    const dirs = getDirectories(templateDirToUse);
 
-        dirs.forEach((dir) => {
-            const curDir = path.join(curWorkspaceFsPath, dir);
-            const curTemplateDir = path.join(templateDirToUse, dir);
-            fs.mkdir(curDir, (err) => {
-                if (err && err.code !== "EEXIST") {
-                    Logger.errorNotify(err.message, err);
-                }
-            });
-            fs.readdir(curTemplateDir, (err, files) => {
-                if (err) {
-                    Logger.errorNotify(err.message, err);
-                    return;
-                }
-                files.forEach((file) => {
-                    copyTarget(path.join(curTemplateDir, file), path.join(curDir, file));
-                });
-            });
+    dirs.forEach((dir) => {
+        const curDir = path.join(curWorkspaceFsPath, dir);
+        const curTemplateDir = path.join(templateDirToUse, dir);
+        fs.mkdir(curDir, (err) => {
+            if (err && err.code !== "EEXIST") {
+                Logger.errorNotify(err.message, err);
+            }
         });
-
-        fs.readdir(templateDirToUse, (error, files) => {
-            if (error) {
-                Logger.errorNotify(error.message, error);
+        fs.readdir(curTemplateDir, (err, files) => {
+            if (err) {
+                Logger.errorNotify(err.message, err);
                 return;
             }
             files.forEach((file) => {
-                if (dirs.indexOf(file) === -1) {
-                    copyTarget(path.join(templateDirToUse, file), path.join(curWorkspaceFsPath, file));
-                }
+                copyTarget(path.join(curTemplateDir, file), path.join(curDir, file));
             });
         });
+    });
+
+    fs.readdir(templateDirToUse, (error, files) => {
+        if (error) {
+            Logger.errorNotify(error.message, error);
+            return;
+        }
+        files.forEach((file) => {
+            if (dirs.indexOf(file) === -1) {
+                copyTarget(path.join(templateDirToUse, file), path.join(curWorkspaceFsPath, file));
+            }
+        });
+    });
 }
 
 export function delConfigFile(workspaceRoot) {
@@ -243,4 +243,30 @@ export function isJson(jsonString: string) {
 export function isStringNotEmpty(str: string) {
     // Check if there is at least 1 alphanumeric character in the string.
     return !!str.trim();
+}
+
+export async function getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
+    let elfFilePath = "";
+    if (!workspaceURI) {
+        return elfFilePath;
+    }
+    const elfPath = path.join(workspaceURI.path, "build");
+    const elfFiles = [];
+    fs.readdirSync(elfPath).forEach((file) => {
+        if (file.endsWith(".elf")) {
+            elfFiles.push({ label: file, description: path.join(elfPath, file) });
+        }
+    });
+    if (elfFiles.length > 1) {
+        const pickedElf = await vscode.window.showQuickPick(elfFiles, {
+            placeHolder: "Select ELF File to be use for the report generation",
+        });
+        if (!pickedElf) {
+            throw new Error("Select valid ELF file for showing report");
+        }
+        elfFilePath = pickedElf.description;
+    } else if (elfFiles.length === 1) {
+        elfFilePath = elfFiles[0].description;
+    }
+    return elfFilePath;
 }
