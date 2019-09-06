@@ -22,9 +22,10 @@ import * as vscode from "vscode";
 import { mkdirSync } from "fs";
 import { join } from "path";
 import { Logger } from "../../logger/logger";
-import { fileExists, sleep } from "../../utils";
+import { fileExists, getElfFilePath, sleep } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
+import { Nm } from "./tools/xtensa/nm";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
 
@@ -52,21 +53,22 @@ export class HeapTraceManager extends EventEmitter {
                 this.heapTraceChannel.show(true);
                 this.showStopButton();
                 const workspace = vscode.workspace.workspaceFolders ?
-                vscode.workspace.workspaceFolders[0].uri.path : "";
+                    vscode.workspace.workspaceFolders[0].uri.path : "";
                 if (!fileExists(join(workspace, "trace"))) {
                     mkdirSync(join(workspace, "trace"));
                 }
+                const addresses = await this.getAddressFor(["heap_trace_start", "heap_trace_stop"]);
                 const fileName = `file://${join(workspace, "trace")}/htrace_${new Date().getTime()}.svdat`;
                 const commandChain = new CommandChain();
                 commandChain
                     .buildCommand("reset halt")
-                    .buildCommand("bp 0x400d35b4 4 hw")
-                    .buildCommand("bp 0x400d35d0 4 hw")
+                    .buildCommand(`bp 0x${addresses.heap_trace_start} 4 hw`)
+                    .buildCommand(`bp 0x${addresses.heap_trace_stop} 4 hw`)
                     .buildCommand("resume")
-                    .buildCommand("rbp 0x400d35b4")
+                    .buildCommand("rbp 0x400d35c4")
                     .buildCommand(`esp32 sysview start ${fileName}`)
                     .buildCommand("resume")
-                    .buildCommand("rbp 0x400d35d0")
+                    .buildCommand("rbp 0x400d35e0")
                     .buildCommand("esp32 sysview stop");
                 this.heapTraceNotificationTCLClientHandler.on("response", (resp: Buffer) => {
                     this.heapTraceChannel.appendLine("->> " + resp);
@@ -111,6 +113,26 @@ export class HeapTraceManager extends EventEmitter {
     }
     private showStartButton() {
         this.treeDataProvider.showStartButton(AppTraceButtonType.HeapTraceButton);
+    }
+
+    private async getAddressFor(symbols: string[]): Promise<any> {
+        const emptyURI: vscode.Uri = undefined;
+        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
+        const elfFile = await getElfFilePath(workspaceRoot);
+        const nm = new Nm(workspaceRoot, elfFile);
+        const resp = await nm.run();
+        const respStr = resp.toString();
+        const respArr = respStr.split("\n");
+        const lookUpTable = {};
+        respArr.forEach((line) => {
+            const lineArr = line.trim().split(/\s+/);
+            lookUpTable[lineArr[2]] = lineArr[0];
+        });
+        const respObj = {};
+        symbols.forEach((symbol) => {
+            respObj[symbol] = lookUpTable[symbol];
+        });
+        return respObj;
     }
 }
 
