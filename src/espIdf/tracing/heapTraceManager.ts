@@ -24,7 +24,7 @@ import { join } from "path";
 import { Logger } from "../../logger/logger";
 import { fileExists, getElfFilePath, sleep } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
+import { TCLClient } from "../openOcd/tcl/tclClient";
 import { Nm } from "./tools/xtensa/nm";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import { AppTraceButtonType, AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";

@@ -59,6 +59,8 @@ const app = new Vue({
         traceInfo: {
             task: "",
             type: "",
+            ts: 0,
+            addr: "0xFF",
             size: 0,
             callers: [],
         },
@@ -165,6 +167,8 @@ const drawPlot = (data: any[], el: string) => {
             app.traceInfo.type = evt.id === eventIDs.alloc ? "Allocated" : "Freed";
             app.traceInfo.task = evt.ctx_name;
             app.traceInfo.callers = evt.callers;
+            app.traceInfo.addr = evt.addr;
+            app.traceInfo.ts = evt.ts;
             if (evt.id === eventIDs.free) {
                 const yaxis = d.points[0].data.y;
                 app.traceInfo.size = index !== 0 ? yaxis[index - 1] - yaxis[index] : yaxis[index];
