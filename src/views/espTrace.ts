@@ -18,8 +18,10 @@
 
 import "./espTrace.scss";
 
+import { relative } from "path";
 import * as Plotly from "plotly.js-dist";
 import Vue from "vue";
+// @ts-ignore
 import Tree from "./Tree.vue";
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -60,6 +62,10 @@ const app = new Vue({
             size: 0,
             callers: [],
         },
+        pathInfo: {
+            idfPath: "",
+            workspacePath: "",
+        },
         errorMsg: "",
     },
     methods: {
@@ -85,19 +91,29 @@ const app = new Vue({
             }, 5000);
             this.errorMsg = err;
         },
+        resolveAbsoluteFilePath(path: string): string {
+            let relativePath = path;
+            if (path.indexOf(this.pathInfo.workspacePath) !== -1) {
+                relativePath = relative(this.pathInfo.workspacePath, path);
+            } else if (path.indexOf(this.pathInfo.idfPath) !== -1) {
+                relativePath = relative(this.pathInfo.idfPath, path);
+            }
+            return relativePath;
+        },
         resolveAddress(addr: string): string {
             const stackInfo = callersAddressTranslationTable[addr];
-            if (stackInfo) {
-                return `${stackInfo.funcName}()`;
+            if (stackInfo && stackInfo.funcName) {
+                return `${stackInfo.funcName}() - ${this.resolveAbsoluteFilePath(stackInfo.filePath)}:${stackInfo.lineNumber}`;
             }
             return addr;
         },
         createTreeFromAddressArray(addresses: string[]): object {
             let obj: any;
             let lastObj: any;
-            addresses.forEach((add: string, index: number) => {
+            const filteredAddresses = addresses.filter((value) => value !== "0x0");
+            filteredAddresses.forEach((add: string, index: number) => {
                 const address = this.resolveAddress(add);
-                const lastElem = index + 1 === addresses.length ? true : false;
+                const lastElem = index + 1 === filteredAddresses.length ? true : false;
                 if (!lastObj) {
                     obj = {};
                     obj.name = address;
@@ -162,8 +178,11 @@ const drawPlot = (data: any[], el: string) => {
 const updateModelWithTraceData = ({ trace }) => {
     if (trace) {
         app.fileName = trace.fileName;
-        app.isCalculating = false;
         app.traceType = trace.type;
+        app.pathInfo.idfPath = trace.idfPath;
+        app.pathInfo.workspacePath = trace.workspacePath;
+
+        app.isCalculating = false;
         app.log = null;
         app.plot = false;
         app.loaded = true;
