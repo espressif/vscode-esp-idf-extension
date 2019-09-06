@@ -446,7 +446,13 @@ export function activate(context: vscode.ExtensionContext) {
         }
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
             AppTracePanel.createOrShow(context, {
-                trace: { fileName: trace.fileName, filePath: trace.filePath, type: trace.type },
+                trace: {
+                    fileName: trace.fileName,
+                    filePath: trace.filePath,
+                    type: trace.type,
+                    workspacePath: workspaceRoot.path,
+                    idfPath: idfConf.readParameter("idf.espIdfPath", workspaceRoot),
+                },
             });
         });
     });
