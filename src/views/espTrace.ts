@@ -113,6 +113,13 @@ const app = new Vue({
             }
             return { address, filePath: "", lineNumber: -1 };
         },
+        treeOpenFileHandler(filePath: string, lineNumber: number) {
+            const command = "openFileAtLine";
+            vscode.postMessage({
+                command,
+                filePath,
+                lineNumber,
+            });
         },
         createTreeFromAddressArray(addresses: string[]): object {
             let obj: any;
