@@ -102,12 +102,17 @@ const app = new Vue({
             }
             return relativePath;
         },
-        resolveAddress(addr: string): string {
-            const stackInfo = callersAddressTranslationTable[addr];
-            if (stackInfo && stackInfo.funcName) {
-                return `${stackInfo.funcName}() - ${this.resolveAbsoluteFilePath(stackInfo.filePath)}:${stackInfo.lineNumber}`;
+        resolveAddress(address: string): object {
+            const stackInfo = callersAddressTranslationTable[address];
+            if (stackInfo && stackInfo.funcName && stackInfo.lineNumber && stackInfo.filePath) {
+                return {
+                    address: stackInfo.funcName,
+                    filePath: stackInfo.filePath,
+                    lineNumber: stackInfo.lineNumber,
+                };
             }
-            return addr;
+            return { address, filePath: "", lineNumber: -1 };
+        },
         },
         createTreeFromAddressArray(addresses: string[]): object {
             let obj: any;
