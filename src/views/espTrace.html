@@ -60,7 +60,7 @@
                 <div class="notification" v-if="tracePane">
                     <button class="delete" v-on:click="tracePane = false;"></button>
                     <p class="">{{traceInfo.ts}}s: {{traceInfo.type}} {{traceInfo.size}} bytes @ <code>{{traceInfo.addr}}</code> in <code>{{traceInfo.task}}</code> task</p>
-                    <stack-trace v-bind:tree="createTreeFromAddressArray(traceInfo.callers)"></stack-trace>
+                    <stack-trace v-bind:tree="createTreeFromAddressArray(traceInfo.callers)" v-on:openfile="treeOpenFileHandler"></stack-trace>
                 </div>
             </div>
         </div>
