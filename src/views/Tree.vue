@@ -1,6 +1,7 @@
 <template>
   <li>
     <div>
+      <span class="link" @click="toggle" v-if="tree.child">{{ isOpen ? '▼' : '▶' }}</span>
       <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;</span>
       {{ tree.name }}
     </div>
