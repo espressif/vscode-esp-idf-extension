@@ -43,7 +43,6 @@ ul {
   line-height: 1.5em;
 }
 .link {
-  font-weight: bold;
   cursor: pointer;
 }
 </style>
