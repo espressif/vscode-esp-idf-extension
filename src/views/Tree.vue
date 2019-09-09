@@ -8,7 +8,7 @@
       <a href="command:espIdf.gotoLine" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
     </div>
     <ul v-show="isOpen" v-if="tree.child">
-      <Tree v-bind:tree="tree.child" v-on:openfile="openFileAtLineParent"></Tree>
+      <Tree v-bind:tree="tree.child"></Tree>
     </ul>
   </li>
 </template>
@@ -33,10 +33,7 @@ const Tree = Vue.extend({
     },
     openFileAtLine(filePath: string, lineNumber: string) {
       const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
-      this.$emit("openfile", filePath, lineNumberInt);
-    },
-    openFileAtLineParent() {
-      this.$parent.emit("openfile", ...arguments);
+      this.$root.treeOpenFileHandler(filePath, lineNumberInt);
     }
   }
 });
