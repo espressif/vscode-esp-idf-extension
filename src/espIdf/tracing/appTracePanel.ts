@@ -108,12 +108,28 @@ export class AppTracePanel {
                 case "resolveAddresses":
                     this.resolveAddresses(msg);
                     break;
+                case "openFileAtLine":
+                    this.openFileAtLineNumber(msg.filePath, msg.lineNumber);
+                    break;
                 default:
                     const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
                     Logger.error(err.message, err);
                     break;
             }
         }, null, this._disposables);
+    }
+    private async openFileAtLineNumber(filePath: string, lineNumber: number) {
+        try {
+            const textDocument = await vscode.workspace.openTextDocument(filePath);
+            const selectionRange = textDocument.lineAt(lineNumber).range;
+
+            const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
+            await vscode.window.showTextDocument(textDocument,
+                { selection: selectionRange, viewColumn: column || vscode.ViewColumn.One });
+            // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+        }
     }
     private async readElf(): Promise<string[][]> {
         const emptyURI: vscode.Uri = undefined;
