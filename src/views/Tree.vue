@@ -5,7 +5,7 @@
       <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;</span>
       <strong>{{tree.name}}</strong>
       <span>&nbsp;-&nbsp;</span>
-      <a href="command:espIdf.gotoLine" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
+      <a href="#" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
     </div>
     <ul v-show="isOpen" v-if="tree.child">
       <Tree v-bind:tree="tree.child"></Tree>
