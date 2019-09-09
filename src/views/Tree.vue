@@ -8,7 +8,7 @@
       <a href="command:espIdf.gotoLine" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
     </div>
     <ul v-show="isOpen" v-if="tree.child">
-      <Tree v-bind:tree="tree.child"></Tree>
+      <Tree v-bind:tree="tree.child" v-on:openfile="openFileAtLineParent"></Tree>
     </ul>
   </li>
 </template>
