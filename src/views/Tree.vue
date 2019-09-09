@@ -28,6 +28,13 @@ const Tree = Vue.extend({
       if (this.tree.child) {
         this.isOpen = !this.isOpen;
       }
+    },
+    openFileAtLine(filePath: string, lineNumber: string) {
+      const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
+      this.$emit("openfile", filePath, lineNumberInt);
+    },
+    openFileAtLineParent() {
+      this.$parent.emit("openfile", ...arguments);
     }
   }
 });
