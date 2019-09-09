@@ -126,17 +126,23 @@ const app = new Vue({
             let lastObj: any;
             const filteredAddresses = addresses.filter((value) => value !== "0x0");
             filteredAddresses.forEach((add: string, index: number) => {
-                const address = this.resolveAddress(add);
+                const { address, filePath, lineNumber } = this.resolveAddress(add);
                 const lastElem = index + 1 === filteredAddresses.length ? true : false;
                 if (!lastObj) {
                     obj = {};
                     obj.name = address;
+                    obj.description = `${this.resolveAbsoluteFilePath(filePath)}:${lineNumber}`;
+                    obj.filePath = filePath;
+                    obj.lineNumber = lineNumber;
                     if (!lastElem) {
                         obj.child = {};
                         lastObj = obj.child;
                     }
                 } else {
                     lastObj.name = address;
+                    lastObj.description = `${this.resolveAbsoluteFilePath(filePath)}:${lineNumber}`;
+                    lastObj.filePath = filePath;
+                    lastObj.lineNumber = lineNumber;
                     if (!lastElem) {
                         lastObj.child = {};
                         lastObj = lastObj.child;
