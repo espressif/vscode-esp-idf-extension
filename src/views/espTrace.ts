@@ -111,7 +111,7 @@ const app = new Vue({
                     lineNumber: stackInfo.lineNumber,
                 };
             }
-            return { address, filePath: "", lineNumber: -1 };
+            return { address, filePath: "", lineNumber: "" };
         },
         treeOpenFileHandler(filePath: string, lineNumber: number) {
             const command = "openFileAtLine";
