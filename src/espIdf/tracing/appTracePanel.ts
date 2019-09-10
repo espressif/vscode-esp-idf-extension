@@ -121,7 +121,7 @@ export class AppTracePanel {
     private async openFileAtLineNumber(filePath: string, lineNumber: number) {
         try {
             const textDocument = await vscode.workspace.openTextDocument(filePath);
-            const selectionRange = textDocument.lineAt(lineNumber).range;
+            const selectionRange = textDocument.lineAt(lineNumber - 1).range;
 
             const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
             await vscode.window.showTextDocument(textDocument,
