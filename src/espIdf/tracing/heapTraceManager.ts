@@ -50,7 +50,6 @@ export class HeapTraceManager extends EventEmitter {
         try {
             if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
                 this.heapTraceChannel.clear();
-                this.heapTraceChannel.show(true);
                 this.showStopButton();
                 const workspace = vscode.workspace.workspaceFolders ?
                     vscode.workspace.workspaceFolders[0].uri.path : "";
