@@ -278,6 +278,37 @@ const traceExists = (evt: any, data: any[]): boolean => {
     return data.filter((d) => d.name === evt.ctx_name).length > 0;
 };
 
+const computeTotalScatterLine = (plot: any, data: any[]) => {
+    const store = {};
+    const totalPlot = {
+        type: "scatter",
+        name: "Total Memory",
+        x: [],
+        y: [],
+        visible: "legendonly",
+    };
+    const evt = plot.events;
+    evt
+        .filter((value: any) => value.id === eventIDs.alloc || value.id === eventIDs.free)
+        .forEach((e) => {
+            let finalSize = 0;
+            if (e.id === eventIDs.alloc) {
+                finalSize = e.size;
+            } else if (e.id === eventIDs.free) {
+                finalSize = -e.size;
+            }
+            store[e.ts] = store[e.ts] ? store[e.ts] + finalSize : finalSize;
+        });
+    Object.keys(store)
+        .sort()
+        .forEach((ts, index) => {
+            totalPlot.x.push(parseFloat(ts));
+            const yPush = index === 0 ? store[ts] : totalPlot.y[index - 1] + store[ts];
+            totalPlot.y.push(yPush);
+        });
+    data.push(totalPlot);
+};
+
 const plotData = ({ plot }) => {
     if (plot && app.isCalculating) {
 
@@ -316,7 +347,7 @@ const plotData = ({ plot }) => {
         if (data.length === 0) {
             return app.displayError("Tracing Data Received is Empty");
         }
-
+        computeTotalScatterLine(plot, data);
         drawPlot(data, "plot");
     }
 };
