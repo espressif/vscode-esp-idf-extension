@@ -44,7 +44,7 @@ npm_vulnerabilities_test:
   image: electronuserland/builder:11
   stage: lint
   tags:
-    - lint
+    - brno_build
   script:
     - npm audit --registry=https://registry.npmjs.org
 
