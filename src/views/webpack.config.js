@@ -7,11 +7,12 @@ const { VueLoaderPlugin } = require('vue-loader');
 module.exports = {
     entry: {
         espSize: "./espSize.ts",
-        menuconfig: "./menuconfig/main.ts"
+        espTrace: './espTrace.ts',
+        menuconfig: "./menuconfig/main.ts",
     },
     output: {
         path: path.resolve(__dirname, '../', '../', 'out', 'views'),
-        filename: "[name]-bundle.js"
+        filename: "[name]-bundle.js",
     },
     module: {
         rules: [{
@@ -70,15 +71,21 @@ module.exports = {
     },
     plugins: [
         new MiniCssExtractPlugin({
-            filename: 'espSize.bundle.css'
+            filename: '[name].bundle.css'
         }),
         new TSLintPlugin({
             files: ['./*.ts']
         }),
         new HtmlWebpackPlugin({
+            chunks: ['espSize'],
             filename: "espSize.html",
             template: `${__dirname}/espSize.html`,
             chunks: ['espSize']            
+        }),
+        new HtmlWebpackPlugin({
+            chunks: ['espTrace'],
+            filename: "espTrace.html",
+            template: `${__dirname}/espTrace.html`,
         }),
         new VueLoaderPlugin(),
     ],

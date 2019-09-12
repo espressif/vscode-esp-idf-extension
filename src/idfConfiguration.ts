@@ -20,7 +20,7 @@ const locDic = new LocDictionary("idfConfiguration");
 
 export function addWinIfRequired(param: string) {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    if (param === "idf.baudRate" || param === "idf.projectName") {
+    if (param === "idf.baudRate" || param === "idf.projectName" || param.indexOf("trace.") !== -1) {
         return param;
     } else {
         return param + winFlag;
