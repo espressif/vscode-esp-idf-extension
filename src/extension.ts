@@ -18,7 +18,12 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
+import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
+import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
+import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
+import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
+import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -35,6 +40,12 @@ let workspaceRoot: vscode.Uri;
 // OpenOCD Server Process and Output Channel
 let ocdServer: ChildProcess;
 let openOCDChannel: vscode.OutputChannel;
+const openOCDManager = OpenOCDManager.init();
+
+// App Tracing
+let appTraceTreeDataProvider: AppTraceTreeDataProvider;
+let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
+let appTraceManager: AppTraceManager;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -80,6 +91,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create Kconfig Language Server Client
     startKconfigLangServer(context);
+
+    // Register Tree Provider for IDF Explorer
+    registerTreeProvidersForIDFExplorer(context);
+    appTraceManager = new AppTraceManager(appTraceTreeDataProvider, appTraceArchiveTreeDataProvider);
+
+    // register openOCD status bar item
+    registerOpenOCDStatusBarItem(context);
 
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
         if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
@@ -384,6 +402,58 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
     });
+
+    registerIDFCommand("espIdf.apptrace", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+            if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
+                await appTraceManager.start();
+            } else {
+                await appTraceManager.stop();
+            }
+        });
+    });
+
+    registerIDFCommand("espIdf.openOCDCommand", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, openOCDManager.commandHandler);
+    });
+
+    registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+            appTraceArchiveTreeDataProvider.populateArchiveTree();
+        });
+    });
+
+    registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
+        if (!trace) {
+            Logger.errorNotify(
+                "Cannot call this command directly, click on any Trace to view its report!",
+                new Error("INVALID_COMMAND"),
+            );
+            return;
+        }
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+            AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName, filePath: trace.filePath } });
+        });
+    });
+
+    registerIDFCommand("espIdf.apptrace.customize", () => {
+        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+            await AppTraceManager.saveConfiguration(workspaceRoot);
+        });
+    });
+}
+
+function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
+    const statusBarItem = openOCDManager.statusBarItem();
+    context.subscriptions.push(statusBarItem);
+}
+
+function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
+    appTraceTreeDataProvider = new AppTraceTreeDataProvider();
+    appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
+
+    context.subscriptions.push(appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"));
+    context.subscriptions.push(appTraceArchiveTreeDataProvider.registerDataProviderForTree("idfAppTraceArchive"));
 }
 
 function creatCmdsStatusBarItems() {
@@ -650,13 +720,13 @@ export function startKconfigLangServer(context: vscode.ExtensionContext) {
             options: debugOptions,
             transport: TransportKind.ipc,
         },
-        run: { module: serverModule, transport: TransportKind.ipc},
+        run: { module: serverModule, transport: TransportKind.ipc },
     };
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
-            { scheme: "file", pattern: "**/Kconfig"},
-            { scheme: "file", pattern: "**/Kconfig.projbuild"},
+            { scheme: "file", pattern: "**/Kconfig" },
+            { scheme: "file", pattern: "**/Kconfig.projbuild" },
         ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),

@@ -1,0 +1,84 @@
+@charset "utf-8";
+@import "~bulma/bulma";
+@import "~@fortawesome/fontawesome-free/css/all.css";
+
+html, body {
+    min-height: 100vh;
+}
+
+.title:not(:last-child) {
+    margin-bottom: 0.2rem;
+}
+.section.no-padding-top {
+    padding-top: 0;
+}
+
+h1.title, 
+p.subtitle {
+  color: var(--vscode-foreground);
+}
+
+
+.notification {
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-sideBarSectionHeader-background);
+}
+.notification:not(:last-child) {
+    margin-bottom: 0.8em;
+}
+
+
+.table,
+.table thead td {
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-sideBarSectionHeader-background);
+}
+.table td, .table th {
+    border-color: var(--vscode-sideBar-dropBackground);
+}
+body.vscode-dark table.is-hoverable tbody tr:not(.is-selected):hover {
+    background-color: var(--vscode-sideBar-dropBackground);
+}
+
+
+.button {
+    background-color: var(--vscode-button-background);
+    border-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+.button:disabled {
+    background-color: var(--vscode-notifications-background);
+}
+.button:active {
+    box-shadow: none;
+}
+.button:hover:disabled {
+    color: var(--vscode-button-foreground);
+}
+.button:hover:enabled,
+button > span.icon:hover,
+button > span.icon > i:hover {
+    background-color: var(--vscode-button-hoverBackground);
+    border-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+}
+.button:focus, .button.is-focused {
+    border-color: var(--vscode-button-foreground);
+    color: var(--vscode-button-foreground);
+}
+
+.input {
+    background-color: var(--vscode-input-background);
+    border-color: var(--vscode-input-border);
+    color: var(--vscode-input-foreground);
+}
+.input::placeholder{
+    color: var(--vscode-input-placeholderForeground);
+}
+.input:hover {
+    border-color: var(--vscode-inputOption-activeBorder);
+}
+.input:active, 
+.input:focus {
+    border-color: var(--vscode-inputOption-activeBorder);
+}

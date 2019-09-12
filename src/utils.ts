@@ -60,6 +60,23 @@ export function spawn(command: string, args: string[] = [], options: any = {}): 
     });
 }
 
+export function canAccessFile(filePath: string): boolean {
+    try {
+        // tslint:disable-next-line: no-bitwise
+        fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+        return true;
+    } catch (error) {
+        Logger.error(`Cannot access filePath: ${filePath}`, error);
+        return false;
+    }
+}
+
+export async function sleep(ms: number): Promise<any> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 export function updateStatus(
     status: vscode.StatusBarItem,
     info: {

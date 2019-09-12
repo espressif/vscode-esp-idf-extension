@@ -11,8 +11,10 @@
 	"espIdf.buildFlashMonitor.title": "ESP-IDF: Build, Flash and start a monitor on your device",
 	"espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Pick a workspace folder",
 	"espIdf.cleanProject.title": "ESP-IDF: Clean current project",
-	"espIdf.eraseFlash.title": "ESP-IDF Erase device flash",
+	"espIdf.eraseFlash.title": "ESP-IDF: Erase device flash",
 	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
+	"espIdf.apptrace.title": "ESP-IDF: App Trace",
+	"espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",
 	"debug.initConfig.name": "ESP-IDF: Launch",
 	"debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
 	"param.board": "Board for OpenOCD",
@@ -26,5 +28,13 @@
 	"param.xtensaEsp32Path": "Toolchain Path to locate xtensa-esp32-elf-gcc",
 	"param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
 	"view.components.name": "Project Components",
-	"configuration.title": "ESP-IDF Configuration"
+	"configuration.title": "ESP-IDF Configuration",
+	"espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
+	"espIdf.apptrace.archive.showReport.title": "Show Trace Report",
+	"espIdf.apptrace.customize.title": "Customize parameters for app trace",
+	"trace.poll_period.description": "poll_period will be set for the apptrace",
+	"trace.trace_size.description": "trace_size will set for the apptrace",
+	"trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
+	"trace.wait4halt.description": "wait4halt will be set for the apptrace",
+	"trace.skip_size.description": "skip_size will be set for the apptrace"
 }
