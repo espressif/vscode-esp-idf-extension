@@ -161,6 +161,10 @@ const app = new Vue({
     },
 });
 
+const clickableTrace = ( {points} ) => {
+    return points[0].data.clickable;
+};
+
 const drawPlot = (data: any[], el: string) => {
     app.plot = true;
     setTimeout(() => {
@@ -179,6 +183,9 @@ const drawPlot = (data: any[], el: string) => {
 
         const plot = document.getElementById(el) as any;
         plot.on("plotly_click", (d) => {
+            if (!clickableTrace(d)) {
+                return;
+            }
             app.tracePane = true;
             const index = d.points[0].pointIndex;
             const evt = Object.assign({}, d.points[0].data.evt[index]);
@@ -331,6 +338,7 @@ const plotData = ({ plot }) => {
                     x: [],
                     y: [],
                     evt: [],
+                    clickable: true,
                 });
             }
             if (evt.callers) {
