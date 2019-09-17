@@ -1,17 +1,31 @@
 @import "./espCommons.scss";
 
-div.notification{
-    max-height: calc(65vh);
-    overflow: auto;
-    padding: 1.25rem 1.5rem 1.25rem 1.5rem;
+div.notification {
+  max-height: calc(65vh);
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.25rem 1.5rem;
 }
 .button.is-static {
-    background-color: transparent;
-    color: var(--vscode-foreground);
-    border-color: var(--vscode-foreground);
+  background-color: transparent;
+  color: var(--vscode-foreground);
+  border-color: var(--vscode-foreground);
 }
 
 .notification pre {
-    color: var(--vscode-foreground);
+  color: var(--vscode-foreground);
+  background-color: transparent;
+}
+
+.button.no-top-border {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.button:disabled {
     background-color: transparent;
+    border-color: var(--vscode-foreground);
+    color: var(--vscode-foreground);
+    border-top-width: 0;
+}
+.button:hover:disabled {
+    color: var(--vscode-foreground);
 }

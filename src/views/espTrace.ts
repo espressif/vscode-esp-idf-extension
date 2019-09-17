@@ -53,7 +53,12 @@ const app = new Vue({
         traceType: 0,
         isCalculating: false,
         log: null,
-        plot: false,
+        heap: false,
+        heapView: {
+            plot: true,
+            callStack: false,
+            leaks: false,
+        },
         loaded: false,
         tracePane: false,
         traceInfo: {
@@ -71,6 +76,19 @@ const app = new Vue({
         errorMsg: "",
     },
     methods: {
+        heapViewChange(evt: MouseEvent) {
+            const target: HTMLElement = evt.target as HTMLElement;
+            const buttonKey = target.dataset.dictKey;
+            Object.keys(this.heapView).forEach((key) => {
+                if (key === buttonKey) {
+                    this.$set(this.heapView, key, true);
+                    return;
+                }
+                this.$set(this.heapView, key, false);
+            });
+            // tslint:disable-next-line: no-console
+            console.log(this.heapView);
+        },
         showReport() {
             if (this.traceType === TraceType.HeapTrace) {
                 this.isCalculating = !this.isCalculating;
@@ -166,7 +184,7 @@ const clickableTrace = ( {points} ) => {
 };
 
 const drawPlot = (data: any[], el: string) => {
-    app.plot = true;
+    app.heap = true;
     setTimeout(() => {
         const layout = {
             yaxis: {
@@ -213,7 +231,7 @@ const updateModelWithTraceData = ({ trace }) => {
 
         app.isCalculating = false;
         app.log = null;
-        app.plot = false;
+        app.heap = false;
         app.loaded = true;
     }
 };
@@ -276,7 +294,7 @@ const injectDataToGraph = (evt: any, data: any[]) => {
         }
     } else if (evt.id === eventIDs.alloc) { // ALLOC
         const index = getIndex(evt, data);
-        allocLookupTable[evt.addr] = { index, size: evt.size };
+        allocLookupTable[evt.addr] = { index, size: evt.size, evt };
         alloc(evt.size, evt.ts, index, evt, data);
     }
 };
