@@ -56,17 +56,38 @@
             <div class="container" v-if="heap">
                 <div class="notification">
                     <div id="plot" v-show="heapView.plot"></div>
-                    <div v-show="heapView.callStack">A</div>
+                    <div v-show="heapView.callStack">
+                        <table class="table is-fullwidth is-hoverable">
+                            <thead>
+                                <th>Bytes Used</th>
+                                <th>Count</th>
+                                <th>Function Name</th>
+                            </thead>
+                            <tbody>
+                                <template v-for="calls in callStacks">
+                                    <tr v-for="c in calls">
+                                        <td>{{callStackAddressTranslation(c ,"size")}}</td>
+                                        <td>{{callStackAddressTranslation(c ,"count")}}</td>
+                                        <td>{{callStackAddressTranslation(c ,"funcName")}} - {{c}}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                     <div v-show="heapView.leaks">B</div>
                     <div>
-                        <button class="button no-top-border" data-dict-key="plot" v-on:click="heapViewChange">Plot</button>
-                        <button class="button no-top-border" data-dict-key="callStack" v-on:click="heapViewChange">Call Stacks</button>
-                        <button class="button no-top-border" data-dict-key="leaks" v-on:click="heapViewChange">Leaks</button>
+                        <button class="button no-top-border" data-dict-key="plot"
+                            v-on:click="heapViewChange">Plot</button>
+                        <button class="button no-top-border" data-dict-key="callStack" v-on:click="heapViewChange">Call
+                            Stacks</button>
+                        <button class="button no-top-border" data-dict-key="leaks"
+                            v-on:click="heapViewChange">Leaks</button>
                     </div>
                 </div>
                 <div class="notification" v-if="tracePane">
                     <button class="delete" v-on:click="tracePane = false;"></button>
-                    <p class="">{{traceInfo.ts}}s: {{traceInfo.type}} {{traceInfo.size}} bytes @ <code>{{traceInfo.addr}}</code> in <code>{{traceInfo.task}}</code> task</p>
+                    <p class="">{{traceInfo.ts}}s: {{traceInfo.type}} {{traceInfo.size}} bytes @
+                        <code>{{traceInfo.addr}}</code> in <code>{{traceInfo.task}}</code> task</p>
                     <stack-trace v-bind:tree="createTreeFromAddressArray(traceInfo.callers)"></stack-trace>
                 </div>
             </div>

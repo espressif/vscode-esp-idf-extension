@@ -185,12 +185,7 @@ export class AppTracePanel {
                     const fileName = filePath.split("/");
                     const lineNumber = fileSplit[1];
                     const funcName = this.functionNameForAddress(address);
-                    addresses[address] = {
-                        filePath,
-                        lineNumber,
-                        fileName,
-                        funcName,
-                    };
+                    Object.assign(addresses[address], { filePath, lineNumber, fileName, funcName });
                 };
                 return fn(add);
             });

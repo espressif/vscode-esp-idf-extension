@@ -40,6 +40,7 @@ enum TraceType {
 const allocLookupTable = {};
 const eventIDs = { alloc: "", free: "", print: "" };
 let callersAddressTranslationTable = {};
+let plotDataReceived = {} as any;
 
 Vue.component("stack-trace", Tree);
 // Vue App
@@ -69,6 +70,7 @@ const app = new Vue({
             size: 0,
             callers: [],
         },
+        callStacks: [],
         pathInfo: {
             idfPath: "",
             workspacePath: "",
@@ -76,6 +78,12 @@ const app = new Vue({
         errorMsg: "",
     },
     methods: {
+        callStackAddressTranslation(address: string, key: string) {
+            if (callersAddressTranslationTable[address] && callersAddressTranslationTable[address][key]) {
+                return callersAddressTranslationTable[address][key];
+            }
+            return "?";
+        },
         heapViewChange(evt: MouseEvent) {
             const target: HTMLElement = evt.target as HTMLElement;
             const buttonKey = target.dataset.dictKey;
@@ -179,7 +187,7 @@ const app = new Vue({
     },
 });
 
-const clickableTrace = ( {points} ) => {
+const clickableTrace = ({ points }) => {
     return points[0].data.clickable;
 };
 
@@ -334,12 +342,37 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
     data.push(totalPlot);
 };
 
+const populateGlobalCallStackCountAndSize = (value) => {
+    callersAddressTranslationTable = value;
+    plotDataReceived.events.forEach((evt: any) => {
+        if (evt.callers) {
+            evt.callers.forEach((callAddr) => {
+                if (!callersAddressTranslationTable[callAddr]) {
+                    callersAddressTranslationTable[callAddr] = {};
+                }
+                const callerAddressPtr = callersAddressTranslationTable[callAddr];
+                if (!callerAddressPtr.size) {
+                    callerAddressPtr.size = 0;
+                }
+                if (!callerAddressPtr.count) {
+                    callerAddressPtr.count = 0;
+                }
+
+                callerAddressPtr.size += evt.size;
+                callerAddressPtr.count += 1;
+            });
+        }
+    });
+};
+
 const plotData = ({ plot }) => {
     if (plot && app.isCalculating) {
 
         if (plot.version && plot.version !== "1.0") {
             return app.displayError("Invalid tracing data received!");
         }
+
+        plotDataReceived = plot;
 
         app.isCalculating = false;
         eventIDs.alloc = plot.streams.heap.alloc;
@@ -363,6 +396,7 @@ const plotData = ({ plot }) => {
                 evt.callers.forEach((caller) => {
                     callersAddressTranslationTable[caller] = {};
                 });
+                app.callStacks.push(evt.callers.filter((value) => value !== "0x0"));
             }
             injectDataToGraph(evt, data);
         });
@@ -396,7 +430,7 @@ window.addEventListener("message", (m: any) => {
             calculateFailed(msg.value);
             break;
         case "addressesResolved":
-            callersAddressTranslationTable = msg.value;
+            populateGlobalCallStackCountAndSize(msg.value);
             break;
         default:
             break;
