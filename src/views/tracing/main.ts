@@ -22,7 +22,11 @@ import { relative } from "path";
 import * as Plotly from "plotly.js-dist";
 import Vue from "vue";
 // @ts-ignore
-import Tree from "./Tree.vue";
+import Calls from "./components/Calls.vue";
+// @ts-ignore
+import CallStack from "./components/CallStack.vue";
+// @ts-ignore
+import Tree from "./components/Tree.vue";
 declare var acquireVsCodeApi: any;
 let vscode: any;
 try {
@@ -43,6 +47,8 @@ let callersAddressTranslationTable = {};
 let plotDataReceived = {} as any;
 
 Vue.component("stack-trace", Tree);
+Vue.component("call-stack", CallStack);
+Vue.component("calls", Calls);
 // Vue App
 const app = new Vue({
     el: "#app",
