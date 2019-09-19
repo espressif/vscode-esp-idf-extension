@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import "./espTrace.scss";
+import "./index.scss";
 
 import { relative } from "path";
 import * as Plotly from "plotly.js-dist";

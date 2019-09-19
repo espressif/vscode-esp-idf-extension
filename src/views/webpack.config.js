@@ -6,8 +6,8 @@ const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
     entry: {
-        espSize: "./espSize.ts",
-        espTrace: './espTrace.ts',
+        espSize: "./size/main.ts",
+        espTrace: './tracing/main.ts',
         menuconfig: "./menuconfig/main.ts",
     },
     output: {
@@ -79,13 +79,12 @@ module.exports = {
         new HtmlWebpackPlugin({
             chunks: ['espSize'],
             filename: "espSize.html",
-            template: `${__dirname}/espSize.html`,
-            chunks: ['espSize']            
+            template: `${__dirname}/size/index.html`,
         }),
         new HtmlWebpackPlugin({
             chunks: ['espTrace'],
             filename: "espTrace.html",
-            template: `${__dirname}/espTrace.html`,
+            template: `${__dirname}/tracing/index.html`,
         }),
         new VueLoaderPlugin(),
     ],
