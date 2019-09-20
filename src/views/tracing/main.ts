@@ -45,13 +45,14 @@ enum TraceType {
 }
 
 const allocLookupTable = {};
-const eventIDs = { alloc: "", free: "", print: "" };
 let callersAddressTranslationTable = {};
 let plotDataReceived = {} as any;
 
 Vue.component("stack-trace", Tree);
 Vue.component("call-stack", CallStack);
 Vue.component("calls", Calls);
+Vue.component("plot", Plot);
+Vue.component("quick-call-stack", QuickCallStack);
 // Vue App
 const app = new Vue({
     el: "#app",
