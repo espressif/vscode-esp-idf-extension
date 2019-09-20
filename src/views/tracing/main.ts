@@ -70,6 +70,7 @@ const app = new Vue({
             callStack: false,
             leaks: false,
         },
+        eventIDs: { alloc: "", free: "", print: "" },
         loaded: false,
         tracePane: false,
         traceInfo: {
@@ -86,6 +87,7 @@ const app = new Vue({
             workspacePath: "",
         },
         errorMsg: "",
+        plotData: [],
     },
     methods: {
         callStackAddressTranslation(address: string, key: string) {
