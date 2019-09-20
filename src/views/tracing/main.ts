@@ -90,6 +90,10 @@ const app = new Vue({
         plotData: [],
     },
     methods: {
+        plotSelected(info) {
+            this.tracePane = true;
+            this.traceInfo = info;
+        },
         callStackAddressTranslation(address: string, key: string) {
             if (callersAddressTranslationTable[address] && callersAddressTranslationTable[address][key]) {
                 return callersAddressTranslationTable[address][key];
@@ -267,14 +271,14 @@ const getIndex = (evt: any, data: any[]) => {
 };
 
 const injectDataToGraph = (evt: any, data: any[]) => {
-    if (evt.id === eventIDs.free) { // FREE
+    if (evt.id === app.eventIDs.free) { // FREE
         if (allocLookupTable[evt.addr]) {
             const index = allocLookupTable[evt.addr].index;
             const size = allocLookupTable[evt.addr].size;
             free(size, evt.ts, index, evt, data);
             delete allocLookupTable[evt.addr];
         }
-    } else if (evt.id === eventIDs.alloc) { // ALLOC
+    } else if (evt.id === app.eventIDs.alloc) { // ALLOC
         const index = getIndex(evt, data);
         allocLookupTable[evt.addr] = { index, size: evt.size, evt };
         alloc(evt.size, evt.ts, index, evt, data);
@@ -296,12 +300,12 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
     };
     const evt = plot.events;
     evt
-        .filter((value: any) => value.id === eventIDs.alloc || value.id === eventIDs.free)
+        .filter((value: any) => value.id === app.eventIDs.alloc || value.id === app.eventIDs.free)
         .forEach((e) => {
             let finalSize = 0;
-            if (e.id === eventIDs.alloc) {
+            if (e.id === app.eventIDs.alloc) {
                 finalSize = e.size;
-            } else if (e.id === eventIDs.free) {
+            } else if (e.id === app.eventIDs.free) {
                 finalSize = -e.size;
             }
             store[e.ts] = store[e.ts] ? store[e.ts] + finalSize : finalSize;
@@ -349,15 +353,17 @@ const plotData = ({ plot }) => {
         plotDataReceived = plot;
 
         app.isCalculating = false;
-        eventIDs.alloc = plot.streams.heap.alloc;
-        eventIDs.free = plot.streams.heap.free;
-        eventIDs.print = plot.streams.log.print;
+        app.eventIDs.alloc = plot.streams.heap.alloc;
+        app.eventIDs.free = plot.streams.heap.free;
+        app.eventIDs.print = plot.streams.log.print;
 
         const data = [];
         plot.events.forEach((evt: any) => {
             if (!traceExists(evt, data)) {
                 data.push({
-                    type: "scatter",
+                    line: {
+                        shape: "hv",
+                    },
                     fill: "tozeroy",
                     name: evt.ctx_name,
                     x: [],
@@ -382,7 +388,7 @@ const plotData = ({ plot }) => {
             return app.displayError("Tracing Data Received is Empty");
         }
         computeTotalScatterLine(plot, data);
-        drawPlot(data, "plot");
+        drawPlot(data);
     }
 };
 
