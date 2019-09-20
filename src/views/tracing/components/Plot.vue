@@ -1,0 +1,84 @@
+<template>
+  <div id="plot"></div>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import * as Plotly from "plotly.js-dist";
+const Plot = Vue.extend({
+  name: "Plot",
+  props: {
+    chart: Array,
+    events: Object
+  },
+  methods: {
+    clickableTrace({ points }): boolean {
+      return points[0].data.clickable;
+    },
+    plotClickHandler(d) {
+      //@ts-ignore
+      if (!this.clickableTrace(d)) {
+        return;
+      }
+      //@ts-ignore
+      const eventIDs = this.events;
+      const traceInfo = {} as any;
+      const index = d.points[0].pointIndex;
+      const evt = Object.assign({}, d.points[0].data.evt[index]);
+      traceInfo.type = evt.id === eventIDs.alloc ? "Allocated" : "Freed";
+      traceInfo.task = evt.ctx_name;
+      traceInfo.callers = evt.callers;
+      traceInfo.addr = evt.addr;
+      traceInfo.ts = evt.ts;
+      if (evt.id === eventIDs.free) {
+        const yaxis = d.points[0].data.y;
+        traceInfo.size =
+          index !== 0 ? yaxis[index - 1] - yaxis[index] : yaxis[index];
+      } else if (evt.id === eventIDs.alloc) {
+        traceInfo.size = evt.size;
+      }
+      this.$emit("selected", traceInfo);
+    }
+  },
+  data() {
+    return {
+      chartProp: {
+        displaylogo: false,
+        scrollZoom: true,
+        responsive: true
+      },
+      layout: {
+        yaxis: {
+          fixedrange: false,
+          title: "Memory Usages (in bytes)"
+        },
+        hovermode: "closest",
+        title: "Heap Trace",
+        xaxis: {
+          title: "time (in seconds)"
+        }
+      }
+    };
+  },
+  mounted() {
+    Plotly.newPlot("plot", this.chart, this.layout, this.chartProp);
+    const plot = document.getElementById("plot") as any;
+    plot.on("plotly_click", d => {
+      this.plotClickHandler(d);
+    });
+  },
+  watch: {
+    chart: {
+      handler() {
+        Plotly.react("plot", this.chart, this.layout);
+      },
+      deep: true
+    }
+  }
+});
+export default Plot;
+</script>
+
+
+<style lang="scss" scoped>
+</style>
