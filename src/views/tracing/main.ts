@@ -19,12 +19,15 @@
 import "./index.scss";
 
 import { relative } from "path";
-import * as Plotly from "plotly.js-dist";
 import Vue from "vue";
 // @ts-ignore
 import Calls from "./components/Calls.vue";
 // @ts-ignore
 import CallStack from "./components/CallStack.vue";
+// @ts-ignore
+import Plot from "./components/Plot.vue";
+// @ts-ignore
+import QuickCallStack from "./components/QuickCallStack.vue";
 // @ts-ignore
 import Tree from "./components/Tree.vue";
 declare var acquireVsCodeApi: any;
