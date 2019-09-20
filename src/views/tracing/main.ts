@@ -193,47 +193,9 @@ const app = new Vue({
     },
 });
 
-const clickableTrace = ({ points }) => {
-    return points[0].data.clickable;
-};
-
-const drawPlot = (data: any[], el: string) => {
+const drawPlot = (data: any[]) => {
     app.heap = true;
-    setTimeout(() => {
-        const layout = {
-            yaxis: {
-                fixedrange: false,
-            },
-            hovermode: "closest",
-        };
-        const chartProp = {
-            displaylogo: false,
-            scrollZoom: true,
-            responsive: true,
-        };
-        Plotly.newPlot(el, data, layout, chartProp);
-
-        const plot = document.getElementById(el) as any;
-        plot.on("plotly_click", (d) => {
-            if (!clickableTrace(d)) {
-                return;
-            }
-            app.tracePane = true;
-            const index = d.points[0].pointIndex;
-            const evt = Object.assign({}, d.points[0].data.evt[index]);
-            app.traceInfo.type = evt.id === eventIDs.alloc ? "Allocated" : "Freed";
-            app.traceInfo.task = evt.ctx_name;
-            app.traceInfo.callers = evt.callers;
-            app.traceInfo.addr = evt.addr;
-            app.traceInfo.ts = evt.ts;
-            if (evt.id === eventIDs.free) {
-                const yaxis = d.points[0].data.y;
-                app.traceInfo.size = index !== 0 ? yaxis[index - 1] - yaxis[index] : yaxis[index];
-            } else if (evt.id === eventIDs.alloc) {
-                app.traceInfo.size = evt.size;
-            }
-        });
-    }, 0);
+    app.plotData = data;
 };
 
 const updateModelWithTraceData = ({ trace }) => {
