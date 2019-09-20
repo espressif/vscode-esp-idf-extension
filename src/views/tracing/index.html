@@ -67,12 +67,7 @@
                             v-on:click="heapViewChange">Leaks</button>
                     </div>
                 </div>
-                <div class="notification" v-if="tracePane">
-                    <button class="delete" v-on:click="tracePane = false;"></button>
-                    <p class="">{{traceInfo.ts}}s: {{traceInfo.type}} {{traceInfo.size}} bytes @
-                        <code>{{traceInfo.addr}}</code> in <code>{{traceInfo.task}}</code> task</p>
-                    <stack-trace v-bind:tree="createTreeFromAddressArray(traceInfo.callers)"></stack-trace>
-                </div>
+                <quick-call-stack v-if="tracePane" v-bind:info="traceInfo" v-on:dismiss="tracePane = false"></quick-call-stack>
             </div>
         </div>
     </div>
