@@ -1,8 +1,8 @@
 <template>
   <div class="calls">
     <div class="columns">
-      <div class="column is-2">Size00x</div>
-      <div class="column is-2">Count00y</div>
+      <div class="column is-2">{{tree.size}}</div>
+      <div class="column is-2">{{tree.count}}</div>
       <div class="column is-2">
         <span v-html="spaces"></span>
         <span class="link" @click="toggle" v-if="tree.child">{{ isOpen ? '▼' : '▶' }}</span>
