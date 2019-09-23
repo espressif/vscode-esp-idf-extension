@@ -469,7 +469,7 @@
     "tslint": "tslint -c tslint.json -p .",
     "vscode:prepublish": "npm run compile && npm run webpack",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./ & (cd src/views && webpack --watch)",
+    "watch": "tsc -watch -p ./ & (cd src/views && webpack --watch --mode=development)",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run compile && node ./node_modules/vscode/bin/test && mocha",
     "build_vsix": "gulp vscePkg",
