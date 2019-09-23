@@ -330,10 +330,10 @@ const populateGlobalCallStackCountAndSize = (value) => {
                 }
                 const callerAddressPtr = app.callersAddressTranslationTable[callAddr];
                 if (!callerAddressPtr.size) {
-                    callerAddressPtr.size = 0;
+                    Vue.set(app.callersAddressTranslationTable[callAddr], "size", 0);
                 }
                 if (!callerAddressPtr.count) {
-                    callerAddressPtr.count = 0;
+                    Vue.set(app.callersAddressTranslationTable[callAddr], "count", 0);
                 }
 
                 callerAddressPtr.size += evt.size;
