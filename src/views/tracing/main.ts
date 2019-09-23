@@ -146,14 +146,21 @@ const app = new Vue({
         },
         resolveAddress(address: string): object {
             const stackInfo = app.callersAddressTranslationTable[address];
-            if (stackInfo && stackInfo.funcName && stackInfo.lineNumber && stackInfo.filePath) {
+            if (stackInfo &&
+                stackInfo.funcName &&
+                stackInfo.lineNumber &&
+                stackInfo.filePath &&
+                stackInfo.count &&
+                stackInfo.size) {
                 return {
                     address: stackInfo.funcName,
                     filePath: stackInfo.filePath,
                     lineNumber: stackInfo.lineNumber,
+                    count: stackInfo.count,
+                    size: stackInfo.size,
                 };
             }
-            return { address, filePath: "", lineNumber: "" };
+            return { address, filePath: "", lineNumber: "", count: "", size: "" };
         },
         treeOpenFileHandler(filePath: string, lineNumber: number) {
             const command = "openFileAtLine";
@@ -164,34 +171,26 @@ const app = new Vue({
             });
         },
         createTreeFromAddressArray(addresses: string[]): object {
-            let obj: any;
-            let lastObj: any;
+            const root = {};
+            let currObj: any;
             const filteredAddresses = addresses.filter((value) => value !== "0x0");
             filteredAddresses.forEach((add: string, index: number) => {
-                const { address, filePath, lineNumber } = this.resolveAddress(add);
+                const { address, filePath, lineNumber, count, size } = this.resolveAddress(add);
                 const lastElem = index + 1 === filteredAddresses.length ? true : false;
-                if (!lastObj) {
-                    obj = {};
-                    obj.name = address;
-                    obj.description = `${this.resolveAbsoluteFilePath(filePath)}:${lineNumber}`;
-                    obj.filePath = filePath;
-                    obj.lineNumber = lineNumber;
-                    if (!lastElem) {
-                        obj.child = {};
-                        lastObj = obj.child;
-                    }
-                } else {
-                    lastObj.name = address;
-                    lastObj.description = `${this.resolveAbsoluteFilePath(filePath)}:${lineNumber}`;
-                    lastObj.filePath = filePath;
-                    lastObj.lineNumber = lineNumber;
-                    if (!lastElem) {
-                        lastObj.child = {};
-                        lastObj = lastObj.child;
-                    }
+
+                currObj = currObj ? currObj : root;
+                currObj.name = address;
+                currObj.description = `${this.resolveAbsoluteFilePath(filePath)}:${lineNumber}`;
+                currObj.filePath = filePath;
+                currObj.lineNumber = lineNumber;
+                currObj.count = count;
+                currObj.size = size;
+                if (!lastElem) {
+                    currObj.child = {};
+                    currObj = currObj.child;
                 }
             });
-            return obj;
+            return root;
         },
     },
     mounted() {
