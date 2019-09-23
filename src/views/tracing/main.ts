@@ -45,7 +45,6 @@ enum TraceType {
 }
 
 const allocLookupTable = {};
-let callersAddressTranslationTable = {};
 let plotDataReceived = {} as any;
 
 Vue.component("stack-trace", Tree);
@@ -88,6 +87,7 @@ const app = new Vue({
         },
         errorMsg: "",
         plotData: [],
+        callersAddressTranslationTable: {},
     },
     methods: {
         plotSelected(info) {
@@ -95,8 +95,8 @@ const app = new Vue({
             this.traceInfo = info;
         },
         callStackAddressTranslation(address: string, key: string) {
-            if (callersAddressTranslationTable[address] && callersAddressTranslationTable[address][key]) {
-                return callersAddressTranslationTable[address][key];
+            if (app.callersAddressTranslationTable[address] && app.callersAddressTranslationTable[address][key]) {
+                return app.callersAddressTranslationTable[address][key];
             }
             return "?";
         },
@@ -145,7 +145,7 @@ const app = new Vue({
             return relativePath;
         },
         resolveAddress(address: string): object {
-            const stackInfo = callersAddressTranslationTable[address];
+            const stackInfo = app.callersAddressTranslationTable[address];
             if (stackInfo && stackInfo.funcName && stackInfo.lineNumber && stackInfo.filePath) {
                 return {
                     address: stackInfo.funcName,
@@ -321,14 +321,14 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
 };
 
 const populateGlobalCallStackCountAndSize = (value) => {
-    callersAddressTranslationTable = value;
+    app.callersAddressTranslationTable = value;
     plotDataReceived.events.forEach((evt: any) => {
         if (evt.callers) {
             evt.callers.forEach((callAddr) => {
-                if (!callersAddressTranslationTable[callAddr]) {
-                    callersAddressTranslationTable[callAddr] = {};
+                if (!app.callersAddressTranslationTable[callAddr]) {
+                    app.callersAddressTranslationTable[callAddr] = {};
                 }
-                const callerAddressPtr = callersAddressTranslationTable[callAddr];
+                const callerAddressPtr = app.callersAddressTranslationTable[callAddr];
                 if (!callerAddressPtr.size) {
                     callerAddressPtr.size = 0;
                 }
@@ -374,19 +374,19 @@ const plotData = ({ plot }) => {
             }
             if (evt.callers) {
                 evt.callers.forEach((caller) => {
-                    callersAddressTranslationTable[caller] = {};
+                    app.callersAddressTranslationTable[caller] = {};
                 });
                 app.callStacks.push(evt.callers.filter((value) => value !== "0x0"));
             }
             injectDataToGraph(evt, data);
         });
-        vscode.postMessage({
-            command: "resolveAddresses",
-            addresses: callersAddressTranslationTable,
-        });
         if (data.length === 0) {
             return app.displayError("Tracing Data Received is Empty");
         }
+        vscode.postMessage({
+            command: "resolveAddresses",
+            addresses: app.callersAddressTranslationTable,
+        });
         computeTotalScatterLine(plot, data);
         drawPlot(data);
     }
