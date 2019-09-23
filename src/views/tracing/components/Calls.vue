@@ -3,7 +3,7 @@
     <div class="columns">
       <div class="column is-2">{{tree.size}}</div>
       <div class="column is-2">{{tree.count}}</div>
-      <div class="column is-2">
+      <div class="column">
         <span v-html="spaces"></span>
         <span class="link" @click="toggle" v-if="tree.child">{{ isOpen ? '▼' : '▶' }}</span>
         <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;</span>
