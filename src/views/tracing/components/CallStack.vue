@@ -70,7 +70,7 @@ export default CallStack;
   border-bottom-style: solid;
   border-bottom-color: var(--vscode-foreground);
 }
-.column{
+.column {
   padding: 0.3rem;
 }
 button{
