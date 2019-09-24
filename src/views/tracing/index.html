@@ -56,7 +56,7 @@
             <div class="container" v-if="heap">
                 <div class="notification">
                     <plot v-show="heapView.plot" v-bind:chart="plotData" v-on:selected="plotSelected" v-bind:events="eventIDs"></plot>
-                    <call-stack v-show="heapView.callStack" v-bind:callstack="callStacks"></call-stack>
+                    <call-stack v-show="heapView.callStack" v-bind:callstack="callStacks" v-bind:cache="callersAddressTranslationTable"></call-stack>
                     <div v-show="heapView.leaks">B</div>
                     <div>
                         <button class="button no-top-border" data-dict-key="plot"
