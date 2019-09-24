@@ -56,15 +56,13 @@ const CallStack = Vue.extend({
   },
   computed: {
     callStack() {
-      if (this.isCallStackReverse) {
-        const tempCallStack = [];
-        this.callstack.forEach((calls, index) => {
-          tempCallStack.push(calls.slice().reverse());
-        });
-        return tempCallStack;
-      } else {
-        return this.callstack;
+      return this.callstack
+      .filter((calls) => {
+        if (this.filter.functionName && this.filter.functionName !== "") {
+          return this.fetchFunctionNameForAddr(calls[0]).toLowerCase().match(this.filter.functionName.toLowerCase())
       }
+        return true;
+      })
     }
   }
 });
