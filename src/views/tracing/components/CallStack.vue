@@ -1,14 +1,37 @@
 <template>
   <div>
     <div class="field has-addons">
-      <p class="control">
-        <button class="button" @click="isCallStackReverse = !isCallStackReverse">
+      <div class="control">
+        <div class="select">
+          <select v-model="filter.selectedEventType">
+            <option selected value="all">All</option>
+            <option value="allocations">Allocations</option>
+            <option value="free">Free</option>
+            <option value="irq-all">IRQ All</option>
+            <option value="irq-allocationa">IRQ Allocations</option>
+            <option value="irq-free">IRQ Free</option>
+          </select>
+        </div>
+      </div>
+      <div class="control has-icons-left is-expanded">
+        <input
+          class="input is-small"
+          type="text"
+          placeholder="Search Function Name"
+          v-model="filter.functionName"
+        />
+        <span class="icon is-small is-left">
+          <i class="fas fa-search"></i>
+        </span>
+      </div>
+      <div class="control">
+        <button class="button" @click="reverseCallStack">
           <span class="icon is-small">
             <i class="fas fa-history"></i>
           </span>
           <span>Reverse Call Stack</span>
         </button>
-      </p>
+      </div>
     </div>
     <div class="columns headers">
       <div class="column is-2">Bytes Used</div>
