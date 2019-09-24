@@ -72,6 +72,7 @@ const CallStack = Vue.extend({
       return this.cache[addr] ? this.cache[addr].funcName !== "" ? this.cache[addr].funcName : addr : addr;
     },
     reverseCallStack() {
+      //@ts-ignore
       this.callstack.forEach((calls) => {
         calls.reverse();
       });
