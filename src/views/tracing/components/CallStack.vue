@@ -106,7 +106,9 @@ export default CallStack;
 .column {
   padding: 0.3rem;
 }
-button{
-  font-size: 10px;
+button,
+select,
+.select,
+.input {
 }
 </style>
