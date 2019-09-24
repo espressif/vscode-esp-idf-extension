@@ -43,6 +43,15 @@ const CallStack = Vue.extend({
     createTreeFromAddressArray(addr: string[]): any {
       const root = this.$root as any;
       return root.createTreeFromAddressArray(addr);
+    },
+    fetchFunctionNameForAddr(addr: string): string {
+      //@ts-ignore
+      return this.cache[addr] ? this.cache[addr].funcName !== "" ? this.cache[addr].funcName : addr : addr;
+    },
+    reverseCallStack() {
+      this.callstack.forEach((calls) => {
+        calls.reverse();
+      });
     }
   },
   computed: {
