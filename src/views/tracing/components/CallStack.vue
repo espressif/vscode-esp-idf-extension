@@ -83,7 +83,7 @@ const CallStack = Vue.extend({
       .filter((calls) => {
         if (this.filter.functionName && this.filter.functionName !== "") {
           return this.fetchFunctionNameForAddr(calls[0]).toLowerCase().match(this.filter.functionName.toLowerCase())
-      }
+        }
         return true;
       })
     }
@@ -110,5 +110,9 @@ button,
 select,
 .select,
 .input {
+  font-size: 12px;
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-sideBarSectionHeader-background);
+  border-color: transparent;
 }
 </style>
