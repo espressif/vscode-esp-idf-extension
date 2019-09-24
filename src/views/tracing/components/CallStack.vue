@@ -28,12 +28,15 @@ import Vue from "vue";
 const CallStack = Vue.extend({
   name: "CallStack",
   props: {
-    callstack: Array
+    callstack: Array,
+    cache: Object,
   },
   data() {
     return {
-      isCallStackReverse: false,
-      reversed: false
+      filter: {
+        functionName: "",
+        selectedEventType: "all"
+      }
     };
   },
   methods: {
