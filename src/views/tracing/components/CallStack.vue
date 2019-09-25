@@ -3,7 +3,7 @@
     <div class="field has-addons">
       <div class="control">
         <div class="select">
-          <select v-model="filter.selectedEventType">
+          <select v-model="filter.selectedEventType" @change="eventFilterSelected">
             <option selected value="all">All</option>
             <option value="allocations">Allocations</option>
             <option value="free">Free</option>
@@ -76,6 +76,10 @@ const CallStack = Vue.extend({
       this.callstack.forEach((calls) => {
         calls.reverse();
       });
+    },
+    eventFilterSelected() {
+      //@ts-ignore
+      this.$emit("event-filter-updated", this.filter.selectedEventType);
     }
   },
   computed: {
