@@ -90,6 +90,40 @@ const app = new Vue({
         callersAddressTranslationTable: {},
     },
     methods: {
+        filterCallStacks(filter: string) {
+            const callStack = [];
+            plotDataReceived.events.forEach((event) => {
+                if (event.callers) {
+                    let shallAdd = false;
+                    switch (filter) {
+                        case "all":
+                            shallAdd = true;
+                            break;
+                        case "allocations":
+                            shallAdd = event.id === this.eventIDs.alloc;
+                            break;
+                        case "free":
+                            shallAdd = event.id === this.eventIDs.free;
+                            break;
+                        case "irq-all":
+                            shallAdd = event.in_irq;
+                            break;
+                        case "irq-allocations":
+                            shallAdd = event.in_irq && event.id === this.eventIDs.alloc;
+                            break;
+                        case "irq-free":
+                            shallAdd = event.in_irq && event.id === this.eventIDs.free;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (shallAdd) {
+                        callStack.push(event.callers.filter((value) => value !== "0x0"));
+                    }
+                }
+            });
+            this.callStacks = callStack;
+        },
         plotSelected(info) {
             this.tracePane = true;
             this.traceInfo = info;
