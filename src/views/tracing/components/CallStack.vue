@@ -40,7 +40,7 @@
     </div>
     <div class="call-stack-container">
       <div v-for="(calls, index) in callStack" :key="index">
-        <calls v-bind:tree="createTreeFromAddressArray(calls)" :index="index" :space="1"></calls>
+        <calls v-bind:tree="createTreeFromAddressArray(calls)" :index="index" :space="1" :total="totalMemory"></calls>
       </div>
     </div>
   </div>
@@ -52,7 +52,7 @@ const CallStack = Vue.extend({
   name: "CallStack",
   props: {
     callstack: Array,
-    cache: Object,
+    cache: Object
   },
   data() {
     return {
@@ -73,7 +73,7 @@ const CallStack = Vue.extend({
     },
     reverseCallStack() {
       //@ts-ignore
-      this.callstack.forEach((calls) => {
+      this.callstack.forEach(calls => {
         calls.reverse();
       });
     },
@@ -84,13 +84,21 @@ const CallStack = Vue.extend({
   },
   computed: {
     callStack() {
-      return this.callstack
-      .filter((calls) => {
+      return this.callstack.filter(calls => {
         if (this.filter.functionName && this.filter.functionName !== "") {
-          return this.fetchFunctionNameForAddr(calls[0]).toLowerCase().match(this.filter.functionName.toLowerCase())
+          return this.fetchFunctionNameForAddr(calls[0])
+            .toLowerCase()
+            .match(this.filter.functionName.toLowerCase());
         }
         return true;
-      })
+      });
+    },
+    totalMemory() {
+      let total = 0;
+      Object.keys(this.cache).forEach((addr) => {
+        total += this.cache[addr].size ? this.cache[addr].size : 0;
+      });
+      return total;
     }
   }
 });
