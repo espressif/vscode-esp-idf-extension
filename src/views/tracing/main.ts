@@ -27,6 +27,8 @@ import CallStack from "./components/CallStack.vue";
 // @ts-ignore
 import Plot from "./components/Plot.vue";
 // @ts-ignore
+import QuickActionMenu from "./components/QuickActionMenu.vue";
+// @ts-ignore
 import QuickCallStack from "./components/QuickCallStack.vue";
 // @ts-ignore
 import Tree from "./components/Tree.vue";
@@ -52,6 +54,7 @@ Vue.component("call-stack", CallStack);
 Vue.component("calls", Calls);
 Vue.component("plot", Plot);
 Vue.component("quick-call-stack", QuickCallStack);
+Vue.component("quick-action-menu", QuickActionMenu);
 // Vue App
 const app = new Vue({
     el: "#app",
@@ -134,9 +137,7 @@ const app = new Vue({
             }
             return "?";
         },
-        heapViewChange(evt: MouseEvent) {
-            const target: HTMLElement = evt.target as HTMLElement;
-            const buttonKey = target.dataset.dictKey;
+        heapViewChange(buttonKey: string) {
             Object.keys(this.heapView).forEach((key) => {
                 if (key === buttonKey) {
                     this.$set(this.heapView, key, true);
@@ -144,8 +145,6 @@ const app = new Vue({
                 }
                 this.$set(this.heapView, key, false);
             });
-            // tslint:disable-next-line: no-console
-            console.log(this.heapView);
         },
         showReport() {
             if (this.traceType === TraceType.HeapTrace) {
