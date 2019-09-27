@@ -55,12 +55,16 @@
             </div>
             <div class="container" v-if="heap">
                 <div class="notification">
-                    <plot v-show="heapView.plot" v-bind:chart="plotData" v-on:selected="plotSelected" v-bind:events="eventIDs"></plot>
-                    <call-stack v-show="heapView.callStack" v-bind:callstack="callStacks" v-bind:cache="callersAddressTranslationTable" v-on:event-filter-updated="filterCallStacks"></call-stack>
+                    <plot v-show="heapView.plot" v-bind:chart="plotData" v-on:selected="plotSelected"
+                        v-bind:events="eventIDs"></plot>
+                    <call-stack v-show="heapView.callStack" v-bind:callstack="callStacks"
+                        v-bind:cache="callersAddressTranslationTable" v-on:event-filter-updated="filterCallStacks">
+                    </call-stack>
                     <div v-show="heapView.leaks">B</div>
                     <quick-action-menu v-on:change="heapViewChange"></quick-action-menu>
                 </div>
-                <quick-call-stack v-if="tracePane" v-bind:info="traceInfo" v-on:dismiss="tracePane = false"></quick-call-stack>
+                <quick-call-stack v-if="tracePane" v-bind:info="traceInfo" v-on:dismiss="tracePane = false">
+                </quick-call-stack>
             </div>
         </div>
     </div>
