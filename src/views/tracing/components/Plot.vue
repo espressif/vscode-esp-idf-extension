@@ -3,24 +3,22 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue, { PropType } from "vue";
 import * as Plotly from "plotly.js-dist";
 const Plot = Vue.extend({
   name: "Plot",
   props: {
     chart: Array,
-    events: Object
+    events: Object as any
   },
   methods: {
-    clickableTrace({ points }): boolean {
+    clickableTrace({ points }) {
       return points[0].data.clickable;
     },
     plotClickHandler(d) {
-      //@ts-ignore
       if (!this.clickableTrace(d)) {
         return;
       }
-      //@ts-ignore
       const eventIDs = this.events;
       const traceInfo = {} as any;
       const index = d.points[0].pointIndex;

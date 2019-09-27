@@ -45,7 +45,6 @@ const Calls = Vue.extend({
       }
     },
     percentage() {
-      //@ts-ignore
       return `(${Math.ceil((this.tree.size / this.total) * 100).toFixed(2)}%)`;
     }
   },

@@ -62,11 +62,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue, { PropType } from "vue";
 const CallStack = Vue.extend({
   name: "CallStack",
   props: {
-    callstack: Array,
+    callstack: Array as any,
     cache: Object
   },
   data() {
@@ -83,9 +83,7 @@ const CallStack = Vue.extend({
   },
   methods: {
     sortData(columnName) {
-      //@ts-ignore
       this.sort.by = columnName;
-      //@ts-ignore
       this.sort.order = this.sort.order === 0 ? 1 : -this.sort.order;
     },
     createTreeFromAddressArray(addr: string[]): any {
@@ -93,17 +91,14 @@ const CallStack = Vue.extend({
       return root.createTreeFromAddressArray(addr);
     },
     fetchFunctionNameForAddr(addr: string): string {
-      //@ts-ignore
       return this.cache[addr] ? this.cache[addr].funcName !== "" ? this.cache[addr].funcName : addr : addr;
     },
     reverseCallStack() {
-      //@ts-ignore
       this.callstack.forEach(calls => {
         calls.reverse();
       });
     },
     eventFilterSelected() {
-      //@ts-ignore
       this.$emit("event-filter-updated", this.filter.selectedEventType);
     },
     sortBy(a, b) {
