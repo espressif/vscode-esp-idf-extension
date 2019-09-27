@@ -34,13 +34,28 @@
       </div>
     </div>
     <div class="columns headers">
-      <div class="column is-2">Bytes Used</div>
-      <div class="column is-2">Count</div>
+      <div class="column is-2">
+        Bytes Used
+        <span class="is-pointer" @click="sortData('size')">
+          {{sort.by === 'size' && sort.order === 1 ? '▾' : '▴'}}
+        </span>
+      </div>
+      <div class="column is-2">
+        Count
+        <span class="is-pointer" @click="sortData('count')">
+          {{sort.by === 'count' && sort.order === 1 ? '▾' : '▴'}}
+        </span>
+      </div>
       <div class="column">Function Name</div>
     </div>
     <div class="call-stack-container">
       <div v-for="(calls, index) in callStack" :key="index">
-        <calls v-bind:tree="createTreeFromAddressArray(calls)" :index="index" :space="1" :total="totalMemory"></calls>
+        <calls
+          v-bind:tree="createTreeFromAddressArray(calls)"
+          :index="index"
+          :space="1"
+          :total="totalMemory"
+        ></calls>
       </div>
     </div>
   </div>
@@ -59,10 +74,20 @@ const CallStack = Vue.extend({
       filter: {
         functionName: "",
         selectedEventType: "all"
+      },
+      sort: {
+        by: "",
+        order: 0,
       }
     };
   },
   methods: {
+    sortData(columnName) {
+      //@ts-ignore
+      this.sort.by = columnName;
+      //@ts-ignore
+      this.sort.order = this.sort.order === 0 ? 1 : -this.sort.order;
+    },
     createTreeFromAddressArray(addr: string[]): any {
       const root = this.$root as any;
       return root.createTreeFromAddressArray(addr);
@@ -80,17 +105,34 @@ const CallStack = Vue.extend({
     eventFilterSelected() {
       //@ts-ignore
       this.$emit("event-filter-updated", this.filter.selectedEventType);
+    },
+    sortBy(a, b) {
+      const key = this.sort.by;
+      const sortOrder = this.sort.order;
+      if (sortOrder === -1) {
+        return this.cache[a][key] - this.cache[b][key];
+      } else if (sortOrder === 1) {
+        return this.cache[b][key] - this.cache[a][key];
+      }
+      return 0;
     }
   },
   computed: {
     callStack() {
-      return this.callstack.filter(calls => {
+      return this.callstack
+      .filter(calls => {
         if (this.filter.functionName && this.filter.functionName !== "") {
           return this.fetchFunctionNameForAddr(calls[0])
             .toLowerCase()
             .match(this.filter.functionName.toLowerCase());
         }
         return true;
+      })
+      .sort((a,b) => {
+        if (this.sort.by !== "" && this.sort.order !== 0) {
+          return this.sortBy(a[0], b[0]);
+        }
+        return 0;
       });
     },
     totalMemory() {
@@ -127,5 +169,8 @@ select,
   color: var(--vscode-foreground);
   background-color: var(--vscode-sideBarSectionHeader-background);
   border-color: transparent;
+}
+.is-pointer {
+  cursor: pointer;
 }
 </style>
