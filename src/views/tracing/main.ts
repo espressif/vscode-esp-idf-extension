@@ -179,18 +179,13 @@ const app = new Vue({
         },
         resolveAddress(address: string): object {
             const stackInfo = app.callersAddressTranslationTable[address];
-            if (stackInfo &&
-                stackInfo.funcName &&
-                stackInfo.lineNumber &&
-                stackInfo.filePath &&
-                stackInfo.count &&
-                stackInfo.size) {
+            if (stackInfo) {
                 return {
-                    address: stackInfo.funcName,
-                    filePath: stackInfo.filePath,
-                    lineNumber: stackInfo.lineNumber,
-                    count: stackInfo.count,
-                    size: stackInfo.size,
+                    address: stackInfo.funcName || address,
+                    filePath: stackInfo.filePath || "",
+                    lineNumber: stackInfo.lineNumber || "",
+                    count: stackInfo.count || "",
+                    size: stackInfo.size || "",
                 };
             }
             return { address, filePath: "", lineNumber: "", count: "", size: "" };
