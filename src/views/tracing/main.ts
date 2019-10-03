@@ -25,6 +25,8 @@ import Calls from "./components/Calls.vue";
 // @ts-ignore
 import CallStack from "./components/CallStack.vue";
 // @ts-ignore
+import LeakList from "./components/LeakList.vue";
+// @ts-ignore
 import Plot from "./components/Plot.vue";
 // @ts-ignore
 import QuickActionMenu from "./components/QuickActionMenu.vue";
@@ -46,7 +48,6 @@ enum TraceType {
     HeapTrace = 1,
 }
 
-const allocLookupTable = {};
 let plotDataReceived = {} as any;
 
 Vue.component("stack-trace", Tree);
@@ -55,6 +56,7 @@ Vue.component("calls", Calls);
 Vue.component("plot", Plot);
 Vue.component("quick-call-stack", QuickCallStack);
 Vue.component("quick-action-menu", QuickActionMenu);
+Vue.component("leak-list", LeakList);
 // Vue App
 const app = new Vue({
     el: "#app",
@@ -91,6 +93,7 @@ const app = new Vue({
         errorMsg: "",
         plotData: [],
         callersAddressTranslationTable: {},
+        allocLookupTable: {},
     },
     methods: {
         filterCallStacks(filter: string) {
@@ -299,15 +302,15 @@ const getIndex = (evt: any, data: any[]) => {
 
 const injectDataToGraph = (evt: any, data: any[]) => {
     if (evt.id === app.eventIDs.free) { // FREE
-        if (allocLookupTable[evt.addr]) {
-            const index = allocLookupTable[evt.addr].index;
-            const size = allocLookupTable[evt.addr].size;
+        if (app.allocLookupTable[evt.addr]) {
+            const index = app.allocLookupTable[evt.addr].index;
+            const size = app.allocLookupTable[evt.addr].size;
             free(size, evt.ts, index, evt, data);
-            delete allocLookupTable[evt.addr];
+            delete app.allocLookupTable[evt.addr];
         }
     } else if (evt.id === app.eventIDs.alloc) { // ALLOC
         const index = getIndex(evt, data);
-        allocLookupTable[evt.addr] = { index, size: evt.size, evt };
+        app.allocLookupTable[evt.addr] = { index, size: evt.size, evt };
         alloc(evt.size, evt.ts, index, evt, data);
     }
 };
