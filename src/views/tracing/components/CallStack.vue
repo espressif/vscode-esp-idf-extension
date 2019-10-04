@@ -154,36 +154,5 @@ export default CallStack;
 </script>
 
 <style lang="scss" scoped>
-.call-stack-container {
-  overflow: auto;
-  height: calc(45vh);
-}
-.columns {
-  margin: 0 auto;
-  &.head {
-    border-bottom-width: 2px;
-    border-bottom-style: solid;
-    border-bottom-color: var(--vscode-foreground);
-  }
-  &.foot {
-    border-top-width: 2px;
-    border-top-style: solid;
-    border-top-color: var(--vscode-foreground);
-  }
-}
-.column {
-  padding: 0.3rem;
-}
-button,
-select,
-.select,
-.input {
-  font-size: 12px;
-  color: var(--vscode-foreground);
-  background-color: var(--vscode-sideBarSectionHeader-background);
-  border-color: transparent;
-}
-.is-pointer {
-  cursor: pointer;
-}
+@import "table";
 </style>

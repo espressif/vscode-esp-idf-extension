@@ -49,17 +49,5 @@ export default LeakList;
 </script>
 
 <style lang="scss" scoped>
-.columns {
-  margin: 0 auto;
-  border-bottom-width: 2px;
-  border-bottom-style: solid;
-  border-bottom-color: var(--vscode-foreground);
-}
-.column {
-  padding: 0.3rem;
-}
-.leak-container {
-  overflow: auto;
-  height: calc(45vh);
-}
+@import "table";
 </style>
