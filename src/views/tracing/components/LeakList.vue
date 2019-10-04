@@ -5,7 +5,7 @@
       <div class="column is-2">Leaks</div>
       <div class="column">Function Name</div>
     </div>
-    <div class="leak-container">
+    <div class="scroll-container">
       <div v-for="(addr, index) in leakList" :key="index">
         <calls
           v-bind:tree="createTreeFromAddressArray(addr)"
