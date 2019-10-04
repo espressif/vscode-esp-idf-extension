@@ -33,18 +33,20 @@
         </button>
       </div>
     </div>
-    <div class="columns headers">
+    <div class="columns head">
       <div class="column is-2">
         Bytes Used
-        <span class="is-pointer" @click="sortData('size')">
-          {{sort.by === 'size' && sort.order === 1 ? '▾' : '▴'}}
-        </span>
+        <span
+          class="is-pointer"
+          @click="sortData('size')"
+        >{{sort.by === 'size' && sort.order === 1 ? '▾' : '▴'}}</span>
       </div>
       <div class="column is-2">
         Count
-        <span class="is-pointer" @click="sortData('count')">
-          {{sort.by === 'count' && sort.order === 1 ? '▾' : '▴'}}
-        </span>
+        <span
+          class="is-pointer"
+          @click="sortData('count')"
+        >{{sort.by === 'count' && sort.order === 1 ? '▾' : '▴'}}</span>
       </div>
       <div class="column">Function Name</div>
     </div>
@@ -57,6 +59,11 @@
           :total="totalMemory"
         ></calls>
       </div>
+    </div>
+    <div class="columns foot">
+      <div class="column is-2">Bytes Used Total</div>
+      <div class="column is-2">Count Total</div>
+      <div class="column">Totals</div>
     </div>
   </div>
 </template>
@@ -77,7 +84,7 @@ const CallStack = Vue.extend({
       },
       sort: {
         by: "",
-        order: 0,
+        order: 0
       }
     };
   },
@@ -91,7 +98,11 @@ const CallStack = Vue.extend({
       return root.createTreeFromAddressArray(addr);
     },
     fetchFunctionNameForAddr(addr: string): string {
-      return this.cache[addr] ? this.cache[addr].funcName !== "" ? this.cache[addr].funcName : addr : addr;
+      return this.cache[addr]
+        ? this.cache[addr].funcName !== ""
+          ? this.cache[addr].funcName
+          : addr
+        : addr;
     },
     reverseCallStack() {
       this.callstack.forEach(calls => {
@@ -115,24 +126,24 @@ const CallStack = Vue.extend({
   computed: {
     callStack() {
       return this.callstack
-      .filter(calls => {
-        if (this.filter.functionName && this.filter.functionName !== "") {
-          return this.fetchFunctionNameForAddr(calls[0])
-            .toLowerCase()
-            .match(this.filter.functionName.toLowerCase());
-        }
-        return true;
-      })
-      .sort((a,b) => {
-        if (this.sort.by !== "" && this.sort.order !== 0) {
-          return this.sortBy(a[0], b[0]);
-        }
-        return 0;
-      });
+        .filter(calls => {
+          if (this.filter.functionName && this.filter.functionName !== "") {
+            return this.fetchFunctionNameForAddr(calls[0])
+              .toLowerCase()
+              .match(this.filter.functionName.toLowerCase());
+          }
+          return true;
+        })
+        .sort((a, b) => {
+          if (this.sort.by !== "" && this.sort.order !== 0) {
+            return this.sortBy(a[0], b[0]);
+          }
+          return 0;
+        });
     },
     totalMemory() {
       let total = 0;
-      Object.keys(this.cache).forEach((addr) => {
+      Object.keys(this.cache).forEach(addr => {
         total += this.cache[addr].size ? this.cache[addr].size : 0;
       });
       return total;
@@ -149,9 +160,16 @@ export default CallStack;
 }
 .columns {
   margin: 0 auto;
-  border-bottom-width: 2px;
-  border-bottom-style: solid;
-  border-bottom-color: var(--vscode-foreground);
+  &.head {
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    border-bottom-color: var(--vscode-foreground);
+  }
+  &.foot {
+    border-top-width: 2px;
+    border-top-style: solid;
+    border-top-color: var(--vscode-foreground);
+  }
 }
 .column {
   padding: 0.3rem;
