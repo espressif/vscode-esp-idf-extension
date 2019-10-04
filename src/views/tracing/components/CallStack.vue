@@ -50,7 +50,7 @@
       </div>
       <div class="column">Function Name</div>
     </div>
-    <div class="call-stack-container">
+    <div class="scroll-container">
       <div v-for="(calls, index) in callStack" :key="index">
         <calls
           v-bind:tree="createTreeFromAddressArray(calls)"
