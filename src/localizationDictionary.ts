@@ -19,10 +19,15 @@ import { Logger } from "./logger/logger";
 export class LocDictionary {
     private dictionary: object;
 
-    constructor(filename: string) {
+    /**
+     * Representation of a language dictionary for a source file.
+     * @param {string} filename - Name of the file to translate.
+     * @param {string} type - Type of translation. Can be 'out' (default) or 'views'.
+     */
+    constructor(filename: string, type: string = "out") {
         const extensionName = __dirname.replace(path.sep + "out", "");
         const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
-        const locDirPath = path.join(extensionName, "i18n", localeConf.locale, "out");
+        const locDirPath = path.join(extensionName, "i18n", localeConf.locale, type);
         const locJsonPath = path.join(locDirPath, filename + ".i18n.json");
         if (fs.existsSync(locDirPath) && fs.existsSync(locJsonPath)) {
             try {
@@ -38,5 +43,9 @@ export class LocDictionary {
             return this.dictionary[key];
         }
         return defaultMsg;
+    }
+
+    public getDictionary() {
+        return this.dictionary;
     }
 }
