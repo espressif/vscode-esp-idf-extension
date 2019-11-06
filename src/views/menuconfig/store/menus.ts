@@ -21,6 +21,11 @@ export interface State {
   items: Menu[];
   selectedMenu: string;
   searchString: string;
+  textDictionary: {
+    save: string;
+    discard: string;
+    reset: string;
+  };
 }
 
 declare var acquireVsCodeApi: any;
@@ -36,6 +41,11 @@ export const menuState: State = {
     items: [],
     selectedMenu: "",
     searchString: "",
+    textDictionary: {
+      save: "Save",
+      discard: "Discard",
+      reset: "Reset",
+    },
 };
 
 export const actions: ActionTree<State, any> = {
@@ -66,24 +76,29 @@ export const actions: ActionTree<State, any> = {
 };
 
 export const mutations: MutationTree<State> = {
-    setSelectedMenu(state, newSelectedMenu) {
-        const newState = state;
-        newState.selectedMenu = newSelectedMenu;
-        Object.assign(state, newState);
-    },
-    setSearchString(state, searchString) {
-        const newState = state;
-        newState.searchString = searchString;
-        Object.assign(state, newState);
-    },
-    setInitialValues(state, initialValues) {
-        const newState = state;
-        newState.items = initialValues;
-        Object.assign(state, newState);
-    },
-    updateValues(state, updatedValues) {
-        Vue.set(state, "items", updatedValues);
-    },
+  loadTextDictionary(state, textDictionary) {
+    const newState = state;
+    newState.textDictionary = textDictionary;
+    state = {...newState};
+  },
+  setSelectedMenu(state, newSelectedMenu) {
+    const newState = state;
+    newState.selectedMenu = newSelectedMenu;
+    state = {...newState};
+  },
+  setSearchString(state, searchString) {
+    const newState = state;
+    newState.searchString = searchString;
+    state = {...newState};
+  },
+  setInitialValues(state, initialValues) {
+    const newState = state;
+    newState.items = initialValues;
+    state = {...newState};
+  },
+  updateValues(state, updatedValues) {
+    Vue.set(state, "items", updatedValues);
+  },
 };
 
 export const menus: StoreOptions<State> = {

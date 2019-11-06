@@ -23,7 +23,6 @@ import SideNavItem from "./components/SideNavItem.vue";
 import Menuconfig from "./Menuconfig.vue";
 import { store } from "./store";
 
-
 library.add(faInfoCircle, faCaretDown, faCaretRight);
 Vue.component("font-awesome-icon", FontAwesomeIcon);
 Vue.component("config-el", ConfigElement);
@@ -50,6 +49,11 @@ window.addEventListener("message", (event) => {
         case "update_values":
             if (message.updated_values) {
                 store.commit("updateValues", message.updated_values);
+            }
+            break;
+        case "load_dictionary":
+            if (message.text_dictionary) {
+                store.commit("loadTextDictionary", message.text_dictionary);
             }
             break;
         default:
