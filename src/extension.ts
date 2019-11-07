@@ -57,7 +57,7 @@ let mainProcess: ChildProcess;
 let monitorTerminal: vscode.Terminal;
 let projDescPath: string;
 let sdkconfigFile: string;
-const locDic = new LocDictionary("extension");
+const locDic = new LocDictionary(__filename);
 
 const openFolderMsg = locDic.localize("extension.openFolderFirst", "Open a folder first.");
 

@@ -19,7 +19,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
-const locDic = new LocDictionary("idfComponentsDataProvider");
+const locDic = new LocDictionary(__filename);
 
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 

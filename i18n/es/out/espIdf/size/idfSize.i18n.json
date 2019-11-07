@@ -1,0 +1,8 @@
+{
+    "idfSize.canceledError" : "No se puede analizar el tamaño en un contexto cancelado",
+    "idfSize.buildFirstError": "Se necesita construir el proyecto antes de analizar el tamaño del binario.",
+    "idfSize.filesMsg": "Calculando el tamaño de todos los archivos",
+    "idfSize.archivesMsg": "Reuniendo la lista de archivos",
+    "idfSize.overviewMsg": "Armando un resumen",
+    "idfSize.commandError": "Se ha encontrado un error al ejecutar idf_size.py"
+}
