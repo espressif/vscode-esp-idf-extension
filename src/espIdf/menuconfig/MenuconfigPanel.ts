@@ -20,7 +20,7 @@ import * as utils from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
-const locDic = new LocDictionary("MenuconfigPanel");
+const locDic = new LocDictionary(__filename);
 
 export class MenuConfigPanel {
     public static currentPanel: MenuConfigPanel | undefined;
@@ -56,8 +56,11 @@ export class MenuConfigPanel {
 
         ConfserverProcess.registerListener(this.updateConfigValues);
 
-        const dictClass = new LocDictionary("menuconfig", "views");
-        this.panel.webview.postMessage({ command: "load_dictionary", text_dictionary: dictClass.getDictionary() });
+        const menuconfigViewDict = new LocDictionary("menuconfig", "views");
+        this.panel.webview.postMessage({
+            command: "load_dictionary",
+            text_dictionary: menuconfigViewDict.getDictionary(),
+        });
 
         this.panel.onDidDispose(() => {
             if (!ConfserverProcess.areValuesSaved()) {
