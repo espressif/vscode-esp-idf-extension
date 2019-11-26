@@ -106,7 +106,7 @@ export class AppTracePanel {
         if (!workspaceURI) {
             return elfFilePath;
         }
-        const elfPath = path.join(workspaceURI.path, "build");
+        const elfPath = path.join(workspaceURI.fsPath, "build");
         const elfFiles = [];
         fs.readdirSync(elfPath).forEach((file) => {
             if (file.endsWith(".elf")) {
