@@ -140,7 +140,7 @@ export class OpenOCDManager extends EventEmitter {
         if (!stats.isFile()) {
             throw new Error("Invalid OpenOCD bin path, provide the path till the executable");
         }
-        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
         this.server = spawn(this.binPath, [
             "-s", this.scriptPath,
             "-f", this.deviceInterface,

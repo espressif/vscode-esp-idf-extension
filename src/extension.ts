@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
                         const workspaceFolderInfo = {
                             clickCommand: "espIdf.pickAWorkspaceFolder",
                             currentWorkSpace: option.name,
-                            tooltip: option.uri.path,
+                            tooltip: option.uri.fsPath,
                         };
                         utils.updateStatus(status, workspaceFolderInfo);
                     }
