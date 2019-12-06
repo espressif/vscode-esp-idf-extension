@@ -52,7 +52,7 @@ export class HeapTraceManager extends EventEmitter {
                 this.heapTraceChannel.clear();
                 this.showStopButton();
                 const workspace = vscode.workspace.workspaceFolders ?
-                    vscode.workspace.workspaceFolders[0].uri.path : "";
+                    vscode.workspace.workspaceFolders[0].uri.fsPath : "";
                 if (!fileExists(join(workspace, "trace"))) {
                     mkdirSync(join(workspace, "trace"));
                 }

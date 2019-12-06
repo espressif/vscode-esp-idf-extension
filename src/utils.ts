@@ -250,7 +250,7 @@ export async function getElfFilePath(workspaceURI: vscode.Uri): Promise<string> 
     if (!workspaceURI) {
         return elfFilePath;
     }
-    const elfPath = path.join(workspaceURI.path, "build");
+    const elfPath = path.join(workspaceURI.fsPath, "build");
     if (!canAccessFile(elfPath, fs.constants.R_OK)) {
         throw new Error("Build is required once to generate the ELF File");
     }

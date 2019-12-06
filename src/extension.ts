@@ -450,7 +450,7 @@ export function activate(context: vscode.ExtensionContext) {
                     fileName: trace.fileName,
                     filePath: trace.filePath,
                     type: trace.type,
-                    workspacePath: workspaceRoot.path,
+                    workspacePath: workspaceRoot.fsPath,
                     idfPath: idfConf.readParameter("idf.espIdfPath", workspaceRoot),
                 },
             });

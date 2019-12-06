@@ -140,7 +140,7 @@ export class AppTraceManager extends EventEmitter {
                 this.treeDataProvider.updateDescription(AppTraceButtonType.AppTraceButton, "");
                 // tslint:disable-next-line: max-line-length
                 const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
-                const workspacePath = workspace ? workspace.path : "";
+                const workspacePath = workspace ? workspace.fsPath : "";
                 const fileName = `file://${join(workspacePath, "trace")}/trace_${new Date().getTime()}.trace`;
                 const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
                 const traceSize = idfConf.readParameter("trace.trace_size", workspace);
@@ -186,7 +186,7 @@ export class AppTraceManager extends EventEmitter {
     }
 
     private sendCommandToTCLSession(command: string): TCLClient {
-        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
         if (!fileExists(join(workspace, "trace"))) {
             mkdirSync(join(workspace, "trace"));
         }
