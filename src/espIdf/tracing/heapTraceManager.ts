@@ -64,10 +64,10 @@ export class HeapTraceManager extends EventEmitter {
                     .buildCommand(`bp 0x${addresses.heap_trace_start} 4 hw`)
                     .buildCommand(`bp 0x${addresses.heap_trace_stop} 4 hw`)
                     .buildCommand("resume")
-                    .buildCommand("rbp 0x400d35c4")
+                    .buildCommand(`rbp 0x${addresses.heap_trace_start}`)
                     .buildCommand(`esp32 sysview start ${fileName}`)
                     .buildCommand("resume")
-                    .buildCommand("rbp 0x400d35e0")
+                    .buildCommand(`rbp 0x${addresses.heap_trace_stop}`)
                     .buildCommand("esp32 sysview stop");
                 this.heapTraceNotificationTCLClientHandler.on("response", (resp: Buffer) => {
                     this.heapTraceChannel.appendLine("->> " + resp);
