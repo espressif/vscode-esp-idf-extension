@@ -19,11 +19,17 @@ import { Logger } from "./logger/logger";
 export class LocDictionary {
     private dictionary: object;
 
-    constructor(filename: string) {
+    /**
+     * Representation of a language dictionary for a source file.
+     * @param {string} absolutePath - Path of the file to translate.
+     * @param {string} type - Type of translation. Can be 'out' (default) or 'views'.
+     */
+    constructor(absolutePath: string, type: string = "out") {
         const extensionName = __dirname.replace(path.sep + "out", "");
         const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
-        const locDirPath = path.join(extensionName, "i18n", localeConf.locale, "out");
-        const locJsonPath = path.join(locDirPath, filename + ".i18n.json");
+        const locDirPath = path.join(extensionName, "i18n", localeConf.locale, type);
+        const subPath = this.getLocalizationFilePath(absolutePath);
+        const locJsonPath = path.join(locDirPath, subPath + ".i18n.json");
         if (fs.existsSync(locDirPath) && fs.existsSync(locJsonPath)) {
             try {
                 this.dictionary = JSON.parse(fs.readFileSync(locJsonPath).toString());
@@ -38,5 +44,15 @@ export class LocDictionary {
             return this.dictionary[key];
         }
         return defaultMsg;
+    }
+
+    public getDictionary() {
+        return this.dictionary;
+    }
+
+    private getLocalizationFilePath(absolutePath: string) {
+        const parts = absolutePath.replace(__dirname, "").split(/(?:\\|\/)/g);
+        parts[parts.length - 1] = parts[parts.length - 1].replace(/(\.).*/g, "");
+        return parts.join(path.sep);
     }
 }

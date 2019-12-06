@@ -16,7 +16,7 @@ import * as vscode from "vscode";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 
-const locDic = new LocDictionary("idfConfiguration");
+const locDic = new LocDictionary(__filename);
 
 export function addWinIfRequired(param: string) {
     const winFlag = process.platform === "win32" ? "Win" : "";

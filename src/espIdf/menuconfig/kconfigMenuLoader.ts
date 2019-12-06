@@ -53,7 +53,7 @@ export class KconfigMenuLoader {
 
     constructor(workspaceFolder: vscode.Uri) {
         this.workspaceFolder = workspaceFolder;
-        this.locDic = new LocDictionary("kconfigMenu");
+        this.locDic = new LocDictionary(__filename);
     }
 
     public updateIdfPath() {

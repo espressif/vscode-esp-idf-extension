@@ -21,7 +21,7 @@ import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 const extensionName = __dirname.replace(path.sep + "out", "");
 const templateDir = path.join(extensionName, "templates");
-const locDic = new LocDictionary("utils");
+const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize("utils.currentFolder", "ESP-IDF Current Project");
 
 export class PreCheck {

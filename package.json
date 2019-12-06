@@ -23,7 +23,6 @@
     "Other"
   ],
   "activationEvents": [
-    "*",
     "onCommand:espIdf.createFiles",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",

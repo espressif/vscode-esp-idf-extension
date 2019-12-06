@@ -29,7 +29,7 @@ export class IDFSize {
     private locDict: LocDictionary;
     constructor(workspaceRoot: vscode.Uri) {
         this.workspaceRoot = workspaceRoot;
-        this.locDict = new LocDictionary("idfSize");
+        this.locDict = new LocDictionary(__filename);
     }
     public cancel() {
         this.isCanceled = true;

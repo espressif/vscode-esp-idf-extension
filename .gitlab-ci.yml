@@ -18,7 +18,7 @@ copyright_lint_test:
   image: electronuserland/builder:11
   stage: lint
   tags:
-    - lint
+    - lint_brno
   before_script:
     - echo "Skipping before_script"
   script:
@@ -28,7 +28,7 @@ typescript_lint_test:
   image: electronuserland/builder:11
   stage: lint
   tags:
-    - lint
+    - lint_brno
   script:
     - npm run tslint
 
@@ -36,7 +36,7 @@ javascript_lint_test:
   image: electronuserland/builder:11
   stage: lint
   tags:
-    - lint
+    - lint_brno
   script:
     - npm run eslint
 
@@ -52,7 +52,7 @@ python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
   stage: lint
   tags:
-    - lint
+    - lint_brno
   artifacts:
     when: on_failure
     paths:
@@ -71,7 +71,7 @@ build_tar:
   image: electronuserland/builder:11
   stage: build
   tags:
-    - build
+    - brno_build
   artifacts:
     paths:
       - espressif-esp-idf-extension-*.tar.gz
@@ -86,7 +86,7 @@ build_vsix:
   image: electronuserland/builder:11
   stage: build
   tags:
-    - build
+    - brno_build
   artifacts:
     paths:
       - esp-idf-extension-*.vsix

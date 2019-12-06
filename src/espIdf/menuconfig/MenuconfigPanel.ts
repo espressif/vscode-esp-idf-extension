@@ -16,10 +16,11 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
+import * as utils from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
-const locDic = new LocDictionary("MenuconfigPanel");
+const locDic = new LocDictionary(__filename);
 
 export class MenuConfigPanel {
     public static currentPanel: MenuConfigPanel | undefined;
@@ -54,6 +55,12 @@ export class MenuConfigPanel {
         this.panel.webview.html = this.createMenuconfigHtml(extensionPath);
 
         ConfserverProcess.registerListener(this.updateConfigValues);
+
+        const menuconfigViewDict = new LocDictionary("menuconfig", "views");
+        this.panel.webview.postMessage({
+            command: "load_dictionary",
+            text_dictionary: menuconfigViewDict.getDictionary(),
+        });
 
         this.panel.onDidDispose(() => {
             if (!ConfserverProcess.areValuesSaved()) {

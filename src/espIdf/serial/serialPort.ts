@@ -35,7 +35,7 @@ export class SerialPort {
     private locDic: LocDictionary;
 
     private constructor() {
-        this.locDic = new LocDictionary("SerialPort");
+        this.locDic = new LocDictionary(__filename);
     }
     public promptUserToSelect(): any {
         SerialPort.shared().displayList();
