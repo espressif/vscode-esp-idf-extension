@@ -41,7 +41,7 @@ export abstract class XtensaTools {
     }
 
     private preCheck() {
-        if (!canAccessFile(join(this.toolsBinPath, this.toolName))) {
+        if (!canAccessFile(join(this.toolsBinPath))) {
             throw new Error(`${this.toolName} not exists or not accessible at ${this.toolsBinPath}`);
         }
     }
