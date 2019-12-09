@@ -33,7 +33,7 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
             throw new Error("Trace file does not exists or not accessible");
         }
         if (!this.preCheck([join(this.appTraceToolsPath(), "sysviewtrace_proc.py")], constants.X_OK)) {
-            throw new Error("systrace_proc.py tool is not found or not accessible");
+            throw new Error("sysviewtrace_proc.py tool is not found or not accessible");
         }
         return await this.parseInternal("python", [
             "sysviewtrace_proc.py",
