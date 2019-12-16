@@ -190,46 +190,40 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
                 let currentValue;
+                let msg: string;
+                let paramName: string;
                 switch (option.target) {
                     case "esp":
-                        const enterIdfPathMsg = locDic.localize("extension.enterIdfPathMessage",
+                        msg = locDic.localize("extension.enterIdfPathMessage",
                             "Enter IDF_PATH Path");
-                        currentValue = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
-                        idfConf.updateConfParameter("idf.espIdfPath",
-                            enterIdfPathMsg, currentValue, option.label, workspaceRoot);
+                        paramName = "idf.espIdfPath";
                         break;
                     case "xtensa":
-                        const enterToolchainPathMsg = locDic.localize("extension.enterToolchainPathMessage",
+                        msg = locDic.localize("extension.enterToolchainPathMessage",
                             "Enter Toolchain path");
-                        currentValue = idfConf.readParameter("idf.xtensaEsp32Path", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.xtensaEsp32Path",
-                            enterToolchainPathMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.xtensaEsp32Path";
                         break;
                     case "openocdBin":
-                        const enterOpenOcdBinariesPathMsg = locDic.localize(
+                        msg = locDic.localize(
                             "extension.enterOpenOcdBinariesPathMessage",
                             "Enter openOCD Binaries Path");
-                        currentValue = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
-                        idfConf.updateConfParameter("idf.openOcdBin",
-                            enterOpenOcdBinariesPathMsg, currentValue, option.label, workspaceRoot);
+                        paramName = "idf.openOcdBin";
                         break;
                     case "openocdScript":
-                        const enterOpenOcdScriptsPathMsg = locDic.localize(
+                        msg = locDic.localize(
                             "extension.enterOpenOcdScriptsPathMessage",
                             "Enter openOCD Scripts Path");
-                        currentValue = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
-                        idfConf.updateConfParameter("idf.openOcdScriptsPath",
-                            enterOpenOcdScriptsPathMsg, currentValue, option.label, workspaceRoot);
+                        paramName = "idf.openOcdScriptsPath";
                         break;
                     default:
                         const noPathUpdatedMsg = locDic.localize("extension.noPathUpdatedMessage",
                             "No path has been updated");
                         Logger.infoNotify(noPathUpdatedMsg);
                         break;
+                }
+                if (msg && paramName) {
+                    currentValue = idfConf.readParameter(paramName, workspaceRoot);
+                    idfConf.updateConfParameter(paramName, msg, currentValue, option.label);
                 }
             });
         });
@@ -255,56 +249,38 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
                 let currentValue;
+                let msg: string;
+                let paramName: string;
                 switch (option.target) {
                     case "devicePort":
-                        const enterDevicePortMsg = locDic.localize("extension.enterDevicePortMessage",
+                        msg = locDic.localize("extension.enterDevicePortMessage",
                             "Enter device port Path");
-                        currentValue = idfConf.readParameter("idf.port", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.port",
-                            enterDevicePortMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.port";
                         break;
                     case "baudRate":
-                        const enterDeviceBaudRateMsg = locDic.localize("extension.enterDeviceBaudRateMessage",
+                        msg = locDic.localize("extension.enterDeviceBaudRateMessage",
                             "Enter device baud rate");
-                        currentValue = idfConf.readParameter("idf.baudRate", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.baudRate",
-                            enterDeviceBaudRateMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.baudRate";
                         break;
                     case "deviceInterface":
-                        const enterDeviceInterfaceMsg = locDic.localize("extension.enterDeviceInterfaceMessage",
+                        msg = locDic.localize("extension.enterDeviceInterfaceMessage",
                             "Enter interface as defined in docs");
-                        currentValue = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.deviceInterface",
-                            enterDeviceInterfaceMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.deviceInterface";
                         break;
                     case "board":
-                        const enterDeviceBoardMsg = locDic.localize("extension.enterDeviceBoardMessage",
+                        msg = locDic.localize("extension.enterDeviceBoardMessage",
                             "Enter board as defined in docs");
-                        currentValue = idfConf.readParameter("idf.board", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.board",
-                            enterDeviceBoardMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.board";
                         break;
                     default:
                         const noParamUpdatedMsg = locDic.localize("extension.noParamUpdatedMessage",
                             "No device parameter has been updated");
                         Logger.infoNotify(noParamUpdatedMsg);
                         break;
+                }
+                if (msg && paramName) {
+                    currentValue = idfConf.readParameter(paramName, workspaceRoot);
+                    idfConf.updateConfParameter(paramName, msg, currentValue, option.label);
                 }
             });
         });
@@ -600,7 +576,7 @@ function updateProjName() {
             return;
         }
         const projDescJson = JSON.parse(data.toString());
-        idfConf.writeParameter("idf.projectName", projDescJson.project_name, workspaceRoot);
+        idfConf.writeParameter("idf.projectName", projDescJson.project_name);
     });
 }
 

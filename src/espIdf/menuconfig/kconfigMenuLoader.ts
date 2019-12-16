@@ -67,7 +67,7 @@ export class KconfigMenuLoader {
                         "Enter IDF_PATH Path");
                 const currentValue = idfConf.readParameter("idf.espIdfPath", this.workspaceFolder);
                 idfConf.updateConfParameter("idf.espIdfPath",
-                    enterPathMessage, currentValue, "IDF_PATH", this.workspaceFolder );
+                    enterPathMessage, currentValue, "IDF_PATH");
             }
         });
     }

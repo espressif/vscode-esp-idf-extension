@@ -116,7 +116,7 @@ export class AppTraceManager extends EventEmitter {
             validateInput: validatorFunction,
         });
         if (userInput) {
-            idfConf.writeParameter(paramName, userInput, workspaceRoot);
+            idfConf.writeParameter(paramName, userInput);
         }
     }
 
