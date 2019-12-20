@@ -1,22 +1,27 @@
 <template>
   <div class="window">
-    <ul class="sidenav">
-      <sidenav-el
-        v-for="menu in menuItems"
-        :key="menu.id"
-        :menu="menu"
-      />
-    </ul>
     <search-bar />
-    <div 
-      class="config-list"
-      v-scroll:throttle="{fn: onScroll, throttle: 100 }"
-    >
-      <config-el
-        v-for="config in items"
-        :key="config.id"
-        :config.sync="config"
-      />
+    <div id="main">
+      <div class="sidenav">
+        <ul>
+          <sidenav-el
+            v-for="menu in menuItems"
+            :key="menu.id"
+            :menu="menu"
+          />
+        </ul>
+      </div>
+
+      <div 
+        class="config-list"
+        v-scroll:throttle="{fn: onScroll, throttle: 100 }"
+      >
+        <config-el
+          v-for="config in items"
+          :key="config.id"
+          :config.sync="config"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -86,53 +91,52 @@ export default class Menuconfig extends Vue {
 </script>
 
 <style>
-    .loadingWindow, .errorWindow, .window {
-        max-width: 900px;
-        margin: auto;
-    }
-    p {
-        color: var(--vscode-editor-foreground);
-    }
-    .config-list {
-        margin-top: 1%;
-        position: fixed;
-        height: 90%;
-        left: 50%;
-        width: 50%;
-        overflow-y: scroll;
-        z-index: -1;
-    }
-    .sidenav {
-        width: max-content;
-        height: 90%;
-        position: fixed;
-        top: 5%;
-        overflow-y: scroll;
-        overflow-x: hidden;
-        padding-right: 1%;
-    }
-    .sidenav li {
-        cursor: pointer;
-    }
-    .sidenav p {
-        text-decoration: none;
-        display: block;
-    }
-    .sidenav p:hover {
-        color: var(--vscode-textLink-activeForeground);
-    }
-    ul > li {
-        list-style-type: none;
-    }
-    span {
-      color: rgb(231, 76, 60);
-      border-style: solid;
-      border-color: var(--vscode-settings-textInputForeground);
-      border-width: 0.5px;
-      padding: 3px;
-      display: inline-flex;
-    }
-    .content ul li {
-        list-style-type: disc;
-    }
+  .loadingWindow, .errorWindow, .window {
+    max-width: 90%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  #main {
+    display: flex;
+    height: 90vh;
+    margin: auto;
+    overflow: auto;
+  }
+  p {
+      color: var(--vscode-editor-foreground);
+  }
+  .config-list {
+      overflow: auto;
+      margin-left: 1%;
+  }
+  .sidenav {
+    overflow: auto;
+    height: 90vh;
+  }
+  .sidenav ul li {
+      cursor: pointer;
+  }
+  .sidenav ul p {
+      text-decoration: none;
+      display: block;
+  }
+  .sidenav ul p:hover {
+      color: var(--vscode-textLink-activeForeground);
+  }
+  ul > li {
+      list-style-type: none;
+  }
+  span {
+    color: rgb(231, 76, 60);
+    border-style: solid;
+    border-color: var(--vscode-settings-textInputForeground);
+    border-width: 0.5px;
+    padding: 3px;
+    display: inline-flex;
+  }
+  .content ul li {
+      list-style-type: disc;
+  }
 </style>

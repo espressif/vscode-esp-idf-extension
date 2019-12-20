@@ -17,14 +17,11 @@
     "extension.waitProcessIsFinishedMessage": "Wait for ESP-IDF build or flash to finish",
     "extension.elfNotFoundMessage": "Project ELF file cannot be found.",
     "extension.gdbNotFoundMessage": "GDB path cannot be found.",
-    "extension.openocdBinNotFoundMessage": "OpenOCD binary path not found.",
-    "extension.openocdScriptsNotFoundMessage": "OpenOCD scripts path not found.",
     "extension.enterIdfPathMessage": "Enter IDF_PATH Path",
-    "extension.enterToolchainPathMessage": "Enter Toolchain path",
-    "extension.enterOpenOcdBinariesPathMessage": "Enter openOCD Binaries Path",
-    "extension.enterOpenOcdScriptsPathMessage": "Enter openOCD Scripts Path",
+    "extension.enterIdfToolsPathMessage": "Enter IDF_TOOLS_PATH path",
     "extension.enterDevicePortMessage": "Enter device port Path",
     "extension.enterDeviceBaudRateMessage": "Enter device baud rate",
     "extension.enterDeviceInterfaceMessage": "Enter interface as defined in docs",
-    "extension.enterDeviceBoardMessage": "Enter board as defined in docs"
+    "extension.enterDeviceBoardMessage": "Enter board as defined in docs",
+    "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH"
 }

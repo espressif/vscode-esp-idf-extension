@@ -1,5 +1,15 @@
 <template>
   <div id="topbar">
+    <form>
+      <input
+        v-model="search"
+        type="search"
+        name="search"
+        placeholder="Search parameter"
+        autocomplete="off"
+        class="form-control"
+      >
+    </form>
     <button
       class="button-vscode"
       @click="saveConfChanges"
@@ -18,16 +28,6 @@
     >
       {{reset}}
     </button>
-    <form>
-      <input
-        v-model="search"
-        type="search"
-        name="search"
-        placeholder="Search parameter"
-        autocomplete="off"
-        class="form-control"
-      >
-    </form>
   </div>
 </template>
 
@@ -64,43 +64,41 @@ export default class SearchBar extends Vue {
 </script>
 
 <style scoped>
-    #topbar {
-        background-color: var(--vscode-editor-background);
-        margin-top: 0.5%;
-        text-align: center;
-        width: 65%;
-    }
-    .form-control {
-        color: var(--vscode-settings-textInputForeground);
-        background-color: var(--vscode-settings-textInputBackground);
-        border: 0px;
-        outline: 0.5px solid var(--vscode-settings-textInputBorder);
-        padding-top: 1%;
-        padding-left: 1%;
-        padding-bottom: 1%;
-        margin-top: 1%;
-        margin-bottom: 1%;
-    }
-    input[type="search"].form-control {
-        padding: 5%;
-        width: 365%;
-        margin-left: 2%;
-    }
-    form {
-        display: inline-block;
-    }
-    .button-vscode {
-        background: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-        font-weight: bold;
-        border: 0px;
-        border-radius: 1%;
-        padding: 1%;
-        margin-top: 1%;
-        margin-bottom: 1%;
-        display: inline-block;
-    }
-    .button-vscode:hover {
-        background: var(--vscode-button-hoverBackground);
-    }
+  #topbar {
+    background-color: var(--vscode-editor-background);
+    display: flex;
+    align-self: center;
+  }
+  form {
+    display: flex;
+    align-self: center;
+  }
+  .form-control {
+    color: var(--vscode-settings-textInputForeground);
+    background-color: var(--vscode-settings-textInputBackground);
+    border: 0px;
+    outline: 0.5px solid var(--vscode-settings-textInputBorder);
+    padding-left: 1%;
+  }
+  input[type="search"].form-control {
+    width: 60vh;
+    height: 3vh;
+  }
+  form {
+    display: inline-block;
+  }
+  .button-vscode {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    font-weight: bold;
+    border: 0px;
+    border-radius: 1%;
+    margin: 1%;
+    width: 15vh;
+    height: 3vh;
+    align-self: center;
+  }
+  .button-vscode:hover {
+    background: var(--vscode-button-hoverBackground);
+  }
 </style>

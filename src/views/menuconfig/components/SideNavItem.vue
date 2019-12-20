@@ -61,36 +61,38 @@ export default class SideNavItem extends Vue {
     this.setSelectedMenu(this.menu.id);
     const secNew: HTMLElement = document.querySelector("#" + this.menu.id);
     const configList = document.querySelector(".config-list");
-    const endPosition = secNew.offsetTop + configList.clientTop;
+    const topbar = document.querySelector("#topbar") as HTMLElement;
+    const endPosition = secNew.offsetTop + configList.clientTop - topbar.getBoundingClientRect().bottom;
     configList.scrollTo({ left: 0, top: endPosition, behavior: "auto" });
   }
 }
 </script>
 
 <style scoped>
-    .info-icon {
-        color: var(--vscode-editor-foreground);
-        position: inherit;
-        width: 15px;
-        height: 15px;
-        margin-left: 5px;
-        top: 50%;
-    }
-    ul > li.selectedSection > div > p, ul > li.selectedSection > p {
-        font-weight: 900;
-    }
-    .submenu {
-        overflow: hidden;
-    }
-    .collapsed {
-        max-height: 0;
-    }
-    .menu-line {
-        display: flex;
-        align-items: center;
-        margin-bottom: -5%;
-    }
-    .menu-line p {
-        margin-left: 5%;
-    }
+  .info-icon {
+    color: var(--vscode-editor-foreground);
+    position: inherit;
+    width: 15px;
+    height: 15px;
+    margin-left: 5px;
+    top: 50%;
+  }
+  ul > li.selectedSection > div > p, ul > li.selectedSection > p {
+    font-weight: 900;
+  }
+  .collapsed {
+    max-height: 0;
+  }
+  .submenu {
+    overflow: hidden;
+  }
+  .menu-line {
+    display: flex;
+    align-items: center;
+  }
+  .menu-line p {
+    margin-left: 5%;
+    margin-top: 0%;
+    margin-bottom: 0.5%;
+  }
 </style>

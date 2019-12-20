@@ -116,10 +116,23 @@ export class ConfserverProcess {
         progress.report({ increment: 10, message: "Deleting current values..." });
         ConfserverProcess.instance.areValuesSaved = true;
         delConfigFile(ConfserverProcess.instance.workspaceFolder);
-        const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath",
-            ConfserverProcess.instance.workspaceFolder);
+        const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath");
         const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-        const getSdkconfigProcess = spawn("python", [idfPyPath, "-C",
+        process.env.IDF_PATH = guiconfigEspPath;
+        const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+        if (!process.env.PATH.includes(extraPaths)) {
+            process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
+        }
+        const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
+        if (customVars) {
+            for (const envVar in customVars) {
+                if (envVar) {
+                    process.env[envVar] = customVars[envVar];
+                }
+            }
+        }
+        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+        const getSdkconfigProcess = spawn(pythonBinPath, [idfPyPath, "-C",
             ConfserverProcess.instance.workspaceFolder.fsPath, "reconfigure"]);
 
         progress.report({ increment: 10, message: "Loading default values..." });
@@ -190,7 +203,8 @@ export class ConfserverProcess {
         this.workspaceFolder = workspaceFolder;
         this.extensionPath = extensionPath;
         this.emitter = new EventEmitter();
-        this.espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString();
+        this.espIdfPath = idfConf.readParameter("idf.espIdfPath").toString();
+        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
         this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
         if (this.confServerChannel === undefined) {
@@ -199,16 +213,29 @@ export class ConfserverProcess {
 
         // Replace with idf.customExtraPaths, without path appending bin, when Onboarding (!59) is merged
         const xtensaEsp32Path = path.join(
-            idfConf.readParameter("idf.xtensaEsp32Path", this.workspaceFolder).toString(),
+            idfConf.readParameter("idf.xtensaEsp32Path").toString(),
             "bin");
         if (!process.env.PATH.includes(xtensaEsp32Path)) {
             process.env.PATH = xtensaEsp32Path + path.delimiter + process.env.PATH;
         }
-        process.env.IDF_TARGET = "";
+        process.env.IDF_TARGET = "esp32";
         process.env.PYTHONUNBUFFERED = "0";
 
         const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
-        this.confServerProcess = spawn("python", [idfPath, "-C", workspaceFolder.fsPath, "confserver"]);
+        process.env.IDF_PATH = this.espIdfPath;
+        const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+        if (!process.env.PATH.includes(extraPaths)) {
+            process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
+        }
+        const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
+        if (customVars) {
+            for (const envVar in customVars) {
+                if (envVar) {
+                    process.env[envVar] = customVars[envVar];
+                }
+            }
+        }
+        this.confServerProcess = spawn(pythonBinPath, [idfPath, "-C", workspaceFolder.fsPath, "confserver"]);
         ConfserverProcess.progress.report({ increment: 30, message: "Configuring server" });
         this.setupConfigServer();
         this.jsonListener = this.initMenuConfigPanel;

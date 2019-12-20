@@ -62,6 +62,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to
 
 | Command Description | Keyboard Shortcuts (Mac) | Keyboard Shortcuts (Windows/ Linux) |
 | --- | --- | --- |
+| Configure ESP-IDF extension |
 | Create ESP-IDF project | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> | 
 | Configure Paths |||
 | Device configuration |||
@@ -76,6 +77,11 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to
 | Clean current project |||
 | Erase device flash |||
 | Size analysis of the binaries |<kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd>| <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
+| Show ESP-IDF Examples Projects |
+
+## ESP-IDF Onboarding
+
+Please take a look at [ONBOARDING](./docs/ONBOARDING.md) for more detail.
 
 ## ESP-IDF Settings
 
@@ -143,8 +149,6 @@ Projects folders and workspace level settings are defined in the `.code-workspac
 		}
 	],
 	"settings": {
-		"idf.xtensaEsp32Path": "${env:HOME}/esp/xtensa-esp32-elf",
-		"idf.openOcdBin": "${env:HOME}/esp/openocd-esp32/bin/openocd",
 		"idf.port": "/dev/ttyUSB1",
 		"idf.projectName": "hello-world",
 		"idf.espIdfPath": "${env:HOME}/esp/esp-idf"

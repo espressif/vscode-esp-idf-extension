@@ -19,34 +19,34 @@ import { Logger } from "./logger/logger";
 const locDic = new LocDictionary(__filename);
 
 const platformDepConfigurations: string[] = [
-    "espIdfPath",
-    "xtensaEsp32Path",
-    "openOcdBin",
-    "openOcdScriptsPath",
-    "port",
-    "deviceInterface",
-    "board",
+    "idf.espIdfPath",
+    "idf.pythonBinPath",
+    "idf.pythonSystemBinPath",
+    "idf.port",
+    "idf.deviceInterface",
+    "idf.board",
+    "idf.toolsPath",
 ];
 
 export function addWinIfRequired(param: string) {
     const winFlag = process.platform === "win32" ? "Win" : "";
 
     for (const platDepConf of platformDepConfigurations) {
-        if (param.indexOf(platDepConf) > 0) {
+        if (param.indexOf(platDepConf) >= 0) {
             return param + winFlag;
         }
     }
     return param;
 }
 
-export function readParameter(param: string, workspaceUri: vscode.Uri) {
+export function readParameter(param: string) {
     const paramUpdated = addWinIfRequired(param);
-    const paramValue = vscode.workspace.getConfiguration("", workspaceUri).get(paramUpdated);
+    const paramValue = vscode.workspace.getConfiguration("").get(paramUpdated);
     if (paramValue === undefined) {
         return "";
     }
     const paramValueString = paramValue.toString();
-    return resolveVariables(paramValueString, workspaceUri);
+    return resolveVariables(paramValueString);
 }
 
 export function writeParameter(param: string, newValue: string) {
@@ -71,13 +71,13 @@ export function updateConfParameter(confParamName, confParamDescription,
     });
 }
 
-export function resolveVariables(configPath: string, workspaceUri: vscode.Uri) {
+export function resolveVariables(configPath: string) {
     const regexp = /\$\{(.*?)\}/g; // Find ${anything}
     return configPath.replace(regexp, (match: string, name: string) => {
         if (match.indexOf("config:") > 0) {
             const configVar = name.substring(name.indexOf("config:") + "config:".length);
-            const configVarValue = readParameter(configVar, workspaceUri);
-            return resolveVariables(configVarValue, workspaceUri);
+            const configVarValue = readParameter(configVar);
+            return resolveVariables(configVarValue);
         }
         if (match.indexOf("env:") > 0) {
             const envVariable = name.substring(name.indexOf("env:") + "env:".length);

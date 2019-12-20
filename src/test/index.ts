@@ -15,14 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as ju from "mocha-junit-reporter";
+import * as path from "path";
 import * as testRunner from "vscode/lib/testrunner";
 
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
+
 testRunner.configure({
+    reporter: ju,
+    reporterOptions: {
+        mochaFile: path.join(__dirname,  "..", "..", "results", "test-results.xml"),
+        toConsole: true,
+    },
     ui: "tdd", 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
     useColors: true, // colored output from test results
+    useInlineDiffs: true,
+    // grep: '3', // for test names to execute
 });
 
 module.exports = testRunner;
