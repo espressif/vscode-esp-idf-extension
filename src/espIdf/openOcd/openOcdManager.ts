@@ -19,6 +19,7 @@
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import { lstatSync } from "fs";
+import { delimiter } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -120,6 +121,20 @@ export class OpenOCDManager extends EventEmitter {
             throw new Error("Invalid OpenOCD bin path, provide the path till the executable");
         }
         const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
+        if (vscode.workspace.workspaceFolders) {
+            const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+            if (!process.env.PATH.includes(extraPaths)) {
+                process.env.PATH = extraPaths + delimiter + process.env.PATH;
+            }
+            const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
+            if (customVars) {
+                for (const envVar in customVars) {
+                    if (envVar) {
+                        process.env[envVar] = customVars[envVar];
+                    }
+                }
+            }
+        }
         this.server = spawn(this.binPath, [
             "-s", this.scriptPath,
             "-f", this.deviceInterface,
@@ -183,13 +198,10 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     private configureServerWithDefaultParam() {
-        const emptyURI: vscode.Uri = undefined;
-        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
-
-        this.binPath = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
-        this.scriptPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
-        this.deviceInterface = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
-        this.board = idfConf.readParameter("idf.board", workspaceRoot);
+        this.binPath = idfConf.readParameter("idf.openOcdBin");
+        this.scriptPath = idfConf.readParameter("idf.openOcdScriptsPath");
+        this.deviceInterface = idfConf.readParameter("idf.deviceInterface");
+        this.board = idfConf.readParameter("idf.board");
     }
 
     private sendToOutputChannel(data: Buffer) {

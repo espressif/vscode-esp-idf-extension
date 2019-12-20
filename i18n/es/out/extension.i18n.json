@@ -17,14 +17,11 @@
     "extension.waitProcessIsFinishedMessage": "Espere que termine el proceso ESP-IDF",
     "extension.elfNotFoundMessage": "No se ha encontrado el archivo ELF de su proyecto.",
     "extension.gdbNotFoundMessage": "La ruta de GDB es incorrecta.",
-    "extension.openocdBinNotFoundMessage": "La ruta de binarios de OpenOCD es incorrecta.",
-    "extension.openocdScriptsNotFoundMessage": "La ruta de Scripts de OpenOCD es incorrecta",
     "extension.enterIdfPathMessage": "Introduzca la ruta IDF_PATH:",
-    "extension.enterToolchainPathMessage": "Introduzca la ruta Toolchain",
-    "extension.enterOpenOcdBinariesPathMessage": "Introduzca la ruta de binarios de OpenOCD",
-    "extension.enterOpenOcdScriptsPathMessage": "Introduzca la ruta de Scripts de OpenOCD",
+    "extension.enterIdfToolsPathMessage": "Introduzca la ruta IDF_TOOLS_PATH",
     "extension.enterDevicePortMessage": "Introduzca la ruta del puerto serial ESP-IDF",
     "extension.enterDeviceBaudRateMessage": "Introduzca la tasa de baudios",
     "extension.enterDeviceInterfaceMessage": "Introduzca la ruta de interfaz de OpenOCD",
-    "extension.enterDeviceBoardMessage": "Introduzca la ruta de la tarjeta de OpenOCD"
+    "extension.enterDeviceBoardMessage": "Introduzca la ruta de la tarjeta de OpenOCD",
+    "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH"
 }

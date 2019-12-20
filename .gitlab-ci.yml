@@ -2,6 +2,7 @@ stages:
   - lint
   - test
   - build
+  - extension_tests
   - deploy
 
 cache:
@@ -13,6 +14,13 @@ before_script:
   - unset HTTP_PROXY
   - unset ALL_PROXY
   - npm install
+  # ssh key
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo -n $GITLAB_KEY > ~/.ssh/id_rsa_base64
+  - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
 copyright_lint_test:
   image: electronuserland/builder:11
@@ -113,3 +121,32 @@ deploy_github:
     - git remote add github git@github.com:espressif/${VSCODE_ESP_IDF_REPO}.git
     - cd ci && ./push_to_github.sh
   when: manual
+
+tests_extension_units:
+  image: $CI_DOCKER_REGISTRY/ubuntu-vscode:1-f5756a91
+  stage: extension_tests
+  tags:
+    - brno_build
+  artifacts:
+    paths:
+    - "*.log"
+    reports:
+      junit:
+        - results/*
+    when: always
+    expire_in: 1 week
+  script:
+    - rm /tmp/.X99-lock
+    - Xvfb :99 & sleep 2
+
+    - xdpyinfo -display :99
+    - export DISPLAY=":99"
+
+    - cd /builds/idf/vscode-plugin
+
+    - sudo apt-get update
+    - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q python-pip net-tools
+    - npm run compile --loglevel verbose
+    - chmod -R 777 ./node_modules/vscode/bin
+    - export CODE_TESTS_PATH="/builds/idf/vscode-plugin/out/test" & sleep 5
+    - /builds/idf/vscode-plugin/node_modules/vscode/bin/test --user-data-dir='./.Code' --VERBOSE >> testing.results.log

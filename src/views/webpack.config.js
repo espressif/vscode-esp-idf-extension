@@ -6,8 +6,10 @@ const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
     entry: {
+        examples: './examples/main.ts',
         espSize: "./espSize.ts",
         espTrace: './espTrace.ts',
+        onboarding: './onboarding/main.ts',
         menuconfig: "./menuconfig/main.ts",
     },
     output: {

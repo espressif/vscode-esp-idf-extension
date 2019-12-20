@@ -47,7 +47,7 @@ export class LogTraceProc {
     }
 
     private appTraceToolsPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         return join(idfPathDir, "tools", "esp_app_trace");
     }
 }

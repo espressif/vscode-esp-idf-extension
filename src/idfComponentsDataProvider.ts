@@ -28,16 +28,13 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
     public readonly onDidChangeTreeData: vscode.Event<IdfComponent | undefined> = this.OnDidChangeTreeData.event;
 
     private projectDescriptionJsonPath: string;
-    private currentWorkspaceUri: vscode.Uri;
 
-    constructor(projectDescriptionPath: string, workspace: vscode.Uri) {
+    constructor(projectDescriptionPath: string) {
         this.projectDescriptionJsonPath = projectDescriptionPath;
-        this.currentWorkspaceUri = workspace;
     }
 
-    public refresh(projectDescriptionPath: string, workspace: vscode.Uri): void {
+    public refresh(projectDescriptionPath: string): void {
         this.projectDescriptionJsonPath = projectDescriptionPath;
-        this.currentWorkspaceUri = workspace;
         this.OnDidChangeTreeData.fire();
     }
 
@@ -73,10 +70,13 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
             const userComponentsList: IdfComponent[] = [];
             const projDescJson = JSON.parse(utils.readFileSync(this.projectDescriptionJsonPath));
 
-            const defaultComponentsDir = idfConf.readParameter("idf.espIdfPath", this.currentWorkspaceUri);
+            const defaultComponentsDir = idfConf.readParameter("idf.espIdfPath");
 
             if (Object.prototype.hasOwnProperty.call(projDescJson, "build_component_paths")) {
                 for (let i = 0; i < projDescJson.build_component_paths.length; i++) {
+                    if (projDescJson.build_component_paths[i] === "") {
+                        continue;
+                    }
                     const element: IdfComponent = new IdfComponent(
                         projDescJson.build_components[i],
                         vscode.TreeItemCollapsibleState.Collapsed,
