@@ -207,7 +207,7 @@ export class ConfserverProcess {
         const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
         this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
-        if (this.confServerChannel === undefined) {
+        if (typeof this.confServerChannel === "undefined") {
             this.confServerChannel = vscode.window.createOutputChannel("ESP-IDF GUI Menuconfig");
         }
 

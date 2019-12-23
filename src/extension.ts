@@ -140,7 +140,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 "Select your current folder");
             vscode.window.showWorkspaceFolderPick({ placeHolder: selectCurrentFolderMsg })
                 .then((option) => {
-                    if (option === undefined) {
+                    if (typeof option === "undefined") {
                         const noFolderMsg = locDic.localize("extension.noFolderMessage",
                             "No workspace selected.");
                         Logger.infoNotify(noFolderMsg);
@@ -174,7 +174,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 ],
                 { placeHolder: selectFrameworkMsg },
             ).then((option) => {
-                if (option === undefined) {
+                if (typeof option === "undefined") {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
                     Logger.infoNotify(noOptionMsg);
@@ -236,7 +236,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 ],
                 { placeHolder: selectConfigMsg },
             ).then((option) => {
-                if (option === undefined) {
+                if (typeof option === "undefined") {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
                     Logger.infoNotify(noOptionMsg);
@@ -503,7 +503,7 @@ function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false
             idfPathDir,
             "tools", "idf.py");
 
-        if (monitorTerminal !== undefined) {
+        if (monitorTerminal) {
             monitorTerminal.dispose();
             setTimeout(() => {
                 monitorTerminal = undefined;
@@ -532,7 +532,7 @@ function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false
         process.env.IDF_PATH = idfPathDir;
 
         const args = [].concat(idfPath, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath, target);
-        if (mainProcess === undefined) {
+        if (typeof mainProcess === "undefined") {
             mainProcess = spawn(
                 pythonBinPath,
                 args,
@@ -573,7 +573,7 @@ function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false
 
 function createMonitor(): any {
     PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-        if (mainProcess !== undefined) {
+        if (mainProcess) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
@@ -598,7 +598,7 @@ function createMonitor(): any {
                 }
             }
         }
-        if (monitorTerminal === undefined) {
+        if (typeof monitorTerminal === "undefined") {
             monitorTerminal = vscode.window.createTerminal({ name: "IDF Monitor", env: process.env,
                 cwd: workspaceRoot.fsPath });
         }
@@ -609,10 +609,10 @@ function createMonitor(): any {
 }
 
 export function deactivate() {
-    if (mainProcess !== undefined) {
+    if (mainProcess) {
         mainProcess.disconnect();
     }
-    if (monitorTerminal !== undefined) {
+    if (monitorTerminal) {
         monitorTerminal.dispose();
     }
     OutputChannel.end();

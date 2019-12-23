@@ -42,7 +42,7 @@ export function addWinIfRequired(param: string) {
 export function readParameter(param: string) {
     const paramUpdated = addWinIfRequired(param);
     const paramValue = vscode.workspace.getConfiguration("").get(paramUpdated);
-    if (paramValue === undefined) {
+    if (typeof paramValue === "undefined") {
         return "";
     }
     const paramValueString = paramValue.toString();
@@ -59,7 +59,7 @@ export function updateConfParameter(confParamName, confParamDescription,
                                     currentValue, label) {
     vscode.window.showInputBox({ placeHolder: confParamDescription, value: currentValue}).then((newValue) => {
         return new Promise((resolve, reject) => {
-            if (newValue !== undefined || newValue !== "") {
+            if (newValue || newValue !== "") {
                     writeParameter(confParamName, newValue);
                     const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
                     Logger.infoNotify(label + updateMessage);
