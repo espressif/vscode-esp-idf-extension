@@ -83,7 +83,8 @@ export class IDFSize {
     private async idfCommandInvoker(args: string[]) {
         const idfPath = this.idfPath();
         try {
-            const buffOut = await spawn("python", args, {
+            const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+            const buffOut = await spawn(pythonBinPath, args, {
                 cwd: idfPath,
             });
             const buffStr = buffOut.toString();

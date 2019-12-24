@@ -12,8 +12,6 @@
 	"espIdf.examples.title": "ESP-IDF: Show ESP-IDF Examples Projects",
 	"espIdf.buildFlashMonitor.title": "ESP-IDF: Build, Flash and start a monitor on your device",
 	"espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Pick a workspace folder",
-	"espIdf.cleanProject.title": "ESP-IDF: Clean current project",
-	"espIdf.eraseFlash.title": "ESP-IDF: Erase device flash",
 	"espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
 	"espIdf.apptrace.title": "ESP-IDF: App Trace",
 	"espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",

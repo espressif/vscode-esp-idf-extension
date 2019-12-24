@@ -30,6 +30,7 @@ export function initSelectedWorkspace(status: vscode.StatusBarItem) {
         clickCommand: "espIdf.pickAWorkspaceFolder",
         currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
         tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
+        text: "${file-directory}",
     };
     utils.updateStatus(status, workspaceFolderInfo);
     return workspaceRoot;
@@ -37,7 +38,7 @@ export function initSelectedWorkspace(status: vscode.StatusBarItem) {
 
 let idfDataProvider: IdfTreeDataProvider;
 export function updateIdfComponentsTree(projectDescriptionPath: string) {
-    if (idfDataProvider == null) {
+    if (typeof idfDataProvider === "undefined") {
         idfDataProvider = new IdfTreeDataProvider(projectDescriptionPath);
         vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
     }

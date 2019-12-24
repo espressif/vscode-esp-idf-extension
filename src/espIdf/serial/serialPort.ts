@@ -73,7 +73,8 @@ export class SerialPort {
     private list(): Thenable<SerialPortDetails[]> {
         return new Promise(async (resolve, reject) => {
             try {
-                const buff = await spawn("python", ["get_serial_list.py"]);
+                const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+                const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
                 const regexp = /\'(.*?)\'/g;
                 const arrayPrint = buff.toString().match(regexp);
                 const choices: SerialPortDetails[] = Array<SerialPortDetails>();
