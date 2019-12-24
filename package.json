@@ -351,14 +351,6 @@
         "title": "%espIdf.pickAWorkspaceFolder.title%"
       },
       {
-        "command": "espIdf.cleanProject",
-        "title": "%espIdf.cleanProject.title%"
-      },
-      {
-        "command": "espIdf.eraseFlash",
-        "title": "%espIdf.eraseFlash.title%"
-      },
-      {
         "command": "espIdf.size",
         "title": "%espIdf.size.title%"
       },
@@ -569,6 +561,7 @@
     "marked": "^0.7.0",
     "mkdirp": "^0.5.1",
     "tar-fs": "^2.0.0",
+    "tree-kill": "^1.2.2",
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugprotocol": "^1.33.0",
     "vscode-languageclient": "^5.2.1",

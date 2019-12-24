@@ -18,12 +18,10 @@
 
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
-import { lstatSync } from "fs";
-import { delimiter } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { canAccessFile, fileExists } from "../../utils";
+import { appendIdfAndToolsToPath, isBinInPath } from "../../utils";
 
 export interface IOpenOCDConfig {
     binPath: string;
@@ -41,8 +39,6 @@ export class OpenOCDManager extends EventEmitter {
     }
     private static instance: OpenOCDManager;
 
-    private binPath: string;
-    private scriptPath: string;
     private deviceInterface: string;
     private board: string;
     private server: ChildProcess;
@@ -96,8 +92,6 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     public configureServer(config: IOpenOCDConfig) {
-        this.binPath = config.binPath;
-        this.scriptPath = config.scriptPath;
         this.deviceInterface = config.deviceInterface;
         this.board = config.board;
     }
@@ -110,33 +104,16 @@ export class OpenOCDManager extends EventEmitter {
         if (this.isRunning()) {
             return;
         }
-        if (!canAccessFile(this.binPath)) {
+        appendIdfAndToolsToPath();
+        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
+        if (!isBinInPath("openocd", workspace)) {
             throw new Error("Invalid OpenOCD bin path or access is denied for the user");
         }
-        if (!canAccessFile(this.scriptPath)) {
+        if (typeof process.env.OPENOCD_SCRIPTS === "undefined") {
             throw new Error("Invalid OpenOCD script path or access is denied for the user");
         }
-        const stats = lstatSync(this.binPath);
-        if (!stats.isFile()) {
-            throw new Error("Invalid OpenOCD bin path, provide the path till the executable");
-        }
-        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
-        if (vscode.workspace.workspaceFolders) {
-            const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-            if (!process.env.PATH.includes(extraPaths)) {
-                process.env.PATH = extraPaths + delimiter + process.env.PATH;
-            }
-            const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
-            if (customVars) {
-                for (const envVar in customVars) {
-                    if (envVar) {
-                        process.env[envVar] = customVars[envVar];
-                    }
-                }
-            }
-        }
-        this.server = spawn(this.binPath, [
-            "-s", this.scriptPath,
+
+        this.server = spawn("openocd", [
             "-f", this.deviceInterface,
             "-f", this.board,
         ], {
@@ -198,8 +175,6 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     private configureServerWithDefaultParam() {
-        this.binPath = idfConf.readParameter("idf.openOcdBin");
-        this.scriptPath = idfConf.readParameter("idf.openOcdScriptsPath");
         this.deviceInterface = idfConf.readParameter("idf.deviceInterface");
         this.board = idfConf.readParameter("idf.board");
     }

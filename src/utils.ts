@@ -72,10 +72,11 @@ export function spawn(command: string, args: string[] = [], options: any = {}): 
     });
 }
 
-export function canAccessFile(filePath: string): boolean {
+export function canAccessFile(filePath: string, mode?: number): boolean {
     try {
         // tslint:disable-next-line: no-bitwise
-        fs.accessSync(filePath, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+        mode = mode || fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK;
+        fs.accessSync(filePath, mode);
         return true;
     } catch (error) {
         Logger.error(`Cannot access filePath: ${filePath}`, error);
@@ -160,43 +161,6 @@ export function getDirectories(dirPath) {
     });
   }
 
-export function createSkeleton1(curWorkspaceFsPath: string, chosenTemplateDir: string) {
-        const templateDirToUse = path.join(templateDir, chosenTemplateDir);
-        createVscodeFolder(curWorkspaceFsPath);
-        const dirs = getDirectories(templateDirToUse);
-
-        dirs.forEach((dir) => {
-            const curDir = path.join(curWorkspaceFsPath, dir);
-            const curTemplateDir = path.join(templateDirToUse, dir);
-            fs.mkdir(curDir, (err) => {
-                if (err && err.code !== "EEXIST") {
-                    Logger.errorNotify(err.message, err);
-                }
-            });
-            fs.readdir(curTemplateDir, (err, files) => {
-                if (err) {
-                    Logger.errorNotify(err.message, err);
-                    return;
-                }
-                files.forEach((file) => {
-                    copyTarget(path.join(curTemplateDir, file), path.join(curDir, file));
-                });
-            });
-        });
-
-        fs.readdir(templateDirToUse, (error, files) => {
-            if (error) {
-                Logger.errorNotify(error.message, error);
-                return;
-            }
-            files.forEach((file) => {
-                if (dirs.indexOf(file) === -1) {
-                    copyTarget(path.join(templateDirToUse, file), path.join(curWorkspaceFsPath, file));
-                }
-            });
-        });
-}
-
 export function createSkeleton(curWorkspacePath: string, chosenTemplateDir: string) {
     const templateDirToUse = path.join(templateDir, chosenTemplateDir);
     copyFromSrcProject(templateDirToUse, curWorkspacePath);
@@ -240,11 +204,6 @@ export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
 
 export function delConfigFile(workspaceRoot) {
     const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
-    fs.unlinkSync(sdkconfigFile);
-}
-
-export function delTmpConfigFile(givenPath) {
-    const sdkconfigFile = path.join(givenPath, "sdkconfig.tmp");
     fs.unlinkSync(sdkconfigFile);
 }
 
@@ -595,5 +554,45 @@ export function validateFileSizeAndChecksum(filePath: string, expectedHash: stri
                 reject(false);
             }
         });
+    });
+}
+
+export function appendIdfAndToolsToPath() {
+    const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+    if (!process.env.PATH.includes(extraPaths)) {
+        process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
+    }
+
+    const customVars = idfConf.readParameter("idf.customExtraVars") as string;
+    if (customVars) {
+        try {
+            for (const envVar in JSON.parse(customVars)) {
+                if (envVar) {
+                    process.env[envVar] = customVars[envVar];
+                }
+            }
+        } catch (error) {
+            Logger.errorNotify("Invalid custom environment variables format", error);
+        }
+    }
+
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    process.env.IDF_PATH = idfPathDir;
+
+    return process.env;
+}
+
+export async function isBinInPath(binaryName: string, workDirectory: string) {
+    const cmd = process.platform === "win32" ? "where" : "which";
+    return await spawn(cmd, [ binaryName], { workDirectory }).then((result) => {
+        if (result.toString() === "" || result.toString().indexOf("Could not find files") < 0) {
+            return binaryName.localeCompare(result.toString().trim()) === 0 ? "" : result.toString().trim();
+        }
+        return "";
+    }).catch((err) => {
+        if (err) {
+            Logger.error(`Cannot access filePath: ${binaryName}`, err);
+        }
+        return "";
     });
 }

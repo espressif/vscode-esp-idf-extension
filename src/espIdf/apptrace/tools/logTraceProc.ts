@@ -21,7 +21,7 @@ import * as vscode from "vscode";
 
 import { join } from "path";
 import * as idfConf from "../../../idfConfiguration";
-import { spawn } from "../../../utils";
+import { appendIdfAndToolsToPath, spawn } from "../../../utils";
 
 export class LogTraceProc {
     private readonly traceFilePath: string;
@@ -41,8 +41,11 @@ export class LogTraceProc {
         if (!existsSync(this.traceFilePath)) {
             throw new Error(`Trace file doesn't exists, ${this.traceFilePath}`);
         }
-        return await spawn("python", ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
+        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+        appendIdfAndToolsToPath();
+        return await spawn(pythonBinPath, ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
             cwd: this.appTraceToolsPath(),
+            env: process.env,
         });
     }
 

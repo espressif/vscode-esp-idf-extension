@@ -22,7 +22,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { delConfigFile, isStringNotEmpty } from "../../utils";
+import { appendIdfAndToolsToPath, delConfigFile, isStringNotEmpty } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
@@ -118,19 +118,7 @@ export class ConfserverProcess {
         delConfigFile(ConfserverProcess.instance.workspaceFolder);
         const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath");
         const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-        process.env.IDF_PATH = guiconfigEspPath;
-        const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-        if (!process.env.PATH.includes(extraPaths)) {
-            process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
-        }
-        const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
-        if (customVars) {
-            for (const envVar in customVars) {
-                if (envVar) {
-                    process.env[envVar] = customVars[envVar];
-                }
-            }
-        }
+        appendIdfAndToolsToPath();
         const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
         const getSdkconfigProcess = spawn(pythonBinPath, [idfPyPath, "-C",
             ConfserverProcess.instance.workspaceFolder.fsPath, "reconfigure"]);
@@ -210,31 +198,11 @@ export class ConfserverProcess {
         if (typeof this.confServerChannel === "undefined") {
             this.confServerChannel = vscode.window.createOutputChannel("ESP-IDF GUI Menuconfig");
         }
-
-        // Replace with idf.customExtraPaths, without path appending bin, when Onboarding (!59) is merged
-        const xtensaEsp32Path = path.join(
-            idfConf.readParameter("idf.xtensaEsp32Path").toString(),
-            "bin");
-        if (!process.env.PATH.includes(xtensaEsp32Path)) {
-            process.env.PATH = xtensaEsp32Path + path.delimiter + process.env.PATH;
-        }
         process.env.IDF_TARGET = "esp32";
         process.env.PYTHONUNBUFFERED = "0";
 
         const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
-        process.env.IDF_PATH = this.espIdfPath;
-        const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-        if (!process.env.PATH.includes(extraPaths)) {
-            process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
-        }
-        const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
-        if (customVars) {
-            for (const envVar in customVars) {
-                if (envVar) {
-                    process.env[envVar] = customVars[envVar];
-                }
-            }
-        }
+        appendIdfAndToolsToPath();
         this.confServerProcess = spawn(pythonBinPath, [idfPath, "-C", workspaceFolder.fsPath, "confserver"]);
         ConfserverProcess.progress.report({ increment: 30, message: "Configuring server" });
         this.setupConfigServer();
