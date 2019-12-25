@@ -17,21 +17,19 @@
  */
 
 import * as assert from "assert";
-import * as os from "os";
+import { before } from "mocha";
+
+// You can import and use all API from the 'vscode' module
+// as well as import your extension to test it
 import * as vscode from "vscode";
-import { PlatformInformation } from "../PlatformInformation";
-import * as utils from "../utils";
 
-suite("PlatformInformation Tests", () => {
+suite("Extension Test Suite", () => {
+    before(() => {
+        vscode.window.showInformationMessage("Start all tests.");
+    });
 
-    test("Get platform info", () => {
-        const mockUpContext = {
-            extensionPath : __dirname,
-         } as vscode.ExtensionContext;
-        utils.setExtensionContext(mockUpContext); // Need a path to execute a child process to get info
-        return PlatformInformation.GetPlatformInformation().then((actual) => {
-            assert.equal(actual.platform, os.platform());
-            assert.equal(actual.architecture, "x86_64");
-        });
+    test("Sample test", () => {
+        assert.equal(-1, [1, 2, 3].indexOf(5));
+        assert.equal(-1, [1, 2, 3].indexOf(0));
     });
 });

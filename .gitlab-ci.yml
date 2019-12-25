@@ -23,44 +23,54 @@ before_script:
   - echo -e "Host gitlab.espressif.cn\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
 copyright_lint_test:
-  image: electronuserland/builder:11
+  image: $CI_DOCKER_REGISTRY/python-static-code-analysis
   stage: lint
-  tags:
-    - lint_brno
+  tags: [ "build", "internet", "amd64" ]
   before_script:
     - echo "Skipping before_script"
   script:
     - cd ci && python copyright_header_checker.py -d ../src ../menuconfig -x ../menuconfig/js/lib ../src/views ../src/views/menuconfig  -e js ts py
 
 typescript_lint_test:
-  image: electronuserland/builder:11
+  image: node:slim
   stage: lint
-  tags:
-    - lint_brno
+  tags: [ "build", "internet", "amd64" ]
+  artifacts:
+    when: on_failure
+    paths:
+      - /root/.npm/_logs/*.log
+    expire_in: 1 week
   script:
     - npm run tslint
 
 javascript_lint_test:
-  image: electronuserland/builder:11
+  image: node:slim
   stage: lint
-  tags:
-    - lint_brno
+  tags: [ "build", "internet", "amd64" ]
+  artifacts:
+    when: on_failure
+    paths:
+      - /root/.npm/_logs/*.log
+    expire_in: 1 week
   script:
     - npm run eslint
 
 npm_vulnerabilities_test:
-  image: electronuserland/builder:11
+  image: node:slim
   stage: lint
-  tags:
-    - brno_build
+  tags: [ "build", "internet", "amd64" ]
+  artifacts:
+    when: on_failure
+    paths:
+      - /root/.npm/_logs/*.log
+    expire_in: 1 week
   script:
     - npm audit --registry=https://registry.npmjs.org
 
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
   stage: lint
-  tags:
-    - lint_brno
+  tags: [ "build", "internet", "amd64" ]
   artifacts:
     when: on_failure
     paths:
@@ -76,10 +86,9 @@ python_lint_test:
     - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee
 
 build_tar:
-  image: electronuserland/builder:11
+  image: node:slim
   stage: build
-  tags:
-    - brno_build
+  tags: [ "build", "internet", "amd64" ]
   artifacts:
     paths:
       - espressif-esp-idf-extension-*.tar.gz
@@ -93,11 +102,12 @@ build_tar:
 build_vsix:
   image: electronuserland/builder:11
   stage: build
-  tags:
-    - brno_build
+  tags: [ "build", "internet", "amd64" ]
   artifacts:
     paths:
       - esp-idf-extension-*.vsix
+      - /root/.npm/_logs/*.log
+    expire_in: 1 week
   script:
     - npm add vsce
     - npm add gulp
@@ -123,30 +133,18 @@ deploy_github:
   when: manual
 
 tests_extension_units:
-  image: $CI_DOCKER_REGISTRY/ubuntu-vscode:1-f5756a91
+  image: $CI_DOCKER_REGISTRY/ubuntu-vscode:1-d2303206
   stage: extension_tests
-  tags:
-    - brno_build
+  tags: [ "build", "internet", "amd64" ]
   artifacts:
     paths:
     - "*.log"
+    - /root/.npm/_logs/*.log
     reports:
       junit:
         - results/*
     when: always
     expire_in: 1 week
   script:
-    - rm /tmp/.X99-lock
     - Xvfb :99 & sleep 2
-
-    - xdpyinfo -display :99
-    - export DISPLAY=":99"
-
-    - cd /builds/idf/vscode-plugin
-
-    - sudo apt-get update
-    - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q python-pip net-tools
-    - npm run compile --loglevel verbose
-    - chmod -R 777 ./node_modules/vscode/bin
-    - export CODE_TESTS_PATH="/builds/idf/vscode-plugin/out/test" & sleep 5
-    - /builds/idf/vscode-plugin/node_modules/vscode/bin/test --user-data-dir='./.Code' --VERBOSE >> testing.results.log
+    - npm run test --VERBOSE >> testing.results.log
