@@ -15,23 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as ju from "mocha-junit-reporter";
+
 import * as path from "path";
-import * as testRunner from "vscode/lib/testrunner";
 
-// You can directly control Mocha options by uncommenting the following lines
-// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
+import { runTests } from "vscode-test";
 
-testRunner.configure({
-    reporter: ju,
-    reporterOptions: {
-        mochaFile: path.join(__dirname,  "..", "..", "results", "test-results.xml"),
-        toConsole: true,
-    },
-    ui: "tdd", 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    useColors: true, // colored output from test results
-    useInlineDiffs: true,
-    // grep: '3', // for test names to execute
-});
+async function main() {
+    try {
+        // The folder containing the Extension Manifest package.json
+        // Passed to `--extensionDevelopmentPath`
+        const extensionDevelopmentPath = path.resolve(__dirname, "../../");
 
-module.exports = testRunner;
+        // The path to test runner
+        // Passed to --extensionTestsPath
+        const extensionTestsPath = path.resolve(__dirname, "./suite/index");
+
+        // Download VS Code, unzip it and run the integration test
+        await runTests({ extensionDevelopmentPath, extensionTestsPath });
+    } catch (err) {
+        // tslint:disable-next-line: no-console
+        console.error("Failed to run tests");
+        process.exit(1);
+    }
+}
+
+main();

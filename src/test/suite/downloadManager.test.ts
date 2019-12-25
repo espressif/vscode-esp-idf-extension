@@ -21,14 +21,14 @@ import * as del from "del";
 import * as nock from "nock";
 import * as path from "path";
 import { ExtensionContext } from "vscode";
-import { DownloadManager } from "../downloadManager";
-import { IdfToolsManager } from "../idfToolsManager";
-import { InstallManager } from "../installManager";
-import { IPackage } from "../IPackage";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
-import { PlatformInformation } from "../PlatformInformation";
-import * as utils from "../utils";
+import { DownloadManager } from "../../downloadManager";
+import { IdfToolsManager } from "../../idfToolsManager";
+import { InstallManager } from "../../installManager";
+import { IPackage } from "../../IPackage";
+import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
+import { PlatformInformation } from "../../PlatformInformation";
+import * as utils from "../../utils";
 
 suite("Download Manager Tests", () => {
     // Common setup variables
@@ -86,7 +86,7 @@ suite("Download Manager Tests", () => {
     const output = OutputChannel.init();
     const platInfo: PlatformInformation = { architecture: "x86_64", platform: "darwin",
         platformToUse: "macos" } as PlatformInformation;
-    const mockInstallPath = path.join(__dirname, "../..", "testFiles");
+    const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
     const idfToolsManager = new IdfToolsManager(packageJsonMockUp, platInfo, output);
     const downloadManager = new DownloadManager(mockInstallPath);
     const installManager = new InstallManager(mockInstallPath);

@@ -19,10 +19,10 @@
 import * as assert from "assert";
 import * as path from "path";
 import { ExtensionContext } from "vscode";
-import { IdfToolsManager } from "../idfToolsManager";
-import { OutputChannel } from "../logger/outputChannel";
-import { PlatformInformation } from "../PlatformInformation";
-import * as utils from "../utils";
+import { IdfToolsManager } from "../../idfToolsManager";
+import { OutputChannel } from "../../logger/outputChannel";
+import { PlatformInformation } from "../../PlatformInformation";
+import * as utils from "../../utils";
 
 suite("IDF Tools Manager Tests", async () => {
     // Common setup variables
@@ -79,7 +79,7 @@ suite("IDF Tools Manager Tests", async () => {
         platformToUse: "macos" };
     const output = OutputChannel.init();
     const idfToolsManager = new IdfToolsManager(packageJsonMockUp, platInfo, output);
-    const mockInstallPath = path.join(__dirname, "../..", "testFiles");
+    const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
 
     test("Get Packages List", async () => {
         await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
