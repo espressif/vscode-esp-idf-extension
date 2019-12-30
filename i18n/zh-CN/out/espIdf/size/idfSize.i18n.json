@@ -1,8 +1,8 @@
 {
-    "idfSize.canceledError" : "Cannot proceed with size analysis on a canceled context",
-    "idfSize.buildFirstError": "Build is required for a size analysis, build your project first",
-    "idfSize.filesMsg": "Calculating File Sizes for all the archives",
-    "idfSize.archivesMsg": "Gathering Archive List",
-    "idfSize.overviewMsg": "Gathering Overview",
-    "idfSize.commandError": "Error encountered while calling idf_size.py"
+    "idfSize.canceledError" : "无法对取消的上下文进行大小分析",
+    "idfSize.buildFirstError": "大小分析需要生成，请先生成项目",
+    "idfSize.filesMsg": "计算所有存档的文件大小",
+    "idfSize.archivesMsg": "正在收集存档列表",
+    "idfSize.overviewMsg": "收集概述",
+    "idfSize.commandError": "调用idf_size.py时遇到错误"
 }

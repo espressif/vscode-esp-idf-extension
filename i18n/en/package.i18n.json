@@ -28,7 +28,6 @@
 	"param.toolsPath": "Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)",
 	"param.exportPaths": "Paths to be appended to PATH",
 	"param.exportVars": "Variables to be added to system environment variables",
-	"param.xtensaEsp32Path": "Toolchain Path to locate xtensa-esp32-elf-gcc",
 	"param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
 	"param.showOnboardingOnInit": "Show ESP-IDF Configuration window",
 	"view.components.name": "Project Components",

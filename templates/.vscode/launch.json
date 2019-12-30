@@ -9,10 +9,9 @@
             "type": "cppdbg",
             "request": "launch",
             "MIMode": "gdb",
-            "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
+            "miDebuggerPath": "xtensa-esp32-elf-gdb",
             "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
             "windows": {
-                "miDebuggerPath": "${config:idf.xtensaEsp32PathWin}\\bin\\xtensa-esp32-elf-gdb.exe",
                 "program": "${workspaceFolder}\\build\\${config:idf.projectName}.elf",
             },
             "cwd": "${workspaceFolder}",

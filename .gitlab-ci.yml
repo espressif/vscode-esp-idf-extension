@@ -109,11 +109,16 @@ build_vsix:
       - /root/.npm/_logs/*.log
     expire_in: 1 week
   script:
+    - rm -rf node_modules
+    - npm config set script-shell /bin/bash
+    - npm install
     - npm add vsce
     - npm add gulp
     - ./node_modules/.bin/gulp build
     - VERSION_STR=${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}
-    - ./node_modules/.bin/vsce package -o esp-idf-extension-${VERSION_STR}.vsix
+    - npm run compile
+    - npm run webpack
+    - npm run package
 
 deploy_github:
   stage: deploy
