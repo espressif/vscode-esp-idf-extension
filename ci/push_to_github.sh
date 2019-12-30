@@ -5,9 +5,10 @@
 set -ex
 
 if [ -n "${CI_COMMIT_TAG}" ]; then
-    # for tags
+    echo "Pushing Tag: $CI_COMMIT_TAG"
     git push --force github "${CI_COMMIT_TAG}"
 else
-    # for branches
-    git push github "${CI_COMMIT_SHA}:refs/heads/${CI_COMMIT_REF_NAME}"
+    echo "For now only tag can be pushed to Github as a release"
+    exit 1
+    # git push github "${CI_COMMIT_SHA}:refs/heads/${CI_COMMIT_REF_NAME}"
 fi
