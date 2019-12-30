@@ -1,12 +1,12 @@
 {
-    "menuconfig.panelName": "IDF Menu Configuration",
-    "menuconfig.loadDefaultValues": "Loaded default settings in GUI menuconfig",
-    "menuconfig.saveValues": "Saved changes in GUI menuconfig",
-    "menuconfig.discardValues": "Discarded changes in GUI menuconfig",
-    "menuconfig.wrongIdfPath": "Wrong IDF_PATH in workspace settings. Would you like to set it?",
-    "menuconfig.enterIdfPath": "Enter IDF_PATH Path",
-    "menuconfig.changesNotSaved": "Changes in GUI Menuconfig have not been saved. Would you like to save them?",
-    "menuconfig.save": "Save",
-    "menuconfig.discard": "Don't save",
-    "menuconfig.returnGuiconfig": "Return to GUI Menuconfig"
+    "menuconfig.panelName": "ESP-IDF菜单配置",
+    "menuconfig.loadDefaultValues": "在GUI menuconfig中加载默认设置",
+    "menuconfig.saveValues": "在GUI menuconfig中保存的更改",
+    "menuconfig.discardValues": "在GUI menuconfig中丢弃的更改",
+    "menuconfig.wrongIdfPath": "设置中的IDF路径错误。你想设定它吗？",
+    "menuconfig.enterIdfPath": "输入IDF路径",
+    "menuconfig.changesNotSaved": "尚未保存对GUI Menuconfig的更改。你想救他们吗？",
+    "menuconfig.save": "保存",
+    "menuconfig.discard": "不保存",
+    "menuconfig.returnGuiconfig": "返回到GUI Menuconfig"
 }

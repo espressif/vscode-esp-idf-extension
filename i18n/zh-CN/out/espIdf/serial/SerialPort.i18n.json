@@ -1,6 +1,6 @@
 {
-    "serial.notSerialPortFoundMessage": "Could not find any serial port available",
-    "serial.portHasBeenSelectedMessage": "Port has been updated to ",
-    "serial.noPortSelectedMessage": "No port selected.",
-    "serial.selectSerialPortMessage":"Select the available serial port where your device is connected."
+    "serial.notSerialPortFoundMessage": "找不到任何可用的串行端口",
+    "serial.portHasBeenSelectedMessage": "端口已更新为",
+    "serial.noPortSelectedMessage": "未选择端口",
+    "serial.selectSerialPortMessage":"选择设备连接的可用串行端口."
 }
