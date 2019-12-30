@@ -1,5 +1,6 @@
 {
   "name": "esp-idf-extension",
+  "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
   "version": "0.1.0",
