@@ -27,10 +27,12 @@ There are a few dependencies which needs to be downloaded and installed before y
 ## Quick Installation Guide
 There are several ways to install this extension to your VSCode, easiest one is from VSCode Marketplace. However if you are looking to contribute to this project we suggest you to have install in [source mode](#Source-Mode)
 
-### Marketplace Installation
+### Marketplace Installation (Coming Soon 🔜)
 Launch VSCode Quick Open (<kbd>⌘</kbd>+<kbd>P</kbd> on Mac or <kbd>Ctrl</kbd>+<kbd>P</kbd> on Windows) and then paste the following command and press enter
 
 	ext install esp-idf-extension
+
+> We are working closely to release to the `vscode-marketplace` once its available we will release a new version and update here.
 
 ### Build from Source Code
 - Install [Node.js](https://nodejs.org/en/)
@@ -195,11 +197,6 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
 
-## Debugging
-
-Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths.
-
-When you start debug, a OpenOCD process start in the background, which create a OpenOCD Output log in Visual Studio Code lower panel.
 
 ## Kconfig files editor
 
@@ -207,7 +204,7 @@ When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide s
 
 ## Forum
 
-If you are lost at any point you can always ask question, help and suggestion in the [forum](https://spectrum.chat/espidf-vsc?tab=posts), apart from creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow their suggested channel of communications.
+If you are lost at any point you can always ask question, help and suggestion in the [forum](https://spectrum.chat/espidf-vsc?tab=posts), apart from creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow [their suggested channel](https://esp32.com) of communications.
 
 # Code of Conduct
 
