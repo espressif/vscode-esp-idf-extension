@@ -160,13 +160,13 @@
           },
           "idf.espIdfPathWin": {
             "type": "string",
-            "default": "${env:USERPROFILE}\\esp\\esp-idf",
+            "default": "${env:IDF_PATH}",
             "description": "%param.espIdfPath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
             "type": "string",
-            "default": "${env:USERPROFILE}\\espressif",
+            "default": "${env:USERPROFILE}\\.espressif",
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
