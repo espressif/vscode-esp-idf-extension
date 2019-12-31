@@ -27,12 +27,17 @@ There are a few dependencies which needs to be downloaded and installed before y
 ## Quick Installation Guide
 There are several ways to install this extension to your VSCode, easiest one is from VSCode Marketplace. However if you are looking to contribute to this project we suggest you to have install in [source mode](#Source-Mode)
 
-### Marketplace Installation (Coming Soon 🔜)
+### Marketplace Installation
+
+##### _[Link to the marketplace](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)_
+
 Launch VSCode Quick Open (<kbd>⌘</kbd>+<kbd>P</kbd> on Mac or <kbd>Ctrl</kbd>+<kbd>P</kbd> on Windows) and then paste the following command and press enter
 
 	ext install esp-idf-extension
 
-> We are working closely to release to the `vscode-marketplace` once its available we will release a new version and update here.
+
+### Install from `.vsix` file
+To install from `.vsix` file, first head to [releases page](https://github.com/espressif/vscode-esp-idf-extension/releases/) pick the latest release and download the `esp-idf-extension-VERSION.vsix` file and press <kbd>F1</kbd> and type `Install from VSIX` and then select the downloaded `.vsix` file.
 
 ### Build from Source Code
 - Install [Node.js](https://nodejs.org/en/)

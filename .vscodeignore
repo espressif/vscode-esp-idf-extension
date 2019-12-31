@@ -8,3 +8,7 @@ tsconfig.json
 menuconfig/js/test/**
 .github
 .cache
+docs
+ci
+.github
+.gitlab-ci.yml

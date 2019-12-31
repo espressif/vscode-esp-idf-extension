@@ -120,6 +120,23 @@ build_vsix:
     - npm run webpack
     - npm run package
 
+deploy_marketplace:
+  image: electronuserland/builder:11
+  stage: deploy
+  tags:
+    - deploy
+  before_script:
+    - echo "Skipping before_script"
+  script:
+    - rm -rf node_modules
+    - npm config set script-shell /bin/bash
+    - npm i
+    - npm i vsce -g
+    - npm run compile
+    - npm run webpack
+    - vsce publish -p ${VS_MARKETPLACE_TOKEN}
+  when: manual
+
 deploy_github:
   stage: deploy
   tags:
