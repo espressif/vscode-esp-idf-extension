@@ -43,7 +43,7 @@ For this configuration you need to build your project beforehand to generate a `
             "name": "Linux",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
