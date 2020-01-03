@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ESP8266 Forum
+    url: https://bbs.espressif.com/
+    about: For questions about ESP8266
+  - name: ESP32 Forum
+    url: https://esp32.com
+    about: For questions about ESP32
+  - name: ESP IDF VSCode Extension Forum
+    url: https://spectrum.chat/espidf-vsc?tab=posts
+    about: For questions about ESP-IDF VSCode Extensions
