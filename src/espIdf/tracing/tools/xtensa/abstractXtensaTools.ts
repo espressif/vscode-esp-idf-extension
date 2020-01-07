@@ -47,7 +47,7 @@ export abstract class XtensaTools {
     }
 
     private xtensaToolsBinPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.xtensaEsp32Path", this.workspaceRoot);
+        const idfPathDir = idfConf.readParameter("idf.xtensaEsp32Path");
         return join(idfPathDir, "bin");
     }
 }

@@ -26,8 +26,7 @@ const newLineRegex = /\n\n/g;
 
 export function formatRedText(htmlString) {
     // Replaces ``function-name`` with <span>function-name</span>
-    if (htmlString !== null && htmlString !== undefined
-        && htmlString.match(redTextRegex) !== null) {
+    if (htmlString && htmlString.match(redTextRegex) !== null) {
         let newHtmlString = htmlString;
         const matches = htmlString.match(redTextRegex);
         matches.forEach((match) => {
@@ -41,8 +40,7 @@ export function formatRedText(htmlString) {
 
 export function formatLinkText(htmlString) {
     // Replace links with <a href="link">link</a>
-    if (htmlString !== null && htmlString !== undefined
-      && htmlString.match(linkRegex) !== null) {
+    if (htmlString && htmlString.match(linkRegex) !== null) {
       let newHtmlString = htmlString;
       const linkMatches = htmlString.match(linkRegex);
       linkMatches.forEach((link) => {
@@ -56,10 +54,10 @@ export function formatLinkText(htmlString) {
 
 export function formatBulletPoint(htmlString) {
     // Middle of text list of bullet points case
-    if (htmlString !== null && htmlString !== undefined) {
+    if (htmlString) {
         let newHtmlString = htmlString;
         const middleMatch = htmlString.match(middleRegex);
-        if (middleMatch !== null && middleRegex.test(htmlString)
+        if (middleMatch && middleRegex.test(htmlString)
             && middleRegex.lastIndex !== htmlString.length
             && htmlString.lastIndexOf("\n-") < middleRegex.lastIndex) {
             const bulletPointMatches = htmlString.match(middleRegex);
@@ -76,8 +74,7 @@ export function formatBulletPoint(htmlString) {
 
 export function formatEndBulletPoint(htmlString) {
     // End of text list of bullet points case
-    if (htmlString !== null && htmlString !== undefined
-        && htmlString.indexOf(bulletPointStart) > 0
+    if (htmlString && htmlString.indexOf(bulletPointStart) > 0
         && (htmlString.match(middleTextBulletRegex) === null || middleTextBulletRegex.test(htmlString)
         && middleTextBulletRegex.lastIndex === htmlString.length )) {
             const newHtmlString = `${(htmlString.replace(bulletPointStart, "<ul><li>"))
@@ -88,7 +85,7 @@ export function formatEndBulletPoint(htmlString) {
 }
 
 export function formatNewLine(htmlString) {
-    if (htmlString !== null && htmlString !== undefined) {
+    if (htmlString) {
       return htmlString.replace(newLineRegex, "<br><br>");
     }
     return htmlString;

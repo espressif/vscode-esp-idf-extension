@@ -20,7 +20,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 
 import * as idfConf from "../../../idfConfiguration";
-import { canAccessFile, spawn } from "../../../utils";
+import { appendIdfAndToolsToPath, canAccessFile, spawn } from "../../../utils";
 
 export abstract class AbstractTracingToolManager {
     protected readonly traceFilePath: string;
@@ -34,11 +34,12 @@ export abstract class AbstractTracingToolManager {
     }
 
     protected async parseInternal(command: string, args?: string[], option?: any) {
+        appendIdfAndToolsToPath();
         return await spawn(command, args, option);
     }
 
     protected appTraceToolsPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         return join(idfPathDir, "tools", "esp_app_trace");
     }
 

@@ -13,11 +13,11 @@
 // limitations under the License.
 
 "use strict";
-import { ChildProcess, spawn } from "child_process";
-import * as fs from "fs";
+import { readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
+import { BuildManager } from "./build/build";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
 import { SerialPort } from "./espIdf/serial/serialPort";
@@ -28,19 +28,24 @@ import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
+import { ExamplesPlanel } from "./examples/ExamplesPanel";
+import { FlashManager } from "./flash/flash";
+import { createFlashModel } from "./flash/flashModelBuilder";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { OutputChannel } from "./logger/outputChannel";
+import { getOnboardingInitialValues } from "./onboarding/onboardingInit";
+import { OnBoardingPanel } from "./onboarding/OnboardingPanel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
+import { initSelectedWorkspace, updateIdfComponentsTree, updateProjectName } from "./workspaceConfig";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
+const statusBarItems: vscode.StatusBarItem[] = [];
 
-// OpenOCD Server Process and Output Channel
-let ocdServer: ChildProcess;
-let openOCDChannel: vscode.OutputChannel;
 const openOCDManager = OpenOCDManager.init();
 
 // App Tracing
@@ -53,18 +58,17 @@ let heapTraceManager: HeapTraceManager;
 let kconfigLangClient: LanguageClient;
 
 // Process to execute build, debug or monitor
-let idfDataProvider: IdfTreeDataProvider;
-let idfChannel: vscode.OutputChannel;
-let mainProcess: ChildProcess;
 let monitorTerminal: vscode.Terminal;
-let projDescPath: string;
-let sdkconfigFile: string;
 const locDic = new LocDictionary(__filename);
 
 const openFolderMsg = locDic.localize("extension.openFolderFirst", "Open a folder first.");
+const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
+const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+    utils.setExtensionContext(context);
     Logger.init(context);
+    OutputChannel.init();
 
     const registerIDFCommand =
         (name: string, callback: (...args: any[]) => any): number => {
@@ -73,23 +77,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create a status bar item with current workspace
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000000);
+    statusBarItems.push(status);
     context.subscriptions.push(status);
 
     // Status Bar Item with common commands
     creatCmdsStatusBarItems();
-
-    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-        workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-        projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-        sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
-        updateProjName();
-        const workspaceFolderInfo = {
-            clickCommand: "espIdf.pickAWorkspaceFolder",
-            currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
-            tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
-        };
-        utils.updateStatus(status, workspaceFolderInfo);
-    });
 
     // Create Kconfig Language Server Client
     startKconfigLangServer(context);
@@ -102,28 +94,31 @@ export function activate(context: vscode.ExtensionContext) {
     // register openOCD status bar item
     registerOpenOCDStatusBarItem(context);
 
+    if (vscode.workspace.workspaceFolders &&
+        vscode.workspace.workspaceFolders.length > 0) {
+            workspaceRoot = initSelectedWorkspace(status);
+    }
+
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
-        if (workspaceRoot == null && vscode.workspace.workspaceFolders.length > 0) {
-            workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-            projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-            sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
+        if (vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.length > 0) {
+            for (const ws of e.removed) {
+                if (workspaceRoot && ws.uri === workspaceRoot) {
+                    workspaceRoot = initSelectedWorkspace(status);
+                    break;
+                }
+            }
+            if (typeof workspaceRoot === undefined) {
+                workspaceRoot = initSelectedWorkspace(status);
+            }
         }
     });
-    const projDescriptionWatcher = vscode.workspace.createFileSystemWatcher(projDescPath, true, false, true);
-    let projDescwatcherDisposable = projDescriptionWatcher.onDidCreate(() => {
-        updateProjName();
-    });
-    context.subscriptions.push(projDescwatcherDisposable);
-    projDescwatcherDisposable = projDescriptionWatcher.onDidChange(() => {
-        updateProjName();
-    });
-    context.subscriptions.push(projDescwatcherDisposable);
 
     vscode.debug.onDidTerminateDebugSession((e) => {
         // endOpenOcdServer(); // Should openOcd restart at every debug session?
     });
 
-    const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(sdkconfigFile, true, false, true);
+    const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher("**/sdkconfig", true, false, true);
     const sdkWatchDisposable = sdkconfigWatcher.onDidChange(async () => {
         if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
             ConfserverProcess.loadGuiConfigValues();
@@ -153,15 +148,16 @@ export function activate(context: vscode.ExtensionContext) {
                 "Select your current folder");
             vscode.window.showWorkspaceFolderPick({ placeHolder: selectCurrentFolderMsg })
                 .then((option) => {
-                    if (option === undefined) {
+                    if (typeof option === "undefined") {
                         const noFolderMsg = locDic.localize("extension.noFolderMessage",
                             "No workspace selected.");
                         Logger.infoNotify(noFolderMsg);
                         return;
                     } else {
                         workspaceRoot = option.uri;
-                        projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-                        updateProjName();
+                        const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
+                        updateProjectName(projDescPath);
+                        updateIdfComponentsTree(projDescPath);
                         const workspaceFolderInfo = {
                             clickCommand: "espIdf.pickAWorkspaceFolder",
                             currentWorkSpace: option.name,
@@ -180,59 +176,56 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showQuickPick(
                 [
                     { description: "IDF_PATH Path", label: "IDF_PATH", target: "esp" },
-                    { description: "Path to xtensa-esp32-elf-gcc", label: "Toolchain Path", target: "xtensa" },
-                    { description: "OpenOCD Binaries Path", label: "OpenOCD Binaries Path", target: "openocdBin" },
-                    { description: "OpenOCD Scripts Path", label: "OpenOCD Scripts Path", target: "openocdScript" },
+                    { description: "Set IDF_TOOLS_PATH Path", label: "IDF_TOOLS_PATH", target: "idfTools"},
+                    { description: "Set paths to append to PATH",
+                        label: "Custom extra paths", target: "customExtraPath"},
                 ],
                 { placeHolder: selectFrameworkMsg },
             ).then((option) => {
-                if (option === undefined) {
+                if (typeof option === "undefined") {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
                     Logger.infoNotify(noOptionMsg);
                     return;
                 }
                 let currentValue;
+                let msg: string;
+                let paramName: string;
                 switch (option.target) {
                     case "esp":
-                        const enterIdfPathMsg = locDic.localize("extension.enterIdfPathMessage",
+                        msg = locDic.localize("extension.enterIdfPathMessage",
                             "Enter IDF_PATH Path");
-                        currentValue = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
-                        idfConf.updateConfParameter("idf.espIdfPath",
-                            enterIdfPathMsg, currentValue, option.label, workspaceRoot);
+                        paramName = "idf.espIdfPath";
                         break;
-                    case "xtensa":
-                        const enterToolchainPathMsg = locDic.localize("extension.enterToolchainPathMessage",
-                            "Enter Toolchain path");
-                        currentValue = idfConf.readParameter("idf.xtensaEsp32Path", workspaceRoot);
+                    case "idfTools":
+                        const enterIdfToolsPathMsg = locDic.localize("extension.enterIdfToolsPathMessage",
+                                "Enter IDF_TOOLS_PATH path");
+                        currentValue = idfConf.readParameter("idf.toolsPath");
                         idfConf.updateConfParameter(
-                            "idf.xtensaEsp32Path",
-                            enterToolchainPathMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                                "idf.toolsPath",
+                                enterIdfToolsPathMsg,
+                                currentValue,
+                                option.label);
                         break;
-                    case "openocdBin":
-                        const enterOpenOcdBinariesPathMsg = locDic.localize(
-                            "extension.enterOpenOcdBinariesPathMessage",
-                            "Enter openOCD Binaries Path");
-                        currentValue = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
-                        idfConf.updateConfParameter("idf.openOcdBin",
-                            enterOpenOcdBinariesPathMsg, currentValue, option.label, workspaceRoot);
-                        break;
-                    case "openocdScript":
-                        const enterOpenOcdScriptsPathMsg = locDic.localize(
-                            "extension.enterOpenOcdScriptsPathMessage",
-                            "Enter openOCD Scripts Path");
-                        currentValue = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
-                        idfConf.updateConfParameter("idf.openOcdScriptsPath",
-                            enterOpenOcdScriptsPathMsg, currentValue, option.label, workspaceRoot);
+                    case "customExtraPath":
+                        const enterExtraPathsMsg = locDic.localize("extension.enterCustomPathsMessage",
+                                "Enter extra paths to append to PATH");
+                        currentValue = idfConf.readParameter("idf.customExtraPaths");
+                        idfConf.updateConfParameter(
+                                "idf.customExtraPaths",
+                                enterExtraPathsMsg,
+                                currentValue,
+                                option.label);
                         break;
                     default:
                         const noPathUpdatedMsg = locDic.localize("extension.noPathUpdatedMessage",
                             "No path has been updated");
                         Logger.infoNotify(noPathUpdatedMsg);
                         break;
+                }
+                if (msg && paramName) {
+                    currentValue = idfConf.readParameter(paramName);
+                    idfConf.updateConfParameter(paramName, msg, currentValue, option.label);
                 }
             });
         });
@@ -251,57 +244,35 @@ export function activate(context: vscode.ExtensionContext) {
                 ],
                 { placeHolder: selectConfigMsg },
             ).then((option) => {
-                if (option === undefined) {
+                if (typeof option === "undefined") {
                     const noOptionMsg = locDic.localize("extension.noOptionMessage",
                         "No option selected.");
                     Logger.infoNotify(noOptionMsg);
                     return;
                 }
                 let currentValue;
+                let msg: string;
+                let paramName: string;
                 switch (option.target) {
                     case "devicePort":
-                        const enterDevicePortMsg = locDic.localize("extension.enterDevicePortMessage",
+                        msg = locDic.localize("extension.enterDevicePortMessage",
                             "Enter device port Path");
-                        currentValue = idfConf.readParameter("idf.port", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.port",
-                            enterDevicePortMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.port";
                         break;
                     case "baudRate":
-                        const enterDeviceBaudRateMsg = locDic.localize("extension.enterDeviceBaudRateMessage",
+                        msg = locDic.localize("extension.enterDeviceBaudRateMessage",
                             "Enter device baud rate");
-                        currentValue = idfConf.readParameter("idf.baudRate", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.baudRate",
-                            enterDeviceBaudRateMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.baudRate";
                         break;
                     case "deviceInterface":
-                        const enterDeviceInterfaceMsg = locDic.localize("extension.enterDeviceInterfaceMessage",
+                        msg = locDic.localize("extension.enterDeviceInterfaceMessage",
                             "Enter interface as defined in docs");
-                        currentValue = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.deviceInterface",
-                            enterDeviceInterfaceMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.deviceInterface";
                         break;
                     case "board":
-                        const enterDeviceBoardMsg = locDic.localize("extension.enterDeviceBoardMessage",
+                        msg = locDic.localize("extension.enterDeviceBoardMessage",
                             "Enter board as defined in docs");
-                        currentValue = idfConf.readParameter("idf.board", workspaceRoot);
-                        idfConf.updateConfParameter(
-                            "idf.board",
-                            enterDeviceBoardMsg,
-                            currentValue,
-                            option.label,
-                            workspaceRoot);
+                        paramName = "idf.board";
                         break;
                     default:
                         const noParamUpdatedMsg = locDic.localize("extension.noParamUpdatedMessage",
@@ -309,16 +280,12 @@ export function activate(context: vscode.ExtensionContext) {
                         Logger.infoNotify(noParamUpdatedMsg);
                         break;
                 }
+                if (msg && paramName) {
+                    currentValue = idfConf.readParameter(paramName);
+                    idfConf.updateConfParameter(paramName, msg, currentValue, option.label);
+                }
             });
         });
-    });
-
-    registerIDFCommand("espIdf.cleanProject", () => {
-        buildOrFlash("fullclean");
-    });
-
-    registerIDFCommand("espIdf.eraseFlash", () => {
-        buildOrFlash("erase_flash");
     });
 
     const debugProvider = new IdfDebugConfigurationProvider();
@@ -333,16 +300,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.flashDevice", flash);
     registerIDFCommand("espIdf.buildDevice", build);
     registerIDFCommand("espIdf.monitorDevice", createMonitor);
-    registerIDFCommand("espIdf.buildFlashMonitor", flashAndMonitor);
-
-    registerIDFCommand("espIdf.setDefaultConfig", () => {
-        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-            utils.delConfigFile(workspaceRoot);
-            const defaultSdkconfigGeneratedMsg = locDic.localize("extension.defaultSdkconfigGeneratedMessage",
-                "Default sdkconfig file restored.");
-            Logger.infoNotify(defaultSdkconfigGeneratedMsg);
-        });
-    });
+    registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
 
     registerIDFCommand("menuconfig.start", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
@@ -355,19 +313,50 @@ export function activate(context: vscode.ExtensionContext) {
                     cancellable: false,
                     location: vscode.ProgressLocation.Notification,
                     title: "ESP-IDF: Menuconfig",
-                }, async (progress: vscode.Progress<{ message: string, increment: number}>,
-                          cancelToken: vscode.CancellationToken) => {
-                        try {
-                            ConfserverProcess.registerProgress(progress);
-                            await ConfserverProcess.init(workspaceRoot, context.extensionPath);
-                        } catch (error) {
-                            Logger.errorNotify(error.message, error);
-                        }
+                }, async (progress: vscode.Progress<{ message: string, increment: number }>) => {
+                    try {
+                        ConfserverProcess.registerProgress(progress);
+                        await ConfserverProcess.init(workspaceRoot, context.extensionPath);
+                    } catch (error) {
+                        Logger.errorNotify(error.message, error);
+                    }
                 });
             } catch (error) {
                 Logger.errorNotify(error.message, error);
             }
         });
+    });
+
+    registerIDFCommand("onboarding.start", () => {
+        try {
+            if (OnBoardingPanel.isCreatedAndHidden()) {
+                OnBoardingPanel.createOrShow(context.extensionPath);
+                return;
+            }
+            vscode.window.withProgress({
+                cancellable: false,
+                location: vscode.ProgressLocation.Notification,
+                title: "ESP-IDF: Configure extension",
+            }, async (progress: vscode.Progress<{ message: string, increment: number}>,
+                      cancelToken: vscode.CancellationToken) => {
+                    try {
+                        const onboardingArgs = await getOnboardingInitialValues(context.extensionPath, progress);
+                        OnBoardingPanel.createOrShow(context.extensionPath, onboardingArgs);
+                    } catch (error) {
+                        Logger.errorNotify(error.message, error);
+                    }
+            });
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+        }
+    });
+
+    registerIDFCommand("examples.start", () => {
+        try {
+            ExamplesPlanel.createOrShow(context.extensionPath);
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+        }
     });
 
     registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {
@@ -451,7 +440,7 @@ export function activate(context: vscode.ExtensionContext) {
                     filePath: trace.filePath,
                     type: trace.type,
                     workspacePath: workspaceRoot.fsPath,
-                    idfPath: idfConf.readParameter("idf.espIdfPath", workspaceRoot),
+                    idfPath: idfConf.readParameter("idf.espIdfPath"),
                 },
             });
         });
@@ -459,9 +448,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerIDFCommand("espIdf.apptrace.customize", () => {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
-            await AppTraceManager.saveConfiguration(workspaceRoot);
+            await AppTraceManager.saveConfiguration();
         });
     });
+
+    const showOnboardingInit =  vscode.workspace.getConfiguration("idf").get("showOnboardingOnInit");
+    if (showOnboardingInit) {
+        vscode.commands.executeCommand("onboarding.start");
+    }
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
@@ -483,8 +477,7 @@ function creatCmdsStatusBarItems() {
     createStatusBarItem("$(database)", "ESP-IDF Build project", "espIdf.buildDevice", 98);
     createStatusBarItem("$(zap)", "ESP-IDF Flash device", "espIdf.flashDevice", 97);
     createStatusBarItem("$(device-desktop)", "ESP-IDF Monitor device", "espIdf.monitorDevice", 96);
-    createStatusBarItem("$(paintcan)", "ESP-IDF Full Clean project", "espIdf.cleanProject", 95);
-    createStatusBarItem("$(trashcan)", "ESP-IDF Erase device flash", "espIdf.eraseFlash", 94);
+    createStatusBarItem("$(flame)", "ESP-IDF Build, Flash and Monitor", "espIdf.buildFlashMonitor", 95);
 }
 
 function createStatusBarItem(icon: string, tooltip: string, cmd: string, priority: number) {
@@ -494,204 +487,257 @@ function createStatusBarItem(icon: string, tooltip: string, cmd: string, priorit
     statusBarItem.tooltip = tooltip;
     statusBarItem.command = cmd;
     statusBarItem.show();
+    statusBarItems.push(statusBarItem);
 }
 
 const build = () => {
-    buildOrFlash("build");
+    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+        const buildManager = new BuildManager(workspaceRoot.fsPath, idfBuildChannel);
+        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+            const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
+                "Wait for ESP-IDF build or flash to finish");
+            Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
+            return;
+        }
+        vscode.window.withProgress({
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "Building Project",
+        }, async (
+            progress: vscode.Progress<{ message: string, increment: number }>,
+            cancelToken: vscode.CancellationToken,
+        ) => {
+            cancelToken.onCancellationRequested(() => {
+                buildManager.cancel();
+            });
+            idfBuildChannel.clear();
+            try {
+                await buildManager.build();
+                const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
+                updateProjectName(projDescPath);
+                updateIdfComponentsTree(projDescPath);
+                Logger.infoNotify("Build Successfully");
+            } catch (error) {
+                if (error.message === "BUILD_TERMINATED") {
+                    return Logger.warnNotify(`Build is Terminated`);
+                }
+                if (error.message === "ALREADY_BUILDING") {
+                    return Logger.errorNotify("Already a build is running!", error);
+                }
+                if (error.message === "BUILD_TOOL_NOT_ACCESSIBLE") {
+                    return Logger.errorNotify("IDF Path or IDF Tools path is invalid or not accessible", error);
+                }
+                if (error.code === "ENOENT") {
+                    return Logger.errorNotify(`Make sure you have the build tools installed and set in $PATH`, error);
+                }
+                idfBuildChannel.show();
+                Logger.errorNotify("Something went wrong while trying to build the project", error);
+            }
+        });
+    });
 };
 const flash = () => {
-    buildOrFlash("flash");
-};
-const flashAndMonitor = () => {
-    buildOrFlash("flash", true);
-};
-
-function buildOrFlash(target: string, enableMonitorAfterProcess: boolean = false): any {
-    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-        const port = idfConf.readParameter("idf.port", workspaceRoot);
-        const baudRate = idfConf.readParameter("idf.baudRate", workspaceRoot);
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
-        const idfPath = path.join(
-            idfPathDir,
-            "tools", "idf.py");
-
-        if (monitorTerminal !== undefined) {
-            monitorTerminal.dispose();
-            setTimeout(() => {
-                monitorTerminal = undefined;
-            }, 200);
-        }
-
-        if (idfChannel === undefined) {
-            idfChannel = vscode.window.createOutputChannel("ESP-IDF");
-        }
-        idfChannel.show();
-        const xtensaEsp32Path = path.join(idfConf.readParameter("idf.xtensaEsp32Path", workspaceRoot), "bin");
-        if (!process.env.PATH.includes(xtensaEsp32Path)) {
-            process.env.PATH = xtensaEsp32Path + path.delimiter + process.env.PATH;
-        }
-
-        if (!process.env.IDF_PATH) {
-            process.env.IDF_PATH = idfPathDir;
-        }
-
-        const args = [].concat(idfPath, "-p", port, "-b", baudRate, "-C", workspaceRoot.fsPath, target);
-        if (mainProcess === undefined) {
-            mainProcess = spawn(
-                "python",
-                args,
-            );
-            mainProcess.on("exit", (code) => {
-                mainProcess = undefined;
-                if (code === 0 && enableMonitorAfterProcess) {
-                    createMonitor();
-                }
-            });
-            mainProcess.stderr.on("data", (data) => {
-                idfChannel.append(data.toString());
-            });
-
-            mainProcess.stdout.on("data", (data) => {
-                idfChannel.append(data.toString());
-                vscode.window.withProgress({
-                    location: vscode.ProgressLocation.Window,
-                    title: "ESP-IDF:" + target,
-                }, async (progress) => {
-                    progress.report({ message: String.fromCharCode.apply(null, data) });
-                    const p = new Promise((resolve) => {
-                        setTimeout(() => {
-                            resolve();
-                        }, 500);
-                    });
-                    return p;
-                },
-                );
-            });
-        }
-
-        updateProjName();
-    });
-}
-
-function createMonitor(): any {
-    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
-        if (mainProcess !== undefined) {
+    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
             return;
         }
 
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
-        const port = idfConf.readParameter("idf.port", workspaceRoot);
+        if (monitorTerminal) {
+            Logger.warnNotify("ESP-IDF Monitor was closed.");
+            monitorTerminal.dispose();
+            setTimeout(() => {
+                monitorTerminal = undefined;
+            }, 200);
+        }
+
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+        const port = idfConf.readParameter("idf.port");
+        const baudRate = idfConf.readParameter("idf.baudRate");
+
+        const buildPath = path.join(workspaceRoot.fsPath, "build");
+
+        if (!utils.canAccessFile(buildPath)) {
+            return Logger.errorNotify(`Build is required before Flashing, ${buildPath} can't be accessed`, new Error("BUILD_PATH_ACCESS_ERROR"));
+        }
+        if (!port) {
+            try {
+                await vscode.commands.executeCommand("espIdf.selectPort");
+            } catch (error) {
+                Logger.error("Unable to execute the command: espIdf.selectPort", error);
+            }
+            return Logger.errorNotify("Select a serial port before flashing", new Error("NOT_SELECTED_PORT"));
+        }
+        if (!baudRate) {
+            return Logger.errorNotify("Select a baud rate before flashing", new Error("NOT_SELECTED_BAUD_RATE"));
+        }
+
+        const binFiles = readdirSync(buildPath).filter((fileName) => fileName.endsWith(".bin") === true);
+        if (binFiles.length === 0) {
+            return Logger.errorNotify(`Build is required before Flashing, .bin file can't be accessed`, new Error("BIN_FILE_ACCESS_ERROR"));
+        }
+        const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+
+        vscode.window.withProgress({
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "Flashing Project",
+        }, async (
+            progress: vscode.Progress<{ message: string, increment: number }>,
+            cancelToken: vscode.CancellationToken,
+        ) => {
+            idfFlashChannel.clear();
+            try {
+                const model = await createFlashModel(flasherArgsJsonPath, port, baudRate);
+                const flashManager = new FlashManager(idfPathDir, buildPath, model, idfFlashChannel);
+                await flashManager.flash();
+                Logger.infoNotify("Flash Done ⚡️");
+            } catch (error) {
+                if (error.message === "ALREADY_FLASHING") {
+                    return Logger.errorNotify("Already one flash process is running!", error);
+                }
+                if (error.message === "FLASH_TERMINATED") {
+                    return Logger.errorNotify("Flashing has been stopped!", error);
+                }
+                if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
+                    return Logger.errorNotify("Flash (.bin) files don't exists or can't be accessed!", error);
+                }
+                if (error.code === "ENOENT" || error.message === "SCRIPT_PERMISSION_ERROR") {
+                    return Logger.errorNotify(`Make sure you have the esptool.py installed and set in $PATH with proper permission`, error);
+                }
+                idfFlashChannel.show();
+                Logger.errorNotify("Failed to flash because of some unusual error", error);
+            }
+        });
+    });
+};
+const buildFlashAndMonitor = () => {
+    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
+        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+            const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
+                "Wait for ESP-IDF build or flash to finish");
+            Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
+            return;
+        }
+        if (monitorTerminal) {
+            Logger.warnNotify("ESP-IDF Monitor was closed.");
+            monitorTerminal.dispose();
+            setTimeout(() => {
+                monitorTerminal = undefined;
+            }, 200);
+        }
+        const buildManager = new BuildManager(workspaceRoot.fsPath, idfBuildChannel);
+        const buildPath = path.join(workspaceRoot.fsPath, "build");
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+        const port = idfConf.readParameter("idf.port");
+        const baudRate = idfConf.readParameter("idf.baudRate");
+        if (!port) {
+            try {
+                await vscode.commands.executeCommand("espIdf.selectPort");
+            } catch (error) {
+                Logger.error("Unable to execute the command: espIdf.selectPort", error);
+            }
+            return Logger.errorNotify("Select a serial port before flashing", new Error("NOT_SELECTED_PORT"));
+        }
+        if (!baudRate) {
+            return Logger.errorNotify("Select a baud rate before flashing", new Error("NOT_SELECTED_BAUD_RATE"));
+        }
+        const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+
+        vscode.window.withProgress({
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "ESP-IDF: ",
+        }, async (
+            progress: vscode.Progress<{ message: string, increment: number }>,
+            cancelToken: vscode.CancellationToken,
+        ) => {
+            cancelToken.onCancellationRequested(() => {
+                buildManager.cancel();
+            });
+            idfBuildChannel.clear();
+            idfFlashChannel.clear();
+            try {
+                progress.report({ message: "Building project...", increment: 20});
+                await buildManager.build();
+                const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
+                updateProjectName(projDescPath);
+                updateIdfComponentsTree(projDescPath);
+                progress.report({ message: "Flashing project into device...", increment: 60});
+                const model = await createFlashModel(flasherArgsJsonPath, port, baudRate);
+                const flashManager = new FlashManager(idfPathDir, buildPath, model, idfFlashChannel);
+                await flashManager.flash();
+                progress.report({ message: "Launching monitor...", increment: 10});
+                createMonitor();
+            } catch (error) {
+                switch (error.message) {
+                    case "BUILD_TERMINATED":
+                        return Logger.warnNotify(`Build is Terminated`);
+                    case "ALREADY_BUILDING":
+                        return Logger.errorNotify("Already a build is running!", error);
+                    case "ALREADY_FLASHING":
+                        return Logger.errorNotify("Already one flash process is running!", error);
+                    case "BUILD_TOOL_NOT_ACCESSIBLE":
+                        return Logger.errorNotify("IDF Path or IDF Tools path is invalid or not accessible", error);
+                    case "ENOENT":
+                        return Logger.errorNotify(
+                            `Make sure you have the build tools installed and set in $PATH`, error);
+                    case "SCRIPT_PERMISSION_ERROR":
+                        return Logger.errorNotify(`Make sure you have the esptool.py installed and set in $PATH with proper permission`, error);
+                    case "FLASH_TERMINATED":
+                        return Logger.errorNotify("Flashing has been stopped!", error);
+                    case "SECTION_BIN_FILE_NOT_ACCESSIBLE":
+                        return Logger.errorNotify("Flash (.bin) files don't exists or can't be accessed!", error);
+                    default:
+                        break;
+                }
+                Logger.errorNotify("Something went wrong while trying to build the project", error);
+            }
+        });
+    });
+};
+
+function createMonitor(): any {
+    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+            const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
+                "Wait for ESP-IDF build or flash to finish");
+            Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
+            return;
+        }
+
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+        const port = idfConf.readParameter("idf.port");
         const idfPath = path.join(
             idfPathDir,
             "tools", "idf.py");
-        const xtensaEsp32Path = path.join(idfConf.readParameter("idf.xtensaEsp32Path", workspaceRoot), "bin");
-        if (!process.env.PATH.includes(xtensaEsp32Path)) {
-            process.env.PATH = xtensaEsp32Path + path.delimiter + process.env.PATH;
-        }
-        if (!process.env.IDF_PATH) {
-            process.env.IDF_PATH = idfPathDir;
-        }
-        if (monitorTerminal === undefined) {
-            monitorTerminal = vscode.window.createTerminal({ name: "IDF Monitor", env: process.env });
+        utils.appendIdfAndToolsToPath();
+        if (typeof monitorTerminal === "undefined") {
+            monitorTerminal = vscode.window.createTerminal({ name: "ESP-IDF Monitor", env: process.env,
+                cwd: workspaceRoot.fsPath });
         }
         monitorTerminal.show();
-        monitorTerminal.sendText(`cd ${workspaceRoot.fsPath}`);
-        monitorTerminal.sendText(`${idfPath} -p ${port} monitor`);
-    });
-}
-
-function updateProjName() {
-    if (idfDataProvider == null) {
-        idfDataProvider = new IdfTreeDataProvider(projDescPath, workspaceRoot);
-        vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
-    }
-
-    if (!utils.fileExists(projDescPath)) {
-        return;
-    }
-
-    idfDataProvider.refresh(projDescPath, workspaceRoot);
-
-    fs.readFile(projDescPath, (err, data) => {
-        if (err) {
-            Logger.errorNotify(err.message, err);
-            return;
-        }
-        const projDescJson = JSON.parse(data.toString());
-        idfConf.writeParameter("idf.projectName", projDescJson.project_name, workspaceRoot);
+        monitorTerminal.sendText(`export IDF_PATH=${idfPathDir}`);
+        monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
     });
 }
 
 export function deactivate() {
-    if (mainProcess !== undefined) {
-        mainProcess.disconnect();
-    }
-    if (monitorTerminal !== undefined) {
+    if (monitorTerminal) {
         monitorTerminal.dispose();
     }
-    if (idfChannel !== undefined) {
-        idfChannel.dispose();
-    }
-    endOpenOcdServer();
+    OutputChannel.end();
 
     if (!kconfigLangClient) {
         return undefined;
     }
     kconfigLangClient.stop();
     ConfserverProcess.dispose();
-}
-
-export function startOpenOcdServer() {
-    if (openOCDChannel === undefined) {
-        openOCDChannel = vscode.window.createOutputChannel("OpenOCD");
-    }
-    if (ocdServer) {
-        return;
-    }
-    const openOcdBin = idfConf.readParameter("idf.openOcdBin", workspaceRoot);
-    const openOCDScriptsPath = idfConf.readParameter("idf.openOcdScriptsPath", workspaceRoot);
-    const deviceInterface = idfConf.readParameter("idf.deviceInterface", workspaceRoot);
-    const board = idfConf.readParameter("idf.board", workspaceRoot);
-
-    if (!utils.fileExists(openOcdBin)) {
-        const openocdBinNotFoundMsg = locDic.localize("extension.openocdBinNotFoundMessage",
-            "OpenOCD binary path not found.");
-        return vscode.window.showErrorMessage(openocdBinNotFoundMsg).then(() => {
-            return undefined;
-        });
-    }
-    if (!utils.fileExists(openOCDScriptsPath)) {
-        const openocdScriptsNotFoundMsg = locDic.localize("extension.openocdScriptsNotFoundMessage",
-            "OpenOCD scripts path not found.");
-        return vscode.window.showErrorMessage(openocdScriptsNotFoundMsg).then(() => {
-            return undefined;
-        });
-    }
-    process.env.OPENOCD_SCRIPTS = openOCDScriptsPath;
-    ocdServer = spawn(`${openOcdBin}`, ["-f", `${deviceInterface}`, "-f", `${board}`]);
-
-    ocdServer.stderr.on("data", (data) => {
-        openOCDChannel.append(data.toString());
-    });
-    ocdServer.stdout.on("data", (data) => {
-        openOCDChannel.append(data.toString());
-    });
-    let isMainProcessRunning = true;
-    while (isMainProcessRunning) {
-        if ((mainProcess !== undefined && mainProcess.killed) || mainProcess === undefined) {
-            isMainProcessRunning = false;
-        }
-    }
-}
-
-export function endOpenOcdServer() {
-    if (ocdServer) {
-        ocdServer.kill("SIGINT");
-        ocdServer = undefined;
-        openOCDChannel.dispose();
+    for (const statusItem of statusBarItems) {
+        statusItem.dispose();
     }
 }
 
@@ -701,8 +747,6 @@ class IdfDebugConfigurationProvider implements vscode.DebugConfigurationProvider
         folder: vscode.WorkspaceFolder | undefined,
         config: vscode.DebugConfiguration,
         token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
-
-        startOpenOcdServer();
 
         if (!config.program) {
             const elfNotFoundMsg = locDic.localize("extension.elfNotFoundMessage",
@@ -722,7 +766,16 @@ class IdfDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 
         for (const key in config) {
             if (config.hasOwnProperty(key) && typeof config[key] === "string") {
-                config[key] = idfConf.resolveVariables(config[key], workspaceRoot);
+                config[key] = idfConf.resolveVariables(config[key]);
+            }
+        }
+
+        const customVars = JSON.parse(idfConf.readParameter("idf.customExtraVars") as string);
+        if (customVars) {
+            for (const envVar in customVars) {
+                if (envVar) {
+                    config[envVar] = customVars[envVar];
+                }
             }
         }
 
@@ -746,8 +799,9 @@ export function startKconfigLangServer(context: vscode.ExtensionContext) {
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
-            { scheme: "file", pattern: "**/Kconfig" },
-            { scheme: "file", pattern: "**/Kconfig.projbuild" },
+            { scheme: "file", pattern: "**/Kconfig"},
+            { scheme: "file", pattern: "**/Kconfig.projbuild"},
+            { scheme: "file", pattern: "**/Kconfig.in"},
         ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),

@@ -37,12 +37,11 @@ export interface IAppTraceManagerConfig {
 
 export class AppTraceManager extends EventEmitter {
 
-    public static async saveConfiguration(workspaceRoot: vscode.Uri) {
+    public static async saveConfiguration() {
         await this.promptUserForEditingApptraceConfig(
             "Data polling period for apptrace",
             "milliseconds",
             "trace.poll_period",
-            workspaceRoot,
             (value: string): string => {
                 if (value.match(/^[0-9]*$/g)) {
                     return "";
@@ -54,7 +53,6 @@ export class AppTraceManager extends EventEmitter {
             "Maximum size of data to be collected",
             "bytes",
             "trace.trace_size",
-            workspaceRoot,
             (value: string): string => {
                 if (value.match(/^(?:-1|[0-9]*)$/g)) {
                     return "";
@@ -66,7 +64,6 @@ export class AppTraceManager extends EventEmitter {
             "Idle timeout for apptrace",
             "seconds",
             "trace.stop_tmo",
-            workspaceRoot,
             (value: string): string => {
                 if (value.match(/^[0-9]*$/g)) {
                     return "";
@@ -78,7 +75,6 @@ export class AppTraceManager extends EventEmitter {
             "Should wait for halt?",
             "0 = Starts Immediately; else wait",
             "trace.wait4halt",
-            workspaceRoot,
             (value: string): string => {
                 if (value.match(/^[0-9]*$/g)) {
                     return "";
@@ -90,7 +86,6 @@ export class AppTraceManager extends EventEmitter {
             "Number of bytes to skip at the start",
             "bytes",
             "trace.skip_size",
-            workspaceRoot,
             (value: string): string => {
                 if (value.match(/^[0-9]*$/g)) {
                     return "";
@@ -104,10 +99,9 @@ export class AppTraceManager extends EventEmitter {
         prompt: string,
         placeholder: string,
         paramName: string,
-        workspaceRoot: vscode.Uri,
         validatorFunction: (value: string) => string,
     ) {
-        const savedConf = idfConf.readParameter(paramName, workspaceRoot);
+        const savedConf = idfConf.readParameter(paramName);
         const userInput = await vscode.window.showInputBox({
             placeHolder: placeholder,
             value: savedConf,
@@ -116,7 +110,7 @@ export class AppTraceManager extends EventEmitter {
             validateInput: validatorFunction,
         });
         if (userInput) {
-            idfConf.writeParameter(paramName, userInput, workspaceRoot);
+            idfConf.writeParameter(paramName, userInput);
         }
     }
 
@@ -141,12 +135,12 @@ export class AppTraceManager extends EventEmitter {
                 // tslint:disable-next-line: max-line-length
                 const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
                 const workspacePath = workspace ? workspace.fsPath : "";
-                const fileName = `file://${join(workspacePath, "trace")}/trace_${new Date().getTime()}.trace`;
-                const pollPeriod = idfConf.readParameter("trace.poll_period", workspace);
-                const traceSize = idfConf.readParameter("trace.trace_size", workspace);
-                const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
-                const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
-                const skipSize = idfConf.readParameter("trace.skip_size", workspace);
+                const fileName = vscode.Uri.file(join(workspacePath, "trace", `trace_${new Date().getTime()}.trace`));
+                const pollPeriod = idfConf.readParameter("trace.poll_period");
+                const traceSize = idfConf.readParameter("trace.trace_size");
+                const stopTmo = idfConf.readParameter("trace.stop_tmo");
+                const wait4halt = idfConf.readParameter("trace.wait4halt");
+                const skipSize = idfConf.readParameter("trace.skip_size");
                 const startTrackingHandler = this.sendCommandToTCLSession(
                     ["esp32", "apptrace", "start", fileName, pollPeriod, traceSize, stopTmo, wait4halt, skipSize]
                         .join(" "),

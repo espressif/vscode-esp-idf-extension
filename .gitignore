@@ -7,7 +7,10 @@ node_modules
 *.vsix
 !i18n/*/out
 package.nls.*.json
+testFiles/tools
+!testFiles/dist
 *.log
 .DS_Store
 bandit_output.txt
 flake8_output.txt
+results/

@@ -1,6 +1,6 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Wednesday, 5th June 2019 2:03:34 pm
+ * File Created: Tuesday, 22nd October 2019 8:18:43 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,13 +16,17 @@
  * limitations under the License.
  */
 
-import * as testRunner from "vscode/lib/testrunner";
+// tslint:disable: interface-name
 
-// You can directly control Mocha options by uncommenting the following lines
-// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
-testRunner.configure({
-    ui: "tdd", 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    useColors: true, // colored output from test results
-});
-
-module.exports = testRunner;
+export interface FlashModel {
+    port: string;
+    baudRate: string;
+    mode: string;
+    frequency: string;
+    size: string;
+    flashSections: FlashSection[];
+}
+export interface FlashSection {
+    address: string;
+    binFilePath: string;
+}

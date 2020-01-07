@@ -8,6 +8,8 @@ module.exports = {
     entry: {
         espSize: "./size/main.ts",
         espTrace: './tracing/main.ts',
+        examples: './examples/main.ts',
+        onboarding: './onboarding/main.ts',
         menuconfig: "./menuconfig/main.ts",
     },
     output: {

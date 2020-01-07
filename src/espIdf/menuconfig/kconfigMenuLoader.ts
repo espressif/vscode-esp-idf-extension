@@ -65,9 +65,9 @@ export class KconfigMenuLoader {
             if (selected === "Yes") {
                 const enterPathMessage = this.locDic.localize("kconfigMenu.enterIdfPath",
                         "Enter IDF_PATH Path");
-                const currentValue = idfConf.readParameter("idf.espIdfPath", this.workspaceFolder);
+                const currentValue = idfConf.readParameter("idf.espIdfPath");
                 idfConf.updateConfParameter("idf.espIdfPath",
-                    enterPathMessage, currentValue, "IDF_PATH", this.workspaceFolder );
+                    enterPathMessage, currentValue, "IDF_PATH");
             }
         });
     }

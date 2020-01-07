@@ -1,0 +1,263 @@
+// Copyright 2019 Espressif Systems (Shanghai) CO LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import * as del from "del";
+import { https } from "follow-redirects";
+import * as fs from "fs";
+import * as http from "http";
+import * as mkdirp from "mkdirp";
+import * as path from "path";
+import * as url from "url";
+import * as vscode from "vscode";
+import { IdfToolsManager } from "./idfToolsManager";
+import { IFileInfo, IPackage } from "./IPackage";
+import { Logger } from "./logger/logger";
+import { OutputChannel } from "./logger/outputChannel";
+import { PackageError } from "./packageError";
+import { PackageProgress } from "./PackageProgress";
+import { PackageManagerWebError } from "./packageWebError";
+import * as utils from "./utils";
+
+export class DownloadManager {
+    constructor(
+        private installPath: string,
+        private refreshUIRate: number = 0.5,
+    ) {
+    }
+
+    public getToolPackagesPath(toolPackage: string[]) {
+        return path.resolve(this.installPath, ...toolPackage);
+    }
+
+    public downloadPackages(idfToolsManager: IdfToolsManager,
+                            progress: vscode.Progress<{message?: string, increment?: number}>,
+                            pkgsProgress?: PackageProgress[]): Promise<void> {
+        return idfToolsManager.getPackageList()
+            .then((packages) => {
+                let count: number = 1;
+                return utils.buildPromiseChain(packages, (pkg): Promise<void> => {
+                    let pkgProgressToUse: PackageProgress;
+                    if (pkgsProgress) {
+                        pkgProgressToUse = pkgsProgress.find((pkgProgress) => {
+                            return pkgProgress.name === pkg.name;
+                        });
+                    }
+                    const p: Promise<void> = this.downloadPackage(
+                        idfToolsManager,
+                        pkg,
+                        `${count}/${packages.length}`,
+                        progress, pkgProgressToUse);
+                    count += 1;
+                    return p;
+                });
+            });
+    }
+
+    public async downloadPackage(idfToolsManager: IdfToolsManager, pkg: IPackage, progressCount: string,
+                                 progress: vscode.Progress<{message?: string, increment?: number}>,
+                                 pkgProgress?: PackageProgress): Promise<void> {
+        progress.report({message: `Downloading ${progressCount}: ${pkg.name}`});
+        this.appendChannel(`Downloading ${pkg.description}`);
+        const urlInfoToUse = idfToolsManager.obtainUrlInfoForPlatform(pkg);
+        await this.downloadPackageWithRetries(pkg, urlInfoToUse, pkgProgress);
+    }
+
+    public async downloadPackageWithRetries(pkg: IPackage,
+                                            urlInfoToUse: IFileInfo,
+                                            pkgProgress?: PackageProgress): Promise< void> {
+
+        const fileName = utils.fileNameFromUrl(urlInfoToUse.url);
+        const destPath = this.getToolPackagesPath(["dist"]);
+        const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
+
+        await utils.checkFileExists(absolutePath).then(async (pkgExists) => {
+            if (pkgExists) {
+                await utils.validateFileSizeAndChecksum(absolutePath, urlInfoToUse.sha256,
+                                                       urlInfoToUse.size)
+                    .then(async (checksumEqual) => {
+                        if (checksumEqual) {
+                            pkgProgress.FileMatchChecksum = checksumEqual;
+                            this.appendChannel(`Found ${pkg.name} in ${this.installPath + path.sep}dist`);
+                            pkgProgress.Progress = `100.00%`;
+                            pkgProgress.ProgressDetail =
+                                `(${(urlInfoToUse.size / 1024).toFixed(2)} /
+                                ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
+                            return;
+                        } else {
+                            await del(absolutePath);
+                            await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
+                        }
+                    });
+            } else {
+                await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
+            }
+            pkgProgress.FileMatchChecksum =
+                    await utils.validateFileSizeAndChecksum(absolutePath,
+                                                           urlInfoToUse.sha256,
+                                                           urlInfoToUse.size);
+        });
+    }
+
+    public async downloadWithRetries(urlToUse: string,
+                                     destPath: string,
+                                     pkgProgress: PackageProgress) {
+        let success: boolean = false;
+        let retryCount: number = 2;
+        const MAX_RETRIES: number = 5;
+        do {
+            try {
+                await this.downloadFile(urlToUse,
+                                        retryCount,
+                                        destPath, pkgProgress)
+                            .catch((pkgError: PackageError) => {
+                                throw pkgError.message;
+                            });
+                success = true;
+            } catch (error) {
+                retryCount += 1;
+                if (retryCount > MAX_RETRIES) {
+                    this.appendChannel("Failed to download " +  urlToUse);
+                    throw error;
+                } else {
+                    this.appendChannel("Failed download. Retrying...");
+                    this.appendChannel(`Error: ${error}`);
+                    continue;
+                }
+            }
+        } while (!success && retryCount < MAX_RETRIES);
+
+        if (!success && retryCount > MAX_RETRIES) {
+            throw new Error(`Downloading ${urlToUse} has not been successful.`);
+        }
+    }
+
+    public downloadFile(urlString: string, delay: number, destinationPath: string,
+                        pkgProgress?: PackageProgress): Promise<http.IncomingMessage> {
+        const parsedUrl: url.Url = url.parse(urlString);
+        const proxyStrictSSL: any = vscode.workspace.getConfiguration().get("http.proxyStrictSSL", true);
+
+        const options: https.RequestOptions = {
+            agent: utils.getHttpsProxyAgent(),
+            host: parsedUrl.host,
+            path: parsedUrl.pathname,
+            rejectUnauthorized: proxyStrictSSL,
+            timeout: 3000,
+        };
+
+        return new Promise<http.IncomingMessage>((resolve, reject) => {
+            let secondsDelay: number = Math.pow(2, delay);
+            if (secondsDelay === 1) {
+                secondsDelay = 0;
+            }
+            if (secondsDelay > 4) {
+                this.appendChannel(`Waiting ${secondsDelay} seconds...`);
+            }
+            setTimeout(() => {
+                const handleResponse: (response: http.IncomingMessage) => void = (response: http.IncomingMessage) => {
+                    if (response.statusCode === 301 || response.statusCode === 302) {
+                        let redirectUrl: string;
+                        if (typeof(response.headers.location) === "string") {
+                            redirectUrl = response.headers.location;
+                        } else {
+                            redirectUrl = response.headers.location[0];
+                        }
+                        return resolve(this.downloadFile(redirectUrl, 0, destinationPath, pkgProgress));
+                    } else if (response.statusCode !== 200) {
+                        const errorMessage: string = `Failed web connection with error code: ${response.statusCode}\n${urlString}`;
+                        this.appendChannel(`File download response error: ${errorMessage}`);
+                        return reject(new PackageManagerWebError(response.socket,
+                            "HTTP/HTTPS Response Error", "downloadFile",
+                            errorMessage, response.statusCode.toString()));
+                    } else {
+                        let contentLength: any = response.headers["content-length"];
+                        if (typeof response.headers["content-length"] === "string") {
+                            contentLength = response.headers["content-length"];
+                        } else {
+                            contentLength = response.headers["content-length"][0];
+                        }
+                        const packageSize: number = parseInt(contentLength, 10);
+                        let downloadPercentage: number = 0;
+                        let downloadedSize: number = 0;
+                        let progressDetail: string;
+
+                        const fileName = utils.fileNameFromUrl(urlString);
+                        const absolutePath: string = path.resolve(destinationPath, fileName);
+                        mkdirp(destinationPath, { mode: 0o775 }, (err) => {
+                            if (err) {
+                                return reject(new PackageError("Error creating dist directory",
+                                    "DownloadPackage", err, err.code));
+                            }
+                        });
+                        const fileStream: fs.WriteStream = fs.createWriteStream(absolutePath, { mode: 0o775 });
+
+                        fileStream.on("error", (e) => {
+                            this.appendChannel(e);
+                            return reject(new PackageError("Error creating file",
+                                    "DownloadPackage", e, e.code));
+                        });
+                        this.appendChannel(`${fileName} has (${Math.ceil(packageSize / 1024)}) KB`);
+
+                        response.on("data", (data) => {
+                            downloadedSize += data.length;
+                            downloadPercentage = (downloadedSize / packageSize) * 100;
+                            progressDetail =
+                                `(${(downloadedSize / 1024).toFixed(2)} / ${(packageSize / 1024).toFixed(2)}) KB`;
+                            this.appendChannel(
+                                `${fileName} progress: ${downloadPercentage.toFixed(2)}% ${progressDetail}`);
+                            if (pkgProgress) {
+                                const diff =
+                                    parseFloat(downloadPercentage.toFixed(2)) - parseFloat(pkgProgress.Progress.replace("%", ""));
+                                if (diff > this.refreshUIRate || downloadedSize === packageSize) {
+                                    pkgProgress.Progress = `${downloadPercentage.toFixed(2)}%`;
+                                    pkgProgress.ProgressDetail = progressDetail;
+                                }
+                            }
+                        });
+
+                        response.on("end", () => {
+                            return resolve(response);
+                        });
+
+                        response.on("error", (error) => {
+                            error.stack ? this.appendChannel(error.stack) : this.appendChannel(error.message);
+                            return reject(new PackageManagerWebError(response.socket,
+                                "HTTP/HTTPS Response error", "downloadFile", error.stack, error.name));
+                        });
+
+                        response.on("aborted", () => {
+                            return reject(new PackageError("HTTP/HTTPS Response error", "downloadFile"));
+                        });
+                        response.pipe(fileStream, { end: false });
+                    }
+                };
+                const req: http.ClientRequest = https.request(options, handleResponse);
+
+                req.on("timeout", reject);
+
+                req.on("upgrade", reject);
+
+                req.on("error", (error) => {
+                    return reject(new PackageError("HTTP/HTTPS Request error " + urlString, "downloadFile",
+                        error.stack, error.message));
+                });
+                req.end();
+            }, secondsDelay * 1000);
+        });
+    }
+
+    private appendChannel(text: string): void {
+        OutputChannel.appendLine(text);
+        Logger.info(text);
+    }
+}

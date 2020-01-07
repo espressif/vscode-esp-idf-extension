@@ -67,12 +67,12 @@ export class IDFSize {
     }
 
     private mapFilePath(): string {
-        const projectName = idfConf.readParameter("idf.projectName", this.workspaceRoot);
+        const projectName = idfConf.readParameter("idf.projectName");
         return path.join(this.workspaceRoot.fsPath, "build", `${projectName}.map`);
     }
 
     private idfPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         return path.join(idfPathDir, "tools");
     }
 
@@ -83,7 +83,8 @@ export class IDFSize {
     private async idfCommandInvoker(args: string[]) {
         const idfPath = this.idfPath();
         try {
-            const buffOut = await spawn("python", args, {
+            const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+            const buffOut = await spawn(pythonBinPath, args, {
                 cwd: idfPath,
             });
             const buffStr = buffOut.toString();

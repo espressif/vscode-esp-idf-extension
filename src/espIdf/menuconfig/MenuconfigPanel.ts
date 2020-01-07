@@ -50,6 +50,7 @@ export class MenuConfigPanel {
         this.panel = vscode.window.createWebviewPanel(MenuConfigPanel.viewType, menuconfigPanelTitle, column, {
             enableScripts: true,
             retainContextWhenHidden: true,
+            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "out", "views"))],
         });
 
         this.panel.webview.html = this.createMenuconfigHtml(extensionPath);

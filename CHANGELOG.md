@@ -1,12 +1,16 @@
 # Change Log
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
-## [Unreleased]
-- Initial release
-
-## 0.1.0 - 2018-11-16
-### Added
+## 0.1.0
+### Initial Public Release
 - Initial ESP-IDF commands
-- Debug functionality with openOCD logs.
 - Build, flash and monitor with CMake functionality
 - GUIConfig to setup your project ESP-IDF settings.
+- IDF Size Analysis GUI
+- App Trace Logging
+- ...and much more
+
+## 0.1.1
+### Release to the VSCode Marketplace
+- Preview release to the VSCode Marketplace
+- Update docs

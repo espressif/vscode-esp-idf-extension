@@ -18,37 +18,49 @@ import { Logger } from "./logger/logger";
 
 const locDic = new LocDictionary(__filename);
 
+const platformDepConfigurations: string[] = [
+    "idf.espIdfPath",
+    "idf.pythonBinPath",
+    "idf.pythonSystemBinPath",
+    "idf.port",
+    "idf.deviceInterface",
+    "idf.board",
+    "idf.toolsPath",
+];
+
 export function addWinIfRequired(param: string) {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    if (param === "idf.baudRate" || param === "idf.projectName" || param.indexOf("trace.") !== -1) {
-        return param;
-    } else {
-        return param + winFlag;
+
+    for (const platDepConf of platformDepConfigurations) {
+        if (param.indexOf(platDepConf) >= 0) {
+            return param + winFlag;
+        }
     }
+    return param;
 }
 
-export function readParameter(param: string, workspaceUri: vscode.Uri) {
+export function readParameter(param: string) {
     const paramUpdated = addWinIfRequired(param);
-    const paramValue = vscode.workspace.getConfiguration("", workspaceUri).get(paramUpdated);
-    if (paramValue === undefined) {
+    const paramValue = vscode.workspace.getConfiguration("").get(paramUpdated);
+    if (typeof paramValue === "undefined") {
         return "";
     }
     const paramValueString = paramValue.toString();
-    return resolveVariables(paramValueString, workspaceUri);
+    return resolveVariables(paramValueString);
 }
 
-export function writeParameter(param: string, newValue: string, workspaceUri: vscode.Uri) {
+export function writeParameter(param: string, newValue: string) {
     const paramValue = addWinIfRequired(param);
-    const configuration = vscode.workspace.getConfiguration("", workspaceUri);
-    configuration.update(paramValue, newValue, vscode.ConfigurationTarget.WorkspaceFolder);
+    const configuration = vscode.workspace.getConfiguration();
+    configuration.update(paramValue, newValue, vscode.ConfigurationTarget.Global);
 }
 
 export function updateConfParameter(confParamName, confParamDescription,
-                                    currentValue, label, workspaceUri: vscode.Uri) {
+                                    currentValue, label) {
     vscode.window.showInputBox({ placeHolder: confParamDescription, value: currentValue}).then((newValue) => {
         return new Promise((resolve, reject) => {
-            if (newValue !== undefined || newValue !== "") {
-                    writeParameter(confParamName, newValue, workspaceUri);
+            if (newValue || newValue !== "") {
+                    writeParameter(confParamName, newValue);
                     const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
                     Logger.infoNotify(label + updateMessage);
                     resolve(newValue);
@@ -59,13 +71,13 @@ export function updateConfParameter(confParamName, confParamDescription,
     });
 }
 
-export function resolveVariables(configPath: string, workspaceUri: vscode.Uri) {
+export function resolveVariables(configPath: string) {
     const regexp = /\$\{(.*?)\}/g; // Find ${anything}
     return configPath.replace(regexp, (match: string, name: string) => {
         if (match.indexOf("config:") > 0) {
             const configVar = name.substring(name.indexOf("config:") + "config:".length);
-            const configVarValue = readParameter(configVar, workspaceUri);
-            return resolveVariables(configVarValue, workspaceUri);
+            const configVarValue = readParameter(configVar);
+            return resolveVariables(configVarValue);
         }
         if (match.indexOf("env:") > 0) {
             const envVariable = name.substring(name.indexOf("env:") + "env:".length);

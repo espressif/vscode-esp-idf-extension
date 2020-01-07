@@ -63,7 +63,7 @@ export class SerialPort {
     private updatePortListStatus(l: string) {
         PreCheck.perform(PreCheck.isWorkspaceFolderOpen, "Open a workspace before select the Serial Port", () => {
             const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-            idfConf.writeParameter("idf.port", l, workspaceRoot);
+            idfConf.writeParameter("idf.port", l);
             const portHasBeenSelectedMsg = this.locDic.localize("serial.portHasBeenSelectedMessage",
                 "Port has been updated to ");
             Logger.infoNotify(portHasBeenSelectedMsg + l);
@@ -73,7 +73,8 @@ export class SerialPort {
     private list(): Thenable<SerialPortDetails[]> {
         return new Promise(async (resolve, reject) => {
             try {
-                const buff = await spawn("python", ["get_serial_list.py"]);
+                const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+                const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
                 const regexp = /\'(.*?)\'/g;
                 const arrayPrint = buff.toString().match(regexp);
                 const choices: SerialPortDetails[] = Array<SerialPortDetails>();

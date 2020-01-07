@@ -4,7 +4,7 @@
             "name": "Linux",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "includePath": ["${config:idf.espIdfPath}/components"],
             "browse": {
                 "path": [
                     "${config:idf.espIdfPath}/components"

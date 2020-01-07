@@ -1,8 +1,9 @@
 {
   "name": "esp-idf-extension",
+  "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
@@ -15,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/espressif/esp-idf.git"
+    "url": "https://github.com/espressif/vscode-esp-idf-extension.git"
   },
   "categories": [
     "Programming Languages",
@@ -43,6 +44,8 @@
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
     "onCommand:espIdf.apptrace.customize",
+    "onCommand:onboarding.start",
+    "onCommand:examples.start",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:idfComponents",
@@ -150,46 +153,22 @@
             "description": "%param.espIdfPath%",
             "scope": "resource"
           },
-          "idf.xtensaEsp32Path": {
+          "idf.toolsPath": {
             "type": "string",
-            "default": "${env:HOME}/esp/xtensa-esp32-elf",
-            "description": "%param.xtensaEsp32Path%",
-            "scope": "resource"
-          },
-          "idf.openOcdBin": {
-            "type": "string",
-            "default": "${env:HOME}/esp/openocd-esp32/bin/openocd",
-            "description": "%param.openOcdBin%",
-            "scope": "resource"
-          },
-          "idf.openOcdScriptsPath": {
-            "type": "string",
-            "default": "${env:HOME}/esp/openocd-esp32/share/openocd/scripts",
-            "description": "%param.openOcdScripts%",
+            "default": "${env:HOME}/.espressif",
+            "description": "%param.toolsPath%",
             "scope": "resource"
           },
           "idf.espIdfPathWin": {
             "type": "string",
-            "default": "${env:USERPROFILE}\\esp\\esp-idf",
+            "default": "${env:IDF_PATH}",
             "description": "%param.espIdfPath%",
             "scope": "resource"
           },
-          "idf.xtensaEsp32PathWin": {
+          "idf.toolsPathWin": {
             "type": "string",
-            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools",
-            "description": "%param.xtensaEsp32Path%",
-            "scope": "resource"
-          },
-          "idf.openOcdBinWin": {
-            "type": "string",
-            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools\\bin\\openocd.exe",
-            "description": "%param.openOcdBin%",
-            "scope": "resource"
-          },
-          "idf.openOcdScriptsPathWin": {
-            "type": "string",
-            "default": "${env:ProgramFiles}\\Espressif\\ESP-IDF Tools\\tools\\share\\openocd\\scripts",
-            "description": "%param.openOcdScripts%",
+            "default": "${env:USERPROFILE}\\.espressif",
+            "description": "%param.toolsPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -202,6 +181,30 @@
             "type": "string",
             "default": "COM1",
             "description": "%param.port%",
+            "scope": "resource"
+          },
+          "idf.pythonBinPath": {
+            "type": "string",
+            "default": "python",
+            "description": "%param.pythonBinPath%",
+            "scope": "resource"
+          },
+          "idf.pythonBinPathWin": {
+            "type": "string",
+            "default": "python",
+            "description": "%param.pythonBinPath%",
+            "scope": "resource"
+          },
+          "idf.pythonSystemBinPath": {
+            "type": "string",
+            "default": "python",
+            "description": "%param.pythonSystemBinPath%",
+            "scope": "resource"
+          },
+          "idf.pythonSystemBinPathWin": {
+            "type": "string",
+            "default": "python",
+            "description": "%param.pythonSystemBinPath%",
             "scope": "resource"
           },
           "idf.baudRate": {
@@ -240,11 +243,28 @@
             "description": "%param.board%",
             "scope": "resource"
           },
+          "idf.customExtraPaths": {
+            "type": "string",
+            "default": "",
+            "description": "%param.exportPaths%",
+            "scope": "resource"
+          },
+          "idf.customExtraVars": {
+            "type": "string",
+            "description": "%param.exportVars%",
+            "scope": "resource"
+          },
           "idf.useIDFKconfigStyle": {
             "type": "boolean",
             "default": false,
             "scope": "resource",
             "description": "%param.useIDFKConfigStyle%"
+          },
+          "idf.showOnboardingOnInit": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.showOnboardingOnInit%"
           },
           "trace.poll_period": {
             "type": "string",
@@ -297,6 +317,14 @@
         "title": "%menuconfig.start.title%"
       },
       {
+        "command": "onboarding.start",
+        "title": "%espIdf.onboarding.title%"
+      },
+      {
+        "command": "examples.start",
+        "title": "%espIdf.examples.title%"
+      },
+      {
         "command": "espIdf.setDefaultConfig",
         "title": "%espIdf.setDefaultConfig.title%"
       },
@@ -323,14 +351,6 @@
       {
         "command": "espIdf.pickAWorkspaceFolder",
         "title": "%espIdf.pickAWorkspaceFolder.title%"
-      },
-      {
-        "command": "espIdf.cleanProject",
-        "title": "%espIdf.cleanProject.title%"
-      },
-      {
-        "command": "espIdf.eraseFlash",
-        "title": "%espIdf.eraseFlash.title%"
       },
       {
         "command": "espIdf.size",
@@ -466,35 +486,44 @@
   ],
   "scripts": {
     "tslint": "tslint -c tslint.json -p .",
-    "vscode:prepublish": "npm run compile && npm run webpack",
+    "debugPreTask": "npm run watch && npm run webpack",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./ & (cd src/views && webpack --watch --mode=development)",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test && mocha",
+    "test": "npm run compile && node ./out/test/runTest.js",
+    "package": "vsce package -o esp-idf-extension-${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}.vsix",
     "build_vsix": "gulp vscePkg",
     "gulp_clean": "gulp clean",
     "eslint": "eslint .",
-    "webpack": "cd src/views && webpack --mode production"
+    "webpack": "cd src/views && webpack --mode production",
+    "resolve-install": "npx npm-force-resolutions && npm install"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.9.0",
-    "@fortawesome/fontawesome-svg-core": "^1.2.19",
-    "@fortawesome/free-solid-svg-icons": "^5.9.0",
+    "@types/glob": "^7.1.1",
+    "@types/vscode": "^1.30.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.21",
+    "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.6",
+    "@types/http-proxy-agent": "^2.0.1",
     "@types/mocha": "^5.2.7",
+    "@types/nock": "^9.3.1",
     "@types/node": "^7.0.65",
+    "@types/yauzl": "^2.9.1",
     "@vue/component-compiler-utils": "^3.0.0",
     "bulma": "^0.7.5",
     "css-loader": "^3.1.0",
-    "del": "^3.0.0",
     "eslint": "^6.2.1",
     "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-mocha": "^5.3.0",
     "eslint-plugin-react": "^7.13.0",
+    "eslint-plugin-requirejs": "^3.2.0",
+    "eslint-plugin-vue": "^5.2.2",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^4.0.0",
+    "glob": "^7.1.4",
     "gulp": "^4.0.2",
     "gulp-cli": "^2.0.1",
     "gulp-typescript": "^5.0.0-alpha.3",
@@ -502,7 +531,10 @@
     "husky": "^2.5.0",
     "mini-css-extract-plugin": "^0.7.0",
     "mocha": "^6.1.4",
+    "mocha-junit-reporter": "^1.23.1",
+    "nock": "^10.0.6",
     "node-sass": "^4.12.0",
+    "npm-force-resolutions": "0.0.3",
     "run-sequence": "^2.2.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
@@ -512,28 +544,48 @@
     "typescript": "^2.9.2",
     "typescript-tslint-plugin": "^0.3.1",
     "vsce": "^1.52.0",
-    "vscode": "^1.1.29",
+    "vscode-test": "^1.0.0",
+    "vue-class-component": "^7.1.0",
+    "vue-hot-reload-api": "^2.3.2",
+    "vue-property-decorator": "^8.2.1",
+    "vue-router": "^3.0.2",
     "vscode-nls-dev": "^3.3.1",
-    "vue": "^2.6.10",
     "vue-loader": "^15.7.1",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
-    "webpack": "^4.38.0",
-    "webpack-cli": "^3.3.6"
+    "vuex-class": "^0.3.2",
+    "webpack": "^4.35.3",
+    "webpack-cli": "^3.3.5"
   },
   "dependencies": {
+    "@types/mkdirp": "^0.5.2",
+    "@types/tmp": "0.0.33",
     "ansi-to-html": "^0.6.11",
     "plotly.js-dist": "^1.49.3",
+    "del": "^4.1.1",
+    "es6-promisify": "^6.0.0",
+    "follow-redirects": "^1.6.1",
+    "http-proxy-agent": "^2.1.0",
+    "jquery": "^3.4.1",
+    "marked": "^0.7.0",
+    "mkdirp": "^0.5.1",
+    "tar-fs": "^2.0.0",
+    "tree-kill": "^1.2.2",
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugprotocol": "^1.33.0",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vscode-nls": "^4.0.0",
-    "vue-class-component": "^7.1.0",
-    "vue-property-decorator": "^8.2.1",
+    "vue": "^2.6.10",
     "vue-scroll": "^2.1.12",
     "vuex": "^3.1.1",
-    "vuex-class": "^0.3.2",
-    "winston": "^2.3.1"
+    "winston": "^2.3.1",
+    "yauzl": "^2.10.0"
+  },
+  "resolutions": {
+    "https-proxy-agent": "^3.0.0"
+  },
+  "alias": {
+    "vue": "./node_modules/vue/dist/vue.esm.js"
   }
 }
