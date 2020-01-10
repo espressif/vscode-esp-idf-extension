@@ -36,15 +36,26 @@ export function setExtensionContext(context: vscode.ExtensionContext): void {
 
 export const packageJson = vscode.extensions.getExtension("espressif.esp-idf-extension").packageJSON;
 
+type PreCheckFunc = (...args: any[]) => boolean;
+export type PreCheckInput = [PreCheckFunc, string];
 export class PreCheck {
-    public static perform(preCheckFn: () => boolean, failureMessage: string, proceed: () => any): any {
-        if (preCheckFn()) {
+    public static perform(preCheckFunctions: PreCheckInput[], proceed: () => any): any {
+        let isPassedAll: boolean = true;
+        preCheckFunctions.forEach((preCheck: PreCheckInput) => {
+            if (!preCheck[0]()) {
+                isPassedAll = false;
+                Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"));
+            }
+        });
+        if (isPassedAll) {
             return proceed();
         }
-        Logger.errorNotify(failureMessage, new Error("PRECHECK_FAILED"));
     }
     public static isWorkspaceFolderOpen(): boolean {
         return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+    }
+    public static notUsingWebIde(): boolean {
+        return process.env.WEB_IDE ? false : true;
     }
 }
 
