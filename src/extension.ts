@@ -76,6 +76,8 @@ export async function activate(context: vscode.ExtensionContext) {
             return context.subscriptions.push(vscode.commands.registerCommand(name, callback));
         };
 
+    process.env.WEB_IDE = "true";
+
     // Create a status bar item with current workspace
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000000);
     statusBarItems.push(status);
@@ -402,7 +404,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     registerIDFCommand("espIdf.apptrace", () => {
-        PreCheck.perform([openFolderCheck], async () => {
+        PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
             if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
                 await appTraceManager.start();
             } else {
@@ -412,7 +414,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     registerIDFCommand("espIdf.openOCDCommand", () => {
-        PreCheck.perform([openFolderCheck], openOCDManager.commandHandler);
+        PreCheck.perform([webIdeCheck, openFolderCheck], openOCDManager.commandHandler);
     });
 
     registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
