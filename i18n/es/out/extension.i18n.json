@@ -23,5 +23,6 @@
     "extension.enterDeviceBaudRateMessage": "Introduzca la tasa de baudios",
     "extension.enterDeviceInterfaceMessage": "Introduzca la ruta de interfaz de OpenOCD",
     "extension.enterDeviceBoardMessage": "Introduzca la ruta de la tarjeta de OpenOCD",
-    "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH"
+    "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH",
+    "extension.cmdNotWebIDE": "El comando seleccionado no esta disponible en WebIDE"
 }

@@ -19,5 +19,6 @@
     "extension.enterDeviceBaudRateMessage": "Enter device baud rate",
     "extension.enterDeviceInterfaceMessage": "Enter interface as defined in docs",
     "extension.enterDeviceBoardMessage": "Enter board as defined in docs",
-    "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH"
+    "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH",
+    "extension.cmdNotWebIDE": "Selected command is not available in WebIDE"
 }
