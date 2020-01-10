@@ -31,7 +31,7 @@ export interface IOnboardingArgs {
 export async function getOnboardingInitialValues(extensionPath: string,
                                                  progress: Progress<{ message: string, increment: number}>) {
     const platformInfo = await PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath();
+    const toolsJsonPath = await utils.getToolsJsonPath(extensionPath);
     const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
     progress.report({ increment: 10, message: "Loading ESP-IDF Tools information..." });
     const idfToolsManager = new IdfToolsManager(toolsJson, platformInfo, OutputChannel.init());

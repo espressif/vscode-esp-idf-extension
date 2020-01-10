@@ -344,13 +344,12 @@ export function getToolPackagesPath(toolPackage: string[]) {
     return path.resolve(idfToolsPath, ...toolPackage);
 }
 
-export async function getToolsJsonPath() {
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-    const espIdfVersion = await getEspIdfVersion(espIdfPath);
-    const idfToolsJsonToUse = espIdfVersion.localeCompare("4.0") < 0 ? "fallback-tools.json" : "tools.json";
-    let jsonToUse: string = path.join(espIdfPath, "tools", idfToolsJsonToUse);
+export async function getToolsJsonPath(newIdfPath: string) {
+    const espIdfVersion = await getEspIdfVersion(newIdfPath);
+    let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
     await checkFileExists(jsonToUse).then((exists) => {
         if (!exists) {
+            const idfToolsJsonToUse = espIdfVersion.localeCompare("4.0") < 0 ? "fallback-tools.json" : "tools.json";
             jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
         }
     });
