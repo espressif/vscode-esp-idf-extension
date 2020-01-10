@@ -33,7 +33,7 @@ If you can't find the issue in the already opened issues then please make sure t
     - :pencil: `:pencil:` Writing docs.
     - :lipstick: `:lipstick:` Updating the web-view UI or style files
     - :white_check_mark: `:white_check_mark:` Updating tests.
-    - :lock: `:lock:` Fixing security issues including npm dependencies audit.
+    - :lock: `:lock:` Fixing security issues including node dependencies audit.
     - :apple: `:apple:` Fixing something on macOS.
     - :penguin: `:penguin:` Fixing something on Linux.
     - :checkered_flag: `:checkered_flag:` Fixing something on Windows.

@@ -17,7 +17,7 @@ import * as vscode from "vscode";
 
 export function createOnboardingHtml(extensionPath: string): string {
     const vuePath = vscode.Uri.file(
-        path.join(extensionPath, "out", "views", "onboarding-bundle.js")).with({ scheme: "vscode-resource"});
+        path.join(extensionPath, "dist", "views", "onboarding-bundle.js")).with({ scheme: "vscode-resource"});
 
     return `<!DOCTYPE html>
     <html lang="en">

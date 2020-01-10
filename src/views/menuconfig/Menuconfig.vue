@@ -29,7 +29,7 @@
 <script lang="ts">
 import Vue from "vue";
 import {Component} from "vue-property-decorator";
-import { State } from "vuex-class";
+import { Action, State } from "vuex-class";
 import { Menu } from "../../espIdf/menuconfig/Menu";
 
 function filterItems(items: Menu[], searchString: string) {
@@ -59,6 +59,7 @@ function filterItems(items: Menu[], searchString: string) {
 export default class Menuconfig extends Vue {
   @State("items") private storeItems!: Menu[];
   @State private searchString!: string;
+  @Action private requestInitValues;
 
   get items() {
     if (this.searchString !== "") {
@@ -85,8 +86,11 @@ export default class Menuconfig extends Vue {
         el.classList.remove("selectedSection");
       }
     });
-}
+  }
 
+  private mounted() {
+      this.requestInitValues();
+  }
 }
 </script>
 

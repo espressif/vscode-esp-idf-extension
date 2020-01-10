@@ -50,29 +50,34 @@ export const menuState: State = {
 
 export const actions: ActionTree<State, any> = {
     sendNewValue(context, newValue) {
-        vscode.postMessage({
-          command: "updateValue",
-          updated_value: newValue,
-        });
-      },
-      saveGuiConfig() {
-        // Save current items
-        vscode.postMessage({
-          command: "saveChanges",
-        });
-      },
-      resetGuiConfig() {
-        // Reset current items
-        vscode.postMessage({
-          command: "discardChanges",
-        });
-      },
-      setDefaultConfig() {
-        // Set default items
-        vscode.postMessage({
-          command: "setDefault",
-        });
-      },
+      vscode.postMessage({
+        command: "updateValue",
+        updated_value: newValue,
+      });
+    },
+    saveGuiConfig() {
+      // Save current items
+      vscode.postMessage({
+        command: "saveChanges",
+      });
+    },
+    resetGuiConfig() {
+      // Reset current items
+      vscode.postMessage({
+        command: "discardChanges",
+      });
+    },
+    requestInitValues() {
+      vscode.postMessage({
+        command: "requestInitValues",
+      });
+    },
+    setDefaultConfig() {
+      // Set default items
+      vscode.postMessage({
+        command: "setDefault",
+      });
+    },
 };
 
 export const mutations: MutationTree<State> = {

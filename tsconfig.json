@@ -11,7 +11,8 @@
         "rootDir": "src",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "node"
     },
     "exclude": [
         "node_modules",

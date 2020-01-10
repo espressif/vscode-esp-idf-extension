@@ -63,9 +63,6 @@ export class BuildManager {
                 cwd: buildPath,
             });
 
-            // tslint:disable-next-line: no-console
-            console.log(this.server.pid);
-
             this.server.on("close", (code: number, signal: string) => {
                 this.buildDone();
 

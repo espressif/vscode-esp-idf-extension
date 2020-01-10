@@ -65,7 +65,7 @@ export class OnBoardingPanel {
         this.panel = vscode.window.createWebviewPanel(OnBoardingPanel.viewType, onBoardingPanelTitle, column, {
             enableScripts: true,
             retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "out", "views"))],
+            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "dist", "views"))],
         });
 
         this.panel.webview.html = createOnboardingHtml(extensionPath);

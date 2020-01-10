@@ -147,7 +147,7 @@ export class DownloadManager {
         const parsedUrl: url.Url = url.parse(urlString);
         const proxyStrictSSL: any = vscode.workspace.getConfiguration().get("http.proxyStrictSSL", true);
 
-        const options: https.RequestOptions = {
+        const options = {
             agent: utils.getHttpsProxyAgent(),
             host: parsedUrl.host,
             path: parsedUrl.pathname,
@@ -241,7 +241,7 @@ export class DownloadManager {
                         response.pipe(fileStream, { end: false });
                     }
                 };
-                const req: http.ClientRequest = https.request(options, handleResponse);
+                const req = https.request(options, handleResponse);
 
                 req.on("timeout", reject);
 

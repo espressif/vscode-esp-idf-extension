@@ -777,7 +777,8 @@ class IdfDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 }
 
 export function startKconfigLangServer(context: vscode.ExtensionContext) {
-    const serverModule = context.asAbsolutePath(path.join("out", "kconfig", "server.js"));
+    const serverModule = __dirname.indexOf("out") > -1 ?
+        context.asAbsolutePath(path.join("out", "kconfig", "server.js")) : context.asAbsolutePath(path.join("dist", "kconfigServer.js"));
 
     const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 

@@ -15,7 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import HttpsProxyAgent = require("http-proxy-agent");
+import * as HttpsProxyAgent from "https-proxy-agent";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -24,7 +24,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 
-const extensionName = __dirname.replace(path.sep + "out", "");
+const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize("utils.currentFolder", "ESP-IDF Current Project");
