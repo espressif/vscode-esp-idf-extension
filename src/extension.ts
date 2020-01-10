@@ -678,7 +678,7 @@ const buildFlashAndMonitor = () => {
 };
 
 function createMonitor(): any {
-    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, () => {
+    PreCheck.perform(PreCheck.isWorkspaceFolderOpen, openFolderMsg, async () => {
         if ( BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
@@ -686,19 +686,34 @@ function createMonitor(): any {
             return;
         }
 
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
         const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
         const port = idfConf.readParameter("idf.port");
         const idfPath = path.join(
             idfPathDir,
             "tools", "idf.py");
         utils.appendIdfAndToolsToPath();
+        if (!utils.canAccessFile(pythonBinPath)) {
+            Logger.errorNotify("Python binary path is not defined", new Error("idf.pythonBinPath is not defined"));
+        }
+        if (!idfPathDir) {
+            Logger.errorNotify("ESP-IDF Path is not defined", new Error("idf.espIdfPath is not defined"));
+        }
+        if (!port) {
+            try {
+                await vscode.commands.executeCommand("espIdf.selectPort");
+            } catch (error) {
+                Logger.error("Unable to execute the command: espIdf.selectPort", error);
+            }
+            return Logger.errorNotify("Select a serial port before flashing", new Error("NOT_SELECTED_PORT"));
+        }
         if (typeof monitorTerminal === "undefined") {
             monitorTerminal = vscode.window.createTerminal({ name: "ESP-IDF Monitor", env: process.env,
                 cwd: workspaceRoot.fsPath });
         }
         monitorTerminal.show();
-        monitorTerminal.sendText(`export IDF_PATH=${idfPathDir}`);
+        const envSetCmd = process.platform === "win32" ? "set" : "export";
+        monitorTerminal.sendText(`${envSetCmd} IDF_PATH=${idfPathDir}`);
         monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
     });
 }
