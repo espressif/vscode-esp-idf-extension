@@ -16,7 +16,6 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
-import * as utils from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
@@ -32,10 +31,8 @@ export class MenuConfigPanel {
             MenuConfigPanel.currentPanel.panel.reveal(column);
         } else {
             MenuConfigPanel.currentPanel = new MenuConfigPanel(extensionPath, column || vscode.ViewColumn.One,
-                curWorkspaceFolder);
+                curWorkspaceFolder, initialValues);
         }
-        MenuConfigPanel.currentPanel.panel.webview.postMessage(
-            { command: "load_initial_values", menus: initialValues });
     }
 
     private static readonly viewType = "menuconfig";
@@ -43,14 +40,16 @@ export class MenuConfigPanel {
     private readonly panel: vscode.WebviewPanel;
     private disposables: vscode.Disposable[] = [];
 
-    private constructor(extensionPath: string, column: vscode.ViewColumn, curWorkspaceFolder: vscode.Uri) {
+    private constructor(extensionPath: string, column: vscode.ViewColumn,
+                        curWorkspaceFolder: vscode.Uri,
+                        initialValues: Menu[]) {
         this.curWorkspaceFolder = curWorkspaceFolder;
 
         const menuconfigPanelTitle = locDic.localize("menuconfig.panelName", "IDF Menuconfig");
         this.panel = vscode.window.createWebviewPanel(MenuConfigPanel.viewType, menuconfigPanelTitle, column, {
             enableScripts: true,
             retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "out", "views"))],
+            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "dist", "views"))],
         });
 
         this.panel.webview.html = this.createMenuconfigHtml(extensionPath);
@@ -131,6 +130,10 @@ export class MenuConfigPanel {
                         "Discarded changes in GUI menuconfig");
                     Logger.infoNotify(discardMessage);
                     break;
+                case "requestInitValues":
+                    MenuConfigPanel.currentPanel.panel.webview.postMessage(
+                        { command: "load_initial_values", menus: initialValues });
+                    break;
                 default:
                     const err = new Error(`Menuconfig: Unrecognized command received, file: ${__filename}`);
                     Logger.error(err.message, err);
@@ -165,7 +168,7 @@ export class MenuConfigPanel {
 
     private createMenuconfigHtml(extensionPath: string): string {
         const vuePath = vscode.Uri.file(
-            path.join(extensionPath, "out", "views", "menuconfig-bundle.js")).with({ scheme: "vscode-resource"});
+            path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")).with({ scheme: "vscode-resource"});
 
         return `<!DOCTYPE html>
         <html lang="en">

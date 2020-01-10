@@ -25,7 +25,7 @@ export class LocDictionary {
      * @param {string} type - Type of translation. Can be 'out' (default) or 'views'.
      */
     constructor(absolutePath: string, type: string = "out") {
-        const extensionName = __dirname.replace(path.sep + "out", "");
+        const extensionName = __dirname.replace(path.sep + "dist", "");
         const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
         const locDirPath = path.join(extensionName, "i18n", localeConf.locale, type);
         const subPath = this.getLocalizationFilePath(absolutePath);
@@ -51,7 +51,7 @@ export class LocDictionary {
     }
 
     private getLocalizationFilePath(absolutePath: string) {
-        const parts = absolutePath.replace(__dirname, "").split(/(?:\\|\/)/g);
+        const parts = absolutePath.replace("src" + path.sep, "").split(/(?:\\|\/)/g);
         parts[parts.length - 1] = parts[parts.length - 1].replace(/(\.).*/g, "");
         return parts.join(path.sep);
     }
