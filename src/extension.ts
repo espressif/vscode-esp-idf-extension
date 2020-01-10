@@ -18,6 +18,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 import { BuildManager } from "./build/build";
+import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
 import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
@@ -76,8 +77,6 @@ export async function activate(context: vscode.ExtensionContext) {
             return context.subscriptions.push(vscode.commands.registerCommand(name, callback));
         };
 
-    process.env.WEB_IDE = "true";
-
     // Create a status bar item with current workspace
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000000);
     statusBarItems.push(status);
@@ -100,6 +99,41 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.workspace.workspaceFolders.length > 0) {
             workspaceRoot = initSelectedWorkspace(status);
     }
+    // Add delete or update new sources in CMakeLists.txt of same folder
+    const newSrcWatcher = vscode.workspace.createFileSystemWatcher("**/*.{c,cpp,cc,S}", false, false, false);
+    const srcWatchDeleteDisposable = newSrcWatcher.onDidDelete(async (e) => {
+        if (UpdateCmakeLists.singletonPromise) {
+            UpdateCmakeLists.singletonPromise.then(() => {
+                UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
+                UpdateCmakeLists.singletonPromise = undefined;
+            });
+        } else {
+            UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
+        }
+    });
+    context.subscriptions.push(srcWatchDeleteDisposable);
+    const srcWatchCreateDisposable = newSrcWatcher.onDidCreate(async (e) => {
+        if (UpdateCmakeLists.singletonPromise) {
+            UpdateCmakeLists.singletonPromise.then(() => {
+                UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
+                UpdateCmakeLists.singletonPromise = undefined;
+            });
+        } else {
+            UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
+        }
+    });
+    context.subscriptions.push(srcWatchCreateDisposable);
+    const srcWatchOnChangeDisposable = newSrcWatcher.onDidChange(async (e) => {
+        if (UpdateCmakeLists.singletonPromise) {
+            UpdateCmakeLists.singletonPromise.then(() => {
+                UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
+                UpdateCmakeLists.singletonPromise = undefined;
+            });
+        } else {
+            UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
+        }
+    });
+    context.subscriptions.push(srcWatchOnChangeDisposable);
 
     vscode.workspace.onDidChangeWorkspaceFolders((e) => {
         if (vscode.workspace.workspaceFolders &&
