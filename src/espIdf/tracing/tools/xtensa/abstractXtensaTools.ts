@@ -15,39 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { join } from "path";
-import * as vscode from "vscode";
 
-import * as idfConf from "../../../../idfConfiguration";
-import { canAccessFile, spawn } from "../../../../utils";
+import * as vscode from "vscode";
+import { Logger } from "../../../../logger/logger";
+import { appendIdfAndToolsToPath, spawn } from "../../../../utils";
 
 export abstract class XtensaTools {
 
     protected readonly workspaceRoot: vscode.Uri;
     protected readonly toolName: string;
-    protected readonly toolsBinPath: string;
 
-    constructor(workspaceRoot: vscode.Uri, toolName: string, toolsBinPath?: string) {
+    constructor(workspaceRoot: vscode.Uri, toolName: string) {
         this.workspaceRoot = workspaceRoot;
         this.toolName = toolName;
-        this.toolsBinPath = toolsBinPath || this.xtensaToolsBinPath();
     }
 
     protected async call(args: string[]): Promise<Buffer> {
-        this.preCheck();
-        return await spawn(this.toolName, args, {
-            cwd: this.toolsBinPath,
-        });
-    }
-
-    private preCheck() {
-        if (!canAccessFile(join(this.toolsBinPath))) {
-            throw new Error(`${this.toolName} not exists or not accessible at ${this.toolsBinPath}`);
+        appendIdfAndToolsToPath();
+        try {
+            return await spawn(this.toolName, args);
+        } catch (error) {
+            Logger.errorNotify(`Make sure ${this.toolName} is set in the Path with proper permission`, error);
         }
-    }
-
-    private xtensaToolsBinPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.xtensaEsp32Path");
-        return join(idfPathDir, "bin");
     }
 }
