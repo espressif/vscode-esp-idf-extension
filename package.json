@@ -31,6 +31,7 @@
     "onCommand:menuconfig.start",
     "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
+    "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
     "onCommand:espIdf.flashDevice",
     "onCommand:espIdf.monitorDevice",
@@ -44,6 +45,7 @@
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
     "onCommand:espIdf.apptrace.customize",
+    "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onView:idfAppTracer",
@@ -150,7 +152,7 @@
         "properties": {
           "idf.espIdfPath": {
             "type": "string",
-            "default": "${env:HOME}/esp/esp-idf",
+            "default": "${env:IDF_PATH}",
             "description": "%param.espIdfPath%",
             "scope": "resource"
           },
@@ -220,28 +222,23 @@
             "description": "%param.projectName%",
             "scope": "resource"
           },
-          "idf.deviceInterface": {
-            "type": "string",
-            "default": "interface/ftdi/esp32_devkitj_v1.cfg",
-            "description": "%param.deviceInterface%",
+          "idf.openOcdConfigs": {
+            "type": "array",
+            "default": [
+              "board/esp32-wrover.cfg"
+            ],
+            "description": "%param.openOcdConfigFilesList%",
             "scope": "resource"
           },
-          "idf.board": {
+          "idf.adapterTargetName": {
             "type": "string",
-            "default": "board/esp32-wrover.cfg",
-            "description": "%param.board%",
-            "scope": "resource"
-          },
-          "idf.deviceInterfaceWin": {
-            "type": "string",
-            "default": "interface\\ftdi\\esp32_devkitj_v1.cfg",
-            "description": "%param.deviceInterface%",
-            "scope": "resource"
-          },
-          "idf.boardWin": {
-            "type": "string",
-            "default": "board\\esp32-wrover.cfg",
-            "description": "%param.board%",
+            "default": "esp32",
+            "enum": ["esp32", "esp32s2beta"],
+            "enumDescriptions": [
+              "ESP32",
+              "ESP32 S2 (Beta)"
+            ],
+            "description": "%param.adapterTargetName%",
             "scope": "resource"
           },
           "idf.customExtraPaths": {
@@ -308,6 +305,10 @@
       {
         "command": "espIdf.setPath",
         "title": "%espIdf.setPath.title%"
+      },
+      {
+        "command": "espIdf.setTarget",
+        "title": "%espIdf.setTarget.title%"
       },
       {
         "command": "espIdf.configDevice",

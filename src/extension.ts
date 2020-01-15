@@ -24,7 +24,7 @@ import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
-import { OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
+import { IOpenOCDConfig, OpenOCDManager } from "./espIdf/openOcd/openOcdManager";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
@@ -277,10 +277,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 "Select option to define its path :");
             vscode.window.showQuickPick(
                 [
+                    { description: "Device target (esp32, esp32s2beta)",
+                        label: "Device Target", target: "deviceTarget" },
                     { description: "Device port path", label: "Device Port", target: "devicePort" },
                     { description: "Baud rate of device", label: "Baud Rate", target: "baudRate" },
-                    { description: "Device Interface", label: "Interface", target: "deviceInterface" },
-                    { description: "Board", label: "Board", target: "board" },
+                    { description: "Relative paths to OpenOCD Scripts directory separated by comma(,)",
+                        label: "OpenOcd Config Files", target: "openOcdConfig" },
                 ],
                 { placeHolder: selectConfigMsg },
             ).then((option) => {
@@ -294,6 +296,16 @@ export async function activate(context: vscode.ExtensionContext) {
                 let msg: string;
                 let paramName: string;
                 switch (option.target) {
+                    case "deviceTarget":
+                        const enterDeviceTargetMsg = locDic.localize("extension.enterDeviceTargetMessage",
+                            "Enter device target name");
+                        currentValue = idfConf.readParameter("idf.adapterTargetName");
+                        idfConf.updateConfParameter(
+                            "idf.adapterTargetName",
+                            enterDeviceTargetMsg,
+                            currentValue,
+                            option.label);
+                        break;
                     case "devicePort":
                         msg = locDic.localize("extension.enterDevicePortMessage",
                             "Enter device port Path");
@@ -304,15 +316,18 @@ export async function activate(context: vscode.ExtensionContext) {
                             "Enter device baud rate");
                         paramName = "idf.baudRate";
                         break;
-                    case "deviceInterface":
-                        msg = locDic.localize("extension.enterDeviceInterfaceMessage",
-                            "Enter interface as defined in docs");
-                        paramName = "idf.deviceInterface";
-                        break;
-                    case "board":
-                        msg = locDic.localize("extension.enterDeviceBoardMessage",
-                            "Enter board as defined in docs");
-                        paramName = "idf.board";
+                    case "openOcdConfig":
+                        const enterDeviceInterfaceMsg = locDic.localize("extension.enterOpenOcdConfigMessage",
+                            "Enter OpenOCD Configuration File Paths list");
+                        currentValue = idfConf.readParameter("idf.openOcdConfigs");
+                        if (currentValue instanceof Array) {
+                            currentValue = currentValue.join(",");
+                        }
+                        idfConf.updateConfParameter(
+                            "idf.openOcdConfigs",
+                            enterDeviceInterfaceMsg,
+                            currentValue,
+                            option.label);
                         break;
                     default:
                         const noParamUpdatedMsg = locDic.localize("extension.noParamUpdatedMessage",
@@ -326,6 +341,18 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             });
         });
+    });
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("idf.openOcdConfigs")
+        ) {
+            const openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
+
+            const openOCDConfig: IOpenOCDConfig = {
+                openOcdConfigFilesList,
+            } as IOpenOCDConfig;
+            openOCDManager.configureServer(openOCDConfig);
+        }
     });
 
     const debugProvider = new IdfDebugConfigurationProvider();
@@ -364,6 +391,47 @@ export async function activate(context: vscode.ExtensionContext) {
             } catch (error) {
                 Logger.errorNotify(error.message, error);
             }
+        });
+    });
+
+    registerIDFCommand("espIdf.setTarget", () => {
+        PreCheck.perform([openFolderCheck], () => {
+            const enterDeviceTargetMsg = locDic.localize("extension.enterDeviceTargetMessage",
+                            "Enter device target name");
+            vscode.window.showQuickPick(
+                [
+                    { description: "ESP32",
+                        label: "ESP32", target: "esp32" },
+                    { description: "ESP32 S2 (Beta)",
+                        label: "ESP32S2BETA", target: "esp32s2beta" },
+                ],
+                { placeHolder: enterDeviceTargetMsg },
+            ).then((selected) => {
+                if (typeof selected === "undefined") {
+                    return;
+                }
+                idfConf.writeParameter("idf.adapterTargetName", selected.target);
+                if (selected.target === "esp32") {
+                    idfConf.writeParameter("idf.openOcdConfigs", ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]);
+                }
+                if (selected.target === "esp32s2beta") {
+                    idfConf.writeParameter("idf.openOcdConfigs",
+                        ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]);
+                }
+                const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+                const idfPy = path.join(idfPathDir, "tools", "idf.py");
+                utils.appendIdfAndToolsToPath();
+                const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+                utils.spawn(pythonBinPath, [idfPy, "set-target", selected.target], { cwd: workspaceRoot.fsPath })
+                .then((result) => {
+                    Logger.info(result.toString());
+                    OutputChannel.append(result.toString());
+                })
+                .catch((err) => {
+                    Logger.errorNotify(err, err);
+                    OutputChannel.append(err);
+                });
+            });
         });
     });
 
@@ -406,6 +474,16 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.window.showTextDocument(doc, vscode.ViewColumn.One, true);
         });
     });
+
+    registerIDFCommand("espIdf.getOpenOcdConfigs", () => {
+        const openOcfConfigs = idfConf.readParameter("idf.openOcdConfigs");
+        let result = "";
+        openOcfConfigs.forEach((configFile) => {
+            result = result + " -f " + configFile;
+        });
+        return result.trim();
+    });
+
     registerIDFCommand("espIdf.size", () => {
         PreCheck.perform([openFolderCheck], () => {
             const idfSize = new IDFSize(workspaceRoot);
