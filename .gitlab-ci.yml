@@ -43,6 +43,7 @@ node_vulnerabilities_test:
   tags: [ "build", "internet", "amd64" ]
   script:
     - yarn audit --registry=https://registry.npmjs.org
+  allow_failure: true
 
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
