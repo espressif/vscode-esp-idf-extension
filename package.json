@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
@@ -233,7 +233,10 @@
           "idf.adapterTargetName": {
             "type": "string",
             "default": "esp32",
-            "enum": ["esp32", "esp32s2beta"],
+            "enum": [
+              "esp32",
+              "esp32s2beta"
+            ],
             "enumDescriptions": [
               "ESP32",
               "ESP32 S2 (Beta)"
