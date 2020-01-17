@@ -45,11 +45,10 @@ export function readParameter(param: string) {
     if (typeof paramValue === "undefined") {
         return "";
     }
-    if (paramValue instanceof Array) {
-        return paramValue;
+    if (typeof paramValue === "string") {
+        return resolveVariables(paramValue);
     }
-    const paramValueString = paramValue.toString();
-    return resolveVariables(paramValueString);
+    return paramValue;
 }
 
 export function writeParameter(param: string, newValue) {
