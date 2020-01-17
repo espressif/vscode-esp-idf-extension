@@ -558,7 +558,15 @@ export async function activate(context: vscode.ExtensionContext) {
             return;
         }
         PreCheck.perform([openFolderCheck], () => {
-            AppTracePanel.createOrShow(context, { trace: { fileName: trace.fileName, filePath: trace.filePath } });
+            AppTracePanel.createOrShow(context, {
+                trace: {
+                    fileName: trace.fileName,
+                    filePath: trace.filePath,
+                    type: trace.type,
+                    workspacePath: workspaceRoot.fsPath,
+                    idfPath: idfConf.readParameter("idf.espIdfPath"),
+                },
+            });
         });
     });
 
