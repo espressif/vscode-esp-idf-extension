@@ -15,7 +15,14 @@
         <span class="link" @click="toggle" v-if="tree.child">{{ isOpen ? '▼' : '▶' }}</span>
         <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;</span>
         <strong>{{tree.name}}</strong>
-        <span class="is-pull-right">{{tree.description !== ':' ? `(${tree.description})` : ""}}</span>
+        <span class="is-pull-right">
+          <template v-if="tree.filePath !== '' && tree.lineNumber !== ''">
+            <a href="#" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
+          </template>
+          <template v-else>
+            {{tree.description !== ':' ? `(${tree.description})` : ""}}
+          </template>
+        </span>
       </div>
     </div>
     <div v-show="isOpen" v-if="tree.child">
@@ -46,6 +53,10 @@ const Calls = Vue.extend({
     },
     percentage() {
       return `(${Math.ceil((this.tree.size / this.total) * 100).toFixed(2)}%)`;
+    },
+    openFileAtLine(filePath: string, lineNumber: string) {
+      const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
+      this.$root.treeOpenFileHandler(filePath, lineNumberInt);
     }
   },
   computed: {
