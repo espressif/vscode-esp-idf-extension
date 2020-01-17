@@ -225,7 +225,7 @@ export class AppTracePanel {
         }
     }
     private getHtmlContent(): string {
-        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "espTrace.html");
+        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "tracing.html");
         if (!fs.existsSync(htmlFilePath)) {
             return this.notFoundStaticHtml();
         }

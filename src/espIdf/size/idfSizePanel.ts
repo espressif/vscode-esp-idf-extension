@@ -83,7 +83,7 @@ export class IDFSizePanel {
         }, null, this._disposables);
     }
     private getHtmlContent(): string {
-        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "espSize.html");
+        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "size.html");
         if (!fs.existsSync(htmlFilePath)) {
             return this.notFoundStaticHtml();
         }
