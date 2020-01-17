@@ -17,7 +17,7 @@ import * as vscode from "vscode";
 
 export function createExamplesHtml(extensionPath: string): string {
     const vuePath = vscode.Uri.file(
-        path.join(extensionPath, "out", "views", "examples-bundle.js")).with({ scheme: "vscode-resource"});
+        path.join(extensionPath, "dist", "views", "examples-bundle.js")).with({ scheme: "vscode-resource"});
 
     return `<!DOCTYPE html>
     <html lang="en">

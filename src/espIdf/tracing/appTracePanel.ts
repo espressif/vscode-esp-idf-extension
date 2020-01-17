@@ -45,7 +45,7 @@ export class AppTracePanel {
             AppTracePanel.viewTitle, column || vscode.ViewColumn.One,
             {
                 enableScripts: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "out", "views"))],
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))],
                 retainContextWhenHidden: true,
             });
         AppTracePanel.currentPanel = new AppTracePanel(panel, context.extensionPath, traceData);
@@ -225,7 +225,7 @@ export class AppTracePanel {
         }
     }
     private getHtmlContent(): string {
-        const htmlFilePath = path.join(this._extensionPath, "out", "views", "espTrace.html");
+        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "espTrace.html");
         if (!fs.existsSync(htmlFilePath)) {
             return this.notFoundStaticHtml();
         }

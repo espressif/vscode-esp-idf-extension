@@ -42,7 +42,7 @@ export class ExamplesPlanel {
         this.panel = vscode.window.createWebviewPanel(ExamplesPlanel.viewType, onBoardingPanelTitle, column, {
                 enableScripts: true,
                 retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "out", "views"))],
+                localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "dist", "views"))],
         });
 
         this.panel.webview.html = createExamplesHtml(extensionPath);

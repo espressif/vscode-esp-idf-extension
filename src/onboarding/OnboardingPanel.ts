@@ -65,7 +65,7 @@ export class OnBoardingPanel {
         this.panel = vscode.window.createWebviewPanel(OnBoardingPanel.viewType, onBoardingPanelTitle, column, {
             enableScripts: true,
             retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "out", "views"))],
+            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "dist", "views"))],
         });
 
         this.panel.webview.html = createOnboardingHtml(extensionPath);
@@ -92,7 +92,7 @@ export class OnBoardingPanel {
                 case "saveNewIdfPath":
                     if (message.new_value) {
                         idfConf.writeParameter("idf.espIdfPath", message.new_value);
-                        this.updateIdfToolsManager();
+                        this.updateIdfToolsManager(message.new_value);
                     }
                     break;
                 case "checkIdfToolsForPaths":
@@ -232,9 +232,9 @@ export class OnBoardingPanel {
         this.panel.dispose();
     }
 
-    private async updateIdfToolsManager() {
+    private async updateIdfToolsManager(newIdfPath: string) {
         const platformInfo = await PlatformInformation.GetPlatformInformation();
-        const toolsJsonPath = await utils.getToolsJsonPath();
+        const toolsJsonPath = await utils.getToolsJsonPath(newIdfPath);
         const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
         this.idfToolsManager = new IdfToolsManager(toolsJson, platformInfo, OutputChannel.init());
     }

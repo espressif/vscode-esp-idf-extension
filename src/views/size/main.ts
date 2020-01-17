@@ -24,7 +24,6 @@ declare var acquireVsCodeApi: any;
 let vscode: any;
 try {
   vscode = acquireVsCodeApi();
-  // eslint-disable-next-line no-empty
 } catch (error) {
   // tslint:disable-next-line: no-console
   console.error(error);

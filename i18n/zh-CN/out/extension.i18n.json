@@ -21,7 +21,8 @@
     "extension.enterIdfToolsPathMessage": "请输入 IDF_TOOLS_PATH 路径",
     "extension.enterDevicePortMessage": "请输入设备端口路径",
     "extension.enterDeviceBaudRateMessage": "请输入设备波特率",
-    "extension.enterDeviceInterfaceMessage": "请按照文档中的定义输入设备接口名",
-    "extension.enterDeviceBoardMessage": "请按照文档中的定义输入板卡名字",
+    "extension.cmdNotWebIDE": "所选命令在WebIDE中不可用",
+    "extension.enterOpenOcdConfigMessage": "在OpenOCD脚本目录中输入配置文件列表",
     "extension.enterCustomPathsMessage": "请输入额外添加到 PATH 环境变量中的路径"
+
 }

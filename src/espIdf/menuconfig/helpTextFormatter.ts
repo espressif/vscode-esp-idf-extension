@@ -92,10 +92,10 @@ export function formatNewLine(htmlString) {
 }
 
 export function formatHelpText(helpString) {
-    let newHelp = this.formatBulletPoint(helpString);
-    newHelp = this.formatEndBulletPoint(newHelp);
-    newHelp = this.formatRedText(newHelp);
-    newHelp = this.formatLinkText(newHelp);
-    newHelp = this.formatNewLine(newHelp);
+    let newHelp = formatBulletPoint(helpString);
+    newHelp = formatEndBulletPoint(newHelp);
+    newHelp = formatRedText(newHelp);
+    newHelp = formatLinkText(newHelp);
+    newHelp = formatNewLine(newHelp);
     return newHelp;
 }

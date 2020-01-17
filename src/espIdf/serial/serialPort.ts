@@ -61,13 +61,10 @@ export class SerialPort {
     }
 
     private updatePortListStatus(l: string) {
-        PreCheck.perform(PreCheck.isWorkspaceFolderOpen, "Open a workspace before select the Serial Port", () => {
-            const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-            idfConf.writeParameter("idf.port", l);
-            const portHasBeenSelectedMsg = this.locDic.localize("serial.portHasBeenSelectedMessage",
-                "Port has been updated to ");
-            Logger.infoNotify(portHasBeenSelectedMsg + l);
-        });
+        idfConf.writeParameter("idf.port", l);
+        const portHasBeenSelectedMsg = this.locDic.localize("serial.portHasBeenSelectedMessage",
+            "Port has been updated to ");
+        Logger.infoNotify(portHasBeenSelectedMsg + l);
     }
 
     private list(): Thenable<SerialPortDetails[]> {

@@ -15,7 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import HttpsProxyAgent = require("http-proxy-agent");
+import * as HttpsProxyAgent from "https-proxy-agent";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -24,7 +24,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 
-const extensionName = __dirname.replace(path.sep + "out", "");
+const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize("utils.currentFolder", "ESP-IDF Current Project");
@@ -36,15 +36,26 @@ export function setExtensionContext(context: vscode.ExtensionContext): void {
 
 export const packageJson = vscode.extensions.getExtension("espressif.esp-idf-extension").packageJSON;
 
+type PreCheckFunc = (...args: any[]) => boolean;
+export type PreCheckInput = [PreCheckFunc, string];
 export class PreCheck {
-    public static perform(preCheckFn: () => boolean, failureMessage: string, proceed: () => any): any {
-        if (preCheckFn()) {
+    public static perform(preCheckFunctions: PreCheckInput[], proceed: () => any): any {
+        let isPassedAll: boolean = true;
+        preCheckFunctions.forEach((preCheck: PreCheckInput) => {
+            if (!preCheck[0]()) {
+                isPassedAll = false;
+                Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"));
+            }
+        });
+        if (isPassedAll) {
             return proceed();
         }
-        Logger.errorNotify(failureMessage, new Error("PRECHECK_FAILED"));
     }
     public static isWorkspaceFolderOpen(): boolean {
         return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+    }
+    public static notUsingWebIde(): boolean {
+        return process.env.WEB_IDE ? false : true;
     }
 }
 
@@ -345,13 +356,12 @@ export function getToolPackagesPath(toolPackage: string[]) {
     return path.resolve(idfToolsPath, ...toolPackage);
 }
 
-export async function getToolsJsonPath() {
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-    const espIdfVersion = await getEspIdfVersion(espIdfPath);
-    const idfToolsJsonToUse = espIdfVersion.localeCompare("4.0") < 0 ? "fallback-tools.json" : "tools.json";
-    let jsonToUse: string = path.join(espIdfPath, "tools", idfToolsJsonToUse);
+export async function getToolsJsonPath(newIdfPath: string) {
+    const espIdfVersion = await getEspIdfVersion(newIdfPath);
+    let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
     await checkFileExists(jsonToUse).then((exists) => {
         if (!exists) {
+            const idfToolsJsonToUse = espIdfVersion.localeCompare("4.0") < 0 ? "fallback-tools.json" : "tools.json";
             jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
         }
     });

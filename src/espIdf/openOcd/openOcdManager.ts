@@ -25,10 +25,7 @@ import { appendIdfAndToolsToPath, isBinInPath, sleep } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
-    binPath: string;
-    scriptPath: string;
-    deviceInterface: string;
-    board: string;
+    openOcdConfigFilesList: string[];
 }
 
 export class OpenOCDManager extends EventEmitter {
@@ -40,8 +37,7 @@ export class OpenOCDManager extends EventEmitter {
     }
     private static instance: OpenOCDManager;
 
-    private deviceInterface: string;
-    private board: string;
+    private openOcdConfigFilesList: string[];
     private server: ChildProcess;
     private chan: Buffer;
     private displayChan: vscode.OutputChannel;
@@ -95,8 +91,7 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     public configureServer(config: IOpenOCDConfig) {
-        this.deviceInterface = config.deviceInterface;
-        this.board = config.board;
+        this.openOcdConfigFilesList = config.openOcdConfigFilesList;
     }
 
     public isRunning(): boolean {
@@ -134,12 +129,15 @@ export class OpenOCDManager extends EventEmitter {
             throw new Error("Invalid OpenOCD script path or access is denied for the user");
         }
 
-        this.server = spawn("openocd", [
-            "-f", this.deviceInterface,
-            "-f", this.board,
-        ], {
-                cwd: workspace,
-            });
+        const openOcdArgs = [];
+        this.openOcdConfigFilesList.forEach((configFile) => {
+            openOcdArgs.push("-f");
+            openOcdArgs.push(configFile);
+        });
+
+        this.server = spawn("openocd", openOcdArgs, {
+            cwd: workspace,
+        });
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
@@ -196,8 +194,7 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     private configureServerWithDefaultParam() {
-        this.deviceInterface = idfConf.readParameter("idf.deviceInterface");
-        this.board = idfConf.readParameter("idf.board");
+        this.openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
     }
 
     private sendToOutputChannel(data: Buffer) {
