@@ -26,6 +26,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
@@ -304,6 +305,10 @@
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%"
+      },
+      {
+        "command": "espIdf.createVsCodeFolder",
+        "title": "%espIdf.createVsCodeFolder.title%"
       },
       {
         "command": "espIdf.setPath",
