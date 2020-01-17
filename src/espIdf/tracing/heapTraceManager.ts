@@ -21,6 +21,7 @@ import * as vscode from "vscode";
 
 import { mkdirSync } from "fs";
 import { join } from "path";
+import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists, getElfFilePath, sleep } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -58,6 +59,7 @@ export class HeapTraceManager extends EventEmitter {
                 }
                 const addresses = await this.getAddressFor(["heap_trace_start", "heap_trace_stop"]);
                 const fileName = `file://${join(workspace, "trace")}/htrace_${new Date().getTime()}.svdat`;
+                const target = idfConf.readParameter("idf.adapterTargetName");
                 const commandChain = new CommandChain();
                 commandChain
                     .buildCommand("reset halt")
@@ -65,10 +67,10 @@ export class HeapTraceManager extends EventEmitter {
                     .buildCommand(`bp 0x${addresses.heap_trace_stop} 4 hw`)
                     .buildCommand("resume")
                     .buildCommand(`rbp 0x${addresses.heap_trace_start}`)
-                    .buildCommand(`esp32 sysview start ${fileName}`)
+                    .buildCommand(`${target} sysview start ${fileName}`)
                     .buildCommand("resume")
                     .buildCommand(`rbp 0x${addresses.heap_trace_stop}`)
-                    .buildCommand("esp32 sysview stop");
+                    .buildCommand(`${target} sysview stop`);
                 this.heapTraceNotificationTCLClientHandler.on("response", (resp: Buffer) => {
                     this.heapTraceChannel.appendLine("->> " + resp);
                 });
