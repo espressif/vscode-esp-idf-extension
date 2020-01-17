@@ -161,8 +161,9 @@ const app = new Vue({
                     command: "calculate",
                 });
             } else {
+                this.displayError(`Tracing Type Not yet implemented`);
                 // tslint:disable-next-line: no-console
-                console.log("Tracing Type Not yet implemented");
+                console.error("Tracing Type Not yet implemented");
             }
         },
         displayError(err: string) {
