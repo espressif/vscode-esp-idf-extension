@@ -48,7 +48,7 @@ const Plot = Vue.extend({
       layout: {
         yaxis: {
           fixedrange: false,
-          title: "Memory Usages (in bytes)"
+          title: "Memory Used (in bytes)"
         },
         hovermode: "closest",
         title: "Heap Trace",

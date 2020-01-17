@@ -1,11 +1,11 @@
 <template>
   <div>
-    <button class="button no-top-border" data-dict-key="plot" v-on:click="heapViewChange">Plot</button>
+    <button class="button no-top-border" data-dict-key="plot" v-on:click="heapViewChange">Visual Data</button>
     <button
       class="button no-top-border"
       data-dict-key="callStack"
       v-on:click="heapViewChange"
-    >Call Stacks</button>
+    >Totals</button>
     <button class="button no-top-border" data-dict-key="leaks" v-on:click="heapViewChange">Leaks</button>
   </div>
 </template>
