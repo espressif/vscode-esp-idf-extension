@@ -101,7 +101,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     if (vscode.workspace.workspaceFolders &&
         vscode.workspace.workspaceFolders.length > 0) {
-            workspaceRoot = initSelectedWorkspace(status);
+        workspaceRoot = initSelectedWorkspace(status);
     }
     // Add delete or update new sources in CMakeLists.txt of same folder
     const newSrcWatcher = vscode.workspace.createFileSystemWatcher("**/*.{c,cpp,cc,S}", false, false, false);
@@ -220,9 +220,11 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.window.showQuickPick(
                 [
                     { description: "IDF_PATH Path", label: "IDF_PATH", target: "esp" },
-                    { description: "Set IDF_TOOLS_PATH Path", label: "IDF_TOOLS_PATH", target: "idfTools"},
-                    { description: "Set paths to append to PATH",
-                        label: "Custom extra paths", target: "customExtraPath"},
+                    { description: "Set IDF_TOOLS_PATH Path", label: "IDF_TOOLS_PATH", target: "idfTools" },
+                    {
+                        description: "Set paths to append to PATH",
+                        label: "Custom extra paths", target: "customExtraPath",
+                    },
                 ],
                 { placeHolder: selectFrameworkMsg },
             ).then((option) => {
@@ -243,23 +245,23 @@ export async function activate(context: vscode.ExtensionContext) {
                         break;
                     case "idfTools":
                         const enterIdfToolsPathMsg = locDic.localize("extension.enterIdfToolsPathMessage",
-                                "Enter IDF_TOOLS_PATH path");
+                            "Enter IDF_TOOLS_PATH path");
                         currentValue = idfConf.readParameter("idf.toolsPath");
                         idfConf.updateConfParameter(
-                                "idf.toolsPath",
-                                enterIdfToolsPathMsg,
-                                currentValue,
-                                option.label);
+                            "idf.toolsPath",
+                            enterIdfToolsPathMsg,
+                            currentValue,
+                            option.label);
                         break;
                     case "customExtraPath":
                         const enterExtraPathsMsg = locDic.localize("extension.enterCustomPathsMessage",
-                                "Enter extra paths to append to PATH");
+                            "Enter extra paths to append to PATH");
                         currentValue = idfConf.readParameter("idf.customExtraPaths");
                         idfConf.updateConfParameter(
-                                "idf.customExtraPaths",
-                                enterExtraPathsMsg,
-                                currentValue,
-                                option.label);
+                            "idf.customExtraPaths",
+                            enterExtraPathsMsg,
+                            currentValue,
+                            option.label);
                         break;
                     default:
                         const noPathUpdatedMsg = locDic.localize("extension.noPathUpdatedMessage",
@@ -281,12 +283,16 @@ export async function activate(context: vscode.ExtensionContext) {
                 "Select option to define its path :");
             vscode.window.showQuickPick(
                 [
-                    { description: "Device target (esp32, esp32s2beta)",
-                        label: "Device Target", target: "deviceTarget" },
+                    {
+                        description: "Device target (esp32, esp32s2beta)",
+                        label: "Device Target", target: "deviceTarget",
+                    },
                     { description: "Device port path", label: "Device Port", target: "devicePort" },
                     { description: "Baud rate of device", label: "Baud Rate", target: "baudRate" },
-                    { description: "Relative paths to OpenOCD Scripts directory separated by comma(,)",
-                        label: "OpenOcd Config Files", target: "openOcdConfig" },
+                    {
+                        description: "Relative paths to OpenOCD Scripts directory separated by comma(,)",
+                        label: "OpenOcd Config Files", target: "openOcdConfig",
+                    },
                 ],
                 { placeHolder: selectConfigMsg },
             ).then((option) => {
@@ -401,13 +407,17 @@ export async function activate(context: vscode.ExtensionContext) {
     registerIDFCommand("espIdf.setTarget", () => {
         PreCheck.perform([openFolderCheck], () => {
             const enterDeviceTargetMsg = locDic.localize("extension.enterDeviceTargetMessage",
-                            "Enter device target name");
+                "Enter device target name");
             vscode.window.showQuickPick(
                 [
-                    { description: "ESP32",
-                        label: "ESP32", target: "esp32" },
-                    { description: "ESP32 S2 (Beta)",
-                        label: "ESP32S2BETA", target: "esp32s2beta" },
+                    {
+                        description: "ESP32",
+                        label: "ESP32", target: "esp32",
+                    },
+                    {
+                        description: "ESP32 S2 (Beta)",
+                        label: "ESP32S2BETA", target: "esp32s2beta",
+                    },
                 ],
                 { placeHolder: enterDeviceTargetMsg },
             ).then((selected) => {
@@ -427,14 +437,14 @@ export async function activate(context: vscode.ExtensionContext) {
                 utils.appendIdfAndToolsToPath();
                 const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
                 utils.spawn(pythonBinPath, [idfPy, "set-target", selected.target], { cwd: workspaceRoot.fsPath })
-                .then((result) => {
-                    Logger.info(result.toString());
-                    OutputChannel.append(result.toString());
-                })
-                .catch((err) => {
-                    Logger.errorNotify(err, err);
-                    OutputChannel.append(err);
-                });
+                    .then((result) => {
+                        Logger.info(result.toString());
+                        OutputChannel.append(result.toString());
+                    })
+                    .catch((err) => {
+                        Logger.errorNotify(err, err);
+                        OutputChannel.append(err);
+                    });
             });
         });
     });
@@ -450,14 +460,13 @@ export async function activate(context: vscode.ExtensionContext) {
                     cancellable: false,
                     location: vscode.ProgressLocation.Notification,
                     title: "ESP-IDF: Configure extension",
-                }, async (progress: vscode.Progress<{ message: string, increment: number}>,
-                          cancelToken: vscode.CancellationToken) => {
-                        try {
-                            const onboardingArgs = await getOnboardingInitialValues(context.extensionPath, progress);
-                            OnBoardingPanel.createOrShow(context.extensionPath, onboardingArgs);
-                        } catch (error) {
-                            Logger.errorNotify(error.message, error);
-                        }
+                }, async (progress: vscode.Progress<{ message: string, increment: number }>) => {
+                    try {
+                        const onboardingArgs = await getOnboardingInitialValues(context.extensionPath, progress);
+                        OnBoardingPanel.createOrShow(context.extensionPath, onboardingArgs);
+                    } catch (error) {
+                        Logger.errorNotify(error.message, error);
+                    }
                 });
             } catch (error) {
                 Logger.errorNotify(error.message, error);
@@ -575,7 +584,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await AppTraceManager.saveConfiguration();
         });
     });
-    const showOnboardingInit =  vscode.workspace.getConfiguration("idf").get("showOnboardingOnInit");
+    const showOnboardingInit = vscode.workspace.getConfiguration("idf").get("showOnboardingOnInit");
     if (showOnboardingInit && typeof process.env.WEB_IDE === "undefined") {
         vscode.commands.executeCommand("onboarding.start");
     }
@@ -616,7 +625,7 @@ function createStatusBarItem(icon: string, tooltip: string, cmd: string, priorit
 const build = () => {
     PreCheck.perform([openFolderCheck], () => {
         const buildManager = new BuildManager(workspaceRoot.fsPath, idfBuildChannel);
-        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+        if (BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
@@ -661,7 +670,7 @@ const build = () => {
 };
 const flash = () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+        if (BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
@@ -740,7 +749,7 @@ const flash = () => {
 };
 const buildFlashAndMonitor = () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+        if (BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
@@ -785,16 +794,16 @@ const buildFlashAndMonitor = () => {
             idfBuildChannel.clear();
             idfFlashChannel.clear();
             try {
-                progress.report({ message: "Building project...", increment: 20});
+                progress.report({ message: "Building project...", increment: 20 });
                 await buildManager.build();
                 const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
                 updateProjectName(projDescPath);
                 updateIdfComponentsTree(projDescPath);
-                progress.report({ message: "Flashing project into device...", increment: 60});
+                progress.report({ message: "Flashing project into device...", increment: 60 });
                 const model = await createFlashModel(flasherArgsJsonPath, port, baudRate);
                 const flashManager = new FlashManager(idfPathDir, buildPath, model, idfFlashChannel);
                 await flashManager.flash();
-                progress.report({ message: "Launching monitor...", increment: 10});
+                progress.report({ message: "Launching monitor...", increment: 10 });
                 createMonitor();
             } catch (error) {
                 switch (error.message) {
@@ -826,7 +835,7 @@ const buildFlashAndMonitor = () => {
 
 function createMonitor(): any {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-        if ( BuildManager.isBuilding || FlashManager.isFlashing) {
+        if (BuildManager.isBuilding || FlashManager.isFlashing) {
             const waitProcessIsFinishedMsg = locDic.localize("extension.waitProcessIsFinishedMessage",
                 "Wait for ESP-IDF build or flash to finish");
             Logger.errorNotify(waitProcessIsFinishedMsg, new Error("One_Task_At_A_Time"));
@@ -855,8 +864,10 @@ function createMonitor(): any {
             return Logger.errorNotify("Select a serial port before flashing", new Error("NOT_SELECTED_PORT"));
         }
         if (typeof monitorTerminal === "undefined") {
-            monitorTerminal = vscode.window.createTerminal({ name: "ESP-IDF Monitor", env: process.env,
-                cwd: workspaceRoot.fsPath });
+            monitorTerminal = vscode.window.createTerminal({
+                name: "ESP-IDF Monitor", env: process.env,
+                cwd: workspaceRoot.fsPath,
+            });
         }
         monitorTerminal.show();
         const envSetCmd = process.platform === "win32" ? "set" : "export";
@@ -940,9 +951,9 @@ export function startKconfigLangServer(context: vscode.ExtensionContext) {
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
-            { scheme: "file", pattern: "**/Kconfig"},
-            { scheme: "file", pattern: "**/Kconfig.projbuild"},
-            { scheme: "file", pattern: "**/Kconfig.in"},
+            { scheme: "file", pattern: "**/Kconfig" },
+            { scheme: "file", pattern: "**/Kconfig.projbuild" },
+            { scheme: "file", pattern: "**/Kconfig.in" },
         ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),
