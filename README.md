@@ -76,7 +76,7 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
 - When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.deviceInterface` and `idf.board` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
 
 ## Available commands
 
@@ -86,7 +86,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to
 | --- | --- | --- |
 | Configure ESP-IDF extension |
 | Create ESP-IDF project | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> | 
+| Add vscode configuration folder |
 | Configure Paths |||
+| Set Espressif device target |
 | Device configuration |||
 | Launch gui configuration tool |||
 | Set default sdkconfig file in project	 |||
@@ -122,8 +124,10 @@ These are project IDF Project specific settings
 | `idf.customExtraVars` | Variables to be added to system environment variables |
 | `idf.useIDFKconfigStyle` | Enable style validation for Kconfig files |
 | `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window |
-| `idf.deviceInterface` | Interface for OpenOCD |
-| `idf.board` | Board for OpenOCD |
+| `idf.adapterTargetName` | ESP-IDF target Chip (Example: esp32) |
+| `idf.openOcdConfigs` | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+
+When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
 
 ### Board/ Chip Specific Settings

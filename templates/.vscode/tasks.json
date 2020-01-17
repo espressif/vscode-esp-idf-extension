@@ -102,9 +102,9 @@
                 "focus": false,
                 "panel":"new"
             },
-            "command":"${config:idf.openOcdBin} -s ${config:idf.openOcdScriptsPath} ${command:espIdf.getOpenOcdConfigs}",
+            "command":"openocd -s ${config:idf.openOcdScriptsPath} ${command:espIdf.getOpenOcdConfigs}",
             "windows": {
-                "command": "{config:idf.openOcdBinWin} -s ${config:idf.openOcdScriptsPathWin} ${command:espIdf.getOpenOcdConfigs}"
+                "command": "openocd.exe -s ${config:idf.openOcdScriptsPathWin} ${command:espIdf.getOpenOcdConfigs}"
             },
             "problemMatcher": {
                 "owner": "cpp",
