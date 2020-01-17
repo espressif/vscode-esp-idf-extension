@@ -59,8 +59,8 @@ const extensionConfig = {
 const webViewConfig = {
     entry: {
         examples: path.resolve(__dirname, "src", "views", "examples", "main.ts"),
-        espSize: path.resolve(__dirname, "src", "views", "espSize.ts"),
-        espTrace: path.resolve(__dirname, "src", "views", "espTrace.ts"),
+        size: path.resolve(__dirname, "src", "views", "size", "main.ts"),
+        tracing: path.resolve(__dirname, "src", "views", "tracing", "main.ts"),
         onboarding: path.resolve(__dirname, "src", "views", "onboarding", "main.ts"),
         menuconfig: path.resolve(__dirname, "src", "views", "menuconfig", "main.ts"),
     },
@@ -131,15 +131,14 @@ const webViewConfig = {
             files: ['./*.ts']
         }),
         new HtmlWebpackPlugin({
-            chunks: ['espSize'],
-            filename: "espSize.html",
-            template: `${__dirname}/src/views/espSize.html`,
-            chunks: ['espSize']
+            chunks: ['size'],
+            filename: "size.html",
+            template: path.join(__dirname, "src", "views", "size", "index.html")
         }),
         new HtmlWebpackPlugin({
-            chunks: ['espTrace'],
-            filename: "espTrace.html",
-            template: `${__dirname}/src/views/espTrace.html`,
+            chunks: ['tracing'],
+            filename: "tracing.html",
+            template: path.join(__dirname, "src", "views", "tracing", "index.html")
         }),
         new VueLoaderPlugin(),
     ],
