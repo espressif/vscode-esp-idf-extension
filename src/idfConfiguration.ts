@@ -45,6 +45,9 @@ export function readParameter(param: string) {
     if (typeof paramValue === "undefined") {
         return "";
     }
+    if (paramValue instanceof Array) {
+        return paramValue;
+    }
     const paramValueString = paramValue.toString();
     return resolveVariables(paramValueString);
 }

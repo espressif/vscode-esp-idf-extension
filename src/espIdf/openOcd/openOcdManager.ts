@@ -108,6 +108,10 @@ export class OpenOCDManager extends EventEmitter {
             throw new Error("Invalid OpenOCD script path or access is denied for the user");
         }
 
+        if (typeof this.openOcdConfigFilesList === "undefined" || this.openOcdConfigFilesList.length < 1) {
+            throw new Error("Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration");
+        }
+
         const openOcdArgs = [];
         this.openOcdConfigFilesList.forEach((configFile) => {
             openOcdArgs.push("-f");
