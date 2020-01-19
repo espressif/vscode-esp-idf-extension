@@ -492,7 +492,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ --watch & webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
-    "package": "vsce package -o esp-idf-extension.vsix",
+    "package": "mkdir vsix && vsce package -o vsix/esp-idf-extension-${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}.vsix",
     "gulp_clean": "gulp clean",
     "webpack": "webpack --mode production"
   },
