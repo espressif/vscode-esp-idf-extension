@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  Lint and Vulnerabilities Check:
+  Lint_and_Vulnerabilities_Check:
   
     runs-on: ubuntu-latest
 
