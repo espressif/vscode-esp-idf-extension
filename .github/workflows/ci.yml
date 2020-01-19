@@ -44,7 +44,6 @@ jobs:
         DISPLAY: ':99.0'
     - name: Upload testing.results.log on failure
       uses: actions/upload-artifact@v1
-      if: failure()
       with:
           name: testing.results.log
           path: testing.results.log
