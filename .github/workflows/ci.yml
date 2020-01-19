@@ -3,10 +3,8 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  NodeJS_Lint_Test_Build:
-  
+  extension_ci:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [10.x, 12.x]
@@ -19,32 +17,34 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install Dependencies
+    - name: Install Node Dependencies
       run: yarn
 
-    - name: TSLint
+    - name: Typescript Linting
       run: yarn run tslint
 
-    - name: Vulnerabilities
+    - name: Check Node Packages Vulnerabilities
       run: yarn audit
 
-    - name: Package .vsce
+    - name: Package .vsix
       run: yarn run  package
-    - name: Upload .vsce File
+    - name: Upload .vsix File
       uses: actions/upload-artifact@v1
       with:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
-
-    - name: Test
-      run: |
-        Xvfb :99 & sleep 2
-        yarn run test --VERBOSE >> testing.results.log
-    - name: Upload testing.results.log
+    
+    - name: Start xvfb
+      if: startsWith(matrix.os, 'ubuntu')
+      run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    - name: VSCode Extension Test
+      run: yarn run test --VERBOSE >> testing.results.log
+      env:
+        CODE_VERSION: ''
+        DISPLAY: ':99.0'
+    - name: Upload testing.results.log on failure
       uses: actions/upload-artifact@v1
+      if: failure()
       with:
           name: testing.results.log
           path: testing.results.log
-
-      env:
-        CI: true
