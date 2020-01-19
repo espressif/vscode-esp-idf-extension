@@ -42,7 +42,7 @@ jobs:
       env:
         CODE_VERSION: '1.41.1'
         DISPLAY: ':99.0'
-    - name: Upload testing.results.log on failure
+    - name: Upload testing.results.log
       uses: actions/upload-artifact@v1
       with:
           name: testing.results.log
