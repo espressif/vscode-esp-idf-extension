@@ -26,6 +26,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
@@ -306,6 +307,10 @@
         "title": "%espIdf.createFiles.title%"
       },
       {
+        "command": "espIdf.createVsCodeFolder",
+        "title": "%espIdf.createVsCodeFolder.title%"
+      },
+      {
         "command": "espIdf.setPath",
         "title": "%espIdf.setPath.title%"
       },
@@ -493,6 +498,7 @@
     "watch": "tsc -p ./ --watch & webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
     "package": "vsce package -o esp-idf-extension.vsix",
+    "release": "vsce publish -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
     "webpack": "webpack --mode production"
   },
