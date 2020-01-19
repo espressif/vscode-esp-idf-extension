@@ -74,17 +74,16 @@ function validateLocalizationFiles(done) {
       }
       locFiles.forEach((locFile) => {
         const localeJson = require(locFile);
-        // console.log(localeJson);
         const parts = getPathParts(locFile);
         const schemaKeys = reduceSchemaObj(schema, parts);
-        schemaKeys.forEach((sK) => {
-          if (!localeJson.hasOwnProperty(sK)) {
-            throw `${sK} not defined in ${locFile}`;
+        schemaKeys.forEach((schemaKey) => {
+          if (!localeJson.hasOwnProperty(schemaKey)) {
+            throw `${schemaKey} not defined in ${locFile}`;
           }
         });
-        Object.keys(localeJson).forEach((fK) => {
-          if (schemaKeys.indexOf(fK) < 0) {
-            console.log(`Unknown property ${fK} defined in ${locFile}`);
+        Object.keys(localeJson).forEach((fileKey) => {
+          if (schemaKeys.indexOf(fileKey) < 0) {
+            console.log(`Unknown property ${fileKey} defined in ${locFile}`);
           }
         });
       });
