@@ -35,9 +35,9 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
     
-    - name: Start xvfb
+    - name: xvfb
       run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-    - name: VSCode Extension Test
+    - name: Extension Test
       run: yarn run test --VERBOSE >> testing.results.log
       env:
         CODE_VERSION: '1.41.1'
