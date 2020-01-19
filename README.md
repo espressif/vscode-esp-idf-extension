@@ -171,6 +171,8 @@ the following:
 5. `OpenOCD` - Start the openOCD server
 6. `BuildFlash` - Execute a build followed by a flash command.
 
+Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
+
 ## ESP-IDF GUI Menuconfig tool
 
 This plugin includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start a configuration server process (confserver.py in __${ESP-IDF-DIRECTORYPATH}__/tools) that enables the user to redefine ESP-IDF board parameters.
