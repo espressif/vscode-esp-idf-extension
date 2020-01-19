@@ -492,8 +492,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ --watch & webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
-    "package": "vsce package -o esp-idf-extension-${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}.vsix",
-    "build_vsix": "gulp vscePkg",
+    "package": "vsce package -o esp-idf-extension.vsix",
     "gulp_clean": "gulp clean",
     "webpack": "webpack --mode production"
   },
@@ -525,7 +524,7 @@
     "mocha": "^6.1.4",
     "mocha-junit-reporter": "^1.23.1",
     "nock": "^10.0.6",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
