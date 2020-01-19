@@ -32,7 +32,7 @@ jobs:
     - name: Upload .vsix File
       uses: actions/upload-artifact@v1
       with:
-          name: esp-idf-extension-$GITHUB_SHA.vsix
+          name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
     
     - name: Start xvfb
