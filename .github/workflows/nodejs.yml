@@ -37,7 +37,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
           name: esp-idf-extension.vsix
-          path: esp-idf-extension-*.vsix
+          path: esp-idf-extension-${GITHUB_REF:-g${GITHUB_SHA:0:8}}.vsix
 
     - name: Test
       run: |
