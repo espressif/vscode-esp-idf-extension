@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  Lint_and_Vulnerabilities_Check:
+  NodeJS_Lint_Test_Build:
   
     runs-on: ubuntu-latest
 
@@ -27,6 +27,16 @@ jobs:
 
     - name: Vulnerabilities
       run: yarn audit
+
+    - name: Test
+      run: |
+        Xvfb :99 & sleep 2
+        yarn run test --VERBOSE >> testing.results.log
+    - name: Upload testing.results.log
+      uses: actions/upload-artifact@v1
+      with:
+          name: testing.results.log
+          path: testing.results.log
 
       env:
         CI: true
