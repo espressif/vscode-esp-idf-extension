@@ -6,7 +6,10 @@
         {
             "label": "Build - Build project",
             "type": "shell",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py build",
+            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py build",
+            "windows": {
+                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py build"
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -25,9 +28,29 @@
             }
         },
         {
+            "label": "Set ESP-IDF Target",
+            "type": "shell",
+            "command": "${command:espIdf.setTarget}",
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(//d+):(//d+)://s+(warning|error)://s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                } 
+            },
+        },
+        {
             "label": "Clean - Clean the project",
             "type": "shell",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py fullclean",
+            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py fullclean",
+            "windows": {
+                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean"
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -44,7 +67,10 @@
         {
             "label": "Flash - Flash the device",
             "type": "shell",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} flash",
+            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} flash",
+            "windows": {
+                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.baudRate}"
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -62,7 +88,10 @@
             "label": "Monitor: Start the monitor",
             "type": "shell",
             "dependsOn": "Flash - Flash the device",
-            "command": "${env:HOME}/esp/esp-idf/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor"
+            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
+            "windows": {
+                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
+            }
         },
         {
             "label":"OpenOCD: Start openOCD",
@@ -73,7 +102,10 @@
                 "focus": false,
                 "panel":"new"
             },
-            "command":"${env:HOME}/esp/openocd-esp32/bin/openocd -s ${env:HOME}/esp/openocd-esp32/share/openocd/scripts -f ${config:idf.deviceInterface} -f ${config:idf.board}",
+            "command":"openocd ${command:espIdf.getOpenOcdConfigs}",
+            "windows": {
+                "command": "openocd.exe ${command:espIdf.getOpenOcdConfigs}"
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",

@@ -45,11 +45,13 @@ export function readParameter(param: string) {
     if (typeof paramValue === "undefined") {
         return "";
     }
-    const paramValueString = paramValue.toString();
-    return resolveVariables(paramValueString);
+    if (typeof paramValue === "string") {
+        return resolveVariables(paramValue);
+    }
+    return paramValue;
 }
 
-export function writeParameter(param: string, newValue: string) {
+export function writeParameter(param: string, newValue) {
     const paramValue = addWinIfRequired(param);
     const configuration = vscode.workspace.getConfiguration();
     configuration.update(paramValue, newValue, vscode.ConfigurationTarget.Global);
@@ -59,16 +61,44 @@ export function updateConfParameter(confParamName, confParamDescription,
                                     currentValue, label) {
     vscode.window.showInputBox({ placeHolder: confParamDescription, value: currentValue}).then((newValue) => {
         return new Promise((resolve, reject) => {
-            if (newValue || newValue !== "") {
-                    writeParameter(confParamName, newValue);
-                    const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
-                    Logger.infoNotify(label + updateMessage);
-                    resolve(newValue);
+            if (newValue) {
+                const typeOfConfig = checkTypeOfConfiguration(confParamName);
+                let valueToWrite;
+                if (typeOfConfig === "array") {
+                    valueToWrite = parseStrToArray(newValue);
                 } else {
-                    reject(newValue);
+                    valueToWrite = newValue;
                 }
+                writeParameter(confParamName, valueToWrite);
+                const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
+                Logger.infoNotify(label + updateMessage);
+                resolve(newValue);
+            } else {
+                reject(newValue);
+            }
         });
     });
+}
+
+export function checkTypeOfConfiguration(paramName: string) {
+    const conf = vscode.workspace.getConfiguration("");
+    const { defaultValue } = conf.inspect(paramName);
+    if (typeof defaultValue === "object") {
+        return Array.isArray(defaultValue) ? "array" : "object";
+    } else {
+        return typeof defaultValue;
+    }
+}
+
+export function parseStrToArray(groupStr: string) {
+    const initialArray = groupStr.split(",");
+    const resultArr = [];
+    for (const el of initialArray) {
+        if (el.trim() !== "") {
+            resultArr.push(el.trim());
+        }
+    }
+    return resultArr;
 }
 
 export function resolveVariables(configPath: string) {
@@ -84,6 +114,11 @@ export function resolveVariables(configPath: string) {
             const pathInEnv = process.env[envVariable];
             return pathInEnv;
         }
+        if (match.indexOf("workspaceFolder") > 0) {
+            return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 ?
+                vscode.workspace.workspaceFolders[0].uri.fsPath : "";
+        }
+
         return match;
     });
 }

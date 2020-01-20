@@ -24,10 +24,7 @@ import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath } from "../../utils";
 
 export interface IOpenOCDConfig {
-    binPath: string;
-    scriptPath: string;
-    deviceInterface: string;
-    board: string;
+    openOcdConfigFilesList: string[];
 }
 
 export class OpenOCDManager extends EventEmitter {
@@ -39,8 +36,7 @@ export class OpenOCDManager extends EventEmitter {
     }
     private static instance: OpenOCDManager;
 
-    private deviceInterface: string;
-    private board: string;
+    private openOcdConfigFilesList: string[];
     private server: ChildProcess;
     private chan: Buffer;
     private displayChan: vscode.OutputChannel;
@@ -92,8 +88,7 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     public configureServer(config: IOpenOCDConfig) {
-        this.deviceInterface = config.deviceInterface;
-        this.board = config.board;
+        this.openOcdConfigFilesList = config.openOcdConfigFilesList;
     }
 
     public isRunning(): boolean {
@@ -110,15 +105,22 @@ export class OpenOCDManager extends EventEmitter {
             throw new Error("Invalid OpenOCD bin path or access is denied for the user");
         }
         if (typeof process.env.OPENOCD_SCRIPTS === "undefined") {
-            throw new Error("Invalid OpenOCD script path or access is denied for the user");
+            throw new Error("OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables.");
         }
 
-        this.server = spawn("openocd", [
-            "-f", this.deviceInterface,
-            "-f", this.board,
-        ], {
-                cwd: workspace,
-            });
+        if (typeof this.openOcdConfigFilesList === "undefined" || this.openOcdConfigFilesList.length < 1) {
+            throw new Error("Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value.");
+        }
+
+        const openOcdArgs = [];
+        this.openOcdConfigFilesList.forEach((configFile) => {
+            openOcdArgs.push("-f");
+            openOcdArgs.push(configFile);
+        });
+
+        this.server = spawn("openocd", openOcdArgs, {
+            cwd: workspace,
+        });
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
@@ -175,8 +177,7 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     private configureServerWithDefaultParam() {
-        this.deviceInterface = idfConf.readParameter("idf.deviceInterface");
-        this.board = idfConf.readParameter("idf.board");
+        this.openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
     }
 
     private sendToOutputChannel(data: Buffer) {

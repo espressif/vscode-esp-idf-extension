@@ -13,8 +13,7 @@ before_script:
   - test ! -z "$CI_NPM_REGISTRY" && npm config set registry $CI_NPM_REGISTRY || true
   - unset HTTP_PROXY
   - unset ALL_PROXY
-  - npm install
-  # ssh key
+  - yarn
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
   - echo -n $GITLAB_KEY > ~/.ssh/id_rsa_base64
@@ -35,37 +34,16 @@ typescript_lint_test:
   image: node:slim
   stage: lint
   tags: [ "build", "internet", "amd64" ]
-  artifacts:
-    when: on_failure
-    paths:
-      - /root/.npm/_logs/*.log
-    expire_in: 1 week
   script:
-    - npm run tslint
+    - yarn run tslint
 
-javascript_lint_test:
+node_vulnerabilities_test:
   image: node:slim
   stage: lint
   tags: [ "build", "internet", "amd64" ]
-  artifacts:
-    when: on_failure
-    paths:
-      - /root/.npm/_logs/*.log
-    expire_in: 1 week
   script:
-    - npm run eslint
-
-npm_vulnerabilities_test:
-  image: node:slim
-  stage: lint
-  tags: [ "build", "internet", "amd64" ]
-  artifacts:
-    when: on_failure
-    paths:
-      - /root/.npm/_logs/*.log
-    expire_in: 1 week
-  script:
-    - npm audit --registry=https://registry.npmjs.org
+    - yarn audit --registry=https://registry.npmjs.org
+  allow_failure: true
 
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
@@ -85,20 +63,6 @@ python_lint_test:
     - python -m bandit -r -f txt -o bandit_output.txt .
     - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee
 
-build_tar:
-  image: node:slim
-  stage: build
-  tags: [ "build", "internet", "amd64" ]
-  artifacts:
-    paths:
-      - espressif-esp-idf-extension-*.tar.gz
-  script:
-    - PACKAGE_VERSION=$(node -p "require('./package.json').version")
-    - cd ..
-    - tar -pczf espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME --exclude "$CI_PROJECT_NAME/node_modules" --exclude "$CI_PROJECT_NAME/.git"
-    - mv espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME
-    - cd $CI_PROJECT_NAME
-
 build_vsix:
   image: electronuserland/builder:11
   stage: build
@@ -106,19 +70,10 @@ build_vsix:
   artifacts:
     paths:
       - esp-idf-extension-*.vsix
-      - /root/.npm/_logs/*.log
     expire_in: 1 week
   script:
-    - rm -rf node_modules
-    - npm config set script-shell /bin/bash
-    - npm install
-    - npm add vsce
-    - npm add gulp
-    - ./node_modules/.bin/gulp build
-    - VERSION_STR=${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}
-    - npm run compile
-    - npm run webpack
-    - npm run package
+    - yarn config set script-shell /bin/bash
+    - yarn run package
 
 deploy_marketplace:
   image: electronuserland/builder:11
@@ -127,14 +82,14 @@ deploy_marketplace:
     - deploy
   before_script:
     - echo "Skipping before_script"
+  artifacts:
+    paths:
+      - esp-idf-extension-*.vsix
+    untracked: false
+    expire_in: 30 days
   script:
-    - rm -rf node_modules
-    - npm config set script-shell /bin/bash
-    - npm i
-    - npm i vsce -g
-    - npm run compile
-    - npm run webpack
-    - vsce publish -p ${VS_MARKETPLACE_TOKEN}
+    - yarn config set script-shell /bin/bash
+    - yarn release
   when: manual
 
 deploy_github:
@@ -161,7 +116,6 @@ tests_extension_units:
   artifacts:
     paths:
     - "*.log"
-    - /root/.npm/_logs/*.log
     reports:
       junit:
         - results/*
@@ -169,4 +123,4 @@ tests_extension_units:
     expire_in: 1 week
   script:
     - Xvfb :99 & sleep 2
-    - npm run test --VERBOSE >> testing.results.log
+    - yarn run test --VERBOSE >> testing.results.log

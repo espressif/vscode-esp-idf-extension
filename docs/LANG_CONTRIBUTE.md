@@ -34,7 +34,7 @@ Each file has a key value structure such as:
 
 where you would replace the `value` part with your language contribution.
 
-(Re-) Compile the extension installation file (.vsix) by running `npm run build_vsix` from a terminal in the directory of this file. 
+(Re-) Compile the extension installation file (.vsix) by running `yarn run build_vsix` from a terminal in the directory of this file. 
 
 Test your contribution by changing Visual Studio Code locale:
 - Pressing F1 and run the `Configure Display Language` command. 

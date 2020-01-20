@@ -191,8 +191,6 @@ window.addEventListener("message", (event) => {
       break;
     case "load_show_onboarding":
       if (message.show_onboarding_on_init !== undefined) {
-        // tslint:disable-next-line: no-console
-        console.log(message.show_onboarding_on_init);
         store.commit("setShowOnboardingOnInit", message.show_onboarding_on_init);
       }
       break;

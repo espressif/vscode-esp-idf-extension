@@ -81,8 +81,11 @@ export async function downloadToolsInIdfToolsPath(workingDir: string,
             Logger.info(reason);
         });
         let exportPaths = await idfToolsManager.exportPaths(path.join(installDir, "tools"));
-        const pythonBinPath = idfConf.readParameter("idf.pythonSystemBinPath") as string;
-        exportPaths = path.dirname(pythonBinPath) + path.delimiter + exportPaths;
+        const pythonSystemBinPath = idfConf.readParameter("idf.pythonSystemBinPath") as string;
+        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+        // Append System Python and Virtual Env Python to PATH
+        exportPaths = path.dirname(pythonBinPath) + path.delimiter +
+            path.dirname(pythonSystemBinPath) + path.delimiter + exportPaths;
         const exportVars = await idfToolsManager.exportVars(path.join(installDir, "tools"));
         OutputChannel.appendLine("");
         Logger.info("");

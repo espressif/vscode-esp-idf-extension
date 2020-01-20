@@ -116,7 +116,7 @@ export class ConfserverProcess {
         progress.report({ increment: 10, message: "Deleting current values..." });
         ConfserverProcess.instance.areValuesSaved = true;
         delConfigFile(ConfserverProcess.instance.workspaceFolder);
-        const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath");
+        const guiconfigEspPath = idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
         const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
         appendIdfAndToolsToPath();
         const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
@@ -191,7 +191,7 @@ export class ConfserverProcess {
         this.workspaceFolder = workspaceFolder;
         this.extensionPath = extensionPath;
         this.emitter = new EventEmitter();
-        this.espIdfPath = idfConf.readParameter("idf.espIdfPath").toString();
+        this.espIdfPath = idfConf.readParameter("idf.espIdfPath").toString() || process.env.IDF_PATH;
         const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
         this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 

@@ -21,7 +21,9 @@
     "extension.enterIdfToolsPathMessage": "Introduzca la ruta IDF_TOOLS_PATH",
     "extension.enterDevicePortMessage": "Introduzca la ruta del puerto serial ESP-IDF",
     "extension.enterDeviceBaudRateMessage": "Introduzca la tasa de baudios",
-    "extension.enterDeviceInterfaceMessage": "Introduzca la ruta de interfaz de OpenOCD",
-    "extension.enterDeviceBoardMessage": "Introduzca la ruta de la tarjeta de OpenOCD",
+    "extension.cmdNotWebIDE": "El comando seleccionado no esta disponible en WebIDE",
+    "extension.enterDeviceTargetMessage": "Introduzca dispositivo Espressif a utilizar",
+    "extension.enterOpenOcdConfigMessage": "Introduzca la lista de archivos de configuracion dentro del directorio OpenOCD Scripts",
     "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH"
+
 }

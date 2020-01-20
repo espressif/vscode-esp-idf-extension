@@ -4,11 +4,15 @@ Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](
 
 The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
 
-- Quick On-boarding for first time user.
-- Quick prototyping using some examples directly baked into the extension.
+- Quick [Configure ESP-IDF extension](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/ONBOARDING.md) for first time user to help you download, install and setup ESP-IDF and required tools within Visual Studio Code extension.
+- Quick prototyping by copying ESP-IDF examples with **ESP-IDF: Show ESP-IDF Examples Projects**.
+- App tracing when using ESP-IDF Application Level Tracing Library like in [ESP-IDF Application Level Tracing Example](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host).
+- Size analysis of binaries with **ESP-IDF: Size analysis of the binaries**.
+- [GUI Menuconfig tool](#ESP-IDF-GUI-Menuconfig-tool) within the extension with enabled search.
 - Easily Build, Flash and Monitor your code for the ESP-32 chip.
-- IntelliSense and syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html)
-- Commands and Shortcuts for existing [ESP-IDF Tools](https://github.com/espressif/esp-idf/tree/master/tools) within the extension
+- Syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and ESP-IDF Kconfig style syntax validation if enabled.
+- Localization (English, Chinese, Spanish)of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
+- OpenOCD server within Visual Studio Code.
 
 ## Prerequisites
 There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension.
@@ -43,9 +47,13 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 - Install [Node.js](https://nodejs.org/en/)
 - Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
 - Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
-- Install all the dependencies, using `npm i`, compile typescript with `npm run compile` and bundle the webviews using `npm run webpack`.
+- Install all the dependencies, using `yarn`
+- Compile typescript with `yarn run compile` 
+- Bundle the webviews using `yarn run webpack`.
 - Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
-- Build the Visual Studio Code extension setup with `npm run build_vsix`.
+
+#### Build vsix locally
+- Build the Visual Studio Code extension setup with `yarn run build_vsix`
 
 ## Uninstalling the plugin
 - In Visual Studio Code, go to the Extensions tab.
@@ -68,7 +76,7 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
 - When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.deviceInterface` and `idf.board` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
 
 ## Available commands
 
@@ -78,7 +86,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to
 | --- | --- | --- |
 | Configure ESP-IDF extension |
 | Create ESP-IDF project | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> | 
+| Add vscode configuration folder |
 | Configure Paths |||
+| Set Espressif device target |
 | Device configuration |||
 | Launch gui configuration tool |||
 | Set default sdkconfig file in project	 |||
@@ -114,8 +124,10 @@ These are project IDF Project specific settings
 | `idf.customExtraVars` | Variables to be added to system environment variables |
 | `idf.useIDFKconfigStyle` | Enable style validation for Kconfig files |
 | `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window |
-| `idf.deviceInterface` | Interface for OpenOCD |
-| `idf.board` | Board for OpenOCD |
+| `idf.adapterTargetName` | ESP-IDF target Chip (Example: esp32) |
+| `idf.openOcdConfigs` | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+
+When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
 
 ### Board/ Chip Specific Settings
@@ -159,7 +171,9 @@ the following:
 5. `OpenOCD` - Start the openOCD server
 6. `BuildFlash` - Execute a build followed by a flash command.
 
-## IDF GUI Menuconfig
+Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
+
+## ESP-IDF GUI Menuconfig tool
 
 This plugin includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start a configuration server process (confserver.py in __${ESP-IDF-DIRECTORYPATH}__/tools) that enables the user to redefine ESP-IDF board parameters.
 

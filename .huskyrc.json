@@ -1,5 +1,5 @@
 {
   "hooks": {
-    "pre-commit": "npm audit && npm run tslint && npm run eslint && npm run compile"
+    "pre-commit": "yarn audit && yarn run tslint && yarn run compile"
   }
 }
