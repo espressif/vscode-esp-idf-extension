@@ -177,40 +177,37 @@ export function createSkeleton(curWorkspacePath: string, chosenTemplateDir: stri
     copyFromSrcProject(templateDirToUse, curWorkspacePath);
 }
 
-export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
-    const dirsFromExample = getDirectories(srcDirPath);
-    createVscodeFolder(destinationDir);
-
-    dirsFromExample.forEach((dir) => {
-        const curDestDir = path.join(destinationDir, dir);
-        const curDir = path.join(srcDirPath, dir);
-        fs.mkdir(curDestDir, (err) => {
-            if (err && err.code !== "EEXIST") {
-                Logger.errorNotify(err.message, err);
-            }
-        });
-        fs.readdir(curDir, (err, files) => {
-            if (err) {
-                Logger.errorNotify(err.message, err);
-                return;
-            }
-            files.forEach((file) => {
-                copyTarget(path.join(curDir, file), path.join(curDestDir, file));
-            });
-        });
-    });
-
+export function copyDirectory(srcDirPath: string, destDirPath: string) {
     fs.readdir(srcDirPath, (err, files) => {
         if (err) {
             Logger.errorNotify(err.message, err);
             return;
         }
         files.forEach((file) => {
-            if (dirsFromExample.indexOf(file) === -1) {
-                copyTarget(path.join(srcDirPath, file), path.join(destinationDir, file));
-            }
+            const filePath = path.resolve(srcDirPath, file);
+            const destFilePath = path.resolve(destDirPath, file);
+            fs.stat(filePath, (error, stats) => {
+                if (error) {
+                    Logger.errorNotify(error.message, error);
+                }
+                if (stats.isDirectory()) {
+                    fs.mkdir(destFilePath, (mkError) => {
+                        if (mkError && mkError.code !== "EEXIST") {
+                            Logger.errorNotify(mkError.message, mkError);
+                        }
+                    });
+                    copyDirectory(filePath, destFilePath);
+                } else {
+                    copyTarget(filePath, destFilePath);
+                }
+            });
         });
     });
+}
+
+export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
+    createVscodeFolder(destinationDir);
+    copyDirectory(srcDirPath, destinationDir);
 }
 
 export function delConfigFile(workspaceRoot) {
