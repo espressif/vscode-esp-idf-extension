@@ -32,6 +32,22 @@
           <span>Reverse Call Stack</span>
         </button>
       </div>
+      <div class="control">
+        <button class="button" @click="collapseOrExpandCalls()">
+          <template v-if="isExpanded">
+            <span class="icon is-small">
+              <i class="fas fa-caret-square-up"></i>
+            </span>
+            <span>Collapse All</span>
+          </template>
+          <template v-else>
+            <span class="icon is-small">
+              <i class="fas fa-caret-square-down"></i>
+            </span>
+            <span>Expand All</span>
+          </template>
+        </button>
+      </div>
     </div>
     <div class="columns head">
       <div class="column is-2">
@@ -53,6 +69,7 @@
     <div class="scroll-container">
       <div v-for="(calls, index) in callStack" :key="index">
         <calls
+          ref="callRef"
           v-bind:tree="createTreeFromAddressArray(calls)"
           :index="index"
           :space="1"
@@ -78,6 +95,7 @@ const CallStack = Vue.extend({
   },
   data() {
     return {
+      isExpanded: false,
       filter: {
         functionName: "",
         selectedEventType: "all"
@@ -121,6 +139,15 @@ const CallStack = Vue.extend({
         return this.cache[b][key] - this.cache[a][key];
       }
       return 0;
+    },
+    collapseOrExpandCalls() {
+      if (this.$refs.callRef && this.$refs.callRef.length > 0) {
+        this.$refs.callRef.forEach(calls => {
+          calls.collapseAndExpandAll &&
+            calls.collapseAndExpandAll(!this.isExpanded);
+        });
+      }
+      this.isExpanded = !this.isExpanded;
     }
   },
   computed: {
