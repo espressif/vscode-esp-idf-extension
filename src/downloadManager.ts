@@ -15,8 +15,8 @@
 import * as del from "del";
 import { https } from "follow-redirects";
 import * as fs from "fs";
+import { ensureDir, pathExists } from "fs-extra";
 import * as http from "http";
-import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -81,7 +81,7 @@ export class DownloadManager {
         const destPath = this.getToolPackagesPath(["dist"]);
         const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
 
-        await utils.checkFileExists(absolutePath).then(async (pkgExists) => {
+        await pathExists(absolutePath).then(async (pkgExists) => {
             if (pkgExists) {
                 await utils.validateFileSizeAndChecksum(absolutePath, urlInfoToUse.sha256,
                                                        urlInfoToUse.size)
@@ -193,10 +193,10 @@ export class DownloadManager {
 
                         const fileName = utils.fileNameFromUrl(urlString);
                         const absolutePath: string = path.resolve(destinationPath, fileName);
-                        mkdirp(destinationPath, { mode: 0o775 }, (err) => {
+                        ensureDir(destinationPath, { mode: 0o775 }, (err) => {
                             if (err) {
                                 return reject(new PackageError("Error creating dist directory",
-                                    "DownloadPackage", err, err.code));
+                                    "DownloadPackage", err));
                             }
                         });
                         const fileStream: fs.WriteStream = fs.createWriteStream(absolutePath, { mode: 0o775 });

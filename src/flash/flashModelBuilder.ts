@@ -16,41 +16,29 @@
  * limitations under the License.
  */
 
-import { Logger } from "../logger/logger";
-import { checkFileExists, isJson, readFile } from "../utils";
+import { readJSON } from "fs-extra";
 import { FlashModel, FlashSection } from "./flashModel";
 
 export function createFlashModel(modelJsonPath: string, port: string, baudRate: string): Promise<FlashModel> {
-    return new Promise((resolve, reject) => {
-        checkFileExists(modelJsonPath).then((doesModelJsonPathExists) => {
-            if (doesModelJsonPathExists) {
-                readFile(modelJsonPath).then((modelJsonString) => {
-                    if (isJson(modelJsonString)) {
-                        const flashArgsJson = JSON.parse(modelJsonString);
-                        const flashModel: FlashModel = {
-                            baudRate,
-                            port,
-                            size: flashArgsJson.flash_settings.flash_size,
-                            frequency: flashArgsJson.flash_settings.flash_freq,
-                            mode: flashArgsJson.flash_settings.flash_mode,
-                            flashSections: [],
-                        };
-                        Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
-                            if (fileKey && flashArgsJson.flash_files[fileKey]) {
-                                flashModel.flashSections.push(
-                                    {
-                                        address: fileKey,
-                                        binFilePath: flashArgsJson.flash_files[fileKey],
-                                    } as FlashSection);
-                            }
-                        });
-                        resolve(flashModel);
-                    }
-                });
+
+    return readJSON(modelJsonPath).then((flashArgsJson) => {
+        const flashModel: FlashModel = {
+            baudRate,
+            port,
+            size: flashArgsJson.flash_settings.flash_size,
+            frequency: flashArgsJson.flash_settings.flash_freq,
+            mode: flashArgsJson.flash_settings.flash_mode,
+            flashSections: [],
+        };
+        Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
+            if (fileKey && flashArgsJson.flash_files[fileKey]) {
+                flashModel.flashSections.push(
+                    {
+                        address: fileKey,
+                        binFilePath: flashArgsJson.flash_files[fileKey],
+                    } as FlashSection);
             }
-        }).catch((err) => {
-            Logger.error("Error reading Flasher args json file", err);
-            reject(err);
         });
+        return flashModel;
     });
 }
