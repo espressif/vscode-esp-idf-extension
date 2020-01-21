@@ -24,7 +24,7 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, delConfigFile, isStringNotEmpty } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
-import { Menu } from "./Menu";
+import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
@@ -83,9 +83,9 @@ export class ConfserverProcess {
 
     public static setUpdatedValue(updatedValue: Menu) {
         let newValueRequest: string;
-        if (updatedValue.type === "choice") {
+        if (updatedValue.type === menuType.choice) {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
-        } else if (updatedValue.type === "string") {
+        } else if (updatedValue.type === menuType.string) {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
         } else {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;

@@ -76,7 +76,7 @@
       >
     </div>
     <div
-      v-if="config.type === 'string' || type === 'hex'"
+      v-if="config.type === 'string' || config.type === 'hex'"
       class="form-group"
     >
       <label
@@ -106,18 +106,18 @@
         v-text="config.title"
       />
       <div
-        v-if="config.is_menuconfig"
+        v-if="config.isMenuconfig"
         class="switch_box menuconfig"
       >
         <input
-          id="config.id"
+          :id="config.id"
           v-model="config.value"
           type="checkbox"
           class="switch_1"
           @change="onChange"
         >
         <label
-          for="config.id"
+          :for="config.id"
           style="display: block"
           v-text="config.title"
         />
@@ -155,7 +155,7 @@ import { Menu } from "../../../espIdf/menuconfig/Menu";
 
 @Component
 export default class ConfigElement extends Vue {
-  @Prop({ type: Menu, required: true }) public config: Menu;
+  @Prop() public config: Menu;
   @Action("sendNewValue") public actionSendValue;
   private isHelpVisible: boolean = false;
 

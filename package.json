@@ -532,6 +532,7 @@
     "mocha-junit-reporter": "^1.23.1",
     "nock": "^10.0.6",
     "node-sass": "^4.13.0",
+    "reflect-metadata": "^0.1.13",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
