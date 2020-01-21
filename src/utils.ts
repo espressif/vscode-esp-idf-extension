@@ -307,17 +307,6 @@ export function getHttpsProxyAgent(): HttpsProxyAgent {
 
 }
 
-export async function renamePromise(oldName: string, newName: string) {
-    return new Promise<void>((resolve, reject) => {
-        fs.rename(oldName, newName, (err) => {
-            if (err) {
-                return reject(err);
-            }
-            return resolve();
-        });
-    });
-}
-
 export function readDirPromise(dirPath) {
     return new Promise<string[]>((resolve, reject) => {
         fs.readdir(dirPath, (err, files) => {
@@ -328,6 +317,7 @@ export function readDirPromise(dirPath) {
         });
     });
 }
+
 export function dirExistPromise(dirPath) {
     return new Promise<boolean>((resolve, reject ) => {
         fs.stat(dirPath, (err, stats) => {

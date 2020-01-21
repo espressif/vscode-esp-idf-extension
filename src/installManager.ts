@@ -14,7 +14,7 @@
 
 import * as del from "del";
 import * as fs from "fs";
-import { ensureDir, pathExists, remove } from "fs-extra";
+import { ensureDir, move, pathExists, remove } from "fs-extra";
 import * as path from "path";
 import * as tarfs from "tar-fs";
 import * as vscode from "vscode";
@@ -146,7 +146,7 @@ export class InstallManager {
                                                 absoluteEntryTmpPath, { mode: 0o755 });
                                             writeStream.on("close", async () => {
                                                 try {
-                                                    await utils.renamePromise(absoluteEntryTmpPath,
+                                                    await move(absoluteEntryTmpPath,
                                                                     absolutePath);
                                                 } catch (closeWriteStreamErr) {
                                                     return reject(new PackageError(
@@ -288,7 +288,7 @@ export class InstallManager {
                 }
             });
 
-            await utils.renamePromise(pkgDirPath, tmpPath);
+            await move(pkgDirPath, tmpPath);
             await ensureDir(pkgDirPath);
             let basePath = tmpPath;
             // Walk given number of levels down
@@ -310,7 +310,7 @@ export class InstallManager {
                 for (const file of files) {
                     const moveFrom = path.join(basePath, file);
                     const moveTo = path.join(pkgDirPath, file);
-                    await utils.renamePromise(moveFrom, moveTo);
+                    await move(moveFrom, moveTo);
                 }
             }).then(async () => {
                 await del(tmpPath, { force: true });

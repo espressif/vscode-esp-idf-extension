@@ -14,12 +14,11 @@
 
 import { spawn } from "child_process";
 import * as fs from "fs";
+import { move } from "fs-extra";
 import { EOL, tmpdir } from "os";
 import * as path from "path";
-import * as vscode from "vscode";
 import { DownloadManager } from "../downloadManager";
 import * as idfConf from "../idfConfiguration";
-import { IdfToolsManager } from "../idfToolsManager";
 import { InstallManager } from "../installManager";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
@@ -86,7 +85,7 @@ export async function downloadInstallIdfVersion(idfVersion: IEspIdfLink,
                         OnBoardingPanel.postMessage({ command: "notify_idf_extracted" });
 
                         // Rename folder esp-idf-{version} to esp-idf
-                        utils.renamePromise(extractedDirectory, expectedDirectory).then(() => {
+                        move(extractedDirectory, expectedDirectory).then(() => {
                             OutputChannel.appendLine(`Renamed ${extractedDirectory} in ${expectedDirectory}.\n`);
                             Logger.info(`Extracted ${extractedDirectory} in ${expectedDirectory}.\n`);
                             OnBoardingPanel.postMessage({ command: "load_idf_path", idf_path: expectedDirectory });
