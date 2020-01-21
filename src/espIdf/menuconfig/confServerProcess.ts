@@ -85,6 +85,8 @@ export class ConfserverProcess {
         let newValueRequest: string;
         if (updatedValue.type === "choice") {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
+        } else if (updatedValue.type === "string") {
+            newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
         } else {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
         }
