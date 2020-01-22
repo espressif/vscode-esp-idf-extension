@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import * as del from "del";
+import { pathExists } from "fs-extra";
 import { EOL } from "os";
 import * as path from "path";
 import { OutputChannel } from "vscode";
@@ -24,7 +25,7 @@ export async function getPythonBinToUse(espDir: string, idfToolsDir: string, pyt
     return getPythonEnvPath(espDir, idfToolsDir, pythonBinPath).then((pyEnvPath) => {
         const pythonInEnv = process.platform === "win32" ?
             path.join(pyEnvPath, "Scripts", "python.exe") : path.join(pyEnvPath, "bin", "python");
-        return utils.checkFileExists(pythonInEnv).then((haveVirtualPython) => {
+        return pathExists(pythonInEnv).then((haveVirtualPython) => {
             return haveVirtualPython ? pythonInEnv : pythonBinPath;
         });
     });
@@ -192,7 +193,7 @@ export async function getIdfToolsPythonList(idfToolsDir: string): Promise<string
 }
 
 export async function getUnixPythonList(workingDir: string) {
-    return await utils.execChildProcess("which -a python && which -a python3", workingDir).then((result) => {
+    return await utils.execChildProcess("which -a python python3", workingDir).then((result) => {
         if (result) {
             const resultList = result.trim().split("\n");
             return resultList;

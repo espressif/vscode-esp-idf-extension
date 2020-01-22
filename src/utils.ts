@@ -15,6 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
+import { copy, pathExists } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import * as path from "path";
 import * as url from "url";
@@ -119,40 +120,10 @@ export function updateStatus(
         }
 }
 
-export function copyTarget(source, target) {
-    const readStream = fs.createReadStream(source);
-    const writeStream = fs.createWriteStream(target);
-
-    return new Promise((resolve, reject) => {
-        readStream.on("error", reject);
-        writeStream.on("error", reject);
-        writeStream.on("finish", resolve);
-        readStream.pipe(writeStream);
-    }).catch((error) => {
-        Logger.errorNotify(error.message, error);
-        readStream.destroy();
-        writeStream.close();
-    });
-}
-
 export function createVscodeFolder(curWorkspaceFsPath: string) {
     const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
     const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-
-    fs.mkdir(settingsDir, (err) => {
-        if (err && err.code !== "EEXIST") {
-            Logger.errorNotify(err.message, err);
-        }
-    });
-    fs.readdir(vscodeTemplateFolder, (error, files) => {
-        if (error) {
-            Logger.errorNotify(error.message, error);
-            return;
-        }
-        files.forEach((file) => {
-            copyTarget(path.join(vscodeTemplateFolder, file), path.join(settingsDir, file));
-        });
-    });
+    copy(vscodeTemplateFolder, settingsDir);
 }
 
 export function chooseTemplateDir() {
@@ -170,7 +141,7 @@ export function getDirectories(dirPath) {
     return fs.readdirSync(dirPath).filter((file) => {
       return fs.statSync(path.join(dirPath, file)).isDirectory();
     });
-  }
+}
 
 export function createSkeleton(curWorkspacePath: string, chosenTemplateDir: string) {
     const templateDirToUse = path.join(templateDir, chosenTemplateDir);
@@ -178,59 +149,15 @@ export function createSkeleton(curWorkspacePath: string, chosenTemplateDir: stri
 }
 
 export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
-    const dirsFromExample = getDirectories(srcDirPath);
     createVscodeFolder(destinationDir);
-
-    dirsFromExample.forEach((dir) => {
-        const curDestDir = path.join(destinationDir, dir);
-        const curDir = path.join(srcDirPath, dir);
-        fs.mkdir(curDestDir, (err) => {
-            if (err && err.code !== "EEXIST") {
-                Logger.errorNotify(err.message, err);
-            }
-        });
-        fs.readdir(curDir, (err, files) => {
-            if (err) {
-                Logger.errorNotify(err.message, err);
-                return;
-            }
-            files.forEach((file) => {
-                copyTarget(path.join(curDir, file), path.join(curDestDir, file));
-            });
-        });
-    });
-
-    fs.readdir(srcDirPath, (err, files) => {
-        if (err) {
-            Logger.errorNotify(err.message, err);
-            return;
-        }
-        files.forEach((file) => {
-            if (dirsFromExample.indexOf(file) === -1) {
-                copyTarget(path.join(srcDirPath, file), path.join(destinationDir, file));
-            }
-        });
+    copy(srcDirPath, destinationDir).catch((err) => {
+        Logger.errorNotify(err, err);
     });
 }
 
-export function delConfigFile(workspaceRoot) {
+export function delConfigFile(workspaceRoot: vscode.Uri) {
     const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
     fs.unlinkSync(sdkconfigFile);
-}
-
-export function checkFileExists(filePath: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-        fs.stat(filePath, (err, stats) => {
-            if (err) {
-                resolve(false);
-            }
-            if (stats && stats.isFile()) {
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
-    });
 }
 
 export function fileExists(filePath) {
@@ -241,19 +168,7 @@ export function readFileSync(filePath) {
     return fs.readFileSync(filePath, "utf-8");
 }
 
-export function readFile(filePath: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data.toString());
-            }
-        });
-    });
-}
-
-export function readDirSync(filePath): IdfComponent[] {
+export function readComponentsDirs(filePath): IdfComponent[] {
     const filesOrFolders: IdfComponent[] = [];
 
     const files = fs.readdirSync(filePath);
@@ -358,7 +273,7 @@ export function getToolPackagesPath(toolPackage: string[]) {
 export async function getToolsJsonPath(newIdfPath: string) {
     const espIdfVersion = await getEspIdfVersion(newIdfPath);
     let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
-    await checkFileExists(jsonToUse).then((exists) => {
+    await pathExists(jsonToUse).then((exists) => {
         if (!exists) {
             const idfToolsJsonToUse = espIdfVersion.localeCompare("4.0") < 0 ? "fallback-tools.json" : "tools.json";
             jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
@@ -392,28 +307,6 @@ export function getHttpsProxyAgent(): HttpsProxyAgent {
 
 }
 
-export async function unlinkPromise(fileName: string) {
-    return new Promise<void>((resolve, reject) => {
-        fs.unlink(fileName, (err) => {
-            if (err) {
-                return reject(err);
-            }
-            return resolve();
-        });
-    });
-}
-
-export async function renamePromise(oldName: string, newName: string) {
-    return new Promise<void>((resolve, reject) => {
-        fs.rename(oldName, newName, (err) => {
-            if (err) {
-                return reject(err);
-            }
-            return resolve();
-        });
-    });
-}
-
 export function readDirPromise(dirPath) {
     return new Promise<string[]>((resolve, reject) => {
         fs.readdir(dirPath, (err, files) => {
@@ -424,6 +317,7 @@ export function readDirPromise(dirPath) {
         });
     });
 }
+
 export function dirExistPromise(dirPath) {
     return new Promise<boolean>((resolve, reject ) => {
         fs.stat(dirPath, (err, stats) => {
@@ -435,17 +329,6 @@ export function dirExistPromise(dirPath) {
                 }
                 resolve(false);
             }
-        });
-    });
-}
-
-export function mkdirPromise(dirPath) {
-    return new Promise<void>((resolve, reject) => {
-        fs.mkdir(dirPath, (err) => {
-            if (err) {
-                reject(err);
-            }
-            resolve();
         });
     });
 }
@@ -544,7 +427,7 @@ export function validateFileSizeAndChecksum(filePath: string, expectedHash: stri
     return new Promise<boolean>(async (resolve, reject) => {
         const algo = "sha256";
         const shashum = crypto.createHash(algo);
-        await checkFileExists(filePath).then((doesFileExists) => {
+        await pathExists(filePath).then((doesFileExists) => {
             if (doesFileExists) {
                 const fileSize = fs.statSync(filePath).size;
                 const readStream = fs.createReadStream(filePath);

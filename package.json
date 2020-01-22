@@ -226,6 +226,7 @@
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
+              "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
@@ -508,8 +509,8 @@
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.6",
     "@types/follow-redirects": "^1.8.0",
+    "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
-    "@types/mkdirp": "^0.5.2",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
     "@types/node": "^7.10.9",
@@ -557,9 +558,9 @@
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.6.1",
-    "https-proxy-agent": "^2.1.0",
+    "fs-extra": "^8.1.0",
+    "https-proxy-agent": "^3.0.0",
     "marked": "^0.7.0",
-    "mkdirp": "^0.5.1",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
     "vscode-debugadapter": "^1.33.0",
@@ -572,9 +573,6 @@
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "yauzl": "^2.10.0"
-  },
-  "resolutions": {
-    "https-proxy-agent": "^3.0.0"
   },
   "alias": {
     "vue": "./node_modules/vue/dist/vue.esm.js"

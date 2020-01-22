@@ -103,11 +103,23 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type __ESP-IDF__ to
 
 ## ESP-IDF Configure extension
 
-Initial configuration is done easily by executing **ESP-IDF: Configure ESP-IDF extension** Please take a look at [ONBOARDING](./docs/ONBOARDING.md) for more detail.
+Initial configuration is done easily by executing **ESP-IDF: Configure ESP-IDF extension** Please take a look at [ONBOARDING](./docs/ONBOARDING.md) for more in-depth detail. This window is always shown when extension is activated which you can disable with `idf.showOnboardingOnInit`.
+
+This windows helps you setup key Visual Studio Code configurations for this extension to perform included features correctly. This is how the extension uses them:
+
+1) `idf.pythonBinPath` is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a `idf.pythonSystemBinPath` from which we create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
+2) `idf.customExtraPaths` is pre-appended to your system environment variable PATH within visual studio code __(not modifying your system environment)__ before executing any of our extension commands such as openocd or cmake (build your current project) else extension commands will try to use what is already in your system PATH. In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip download and manually enter all required ESP-IDF Tools as explain in [ONBOARDING](./docs/ONBOARDING.md) which will be saved in `idf.customExtraPaths`.
+3) `idf.customExtraVars` stores any custom environment variable we use such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. We add these variables to visual studio code process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. __This doesn't modify your system environment outside visual studio code.__
+4) `idf.adapterTargetName` is used to select the chipset (esp32, esp32 s2, etc.) on which to run our extension commands.
+5) `idf.openOcdConfigs` is used to store an array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]).
+6) `idf.espIdfPath` is used to store ESP-IDF directory path within our extension. We override visual studio code process IDF_PATH if this value is available. __This doesn't modify your system environment outside visual studio code.__
+
+Note: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We do override the current Visual Studio Code process environment variables which might collide with other extension you might have installed. Please review the content of `idf.customExtraPaths` and `idf.customExtraVars` in case you have issues with other extensions.
+
 
 ## ESP-IDF Settings
 
-This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu
+This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu.
 
 ### IDF Specific Settings
 
@@ -123,7 +135,7 @@ These are project IDF Project specific settings
 | `idf.customExtraPaths` | Paths to be appended to $PATH |
 | `idf.customExtraVars` | Variables to be added to system environment variables |
 | `idf.useIDFKconfigStyle` | Enable style validation for Kconfig files |
-| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window |
+| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation |
 | `idf.adapterTargetName` | ESP-IDF target Chip (Example: esp32) |
 | `idf.openOcdConfigs` | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
 

@@ -102,9 +102,9 @@
                 "focus": false,
                 "panel":"new"
             },
-            "command":"openocd ${command:espIdf.getOpenOcdConfigs}",
+            "command":"openocd -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}",
             "windows": {
-                "command": "openocd.exe ${command:espIdf.getOpenOcdConfigs}"
+                "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}"
             },
             "problemMatcher": {
                 "owner": "cpp",

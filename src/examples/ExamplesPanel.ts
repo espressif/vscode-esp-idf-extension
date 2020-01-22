@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { ensureDir, readFile } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
+import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 
@@ -60,7 +62,7 @@ export class ExamplesPlanel {
                         }).then((selectedFolder: vscode.Uri[]) => {
                             if (selectedFolder && selectedFolder[0].fsPath) {
                                 const resultFolder = path.join(selectedFolder[0].fsPath, message.name);
-                                utils.mkdirPromise(resultFolder).then(() => {
+                                ensureDir(resultFolder).then(() => {
                                     utils.copyFromSrcProject(message.project_path, resultFolder);
                                     const projectPath = vscode.Uri.file(resultFolder);
                                     vscode.commands.executeCommand("vscode.openFolder", projectPath);
@@ -77,18 +79,16 @@ export class ExamplesPlanel {
                 case "getExampleDetail":
                     if (message.path) {
                         const pathToUse = vscode.Uri.file(path.join(message.path, "README.md"));
-                        utils.checkFileExists(pathToUse.fsPath).then((hasReadMe) => {
-                            if (hasReadMe) {
-                                utils.readFile(pathToUse.fsPath).then((content) => {
-                                    this.panel.webview.postMessage(
-                                        { command: "set_example_detail", example_detail: content });
-                                });
-                            } else {
-                                const notAvailable = "No README.md available for this project.";
-                                this.panel.webview.postMessage(
-                                    { command: "set_example_detail", example_detail: notAvailable });
-                                vscode.window.showInformationMessage(notAvailable);
-                            }
+                        readFile(pathToUse.fsPath).then((content) => {
+                            this.panel.webview.postMessage(
+                                { command: "set_example_detail", example_detail: content.toString() });
+                        }, (err) => {
+                            const notAvailable = "No README.md available for this project.";
+                            Logger.info(notAvailable);
+                            Logger.info(err);
+                            this.panel.webview.postMessage(
+                                { command: "set_example_detail", example_detail: notAvailable });
+                            vscode.window.showInformationMessage(notAvailable);
                         });
                     }
                     break;

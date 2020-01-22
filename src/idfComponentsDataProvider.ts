@@ -56,7 +56,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 
         return new Promise((resolve) => {
             if (element) {
-                resolve(utils.readDirSync(element.uri.fsPath));
+                resolve(utils.readComponentsDirs(element.uri.fsPath));
             } else {
                 resolve(this.getComponentsInProject());
             }

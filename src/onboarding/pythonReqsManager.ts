@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { pathExists } from "fs-extra";
 import * as path from "path";
-import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
@@ -96,7 +96,7 @@ export async function installPythonRequirements(workingDir: string) {
 }
 
 export async function checkPythonPipExists(pythonBinPath: string, workingDir: string) {
-    const pyExists = pythonBinPath === "python" ? true : await utils.checkFileExists(pythonBinPath);
+    const pyExists = pythonBinPath === "python" ? true : await pathExists(pythonBinPath);
     const doestPythonExists = await pythonManager.checkPythonExists(pythonBinPath, workingDir);
     const doesPipExists = await pythonManager.checkPipExists(pythonBinPath, workingDir);
     return pyExists && doestPythonExists && doesPipExists;

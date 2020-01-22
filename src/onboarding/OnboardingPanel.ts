@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { ensureDir } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -128,7 +129,7 @@ export class OnBoardingPanel {
                                     { title: "Yes", isCloseAffordance: false },
                                     { title: "No", isCloseAffordance: false });
                                 if (selected.title === "Yes") {
-                                    await utils.mkdirPromise(message.new_value).then(() => {
+                                    await ensureDir(message.new_value).then(() => {
                                         idfConf.writeParameter("idf.toolsPath",
                                             message.new_value);
                                     });
