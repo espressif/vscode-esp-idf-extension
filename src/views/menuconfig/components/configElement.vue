@@ -76,7 +76,7 @@
       >
     </div>
     <div
-      v-if="config.type === 'string' || config.type === 'hex'"
+      v-if="config.type === 'string'"
       class="form-group"
     >
       <label
@@ -95,6 +95,29 @@
         class="form-control inline-block"
         @change="onChange"
       >
+    </div>
+    <div
+      v-if="config.type === 'hex'"
+      class="form-group"
+    >
+      <label
+        class="inline-block"
+        v-text="config.title"
+      />
+      <font-awesome-icon
+        icon="info-circle"
+        class="info-icon"
+        @click="toggleHelp"
+      />
+      <br>
+      <the-mask
+        :value="config.value"
+        mask="0xWWWWWWWWWW"
+        :masked="false"
+        :tokens="{ W: { pattern: /[0-9a-fA-F]/, transform: (v) => v.toLocaleUpperCase() } }"
+        class="form-control inline-block"
+        @change.native="onChange"
+      />
     </div>
     <div
       v-if="config.type === 'menu'"
@@ -151,7 +174,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, State } from "vuex-class";
-import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 
 @Component
 export default class ConfigElement extends Vue {
@@ -163,7 +186,10 @@ export default class ConfigElement extends Vue {
     this.isHelpVisible = !this.isHelpVisible;
   }
 
-  public onChange() {
+  public onChange(e) {
+    if (this.config.type === menuType.hex) {
+      this.config.value = e.target.value;
+    }
     this.actionSendValue(this.config);
   }
 

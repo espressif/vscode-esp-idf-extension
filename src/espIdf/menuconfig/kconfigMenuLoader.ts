@@ -29,7 +29,9 @@ export class KconfigMenuLoader {
     public static updateValues(config: Menu, values: { values: {}, visible: {}, ranges: {}}): Menu {
         const newConfig: Menu = config;
         if (values.values.hasOwnProperty(newConfig.name) && newConfig.type !== menuType.choice) {
-            newConfig.value = values.values[newConfig.name];
+            newConfig.value = newConfig.type === menuType.hex
+                ? values.values[newConfig.name].toString(16)
+                : values.values[newConfig.name];
         }
         if (values.visible.hasOwnProperty(newConfig.id)) {
             newConfig.isVisible = values.visible[newConfig.id];

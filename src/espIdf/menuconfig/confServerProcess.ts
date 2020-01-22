@@ -85,7 +85,7 @@ export class ConfserverProcess {
         let newValueRequest: string;
         if (updatedValue.type === menuType.choice) {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
-        } else if (updatedValue.type === menuType.string) {
+        } else if (updatedValue.type === menuType.string || updatedValue.type === menuType.hex) {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
         } else {
             newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
