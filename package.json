@@ -498,8 +498,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ --watch & webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
-    "package": "vsce package -o esp-idf-extension.vsix",
-    "release": "vsce publish -p ${VS_MARKETPLACE_TOKEN}",
+    "package": "vsce package --yarn -o esp-idf-extension.vsix",
+    "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
     "webpack": "webpack --mode production"
   },
