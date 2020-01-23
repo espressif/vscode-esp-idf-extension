@@ -83,12 +83,17 @@ export class ConfserverProcess {
 
     public static setUpdatedValue(updatedValue: Menu) {
         let newValueRequest: string;
-        if (updatedValue.type === menuType.choice) {
-            newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
-        } else if (updatedValue.type === menuType.string || updatedValue.type === menuType.hex) {
-            newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
-        } else {
-            newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
+        switch (updatedValue.type) {
+            case menuType.choice:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
+                break;
+            case menuType.string:
+            case menuType.hex:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
+                break;
+            default:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
+                break;
         }
         ConfserverProcess.instance.confServerChannel.appendLine(newValueRequest);
         ConfserverProcess.instance.confServerProcess.stdin.write(newValueRequest);
