@@ -41,7 +41,7 @@ import { Menu } from "../../../espIdf/menuconfig/Menu";
 
 @Component
 export default class SideNavItem extends Vue {
-  @Prop({ type: Menu, required: true }) public menu: Menu;
+  @Prop() public menu: Menu;
   @State("selectedMenu") private storeSelectedMenu!: string;
   @Mutation("setSelectedMenu") private setSelectedMenu;
 

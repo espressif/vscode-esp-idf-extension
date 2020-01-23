@@ -27,8 +27,9 @@
 </template>
 
 <script lang="ts">
+import "reflect-metadata";
 import Vue from "vue";
-import {Component} from "vue-property-decorator";
+import { Component } from "vue-property-decorator";
 import { Action, State } from "vuex-class";
 import { Menu } from "../../espIdf/menuconfig/Menu";
 
