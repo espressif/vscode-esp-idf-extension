@@ -17,6 +17,7 @@ import { faCaretDown, faCaretRight, faInfoCircle } from "@fortawesome/free-solid
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import vuescroll from "vue-scroll";
+import VueTheMask from "vue-the-mask";
 import ConfigElement from "./components/configElement.vue";
 import SearchBar from "./components/SearchBar.vue";
 import SideNavItem from "./components/SideNavItem.vue";
@@ -29,6 +30,7 @@ Vue.component("config-el", ConfigElement);
 Vue.component("sidenav-el", SideNavItem);
 Vue.component("search-bar", SearchBar);
 Vue.use(vuescroll);
+Vue.use(VueTheMask);
 
 // tslint:disable-next-line: no-unused-expression
 new Vue({

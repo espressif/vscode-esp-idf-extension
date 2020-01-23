@@ -105,7 +105,11 @@ export class OpenOCDManager extends EventEmitter {
             throw new Error("Invalid OpenOCD bin path or access is denied for the user");
         }
         if (typeof process.env.OPENOCD_SCRIPTS === "undefined") {
-            throw new Error("Invalid OpenOCD script path or access is denied for the user");
+            throw new Error("OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables.");
+        }
+
+        if (typeof this.openOcdConfigFilesList === "undefined" || this.openOcdConfigFilesList.length < 1) {
+            throw new Error("Invalid OpenOCD Config files. Check idf.openOcdConfigs configuration value.");
         }
 
         const openOcdArgs = [];

@@ -484,6 +484,21 @@ export async function activate(context: vscode.ExtensionContext) {
         return result.trim();
     });
 
+    registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
+        const customExtraVars = idfConf.readParameter("idf.customExtraVars");
+        try {
+            const jsonDict = JSON.parse(customExtraVars);
+            return jsonDict.hasOwnProperty("OPENOCD_SCRIPTS")
+                ? jsonDict.OPENOCD_SCRIPTS
+                    : process.env.OPENOCD_SCRIPTS
+                        ? process.env.OPENOCD_SCRIPTS
+                        : undefined;
+        } catch (error) {
+            Logger.error(error, error);
+            return process.env.OPENOCD_SCRIPTS ? process.env.OPENOCD_SCRIPTS : undefined;
+        }
+    });
+
     registerIDFCommand("espIdf.size", () => {
         PreCheck.perform([openFolderCheck], () => {
             const idfSize = new IDFSize(workspaceRoot);

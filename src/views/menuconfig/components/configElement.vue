@@ -76,7 +76,7 @@
       >
     </div>
     <div
-      v-if="config.type === 'string' || type === 'hex'"
+      v-if="config.type === 'string'"
       class="form-group"
     >
       <label
@@ -97,6 +97,29 @@
       >
     </div>
     <div
+      v-if="config.type === 'hex'"
+      class="form-group"
+    >
+      <label
+        class="inline-block"
+        v-text="config.title"
+      />
+      <font-awesome-icon
+        icon="info-circle"
+        class="info-icon"
+        @click="toggleHelp"
+      />
+      <br>
+      <the-mask
+        :value="config.value"
+        mask="0xWWWWWWWWWW"
+        :masked="false"
+        :tokens="{ W: { pattern: /[0-9a-fA-F]/, transform: (v) => v.toLocaleUpperCase() } }"
+        class="form-control inline-block"
+        @change.native="onChange"
+      />
+    </div>
+    <div
       v-if="config.type === 'menu'"
       :id="config.id"
       class="submenu form-group"
@@ -106,18 +129,18 @@
         v-text="config.title"
       />
       <div
-        v-if="config.is_menuconfig"
+        v-if="config.isMenuconfig"
         class="switch_box menuconfig"
       >
         <input
-          id="config.id"
+          :id="config.id"
           v-model="config.value"
           type="checkbox"
           class="switch_1"
           @change="onChange"
         >
         <label
-          for="config.id"
+          :for="config.id"
           style="display: block"
           v-text="config.title"
         />
@@ -151,11 +174,11 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, State } from "vuex-class";
-import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 
 @Component
 export default class ConfigElement extends Vue {
-  @Prop({ type: Menu, required: true }) public config: Menu;
+  @Prop() public config: Menu;
   @Action("sendNewValue") public actionSendValue;
   private isHelpVisible: boolean = false;
 
@@ -163,7 +186,10 @@ export default class ConfigElement extends Vue {
     this.isHelpVisible = !this.isHelpVisible;
   }
 
-  public onChange() {
+  public onChange(e) {
+    if (this.config.type === menuType.hex) {
+      this.config.value = e.target.value;
+    }
     this.actionSendValue(this.config);
   }
 

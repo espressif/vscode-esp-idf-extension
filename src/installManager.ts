@@ -14,7 +14,7 @@
 
 import * as del from "del";
 import * as fs from "fs";
-import * as mkdirp from "mkdirp";
+import { ensureDir, move, pathExists, remove } from "fs-extra";
 import * as path from "path";
 import * as tarfs from "tar-fs";
 import * as vscode from "vscode";
@@ -73,7 +73,7 @@ export class InstallManager {
 
     public installZipFile(zipFilePath: string, destPath: string) {
         return new Promise((resolve, reject) => {
-            utils.checkFileExists(zipFilePath).then((doesZipFileExists) => {
+            pathExists(zipFilePath).then((doesZipFileExists) => {
                 if (!doesZipFileExists) {
                     return reject(`File ${zipFilePath} doesn't exist.`);
                 }
@@ -106,15 +106,15 @@ export class InstallManager {
                             }
                         });
                         if (entry.fileName.endsWith("/")) {
-                            mkdirp(absolutePath, { mode: 0o775 }, (err) => {
+                            ensureDir(absolutePath, { mode: 0o775 }, (err) => {
                                 if (err) {
                                     return reject(new PackageError("Error creating directory",
-                                        "InstallZipFile", err, err.code));
+                                        "InstallZipFile", err));
                                 }
                                 zipfile.readEntry();
                             });
                         } else {
-                            utils.checkFileExists(absolutePath).then((exists: boolean) => {
+                            pathExists(absolutePath).then((exists: boolean) => {
                                 if (!exists) {
                                     zipfile.openReadStream(entry, (err, readStream: fs.ReadStream) => {
                                         if (err) {
@@ -125,17 +125,17 @@ export class InstallManager {
                                             return reject(new PackageError("Error in readstream",
                                                 "InstallZipFile", openErr));
                                         });
-                                        mkdirp(path.dirname(absolutePath), { mode: 0o775 },
+                                        ensureDir(path.dirname(absolutePath), { mode: 0o775 },
                                                             async (mkdirErr) => {
                                             if (mkdirErr) {
                                                 reject(new PackageError("Error creating directory",
-                                                    "InstallZipFile", mkdirErr, mkdirErr.code));
+                                                    "InstallZipFile", mkdirErr));
                                             }
 
                                             const absoluteEntryTmpPath: string = absolutePath + ".tmp";
                                             if (fs.existsSync(absoluteEntryTmpPath)) {
                                                 try {
-                                                    await utils.unlinkPromise(absoluteEntryTmpPath);
+                                                    await remove(absoluteEntryTmpPath);
                                                 } catch (error) {
                                                     return reject(new PackageError(
                                                         `Error unlinking file ${absoluteEntryTmpPath}`,
@@ -146,7 +146,7 @@ export class InstallManager {
                                                 absoluteEntryTmpPath, { mode: 0o755 });
                                             writeStream.on("close", async () => {
                                                 try {
-                                                    await utils.renamePromise(absoluteEntryTmpPath,
+                                                    await move(absoluteEntryTmpPath,
                                                                     absolutePath);
                                                 } catch (closeWriteStreamErr) {
                                                     return reject(new PackageError(
@@ -187,7 +187,7 @@ export class InstallManager {
             const urlInfo = idfToolsManager.obtainUrlInfoForPlatform(pkg);
             const fileName = utils.fileNameFromUrl(urlInfo.url);
             const packageFile: string = this.getToolPackagesPath(["dist", fileName]);
-            utils.checkFileExists(packageFile).then((packageDownloaded) => {
+            pathExists(packageFile).then((packageDownloaded) => {
                 if (packageDownloaded) {
                     utils.validateFileSizeAndChecksum(packageFile, urlInfo.sha256, urlInfo.size)
                         .then((isValidFile) => {
@@ -219,7 +219,7 @@ export class InstallManager {
             const fileName = utils.fileNameFromUrl(urlInfo.url);
             const packageFile: string = this.getToolPackagesPath(["dist", fileName]);
 
-            utils.checkFileExists(packageFile).then(async (packageDownloaded) => {
+            pathExists(packageFile).then(async (packageDownloaded) => {
                 if (packageDownloaded) {
                     utils.validateFileSizeAndChecksum(packageFile, urlInfo.sha256, urlInfo.size)
                         .then(async (isValidFile) => {
@@ -240,7 +240,7 @@ export class InstallManager {
                                     path.join(absolutePath, ...pkg.binaries, pkg.version_cmd[0]) :
                                     path.join(absolutePath, pkg.version_cmd[0]);
 
-                                utils.checkFileExists(binPath).then((exists) => {
+                                pathExists(binPath).then((exists) => {
                                     if (!exists) {
                                         this.appendChannel(`Installing tar.gz package ${pkg.description}`);
                                         const extractor = tarfs.extract(absolutePath, {
@@ -288,8 +288,8 @@ export class InstallManager {
                 }
             });
 
-            await utils.renamePromise(pkgDirPath, tmpPath);
-            await utils.mkdirPromise(pkgDirPath);
+            await move(pkgDirPath, tmpPath);
+            await ensureDir(pkgDirPath);
             let basePath = tmpPath;
             // Walk given number of levels down
             for (let i = 0; i < levels; i++) {
@@ -310,7 +310,7 @@ export class InstallManager {
                 for (const file of files) {
                     const moveFrom = path.join(basePath, file);
                     const moveTo = path.join(pkgDirPath, file);
-                    await utils.renamePromise(moveFrom, moveTo);
+                    await move(moveFrom, moveTo);
                 }
             }).then(async () => {
                 await del(tmpPath, { force: true });
