@@ -532,6 +532,7 @@
     "mocha-junit-reporter": "^1.23.1",
     "nock": "^10.0.6",
     "node-sass": "^4.13.0",
+    "reflect-metadata": "^0.1.13",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
@@ -570,6 +571,7 @@
     "vscode-nls": "^4.0.0",
     "vue": "^2.6.10",
     "vue-scroll": "^2.1.12",
+    "vue-the-mask": "^0.11.1",
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "yauzl": "^2.10.0"

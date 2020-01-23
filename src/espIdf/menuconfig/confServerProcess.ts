@@ -24,7 +24,7 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, delConfigFile, isStringNotEmpty } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
-import { Menu } from "./Menu";
+import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
@@ -83,10 +83,17 @@ export class ConfserverProcess {
 
     public static setUpdatedValue(updatedValue: Menu) {
         let newValueRequest: string;
-        if (updatedValue.type === "choice") {
-            newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
-        } else {
-            newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
+        switch (updatedValue.type) {
+            case menuType.choice:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
+                break;
+            case menuType.string:
+            case menuType.hex:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
+                break;
+            default:
+                newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
+                break;
         }
         ConfserverProcess.instance.confServerChannel.appendLine(newValueRequest);
         ConfserverProcess.instance.confServerProcess.stdin.write(newValueRequest);

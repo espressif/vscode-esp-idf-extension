@@ -23,13 +23,15 @@ import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { readFileSync } from "../../utils";
 import { formatHelpText } from "./helpTextFormatter";
-import { Menu } from "./Menu";
+import { Menu, menuType } from "./Menu";
 
 export class KconfigMenuLoader {
     public static updateValues(config: Menu, values: { values: {}, visible: {}, ranges: {}}): Menu {
         const newConfig: Menu = config;
-        if (values.values.hasOwnProperty(newConfig.name) && newConfig.type !== "choice") {
-            newConfig.value = values.values[newConfig.name];
+        if (values.values.hasOwnProperty(newConfig.name) && newConfig.type !== menuType.choice) {
+            newConfig.value = newConfig.type === menuType.hex
+                ? values.values[newConfig.name].toString(16)
+                : values.values[newConfig.name];
         }
         if (values.visible.hasOwnProperty(newConfig.id)) {
             newConfig.isVisible = values.visible[newConfig.id];
@@ -40,7 +42,7 @@ export class KconfigMenuLoader {
         for (let i = 0; i < newConfig.children.length; i++) {
             const newChild = this.updateValues(newConfig.children[i], values);
             newConfig.children[i] = newChild;
-            if (newConfig.type === "choice" &&
+            if (newConfig.type === menuType.choice &&
                 newChild.value === true) {
                 newConfig.value = newChild.name;
             }
@@ -87,14 +89,15 @@ export class KconfigMenuLoader {
 
     public mapJsonToMenuObject(config): Menu {
         const menu: Menu = {
+            id: config.id,
             name: config.name,
             help: formatHelpText(config.help),
-            id: config.id,
             range: config.range,
             title: config.title,
             type: config.type,
-            isVisible: false,
             isCollapsed: false,
+            isMenuconfig: config.is_menuconfig,
+            isVisible: false,
             dependsOn: config.depends_on,
             children: [],
             value: null,
