@@ -1,5 +1,5 @@
 {
-	"espIdf.createFiles.title": "ESP-IDF: 新建 ESP-IDF 项目",
+	"espIdf.createFiles.title": "ESP-IDF: 新建 项目",
 	"espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
 	"espIdf.setPath.title": "ESP-IDF：配置路径",
 	"espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
