@@ -44,7 +44,7 @@ export class BuildManager {
             // this.server.kill("SIGKILL");
             treeKill(this.server.pid, "SIGKILL");
             this.server = undefined;
-            this.outputToOutputChannel("❌ [Build] : Stopped!");
+            this.outputToOutputChannel("\n❌ [Build] : Stopped!\n");
         }
     }
     private async _build(command: string, args?: string[]) {
@@ -86,7 +86,7 @@ export class BuildManager {
             });
 
             this.server.stderr.on("data", (chunk: Buffer) => {
-                this.outputToOutputChannel(`⚠️\n${chunk.toString()}`);
+                this.outputToOutputChannel(`⚠️ ${chunk.toString()}`);
             });
         });
     }
@@ -99,7 +99,7 @@ export class BuildManager {
     }
     private outputToOutputChannel(data: string) {
         if (this.outputChannel) {
-            this.outputChannel.appendLine(data);
+            this.outputChannel.append(data);
         }
     }
     private buildStarted() {
