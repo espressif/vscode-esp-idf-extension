@@ -1,5 +1,5 @@
 {
-	"espIdf.createFiles.title": "Create ESP-IDF project",
+	"espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project",
 	"espIdf.createVsCodeFolder.title": "ESP-IDF: Add vscode configuration folder",
 	"espIdf.setPath.title": "ESP-IDF: Configure Paths",
 	"espIdf.setTarget.title": "ESP-IDF: Set Espressif device target",
