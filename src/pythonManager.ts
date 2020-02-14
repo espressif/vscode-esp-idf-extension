@@ -78,7 +78,7 @@ export async function installPythonEnv(espDir: string,
     }
 
     const createVirtualEnvResult = await utils.execChildProcess(
-        `${pythonBinPath} -m virtualenv --no-site-packages ${pyEnvPath}`,
+        `${pythonBinPath} -m virtualenv  ${pyEnvPath}`,
         idfToolsDir,
         channel);
     pyTracker.Log = createVirtualEnvResult;
