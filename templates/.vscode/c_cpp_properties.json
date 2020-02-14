@@ -4,10 +4,16 @@
             "name": "Linux",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "includePath": ["${config:idf.espIdfPath}/components/**"],
+            "includePath": [
+                "${config:idf.espIdfPath}/components/**",
+                "${config:idf.espIdfPathWin}/components/**",
+                "${workspaceFolder}/**"
+            ],
             "browse": {
                 "path": [
-                    "${config:idf.espIdfPath}/components"
+                    "${config:idf.espIdfPath}/components",
+                    "${config:idf.espIdfPathWin}/components",
+                    "${workspaceFolder}"
                 ],
                 "limitSymbolsToIncludedHeaders": false   
             }
