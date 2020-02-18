@@ -4,5 +4,9 @@
     "menuconfig.saveValues": "Saved changes in GUI menuconfig",
     "menuconfig.discardValues": "Discarded changes in GUI menuconfig",
     "menuconfig.wrongIdfPath": "Wrong IDF_PATH in workspace settings. Would you like to set it?",
-    "menuconfig.enterIdfPath": "Enter IDF_PATH Path"
+    "menuconfig.enterIdfPath": "Enter IDF_PATH Path",
+    "menuconfig.changesNotSaved": "Changes in GUI Menuconfig have not been saved. Would you like to save them?",
+    "menuconfig.save": "Save",
+    "menuconfig.discard": "Don't save",
+    "menuconfig.returnGuiconfig": "Return to GUI Menuconfig"
 }

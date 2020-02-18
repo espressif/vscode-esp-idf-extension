@@ -76,13 +76,13 @@ export async function downloadToolsInIdfToolsPath(workingDir: string,
         });
         OutputChannel.appendLine("Installing python virtualenv and ESP-IDF python requirements...");
         Logger.info("Installing python virtualenv and ESP-IDF python requirements...");
-        await installPythonRequirements(workingDir).catch((reason) => {
+        const pyEnvResult = await installPythonRequirements(workingDir).catch((reason) => {
             OutputChannel.appendLine(reason);
             Logger.info(reason);
         });
         let exportPaths = await idfToolsManager.exportPaths(path.join(installDir, "tools"));
         const pythonSystemBinPath = idfConf.readParameter("idf.pythonSystemBinPath") as string;
-        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+        const pythonBinPath =  pyEnvResult || idfConf.readParameter("idf.pythonBinPath") as string;
         // Append System Python and Virtual Env Python to PATH
         exportPaths = path.dirname(pythonBinPath) + path.delimiter +
             path.dirname(pythonSystemBinPath) + path.delimiter + exportPaths;
@@ -95,8 +95,8 @@ export async function downloadToolsInIdfToolsPath(workingDir: string,
         Logger.info(exportPaths);
         OutputChannel.appendLine("");
         Logger.info("");
-        idfConf.writeParameter("idf.customExtraPaths", exportPaths);
-        idfConf.writeParameter("idf.customExtraVars", exportVars);
+        await idfConf.writeParameter("idf.customExtraPaths", exportPaths);
+        await idfConf.writeParameter("idf.customExtraVars", exportVars);
         OnBoardingPanel.postMessage({ command: "load_custom_paths",
                 custom_vars: JSON.parse(exportVars), custom_paths: exportPaths });
     });

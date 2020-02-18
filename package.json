@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
@@ -46,6 +46,7 @@
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
     "onCommand:espIdf.apptrace.customize",
+    "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
@@ -217,16 +218,9 @@
             "description": "%param.baudRate%",
             "scope": "resource"
           },
-          "idf.projectName": {
-            "type": "string",
-            "default": "app-template",
-            "description": "%param.projectName%",
-            "scope": "resource"
-          },
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
-              "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
@@ -237,11 +231,11 @@
             "default": "esp32",
             "enum": [
               "esp32",
-              "esp32s2beta"
+              "esp32s2"
             ],
             "enumDescriptions": [
               "ESP32",
-              "ESP32 S2 (Beta)"
+              "ESP32-S2"
             ],
             "description": "%param.adapterTargetName%",
             "scope": "resource"
@@ -392,69 +386,70 @@
         "title": "%espIdf.apptrace.customize.title%"
       }
     ],
+    "breakpoints": [
+      {
+        "language": "c"
+      },
+      {
+        "language": "cpp"
+      }
+    ],
     "debuggers": [
       {
         "type": "espidf",
         "label": "ESP-IDF",
+        "languages": [
+          "cpp"
+        ],
+        "runtime": "python",
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "debugPort": {
+                "type": "number",
+                "description": "Port for ESP-IDF Debug Adapter. Default: 43474",
+                "default": 43474
+              },
+              "logLevel": {
+                "type": "number",
+                "description": "Log level for ESP-IDF Debug Adapter",
+                "default": 2
+              },
+              "mode": {
+                "type": "enum",
+                "description": "ESP-IDF debug session mode",
+                "default": "auto",
+                "enum": [
+                  "auto",
+                  "manual"
+                ],
+                "enumDescriptions": [
+                  "Auto mode will execute a OpenOCD Server and Debug Adapter in Visual Studio Code",
+                  "Manual mode requires you to run OpenOCD and Debug Adapter separately"
+                ]
+              },
+              "env": {
+                "type": "object",
+                "description": "Environments variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
+                "default": null
+              }
+            }
+          }
+        },
         "initialConfigurations": [
           {
             "name": "%debug.initConfig.name%",
-            "type": "cppdbg",
+            "type": "espidf",
             "request": "launch",
-            "MIMode": "gdb",
-            "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
-            "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
-            "cwd": "${workspaceFolder}",
-            "setupCommands": [
-              {
-                "text": "target remote :3333"
-              },
-              {
-                "text": "mon reset halt"
-              },
-              {
-                "text": "thb app_main"
-              },
-              {
-                "text": "flushregs"
-              }
-            ],
-            "externalConsole": false,
-            "logging": {
-              "engineLogging": true
-            }
+            "preLaunchTask": "adapter"
           }
         ],
         "configurationSnippets": [
           {
-            "label": "%debug.initConfig.name%",
-            "description": "%debug.initConfig.description%",
-            "body": {
-              "type": "cppdbg",
-              "request": "launch",
-              "MIMode": "gdb",
-              "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
-              "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
-              "cwd": "${workspaceFolder}",
-              "setupCommands": [
-                {
-                  "text": "target remote :3333"
-                },
-                {
-                  "text": "mon reset halt"
-                },
-                {
-                  "text": "thb app_main"
-                },
-                {
-                  "text": "flushregs"
-                }
-              ],
-              "externalConsole": false,
-              "logging": {
-                "engineLogging": true
-              }
-            }
+            "name": "%debug.initConfig.name%",
+            "type": "espidf",
+            "request": "launch",
+            "preLaunchTask": "adapter"
           }
         ]
       }
@@ -501,6 +496,7 @@
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
+    "validateLocalization": "gulp validateLocalization",
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
@@ -528,8 +524,8 @@
     "html-webpack-plugin": "^3.2.0",
     "husky": "^2.5.0",
     "mini-css-extract-plugin": "^0.7.0",
-    "mocha": "^6.1.4",
-    "mocha-junit-reporter": "^1.23.1",
+    "mocha": "^7.1.1",
+    "mocha-junit-reporter": "^1.23.3",
     "nock": "^10.0.6",
     "node-sass": "^4.13.0",
     "reflect-metadata": "^0.1.13",
@@ -551,8 +547,8 @@
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
     "vuex-class": "^0.3.2",
-    "webpack": "^4.35.3",
-    "webpack-cli": "^3.3.5"
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
   },
   "dependencies": {
     "ansi-to-html": "^0.6.11",
@@ -565,6 +561,7 @@
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
     "vscode-debugadapter": "^1.33.0",
+    "vscode-debugadapter-testsupport": "^1.34.0",
     "vscode-debugprotocol": "^1.33.0",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",

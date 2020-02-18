@@ -1,6 +1,4 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
@@ -9,6 +7,11 @@
             "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py build",
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py build"
+            },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}"
+                }
             },
             "problemMatcher": {
                 "owner": "cpp",
@@ -20,7 +23,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
             "group": {
                 "kind": "build",
@@ -41,7 +44,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
@@ -51,6 +54,11 @@
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean"
             },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}"
+                }
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -61,7 +69,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
@@ -71,6 +79,11 @@
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.baudRate}"
             },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}"
+                }
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -81,17 +94,22 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
             "label": "Monitor: Start the monitor",
             "type": "shell",
-            "dependsOn": "Flash - Flash the device",
             "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
-            }
+            },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}",
+                }
+            },
+            "dependsOn": "Flash - Flash the device",
         },
         {
             "label":"OpenOCD: Start openOCD",
@@ -106,6 +124,11 @@
             "windows": {
                 "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}"
             },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}"
+                }
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -116,8 +139,55 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
+        {
+            "label": "adapter",
+            "type": "shell",
+            "command": "${config:idf.pythonBinPath}",
+            "isBackground": true,
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}",
+                    "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
+                }
+            },
+            "problemMatcher": {
+                "background": {
+                    "beginsPattern": "\bDEBUG_ADAPTER_STARTED\b",
+                    "endsPattern": "DEBUG_ADAPTER_READY2CONNECT",
+                    "activeOnStart": true
+                },
+                "pattern": {
+                    "regexp": "(\\d+)-(\\d+)-(\\d+)\\s(\\d+):(\\d+):(\\d+),(\\d+)\\s-(.+)\\s(ERROR)",
+                    "file": 8,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 9
+                }
+            },
+            "args": [
+                "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter_main.py",
+                "-e", "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                "-s", "${command:espIdf.getOpenOcdScriptValue}",
+                "-ip", "localhost",
+                "-dn", "${config:idf.adapterTargetName}",
+                "-om",
+                "connect_to_instance"
+            ],
+            "windows": {
+                "args": [
+                    "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter_main.py",
+                    "-e", "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                    "-s", "${command:espIdf.getOpenOcdScriptValue}",
+                    "-ip", "localhost",
+                    "-dn", "${config:idf.adapterTargetName}",
+                    "-om",
+                    "connect_to_instance"
+                ]
+            }
+        }
     ]
 }

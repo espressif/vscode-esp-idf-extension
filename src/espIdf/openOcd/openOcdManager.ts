@@ -124,7 +124,8 @@ export class OpenOCDManager extends EventEmitter {
         this.server.stderr.on("data", (data) => {
             data = typeof data === "string" ? Buffer.from(data) : data;
             this.sendToOutputChannel(data);
-            const regex = /Error:.*/i;
+            const regex = /Error: (?!type '.+' is missing virt2phys).+/i;
+            // virt2phys will be removed soon in openocd. ignoring
             const errStr = data.toString();
             const matchArr = errStr.match(regex);
             if (!matchArr) {

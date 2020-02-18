@@ -1,6 +1,10 @@
 {
     "extension.defaultFoldersGeneratedMessage": "Default folders were generated.",
     "extension.openFolderFirst": "Open a folder first.",
+    "extension.notSerialPortFoundMessage": "No serial port has been found",
+    "extension.selectSerialPortMessage":"Select your ESP-IDF device serial port",
+    "extension.noPortSelectedMessage": "No port has been selected",
+    "extension.portHasBeenSelectedMessage": "The serial port has been updated to ",
     "espIdf.pickAWorkspaceFolder.text": "Select your current folder",
     "extension.noFolderMessage": "No workspace selected.",
     "selectFrameworkMessage": "Select framework to define its path:",

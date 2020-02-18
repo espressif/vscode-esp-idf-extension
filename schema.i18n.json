@@ -1,0 +1,123 @@
+{
+    "out": {
+        "espIdf": {
+            "menuconfig": {
+                "MenuconfigPanel": [
+                    "menuconfig.panelName",
+                    "menuconfig.loadDefaultValues",
+                    "menuconfig.discardValues",
+                    "menuconfig.saveValues",
+                    "menuconfig.wrongIdfPath",
+                    "menuconfig.enterIdfPath",
+                    "menuconfig.changesNotSaved",
+                    "menuconfig.save",
+                    "menuconfig.discard",
+                    "menuconfig.returnGuiconfig"
+                ]
+            },
+            "serial": {
+                "SerialPort": [
+                    "serial.notSerialPortFoundMessage",
+                    "serial.noPortSelectedMessage",
+                    "serial.portHasBeenSelectedMessage",
+                    "serial.selectSerialPortMessage"
+                ]
+            },
+            "size": {
+                "idfSize": [
+                    "idfSize.canceledError",
+                    "idfSize.filesMsg",
+                    "idfSize.buildFirstError",
+                    "idfSize.overviewMsg",
+                    "idfSize.archivesMsg",
+                    "idfSize.commandError"
+                ]
+            }
+        },
+        "extension": [
+            "extension.defaultFoldersGeneratedMessage",
+            "extension.openFolderFirst",
+            "espIdf.pickAWorkspaceFolder.text",
+            "extension.noFolderMessage",
+            "selectFrameworkMessage",
+            "extension.noOptionMessage",
+            "extension.noPathUpdatedMessage",
+            "extension.selectConfigMessage",
+            "extension.noParamUpdatedMessage",
+            "extension.defaultSdkconfigGeneratedMessage",
+            "extension.openFolderSdkconfigMessage",
+            "extension.waitProcessIsFinishedMessage",
+            "extension.elfNotFoundMessage",
+            "extension.gdbNotFoundMessage",
+            "extension.enterIdfPathMessage",
+            "extension.enterIdfToolsPathMessage",
+            "extension.enterDevicePortMessage",
+            "extension.enterDeviceTargetMessage",
+            "extension.enterDeviceBaudRateMessage",
+            "extension.enterOpenOcdConfigMessage",
+            "extension.enterCustomPathsMessage",
+            "extension.cmdNotWebIDE"
+        ],
+        "idfComponentsDataProvider": [
+            "idfComponentDataProvider.proj_desc_not_found"
+        ],
+        "idfConfiguration": [
+            "idfConfiguration.hasBeenUpdated"
+        ],
+        "utils": [
+            "utils.currentFolder",
+            "utils.openComponentTitle"
+        ]
+    },
+    "views": {
+        "menuconfig": [
+            "save",
+            "discard",
+            "reset"
+        ]
+    },
+    "package": [
+        "espIdf.createFiles.title",
+        "espIdf.createVsCodeFolder.title",
+        "espIdf.setPath.title",
+        "espIdf.setTarget.title",
+        "espIdf.configDevice.title",
+        "menuconfig.start.title",
+        "espIdf.setDefaultConfig.title",
+        "espIdf.selectPort.title",
+        "espIdf.buildDevice.title",
+        "espIdf.flashDevice.title",
+        "espIdf.monitorDevice.title",
+        "espIdf.onboarding.title",
+        "espIdf.examples.title",
+        "espIdf.buildFlashMonitor.title",
+        "espIdf.pickAWorkspaceFolder.title",
+        "espIdf.size.title",
+        "espIdf.apptrace.title",
+        "espIdf.openOCDCommand.title",
+        "debug.initConfig.name",
+        "debug.initConfig.description",
+        "param.adapterTargetName",
+        "param.openOcdConfigFilesList",
+        "param.baudRate",
+        "param.port",
+        "param.pythonBinPath",
+        "param.pythonSystemBinPath",
+        "param.espIdfPath",
+        "param.toolsPath",
+        "param.exportPaths",
+        "param.exportVars",
+        "param.useIDFKConfigStyle",
+        "param.showOnboardingOnInit",
+        "view.components.name",
+        "configuration.title",
+        "espIdf.apptrace.archive.refresh.title",
+        "espIdf.apptrace.archive.showReport.title",
+        "espIdf.apptrace.customize.title",
+        "trace.poll_period.description",
+        "trace.trace_size.description",
+        "trace.stop_tmo.description",
+        "trace.wait4halt.description",
+        "trace.skip_size.description"
+    ]
+}
