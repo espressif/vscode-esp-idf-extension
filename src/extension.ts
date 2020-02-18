@@ -39,7 +39,7 @@ import { getOnboardingInitialValues } from "./onboarding/onboardingInit";
 import { OnBoardingPanel } from "./onboarding/OnboardingPanel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
-import { initSelectedWorkspace, updateIdfComponentsTree, updateProjectName } from "./workspaceConfig";
+import { getProjectName, initSelectedWorkspace, updateIdfComponentsTree } from "./workspaceConfig";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -196,7 +196,6 @@ export async function activate(context: vscode.ExtensionContext) {
                     } else {
                         workspaceRoot = option.uri;
                         const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-                        updateProjectName(projDescPath);
                         updateIdfComponentsTree(projDescPath);
                         const workspaceFolderInfo = {
                             clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -357,6 +356,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const debugProvider = new IdfDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider("cppdbg", debugProvider));
+
+    registerIDFCommand("espIdf.getProjectName", () => {
+        return getProjectName(workspaceRoot.fsPath);
+    });
+
     registerIDFCommand("espIdf.createVsCodeFolder", () => {
         PreCheck.perform([openFolderCheck], () => {
             utils.createVscodeFolder(workspaceRoot.fsPath);
@@ -630,7 +634,6 @@ const build = () => {
             try {
                 await buildManager.build();
                 const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-                updateProjectName(projDescPath);
                 updateIdfComponentsTree(projDescPath);
                 Logger.infoNotify("Build Successfully");
             } catch (error) {
@@ -781,7 +784,6 @@ const buildFlashAndMonitor = () => {
                 progress.report({ message: "Building project...", increment: 20});
                 await buildManager.build();
                 const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-                updateProjectName(projDescPath);
                 updateIdfComponentsTree(projDescPath);
                 progress.report({ message: "Flashing project into device...", increment: 60});
                 const model = await createFlashModel(flasherArgsJsonPath, port, baudRate);

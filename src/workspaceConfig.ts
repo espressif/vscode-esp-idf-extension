@@ -24,7 +24,6 @@ import * as utils from "./utils";
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
     const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-    updateProjectName(projDescPath);
     updateIdfComponentsTree(projDescPath);
     const workspaceFolderInfo = {
         clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -45,16 +44,27 @@ export function updateIdfComponentsTree(projectDescriptionPath: string) {
     idfDataProvider.refresh(projectDescriptionPath);
 }
 
-export function updateProjectName(projectDescriptionPath: string) {
-    if (!utils.fileExists(projectDescriptionPath)) {
-        return;
-    }
-    fs.readFile(projectDescriptionPath, (err, data) => {
-        if (err) {
-            Logger.errorNotify(err.message, err);
-            return;
+export function getProjectName(workspace: string): Promise<string> {
+    const cmakeListFile = path.join(workspace, "CMakeLists.txt");
+    return new Promise((resolve, reject) => {
+        try {
+            if (!utils.fileExists(cmakeListFile)) {
+                reject(`${cmakeListFile} doesn't exist.`);
+            }
+            fs.readFile(cmakeListFile, (err, data) => {
+                if (err) {
+                    Logger.errorNotify(err.message, err);
+                    reject(err);
+                }
+                const content = data.toString();
+                const projectMatches = content.match(/(?:project\()(.*?)(?:\))/);
+                if (projectMatches && projectMatches.length > 0) {
+                    resolve(projectMatches[1]);
+                }
+            });
+        } catch (error) {
+            Logger.errorNotify(error.message, error);
+            reject(error);
         }
-        const projDescJson = JSON.parse(data.toString());
-        idfConf.writeParameter("idf.projectName", projDescJson.project_name);
     });
 }
