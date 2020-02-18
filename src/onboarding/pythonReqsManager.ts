@@ -72,7 +72,7 @@ export async function installPythonRequirements(workingDir: string) {
     const idfToolsPath = idfConf.readParameter("idf.toolsPath") as string;
     const logTracker = new PyReqLog(sendPyReqLog);
     process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
-    await pythonManager.installPythonEnv(
+    return await pythonManager.installPythonEnv(
         espIdfPath, idfToolsPath, logTracker, pythonBinPath, OutputChannel.init())
         .then((virtualEnvPythonBin) => {
             if (virtualEnvPythonBin) {
@@ -81,6 +81,7 @@ export async function installPythonRequirements(workingDir: string) {
                 if (logTracker.Log.indexOf("Exception") < 0) {
                     OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
                 }
+                return virtualEnvPythonBin;
             } else {
                 OutputChannel.appendLine("Python requirements has not been installed.");
             }
