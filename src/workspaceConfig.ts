@@ -15,9 +15,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
@@ -44,26 +42,27 @@ export function updateIdfComponentsTree(projectDescriptionPath: string) {
     idfDataProvider.refresh(projectDescriptionPath);
 }
 
-export function getProjectName(workspace: string): Promise<string> {
-    const cmakeListFile = path.join(workspace, "CMakeLists.txt");
+export function getProjectName(workspacePath: string): Promise<string> {
+    const projDescJsonPath = path.join(workspacePath, "build", "project_description.json");
     return new Promise((resolve, reject) => {
         try {
-            if (!utils.fileExists(cmakeListFile)) {
-                reject(`${cmakeListFile} doesn't exist.`);
+            if (!utils.fileExists(projDescJsonPath)) {
+                reject(new Error(`${projDescJsonPath} doesn't exist.`));
             }
-            fs.readFile(cmakeListFile, (err, data) => {
+            fs.readFile(projDescJsonPath, (err, data) => {
                 if (err) {
-                    Logger.errorNotify(err.message, err);
+                    Logger.error(err.message, err);
                     reject(err);
                 }
-                const content = data.toString();
-                const projectMatches = content.match(/(?:project\()(.*?)(?:\))/);
-                if (projectMatches && projectMatches.length > 0) {
-                    resolve(projectMatches[1]);
+                const projDescJson = JSON.parse(data.toString());
+                if (Object.prototype.hasOwnProperty.call(projDescJson, "project_name")) {
+                    resolve(projDescJson.project_name);
+                } else {
+                    reject(new Error(`project_name field doesn't exist in ${projDescJsonPath}.`));
                 }
             });
         } catch (error) {
-            Logger.errorNotify(error.message, error);
+            Logger.error(error.message, error);
             reject(error);
         }
     });

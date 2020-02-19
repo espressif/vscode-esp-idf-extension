@@ -358,7 +358,9 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider("cppdbg", debugProvider));
 
     registerIDFCommand("espIdf.getProjectName", () => {
-        return getProjectName(workspaceRoot.fsPath);
+        PreCheck.perform([openFolderCheck], async () => {
+            return await getProjectName(workspaceRoot.fsPath);
+        });
     });
 
     registerIDFCommand("espIdf.createVsCodeFolder", () => {
