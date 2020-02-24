@@ -17,6 +17,7 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import { copy, pathExists } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
+import { EOL } from "os";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -72,13 +73,15 @@ export function spawn(command: string, args: string[] = [], options: any = {}): 
         child.stdout.on("data", sendToOutputChannel);
         child.stderr.on("data", sendToOutputChannel);
 
-        child.on("error", (error) => reject({ error }));
+        child.on("error", (error) => reject({ error}));
 
         child.on("exit", (code) => {
             if (code === 0) {
                 resolve(buff);
             } else {
-                reject({ error : new Error("non zero exit code " + code) });
+                const msg = "non zero exit code " + code + EOL + EOL + buff;
+                Logger.error(msg, new Error(msg));
+                reject({ error : new Error("non zero exit code " + code + "\n\n" + buff) });
             }
         });
     });
@@ -241,10 +244,14 @@ export function execChildProcess(
             }
 
             if (error) {
+                if (error.message) {
+                    Logger.error(error.message, error);
+                }
                 reject(error);
                 return;
             }
             if (stderr && stderr.length > 2) {
+                Logger.error(stderr, new Error(stderr));
                 if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
                     resolve(stderr);
                 }
@@ -252,6 +259,9 @@ export function execChildProcess(
                     resolve(stdout.concat(stderr));
                 }
                 if (stderr.indexOf("WARNING") !== -1) {
+                    resolve(stdout.concat(stderr));
+                }
+                if (stderr.indexOf("Cache entry deserialization failed") !== -1) {
                     resolve(stdout.concat(stderr));
                 }
                 if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
