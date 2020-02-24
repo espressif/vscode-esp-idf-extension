@@ -17,6 +17,7 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import { copy, pathExists } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
+import { EOL } from "os";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -93,6 +94,8 @@ export function spawn(
       if (code === 0) {
         resolve(buff);
       } else {
+        const msg = "non zero exit code " + code + EOL + EOL + buff;
+        Logger.error(msg, new Error(msg));
         reject({ error: new Error("non zero exit code " + code) });
       }
     });
@@ -267,7 +270,7 @@ export function execChildProcess(
             }
           }
           if (error) {
-            message += error.message;
+            message += error.message || error;
             err = true;
           }
           if (err) {
@@ -288,6 +291,9 @@ export function execChildProcess(
             resolve(stdout.concat(stderr));
           }
           if (stderr.indexOf("WARNING") !== -1) {
+            resolve(stdout.concat(stderr));
+          }
+          if (stderr.indexOf("Cache entry deserialization failed") !== -1) {
             resolve(stdout.concat(stderr));
           }
           if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {

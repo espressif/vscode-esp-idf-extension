@@ -28,6 +28,10 @@ import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
 import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
+import {
+  DebugAdapterManager,
+  IDebugAdapterConfig,
+} from "./espIdf/debugAdapter/debugAdapterManager";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import {
   IOpenOCDConfig,
@@ -55,9 +59,14 @@ import {
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
+const LOCALHOST_DEF_PORT = 43474;
+
+// OpenOCD  and Debug Adapter Manager
 const statusBarItems: vscode.StatusBarItem[] = [];
 
 const openOCDManager = OpenOCDManager.init();
+let isOpenOCDLaunchedByDebug: boolean = false;
+let debugAdapterManager: DebugAdapterManager;
 
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
@@ -95,6 +104,7 @@ const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
 export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
   Logger.init(context);
+  debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
     name: string,
@@ -190,11 +200,19 @@ export async function activate(context: vscode.ExtensionContext) {
       if (typeof workspaceRoot === undefined) {
         workspaceRoot = initSelectedWorkspace(status);
       }
+      const debugAdapterConfig = {
+        currentWorkspace: workspaceRoot,
+      } as IDebugAdapterConfig;
+      debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    // endOpenOcdServer(); // Should openOcd restart at every debug session?
+    if (isOpenOCDLaunchedByDebug) {
+      isOpenOCDLaunchedByDebug = false;
+      openOCDManager.stop();
+    }
+    debugAdapterManager.stop();
   });
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -392,17 +410,11 @@ export async function activate(context: vscode.ExtensionContext) {
           let paramName: string;
           switch (option.target) {
             case "deviceTarget":
-              const enterDeviceTargetMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterDeviceTargetMessage",
                 "Enter device target name"
               );
-              currentValue = idfConf.readParameter("idf.adapterTargetName");
-              idfConf.updateConfParameter(
-                "idf.adapterTargetName",
-                enterDeviceTargetMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.adapterTargetName";
               break;
             case "devicePort":
               msg = locDic.localize(
@@ -459,18 +471,49 @@ export async function activate(context: vscode.ExtensionContext) {
         openOcdConfigFilesList,
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
+    } else if (e.affectsConfiguration("idf.adapterTargetName")) {
+      const debugAdapterConfig = {
+        target: idfConf.readParameter("idf.adapterTargetName"),
+      } as IDebugAdapterConfig;
+      debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
+  });
+
+  registerIDFCommand("espIdf.getProjectName", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      return await getProjectName(workspaceRoot.fsPath);
+    });
   });
 
   const debugProvider = new IdfDebugConfigurationProvider();
   context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider("cppdbg", debugProvider)
+    vscode.debug.registerDebugConfigurationProvider("espidf", debugProvider)
   );
 
-  registerIDFCommand("espIdf.getProjectName", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      return await getProjectName(workspaceRoot.fsPath);
-    });
+  vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
+    async createDebugAdapterDescriptor(session: vscode.DebugSession) {
+      const portToUse = session.configuration.debugPort
+        ? session.configuration.debugPort
+        : LOCALHOST_DEF_PORT;
+      const launchMode =
+        session.configuration.mode !== undefined
+          ? session.configuration.launchDebugAdapter
+          : "auto";
+      if (launchMode === "auto" && !openOCDManager.isRunning()) {
+        isOpenOCDLaunchedByDebug = true;
+        await openOCDManager.start();
+      }
+      if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
+        const debugAdapterConfig = {
+          debugAdapterPort: portToUse,
+          env: session.configuration.env,
+          logLevel: session.configuration.logLevel,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        await debugAdapterManager.start();
+      }
+      return new vscode.DebugAdapterServer(portToUse);
+    },
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
@@ -528,11 +571,7 @@ export async function activate(context: vscode.ExtensionContext) {
         .showQuickPick(
           [
             { description: "ESP32", label: "ESP32", target: "esp32" },
-            {
-              description: "ESP32 S2 (Beta)",
-              label: "ESP32S2BETA",
-              target: "esp32s2beta",
-            },
+            { description: "ESP32-S2", label: "ESP32S", target: "esp32s2" },
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
@@ -550,7 +589,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "board/esp32-wrover.cfg",
             ]);
           }
-          if (selected.target === "esp32s2beta") {
+          if (selected.target === "esp32s2") {
             await idfConf.writeParameter("idf.openOcdConfigs", [
               "interface/ftdi/esp32_devkitj_v1.cfg",
               "target/esp32s2.cfg",
@@ -636,6 +675,10 @@ export async function activate(context: vscode.ExtensionContext) {
       result = result + " -f " + configFile;
     });
     return result.trim();
+  });
+
+  registerIDFCommand("espIdf.getExtensionPath", () => {
+    return context.extensionPath;
   });
 
   registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
@@ -1008,7 +1051,7 @@ const flash = () => {
     );
   });
 };
-const buildFlashAndMonitor = () => {
+const buildFlashAndMonitor = (runMonitor: boolean = true) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
     if (BuildManager.isBuilding || FlashManager.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
@@ -1095,8 +1138,10 @@ const buildFlashAndMonitor = () => {
             idfFlashChannel
           );
           await flashManager.flash();
-          progress.report({ message: "Launching monitor...", increment: 10 });
-          createMonitor();
+          if (runMonitor) {
+            progress.report({ message: "Launching monitor...", increment: 10 });
+            createMonitor();
+          }
         } catch (error) {
           switch (error.message) {
             case "BUILD_TERMINATED":
@@ -1223,43 +1268,6 @@ class IdfDebugConfigurationProvider
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    if (!config.program) {
-      const elfNotFoundMsg = locDic.localize(
-        "extension.elfNotFoundMessage",
-        "Project ELF file cannot be found."
-      );
-      return vscode.window.showErrorMessage(elfNotFoundMsg).then(() => {
-        return undefined;
-      });
-    }
-
-    if (!config.miDebuggerPath) {
-      const gdbNotFoundMsg = locDic.localize(
-        "extension.gdbNotFoundMessage",
-        "GDB path cannot be found."
-      );
-      return vscode.window.showErrorMessage(gdbNotFoundMsg).then(() => {
-        return undefined;
-      });
-    }
-
-    for (const key in config) {
-      if (config.hasOwnProperty(key) && typeof config[key] === "string") {
-        config[key] = idfConf.resolveVariables(config[key]);
-      }
-    }
-
-    const customVars = JSON.parse(
-      idfConf.readParameter("idf.customExtraVars") as string
-    );
-    if (customVars) {
-      for (const envVar in customVars) {
-        if (envVar) {
-          config[envVar] = customVars[envVar];
-        }
-      }
-    }
-
     return config;
   }
 }

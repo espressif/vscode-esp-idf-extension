@@ -21,8 +21,19 @@ jobs:
       - name: Install Node Dependencies
         run: yarn
 
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Prettier Check
         run: yarn prettier --check "**/*.*"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r esp_debug_adapter/requirements.txt
 
       - name: Check Node Packages Vulnerabilities
         run: yarn audit

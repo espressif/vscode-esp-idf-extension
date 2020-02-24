@@ -6254,6 +6254,13 @@ vsce@^1.52.0:
     yauzl "^2.3.1"
     yazl "^2.2.2"
 
+vscode-debugadapter-testsupport@^1.34.0:
+  version "1.40.2"
+  resolved "https://registry.yarnpkg.com/vscode-debugadapter-testsupport/-/vscode-debugadapter-testsupport-1.40.2.tgz#701d5bb67fa856feb22c0fcd289b6137451a7c72"
+  integrity sha512-HN1KoQUtFwCfPz2r1XaOtw3aUPpkgDPPRpLSGjCbOGRYhUJKlnLEwSaq4djVvZsfav6Zfd9QaBoaBNy03eBTvg==
+  dependencies:
+    vscode-debugprotocol "1.39.0"
+
 vscode-debugadapter@^1.33.0:
   version "1.39.1"
   resolved "https://registry.yarnpkg.com/vscode-debugadapter/-/vscode-debugadapter-1.39.1.tgz#c5d2565a1f27c95c6d2fc7a893ce94942570dc95"

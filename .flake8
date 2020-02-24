@@ -140,3 +140,5 @@ exclude =
     .git,
     __pycache__
     node_modules
+    ./node_modules
+    esp_debug_adapter

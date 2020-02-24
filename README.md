@@ -30,7 +30,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 ## Coming Soon 🔜
 
-- Debugging support.
 - Heap Tracing with complete GUI
 - VSCode Remote
 
@@ -40,7 +39,7 @@ There are several ways to install this extension to your VSCode, easiest one is 
 
 ### Marketplace Installation
 
-##### _[Link to the marketplace](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)_
+#### _[Link to the marketplace](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension)_
 
 Launch VSCode Quick Open (<kbd>⌘</kbd>+<kbd>P</kbd> on Mac or <kbd>Ctrl</kbd>+<kbd>P</kbd> on Windows) and then paste the following command and press enter
 
@@ -186,11 +185,13 @@ There is also some tasks defined in Tasks.json, which can be executed by running
 the following:
 
 1. `Build` - Build Project
-2. `Clean` - Clean the project
-3. `Flash` - Flash the device
-4. `Monitor` - Start a monitor terminal
-5. `OpenOCD` - Start the openOCD server
-6. `BuildFlash` - Execute a build followed by a flash command.
+2. `Set Target to esp32`
+3. `Set Target to esp32s2`
+4. `Clean` - Clean the project
+5. `Flash` - Flash the device
+6. `Monitor` - Start a monitor terminal
+7. `OpenOCD` - Start the openOCD server
+8. `BuildFlash` - Execute a build followed by a flash command.
 
 Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
 
@@ -206,7 +207,7 @@ The search functionality allows to find a parameter by description, i.e the name
 
 An IDF GUI Menuconfig log in Output is created to print all communications with `${idf.espIdfPath}\tools\confserver.py`. It can be be used to track any errors.
 
-## Working with multiple projects.
+## Working with multiple projects
 
 For big projects, a user will typically have one or more projects to build, flash or monitor. The ESP-IDF uses the [Visual Studio Code Workspace file schema](https://code.visualstudio.com/docs/editor/multi-root-workspaces#_workspace-file-schema) to identify all projects folders inside the current workspace (which would be the root folder).
 
@@ -237,6 +238,12 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
 
+## Debugging
+
+Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [ONBOARDING](./docs/ONBOARDING.md).
+
+When you start debug, an OpenOCD process starts in the background. OpenOCD Output log window is created in Visual Studio Code lower panel.
+
 ## Kconfig files editor
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide syntax highlighting. If `idf.useIDFKconfigStyle` is enabled, we also provide ESP-IDF Kconfig style syntax validation such as indent validation and not closing blocks found (Example: menu-endmenu). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
@@ -245,10 +252,10 @@ When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide s
 
 If you are lost at any point you can always ask question, help and suggestion in the [forum](https://spectrum.chat/espidf-vsc?tab=posts), apart from creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow [their suggested channel](https://esp32.com) of communications.
 
-# Code of Conduct
+## Code of Conduct
 
 This project and everyone participating in it is governed by the [Code of Conduct](./docs/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [vscode@espressif.com](mailto:vscode@espressif.com).
 
-# License
+## License
 
 This extension is licensed under the Apache License 2.0. Please see the [LICENSE](./LICENSE) file for additional copyright notices and terms.
