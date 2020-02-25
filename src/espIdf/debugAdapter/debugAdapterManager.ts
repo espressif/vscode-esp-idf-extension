@@ -78,12 +78,6 @@ export class DebugAdapterManager extends EventEmitter {
             const elfPath = path.join(this.currentWorkspace.fsPath, "build", this.projectName) + ".elf";
             const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
-            const xtensaEsp32Path = path.join(
-                idfConf.readParameter("idf.xtensaEsp32Path"), "bin");
-            if (!this.env.PATH.includes(xtensaEsp32Path)) {
-                this.env.PATH = xtensaEsp32Path + path.delimiter + this.env.PATH;
-            }
-
             const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
             this.adapter = spawn(pythonBinPath, [
                 this.debugAdapterPath,

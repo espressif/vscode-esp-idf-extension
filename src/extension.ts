@@ -388,7 +388,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 session.configuration.debugPort : LOCALHOST_DEF_PORT;
             const launchMode = session.configuration.mode !== undefined ?
                 session.configuration.launchDebugAdapter : "auto";
-            await buildFlashAndMonitor(false);
             if (launchMode === "auto" && !openOCDManager.isRunning()) {
                 isOpenOCDLaunchedByDebug = true;
                 await openOCDManager.start();
@@ -456,9 +455,9 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.window.showQuickPick(
                 [
                     { description: "ESP32",
-                        label: "ESP32", target: "esp32" },
+                        label: "ESP32", target: "Esp32" },
                     { description: "ESP32-S2",
-                        label: "ESP32S", target: "esp32s2" },
+                        label: "ESP32S", target: "Esp32_S2" },
                 ],
                 { placeHolder: enterDeviceTargetMsg },
             ).then((selected) => {
@@ -466,10 +465,10 @@ export async function activate(context: vscode.ExtensionContext) {
                     return;
                 }
                 idfConf.writeParameter("idf.adapterTargetName", selected.target);
-                if (selected.target === "esp32") {
+                if (selected.target === "Esp32") {
                     idfConf.writeParameter("idf.openOcdConfigs", ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]);
                 }
-                if (selected.target === "esp32s2") {
+                if (selected.target === "Esp32_S2") {
                     idfConf.writeParameter("idf.openOcdConfigs",
                         ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]);
                 }
@@ -483,8 +482,13 @@ export async function activate(context: vscode.ExtensionContext) {
                     OutputChannel.append(result.toString());
                 })
                 .catch((err) => {
-                    Logger.errorNotify(err, err);
-                    OutputChannel.append(err);
+                    if (err.message.indexOf("are satisfied") > -1) {
+                        Logger.info(err.message.toString());
+                        OutputChannel.append(err.message.toString());
+                    } else {
+                        Logger.errorNotify(err, err);
+                        OutputChannel.append(err);
+                    }
                 });
             });
         });
