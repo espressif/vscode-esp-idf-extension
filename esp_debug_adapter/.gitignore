@@ -1,0 +1,12 @@
+*.pyc
+/.idea
+/.venv
+/.vscode
+/venv
+/temp*
+/*.ps1
+/.environment/
+/main.exe
+/tests/temp_sc_tests/gdbinit
+TEST*.xml
+*.log

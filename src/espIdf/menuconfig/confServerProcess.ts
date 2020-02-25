@@ -207,7 +207,7 @@ export class ConfserverProcess {
         }
         process.env.IDF_TARGET = "esp32";
         process.env.PYTHONUNBUFFERED = "0";
-
+        process.env.IDF_PATH = this.espIdfPath;
         const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
         appendIdfAndToolsToPath();
         this.confServerProcess = spawn(pythonBinPath, [idfPath, "-C", workspaceFolder.fsPath, "confserver"]);

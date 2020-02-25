@@ -118,7 +118,6 @@ export function resolveVariables(configPath: string) {
             return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 ?
                 vscode.workspace.workspaceFolders[0].uri.fsPath : "";
         }
-
         return match;
     });
 }

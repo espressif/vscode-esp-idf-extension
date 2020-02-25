@@ -1,2 +1,2 @@
 [bandit]
-exclude: ./node_modules/*,./.git/*
+exclude: ./node_modules/*,./.git/*,./esp_debug_adapter/*

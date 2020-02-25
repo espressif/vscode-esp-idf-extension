@@ -22,6 +22,7 @@ import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
+import { getProjectName } from "../../workspaceConfig";
 
 export class IDFSize {
     private readonly workspaceRoot: vscode.Uri;
@@ -40,13 +41,14 @@ export class IDFSize {
                 this.locDict.localize(
                     "idfSize.canceledError", "Cannot proceed with size analysis on a canceled context"));
         }
-        if (!this.isBuiltAlready()) {
+        const isBuilt = await this.isBuiltAlready();
+        if (!isBuilt) {
             throw new Error(
                 this.locDict.localize(
                     "idfSize.buildFirstError", "Build is required for a size analysis, build your project first"));
         }
         try {
-            const mapFilePath = this.mapFilePath();
+            const mapFilePath = await this.mapFilePath();
 
             let locMsg = this.locDict.localize("idfSize.overviewMsg", "Gathering Overview");
             const overview = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--json"]);
@@ -66,8 +68,8 @@ export class IDFSize {
         }
     }
 
-    private mapFilePath(): string {
-        const projectName = idfConf.readParameter("idf.projectName");
+    private async mapFilePath() {
+        const projectName = await getProjectName(this.workspaceRoot.fsPath);
         return path.join(this.workspaceRoot.fsPath, "build", `${projectName}.map`);
     }
 
@@ -76,8 +78,8 @@ export class IDFSize {
         return path.join(idfPathDir, "tools");
     }
 
-    private isBuiltAlready(): boolean {
-        return fileExists(this.mapFilePath());
+    private async isBuiltAlready() {
+        return fileExists(await this.mapFilePath());
     }
 
     private async idfCommandInvoker(args: string[]) {

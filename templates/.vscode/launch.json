@@ -5,26 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "GDB",
-            "type": "cppdbg",
+            "type": "espidf",
+            "name": "Launch",
             "request": "launch",
-            "MIMode": "gdb",
-            "miDebuggerPath": "xtensa-esp32-elf-gdb",
-            "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
-            "windows": {
-                "program": "${workspaceFolder}\\build\\${config:idf.projectName}.elf",
-            },
-            "cwd": "${workspaceFolder}",
-            "setupCommands": [
-                { "text": "target remote :3333"},
-                { "text": "mon reset halt"},
-                { "text": "thb app_main"},
-                { "text": "flushregs"},
-            ],
-            "externalConsole": false,
-            "logging": {
-                "engineLogging": true
-            },
+            "env": {
+                    "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
+                },
         }
     ]
 }

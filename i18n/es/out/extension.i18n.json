@@ -25,5 +25,4 @@
     "extension.enterDeviceTargetMessage": "Introduzca dispositivo Espressif a utilizar",
     "extension.enterOpenOcdConfigMessage": "Introduzca la lista de archivos de configuracion dentro del directorio OpenOCD Scripts",
     "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH"
-
 }

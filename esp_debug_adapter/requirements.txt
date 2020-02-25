@@ -1,0 +1,10 @@
+backports.functools-lru-cache>=1.5
+click
+future>=0.17
+psutil>=5.5.1
+pygdbmi>=0.9.0.0
+pylint>=1.9.4
+requests>=2.21.0
+typing>=3.6.6
+pywin32; platform_system == "Windows"
+xmlrunner>=1.7.7

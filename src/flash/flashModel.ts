@@ -17,7 +17,6 @@
  */
 
 // tslint:disable: interface-name
-
 export interface FlashModel {
     port: string;
     baudRate: string;
