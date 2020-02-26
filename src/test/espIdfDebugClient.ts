@@ -22,8 +22,6 @@ import { ProtocolClient } from "vscode-debugadapter-testsupport/lib/protocolClie
 import { DebugProtocol } from "vscode-debugprotocol";
 
 export class EspIdfDebugClient extends ProtocolClient {
-
-    private static CRLF = "\r\n\r\n";
     private runtime: string;
     private execArgs: string[];
     private adapterProcess: cp.ChildProcess;
@@ -31,28 +29,28 @@ export class EspIdfDebugClient extends ProtocolClient {
     private enableStderr: boolean;
     private debugType: string;
     private socket: net.Socket;
-    private newRawData = Buffer.alloc(0);
-    private newContentLength: number;
+    private defaultPort: number = 43474;
 
     constructor(
         runtime: string,
         execArgs: string[], debugType: string,
-        spawnOptions?: cp.SpawnOptions,
-        enableStderr?: boolean) {
-            // super(runtime, execArgs.join(" "), debugType, spawnOptions, enableStderr);
+        spawnOptions: cp.SpawnOptions,
+        enableStderr: boolean,
+        defaultPort?: number) {
             super();
             this.runtime = runtime;
             this.execArgs = execArgs;
             this.spawnOptions = spawnOptions;
             this.enableStderr = enableStderr;
             this.debugType = debugType;
-            this.newContentLength = -1;
+            if (defaultPort) {
+                this.defaultPort = defaultPort;
+            }
     }
     /**
      * Starts a new debug adapter and sets up communication via stdin/stdout.
-     * If a port number is specified the adapter is not launched but a connection to
-     * a debug adapter running in server mode is established. This is useful for debugging
-     * the adapter while running tests. For this reason all timeouts are disabled in server mode.
+     * When port number is specified, this class will not execute the debug adapter
+     * and it will connect to specified port directly.
      */
     public startClient(port?: number): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -72,7 +70,12 @@ export class EspIdfDebugClient extends ProtocolClient {
                 });
 
                 this.adapterProcess.stdout.on("data", (data: Buffer) => {
-                    this.newHandleData(data);
+                    if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
+                        this.socket = net.createConnection(this.defaultPort, "127.0.0.1", () => {
+                            this.connect(this.socket, this.socket);
+                            resolve();
+                        });
+                    }
                 });
 
                 this.adapterProcess.on("error", (err) => {
@@ -80,12 +83,10 @@ export class EspIdfDebugClient extends ProtocolClient {
                 });
                 this.adapterProcess.on("exit", (code: number, signal: string) => {
                     if (code) {
-                        // done(new Error('debug adapter exit code: ' + code));
+                        // tslint:disable-next-line: no-console
+                        console.log(sanitize(`debug adapter exit code: ${code}`));
                     }
                 });
-
-                this.connect(this.adapterProcess.stdout, this.adapterProcess.stdin);
-                resolve();
             }
         });
     }
@@ -110,7 +111,6 @@ export class EspIdfDebugClient extends ProtocolClient {
             };
         }
         return this.send("initialize", args);
-        return this.waitForResponse();
     }
 
     public waitForEvent(eventType: string): Promise<DebugProtocol.Event> {
@@ -131,66 +131,12 @@ export class EspIdfDebugClient extends ProtocolClient {
 
     private stopAdapter() {
         if (this.adapterProcess) {
-            this.adapterProcess.kill();
+            this.adapterProcess.kill("SIGKILL");
             this.adapterProcess = null;
         }
     }
 
     private disconnectRequest(args?: DebugProtocol.DisconnectArguments): Promise<DebugProtocol.DisconnectResponse> {
         return this.send("disconnect", args);
-    }
-
-    private newHandleData(data: Buffer): void {
-        this.newRawData = Buffer.concat([this.newRawData, data]);
-
-        while (true) {
-            if (this.newContentLength >= 0) {
-                if (this.newRawData.length >= this.newContentLength) {
-                    const message = this.newRawData.toString("utf8", 0, this.newContentLength);
-                    this.newRawData = this.newRawData.slice(this.newContentLength);
-                    this.newContentLength = -1;
-                    if (message.length > 0 && this.validateJSON(message)) {
-                        this.newDispatch(message);
-                    }
-                    continue;	// there may be more complete messages to process
-                }
-            } else {
-                const idx = this.newRawData.indexOf(EspIdfDebugClient.CRLF);
-                if (idx !== -1) {
-                    const header = this.newRawData.toString("utf8", 0, idx);
-                    const lines = header.split("\r\n");
-                    for (const line of lines) {
-                        const pair = line.split(/: +/);
-                        if (pair[0].includes("Content-Length")) {
-                            this.newContentLength = parseInt(pair[1], 10);
-                        }
-                    }
-                    this.newRawData = this.newRawData.slice(idx + EspIdfDebugClient.CRLF.length);
-                    continue;
-                }
-            }
-            break;
-        }
-    }
-
-    private newDispatch(body: string) {
-        const rawData = JSON.parse(body);
-        if (typeof rawData.event !== "undefined") {
-            const event = rawData as DebugProtocol.Event;
-            this.emit(event.event, event);
-        } else {
-            const response = rawData as DebugProtocol.Response;
-            this.emit("responded", response);
-        }
-    }
-
-    private validateJSON(testString: string) {
-        if (/^[\],:{}\s]*$/.test(testString.replace(/\\["\\\/bfnrtu]/g, "@").
-            replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, "]").
-            replace(/(?:^|:|,)(?:\s*\[)+/g, ""))) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }

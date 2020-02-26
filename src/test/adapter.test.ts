@@ -18,20 +18,20 @@
 
 import * as assert from "assert";
 import * as path from "path";
-import * as vscode from "vscode";
-import * as idfConf from "../idfConfiguration";
 import { EspIdfDebugClient } from "./espIdfDebugClient";
 
 suite("Debug Adapter Tests", () => {
     const DEBUG_ADAPTER = path.join(__dirname, "..", "..", "esp_debug_adapter", "debug_adapter_main.py");
-    const portToUse = 43474; // To use in server mode
+    const portToUse = 43474; // To use in server mode, i.e. start debug adapter yourself
 
     let debugClient: EspIdfDebugClient;
 
-    setup( () => {
-        debugClient = new EspIdfDebugClient("python", ["-u", DEBUG_ADAPTER, "-cc"], "espidf", {}, true);
+    setup( (done) => {
+        debugClient = new EspIdfDebugClient(
+            "python",
+            ["-u", DEBUG_ADAPTER, "-cc"], "espidf", {}, true);
         // Use portToUse here to attach to existing server. May be easier to debug initially
-        debugClient.startClient(portToUse);
+        debugClient.startClient().then(() => done());
     });
 
     suite("initialize", () => {
