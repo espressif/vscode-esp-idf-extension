@@ -217,12 +217,6 @@
             "description": "%param.baudRate%",
             "scope": "resource"
           },
-          "idf.projectName": {
-            "type": "string",
-            "default": "app-template",
-            "description": "%param.projectName%",
-            "scope": "resource"
-          },
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
@@ -402,8 +396,8 @@
             "type": "cppdbg",
             "request": "launch",
             "MIMode": "gdb",
-            "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
-            "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
+            "miDebuggerPath": "xtensa-esp32-elf-gdb",
+            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
             "cwd": "${workspaceFolder}",
             "setupCommands": [
               {
@@ -433,8 +427,8 @@
               "type": "cppdbg",
               "request": "launch",
               "MIMode": "gdb",
-              "miDebuggerPath": "${config:idf.xtensaEsp32Path}/bin/xtensa-esp32-elf-gdb",
-              "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
+              "miDebuggerPath": "xtensa-esp32-elf-gdb",
+              "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
               "cwd": "${workspaceFolder}",
               "setupCommands": [
                 {

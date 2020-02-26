@@ -127,7 +127,6 @@ These are project IDF Project specific settings
 
 | Setting | Description |
 | --- | --- |
-| `idf.projectName` | Project Name |
 | `idf.espIdfPath` | Path to locate ESP-IDF framework (IDF_PATH) |
 | `idf.toolsPath` | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH) |
 | `idf.pythonBinPath` | Python absolute binary path used to execute ESP-IDF Python Scripts |
@@ -217,7 +216,6 @@ Projects folders and workspace level settings are defined in the `.code-workspac
 	],
 	"settings": {
 		"idf.port": "/dev/ttyUSB1",
-		"idf.projectName": "hello-world",
 		"idf.espIdfPath": "${env:HOME}/esp/esp-idf"
 	}
 }

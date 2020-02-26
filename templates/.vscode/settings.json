@@ -7,5 +7,5 @@
     "[c]": {
         "editor.quickSuggestions": true
     },
-    "C_Cpp.intelliSenseEngineFallback": "Disabled"
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
 } 
