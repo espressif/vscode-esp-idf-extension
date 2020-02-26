@@ -495,6 +495,7 @@
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
+    "validateLocalization": "gulp validateLocalization",
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
