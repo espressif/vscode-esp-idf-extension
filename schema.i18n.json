@@ -78,6 +78,7 @@
     },
     "package": [
         "espIdf.createFiles.title",
+        "espIdf.createVsCodeFolder.title",
         "espIdf.setPath.title",
         "espIdf.setTarget.title",
         "espIdf.configDevice.title",
@@ -98,7 +99,6 @@
         "debug.initConfig.description",
         "param.adapterTargetName",
         "param.openOcdConfigFilesList",
-        "param.projectName",
         "param.baudRate",
         "param.port",
         "param.pythonBinPath",
