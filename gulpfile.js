@@ -78,7 +78,7 @@ function validateLocalizationFiles(done) {
         const schemaKeys = reduceSchemaObj(schema, parts);
         schemaKeys.forEach((schemaKey) => {
           if (!localeJson.hasOwnProperty(schemaKey)) {
-            throw `${schemaKey} not defined in ${locFile}`;
+            throw new Error(`${schemaKey} not defined in ${locFile}`);
           }
         });
         Object.keys(localeJson).forEach((fileKey) => {
