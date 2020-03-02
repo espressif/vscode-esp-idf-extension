@@ -62,6 +62,7 @@ export interface IState {
   pyLog: string;
   pyVersionList: string[];
   requiredToolsVersions: IToolStatus[];
+  selectedConfTarget: number;
   selectedIdfVersion: IEspIdfLink;
   selectedPythonVersion: string;
   showIdfPathCheck: boolean;

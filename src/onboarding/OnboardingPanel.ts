@@ -69,6 +69,8 @@ export class OnBoardingPanel {
   private disposables: vscode.Disposable[] = [];
   private extensionPath: string;
   private idfToolsManager: IdfToolsManager;
+  private confTarget: vscode.ConfigurationTarget =
+    vscode.ConfigurationTarget.Global;
 
   private constructor(
     extensionPath: string,
@@ -106,6 +108,43 @@ export class OnBoardingPanel {
             value: "exampleValue",
           });
           break;
+        case "updateConfigurationTarget":
+          switch (message.confTarget) {
+            case vscode.ConfigurationTarget.Global:
+              this.confTarget = vscode.ConfigurationTarget.Global;
+              break;
+            case vscode.ConfigurationTarget.Workspace:
+              this.confTarget = vscode.ConfigurationTarget.Workspace;
+              if (vscode.workspace.workspaceFolders) {
+                this.confTarget = vscode.ConfigurationTarget.Workspace;
+              } else {
+                this.panel.webview.postMessage({
+                  command: "resetConfigurationTarget",
+                  confTarget: vscode.ConfigurationTarget.Global,
+                });
+                vscode.window.showInformationMessage(
+                  "No workspace is open. Please open a workspace first."
+                );
+              }
+              break;
+            case vscode.ConfigurationTarget.WorkspaceFolder:
+              this.confTarget = vscode.ConfigurationTarget.Workspace;
+              if (vscode.workspace.workspaceFolders) {
+                this.confTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+              } else {
+                this.panel.webview.postMessage({
+                  command: "resetConfigurationTarget",
+                  confTarget: vscode.ConfigurationTarget.Global,
+                });
+                vscode.window.showInformationMessage(
+                  "No folder is open. Please open a folder first."
+                );
+              }
+              break;
+            default:
+              break;
+          }
+          break;
         case "checkIdfPath":
           if (message.new_value) {
             const idfBinaryPath = path.join(
@@ -128,7 +167,11 @@ export class OnBoardingPanel {
           break;
         case "saveNewIdfPath":
           if (message.new_value) {
-            idfConf.writeParameter("idf.espIdfPath", message.new_value);
+            idfConf.writeParameter(
+              "idf.espIdfPath",
+              message.new_value,
+              this.confTarget
+            );
             this.updateIdfToolsManager(message.new_value);
           }
           break;
@@ -154,7 +197,8 @@ export class OnBoardingPanel {
               if (toolsNotFound.length === 0) {
                 idfConf.writeParameter(
                   "idf.customExtraPaths",
-                  message.new_value
+                  message.new_value,
+                  this.confTarget
                 );
               }
               checkPythonRequirements(this.extensionPath);
@@ -174,7 +218,11 @@ export class OnBoardingPanel {
               .dirExistPromise(message.new_value)
               .then(async (doesDirExists: boolean) => {
                 if (doesDirExists) {
-                  idfConf.writeParameter("idf.toolsPath", message.new_value);
+                  idfConf.writeParameter(
+                    "idf.toolsPath",
+                    message.new_value,
+                    this.confTarget
+                  );
                 } else {
                   const selected = await vscode.window.showErrorMessage(
                     "Specified Directory doesn't exists. Create?",
@@ -186,7 +234,8 @@ export class OnBoardingPanel {
                     await ensureDir(message.new_value).then(async () => {
                       await idfConf.writeParameter(
                         "idf.toolsPath",
-                        message.new_value
+                        message.new_value,
+                        this.confTarget
                       );
                     });
                   } else {
@@ -199,7 +248,8 @@ export class OnBoardingPanel {
                 downloadToolsInIdfToolsPath(
                   this.extensionPath,
                   this.idfToolsManager,
-                  message.new_value
+                  message.new_value,
+                  this.confTarget
                 ).catch((reason) => {
                   OutputChannel.appendLine(reason);
                   Logger.info(reason);
@@ -224,11 +274,13 @@ export class OnBoardingPanel {
             Logger.info("");
             idfConf.writeParameter(
               "idf.customExtraPaths",
-              message.custom_paths
+              message.custom_paths,
+              this.confTarget
             );
             idfConf.writeParameter(
               "idf.customExtraVars",
-              JSON.stringify(message.custom_vars)
+              JSON.stringify(message.custom_vars),
+              this.confTarget
             );
           }
           break;
@@ -271,13 +323,15 @@ export class OnBoardingPanel {
         case "downloadEspIdfVersion":
           if (message.selectedVersion && message.idfPath) {
             const idfVersion = message.selectedVersion as IEspIdfLink;
-            downloadInstallIdfVersion(idfVersion, message.idfPath).then(
-              async () => {
-                await this.updateIdfToolsManager(
-                  path.join(message.idfPath, "esp-idf")
-                );
-              }
-            );
+            downloadInstallIdfVersion(
+              idfVersion,
+              message.idfPath,
+              this.confTarget
+            ).then(async () => {
+              await this.updateIdfToolsManager(
+                path.join(message.idfPath, "esp-idf")
+              );
+            });
           }
           break;
         case "savePythonBinary":
@@ -287,7 +341,8 @@ export class OnBoardingPanel {
             );
             idfConf.writeParameter(
               "idf.pythonSystemBinPath",
-              message.selectedPyBin
+              message.selectedPyBin,
+              this.confTarget
             );
           }
           break;
@@ -295,7 +350,8 @@ export class OnBoardingPanel {
           if (message.showOnboarding !== undefined) {
             idfConf.writeParameter(
               "idf.showOnboardingOnInit",
-              message.showOnboarding
+              message.showOnboarding,
+              vscode.ConfigurationTarget.Global
             );
             Logger.info(
               `Show onboarding on extension start? ${message.showOnboarding}`

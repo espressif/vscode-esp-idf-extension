@@ -219,6 +219,10 @@ window.addEventListener("message", (event) => {
         );
       }
       break;
+    case "resetConfigurationTarget":
+      if (message.confTarget) {
+        store.commit("updateConfTarget", message.confTarget);
+      }
     default:
       break;
   }

@@ -239,6 +239,11 @@ export const mutations: MutationTree<IState> = {
     );
     Object.assign(state, newState);
   },
+  updateConfTarget(state, confTarget) {
+    const newState = state;
+    newState.selectedConfTarget = confTarget;
+    Object.assign(state, newState);
+  },
   updateIdfDownloadDetail(state, updatedIdfDownloadDetail: IEspIdfStatus) {
     const newState = state;
     newState.idfDownloadStatus = {

@@ -11,39 +11,38 @@
         </ul>
         <p>
           Before using this extension,
-          <a href="https://git-scm.com/downloads">Git</a> and
-          <a href="https://www.python.org/downloads">Python</a> are required.
+            <a href="https://git-scm.com/downloads">Git</a>
+          and <a href="https://www.python.org/downloads">Python</a> are required.
+          Please read
+          <a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites">
+            ESP-IDF Prerequisites.
+          </a>
         </p>
         <p v-if="isNotWinPlatform">
           <a href="https://cmake.org/download/">CMake</a> and
           <a href="https://github.com/ninja-build/ninja/releases">Ninja</a> are
           required in environment PATH.
         </p>
-        <p>
-          Please read
-          <a
-            href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites"
-          >
-            ESP-IDF Prerequisites.</a
-          >
-        </p>
-        <router-link
-          v-on:click.native="initSetup"
-          to="/gitpycheck"
-          class="enter-button"
-          >START</router-link
-        >
-        <br /><br />
         <div>
           <input
             id="showOnboarding"
             v-model="showOnboardingOnInit"
             type="checkbox"
-            @change="updateShowOnboarding"
           />
           <label for="showOnboarding">
             Show Onboarding on Visual Studio Code start.
           </label>
+          <br><br>
+          <label for="configurationTarget">
+            Where to save configuration settings ?
+          </label>
+          <select v-model="selectedConfTarget">
+            <option value="1">User settings</option>
+            <option value="2">Workspace settings</option>
+            <option value="3">Workspace folder settings</option>
+          </select>
+          <br><br>
+          <router-link  v-on:click.native="initSetup" to='/gitpycheck' class="enter-button">START</router-link>
         </div>
       </div>
     </div>
@@ -64,7 +63,10 @@ import { Action, Mutation, State } from "vuex-class";
 export default class App extends Vue {
   public isNotWelcomePage: boolean = false;
   @State("showOnboardingOnInit") private storeShowOnboardingOnInit: boolean;
-  @Mutation("showOnboardingOnInit") private setShowOnboardingOnInit;
+  @State("selectedConfTarget") private storeSelectedConfTarget: number;
+  @Mutation private setShowOnboardingOnInit;
+  @Mutation("updateConfTarget") private modifyConfTarget;
+  @Action private updateConfTarget;
   @Action private updateShowOnboardingOnInit;
   @Action private requestInitValues;
 
@@ -76,13 +78,20 @@ export default class App extends Vue {
     return navigator.platform.indexOf("Win") < 0;
   }
 
+  get selectedConfTarget() {
+    return this.storeSelectedConfTarget;
+  }
+  set selectedConfTarget(val) {
+    this.updateConfTarget(val);
+    this.modifyConfTarget(val);
+  }
+
   get showOnboardingOnInit(): boolean {
     return this.storeShowOnboardingOnInit;
   }
-
-  public updateShowOnboarding(e) {
-    this.setShowOnboardingOnInit(e.target.checked);
-    this.updateShowOnboardingOnInit(e.target.checked);
+  set showOnboardingOnInit(val) {
+    this.setShowOnboardingOnInit(val);
+    this.updateShowOnboardingOnInit(val);
   }
 
   private mounted() {

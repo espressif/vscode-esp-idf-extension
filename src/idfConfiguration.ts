@@ -51,14 +51,60 @@ export function readParameter(param: string) {
   return paramValue;
 }
 
-export async function writeParameter(param: string, newValue) {
+export function chooseConfigurationTarget() {
+  return vscode.window
+    .showQuickPick(
+      [
+        {
+          description: "Global",
+          label: "Global",
+          target: vscode.ConfigurationTarget.Global,
+        },
+        {
+          description: "Workspace",
+          label: "Workspace",
+          target: vscode.ConfigurationTarget.Workspace,
+        },
+        {
+          description: "Workspace Folder",
+          label: "Workspace Folder",
+          target: vscode.ConfigurationTarget.WorkspaceFolder,
+        },
+      ],
+      { placeHolder: "Where to save the configuration?" }
+    )
+    .then((option) => {
+      if (option) {
+        return option.target;
+      } else {
+        return vscode.ConfigurationTarget.Global;
+      }
+    });
+}
+
+export function writeParameter(
+  param: string,
+  newValue,
+  target: vscode.ConfigurationTarget
+) {
   const paramValue = addWinIfRequired(param);
-  const configuration = vscode.workspace.getConfiguration();
-  await configuration.update(
-    paramValue,
-    newValue,
-    vscode.ConfigurationTarget.Global
-  );
+  if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
+    return vscode.window
+      .showWorkspaceFolderPick({
+        placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
+      })
+      .then(async (workspaceFolder) => {
+        if (workspaceFolder) {
+          return vscode.workspace
+            .getConfiguration("", workspaceFolder.uri)
+            .update(paramValue, newValue, target);
+        }
+      });
+  } else {
+    return vscode.workspace
+      .getConfiguration()
+      .update(paramValue, newValue, target);
+  }
 }
 
 export function updateConfParameter(
@@ -69,7 +115,7 @@ export function updateConfParameter(
 ) {
   return vscode.window
     .showInputBox({ placeHolder: confParamDescription, value: currentValue })
-    .then((newValue: string) => {
+    .then((newValue) => {
       return new Promise(async (resolve, reject) => {
         if (newValue) {
           const typeOfConfig = checkTypeOfConfiguration(confParamName);
@@ -79,7 +125,15 @@ export function updateConfParameter(
           } else {
             valueToWrite = newValue;
           }
-          await writeParameter(confParamName, valueToWrite);
+          const target = await chooseConfigurationTarget();
+          if (
+            typeof vscode.workspace.workspaceFolders === "undefined" &&
+            target !== vscode.ConfigurationTarget.Global
+          ) {
+            Logger.infoNotify("Open a workspace or folder first.");
+            reject(newValue);
+          }
+          await writeParameter(confParamName, valueToWrite, target);
           const updateMessage = locDic.localize(
             "idfConfiguration.hasBeenUpdated",
             " has been updated"
@@ -94,8 +148,9 @@ export function updateConfParameter(
 }
 
 export function checkTypeOfConfiguration(paramName: string) {
-  const conf = vscode.workspace.getConfiguration("");
-  const { defaultValue } = conf.inspect(paramName);
+  const { defaultValue } = vscode.workspace
+    .getConfiguration()
+    .inspect(paramName);
   if (typeof defaultValue === "object") {
     return Array.isArray(defaultValue) ? "array" : "object";
   } else {

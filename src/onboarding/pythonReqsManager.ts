@@ -14,6 +14,7 @@
 
 import { pathExists } from "fs-extra";
 import * as path from "path";
+import { ConfigurationTarget } from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
@@ -108,7 +109,10 @@ export async function checkPythonRequirements(workingDir: string) {
     });
 }
 
-export async function installPythonRequirements(workingDir: string) {
+export async function installPythonRequirements(
+  workingDir: string,
+  confTarget: ConfigurationTarget
+) {
   const pythonBinPath = idfConf.readParameter(
     "idf.pythonSystemBinPath"
   ) as string;
@@ -136,7 +140,11 @@ export async function installPythonRequirements(workingDir: string) {
     )
     .then(async (virtualEnvPythonBin) => {
       if (virtualEnvPythonBin) {
-        await idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
+        await idfConf.writeParameter(
+          "idf.pythonBinPath",
+          virtualEnvPythonBin,
+          confTarget
+        );
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
           OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });

@@ -109,7 +109,8 @@ export class AppTraceManager extends EventEmitter {
       validateInput: validatorFunction,
     });
     if (userInput) {
-      await idfConf.writeParameter(paramName, userInput);
+      const target = await idfConf.chooseConfigurationTarget();
+      await idfConf.writeParameter(paramName, userInput, target);
     }
   }
 
