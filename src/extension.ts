@@ -292,7 +292,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.setPath", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], () => {
+    PreCheck.perform([webIdeCheck], () => {
       const selectFrameworkMsg = locDic.localize(
         "selectFrameworkMessage",
         "Select framework to define its path:"
@@ -370,101 +370,99 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.configDevice", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      const selectConfigMsg = locDic.localize(
-        "extension.selectConfigMessage",
-        "Select option to define its path :"
-      );
-      vscode.window
-        .showQuickPick(
-          [
-            {
-              description: "Device target (esp32, esp32s2)",
-              label: "Device Target",
-              target: "deviceTarget",
-            },
-            {
-              description: "Device port path",
-              label: "Device Port",
-              target: "devicePort",
-            },
-            {
-              description: "Baud rate of device",
-              label: "Baud Rate",
-              target: "baudRate",
-            },
-            {
-              description:
-                "Relative paths to OpenOCD Scripts directory separated by comma(,)",
-              label: "OpenOcd Config Files",
-              target: "openOcdConfig",
-            },
-          ],
-          { placeHolder: selectConfigMsg }
-        )
-        .then((option) => {
-          if (typeof option === "undefined") {
-            const noOptionMsg = locDic.localize(
-              "extension.noOptionMessage",
-              "No option selected."
+    const selectConfigMsg = locDic.localize(
+      "extension.selectConfigMessage",
+      "Select option to define its path :"
+    );
+    vscode.window
+      .showQuickPick(
+        [
+          {
+            description: "Device target (esp32, esp32s2)",
+            label: "Device Target",
+            target: "deviceTarget",
+          },
+          {
+            description: "Device port path",
+            label: "Device Port",
+            target: "devicePort",
+          },
+          {
+            description: "Baud rate of device",
+            label: "Baud Rate",
+            target: "baudRate",
+          },
+          {
+            description:
+              "Relative paths to OpenOCD Scripts directory separated by comma(,)",
+            label: "OpenOcd Config Files",
+            target: "openOcdConfig",
+          },
+        ],
+        { placeHolder: selectConfigMsg }
+      )
+      .then((option) => {
+        if (typeof option === "undefined") {
+          const noOptionMsg = locDic.localize(
+            "extension.noOptionMessage",
+            "No option selected."
+          );
+          Logger.infoNotify(noOptionMsg);
+          return;
+        }
+        let currentValue;
+        let msg: string;
+        let paramName: string;
+        switch (option.target) {
+          case "deviceTarget":
+            msg = locDic.localize(
+              "extension.enterDeviceTargetMessage",
+              "Enter device target name"
             );
-            Logger.infoNotify(noOptionMsg);
-            return;
-          }
-          let currentValue;
-          let msg: string;
-          let paramName: string;
-          switch (option.target) {
-            case "deviceTarget":
-              msg = locDic.localize(
-                "extension.enterDeviceTargetMessage",
-                "Enter device target name"
-              );
-              paramName = "idf.adapterTargetName";
-              break;
-            case "devicePort":
-              msg = locDic.localize(
-                "extension.enterDevicePortMessage",
-                "Enter device port Path"
-              );
-              paramName = "idf.port";
-              break;
-            case "baudRate":
-              msg = locDic.localize(
-                "extension.enterDeviceBaudRateMessage",
-                "Enter device baud rate"
-              );
-              paramName = "idf.baudRate";
-              break;
-            case "openOcdConfig":
-              msg = locDic.localize(
-                "extension.enterOpenOcdConfigMessage",
-                "Enter OpenOCD Configuration File Paths list"
-              );
-              paramName = "idf.openOcdConfigs";
-              break;
-            default:
-              const noParamUpdatedMsg = locDic.localize(
-                "extension.noParamUpdatedMessage",
-                "No device parameter has been updated"
-              );
-              Logger.infoNotify(noParamUpdatedMsg);
-              break;
-          }
-          if (msg && paramName) {
-            currentValue = idfConf.readParameter(paramName);
-            if (currentValue instanceof Array) {
-              currentValue = currentValue.join(",");
-            }
-            idfConf.updateConfParameter(
-              paramName,
-              msg,
-              currentValue,
-              option.label
+            paramName = "idf.adapterTargetName";
+            break;
+          case "devicePort":
+            msg = locDic.localize(
+              "extension.enterDevicePortMessage",
+              "Enter device port Path"
             );
+            paramName = "idf.port";
+            break;
+          case "baudRate":
+            msg = locDic.localize(
+              "extension.enterDeviceBaudRateMessage",
+              "Enter device baud rate"
+            );
+            paramName = "idf.baudRate";
+            break;
+          case "openOcdConfig":
+            msg = locDic.localize(
+              "extension.enterOpenOcdConfigMessage",
+              "Enter OpenOCD Configuration File Paths list"
+            );
+            paramName = "idf.openOcdConfigs";
+            break;
+          default:
+            const noParamUpdatedMsg = locDic.localize(
+              "extension.noParamUpdatedMessage",
+              "No device parameter has been updated"
+            );
+            Logger.infoNotify(noParamUpdatedMsg);
+            break;
+        }
+        if (msg && paramName) {
+          currentValue = idfConf.readParameter(paramName);
+          if (currentValue instanceof Array) {
+            currentValue = currentValue.join(",");
           }
-        });
-    });
+          idfConf.updateConfParameter(
+            paramName,
+            msg,
+            currentValue,
+            option.label
+          );
+        }
+      });
   });
 
   vscode.workspace.onDidChangeConfiguration((e) => {
