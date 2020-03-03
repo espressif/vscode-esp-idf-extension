@@ -1,10 +1,6 @@
 {
     "extension.defaultFoldersGeneratedMessage": "已生成默认文件夹",
     "extension.openFolderFirst": "请先打开文件夹",
-    "extension.notSerialPortFoundMessage": "找不到可用串口",
-    "extension.selectSerialPortMessage":"请选择可用的串口",
-    "extension.noPortSelectedMessage": "串口未选中",
-    "extension.portHasBeenSelectedMessage": "串口已选中 ",
     "espIdf.pickAWorkspaceFolder.text": "请选择当前工作文件夹",
     "extension.noFolderMessage": "未选择工作区",
     "selectFrameworkMessage": "选择框架并设定路径",

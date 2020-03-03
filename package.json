@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
@@ -496,6 +496,7 @@
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
+    "validateLocalization": "gulp validateLocalization",
     "webpack": "webpack --mode production"
   },
   "devDependencies": {

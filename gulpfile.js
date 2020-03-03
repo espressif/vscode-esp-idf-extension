@@ -18,6 +18,7 @@ const vsce = require('vsce');
 const nls = require('vscode-nls-dev');
 const { readdirSync, statSync } = require('fs');
 const { join } = require('path');
+const glob = require("glob");
 
 // If all VS Code languages are supported you can use nls.coreLanguages
 const languages = []; // [{ folderName: 'zh-CN', id: 'zh-CN' }, { folderName: 'es', id: 'es' }];
@@ -51,9 +52,50 @@ function vscePackage(done) {
   done();
 }
 
-const build = gulp.series(clean, addI18n);
+function getPathParts(pathToUse) {
+  const parts = pathToUse.replace(join(__dirname, "i18n"), "").split(/(?:\\|\/)/g);
+  parts.splice(0, 2);
+  parts[parts.length - 1] = parts[parts.length - 1].replace(/(\.).*/g, "");
+  return parts;
+}
+
+const reduceSchemaObj = (schemaObj, parts) => {
+  return parts.reduce((obj, key) => 
+  (obj && obj[key] !== undefined) ? obj[key] : undefined, schemaObj);
+}
+
+function validateLocalizationFiles(done) {
+  const schema = require("./schema.i18n.json");
+  languages.forEach((l) => {
+    const langDirPath = join(__dirname, "i18n", l.folderName, "**", "*.i18n.json");
+    glob(langDirPath, (err, locFiles) => {
+      if (err) {
+        throw err;
+      }
+      locFiles.forEach((locFile) => {
+        const localeJson = require(locFile);
+        const parts = getPathParts(locFile);
+        const schemaKeys = reduceSchemaObj(schema, parts);
+        schemaKeys.forEach((schemaKey) => {
+          if (!localeJson.hasOwnProperty(schemaKey)) {
+            throw new Error(`${schemaKey} not defined in ${locFile}`);
+          }
+        });
+        Object.keys(localeJson).forEach((fileKey) => {
+          if (schemaKeys.indexOf(fileKey) < 0) {
+            console.log(`Unknown property ${fileKey} defined in ${locFile}`);
+          }
+        });
+      });
+    });
+  });
+  done();
+}
+
+const build = gulp.series(clean, addI18n, validateLocalizationFiles);
 exports.clean = clean;
 exports.build = build;
+exports.validateLocalization = validateLocalizationFiles;
 exports.publish = gulp.series(build, vscePublish);
 exports.vscePkg = gulp.series(build, vscePackage);
 exports.default = build;

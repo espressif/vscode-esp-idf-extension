@@ -29,7 +29,7 @@ suite("Debug Adapter Tests", () => {
     setup( (done) => {
         debugClient = new EspIdfDebugClient(
             "python",
-            ["-u", DEBUG_ADAPTER, "-cc"], "espidf", {}, true);
+            ["-u", DEBUG_ADAPTER, "-cc"], "espidf", { cwd: __dirname }, true);
         // Use portToUse here to attach to existing server. May be easier to debug initially
         debugClient.startClient().then(() => done());
     });

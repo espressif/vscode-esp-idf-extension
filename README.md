@@ -214,18 +214,18 @@ Projects folders and workspace level settings are defined in the `.code-workspac
 
 ```json
 {
-    "folders": [
-        {
-            "path": "./project1"
-        },
-        {
-            "path": "./project2"
-        }
-    ],
-    "settings": {
-        "idf.port": "/dev/ttyUSB1",
-        "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
-    }
+	"folders": [
+		{
+			"path": "./project1"
+		},
+		{
+			"path": "./project2"
+		}
+	],
+	"settings": {
+		"idf.port": "/dev/ttyUSB1",
+		"idf.espIdfPath": "${env:HOME}/esp/esp-idf"
+	}
 }
 ```
 

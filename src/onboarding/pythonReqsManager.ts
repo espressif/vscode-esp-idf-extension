@@ -36,19 +36,30 @@ export async function checkPythonRequirements(workingDir: string) {
     const idfToolsPath = idfConf.readParameter("idf.toolsPath") as string;
     const reqFilePath = path.join(espIdfPath, "tools", "check_python_dependencies.py");
     const requirements = path.join(espIdfPath, "requirements.txt");
+    const debugAdapterRequirements = path.join(utils.extensionContext.extensionPath, "esp_debug_adapter", "requirements.txt");
     const pythonBin = await pythonManager.getPythonBinToUse(espIdfPath, idfToolsPath, pythonBinPath);
     process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
-    utils.execChildProcess(`${pythonBin} ${reqFilePath} -r ${requirements}`,
+    await utils.execChildProcess(`${pythonBin} ${reqFilePath} -r ${requirements}`,
         workingDir,
         OutputChannel.init(),
-    ).then((pyReqLog) => {
-        const resultLog = `Checking Python requirements using ${pythonBin}\n${pyReqLog}`;
+    ).then(async (pyReqLog) => {
+        const resultLog = `Checking ESP-IDF requirements using ${pythonBin}\n${pyReqLog}`;
         OutputChannel.appendLine(resultLog);
         Logger.info(resultLog);
         OnBoardingPanel.postMessage({ command: "response_py_req_check", py_req_log: resultLog });
-        if (pyReqLog.indexOf("are not satisfied") < 0) {
-            OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
-        }
+        await utils.execChildProcess(`${pythonBin} ${reqFilePath} -r ${debugAdapterRequirements}`,
+                                     workingDir,
+                                     OutputChannel.init())
+            .then((adapterReqLog) => {
+                const adapterResultLog = `Checking Debug Adapter requirements using ${pythonBin}\n${adapterReqLog}`;
+                OutputChannel.appendLine(adapterResultLog);
+                Logger.info(adapterResultLog);
+                OnBoardingPanel.postMessage({ command: "response_py_req_check",
+                                              py_req_log: resultLog + adapterResultLog });
+                if (pyReqLog.indexOf("are not satisfied") < 0 && adapterReqLog.indexOf("are not satisfied") < 0) {
+                    OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
+                }
+            });
     }).catch((reason) => {
         if (reason.message) {
             Logger.error(reason.message, reason);

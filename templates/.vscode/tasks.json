@@ -28,7 +28,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
             "group": {
                 "kind": "build",
@@ -49,7 +49,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
@@ -58,6 +58,11 @@
             "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py fullclean",
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean"
+            },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}"
+                }
             },
             "problemMatcher": {
                 "owner": "cpp",
@@ -69,7 +74,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
@@ -89,6 +94,11 @@
             "windows": {
                 "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.baudRate}"
             },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}",
+                }
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -99,27 +109,22 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {
             "label": "Monitor: Start the monitor",
             "type": "shell",
+            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
+            "windows": {
+                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
+            },
             "options": {
                 "env": {
                     "PATH": "${config:idf.customExtraPaths}",
                 }
             },
             "dependsOn": "Flash - Flash the device",
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}",
-                }
-            },
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
-            "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
-            }
         },
         {
             "label":"OpenOCD: Start openOCD",
@@ -139,6 +144,11 @@
             "windows": {
                 "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}"
             },
+            "options": {
+                "env": {
+                    "PATH": "${config:idf.customExtraPaths}",
+                }
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -149,7 +159,7 @@
                     "column": 3,
                     "severity": 4,
                     "message": 5
-                } 
+                }
             },
         },
         {

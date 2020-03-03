@@ -53,12 +53,11 @@ export async function installPythonEnv(espDir: string,
     const pyDir = process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"];
     const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
     const requirements = path.join(espDir, "requirements.txt");
-    const extensionRequirements = path.join(utils.extensionContext.extensionPath, "requirements.txt");
     const debugAdapterRequirements = path.join(utils.extensionContext.extensionPath, "esp_debug_adapter", "requirements.txt");
 
     const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
-    const installPyPkgsMsg = `Installing required python packages in ${pyEnvPath} ...\n`;
-    const installDAPyPkgsMsg = `Installing required ESP-IDF Debug Adapter python packages in ${pyEnvPath} ...\n`;
+    const installPyPkgsMsg = `Installing ESP-IDF python packages in ${pyEnvPath} ...\n`;
+    const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${pyEnvPath} ...\n`;
 
     if (pythonBinPath.indexOf(virtualEnvPython) < 0 && utils.fileExists(virtualEnvPython)) {
         await del(pyEnvPath, { force: true }).catch((err) => {
@@ -71,17 +70,27 @@ export async function installPythonEnv(espDir: string,
         channel.appendLine(creatEnvMsg);
     }
 
-    const virtualEnvInstallCmd = `${pythonBinPath} -m pip install virtualenv --user`;
-    const virtualEnvInstallResult = await utils.execChildProcess(virtualEnvInstallCmd,
-        idfToolsDir, channel);
-    pyTracker.Log = virtualEnvInstallResult;
-    pyTracker.Log = "\n";
-    if (channel) {
-        channel.appendLine(virtualEnvInstallResult + "\n");
+    const pythonVersion = (await utils.execChildProcess(
+        `${pythonBinPath} -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
+        espDir)).replace(/(\n|\r|\r\n)/gm, "");
+
+    let envModule: string;
+    if (pythonVersion.localeCompare("3.3") >= 0) {
+        envModule = "venv";
+    } else {
+        envModule = "virtualenv";
+        const virtualEnvInstallCmd = `${pythonBinPath} -m pip install virtualenv --user`;
+        const virtualEnvInstallResult = await utils.execChildProcess(virtualEnvInstallCmd,
+            idfToolsDir, channel);
+        pyTracker.Log = virtualEnvInstallResult;
+        pyTracker.Log = "\n";
+        if (channel) {
+            channel.appendLine(virtualEnvInstallResult + "\n");
+        }
     }
 
     const createVirtualEnvResult = await utils.execChildProcess(
-        `${pythonBinPath} -m virtualenv  ${pyEnvPath}`,
+        `${pythonBinPath} -m ${envModule} "${pyEnvPath}"`,
         idfToolsDir,
         channel);
     pyTracker.Log = createVirtualEnvResult;
@@ -99,15 +108,15 @@ export async function installPythonEnv(espDir: string,
     if (channel) {
         channel.appendLine(espIdfReqInstallResult + "\n");
     }
-    pyTracker.Log = installPyPkgsMsg;
-    // Extension Python Requirements
-    const pyReqInstallResult = await utils.execChildProcess(
-        `${virtualEnvPython} -m pip install -r ${extensionRequirements}`,
+    // Debug Adapter Python Requirements
+    pyTracker.Log = installDAPyPkgsMsg;
+    const pyDAReqInstallResult = await utils.execChildProcess(
+        `${virtualEnvPython} -m pip install -r ${debugAdapterRequirements}`,
         pyEnvPath, channel);
-    pyTracker.Log = pyReqInstallResult;
+    pyTracker.Log = pyDAReqInstallResult;
     pyTracker.Log = "\n";
     if (channel) {
-        channel.appendLine(pyReqInstallResult + "\n");
+        channel.appendLine(pyDAReqInstallResult + "\n");
     }
     // Debug Adapter Python Requirements
     pyTracker.Log = installDAPyPkgsMsg;

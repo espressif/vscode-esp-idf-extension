@@ -16,7 +16,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
