@@ -53,7 +53,8 @@ export async function installPythonEnv(espDir: string,
     const pyDir = process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"];
     const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
     const requirements = path.join(espDir, "requirements.txt");
-    const debugAdapterRequirements = path.join(utils.extensionContext.extensionPath, "esp_debug_adapter", "requirements.txt");
+    const debugAdapterRequirements = path.join(utils.extensionContext.extensionPath,
+                                               "esp_debug_adapter", "requirements.txt");
 
     const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
     const installPyPkgsMsg = `Installing ESP-IDF python packages in ${pyEnvPath} ...\n`;
@@ -107,16 +108,6 @@ export async function installPythonEnv(espDir: string,
     pyTracker.Log = "\n";
     if (channel) {
         channel.appendLine(espIdfReqInstallResult + "\n");
-    }
-    // Debug Adapter Python Requirements
-    pyTracker.Log = installDAPyPkgsMsg;
-    const pyDAReqInstallResult = await utils.execChildProcess(
-        `${virtualEnvPython} -m pip install -r ${debugAdapterRequirements}`,
-        pyEnvPath, channel);
-    pyTracker.Log = pyDAReqInstallResult;
-    pyTracker.Log = "\n";
-    if (channel) {
-        channel.appendLine(pyDAReqInstallResult + "\n");
     }
     // Debug Adapter Python Requirements
     pyTracker.Log = installDAPyPkgsMsg;

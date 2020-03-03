@@ -466,7 +466,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
                 idfConf.writeParameter("idf.adapterTargetName", selected.target);
                 if (selected.target === "Esp32") {
-                    idfConf.writeParameter("idf.openOcdConfigs", ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]);
+                    idfConf.writeParameter("idf.openOcdConfigs",
+                                           ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]);
                 }
                 if (selected.target === "Esp32_S2") {
                     idfConf.writeParameter("idf.openOcdConfigs",
@@ -756,7 +757,8 @@ const flash = () => {
 
         const binFiles = readdirSync(buildPath).filter((fileName) => fileName.endsWith(".bin") === true);
         if (binFiles.length === 0) {
-            return Logger.errorNotify(`Build is required before Flashing, .bin file can't be accessed`, new Error("BIN_FILE_ACCESS_ERROR"));
+            return Logger.errorNotify(`Build is required before Flashing, .bin file can't be accessed`,
+                                      new Error("BIN_FILE_ACCESS_ERROR"));
         }
         const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
 
@@ -785,7 +787,9 @@ const flash = () => {
                     return Logger.errorNotify("Flash (.bin) files don't exists or can't be accessed!", error);
                 }
                 if (error.code === "ENOENT" || error.message === "SCRIPT_PERMISSION_ERROR") {
-                    return Logger.errorNotify(`Make sure you have the esptool.py installed and set in $PATH with proper permission`, error);
+                    return Logger.errorNotify(
+                        `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
+                        error);
                 }
                 idfFlashChannel.show();
                 Logger.errorNotify("Failed to flash because of some unusual error", error);
@@ -866,7 +870,9 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
                         return Logger.errorNotify(
                             `Make sure you have the build tools installed and set in $PATH`, error);
                     case "SCRIPT_PERMISSION_ERROR":
-                        return Logger.errorNotify(`Make sure you have the esptool.py installed and set in $PATH with proper permission`, error);
+                        return Logger.errorNotify(
+                            `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
+                            error);
                     case "FLASH_TERMINATED":
                         return Logger.errorNotify("Flashing has been stopped!", error);
                     case "SECTION_BIN_FILE_NOT_ACCESSIBLE":
@@ -949,7 +955,8 @@ class IdfDebugConfigurationProvider implements vscode.DebugConfigurationProvider
 
 export function startKconfigLangServer(context: vscode.ExtensionContext) {
     const serverModule = __dirname.indexOf("out") > -1 ?
-        context.asAbsolutePath(path.join("out", "kconfig", "server.js")) : context.asAbsolutePath(path.join("dist", "kconfigServer.js"));
+        context.asAbsolutePath(path.join("out", "kconfig", "server.js"))
+        : context.asAbsolutePath(path.join("dist", "kconfigServer.js"));
 
     const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 

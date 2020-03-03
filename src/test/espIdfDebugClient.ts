@@ -63,6 +63,8 @@ export class EspIdfDebugClient extends ProtocolClient {
                 this.adapterProcess = cp.spawn(this.runtime, this.execArgs, this.spawnOptions);
                 const sanitize = (s: string) => s.toString().replace(/\r?\n$/mg, "");
                 this.adapterProcess.stderr.on("data", (data: string) => {
+                    // tslint:disable-next-line: no-console
+                    console.log(data.toString());
                     if (this.enableStderr) {
                         // tslint:disable-next-line: no-console
                         console.log(sanitize(data));
@@ -70,6 +72,8 @@ export class EspIdfDebugClient extends ProtocolClient {
                 });
 
                 this.adapterProcess.stdout.on("data", (data: Buffer) => {
+                    // tslint:disable-next-line: no-console
+                    console.log(data.toString());
                     if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
                         this.socket = net.createConnection(this.defaultPort, "127.0.0.1", () => {
                             this.connect(this.socket, this.socket);
