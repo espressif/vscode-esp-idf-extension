@@ -834,6 +834,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@types/uuid": "^7.0.0",
     "ansi-to-html": "^0.6.11",
     "axios": "^0.19.2",
     "del": "^4.1.1",
@@ -846,6 +847,7 @@
     "plotly.js-dist": "^1.54.1",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
+    "uuid": "^7.0.1",
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugadapter-testsupport": "^1.34.0",
     "vscode-debugprotocol": "^1.33.0",

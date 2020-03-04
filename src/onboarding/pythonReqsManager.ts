@@ -15,7 +15,9 @@
 import { pathExists } from "fs-extra";
 import * as path from "path";
 import { ConfigurationTarget, WorkspaceFolder } from "vscode";
+import { v4 as uuidv4 } from "uuid";
 import * as idfConf from "../idfConfiguration";
+import { IMetadataFile, IPath } from "../ITool";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import * as pythonManager from "../pythonManager";
@@ -138,6 +140,7 @@ export async function installPythonRequirements(
             command: "load_python_bin_path",
             pythonBinPath: virtualEnvPythonBin,
           });
+          await savePythonEnvInMetadataFile(virtualEnvPythonBin);
         }
         return virtualEnvPythonBin;
       } else {
@@ -176,6 +179,44 @@ export async function getPythonList(workingDir: string) {
   const pyVersionList = await pythonManager.getPythonBinList(workingDir);
   pyVersionList.push("Provide python executable path");
   return pyVersionList;
+}
+
+export async function savePythonEnvInMetadataFile(pythonEnvBinPath: string) {
+  const metadataFile = path.join(
+    utils.extensionContext.extensionPath,
+    "metadata.json"
+  );
+  const pythonEnvMetadata: IPath = {
+    id: uuidv4(),
+    path: pythonEnvBinPath,
+  } as IPath;
+  await utils.doesPathExists(metadataFile).then(async (doesFileExists) => {
+    if (doesFileExists) {
+      await utils
+        .readJson(metadataFile)
+        .then(async (metadata: IMetadataFile) => {
+          if (metadata.venv) {
+            const existingPath = metadata.idf.filter(
+              (venvMeta) => venvMeta.path === pythonEnvMetadata.path
+            );
+            if (
+              typeof existingPath === "undefined" ||
+              existingPath.length === 0
+            ) {
+              metadata.venv.push(pythonEnvMetadata);
+            }
+          } else {
+            metadata.venv = [pythonEnvMetadata];
+          }
+          await utils.writeJson(metadataFile, metadata);
+        });
+    } else {
+      const metadata: IMetadataFile = {
+        venv: [pythonEnvMetadata],
+      } as IMetadataFile;
+      await utils.writeJson(metadataFile, metadata);
+    }
+  });
 }
 
 export function sendPyReqLog(log: string) {

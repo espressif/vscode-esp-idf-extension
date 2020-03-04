@@ -13,8 +13,11 @@
 // limitations under the License.
 
 import * as path from "path";
+import { v4 as uuidv4 } from "uuid";
 import * as vscode from "vscode";
 import { IFileInfo, IPackage } from "./IPackage";
+import { IMetadataFile, ITool } from "./ITool";
+import { Logger } from "./logger/logger";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
@@ -27,10 +30,8 @@ export class IdfToolsManager {
   constructor(
     private toolsJson: any,
     private platformInfo: PlatformInformation,
-    private channel: vscode.OutputChannel
-  ) {
-    IdfToolsManager.toolsManagerChannel = channel;
-  }
+    private toolsManagerChannel: vscode.OutputChannel
+  ) {}
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
@@ -173,33 +174,10 @@ export class IdfToolsManager {
         return "No match";
       })
       .catch((reason) => {
-        IdfToolsManager.toolsManagerChannel.appendLine(reason);
+        this.toolsManagerChannel.appendLine(reason);
+        Logger.error(reason, new Error(reason));
         return "Error";
       });
-  }
-
-  public async exportPaths(basePath: string, onReqPkgs?: string[]) {
-    let exportedPaths = "";
-    const pkgs = await this.getPackageList(onReqPkgs);
-    for (const pkg of pkgs) {
-      const versionToUse = this.getVersionToUse(pkg);
-      let pkgExportedPath: string;
-      if (pkg.binaries) {
-        pkgExportedPath = path.join(
-          basePath,
-          pkg.name,
-          versionToUse,
-          ...pkg.binaries
-        );
-      } else {
-        pkgExportedPath = path.join(basePath, pkg.name, versionToUse);
-      }
-      exportedPaths =
-        exportedPaths === ""
-          ? pkgExportedPath
-          : exportedPaths + path.delimiter + pkgExportedPath;
-    }
-    return exportedPaths;
   }
 
   public async getListOfReqEnvVars() {
@@ -271,5 +249,70 @@ export class IdfToolsManager {
       });
     });
     return pkgs;
+  }
+
+  public async generateToolsExtraPaths(toolsDir: string) {
+    const metadataFile = path.join(
+      utils.extensionContext.extensionPath,
+      "metadata.json"
+    );
+    const toolsMetadata = await this.getPackageList().then((pkgs) => {
+      return pkgs.map((pkg) => {
+        const versionToUse = this.getVersionToUse(pkg);
+        let toolPath: string;
+        if (pkg.binaries) {
+          toolPath = path.join(
+            toolsDir,
+            pkg.name,
+            versionToUse,
+            ...pkg.binaries
+          );
+        } else {
+          toolPath = path.join(toolsDir, pkg.name, versionToUse);
+        }
+        const toolMetadata: ITool = {
+          id: uuidv4(),
+          name: pkg.name,
+          path: toolPath,
+          version: versionToUse,
+        } as ITool;
+        return toolMetadata;
+      });
+    });
+    await utils.doesPathExists(metadataFile).then(async (doesFileExists) => {
+      if (doesFileExists) {
+        await utils
+          .readJson(metadataFile)
+          .then(async (metadata: IMetadataFile) => {
+            if (metadata.tools) {
+              for (const tool of toolsMetadata) {
+                const existingPath = metadata.tools.filter(
+                  (toolMeta) => toolMeta.path === tool.path
+                );
+                if (
+                  typeof existingPath === "undefined" ||
+                  existingPath.length === 0
+                ) {
+                  metadata.tools.push(tool);
+                }
+              }
+            } else {
+              metadata.tools = toolsMetadata;
+            }
+            await utils.writeJson(metadataFile, metadata);
+          });
+      } else {
+        const metadata: IMetadataFile = {
+          tools: toolsMetadata,
+        } as IMetadataFile;
+        await utils.writeJson(metadataFile, metadata);
+      }
+    });
+
+    return toolsMetadata
+      .reduce((prev, curr) => {
+        return `${prev}${path.delimiter}${curr.path}`;
+      }, "")
+      .substr(1);
   }
 }

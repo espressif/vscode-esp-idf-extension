@@ -95,7 +95,7 @@ export async function downloadToolsInIdfToolsPath(
         selectedWorkspaceFolder,
         systemPythonPath
       );
-      let exportPaths = await idfToolsManager.exportPaths(
+      let exportPaths = await idfToolsManager.generateToolsExtraPaths(
         path.join(installDir, "tools")
       );
       const pythonBinPath =
