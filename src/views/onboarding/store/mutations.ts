@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { MutationTree } from "vuex";
+import { IPath, ITool } from "../../../ITool";
 import {
   IEspIdfLink,
   IEspIdfStatus,
@@ -150,6 +151,38 @@ export const mutations: MutationTree<IState> = {
       progress: "0.00%",
       progressDetail: "",
     };
+    Object.assign(state, newState);
+  },
+  setEspIdfVersionsMetadata(state, idfVersions: IPath[]) {
+    const newState = state;
+    newState.idfVersionsMetadata = idfVersions;
+    Object.assign(state, newState);
+  },
+  setSelectedEspIdfVersionMetadata(state, selectedPath: IPath) {
+    const newState = state;
+    // tslint:disable-next-line: no-console
+    console.log(state.selectedIdfMetadata);
+    newState.selectedIdfMetadata = selectedPath;
+    Object.assign(state, newState);
+  },
+  setVenvVersionsMetadata(state, venvVersions: IPath[]) {
+    const newState = state;
+    newState.venvVersionsMetadata = venvVersions;
+    Object.assign(state, newState);
+  },
+  setSelectedVenvVersionMetadata(state, selectedVenv: IPath) {
+    const newState = state;
+    newState.selectedVenvMetadata = selectedVenv;
+    Object.assign(state, newState);
+  },
+  setToolsVersionsMetadata(state, toolsVersions: ITool[]) {
+    const newState = state;
+    newState.toolsInMetadata = toolsVersions;
+    Object.assign(state, newState);
+  },
+  setPreviousIsValid(state, isValid: boolean) {
+    const newState = state;
+    newState.previousIsValid = isValid;
     Object.assign(state, newState);
   },
   setSelectedIdfVersion(state, selectedVersion: IEspIdfLink) {

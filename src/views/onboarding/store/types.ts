@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { IPath, ITool } from "../../../ITool";
+
 export interface IToolVersionResult {
   actual: string;
   doesToolExist: boolean;
@@ -54,24 +56,30 @@ export interface IState {
   idfToolsPath: string;
   idfVersion: string;
   idfVersionList: IEspIdfLink[];
+  idfVersionsMetadata: IPath[];
   isIDFZipExtracted: boolean;
   isInstallationCompleted: boolean;
   isPyInstallCompleted: boolean;
   isToolsCheckCompleted: boolean;
   pathDelimiter: string;
   pyBinPath: string;
+  previousIsValid: boolean;
   pyLog: string;
   pyVersionList: string[];
   pythonSysPathIsValid: boolean;
   requiredToolsVersions: IToolStatus[];
   selectedConfTarget: number;
+  selectedIdfMetadata: IPath;
   selectedIdfVersion: IEspIdfLink;
   selectedPythonVersion: string;
   selectedWorkspaceFolder: string;
+  selectedVenvMetadata: IPath;
   showIdfPathCheck: boolean;
   showIdfToolsChecks: boolean;
   showOnboardingOnInit: boolean;
   toolsCheckResults: IToolVersionResult[];
+  toolsInMetadata: ITool[];
   toolsSelectedSetupMode: string;
   workspaceFolders: string[];
+  venvVersionsMetadata: IPath[];
 }

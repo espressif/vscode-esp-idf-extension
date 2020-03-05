@@ -14,6 +14,7 @@
 
 import { Progress } from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
+import { IMetadataFile } from "../ITool";
 import { OutputChannel } from "../logger/outputChannel";
 import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
@@ -26,11 +27,15 @@ export interface IOnboardingArgs {
   gitVersion: string;
   idfToolsManager: IdfToolsManager;
   pythonVersions: string[];
+  metadataJson: IMetadataFile;
 }
 
 export async function getOnboardingInitialValues(
   extensionPath: string,
-  progress: Progress<{ message: string; increment: number }>
+  progress: Progress<{
+    message: string;
+    increment: number;
+  }>
 ) {
   const platformInfo = await PlatformInformation.GetPlatformInformation();
   const toolsJsonPath = await utils.getToolsJsonPath(extensionPath);
@@ -49,7 +54,9 @@ export async function getOnboardingInitialValues(
   progress.report({ increment: 20, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const gitVersion = await utils.checkGitExists(extensionPath);
-  progress.report({ increment: 20, message: "Preparing onboarding view..." });
+  progress.report({ increment: 5, message: "Reading metadata file..." });
+  const metadataJson = await utils.loadMetadata();
+  progress.report({ increment: 15, message: "Preparing onboarding view..." });
   const expectedEnvVars = await idfToolsManager.getListOfReqEnvVars();
   return {
     espIdfVersionList,
@@ -57,5 +64,6 @@ export async function getOnboardingInitialValues(
     gitVersion,
     idfToolsManager,
     pythonVersions,
+    metadataJson,
   } as IOnboardingArgs;
 }

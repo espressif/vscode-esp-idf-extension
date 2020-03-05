@@ -17,13 +17,18 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { IdfToolsManager } from "../idfToolsManager";
+import { IMetadataFile, IPath, ITool } from "../ITool";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
 import { createOnboardingHtml } from "./createOnboardingHtml";
-import { downloadInstallIdfVersion, IEspIdfLink } from "./espIdfDownload";
+import {
+  downloadInstallIdfVersion,
+  IEspIdfLink,
+  saveIdfPathInMetadataFile,
+} from "./espIdfDownload";
 import { IOnboardingArgs } from "./onboardingInit";
 import { checkPythonRequirements } from "./pythonReqsManager";
 import { downloadToolsInIdfToolsPath } from "./toolsInstall";
@@ -73,6 +78,7 @@ export class OnBoardingPanel {
     vscode.ConfigurationTarget.Global;
   private selectedWorkspaceFolder: vscode.WorkspaceFolder;
   private pythonSystemBinPath: string;
+  private metadataJson: IMetadataFile;
 
   private constructor(
     extensionPath: string,
@@ -184,6 +190,7 @@ export class OnBoardingPanel {
               this.selectedWorkspaceFolder
             );
             this.updateIdfToolsManager(message.idf_path);
+            saveIdfPathInMetadataFile(message.idf_path);
           }
           break;
         case "checkIdfToolsForPaths":
@@ -378,6 +385,9 @@ export class OnBoardingPanel {
               this.confTarget,
               this.selectedWorkspaceFolder
             ).then(async () => {
+              await saveIdfPathInMetadataFile(
+                path.join(message.idfPath, "esp-idf")
+              );
               await this.updateIdfToolsManager(
                 path.join(message.idfPath, "esp-idf")
               );
@@ -523,5 +533,80 @@ export class OnBoardingPanel {
         env_vars: onboardingArgs.expectedEnvVars,
       });
     }
+
+    if (onboardingArgs.metadataJson && this.metadataJson.idf) {
+      this.metadataJson = onboardingArgs.metadataJson;
+      const idfVersions = this.metadataJson.idf;
+      this.panel.webview.postMessage({
+        command: "load_idf_versions_metadata",
+        idfVersions,
+      });
+      const selectedIdf = this.metadataJson.idf.find((idfMeta) => {
+        return idfMeta.path === espIdfPath;
+      });
+      const selected = selectedIdf;
+      this.panel.webview.postMessage({
+        command: "load_selected_idf_version_metadata",
+        selectedEspIdfVersionMetadata: selected,
+      });
+      this.loadMetadataForIdfPath(espIdfPath);
+    }
+  }
+
+  private loadMetadataForIdfPath(idfPath: string) {
+    utils.getEspIdfVersion(idfPath).then(async (idfVersion) => {
+      if (this.metadataJson && this.metadataJson.venv) {
+        const venvForIdfVersion = this.metadataJson.venv.filter(
+          (pyEnv: IPath) => {
+            return pyEnv.path.indexOf(idfVersion) > -1;
+          }
+        );
+        this.panel.webview.postMessage({
+          command: "load_venv_versions_metadata",
+          venvVersions: venvForIdfVersion,
+        });
+        const selectedPyBinPath = idfConf.readParameter(
+          "idf.pythonBinPath"
+        ) as string;
+        const selectedPyBin = venvForIdfVersion.find((pyEnv) => {
+          return pyEnv.path === selectedPyBinPath;
+        });
+        this.panel.webview.postMessage({
+          command: "load_selected_venv_version_metadata",
+          selectedVenvVersionMetadata: selectedPyBin,
+        });
+        const platformInfo = await PlatformInformation.GetPlatformInformation();
+        const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+        await utils.readJson(toolsJsonPath).then(async (toolsJson) => {
+          const previousToolsManager = new IdfToolsManager(
+            toolsJson,
+            platformInfo,
+            OutputChannel.init()
+          );
+          const toolsMetadata = await previousToolsManager
+            .getPackageList()
+            .then((pkgs) => {
+              return pkgs.map((pkg) => {
+                const versionToUse = previousToolsManager.getVersionToUse(pkg);
+                const toolMeta = this.metadataJson.tools.find((tool) => {
+                  return (
+                    tool.version === versionToUse && tool.name === pkg.name
+                  );
+                });
+                return {
+                  name: pkg.name,
+                  path: toolMeta.path,
+                  version: toolMeta.version,
+                  id: toolMeta.id,
+                } as ITool;
+              });
+            });
+          this.panel.webview.postMessage({
+            command: "load_tools_versions_metadata",
+            toolsVersions: toolsMetadata,
+          });
+        });
+      }
+    });
   }
 }

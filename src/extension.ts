@@ -734,9 +734,10 @@ export async function activate(context: vscode.ExtensionContext) {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
       try {
+        const modifiedEnv = utils.appendIdfAndToolsToPath();
         return await utils.isBinInPath(
           "xtensa-esp32-elf-gdb",
-          this.workspaceRoot.fsPath,
+          workspaceRoot.fsPath,
           modifiedEnv
         );
       } catch (error) {

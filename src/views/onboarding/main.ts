@@ -30,13 +30,14 @@ import GitPyCheck from "./GitPyCheck.vue";
 import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
 import { store } from "./store";
-import "../commons/espCommons.scss";
+import UsePrevious from "./UsePrevious.vue";
 
 const routes = [
   { path: "/", component: Home },
   { path: "/download", component: Download },
   { path: "/toolsetup", component: ToolSetup },
   { path: "/gitpycheck", component: GitPyCheck },
+  { path: "/previous", component: UsePrevious },
 ];
 
 Vue.use(VueRouter);
@@ -239,6 +240,40 @@ window.addEventListener("message", (event) => {
       break;
     case "set_py_sys_path_is_valid":
       store.commit("setPythonSysIsValid", true);
+      break;
+    case "load_idf_versions_metadata":
+      if (message.idfVersions) {
+        store.commit("setEspIdfVersionsMetadata", message.idfVersions);
+      }
+      break;
+    case "load_selected_idf_version_metadata":
+      if (message.selectedEspIdfVersionMetadata) {
+        store.commit(
+          "setSelectedEspIdfVersionMetadata",
+          message.selectedEspIdfVersionMetadata
+        );
+      }
+      break;
+    case "load_venv_versions_metadata":
+      if (message.venvVersions) {
+        store.commit("setVenvVersionsMetadata", message.venvVersions);
+      }
+      break;
+    case "load_selected_venv_version_metadata":
+      if (message.selectedVenvVersionMetadata) {
+        store.commit(
+          "setSelectedVenvVersionMetadata",
+          message.selectedVenvVersionMetadata
+        );
+      }
+      break;
+    case "load_tools_versions_metadata":
+      if (message.toolsVersions) {
+        store.commit("setToolsVersionsMetadata", message.toolsVersions);
+      }
+      break;
+    case "previous_tools_validation_done":
+      store.commit("setPreviousIsValid", true);
       break;
     default:
       break;

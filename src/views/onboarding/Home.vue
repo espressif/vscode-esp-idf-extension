@@ -22,6 +22,15 @@
         required in environment PATH.
       </p>
       <ConfigurationTarget />
+      <div v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0">
+        <br />
+        <router-link
+          to="/previous"
+          class="enter-button"
+        >
+          Use previous settings
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -30,6 +39,8 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import ConfigurationTarget from "./components/ConfigurationTarget.vue";
+import { State } from "vuex-class";
+import { IPath } from "../../ITool";
 
 @Component({
   components: {
@@ -37,6 +48,12 @@ import ConfigurationTarget from "./components/ConfigurationTarget.vue";
   },
 })
 export default class Home extends Vue {
+  @State("idfVersionsMetadata") private storeIdfVersionsMetadata: IPath[];
+
+  get idfVersionsMetadata() {
+    return this.storeIdfVersionsMetadata;
+  }
+
   get isNotWinPlatform() {
     return navigator.platform.indexOf("Win") < 0;
   }

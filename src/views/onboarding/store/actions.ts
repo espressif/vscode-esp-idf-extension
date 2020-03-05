@@ -31,6 +31,28 @@ export const actions: ActionTree<IState, any> = {
       new_value: context.state.idfPath,
     });
   },
+  checkPreviousAreValid(context) {
+    vscode.postMessage({
+      command: "checkPreviousAreValid",
+      venv: context.state.selectedVenvMetadata,
+      idf: context.state.selectedIdfMetadata,
+      tools: context.state.toolsInMetadata,
+    });
+  },
+  getPyVenvIdfToolsForVersion(context) {
+    vscode.postMessage({
+      command: "getPyVenvIdfToolsForVersion",
+      idf: context.state.selectedIdfMetadata,
+    });
+  },
+  savePreviousSettings(context) {
+    vscode.postMessage({
+      command: "savePreviousSettings",
+      venv: context.state.selectedVenvMetadata,
+      idf: context.state.selectedIdfMetadata,
+      tools: context.state.toolsInMetadata,
+    });
+  },
   saveIdfPath(context) {
     vscode.postMessage({
       command: "saveNewIdfPath",

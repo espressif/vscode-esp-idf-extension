@@ -23,6 +23,7 @@ import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
+import { IMetadataFile } from "./ITool";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
@@ -199,14 +200,16 @@ export function readFileSync(filePath) {
 }
 
 export function doesPathExists(inputPath: string) {
-    return pathExists(inputPath);
+  return pathExists(inputPath);
 }
 export function readJson(jsonPath: string) {
-    return readJSON(jsonPath);
+  return readJSON(jsonPath);
 }
 
 export function writeJson(jsonPath: string, object: any) {
-    return writeJSON(jsonPath, object, { spaces: vscode.workspace.getConfiguration().get("editor.tabSize") });
+  return writeJSON(jsonPath, object, {
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize"),
+  });
 }
 
 export function readComponentsDirs(filePath): IdfComponent[] {
@@ -684,4 +687,21 @@ export async function startPythonReqsProcess(
     OutputChannel.init(),
     { env: modifiedEnv }
   );
+}
+
+export async function loadMetadata() {
+  const metadataFile = path.join(
+    extensionContext.extensionPath,
+    "metadata.json"
+  );
+  return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
+    if (doesMetadataExist) {
+      return await readJson(metadataFile).then((metadata: IMetadataFile) => {
+        return metadata;
+      });
+    } else {
+      Logger.info(`${metadataFile} doesn't exist.`);
+      return;
+    }
+  });
 }
