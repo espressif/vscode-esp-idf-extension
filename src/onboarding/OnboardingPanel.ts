@@ -314,6 +314,89 @@ export class OnBoardingPanel {
         case "getExamplesList":
           vscode.commands.executeCommand("examples.start");
           break;
+        case "getPyVenvIdfToolsForVersion":
+          if (message.idf && message.idf.path) {
+            this.loadMetadataForIdfPath(message.idf.path);
+          }
+          break;
+        case "checkPreviousAreValid":
+          if (message.tools && message.idf && message.venv) {
+            utils
+              .validateToolsFromMetadata(message.idf.path, message.tools)
+              .then(async (toolsResult) => {
+                const requirements = path.join(
+                  message.idf.path,
+                  "requirements.txt"
+                );
+                const debugAdapterRequirements = path.join(
+                  utils.extensionContext.extensionPath,
+                  "esp_debug_adapter",
+                  "requirements.txt"
+                );
+                let allToolsValid: boolean = true;
+                for (const key of Object.keys(toolsResult)) {
+                  if (!toolsResult[key]) {
+                    allToolsValid = false;
+                    Logger.infoNotify(`Bin path for ${key} is not valid.`);
+                    OutputChannel.appendLine(
+                      `Bin path for ${key} is not valid.`
+                    );
+                  }
+                }
+                await utils
+                  .startPythonReqsProcess(
+                    message.venv.path,
+                    message.idf.path,
+                    requirements
+                  )
+                  .then(async (pyReqLog) => {
+                    const resultLog = `Checking Python requirements using ${message.venv.path}\n${pyReqLog}`;
+                    OutputChannel.appendLine(resultLog);
+                    Logger.info(resultLog);
+                    await utils
+                      .startPythonReqsProcess(
+                        message.venv.path,
+                        message.idf.path,
+                        debugAdapterRequirements
+                      )
+                      .then((adapterReqLog) => {
+                        const adapterResultLog = `Checking Debug Adapter requirements using ${message.venv.path}\n${adapterReqLog}`;
+                        OutputChannel.appendLine(adapterResultLog);
+                        Logger.info(adapterResultLog);
+                        OnBoardingPanel.postMessage({
+                          command: "response_py_req_check",
+                          py_req_log: resultLog + adapterResultLog,
+                        });
+                        if (
+                          pyReqLog.indexOf("are not satisfied") < 0 &&
+                          adapterReqLog.indexOf("are not satisfied") < 0
+                        ) {
+                          OnBoardingPanel.postMessage({
+                            command: "set_py_setup_finish",
+                          });
+                        }
+                      });
+                  });
+                if (allToolsValid) {
+                  this.panel.webview.postMessage({
+                    command: "previous_tools_validation_done",
+                  });
+                }
+              });
+          }
+          break;
+        case "savePreviousSettings":
+          if (message.tools && message.idf && message.venv) {
+            idfConf.writeParameter("idf.espIdfPath", message.idf.path);
+            const extraPaths = message.tools
+              .reduce((prev, curr) => {
+                return `${prev}${path.delimiter}${curr.path}`;
+              }, "")
+              .substr(1);
+            idfConf.writeParameter("idf.customExtraPaths", extraPaths);
+            idfConf.writeParameter("idf.pythonBinPath", message.venv.path);
+          }
+          break;
         case "saveEnvVars":
           if (message.custom_vars && message.custom_paths) {
             OutputChannel.appendLine("");

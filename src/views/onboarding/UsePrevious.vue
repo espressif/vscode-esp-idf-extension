@@ -22,7 +22,7 @@
                         <div v-for="tool in toolsInMetadata" :key="tool.id" class="toolsMetadata">
                             <label :for="tool.id">Tool: {{tool.name}} Version: {{tool.version}}</label> 
                             <br><br>
-                            <input type="text" v-model="tool.path" :id="tool.id" @change="setPreviousIsValid(false)">
+                            <input type="text" v-model="tool.path" :id="tool.id" @change="setPreviousIsValid(false)" @keydown="setPreviousIsValid(false)">
                             <br><br>
                         </div>
                         <button v-on:click="checkAreValid" class="check-button">Check tools are valid</button>

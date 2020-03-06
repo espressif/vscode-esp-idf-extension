@@ -23,11 +23,13 @@ import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
-import { IMetadataFile } from "./ITool";
+import { IdfToolsManager } from "./idfToolsManager";
+import { IMetadataFile, ITool } from "./ITool";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
+import { PlatformInformation } from "./PlatformInformation";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -321,12 +323,11 @@ export function execChildProcess(
             }
           }
           if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
-            resolve(stdout.concat(stderr));
+            return resolve(stdout.concat(stderr));
           }
-          reject(new Error(stderr));
-          return;
+          return reject(new Error(stderr));
         }
-        resolve(stdout);
+        return resolve(stdout);
       }
     );
   });
@@ -670,6 +671,23 @@ export async function isBinInPath(
   return "";
 }
 
+export async function loadMetadata() {
+  const metadataFile = path.join(
+    extensionContext.extensionPath,
+    "metadata.json"
+  );
+  return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
+    if (doesMetadataExist) {
+      return await readJson(metadataFile).then((metadata: IMetadataFile) => {
+        return metadata;
+      });
+    } else {
+      Logger.info(`${metadataFile} doesn't exist.`);
+      return;
+    }
+  });
+}
+
 export async function startPythonReqsProcess(
   pythonBinPath: string,
   espIdfPath: string,
@@ -689,19 +707,37 @@ export async function startPythonReqsProcess(
   );
 }
 
-export async function loadMetadata() {
-  const metadataFile = path.join(
-    extensionContext.extensionPath,
-    "metadata.json"
-  );
-  return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
-    if (doesMetadataExist) {
-      return await readJson(metadataFile).then((metadata: IMetadataFile) => {
-        return metadata;
+export async function validateToolsFromMetadata(
+  selectedIdfPath: string,
+  toolsMeta: ITool[]
+) {
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  const toolsJsonPath = await getToolsJsonPath(selectedIdfPath);
+  const resultDict = {};
+  return await readJSON(toolsJsonPath).then(async (toolsObj) => {
+    const idfToolsManager = new IdfToolsManager(
+      toolsObj,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return await idfToolsManager.getPackageList().then(async (pkgs) => {
+      const promises = pkgs.map((pkg) => {
+        const pathToVerify = toolsMeta.find((tool) => tool.name === pkg.name);
+        if (pathToVerify) {
+          return idfToolsManager.checkBinariesVersion(pkg, pathToVerify.path);
+        }
       });
-    } else {
-      Logger.info(`${metadataFile} doesn't exist.`);
-      return;
-    }
+      await Promise.all(promises).then((versionExistsArr) => {
+        // tslint:disable-next-line: no-console
+        console.log(versionExistsArr);
+        pkgs.forEach((pkg, index) => {
+          resultDict[pkg.name] =
+            pkg.versions.findIndex(
+              (ver) => ver.name === versionExistsArr[index]
+            ) > -1;
+        });
+      });
+      return resultDict;
+    });
   });
 }

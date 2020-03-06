@@ -67,6 +67,7 @@ export async function checkPythonRequirements(
         command: "response_py_req_check",
         py_req_log: resultLog,
       });
+
       await utils
         .startPythonReqsProcess(pythonBin, espIdfPath, debugAdapterRequirements)
         .then(async (adapterReqLog) => {
