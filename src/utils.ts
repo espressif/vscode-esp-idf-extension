@@ -226,7 +226,10 @@ export function execChildProcess(
                 if (stderr && stderr.length > 0) {
                     message += stderr;
                     err = true;
-                    if (stderr.indexOf("Licensed under GNU GPL v2") !== -1 && stderr.indexOf("DEPRECATION") !== -1) {
+                    if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
+                        err = false;
+                    }
+                    if (stderr.indexOf("DEPRECATION") !== -1) {
                         err = false;
                     }
                 }

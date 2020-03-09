@@ -164,7 +164,8 @@ export class DownloadManager {
                 this.appendChannel(`Waiting ${secondsDelay} seconds...`);
             }
             setTimeout(() => {
-                const handleResponse: (response: http.IncomingMessage) => void = (response: http.IncomingMessage) => {
+                const handleResponse: (response: http.IncomingMessage) => void =
+                                        async (response: http.IncomingMessage) => {
                     if (response.statusCode === 301 || response.statusCode === 302) {
                         let redirectUrl: string;
                         if (typeof(response.headers.location) === "string") {
@@ -172,7 +173,7 @@ export class DownloadManager {
                         } else {
                             redirectUrl = response.headers.location[0];
                         }
-                        return resolve(this.downloadFile(redirectUrl, 0, destinationPath, pkgProgress));
+                        return resolve(await this.downloadFile(redirectUrl, 0, destinationPath, pkgProgress));
                     } else if (response.statusCode !== 200) {
                         const errorMessage: string = `Failed web connection with error code: ${response.statusCode}\n${urlString}`;
                         this.appendChannel(`File download response error: ${errorMessage}`);
@@ -193,7 +194,7 @@ export class DownloadManager {
 
                         const fileName = utils.fileNameFromUrl(urlString);
                         const absolutePath: string = path.resolve(destinationPath, fileName);
-                        ensureDir(destinationPath, { mode: 0o775 }, (err) => {
+                        await ensureDir(destinationPath, { mode : 0o775 }).catch((err) => {
                             if (err) {
                                 return reject(new PackageError("Error creating dist directory",
                                     "DownloadPackage", err));
@@ -242,10 +243,6 @@ export class DownloadManager {
                     }
                 };
                 const req = https.request(options, handleResponse);
-
-                req.on("timeout", reject);
-
-                req.on("upgrade", reject);
 
                 req.on("error", (error) => {
                     return reject(new PackageError("HTTP/HTTPS Request error " + urlString, "downloadFile",

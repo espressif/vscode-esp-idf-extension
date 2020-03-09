@@ -18,9 +18,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
-import { Logger } from "../../logger/logger";
 import { readFileSync } from "../../utils";
 import { formatHelpText } from "./helpTextFormatter";
 import { Menu, menuType } from "./Menu";
@@ -56,22 +54,6 @@ export class KconfigMenuLoader {
     constructor(workspaceFolder: vscode.Uri) {
         this.workspaceFolder = workspaceFolder;
         this.locDic = new LocDictionary(__filename);
-    }
-
-    public updateIdfPath() {
-        Logger.info("idf.espIdfPath is not valid. Updating...");
-        const wrongPathMsg = this.locDic.localize("menuconfig.wrongIdfPath",
-            "Wrong IDF_PATH in workspace settings. Would you like to set it?");
-        vscode.window.showErrorMessage(wrongPathMsg,
-        "Yes", "No").then((selected) => {
-            if (selected === "Yes") {
-                const enterPathMessage = this.locDic.localize("kconfigMenu.enterIdfPath",
-                        "Enter IDF_PATH Path");
-                const currentValue = idfConf.readParameter("idf.espIdfPath");
-                idfConf.updateConfParameter("idf.espIdfPath",
-                    enterPathMessage, currentValue, "IDF_PATH");
-            }
-        });
     }
 
     public initMenuconfigServer(): Menu[] {

@@ -51,31 +51,33 @@ export function readParameter(param: string) {
     return paramValue;
 }
 
-export function writeParameter(param: string, newValue) {
+export async function writeParameter(param: string, newValue) {
     const paramValue = addWinIfRequired(param);
     const configuration = vscode.workspace.getConfiguration();
-    configuration.update(paramValue, newValue, vscode.ConfigurationTarget.Global);
+    await configuration.update(paramValue, newValue, vscode.ConfigurationTarget.Global);
 }
 
 export function updateConfParameter(confParamName, confParamDescription,
                                     currentValue, label) {
-    vscode.window.showInputBox({ placeHolder: confParamDescription, value: currentValue}).then((newValue) => {
-        return new Promise((resolve, reject) => {
-            if (newValue) {
-                const typeOfConfig = checkTypeOfConfiguration(confParamName);
-                let valueToWrite;
-                if (typeOfConfig === "array") {
-                    valueToWrite = parseStrToArray(newValue);
+    return vscode.window
+        .showInputBox({ placeHolder: confParamDescription, value: currentValue})
+        .then((newValue: string) => {
+            return new Promise(async (resolve, reject) => {
+                if (newValue) {
+                    const typeOfConfig = checkTypeOfConfiguration(confParamName);
+                    let valueToWrite;
+                    if (typeOfConfig === "array") {
+                        valueToWrite = parseStrToArray(newValue);
+                    } else {
+                        valueToWrite = newValue;
+                    }
+                    await writeParameter(confParamName, valueToWrite);
+                    const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
+                    Logger.infoNotify(label + updateMessage);
+                    resolve(newValue);
                 } else {
-                    valueToWrite = newValue;
+                    reject(newValue);
                 }
-                writeParameter(confParamName, valueToWrite);
-                const updateMessage = locDic.localize("idfConfiguration.hasBeenUpdated", " has been updated");
-                Logger.infoNotify(label + updateMessage);
-                resolve(newValue);
-            } else {
-                reject(newValue);
-            }
         });
     });
 }
