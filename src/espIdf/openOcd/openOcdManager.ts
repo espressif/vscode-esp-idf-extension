@@ -21,7 +21,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, isBinInPath, sleep } from "../../utils";
+import { appendIdfAndToolsToPath, isBinInPath } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
@@ -108,7 +108,6 @@ export class OpenOCDManager extends EventEmitter {
             );
             if (resp && resp.title === "Yes") {
                 await OpenOCDManager.init().start();
-                await sleep(1000);
                 return await tclClient.isOpenOCDServerRunning();
             }
             return false;

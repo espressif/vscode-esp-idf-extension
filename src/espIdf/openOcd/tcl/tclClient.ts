@@ -42,15 +42,17 @@ export class TCLClient extends EventEmitter {
 
     public async isOpenOCDServerRunning(): Promise<boolean> {
         return new Promise<boolean>((resolve, _) => {
-            const sock = new Socket();
-            sock.connect(this.port, this.host, () => {
-                sock.destroy();
-                resolve(true);
-            });
-            sock.on("error", (error) => {
-                sock.destroy();
-                resolve(false);
-            });
+            setTimeout(() => {
+                const sock = new Socket();
+                sock.connect(this.port, this.host, () => {
+                    sock.destroy();
+                    resolve(true);
+                });
+                sock.on("error", (error) => {
+                    sock.destroy();
+                    resolve(false);
+                });
+            }, 1000);
         });
     }
 
