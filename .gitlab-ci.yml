@@ -63,21 +63,6 @@ python_lint_test:
     - python -m bandit -r -f txt -o bandit_output.txt .
     - python -m flake8 --config=.flake8 --output-file=flake8_output.txt --tee
 
-build_tar:
-  image: node:slim
-  stage: build
-  tags: [ "build", "internet", "amd64" ]
-  artifacts:
-    paths:
-      - espressif-esp-idf-extension-*.tar.gz
-    expire_in: 1 week
-  script:
-    - PACKAGE_VERSION=$(node -p "require('./package.json').version")
-    - cd ..
-    - tar -pczf espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME --exclude "$CI_PROJECT_NAME/node_modules" --exclude "$CI_PROJECT_NAME/.git"
-    - mv espressif-esp-idf-extension-$PACKAGE_VERSION.tar.gz $CI_PROJECT_NAME
-    - cd $CI_PROJECT_NAME
-
 build_vsix:
   image: electronuserland/builder:11
   stage: build
@@ -88,9 +73,6 @@ build_vsix:
     expire_in: 1 week
   script:
     - yarn config set script-shell /bin/bash
-    - VERSION_STR=${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}
-    - yarn run compile
-    - yarn run webpack
     - yarn run package
 
 deploy_marketplace:
@@ -107,7 +89,7 @@ deploy_marketplace:
     expire_in: 30 days
   script:
     - yarn config set script-shell /bin/bash
-    - vsce publish -p ${VS_MARKETPLACE_TOKEN}
+    - yarn release
   when: manual
 
 deploy_github:

@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Espressif IoT Development Framework",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "espressif_icon.png",
@@ -26,6 +26,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
@@ -226,6 +227,7 @@
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
+              "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
@@ -305,6 +307,10 @@
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%"
+      },
+      {
+        "command": "espIdf.createVsCodeFolder",
+        "title": "%espIdf.createVsCodeFolder.title%"
       },
       {
         "command": "espIdf.setPath",
@@ -497,8 +503,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ --watch & webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
-    "package": "vsce package -o esp-idf-extension-${CI_COMMIT_TAG:-g${CI_COMMIT_SHA:0:8}}.vsix",
-    "build_vsix": "gulp vscePkg",
+    "package": "vsce package --yarn -o esp-idf-extension.vsix",
+    "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
     "webpack": "webpack --mode production"
   },
@@ -508,8 +514,8 @@
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.6",
     "@types/follow-redirects": "^1.8.0",
+    "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
-    "@types/mkdirp": "^0.5.2",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
     "@types/node": "^7.10.9",
@@ -530,7 +536,8 @@
     "mocha": "^6.1.4",
     "mocha-junit-reporter": "^1.23.1",
     "nock": "^10.0.6",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.0",
+    "reflect-metadata": "^0.1.13",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
@@ -558,9 +565,9 @@
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.6.1",
-    "https-proxy-agent": "^2.1.0",
+    "fs-extra": "^8.1.0",
+    "https-proxy-agent": "^3.0.0",
     "marked": "^0.7.0",
-    "mkdirp": "^0.5.1",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
     "vscode-debugadapter": "^1.33.0",
@@ -570,12 +577,10 @@
     "vscode-nls": "^4.0.0",
     "vue": "^2.6.10",
     "vue-scroll": "^2.1.12",
+    "vue-the-mask": "^0.11.1",
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "yauzl": "^2.10.0"
-  },
-  "resolutions": {
-    "https-proxy-agent": "^3.0.0"
   },
   "alias": {
     "vue": "./node_modules/vue/dist/vue.esm.js"

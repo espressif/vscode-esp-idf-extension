@@ -13,6 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+export enum menuType {
+    string = "string",
+    bool = "bool",
+    int = "int",
+    choice = "choice",
+    hex = "hex",
+    menu = "menu",
+}
+
 export class Menu {
     public children: Menu[];
     public help: string;
@@ -20,9 +29,10 @@ export class Menu {
     public name: string;
     public range: number[];
     public title: string;
-    public type: string;
+    public type: menuType;
     public isVisible: boolean;
     public isCollapsed: boolean;
     public value: any;
     public dependsOn: string;
+    public isMenuconfig: boolean;
 }
