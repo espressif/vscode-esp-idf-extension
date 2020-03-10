@@ -1,5 +1,5 @@
 {
-	"espIdf.createFiles.title": "新建 ESP-IDF 项目",
+	"espIdf.createFiles.title": "ESP-IDF: 新建项目",
 	"espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
 	"espIdf.setPath.title": "ESP-IDF：配置路径",
 	"espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
@@ -21,7 +21,6 @@
 	"debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
 	"param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
 	"param.openOcdConfigFilesList": "OpenOCD脚本目录中的配置文件列表",
-	"param.projectName": "项目名称",
 	"param.baudRate": "设备波特率",
 	"param.port": "选中的烧录端口路径",
 	"param.pythonBinPath": "项目构建使用的 Python 解释器的绝对路径",

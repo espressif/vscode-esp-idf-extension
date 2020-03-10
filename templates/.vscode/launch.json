@@ -10,9 +10,9 @@
             "request": "launch",
             "MIMode": "gdb",
             "miDebuggerPath": "xtensa-esp32-elf-gdb",
-            "program": "${workspaceFolder}/build/${config:idf.projectName}.elf",
+            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
             "windows": {
-                "program": "${workspaceFolder}\\build\\${config:idf.projectName}.elf",
+                "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf",
             },
             "cwd": "${workspaceFolder}",
             "setupCommands": [

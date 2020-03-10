@@ -1,10 +1,6 @@
 {
     "extension.defaultFoldersGeneratedMessage": "Se han creado las carpetas plantilla.",
     "extension.openFolderFirst": "Abre una carpeta primero.",
-    "extension.notSerialPortFoundMessage": "No se ha encontrado un puerto serial",
-    "extension.selectSerialPortMessage":"Selecciona el puerto serial de tu dispositivo ESP-IDF",
-    "extension.noPortSelectedMessage": "No se ha elegido ningún puerto",
-    "extension.portHasBeenSelectedMessage": "Se ha actualizado el puerto a ",
     "espIdf.pickAWorkspaceFolder.text": "Seleccione el folder actual",
     "extension.noFolderMessage": "Ningún espacio de trabajo seleccionado",
     "selectFrameworkMessage": "Seleccione una plataforma para definir ruta",
