@@ -55,7 +55,9 @@ export class TCLClient extends EventEmitter {
     }
 
     public sendCommandWithCapture(command: string) {
-        return this.sendCommand(`capture "${command}"`);
+        setTimeout(() => {
+            return this.sendCommand(`capture "${command}"`);
+        }, 2000);
     }
 
     public sendCommand(command: string) {
