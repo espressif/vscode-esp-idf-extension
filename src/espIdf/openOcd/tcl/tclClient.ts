@@ -26,7 +26,7 @@ export interface TCLConnection {
 }
 
 export class TCLClient extends EventEmitter {
-    private static readonly DELIMITER = "\x1a";
+    public static readonly DELIMITER = "\x1a";
 
     private readonly host: string;
     private readonly port: number;
