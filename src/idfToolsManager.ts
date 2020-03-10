@@ -87,14 +87,14 @@ export class IdfToolsManager {
     });
   }
 
-  public verifyPackages(pathsToVerify: string, onReqPkgs?: string[]): {} {
-    return this.getPackageList(onReqPkgs).then(async (packages) => {
+  public async verifyPackages(pathsToVerify: string, onReqPkgs?: string[]) {
+    return await this.getPackageList(onReqPkgs).then(async (packages) => {
       const promiseArr = {};
       const names = packages.map((pkg) => pkg.name);
       const promises = packages.map((pkg) =>
         this.checkBinariesVersion(pkg, pathsToVerify)
       );
-      return Promise.all(promises).then((versionExistsArr) => {
+      return await Promise.all(promises).then((versionExistsArr) => {
         names.forEach(
           (pkgName, index) => (promiseArr[pkgName] = versionExistsArr[index])
         );
@@ -146,16 +146,15 @@ export class IdfToolsManager {
   }
 
   public async checkBinariesVersion(pkg: IPackage, pathsToVerify: string) {
+    let modifiedPath = process.env.PATH;
     if (process.env.PATH.indexOf(pathsToVerify) === -1) {
-      process.env.PATH = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
+      modifiedPath = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
     }
     const versionCmd = pkg.version_cmd.join(" ");
     return utils
-      .execChildProcess(
-        versionCmd,
-        process.cwd(),
-        IdfToolsManager.toolsManagerChannel
-      )
+      .execChildProcess(versionCmd, process.cwd(), this.toolsManagerChannel, {
+        env: { PATH: modifiedPath },
+      })
       .then((resp) => {
         const regexResult = resp.match(pkg.version_regex);
         if (regexResult.length > 0) {

@@ -484,11 +484,19 @@ export async function getEspIdfVersion(workingDir: string) {
   }
   return await execChildProcess("git describe --tags", workingDir)
     .then((rawEspIdfVersion) => {
-      const espIdfVersionMatch = rawEspIdfVersion.match(/^v([0-9]+\.[0-9]+).*/);
+      const espIdfVersionMatch = rawEspIdfVersion.match(
+        /^^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
+      );
       if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
         return "x.x";
       }
-      return espIdfVersionMatch[1];
+      let espVersion: string = "";
+      for (let i = 1; i < espIdfVersionMatch.length; i++) {
+        if (espIdfVersionMatch[i]) {
+          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+        }
+      }
+      return espVersion.substr(1);
     })
     .catch((reason) => {
       return "x.x";
@@ -728,8 +736,6 @@ export async function validateToolsFromMetadata(
         }
       });
       await Promise.all(promises).then((versionExistsArr) => {
-        // tslint:disable-next-line: no-console
-        console.log(versionExistsArr);
         pkgs.forEach((pkg, index) => {
           resultDict[pkg.name] =
             pkg.versions.findIndex(
@@ -739,5 +745,37 @@ export async function validateToolsFromMetadata(
       });
       return resultDict;
     });
+  });
+}
+
+export async function validateCurrentExtraPaths() {
+  const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+  const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  const toolsJsonPath = await getToolsJsonPath(idfPathDir);
+  return await readJSON(toolsJsonPath).then(async (toolsObj) => {
+    const idfToolsManager = new IdfToolsManager(
+      toolsObj,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return await idfToolsManager
+      .checkToolsVersion(extraPaths)
+      .then((toolsDict) => {
+        const pkgsNotFound = toolsDict.filter((p) => p.doesToolExist === false);
+        if (pkgsNotFound && pkgsNotFound.length === 0) {
+          return true;
+        } else {
+          for (const pkg of pkgsNotFound) {
+            const pkgMessage = `Path for ${pkg.id} is not valid in idf.customExtraPaths.`;
+            const errorLog = `Tool ${pkg.id} expected version: ${pkg.expected} and received ${pkg.actual}`;
+            Logger.infoNotify(pkgMessage);
+            Logger.error(errorLog, new Error(errorLog));
+            OutputChannel.appendLine(pkgMessage);
+            OutputChannel.appendLine(errorLog);
+          }
+          return false;
+        }
+      });
   });
 }

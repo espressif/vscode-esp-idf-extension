@@ -160,8 +160,6 @@ export const mutations: MutationTree<IState> = {
   },
   setSelectedEspIdfVersionMetadata(state, selectedPath: IPath) {
     const newState = state;
-    // tslint:disable-next-line: no-console
-    console.log(state.selectedIdfMetadata);
     newState.selectedIdfMetadata = selectedPath;
     Object.assign(state, newState);
   },

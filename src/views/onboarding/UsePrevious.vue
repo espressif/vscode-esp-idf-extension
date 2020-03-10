@@ -2,6 +2,7 @@
     <transition name="fade" mode="out-in">
         <div id="previous-window">
                 <router-link to="/" class="arrow go-back right"></router-link>
+                <h4>Use previous configuration settings</h4>
                 <label for="idf-version-select">Select ESP-IDF version:</label>
                 <br> <br>
                 <select v-model="selectedIdfMetadata" id="idf-version-select" @change="getPyVenvIdfTools">
@@ -58,6 +59,7 @@ export default class UsePrevious extends Vue {
     @Action("savePreviousSettings") private saveSettings;
     @Mutation private setPreviousIsValid;
     @Mutation private setSelectedEspIdfVersionMetadata;
+    @Mutation private setSelectedVenvVersionMetadata;
 
     get idfVersionsMetadata() {
         return this.storeIdfVersionsMetadata;
@@ -65,6 +67,9 @@ export default class UsePrevious extends Vue {
 
     get selectedIdfMetadata() {
         return this.storeSelectedIdfMetadata;
+    }
+    set selectedIdfMetadata(val) {
+        this.setSelectedEspIdfVersionMetadata(val);
     }
 
     get venvVersionsMetadata() {
@@ -75,9 +80,7 @@ export default class UsePrevious extends Vue {
         return this.storeSelectedVenvMetadata;
     }
     set selectedVenvMetadata(val) {
-        // tslint:disable-next-line:no-console
-        console.log(val);
-        this.setSelectedEspIdfVersionMetadata(val);
+        this.setSelectedVenvVersionMetadata(val);
     }
 
     get toolsInMetadata() {

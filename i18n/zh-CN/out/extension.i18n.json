@@ -20,5 +20,6 @@
   "extension.enterDeviceBaudRateMessage": "请输入设备波特率",
   "extension.cmdNotWebIDE": "所选命令在WebIDE中不可用",
   "extension.enterOpenOcdConfigMessage": "在OpenOCD脚本目录中输入配置文件列表",
-  "extension.enterCustomPathsMessage": "请输入额外添加到 PATH 环境变量中的路径"
+  "extension.enterCustomPathsMessage": "请输入额外添加到 PATH 环境变量中的路径",
+  "extension.idfPathHasChangedMsg": "ESP-IDF路径配置已更改。是否要更新ESP-IDF工具?"
 }

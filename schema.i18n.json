@@ -56,7 +56,8 @@
       "extension.enterDeviceBaudRateMessage",
       "extension.enterOpenOcdConfigMessage",
       "extension.enterCustomPathsMessage",
-      "extension.cmdNotWebIDE"
+      "extension.cmdNotWebIDE",
+      "extension.idfPathHasChangedMsg"
     ],
     "idfComponentsDataProvider": [
       "idfComponentDataProvider.proj_desc_not_found"

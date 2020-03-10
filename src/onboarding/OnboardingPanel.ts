@@ -651,9 +651,14 @@ export class OnBoardingPanel {
         const selectedPyBinPath = idfConf.readParameter(
           "idf.pythonBinPath"
         ) as string;
-        const selectedPyBin = venvForIdfVersion.find((pyEnv) => {
+        let selectedPyBin = venvForIdfVersion.find((pyEnv) => {
           return pyEnv.path === selectedPyBinPath;
         });
+        selectedPyBin = selectedPyBin
+          ? selectedPyBin
+          : venvForIdfVersion && venvForIdfVersion.length > 0
+          ? venvForIdfVersion[0]
+          : undefined;
         this.panel.webview.postMessage({
           command: "load_selected_venv_version_metadata",
           selectedVenvVersionMetadata: selectedPyBin,
@@ -676,12 +681,21 @@ export class OnBoardingPanel {
                     tool.version === versionToUse && tool.name === pkg.name
                   );
                 });
-                return {
-                  name: pkg.name,
-                  path: toolMeta.path,
-                  version: toolMeta.version,
-                  id: toolMeta.id,
-                } as ITool;
+                if (toolMeta) {
+                  return {
+                    name: pkg.name,
+                    path: toolMeta.path,
+                    version: toolMeta.version,
+                    id: toolMeta.id,
+                  } as ITool;
+                } else {
+                  return {
+                    name: pkg.name,
+                    path: "",
+                    version: versionToUse,
+                    id: `${pkg.name}-${versionToUse}`,
+                  } as ITool;
+                }
               });
             });
           this.panel.webview.postMessage({

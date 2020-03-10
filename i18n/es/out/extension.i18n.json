@@ -20,5 +20,6 @@
   "extension.cmdNotWebIDE": "El comando seleccionado no esta disponible en WebIDE",
   "extension.enterDeviceTargetMessage": "Introduzca dispositivo Espressif a utilizar",
   "extension.enterOpenOcdConfigMessage": "Introduzca la lista de archivos de configuracion dentro del directorio OpenOCD Scripts",
-  "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH"
+  "extension.enterCustomPathsMessage": "Introduzca rutas adicionales para expandir PATH",
+  "extension.idfPathHasChangedMsg": "La ruta del directorio ESP-IDF ha cambiado. Desea actualizar las herramientas de ESP-IDF ?"
 }

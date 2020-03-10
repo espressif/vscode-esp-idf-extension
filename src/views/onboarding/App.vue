@@ -10,6 +10,7 @@
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import { IPath } from "../../ITool";
 
 @Component
 export default class App extends Vue {

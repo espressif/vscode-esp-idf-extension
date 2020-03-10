@@ -20,5 +20,6 @@
   "extension.enterDeviceBaudRateMessage": "Enter device baud rate",
   "extension.enterOpenOcdConfigMessage": "Enter list of configuration files inside OpenOCD Scripts directory",
   "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH",
-  "extension.cmdNotWebIDE": "Selected command is not available in WebIDE"
+  "extension.cmdNotWebIDE": "Selected command is not available in WebIDE",
+  "extension.idfPathHasChangedMsg": "ESP-IDF Path configuration has changed. Do you want to update ESP-IDF Tools?"
 }
