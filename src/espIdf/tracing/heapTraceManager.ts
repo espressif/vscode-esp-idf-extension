@@ -23,7 +23,7 @@ import { mkdirSync } from "fs";
 import { join } from "path";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists, getElfFilePath, sleep } from "../../utils";
+import { fileExists, getElfFilePath } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient } from "../openOcd/tcl/tclClient";
 import { Nm } from "./tools/xtensa/nm";
@@ -50,6 +50,8 @@ export class HeapTraceManager extends EventEmitter {
     public async start() {
         try {
             if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+                const commandChain = CommandChain.init();
+                commandChain.clear();
                 this.heapTraceChannel.clear();
                 this.showStopButton();
                 const workspace = vscode.workspace.workspaceFolders ?
@@ -60,37 +62,112 @@ export class HeapTraceManager extends EventEmitter {
                 const addresses = await this.getAddressFor(["heap_trace_start", "heap_trace_stop"]);
                 const fileName = `file://${join(workspace, "trace")}/htrace_${new Date().getTime()}.svdat`;
                 const target = idfConf.readParameter("idf.adapterTargetName");
-                const commandChain = new CommandChain();
-                commandChain
-                    .buildCommand("reset halt")
-                    .buildCommand(`bp 0x${addresses.heap_trace_start} 4 hw`)
-                    .buildCommand(`bp 0x${addresses.heap_trace_stop} 4 hw`)
-                    .buildCommand("resume")
-                    .buildCommand(`rbp 0x${addresses.heap_trace_start}`)
-                    .buildCommand(`${target} sysview start ${fileName}`)
-                    .buildCommand("resume")
-                    .buildCommand(`rbp 0x${addresses.heap_trace_stop}`)
-                    .buildCommand(`${target} sysview stop`);
-                this.heapTraceNotificationTCLClientHandler.on("response", (resp: Buffer) => {
-                    this.heapTraceChannel.appendLine("->> " + resp);
-                });
-                this.heapTraceNotificationTCLClientHandler.sendCommandWithCapture("tcl_notifications on");
+                let showStopButtonTimer: any;
 
-                this.heapTraceCommandChainTCLClientHandler.on("response", async (resp: Buffer) => {
-                    this.heapTraceChannel.appendLine(">> " + resp);
-                    const cmd = commandChain.next();
-                    if (!cmd) {
-                        this.heapTraceNotificationTCLClientHandler.stop();
-                        this.heapTraceCommandChainTCLClientHandler.stop();
-                        this.archiveDataProvider.populateArchiveTree();
-                        this.showStartButton();
+                commandChain
+                    .buildCommand({
+                        command: "reset halt",
+                        responseHandler: { type: "notificationResponse", handler: ["type target_reset mode halt", "type target_state state halted"] },
+                    })
+                    .buildCommand({
+                        command: `bp 0x${addresses.heap_trace_start} 4 hw`,
+                        responseHandler: { type: "commandResponse", handler: [] },
+                    })
+                    .buildCommand({
+                        command: `bp 0x${addresses.heap_trace_stop} 4 hw`,
+                        responseHandler: { type: "commandResponse", handler: [] },
+                    })
+                    .buildCommand({
+                        command: "resume",
+                        responseHandler: {
+                            type: "notificationResponse",
+                            handler: ["type target_event event resumed", "type target_state state running", "type target_state state halted"],
+                        },
+                    })
+                    .buildCommand({
+                        command: "reg pc", responseHandler: {
+                            type: "commandResponse",
+                            handler: [addresses.heap_trace_start],
+                        },
+                    })
+                    .buildCommand({
+                        command: `rbp 0x${addresses.heap_trace_start}`,
+                        responseHandler: { type: "commandResponse", handler: ["\u001a"] },
+                    })
+                    .buildCommand({
+                        command: `${target} sysview_mcore start ${fileName}`,
+                        responseHandler: { type: "commandResponse", handler: [] },
+                    })
+                    .buildCommand({
+                        command: "resume",
+                        responseHandler: { type: "notificationResponse", handler: ["type target_event event resumed", "type target_state state running", "type target_state state halted"] },
+                    })
+                    .buildCommand({
+                        command: "reg pc",
+                        responseHandler: { type: "commandResponse", handler: [addresses.heap_trace_stop] },
+                    })
+                    .buildCommand({
+                        command: `rbp 0x${addresses.heap_trace_stop}`,
+                        responseHandler: { type: "commandResponse", handler: ["\u001a"] },
+                    })
+                    .buildCommand({
+                        command: `${target} sysview stop`,
+                        responseHandler: { type: "commandResponse", handler: [] },
+                    })
+                    .on("response", async (resp: Buffer, from: string) => {
+                        if (!commandChain.currentTask) {
+                            if (showStopButtonTimer) {
+                                clearTimeout(showStopButtonTimer);
+                            }
+                            showStopButtonTimer = this.showStopButtonWithDelay(3000);
+                            return;
+                        }
+                        if (commandChain.currentTask.command) {
+                            if (commandChain.currentTask.responseHandler.type === from) {
+                                const handler = commandChain.currentTask.responseHandler.handler;
+                                if (handler && handler.length > 0) {
+                                    const deleteIndices = new Set<number>();
+                                    handler.forEach((trail: string, index: number) => {
+                                        if (resp.toString().toLowerCase().match(trail.toLowerCase())) {
+                                            deleteIndices.add(index);
+                                        }
+                                    });
+                                    commandChain.currentTask.responseHandler.handler =
+                                        commandChain.currentTask.responseHandler.handler
+                                            .filter((value: string, index: number) => !deleteIndices.has(index));
+                                }
+                                if (commandChain.currentTask.responseHandler.handler.length !== 0) {
+                                    // still some tokens pending to be matched
+                                    return;
+                                }
+                                commandChain.next();
+                            } else {
+                                // cannot handle
+                                return Logger.warn(`[Heap_Trace]:: responseHandler & from mismatch ${JSON.stringify({ resp: resp.toString() })}`);
+                            }
+                        }
+                        if (commandChain.currentTask &&
+                            commandChain.currentTask.command) {
+                            this.heapTraceCommandChainTCLClientHandler
+                                .sendCommandWithCapture(commandChain.currentTask.command);
+                        }
+                    });
+                this.heapTraceNotificationTCLClientHandler.on("response", async (resp: Buffer) => {
+                    this.heapTraceChannel.appendLine("<<<TCL_Notification>>>\n" + resp);
+                    if (resp.toString().match(/Target Notification output  is enabled/)) {
                         return;
                     }
-                    await sleep(5000);
-                    this.heapTraceCommandChainTCLClientHandler.sendCommandWithCapture(cmd);
+                    commandChain.emitResponse(resp, "notificationResponse");
                 });
-                await sleep(1000);
-                this.heapTraceCommandChainTCLClientHandler.sendCommandWithCapture(commandChain.next());
+                this.heapTraceCommandChainTCLClientHandler.on("response", (resp: Buffer) => {
+                    this.heapTraceChannel.appendLine("<<<Command_Chanel>>>\n" + resp);
+                    commandChain.emitResponse(resp, "commandResponse");
+                });
+                this.heapTraceNotificationTCLClientHandler.sendCommandWithCapture("tcl_notifications on");
+                const firstCommandChainTask = commandChain.next();
+                if (firstCommandChainTask.command) {
+                    this.heapTraceCommandChainTCLClientHandler.sendCommandWithCapture(firstCommandChainTask.command);
+                }
             }
         } catch (error) {
             Logger.errorNotify(error.message, error);
@@ -107,6 +184,15 @@ export class HeapTraceManager extends EventEmitter {
         } catch (error) {
             Logger.errorNotify(error.message, error);
         }
+    }
+
+    private showStopButtonWithDelay(timer: number): any {
+        return setTimeout(() => {
+            this.heapTraceNotificationTCLClientHandler.stop();
+            this.heapTraceCommandChainTCLClientHandler.stop();
+            this.archiveDataProvider.populateArchiveTree();
+            this.showStartButton();
+        }, timer);
     }
 
     private showStopButton() {
@@ -137,19 +223,63 @@ export class HeapTraceManager extends EventEmitter {
     }
 }
 
+type CommandChainOnResponseHandler = (response: Buffer, from: string) => void;
+
+type CommandChainResponseTypes = "notificationResponse" | "commandResponse";
+interface ICommandChainTaskResponseHandler {
+    type: CommandChainResponseTypes;
+    handler: string[];
+}
+
+// tslint:disable-next-line: interface-name
+interface CommandChainTask {
+    command: string;
+    responseHandler: ICommandChainTaskResponseHandler;
+}
+
 // tslint:disable-next-line: max-classes-per-file
 class CommandChain {
-    private chain: string[];
-    constructor() {
-        this.chain = new Array<string>();
+    public static init(): CommandChain {
+        if (!this.instance) {
+            this.instance = new CommandChain();
+        }
+        return this.instance;
     }
 
-    public buildCommand(command: string): CommandChain {
-        this.chain.push(command);
+    private static instance: CommandChain;
+    public currentTask: CommandChainTask;
+
+    private chain: CommandChainTask[];
+    private responseHandler: CommandChainOnResponseHandler;
+
+    private constructor() {
+        this.chain = new Array<CommandChainTask>();
+        this.currentTask = undefined;
+    }
+
+    public on(type: "response", handler: CommandChainOnResponseHandler): this {
+        this.responseHandler = handler;
         return this;
     }
 
-    public next(): string {
-        return this.chain.shift();
+    public buildCommand(commandChainTask: CommandChainTask): this {
+        this.chain.push(commandChainTask);
+        return this;
+    }
+
+    public emitResponse(data: Buffer, from: CommandChainResponseTypes) {
+        if (this.responseHandler) {
+            this.responseHandler(data, from);
+        }
+    }
+
+    public next(): CommandChainTask {
+        this.currentTask = this.chain.shift();
+        return this.currentTask;
+    }
+
+    public clear() {
+        this.currentTask = undefined;
+        this.chain = new Array<CommandChainTask>();
     }
 }
