@@ -448,8 +448,8 @@ export async function activate(context: vscode.ExtensionContext) {
                         OutputChannel.append(result.toString());
                     })
                     .catch((err) => {
-                        Logger.errorNotify(err, err);
-                        OutputChannel.append(err);
+                        Logger.errorNotify("Failed to set-target", err);
+                        OutputChannel.append(`Failed to set-target ${err}`);
                     });
             });
         });
