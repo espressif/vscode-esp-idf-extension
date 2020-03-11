@@ -26,7 +26,7 @@ export class ReadElf extends XtensaTools {
     private readonly elfFilePath: string;
 
     constructor(workspaceRoot: vscode.Uri, elfFilePath: string) {
-        super(workspaceRoot, "xtensa-esp32-elf-readelf");
+        super(workspaceRoot, "readelf");
         this.elfFilePath = elfFilePath;
     }
 

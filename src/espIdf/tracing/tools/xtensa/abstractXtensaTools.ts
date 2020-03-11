@@ -17,6 +17,7 @@
  */
 
 import * as vscode from "vscode";
+import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../../../utils";
 
@@ -27,7 +28,7 @@ export abstract class XtensaTools {
 
     constructor(workspaceRoot: vscode.Uri, toolName: string) {
         this.workspaceRoot = workspaceRoot;
-        this.toolName = toolName;
+        this.toolName = this.toolNameForTarget(toolName);
     }
 
     protected async call(args: string[]): Promise<Buffer> {
@@ -37,5 +38,13 @@ export abstract class XtensaTools {
         } catch (error) {
             Logger.errorNotify(`Make sure ${this.toolName} is set in the Path with proper permission`, error);
         }
+    }
+
+    private toolNameForTarget(toolName: string): string {
+        const target = idfConf.readParameter("idf.adapterTargetName");
+        if (target) {
+            return `xtensa-${target}-elf-${toolName}`;
+        }
+        return `xtensa-esp32-elf-${toolName}`; // fallback default
     }
 }

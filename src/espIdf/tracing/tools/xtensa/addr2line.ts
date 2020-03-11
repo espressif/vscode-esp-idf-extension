@@ -27,7 +27,7 @@ export class Addr2Line extends XtensaTools {
     private readonly address: string;
 
     constructor(workspaceRoot: vscode.Uri, elfFilePath: string, address: string) {
-        super(workspaceRoot, "xtensa-esp32-elf-addr2line");
+        super(workspaceRoot, "addr2line");
         this.elfFilePath = elfFilePath;
         this.address = address;
     }

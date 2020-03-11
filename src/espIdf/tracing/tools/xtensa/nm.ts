@@ -26,7 +26,7 @@ export class Nm extends XtensaTools {
     private readonly elfFilePath: string;
 
     constructor(workspaceRoot: vscode.Uri, elfFilePath: string) {
-        super(workspaceRoot, "xtensa-esp32-elf-nm");
+        super(workspaceRoot, "nm");
         this.elfFilePath = elfFilePath;
     }
 
