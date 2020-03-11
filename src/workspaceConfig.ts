@@ -47,23 +47,23 @@ export function getProjectName(workspacePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
         try {
             if (!utils.fileExists(projDescJsonPath)) {
-                reject(new Error(`${projDescJsonPath} doesn't exist.`));
+                return reject(new Error(`${projDescJsonPath} doesn't exist.`));
             }
             fs.readFile(projDescJsonPath, (err, data) => {
                 if (err) {
                     Logger.error(err.message, err);
-                    reject(err);
+                    return reject(err);
                 }
                 const projDescJson = JSON.parse(data.toString());
                 if (Object.prototype.hasOwnProperty.call(projDescJson, "project_name")) {
-                    resolve(projDescJson.project_name);
+                    return resolve(projDescJson.project_name);
                 } else {
-                    reject(new Error(`project_name field doesn't exist in ${projDescJsonPath}.`));
+                    return reject(new Error(`project_name field doesn't exist in ${projDescJsonPath}.`));
                 }
             });
         } catch (error) {
             Logger.error(error.message, error);
-            reject(error);
+            return reject(error);
         }
     });
 }
