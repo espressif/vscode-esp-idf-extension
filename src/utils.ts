@@ -24,6 +24,7 @@ import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { getProjectName } from "./workspaceConfig";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -340,30 +341,26 @@ export function isStringNotEmpty(str: string) {
 }
 
 export async function getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
-    let elfFilePath = "";
+    let projectName = "";
     if (!workspaceURI) {
-        return elfFilePath;
+        throw new Error("No Workspace open");
     }
-    const elfPath = path.join(workspaceURI.fsPath, "build");
-    if (!canAccessFile(elfPath, fs.constants.R_OK)) {
+
+    try {
+        projectName = await getProjectName(workspaceURI.fsPath);
+    } catch (error) {
+        Logger.errorNotify("Failed to read project name while fetching elf file", error);
+        return;
+    }
+
+    const buildDir = path.join(workspaceURI.fsPath, "build");
+    if (!canAccessFile(buildDir, fs.constants.R_OK)) {
         throw new Error("Build is required once to generate the ELF File");
     }
-    const elfFiles = [];
-    fs.readdirSync(elfPath).forEach((file) => {
-        if (file.endsWith(".elf")) {
-            elfFiles.push({ label: file, description: path.join(elfPath, file) });
-        }
-    });
-    if (elfFiles.length > 1) {
-        const pickedElf = await vscode.window.showQuickPick(elfFiles, {
-            placeHolder: "Select ELF File to be use for the report generation",
-        });
-        if (!pickedElf) {
-            throw new Error("Select valid ELF file for showing report");
-        }
-        elfFilePath = pickedElf.description;
-    } else if (elfFiles.length === 1) {
-        elfFilePath = elfFiles[0].description;
+
+    const elfFilePath = path.join(buildDir, `${projectName}.elf`);
+    if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
+        throw new Error(`Failed to access .elf file at ${elfFilePath}`);
     }
     return elfFilePath;
 }
