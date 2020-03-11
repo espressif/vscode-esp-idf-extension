@@ -80,7 +80,7 @@ export class PreCheck {
 export function spawn(
   command: string,
   args: string[] = [],
-  options: any = {}
+  options: childProcess.SpawnOptions = {}
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {

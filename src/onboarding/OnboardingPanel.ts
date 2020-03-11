@@ -387,14 +387,30 @@ export class OnBoardingPanel {
           break;
         case "savePreviousSettings":
           if (message.tools && message.idf && message.venv) {
-            idfConf.writeParameter("idf.espIdfPath", message.idf.path);
             const extraPaths = message.tools
               .reduce((prev, curr) => {
                 return `${prev}${path.delimiter}${curr.path}`;
               }, "")
               .substr(1);
+            const extraVars = {};
+            for (const tool of message.tools) {
+              Object.keys(tool.env).forEach((envVar) => {
+                extraVars[envVar] = tool.env[envVar];
+              });
+            }
+            const toolsDir = message.venv.path.substr(
+              0,
+              message.venv.path.indexOf("python_env") - 1
+            );
+            idfConf.writeParameter("idf.toolsPath", toolsDir);
+            idfConf.writeParameter("idf.espIdfPath", message.idf.path);
             idfConf.writeParameter("idf.customExtraPaths", extraPaths);
+            idfConf.writeParameter(
+              "idf.customExtraVars",
+              JSON.stringify(extraVars)
+            );
             idfConf.writeParameter("idf.pythonBinPath", message.venv.path);
+            Logger.infoNotify(`Selected configuration has been saved.`);
           }
           break;
         case "saveEnvVars":

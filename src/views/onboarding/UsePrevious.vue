@@ -5,7 +5,7 @@
                 <h4>Use previous configuration settings</h4>
                 <label for="idf-version-select">Select ESP-IDF version:</label>
                 <br> <br>
-                <select v-model="selectedIdfMetadata" id="idf-version-select" @change="getPyVenvIdfTools">
+                <select v-model="selectedIdfMetadata" id="idf-version-select" @change="changeSelectedIdfPath">
                     <option v-for="ver in idfVersionsMetadata" :key="ver.id" :value="ver">
                         {{ ver.path }}
                     </option>
