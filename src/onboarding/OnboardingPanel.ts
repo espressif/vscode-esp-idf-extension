@@ -687,6 +687,7 @@ export class OnBoardingPanel {
                     path: toolMeta.path,
                     version: toolMeta.version,
                     id: toolMeta.id,
+                    env: toolMeta.env,
                   } as ITool;
                 } else {
                   return {
@@ -694,6 +695,7 @@ export class OnBoardingPanel {
                     path: "",
                     version: versionToUse,
                     id: `${pkg.name}-${versionToUse}`,
+                    env: pkg.export_vars,
                   } as ITool;
                 }
               });

@@ -13,19 +13,20 @@
 // limitations under the License.
 
 export interface ITool {
-    name: string;
-    version: string;
-    id: string; // uuid package
-    path: string;
+  name: string;
+  version: string;
+  id: string; // uuid package
+  path: string;
+  env: {};
 }
 
 export interface IPath {
-    id: string;
-    path: string;
+  id: string;
+  path: string;
 }
 
 export interface IMetadataFile {
-    idf: IPath[];
-    tools: ITool[];
-    venv: IPath[];
+  idf: IPath[];
+  tools: ITool[];
+  venv: IPath[];
 }

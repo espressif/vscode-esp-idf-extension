@@ -25,6 +25,12 @@
                             <br><br>
                             <input type="text" v-model="tool.path" :id="tool.id" @change="setPreviousIsValid(false)" @keydown="setPreviousIsValid(false)">
                             <br><br>
+                            <div v-for="(item, key) in tool.env" :key="key">
+                                <label :for="key">Environment variable {{key}}:</label> 
+                                <br><br>
+                                <input type="text" v-model="tool.env[key]" :id="key" @change="setPreviousIsValid(false)" @keydown="setPreviousIsValid(false)">
+                                <br><br>
+                            </div>
                         </div>
                         <button v-on:click="checkAreValid" class="check-button">Check tools are valid</button>
                         <p v-if="previousIsValid"> All tools are correct.</p>

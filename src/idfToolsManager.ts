@@ -259,21 +259,22 @@ export class IdfToolsManager {
       return pkgs.map((pkg) => {
         const versionToUse = this.getVersionToUse(pkg);
         let toolPath: string;
+        const basePath = path.join(toolsDir, pkg.name, versionToUse);
         if (pkg.binaries) {
-          toolPath = path.join(
-            toolsDir,
-            pkg.name,
-            versionToUse,
-            ...pkg.binaries
-          );
+          toolPath = path.join(basePath, ...pkg.binaries);
         } else {
-          toolPath = path.join(toolsDir, pkg.name, versionToUse);
+          toolPath = basePath;
+        }
+        const updatedVars = {};
+        for (const k of Object.keys(pkg.export_vars)) {
+          updatedVars[k] = pkg.export_vars[k].replace("${TOOL_PATH}", basePath);
         }
         const toolMetadata: ITool = {
           id: uuidv4(),
           name: pkg.name,
           path: toolPath,
           version: versionToUse,
+          env: updatedVars,
         } as ITool;
         return toolMetadata;
       });
