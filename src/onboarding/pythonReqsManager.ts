@@ -74,9 +74,9 @@ export async function installPythonRequirements(workingDir: string) {
     process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
     return await pythonManager.installPythonEnv(
         espIdfPath, idfToolsPath, logTracker, pythonBinPath, OutputChannel.init())
-        .then((virtualEnvPythonBin) => {
+        .then(async (virtualEnvPythonBin) => {
             if (virtualEnvPythonBin) {
-                idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
+                await idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
                 OutputChannel.appendLine("Python requirements has been installed.");
                 if (logTracker.Log.indexOf("Exception") < 0) {
                     OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
