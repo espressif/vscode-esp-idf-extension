@@ -1,5 +1,5 @@
 {
   "hooks": {
-    "pre-commit": "yarn audit && yarn run tslint && yarn run compile"
+    "pre-commit": "pretty-quick --staged && yarn audit && yarn run tslint && yarn run compile"
   }
 }
