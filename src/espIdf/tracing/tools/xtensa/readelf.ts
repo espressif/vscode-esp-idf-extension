@@ -23,19 +23,17 @@ import { canAccessFile } from "../../../../utils";
 import { XtensaTools } from "./abstractXtensaTools";
 
 export class ReadElf extends XtensaTools {
-    private readonly elfFilePath: string;
+  private readonly elfFilePath: string;
 
-    constructor(workspaceRoot: vscode.Uri, elfFilePath: string) {
-        super(workspaceRoot, "readelf");
-        this.elfFilePath = elfFilePath;
-    }
+  constructor(workspaceRoot: vscode.Uri, elfFilePath: string) {
+    super(workspaceRoot, "readelf");
+    this.elfFilePath = elfFilePath;
+  }
 
-    public async run(): Promise<Buffer> {
-        if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
-            throw new Error("Elf file not present or not accessible");
-        }
-        return await this.call([
-            "-s", this.elfFilePath,
-        ]);
+  public async run(): Promise<Buffer> {
+    if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
+      throw new Error("Elf file not present or not accessible");
     }
+    return await this.call(["-s", this.elfFilePath]);
+  }
 }

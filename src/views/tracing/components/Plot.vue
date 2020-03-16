@@ -77,6 +77,4 @@ const Plot = Vue.extend({
 export default Plot;
 </script>
 
-
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

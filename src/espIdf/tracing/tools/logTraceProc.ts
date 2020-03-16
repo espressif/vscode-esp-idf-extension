@@ -22,15 +22,30 @@ import { join } from "path";
 import { AbstractTracingToolManager } from "./abstractTracingToolManager";
 
 export class LogTraceProc extends AbstractTracingToolManager {
-    public async parse(): Promise<Buffer> {
-        if (!this.preCheck([ this.elfFilePath, this.traceFilePath ], constants.R_OK)) {
-            throw new Error("Elf File or Trace file does not exists or not accessible");
-        }
-        if (!this.preCheck([ join(this.appTraceToolsPath(), "logtrace_proc.py") ], constants.X_OK)) {
-            throw new Error("logtrace_proc.py tool does not exists or is not accessible");
-        }
-        return await this.parseInternal("python", ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
-            cwd: this.appTraceToolsPath(),
-        });
+  public async parse(): Promise<Buffer> {
+    if (
+      !this.preCheck([this.elfFilePath, this.traceFilePath], constants.R_OK)
+    ) {
+      throw new Error(
+        "Elf File or Trace file does not exists or not accessible"
+      );
     }
+    if (
+      !this.preCheck(
+        [join(this.appTraceToolsPath(), "logtrace_proc.py")],
+        constants.X_OK
+      )
+    ) {
+      throw new Error(
+        "logtrace_proc.py tool does not exists or is not accessible"
+      );
+    }
+    return await this.parseInternal(
+      "python",
+      ["logtrace_proc.py", this.traceFilePath, this.elfFilePath],
+      {
+        cwd: this.appTraceToolsPath()
+      }
+    );
+  }
 }

@@ -21,83 +21,83 @@ import { Socket } from "net";
 
 // tslint:disable-next-line: interface-name
 export interface TCLConnection {
-    host: string;
-    port: number;
+  host: string;
+  port: number;
 }
 
 export class TCLClient extends EventEmitter {
-    public static readonly DELIMITER = "\x1a";
+  public static readonly DELIMITER = "\x1a";
 
-    private readonly host: string;
-    private readonly port: number;
-    private isRunning: boolean;
-    private sock: Socket;
+  private readonly host: string;
+  private readonly port: number;
+  private isRunning: boolean;
+  private sock: Socket;
 
-    constructor(conn: TCLConnection) {
-        super();
-        this.host = conn.host;
-        this.port = conn.port;
-        this.sock = new Socket();
-    }
+  constructor(conn: TCLConnection) {
+    super();
+    this.host = conn.host;
+    this.port = conn.port;
+    this.sock = new Socket();
+  }
 
-    public async isOpenOCDServerRunning(): Promise<boolean> {
-        return new Promise<boolean>((resolve, _) => {
-            setTimeout(() => {
-                const sock = new Socket();
-                sock.connect(this.port, this.host, () => {
-                    sock.destroy();
-                    resolve(true);
-                });
-                sock.on("error", (error) => {
-                    sock.destroy();
-                    resolve(false);
-                });
-            }, 1000);
+  public async isOpenOCDServerRunning(): Promise<boolean> {
+    return new Promise<boolean>((resolve, _) => {
+      setTimeout(() => {
+        const sock = new Socket();
+        sock.connect(this.port, this.host, () => {
+          sock.destroy();
+          resolve(true);
         });
-    }
-
-    public sendCommandWithCapture(command: string) {
-        setTimeout(() => {
-            return this.sendCommand(`capture "${command}"`);
-        }, 2000);
-    }
-
-    public sendCommand(command: string) {
-        if (this.isRunning && !this.sock.destroyed) {
-            this.sendCommandToSocket(command);
-            return;
-        }
-
-        let flushBuffer = Buffer.alloc(0);
-        this.sock = new Socket();
-        this.sock.connect(this.port, this.host, () => {
-            this.emit("connect");
-            this.isRunning = true;
-            this.sendCommandToSocket(command);
+        sock.on("error", error => {
+          sock.destroy();
+          resolve(false);
         });
-        this.sock.on("data", (data) => {
-            flushBuffer = Buffer.concat([flushBuffer, data]);
-            if (data.includes(TCLClient.DELIMITER)) {
-                this.emit("response", flushBuffer);
-                flushBuffer = Buffer.alloc(0);
-            }
-        });
-        this.sock.on("error", (error) => {
-            this.emit("error", error);
-        });
+      }, 1000);
+    });
+  }
+
+  public sendCommandWithCapture(command: string) {
+    setTimeout(() => {
+      return this.sendCommand(`capture "${command}"`);
+    }, 2000);
+  }
+
+  public sendCommand(command: string) {
+    if (this.isRunning && !this.sock.destroyed) {
+      this.sendCommandToSocket(command);
+      return;
     }
 
-    public stop() {
-        if (this.isRunning && !this.sock.destroyed) {
-            this.isRunning = false;
-            this.sock.destroy();
-            this.sock.removeAllListeners();
-        }
-    }
+    let flushBuffer = Buffer.alloc(0);
+    this.sock = new Socket();
+    this.sock.connect(this.port, this.host, () => {
+      this.emit("connect");
+      this.isRunning = true;
+      this.sendCommandToSocket(command);
+    });
+    this.sock.on("data", data => {
+      flushBuffer = Buffer.concat([flushBuffer, data]);
+      if (data.includes(TCLClient.DELIMITER)) {
+        this.emit("response", flushBuffer);
+        flushBuffer = Buffer.alloc(0);
+      }
+    });
+    this.sock.on("error", error => {
+      this.emit("error", error);
+    });
+  }
 
-    private sendCommandToSocket(command: string) {
-        if (this.sock.writable) {
-            this.sock.write(`${command}${TCLClient.DELIMITER}`);
-        }
+  public stop() {
+    if (this.isRunning && !this.sock.destroyed) {
+      this.isRunning = false;
+      this.sock.destroy();
+      this.sock.removeAllListeners();
     }
+  }
+
+  private sendCommandToSocket(command: string) {
+    if (this.sock.writable) {
+      this.sock.write(`${command}${TCLClient.DELIMITER}`);
+    }
+  }
 }

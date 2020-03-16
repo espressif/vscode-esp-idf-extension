@@ -3,7 +3,10 @@
     <div class="field has-addons">
       <div class="control">
         <div class="select">
-          <select v-model="filter.selectedEventType" @change="eventFilterSelected">
+          <select
+            v-model="filter.selectedEventType"
+            @change="eventFilterSelected"
+          >
             <option selected value="all">All</option>
             <option value="allocations">Allocations</option>
             <option value="free">Free</option>
@@ -52,17 +55,15 @@
     <div class="columns head">
       <div class="column is-2">
         Bytes Used
-        <span
-          class="is-pointer"
-          @click="sortData('size')"
-        >{{sort.by === 'size' && sort.order === 1 ? '▾' : '▴'}}</span>
+        <span class="is-pointer" @click="sortData('size')">{{
+          sort.by === "size" && sort.order === 1 ? "▾" : "▴"
+        }}</span>
       </div>
       <div class="column is-2">
         Count
-        <span
-          class="is-pointer"
-          @click="sortData('count')"
-        >{{sort.by === 'count' && sort.order === 1 ? '▾' : '▴'}}</span>
+        <span class="is-pointer" @click="sortData('count')">{{
+          sort.by === "count" && sort.order === 1 ? "▾" : "▴"
+        }}</span>
       </div>
       <div class="column">Function Name</div>
     </div>

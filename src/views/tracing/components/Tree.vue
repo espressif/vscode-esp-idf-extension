@@ -1,12 +1,16 @@
 <template>
   <li>
     <div>
-      <span class="link" @click="toggle" v-if="tree.child">{{ isOpen ? '▼' : '▶' }}</span>
+      <span class="link" @click="toggle" v-if="tree.child">{{
+        isOpen ? "▼" : "▶"
+      }}</span>
       <span v-else>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-      <strong>{{tree.name}}</strong>
+      <strong>{{ tree.name }}</strong>
       <span v-if="tree.filePath !== '' && tree.lineNumber !== ''">
         <span>&nbsp;-&nbsp;</span>
-        <a href="#" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{tree.description}}</a>
+        <a href="#" @click="openFileAtLine(tree.filePath, tree.lineNumber)">{{
+          tree.description
+        }}</a>
       </span>
     </div>
     <ul v-show="isOpen" v-if="tree.child">

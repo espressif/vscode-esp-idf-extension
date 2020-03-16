@@ -21,112 +21,152 @@ import { join } from "path";
 import * as vscode from "vscode";
 
 enum TraceType {
-    AppTrace = 0,
-    HeapTrace = 1,
+  AppTrace = 0,
+  HeapTrace = 1
 }
 
 class AppTraceArchiveItems extends vscode.TreeItem {
-    public fileName: string;
-    public filePath: string;
-    public type: TraceType;
+  public fileName: string;
+  public filePath: string;
+  public type: TraceType;
 }
 
 // tslint:disable-next-line: max-classes-per-file
-export class AppTraceArchiveTreeDataProvider implements vscode.TreeDataProvider<AppTraceArchiveItems> {
-    // tslint:disable-next-line: max-line-length
-    public OnDidChangeTreeData: vscode.EventEmitter<AppTraceArchiveItems> = new vscode.EventEmitter<AppTraceArchiveItems>();
-    public readonly onDidChangeTreeData: vscode.Event<AppTraceArchiveItems> = this.OnDidChangeTreeData.event;
-    public appTraceArchives: AppTraceArchiveItems[];
+export class AppTraceArchiveTreeDataProvider
+  implements vscode.TreeDataProvider<AppTraceArchiveItems> {
+  // tslint:disable-next-line: max-line-length
+  public OnDidChangeTreeData: vscode.EventEmitter<
+    AppTraceArchiveItems
+  > = new vscode.EventEmitter<AppTraceArchiveItems>();
+  public readonly onDidChangeTreeData: vscode.Event<AppTraceArchiveItems> = this
+    .OnDidChangeTreeData.event;
+  public appTraceArchives: AppTraceArchiveItems[];
 
-    constructor() {
-        this.populateArchiveTree();
-    }
+  constructor() {
+    this.populateArchiveTree();
+  }
 
-    public registerDataProviderForTree(treeName: string): vscode.Disposable {
-        return vscode.window.registerTreeDataProvider(treeName, this);
-    }
+  public registerDataProviderForTree(treeName: string): vscode.Disposable {
+    return vscode.window.registerTreeDataProvider(treeName, this);
+  }
 
-    public getTreeItem(element: AppTraceArchiveItems): vscode.TreeItem {
-        return element;
-    }
-    public getChildren(element?: AppTraceArchiveItems): AppTraceArchiveItems[] {
-        return this.appTraceArchives;
-    }
-    public refresh() {
-        this.OnDidChangeTreeData.fire();
-    }
+  public getTreeItem(element: AppTraceArchiveItems): vscode.TreeItem {
+    return element;
+  }
+  public getChildren(element?: AppTraceArchiveItems): AppTraceArchiveItems[] {
+    return this.appTraceArchives;
+  }
+  public refresh() {
+    this.OnDidChangeTreeData.fire();
+  }
 
-    public populateArchiveTree() {
-        this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-        const workspace = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
-        const traceFolder = join(workspace, "trace");
-        if (existsSync(traceFolder)) {
-            const traceLists = readdirSync(traceFolder);
-            let appTraceCounter = 1;
-            const appTraceArchives = [];
-            traceLists.filter((trace) => trace.endsWith(".trace")).forEach((trace) => {
-                const label = `Trace Log #${appTraceCounter++}`;
-                const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
-                    label, trace, traceFolder, TraceType.AppTrace);
-                appTraceArchives.push(appTraceArchiveNode);
-            });
+  public populateArchiveTree() {
+    this.appTraceArchives = Array<AppTraceArchiveItems>(0);
+    const workspace = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : "";
+    const traceFolder = join(workspace, "trace");
+    if (existsSync(traceFolder)) {
+      const traceLists = readdirSync(traceFolder);
+      let appTraceCounter = 1;
+      const appTraceArchives = [];
+      traceLists
+        .filter(trace => trace.endsWith(".trace"))
+        .forEach(trace => {
+          const label = `Trace Log #${appTraceCounter++}`;
+          const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
+            label,
+            trace,
+            traceFolder,
+            TraceType.AppTrace
+          );
+          appTraceArchives.push(appTraceArchiveNode);
+        });
 
-            appTraceArchives.reverse();
-            this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
-            appTraceArchives.splice(0, appTraceArchives.length);
-            appTraceCounter = 1;
+      appTraceArchives.reverse();
+      this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
+      appTraceArchives.splice(0, appTraceArchives.length);
+      appTraceCounter = 1;
 
-            traceLists.filter((trace) => trace.endsWith(".svdat")).forEach((trace) => {
-                const label = `Heap Trace #${appTraceCounter++}`;
-                const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
-                    label, trace, traceFolder, TraceType.HeapTrace);
-                appTraceArchives.push(appTraceArchiveNode);
-            });
+      traceLists
+        .filter(trace => trace.endsWith(".svdat"))
+        .forEach(trace => {
+          const label = `Heap Trace #${appTraceCounter++}`;
+          const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
+            label,
+            trace,
+            traceFolder,
+            TraceType.HeapTrace
+          );
+          appTraceArchives.push(appTraceArchiveNode);
+        });
 
-            appTraceArchives.reverse();
-            this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
-            appTraceArchives.splice(0, appTraceArchives.length);
-        }
-        this.refresh();
+      appTraceArchives.reverse();
+      this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
+      appTraceArchives.splice(0, appTraceArchives.length);
     }
-    private constructAppTraceArchiveItemNode(
-        label: string, fileName: string, traceFolder: string, type: TraceType): AppTraceArchiveItems {
-        const name = fileName.split("_");
-        const appTraceArchiveNode = new AppTraceArchiveItems(label);
-        appTraceArchiveNode.fileName = label;
-        appTraceArchiveNode.filePath = join(traceFolder, fileName);
-        appTraceArchiveNode.type = type;
-        appTraceArchiveNode.command = {
-            command: "espIdf.apptrace.archive.showReport",
-            title: "Show Report",
-            arguments: [appTraceArchiveNode],
-        };
-        appTraceArchiveNode.iconPath = {
-            light: join(__filename, "..", "..", "..", "..", "..", "media", "log_light.svg"),
-            dark: join(__filename, "..", "..", "..", "..", "..", "media", "log_dark.svg"),
-        };
-        appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
-        return appTraceArchiveNode;
+    this.refresh();
+  }
+  private constructAppTraceArchiveItemNode(
+    label: string,
+    fileName: string,
+    traceFolder: string,
+    type: TraceType
+  ): AppTraceArchiveItems {
+    const name = fileName.split("_");
+    const appTraceArchiveNode = new AppTraceArchiveItems(label);
+    appTraceArchiveNode.fileName = label;
+    appTraceArchiveNode.filePath = join(traceFolder, fileName);
+    appTraceArchiveNode.type = type;
+    appTraceArchiveNode.command = {
+      command: "espIdf.apptrace.archive.showReport",
+      title: "Show Report",
+      arguments: [appTraceArchiveNode]
+    };
+    appTraceArchiveNode.iconPath = {
+      light: join(
+        __filename,
+        "..",
+        "..",
+        "..",
+        "..",
+        "..",
+        "media",
+        "log_light.svg"
+      ),
+      dark: join(
+        __filename,
+        "..",
+        "..",
+        "..",
+        "..",
+        "..",
+        "media",
+        "log_dark.svg"
+      )
+    };
+    appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
+    return appTraceArchiveNode;
+  }
+  private sinceAgo(epoch: string): string {
+    // tslint:disable-next-line: radix
+    const d = new Date(parseInt(epoch));
+    const n = new Date();
+    if (n.getFullYear() - d.getFullYear() !== 0) {
+      return `${n.getFullYear() - d.getFullYear()} year ago`;
     }
-    private sinceAgo(epoch: string): string {
-        // tslint:disable-next-line: radix
-        const d = new Date(parseInt(epoch));
-        const n = new Date();
-        if (n.getFullYear() - d.getFullYear() !== 0) {
-            return `${n.getFullYear() - d.getFullYear()} year ago`;
-        }
-        if (n.getMonth() - d.getMonth() !== 0) {
-            return `${n.getMonth() - d.getMonth()} month ago`;
-        }
-        if (n.getDate() - d.getDate() !== 0) {
-            return `${n.getDate() - d.getDate()} day ago`;
-        }
-        if (n.getHours() - d.getHours() !== 0) {
-            return `${n.getHours() - d.getHours()} hour ago`;
-        }
-        if (n.getMinutes() - d.getMinutes() !== 0) {
-            return `${n.getMinutes() - d.getMinutes()} minute ago`;
-        }
-        return "a few seconds ago";
+    if (n.getMonth() - d.getMonth() !== 0) {
+      return `${n.getMonth() - d.getMonth()} month ago`;
     }
+    if (n.getDate() - d.getDate() !== 0) {
+      return `${n.getDate() - d.getDate()} day ago`;
+    }
+    if (n.getHours() - d.getHours() !== 0) {
+      return `${n.getHours() - d.getHours()} hour ago`;
+    }
+    if (n.getMinutes() - d.getMinutes() !== 0) {
+      return `${n.getMinutes() - d.getMinutes()} minute ago`;
+    }
+    return "a few seconds ago";
+  }
 }

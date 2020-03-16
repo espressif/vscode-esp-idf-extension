@@ -23,33 +23,41 @@ import * as idfConf from "../../../idfConfiguration";
 import { appendIdfAndToolsToPath, canAccessFile, spawn } from "../../../utils";
 
 export abstract class AbstractTracingToolManager {
-    protected readonly traceFilePath: string;
-    protected readonly elfFilePath: string;
-    protected readonly workspaceRoot: vscode.Uri;
+  protected readonly traceFilePath: string;
+  protected readonly elfFilePath: string;
+  protected readonly workspaceRoot: vscode.Uri;
 
-    constructor(workspaceRoot: vscode.Uri, traceFilePath?: string, elfFilePath?: string) {
-        this.workspaceRoot = workspaceRoot;
-        this.traceFilePath = traceFilePath;
-        this.elfFilePath = elfFilePath;
-    }
+  constructor(
+    workspaceRoot: vscode.Uri,
+    traceFilePath?: string,
+    elfFilePath?: string
+  ) {
+    this.workspaceRoot = workspaceRoot;
+    this.traceFilePath = traceFilePath;
+    this.elfFilePath = elfFilePath;
+  }
 
-    protected async parseInternal(command: string, args?: string[], option?: any) {
-        appendIdfAndToolsToPath();
-        return await spawn(command, args, option);
-    }
+  protected async parseInternal(
+    command: string,
+    args?: string[],
+    option?: any
+  ) {
+    appendIdfAndToolsToPath();
+    return await spawn(command, args, option);
+  }
 
-    protected appTraceToolsPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-        return join(idfPathDir, "tools", "esp_app_trace");
-    }
+  protected appTraceToolsPath(): string {
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    return join(idfPathDir, "tools", "esp_app_trace");
+  }
 
-    protected preCheck(filePaths: string[], mode: number): boolean {
-        let didPassAll = true;
-        filePaths.forEach((filePath) => {
-            if (!canAccessFile(filePath, mode)) {
-                didPassAll = false;
-            }
-        });
-        return didPassAll;
-    }
+  protected preCheck(filePaths: string[], mode: number): boolean {
+    let didPassAll = true;
+    filePaths.forEach(filePath => {
+      if (!canAccessFile(filePath, mode)) {
+        didPassAll = false;
+      }
+    });
+    return didPassAll;
+  }
 }

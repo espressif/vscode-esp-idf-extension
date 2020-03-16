@@ -1,12 +1,33 @@
 <template>
   <div>
-    <button class="button no-top-border" data-dict-key="plot" v-on:click="heapViewChange">Visual Data</button>
+    <button
+      class="button no-top-border"
+      data-dict-key="stats"
+      v-on:click="heapViewChange"
+    >
+      Overall Stats
+    </button>
+    <button
+      class="button no-top-border"
+      data-dict-key="plot"
+      v-on:click="heapViewChange"
+    >
+      Visual Data
+    </button>
     <button
       class="button no-top-border"
       data-dict-key="callStack"
       v-on:click="heapViewChange"
-    >Totals</button>
-    <button class="button no-top-border" data-dict-key="leaks" v-on:click="heapViewChange">Leaks</button>
+    >
+      Totals
+    </button>
+    <button
+      class="button no-top-border"
+      data-dict-key="leaks"
+      v-on:click="heapViewChange"
+    >
+      Leaks
+    </button>
   </div>
 </template>
 
@@ -26,7 +47,7 @@ export default QuickActionMenu;
 </script>
 
 <style lang="scss" scoped>
-button{
-    font-size: 12px;
+button {
+  font-size: 12px;
 }
 </style>

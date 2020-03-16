@@ -20,50 +20,64 @@ import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
-    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-    const projDescPath = path.join(workspaceRoot.fsPath, "build", "project_description.json");
-    updateIdfComponentsTree(projDescPath);
-    const workspaceFolderInfo = {
-        clickCommand: "espIdf.pickAWorkspaceFolder",
-        currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
-        tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
-        text: "${file-directory}",
-    };
-    utils.updateStatus(status, workspaceFolderInfo);
-    return workspaceRoot;
+  const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
+  const projDescPath = path.join(
+    workspaceRoot.fsPath,
+    "build",
+    "project_description.json"
+  );
+  updateIdfComponentsTree(projDescPath);
+  const workspaceFolderInfo = {
+    clickCommand: "espIdf.pickAWorkspaceFolder",
+    currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
+    tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
+    text: "${file-directory}"
+  };
+  utils.updateStatus(status, workspaceFolderInfo);
+  return workspaceRoot;
 }
 
 let idfDataProvider: IdfTreeDataProvider;
 export function updateIdfComponentsTree(projectDescriptionPath: string) {
-    if (typeof idfDataProvider === "undefined") {
-        idfDataProvider = new IdfTreeDataProvider(projectDescriptionPath);
-        vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
-    }
-    idfDataProvider.refresh(projectDescriptionPath);
+  if (typeof idfDataProvider === "undefined") {
+    idfDataProvider = new IdfTreeDataProvider(projectDescriptionPath);
+    vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
+  }
+  idfDataProvider.refresh(projectDescriptionPath);
 }
 
 export function getProjectName(workspacePath: string): Promise<string> {
-    const projDescJsonPath = path.join(workspacePath, "build", "project_description.json");
-    return new Promise((resolve, reject) => {
-        try {
-            if (!utils.fileExists(projDescJsonPath)) {
-                return reject(new Error(`${projDescJsonPath} doesn't exist.`));
-            }
-            fs.readFile(projDescJsonPath, (err, data) => {
-                if (err) {
-                    Logger.error(err.message, err);
-                    return reject(err);
-                }
-                const projDescJson = JSON.parse(data.toString());
-                if (Object.prototype.hasOwnProperty.call(projDescJson, "project_name")) {
-                    return resolve(projDescJson.project_name);
-                } else {
-                    return reject(new Error(`project_name field doesn't exist in ${projDescJsonPath}.`));
-                }
-            });
-        } catch (error) {
-            Logger.error(error.message, error);
-            return reject(error);
+  const projDescJsonPath = path.join(
+    workspacePath,
+    "build",
+    "project_description.json"
+  );
+  return new Promise((resolve, reject) => {
+    try {
+      if (!utils.fileExists(projDescJsonPath)) {
+        return reject(new Error(`${projDescJsonPath} doesn't exist.`));
+      }
+      fs.readFile(projDescJsonPath, (err, data) => {
+        if (err) {
+          Logger.error(err.message, err);
+          return reject(err);
         }
-    });
+        const projDescJson = JSON.parse(data.toString());
+        if (
+          Object.prototype.hasOwnProperty.call(projDescJson, "project_name")
+        ) {
+          return resolve(projDescJson.project_name);
+        } else {
+          return reject(
+            new Error(
+              `project_name field doesn't exist in ${projDescJsonPath}.`
+            )
+          );
+        }
+      });
+    } catch (error) {
+      Logger.error(error.message, error);
+      return reject(error);
+    }
+  });
 }

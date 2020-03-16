@@ -23,22 +23,19 @@ import { canAccessFile } from "../../../../utils";
 import { XtensaTools } from "./abstractXtensaTools";
 
 export class Addr2Line extends XtensaTools {
-    private readonly elfFilePath: string;
-    private readonly address: string;
+  private readonly elfFilePath: string;
+  private readonly address: string;
 
-    constructor(workspaceRoot: vscode.Uri, elfFilePath: string, address: string) {
-        super(workspaceRoot, "addr2line");
-        this.elfFilePath = elfFilePath;
-        this.address = address;
-    }
+  constructor(workspaceRoot: vscode.Uri, elfFilePath: string, address: string) {
+    super(workspaceRoot, "addr2line");
+    this.elfFilePath = elfFilePath;
+    this.address = address;
+  }
 
-    public async run() {
-        if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
-            throw new Error("Elf file not present or not accessible");
-        }
-        return await this.call([
-            "-e", this.elfFilePath,
-            this.address,
-        ]);
+  public async run() {
+    if (!canAccessFile(this.elfFilePath, constants.R_OK)) {
+      throw new Error("Elf file not present or not accessible");
     }
+    return await this.call(["-e", this.elfFilePath, this.address]);
+  }
 }

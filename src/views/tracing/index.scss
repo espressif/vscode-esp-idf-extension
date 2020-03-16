@@ -21,11 +21,11 @@ div.notification {
   border-top-right-radius: 0;
 }
 .button:disabled {
-    background-color: transparent;
-    border-color: var(--vscode-foreground);
-    color: var(--vscode-foreground);
-    border-top-width: 0;
+  background-color: transparent;
+  border-color: var(--vscode-foreground);
+  color: var(--vscode-foreground);
+  border-top-width: 0;
 }
 .button:hover:disabled {
-    color: var(--vscode-foreground);
+  color: var(--vscode-foreground);
 }
