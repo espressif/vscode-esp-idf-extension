@@ -318,30 +318,18 @@ export async function activate(context: vscode.ExtensionContext) {
               paramName = "idf.espIdfPath";
               break;
             case "idfTools":
-              const enterIdfToolsPathMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterIdfToolsPathMessage",
                 "Enter IDF_TOOLS_PATH path"
               );
-              currentValue = idfConf.readParameter("idf.toolsPath");
-              idfConf.updateConfParameter(
-                "idf.toolsPath",
-                enterIdfToolsPathMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.toolsPath";
               break;
             case "customExtraPath":
-              const enterExtraPathsMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterCustomPathsMessage",
                 "Enter extra paths to append to PATH"
               );
-              currentValue = idfConf.readParameter("idf.customExtraPaths");
-              idfConf.updateConfParameter(
-                "idf.customExtraPaths",
-                enterExtraPathsMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.customExtraPaths";
               break;
             default:
               const noPathUpdatedMsg = locDic.localize(
@@ -438,20 +426,11 @@ export async function activate(context: vscode.ExtensionContext) {
               paramName = "idf.baudRate";
               break;
             case "openOcdConfig":
-              const enterDeviceInterfaceMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterOpenOcdConfigMessage",
                 "Enter OpenOCD Configuration File Paths list"
               );
-              currentValue = idfConf.readParameter("idf.openOcdConfigs");
-              if (currentValue instanceof Array) {
-                currentValue = currentValue.join(",");
-              }
-              idfConf.updateConfParameter(
-                "idf.openOcdConfigs",
-                enterDeviceInterfaceMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.openOcdConfigs";
               break;
             default:
               const noParamUpdatedMsg = locDic.localize(
@@ -463,6 +442,9 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           if (msg && paramName) {
             currentValue = idfConf.readParameter(paramName);
+            if (currentValue instanceof Array) {
+              currentValue = currentValue.join(",");
+            }
             idfConf.updateConfParameter(
               paramName,
               msg,
@@ -565,19 +547,22 @@ export async function activate(context: vscode.ExtensionContext) {
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
-        .then(selected => {
+        .then(async selected => {
           if (typeof selected === "undefined") {
             return;
           }
-          idfConf.writeParameter("idf.adapterTargetName", selected.target);
+          await idfConf.writeParameter(
+            "idf.adapterTargetName",
+            selected.target
+          );
           if (selected.target === "esp32") {
-            idfConf.writeParameter("idf.openOcdConfigs", [
+            await idfConf.writeParameter("idf.openOcdConfigs", [
               "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ]);
           }
           if (selected.target === "esp32s2beta") {
-            idfConf.writeParameter("idf.openOcdConfigs", [
+            await idfConf.writeParameter("idf.openOcdConfigs", [
               "interface/ftdi/esp32_devkitj_v1.cfg",
               "target/esp32s2.cfg"
             ]);
@@ -588,7 +573,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const pythonBinPath = idfConf.readParameter(
             "idf.pythonBinPath"
           ) as string;
-          utils
+          await utils
             .spawn(pythonBinPath, [idfPy, "set-target", selected.target], {
               cwd: workspaceRoot.fsPath
             })

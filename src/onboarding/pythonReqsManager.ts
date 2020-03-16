@@ -111,9 +111,9 @@ export async function installPythonRequirements(workingDir: string) {
       pythonBinPath,
       OutputChannel.init()
     )
-    .then(virtualEnvPythonBin => {
+    .then(async virtualEnvPythonBin => {
       if (virtualEnvPythonBin) {
-        idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
+        await idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
           OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });

@@ -127,8 +127,8 @@ export async function downloadToolsInIdfToolsPath(
       Logger.info(exportPaths);
       OutputChannel.appendLine("");
       Logger.info("");
-      idfConf.writeParameter("idf.customExtraPaths", exportPaths);
-      idfConf.writeParameter("idf.customExtraVars", exportVars);
+      await idfConf.writeParameter("idf.customExtraPaths", exportPaths);
+      await idfConf.writeParameter("idf.customExtraVars", exportVars);
       OnBoardingPanel.postMessage({
         command: "load_custom_paths",
         custom_vars: JSON.parse(exportVars),
