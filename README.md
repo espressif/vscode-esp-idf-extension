@@ -14,6 +14,10 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - Localization (English, Chinese, Spanish)of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
 
+## Demo
+
+![Espressif extension gif](./media/espressif_extension.gif)
+
 ## Prerequisites
 There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension.
 - [Python 3.5](https://www.python.org/download/releases/3.5/)+
