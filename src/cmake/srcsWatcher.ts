@@ -16,64 +16,71 @@ import { exists, readFile, writeFile } from "fs";
 import { basename, dirname, join } from "path";
 
 export enum srcOp {
-    delete,
-    other,
+  delete,
+  other
 }
 
 export class UpdateCmakeLists {
-    public static singletonPromise: Promise<void>;
+  public static singletonPromise: Promise<void>;
 
-    public static updateSrcsInCmakeLists(srcPath: string, operation?: srcOp): Promise<void> {
-        const dirName = dirname(srcPath);
-        const srcName = basename(srcPath);
-        const cmakeListFile = join(dirName, "CMakeLists.txt");
+  public static updateSrcsInCmakeLists(
+    srcPath: string,
+    operation?: srcOp
+  ): Promise<void> {
+    const dirName = dirname(srcPath);
+    const srcName = basename(srcPath);
+    const cmakeListFile = join(dirName, "CMakeLists.txt");
 
-        UpdateCmakeLists.singletonPromise = new Promise((resolve, reject) => {
-            exists(cmakeListFile, (doesFileExists) => {
-                if (doesFileExists) {
-                    readFile(cmakeListFile, "utf8", (err, content) => {
-                        if (err) {
-                            this.writeFinished();
-                            reject(err);
-                            return;
-                        }
-                        const isSrcIncluded = content.indexOf(`"${srcName}"`) > 0;
-                        if (isSrcIncluded && operation !== srcOp.delete) {
-                            this.writeFinished();
-                            resolve();
-                            return;
-                        }
-                        const srcsMatch = content.match(/SRCS\s\"/g);
-                        let newContent: string;
-                        if (operation !== srcOp.delete && srcsMatch && srcsMatch.length > 0) {
-                            newContent = this.addSrcFromCMakeLists(content, srcName);
-                        } else if (isSrcIncluded && operation === srcOp.delete) {
-                            newContent = this.deleteSrcFromCMakeLists(content, srcName);
-                        }
+    UpdateCmakeLists.singletonPromise = new Promise((resolve, reject) => {
+      exists(cmakeListFile, doesFileExists => {
+        if (doesFileExists) {
+          readFile(cmakeListFile, "utf8", (err, content) => {
+            if (err) {
+              this.writeFinished();
+              reject(err);
+              return;
+            }
+            const isSrcIncluded = content.indexOf(`"${srcName}"`) > 0;
+            if (isSrcIncluded && operation !== srcOp.delete) {
+              this.writeFinished();
+              resolve();
+              return;
+            }
+            const srcsMatch = content.match(/SRCS\s\"/g);
+            let newContent: string;
+            if (
+              operation !== srcOp.delete &&
+              srcsMatch &&
+              srcsMatch.length > 0
+            ) {
+              newContent = this.addSrcFromCMakeLists(content, srcName);
+            } else if (isSrcIncluded && operation === srcOp.delete) {
+              newContent = this.deleteSrcFromCMakeLists(content, srcName);
+            }
 
-                        if (newContent) {
-                            writeFile(cmakeListFile, newContent, (error) => {
-                                if (error) {
-                                    this.writeFinished();
-                                    reject(error);
-                                }
-                            });
-                        }
-                        this.writeFinished();
-                        resolve();
-                    });
+            if (newContent) {
+              writeFile(cmakeListFile, newContent, error => {
+                if (error) {
+                  this.writeFinished();
+                  reject(error);
                 }
-            });
-        });
-        return UpdateCmakeLists.singletonPromise;
-    }
-    private static addSrcFromCMakeLists(content: string, srcName: string) {
-        return content.replace("SRCS \"", `SRCS "${srcName}" "`);
-    }
-    private static deleteSrcFromCMakeLists(content: string, srcName: string) {
-        return content.replace(` "${srcName}"`, ``);
-    }
-    private static writeFinished() {
-        UpdateCmakeLists.singletonPromise = undefined;
-    }
+              });
+            }
+            this.writeFinished();
+            resolve();
+          });
+        }
+      });
+    });
+    return UpdateCmakeLists.singletonPromise;
+  }
+  private static addSrcFromCMakeLists(content: string, srcName: string) {
+    return content.replace('SRCS "', `SRCS "${srcName}" "`);
+  }
+  private static deleteSrcFromCMakeLists(content: string, srcName: string) {
+    return content.replace(` "${srcName}"`, ``);
+  }
+  private static writeFinished() {
+    UpdateCmakeLists.singletonPromise = undefined;
+  }
 }

@@ -25,57 +25,69 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
-    checkIdfPath(context) {
-        vscode.postMessage({ command: "checkIdfPath", new_value: context.state.idfPath });
-    },
-    saveIdfPath(context) {
-        vscode.postMessage({ command: "saveNewIdfPath", new_value: context.state.idfPath });
-    },
-    checkManualExportPaths(context) {
-        vscode.postMessage({ command: "checkIdfToolsForPaths", new_value: context.state.customExtraPaths });
-    },
-    getExamplesList() {
-        vscode.postMessage({ command: "getExamplesList" });
-    },
-    getRequiredTools() {
-        vscode.postMessage({ command: "getRequiredToolsInfo" });
-    },
-    downloadTools(context) {
-        vscode.postMessage({ command: "downloadToolsInPath", new_value: context.state.idfToolsPath });
-    },
-    saveCustomPathsEnvVars(context) {
-        vscode.postMessage({
-            command: "saveEnvVars",
-            custom_paths: context.state.customExtraPaths,
-            custom_vars: context.state.envVars,
-        });
-    },
-    openEspIdfFolder() {
-        vscode.postMessage({ command: "openEspIdfFolder"});
-    },
-    openToolsFolder() {
-        vscode.postMessage({ command: "openToolsFolder"});
-    },
-    downloadEspIdf(context) {
-        vscode.postMessage({
-            command: "downloadEspIdfVersion",
-            selectedVersion: context.state.selectedIdfVersion,
-            idfPath: context.state.idfDownloadPath,
-        });
-    },
-    requestInitValues(context) {
-        vscode.postMessage({ command: "requestInitValues" });
-    },
-    savePythonToUse(context, pyBinPath) {
-        vscode.postMessage({
-            command: "savePythonBinary",
-            selectedPyBin: pyBinPath,
-        });
-    },
-    updateShowOnboardingOnInit(context, value) {
-        vscode.postMessage({
-            command: "saveShowOnboarding",
-            showOnboarding: value,
-        });
-    },
+  checkIdfPath(context) {
+    vscode.postMessage({
+      command: "checkIdfPath",
+      new_value: context.state.idfPath
+    });
+  },
+  saveIdfPath(context) {
+    vscode.postMessage({
+      command: "saveNewIdfPath",
+      new_value: context.state.idfPath
+    });
+  },
+  checkManualExportPaths(context) {
+    vscode.postMessage({
+      command: "checkIdfToolsForPaths",
+      new_value: context.state.customExtraPaths
+    });
+  },
+  getExamplesList() {
+    vscode.postMessage({ command: "getExamplesList" });
+  },
+  getRequiredTools() {
+    vscode.postMessage({ command: "getRequiredToolsInfo" });
+  },
+  downloadTools(context) {
+    vscode.postMessage({
+      command: "downloadToolsInPath",
+      new_value: context.state.idfToolsPath
+    });
+  },
+  saveCustomPathsEnvVars(context) {
+    vscode.postMessage({
+      command: "saveEnvVars",
+      custom_paths: context.state.customExtraPaths,
+      custom_vars: context.state.envVars
+    });
+  },
+  openEspIdfFolder() {
+    vscode.postMessage({ command: "openEspIdfFolder" });
+  },
+  openToolsFolder() {
+    vscode.postMessage({ command: "openToolsFolder" });
+  },
+  downloadEspIdf(context) {
+    vscode.postMessage({
+      command: "downloadEspIdfVersion",
+      selectedVersion: context.state.selectedIdfVersion,
+      idfPath: context.state.idfDownloadPath
+    });
+  },
+  requestInitValues(context) {
+    vscode.postMessage({ command: "requestInitValues" });
+  },
+  savePythonToUse(context, pyBinPath) {
+    vscode.postMessage({
+      command: "savePythonBinary",
+      selectedPyBin: pyBinPath
+    });
+  },
+  updateShowOnboardingOnInit(context, value) {
+    vscode.postMessage({
+      command: "saveShowOnboarding",
+      showOnboarding: value
+    });
+  }
 };

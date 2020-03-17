@@ -38,76 +38,76 @@ try {
 }
 
 export const menuState: State = {
-    items: [],
-    selectedMenu: "",
-    searchString: "",
-    textDictionary: {
-      save: "Save",
-      discard: "Discard",
-      reset: "Reset",
-    },
+  items: [],
+  selectedMenu: "",
+  searchString: "",
+  textDictionary: {
+    save: "Save",
+    discard: "Discard",
+    reset: "Reset"
+  }
 };
 
 export const actions: ActionTree<State, any> = {
-    sendNewValue(context, newValue) {
-      vscode.postMessage({
-        command: "updateValue",
-        updated_value: newValue,
-      });
-    },
-    saveGuiConfig() {
-      // Save current items
-      vscode.postMessage({
-        command: "saveChanges",
-      });
-    },
-    resetGuiConfig() {
-      // Reset current items
-      vscode.postMessage({
-        command: "discardChanges",
-      });
-    },
-    requestInitValues() {
-      vscode.postMessage({
-        command: "requestInitValues",
-      });
-    },
-    setDefaultConfig() {
-      // Set default items
-      vscode.postMessage({
-        command: "setDefault",
-      });
-    },
+  sendNewValue(context, newValue) {
+    vscode.postMessage({
+      command: "updateValue",
+      updated_value: newValue
+    });
+  },
+  saveGuiConfig() {
+    // Save current items
+    vscode.postMessage({
+      command: "saveChanges"
+    });
+  },
+  resetGuiConfig() {
+    // Reset current items
+    vscode.postMessage({
+      command: "discardChanges"
+    });
+  },
+  requestInitValues() {
+    vscode.postMessage({
+      command: "requestInitValues"
+    });
+  },
+  setDefaultConfig() {
+    // Set default items
+    vscode.postMessage({
+      command: "setDefault"
+    });
+  }
 };
 
 export const mutations: MutationTree<State> = {
   loadTextDictionary(state, textDictionary) {
     const newState = state;
     newState.textDictionary = textDictionary;
-    state = {...newState};
+    state = { ...newState };
   },
   setSelectedMenu(state, newSelectedMenu) {
     const newState = state;
     newState.selectedMenu = newSelectedMenu;
-    state = {...newState};
+    state = { ...newState };
   },
   setSearchString(state, searchString) {
     const newState = state;
     newState.searchString = searchString;
-    state = {...newState};
+    state = { ...newState };
   },
   setInitialValues(state, initialValues) {
     const newState = state;
     newState.items = initialValues;
-    state = {...newState};
+    state = { ...newState };
   },
   updateValues(state, updatedValues) {
     Vue.set(state, "items", updatedValues);
-  },
+  }
 };
 
 export const menus: StoreOptions<State> = {
-    actions,
-    mutations,
-    state: menuState,
+  actions,
+  mutations,
+  state: menuState
 };

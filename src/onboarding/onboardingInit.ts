@@ -21,32 +21,41 @@ import { getEspIdfVersions, IEspIdfLink } from "./espIdfDownload";
 import { getPythonList } from "./pythonReqsManager";
 
 export interface IOnboardingArgs {
-    expectedEnvVars: {};
-    espIdfVersionList: IEspIdfLink[];
-    gitVersion: string;
-    idfToolsManager: IdfToolsManager;
-    pythonVersions: string[];
+  expectedEnvVars: {};
+  espIdfVersionList: IEspIdfLink[];
+  gitVersion: string;
+  idfToolsManager: IdfToolsManager;
+  pythonVersions: string[];
 }
 
-export async function getOnboardingInitialValues(extensionPath: string,
-                                                 progress: Progress<{ message: string, increment: number}>) {
-    const platformInfo = await PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(extensionPath);
-    const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
-    progress.report({ increment: 10, message: "Loading ESP-IDF Tools information..." });
-    const idfToolsManager = new IdfToolsManager(toolsJson, platformInfo, OutputChannel.init());
-    progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
-    const espIdfVersionList = await getEspIdfVersions(extensionPath);
-    progress.report({ increment: 20, message: "Getting Python versions..." });
-    const pythonVersions = await getPythonList(extensionPath);
-    const gitVersion = await utils.checkGitExists(extensionPath);
-    progress.report({ increment: 20, message: "Preparing onboarding view..." });
-    const expectedEnvVars = await idfToolsManager.getListOfReqEnvVars();
-    return {
-        espIdfVersionList,
-        expectedEnvVars,
-        gitVersion,
-        idfToolsManager,
-        pythonVersions,
-    } as IOnboardingArgs;
+export async function getOnboardingInitialValues(
+  extensionPath: string,
+  progress: Progress<{ message: string; increment: number }>
+) {
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  const toolsJsonPath = await utils.getToolsJsonPath(extensionPath);
+  const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
+  progress.report({
+    increment: 10,
+    message: "Loading ESP-IDF Tools information..."
+  });
+  const idfToolsManager = new IdfToolsManager(
+    toolsJson,
+    platformInfo,
+    OutputChannel.init()
+  );
+  progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
+  const espIdfVersionList = await getEspIdfVersions(extensionPath);
+  progress.report({ increment: 20, message: "Getting Python versions..." });
+  const pythonVersions = await getPythonList(extensionPath);
+  const gitVersion = await utils.checkGitExists(extensionPath);
+  progress.report({ increment: 20, message: "Preparing onboarding view..." });
+  const expectedEnvVars = await idfToolsManager.getListOfReqEnvVars();
+  return {
+    espIdfVersionList,
+    expectedEnvVars,
+    gitVersion,
+    idfToolsManager,
+    pythonVersions
+  } as IOnboardingArgs;
 }

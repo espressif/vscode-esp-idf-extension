@@ -13,8 +13,14 @@
 // limitations under the License.
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faArrowCircleDown, faArrowLeft,
-  faCheck, faFolder, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowCircleDown,
+  faArrowLeft,
+  faCheck,
+  faFolder,
+  faFolderOpen,
+  faTimes
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import VueRouter from "vue-router";
@@ -28,32 +34,39 @@ const routes = [
   { path: "/", component: App },
   { path: "/download", component: Download },
   { path: "/toolsetup", component: ToolSetup },
-  { path: "/gitpycheck", component: GitPyCheck },
+  { path: "/gitpycheck", component: GitPyCheck }
 ];
 
 Vue.use(VueRouter);
 
 const router = new VueRouter({
   routes,
-  base: __dirname,
+  base: __dirname
 });
 
-library.add(faArrowLeft, faArrowCircleDown, faCheck, faFolder, faFolderOpen, faTimes);
+library.add(
+  faArrowLeft,
+  faArrowCircleDown,
+  faCheck,
+  faFolder,
+  faFolderOpen,
+  faTimes
+);
 Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 // tslint:disable-next-line: no-unused-expression
 new Vue({
-    el: "#app",
-    components: { App },
-    store,
-    data: {
-      versions: [],
-    },
-    router,
-    template: "<App />",
+  el: "#app",
+  components: { App },
+  store,
+  data: {
+    versions: []
+  },
+  router,
+  template: "<App />"
 });
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", event => {
   const message = event.data;
   switch (message.command) {
     case "load_idf_path":
@@ -130,12 +143,18 @@ window.addEventListener("message", (event) => {
       break;
     case "update_pkgs_download_percentage":
       if (message.updatedPkgDownloadStatus) {
-        store.commit("updatePkgDownloadPercentage", message.updatedPkgDownloadStatus);
+        store.commit(
+          "updatePkgDownloadPercentage",
+          message.updatedPkgDownloadStatus
+        );
       }
       break;
     case "update_espidf_download_percentage":
       if (message.updatedIdfDownloadStatus) {
-          store.commit("updateIdfDownloadProgress", message.updatedIdfDownloadStatus);
+        store.commit(
+          "updateIdfDownloadProgress",
+          message.updatedIdfDownloadStatus
+        );
       }
       break;
     case "set_selected_download_state":
@@ -151,13 +170,13 @@ window.addEventListener("message", (event) => {
       break;
     case "checksum_result":
       if (message.isChecksumEqual) {
-          store.commit("updatePkgHashResult", message.isChecksumEqual);
+        store.commit("updatePkgHashResult", message.isChecksumEqual);
       }
       break;
     case "response_py_req_check":
     case "response_py_req_install":
       if (message.py_req_log) {
-            store.commit("setPyLog", message.py_req_log);
+        store.commit("setPyLog", message.py_req_log);
       }
       break;
     case "set_py_setup_finish":
@@ -170,7 +189,10 @@ window.addEventListener("message", (event) => {
       break;
     case "update_espidf_download_detail":
       if (message.updatedIdfDownloadDetail) {
-        store.commit("updateIdfDownloadDetail", message.updatedIdfDownloadDetail);
+        store.commit(
+          "updateIdfDownloadDetail",
+          message.updatedIdfDownloadDetail
+        );
       }
       break;
     case "set_pkg_download_failed":
@@ -191,7 +213,10 @@ window.addEventListener("message", (event) => {
       break;
     case "load_show_onboarding":
       if (message.show_onboarding_on_init !== undefined) {
-        store.commit("setShowOnboardingOnInit", message.show_onboarding_on_init);
+        store.commit(
+          "setShowOnboardingOnInit",
+          message.show_onboarding_on_init
+        );
       }
       break;
     default:

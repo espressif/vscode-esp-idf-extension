@@ -25,133 +25,181 @@ import { Logger } from "../../logger/logger";
 import { LogTraceProc } from "./tools/logTraceProc";
 
 export class AppTracePanel {
-
-    public static createOrShow(context: vscode.ExtensionContext, traceData?: any) {
-        const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
-        if (AppTracePanel.currentPanel) {
-            AppTracePanel.currentPanel._panel.reveal(column);
-            if (traceData) {
-                AppTracePanel.currentPanel._traceData = traceData;
-                AppTracePanel.currentPanel.sendCommandToWebview("initialLoad", traceData);
-            }
-            return;
-        }
-        const panel = vscode.window.createWebviewPanel(
-            AppTracePanel.viewType,
-            AppTracePanel.viewTitle, column || vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))],
-                retainContextWhenHidden: true,
-            });
-        AppTracePanel.currentPanel = new AppTracePanel(panel, context.extensionPath, traceData);
-    }
-
-    private static currentPanel: AppTracePanel | undefined;
-    private static readonly viewType = "idfTrace";
-    private static readonly viewTitle = "IDF Tracing";
-
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _extensionPath: string;
-
-    private _disposables: vscode.Disposable[] = [];
-    private _traceData: any;
-
-    private constructor(panel: vscode.WebviewPanel, extensionPath: string, traceData: any) {
-        this._panel = panel;
-        this._extensionPath = extensionPath;
-        this._traceData = traceData;
-        this.initWebview();
-    }
-    private disposeWebview() {
-        AppTracePanel.currentPanel = undefined;
-    }
-
-    private initWebview() {
-        this._panel.webview.html = this.getHtmlContent();
-        this.sendCommandToWebview("initialLoad", this._traceData);
-        this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
-        this._panel.webview.onDidReceiveMessage((msg) => {
-            switch (msg.command) {
-                case "calculate":
-                    this.check().then((resp) => {
-                        const ansiToHtmlConverter = new AnsiToHtml();
-                        this.sendCommandToWebview("calculated", { log: ansiToHtmlConverter.toHtml(resp) });
-                    }).catch((error) => {
-                        this.sendCommandToWebview("calculateFailed", { error });
-                        error.message ? Logger.errorNotify(error.message, error) : Logger.errorNotify(
-                            `Failed to process the trace data`, error);
-                    });
-                    break;
-                default:
-                    const err = new Error(`Unrecognized command received from webview (idf-trace) file: ${__filename}`);
-                    Logger.error(err.message, err);
-                    break;
-            }
-        }, null, this._disposables);
-    }
-    private async check() {
-        const emptyURI: vscode.Uri = undefined;
-        const workspaceRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : emptyURI;
-        const logTraceProc = new LogTraceProc(
-            workspaceRoot,
-            this._traceData.trace.filePath,
-            await this.getElfFilePath(workspaceRoot),
+  public static createOrShow(
+    context: vscode.ExtensionContext,
+    traceData?: any
+  ) {
+    const column = vscode.window.activeTextEditor
+      ? vscode.window.activeTextEditor.viewColumn
+      : undefined;
+    if (AppTracePanel.currentPanel) {
+      AppTracePanel.currentPanel._panel.reveal(column);
+      if (traceData) {
+        AppTracePanel.currentPanel._traceData = traceData;
+        AppTracePanel.currentPanel.sendCommandToWebview(
+          "initialLoad",
+          traceData
         );
-        const resp = await logTraceProc.parse();
-        return resp.toString();
+      }
+      return;
     }
-    private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
-        let elfFilePath = "";
-        if (!workspaceURI) {
-            return elfFilePath;
+    const panel = vscode.window.createWebviewPanel(
+      AppTracePanel.viewType,
+      AppTracePanel.viewTitle,
+      column || vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))
+        ],
+        retainContextWhenHidden: true
+      }
+    );
+    AppTracePanel.currentPanel = new AppTracePanel(
+      panel,
+      context.extensionPath,
+      traceData
+    );
+  }
+
+  private static currentPanel: AppTracePanel | undefined;
+  private static readonly viewType = "idfTrace";
+  private static readonly viewTitle = "IDF Tracing";
+
+  private readonly _panel: vscode.WebviewPanel;
+  private readonly _extensionPath: string;
+
+  private _disposables: vscode.Disposable[] = [];
+  private _traceData: any;
+
+  private constructor(
+    panel: vscode.WebviewPanel,
+    extensionPath: string,
+    traceData: any
+  ) {
+    this._panel = panel;
+    this._extensionPath = extensionPath;
+    this._traceData = traceData;
+    this.initWebview();
+  }
+  private disposeWebview() {
+    AppTracePanel.currentPanel = undefined;
+  }
+
+  private initWebview() {
+    this._panel.webview.html = this.getHtmlContent();
+    this.sendCommandToWebview("initialLoad", this._traceData);
+    this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
+    this._panel.webview.onDidReceiveMessage(
+      msg => {
+        switch (msg.command) {
+          case "calculate":
+            this.check()
+              .then(resp => {
+                const ansiToHtmlConverter = new AnsiToHtml();
+                this.sendCommandToWebview("calculated", {
+                  log: ansiToHtmlConverter.toHtml(resp)
+                });
+              })
+              .catch(error => {
+                this.sendCommandToWebview("calculateFailed", { error });
+                error.message
+                  ? Logger.errorNotify(error.message, error)
+                  : Logger.errorNotify(
+                      `Failed to process the trace data`,
+                      error
+                    );
+              });
+            break;
+          default:
+            const err = new Error(
+              `Unrecognized command received from webview (idf-trace) file: ${__filename}`
+            );
+            Logger.error(err.message, err);
+            break;
         }
-        const elfPath = path.join(workspaceURI.fsPath, "build");
-        const elfFiles = [];
-        fs.readdirSync(elfPath).forEach((file) => {
-            if (file.endsWith(".elf")) {
-                elfFiles.push({ label : file, description: path.join(elfPath, file)});
-            }
-        });
-        if (elfFiles.length > 1) {
-            const pickedElf = await vscode.window.showQuickPick(elfFiles, {
-                placeHolder: "Select ELF File to be use for the report generation",
-            });
-            if (!pickedElf) {
-                throw new Error("Select valid ELF file for showing report");
-            }
-            elfFilePath = pickedElf.description;
-        } else if (elfFiles.length === 1) {
-            elfFilePath = elfFiles[0].description;
-        }
-        return elfFilePath;
+      },
+      null,
+      this._disposables
+    );
+  }
+  private async check() {
+    const emptyURI: vscode.Uri = undefined;
+    const workspaceRoot = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0].uri
+      : emptyURI;
+    const logTraceProc = new LogTraceProc(
+      workspaceRoot,
+      this._traceData.trace.filePath,
+      await this.getElfFilePath(workspaceRoot)
+    );
+    const resp = await logTraceProc.parse();
+    return resp.toString();
+  }
+  private async getElfFilePath(workspaceURI: vscode.Uri): Promise<string> {
+    let elfFilePath = "";
+    if (!workspaceURI) {
+      return elfFilePath;
     }
-    private sendCommandToWebview(command: string, value: any) {
-        if (this._panel.webview) {
-            this._panel.webview.postMessage({
-                command,
-                value,
-            });
-        }
+    const elfPath = path.join(workspaceURI.fsPath, "build");
+    const elfFiles = [];
+    fs.readdirSync(elfPath).forEach(file => {
+      if (file.endsWith(".elf")) {
+        elfFiles.push({ label: file, description: path.join(elfPath, file) });
+      }
+    });
+    if (elfFiles.length > 1) {
+      const pickedElf = await vscode.window.showQuickPick(elfFiles, {
+        placeHolder: "Select ELF File to be use for the report generation"
+      });
+      if (!pickedElf) {
+        throw new Error("Select valid ELF file for showing report");
+      }
+      elfFilePath = pickedElf.description;
+    } else if (elfFiles.length === 1) {
+      elfFilePath = elfFiles[0].description;
     }
-    private getHtmlContent(): string {
-        const htmlFilePath = path.join(this._extensionPath, "dist", "views", "espTrace.html");
-        if (!fs.existsSync(htmlFilePath)) {
-            return this.notFoundStaticHtml();
-        }
-        let html = fs.readFileSync(htmlFilePath).toString();
-        const fileUrl = vscode.Uri.file(htmlFilePath).with({ scheme: "vscode-resource" });
-        if (/(<head(\s.*)?>)/.test(html)) {
-            html = html.replace(/(<head(\s.*)?>)/, `$1<base href="${fileUrl.toString()}">`);
-        } else if (/(<html(\s.*)?>)/.test(html)) {
-            html = html.replace(/(<html(\s.*)?>)/, `$1<head><base href="${fileUrl.toString()}"></head>`);
-        } else {
-            html = `<head><base href="${fileUrl.toString()}"></head>${html}`;
-        }
-        return html;
+    return elfFilePath;
+  }
+  private sendCommandToWebview(command: string, value: any) {
+    if (this._panel.webview) {
+      this._panel.webview.postMessage({
+        command,
+        value
+      });
     }
-    private notFoundStaticHtml(): string {
-        return `<!DOCTYPE html>
+  }
+  private getHtmlContent(): string {
+    const htmlFilePath = path.join(
+      this._extensionPath,
+      "dist",
+      "views",
+      "espTrace.html"
+    );
+    if (!fs.existsSync(htmlFilePath)) {
+      return this.notFoundStaticHtml();
+    }
+    let html = fs.readFileSync(htmlFilePath).toString();
+    const fileUrl = vscode.Uri.file(htmlFilePath).with({
+      scheme: "vscode-resource"
+    });
+    if (/(<head(\s.*)?>)/.test(html)) {
+      html = html.replace(
+        /(<head(\s.*)?>)/,
+        `$1<base href="${fileUrl.toString()}">`
+      );
+    } else if (/(<html(\s.*)?>)/.test(html)) {
+      html = html.replace(
+        /(<html(\s.*)?>)/,
+        `$1<head><base href="${fileUrl.toString()}"></head>`
+      );
+    } else {
+      html = `<head><base href="${fileUrl.toString()}"></head>${html}`;
+    }
+    return html;
+  }
+  private notFoundStaticHtml(): string {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -163,5 +211,5 @@ export class AppTracePanel {
     Error loading the page or the page not found
 </body>
 </html>`;
-    }
+  }
 }

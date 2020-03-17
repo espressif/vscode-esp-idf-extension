@@ -25,106 +25,129 @@ import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { FlashModel } from "./flashModel";
 
 export class FlashManager {
-    public static isFlashing: boolean;
-    private readonly flashScriptPath: string;
-    private readonly buildDir: string;
-    private readonly model: FlashModel;
-    private readonly outputChannel: OutputChannel;
-    private server: ChildProcess;
+  public static isFlashing: boolean;
+  private readonly flashScriptPath: string;
+  private readonly buildDir: string;
+  private readonly model: FlashModel;
+  private readonly outputChannel: OutputChannel;
+  private server: ChildProcess;
 
-    constructor(idfPath: string, buildDir: string, model: FlashModel, outputChannel?: OutputChannel) {
-        this.flashScriptPath = join(idfPath, "components", "esptool_py", "esptool", "esptool.py");
-        this.buildDir = buildDir;
-        this.model = model;
-        this.outputChannel = outputChannel;
+  constructor(
+    idfPath: string,
+    buildDir: string,
+    model: FlashModel,
+    outputChannel?: OutputChannel
+  ) {
+    this.flashScriptPath = join(
+      idfPath,
+      "components",
+      "esptool_py",
+      "esptool",
+      "esptool.py"
+    );
+    this.buildDir = buildDir;
+    this.model = model;
+    this.outputChannel = outputChannel;
+  }
+
+  public async flash() {
+    if (FlashManager.isFlashing) {
+      throw new Error("ALREADY_FLASHING");
     }
+    this.preFlashVerify();
+    await this._flash();
+  }
 
-    public async flash() {
-        if (FlashManager.isFlashing) {
-            throw new Error("ALREADY_FLASHING");
+  public cancel() {
+    if (this.server && !this.server.killed) {
+      this.server.kill("SIGKILL");
+      this.server = undefined;
+      this.outputToOutputChannel("❌ [Flash - ⚡️] : Stopped!");
+    }
+  }
+
+  private preFlashVerify() {
+    if (!canAccessFile(this.flashScriptPath)) {
+      throw new Error("SCRIPT_PERMISSION_ERROR");
+    }
+    for (const flashFile of this.model.flashSections) {
+      if (
+        !canAccessFile(
+          join(this.buildDir, flashFile.binFilePath),
+          constants.R_OK
+        )
+      ) {
+        throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
+      }
+    }
+  }
+
+  private flashing(flag: boolean) {
+    FlashManager.isFlashing = flag;
+  }
+
+  private outputToOutputChannel(data: string) {
+    if (this.outputChannel) {
+      this.outputChannel.appendLine(data);
+    }
+  }
+
+  private async _flash() {
+    return new Promise((resolve, reject) => {
+      this.flashing(true);
+
+      appendIdfAndToolsToPath();
+      const flasherArgs = [
+        this.flashScriptPath,
+        "-p",
+        this.model.port,
+        "-b",
+        this.model.baudRate,
+        "--after",
+        "hard_reset",
+        "write_flash",
+        "--flash_mode",
+        this.model.mode,
+        "--flash_freq",
+        this.model.frequency,
+        "--flash_size",
+        this.model.size
+      ];
+      for (const flashFile of this.model.flashSections) {
+        flasherArgs.push(flashFile.address, flashFile.binFilePath);
+      }
+
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      this.server = spawn(pythonBinPath, flasherArgs, {
+        cwd: this.buildDir
+      });
+
+      this.server.on("close", (code: number, signal: string) => {
+        this.flashing(false);
+        if (signal === "SIGKILL") {
+          return reject(new Error(`FLASH_TERMINATED`));
         }
-        this.preFlashVerify();
-        await this._flash();
-    }
-
-    public cancel() {
-        if (this.server && !this.server.killed) {
-            this.server.kill("SIGKILL");
-            this.server = undefined;
-            this.outputToOutputChannel("❌ [Flash - ⚡️] : Stopped!");
+        if (code !== 0) {
+          return reject(new Error(`NON_ZERO_EXIT_CODE:${code}`));
         }
-    }
+        resolve();
+      });
 
-    private preFlashVerify() {
-        if (!canAccessFile(this.flashScriptPath)) {
-            throw new Error("SCRIPT_PERMISSION_ERROR");
-        }
-        for (const flashFile of this.model.flashSections) {
-            if (!canAccessFile(join(this.buildDir, flashFile.binFilePath), constants.R_OK)) {
-                throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
-            }
-        }
-    }
+      this.server.on("error", (error: Error) => {
+        this.flashing(false);
 
-    private flashing(flag: boolean) {
-        FlashManager.isFlashing = flag;
-    }
+        reject(error);
+      });
 
-    private outputToOutputChannel(data: string) {
-        if (this.outputChannel) {
-            this.outputChannel.appendLine(data);
-        }
-    }
+      this.server.stdout.on("data", (chunk: Buffer) => {
+        this.outputToOutputChannel(chunk.toString());
+      });
 
-    private async _flash() {
-        return new Promise((resolve, reject) => {
-            this.flashing(true);
-
-            appendIdfAndToolsToPath();
-            const flasherArgs = [
-                this.flashScriptPath,
-                "-p", this.model.port,
-                "-b", this.model.baudRate,
-                "--after", "hard_reset", "write_flash",
-                "--flash_mode", this.model.mode,
-                "--flash_freq", this.model.frequency,
-                "--flash_size", this.model.size,
-            ];
-            for (const flashFile of this.model.flashSections) {
-                flasherArgs.push(flashFile.address, flashFile.binFilePath);
-            }
-
-            const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-            this.server = spawn(pythonBinPath, flasherArgs,
-            {
-                cwd: this.buildDir,
-            });
-
-            this.server.on("close", (code: number, signal: string) => {
-                this.flashing(false);
-                if (signal === "SIGKILL") {
-                    return reject(new Error(`FLASH_TERMINATED`));
-                }
-                if (code !== 0) {
-                    return reject(new Error(`NON_ZERO_EXIT_CODE:${code}`));
-                }
-                resolve();
-            });
-
-            this.server.on("error", (error: Error) => {
-                this.flashing(false);
-
-                reject(error);
-            });
-
-            this.server.stdout.on("data", (chunk: Buffer) => {
-                this.outputToOutputChannel(chunk.toString());
-            });
-
-            this.server.stderr.on("data", (chunk: Buffer) => {
-                this.outputToOutputChannel(`⚠️\n${chunk.toString()}`);
-            });
-
-        });
-    }
+      this.server.stderr.on("data", (chunk: Buffer) => {
+        this.outputToOutputChannel(`⚠️\n${chunk.toString()}`);
+      });
+    });
+  }
 }

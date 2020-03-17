@@ -10,40 +10,40 @@ jobs:
         node-version: [12.x]
 
     steps:
-    - name: Clone Repository
-      uses: actions/checkout@v1
+      - name: Clone Repository
+        uses: actions/checkout@v1
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Install Node Dependencies
-      run: yarn
+      - name: Install Node Dependencies
+        run: yarn
 
-    - name: Typescript Linting
-      run: yarn run tslint
+      - name: Typescript Linting
+        run: yarn run tslint
 
-    - name: Check Node Packages Vulnerabilities
-      run: yarn audit
+      - name: Check Node Packages Vulnerabilities
+        run: yarn audit
 
-    - name: Package .vsix
-      run: yarn run package
-    - name: Upload .vsix File
-      uses: actions/upload-artifact@v1
-      with:
+      - name: Package .vsix
+        run: yarn run package
+      - name: Upload .vsix File
+        uses: actions/upload-artifact@v1
+        with:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
-    
-    - name: xvfb
-      run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-    - name: Extension Test
-      run: yarn run test --VERBOSE >> testing.results.log
-      env:
-        CODE_VERSION: '1.41.1'
-        DISPLAY: ':99.0'
-    - name: Upload testing.results.log
-      uses: actions/upload-artifact@v1
-      with:
+
+      - name: xvfb
+        run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - name: Extension Test
+        run: yarn run test --VERBOSE >> testing.results.log
+        env:
+          CODE_VERSION: "1.41.1"
+          DISPLAY: ":99.0"
+      - name: Upload testing.results.log
+        uses: actions/upload-artifact@v1
+        with:
           name: testing.results.log
           path: testing.results.log

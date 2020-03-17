@@ -22,155 +22,215 @@ import { Menu } from "./Menu";
 const locDic = new LocDictionary(__filename);
 
 export class MenuConfigPanel {
-    public static currentPanel: MenuConfigPanel | undefined;
+  public static currentPanel: MenuConfigPanel | undefined;
 
-    public static createOrShow(extensionPath: string, curWorkspaceFolder: vscode.Uri,
-                               initialValues: Menu[]) {
-        const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
-        if (MenuConfigPanel.currentPanel) {
-            MenuConfigPanel.currentPanel.panel.reveal(column);
-        } else {
-            MenuConfigPanel.currentPanel = new MenuConfigPanel(extensionPath, column || vscode.ViewColumn.One,
-                curWorkspaceFolder, initialValues);
+  public static createOrShow(
+    extensionPath: string,
+    curWorkspaceFolder: vscode.Uri,
+    initialValues: Menu[]
+  ) {
+    const column = vscode.window.activeTextEditor
+      ? vscode.window.activeTextEditor.viewColumn
+      : undefined;
+    if (MenuConfigPanel.currentPanel) {
+      MenuConfigPanel.currentPanel.panel.reveal(column);
+    } else {
+      MenuConfigPanel.currentPanel = new MenuConfigPanel(
+        extensionPath,
+        column || vscode.ViewColumn.One,
+        curWorkspaceFolder,
+        initialValues
+      );
+    }
+  }
+
+  private static readonly viewType = "menuconfig";
+  private readonly curWorkspaceFolder: vscode.Uri;
+  private readonly panel: vscode.WebviewPanel;
+  private disposables: vscode.Disposable[] = [];
+
+  private constructor(
+    extensionPath: string,
+    column: vscode.ViewColumn,
+    curWorkspaceFolder: vscode.Uri,
+    initialValues: Menu[]
+  ) {
+    this.curWorkspaceFolder = curWorkspaceFolder;
+
+    const menuconfigPanelTitle = locDic.localize(
+      "menuconfig.panelName",
+      "IDF Menuconfig"
+    );
+    this.panel = vscode.window.createWebviewPanel(
+      MenuConfigPanel.viewType,
+      menuconfigPanelTitle,
+      column,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(extensionPath, "dist", "views"))
+        ]
+      }
+    );
+
+    this.panel.webview.html = this.createMenuconfigHtml(extensionPath);
+
+    ConfserverProcess.registerListener(this.updateConfigValues);
+
+    const menuconfigViewDict = new LocDictionary("menuconfig", "views");
+    this.panel.webview.postMessage({
+      command: "load_dictionary",
+      text_dictionary: menuconfigViewDict.getDictionary()
+    });
+
+    this.panel.onDidDispose(
+      () => {
+        if (!ConfserverProcess.areValuesSaved()) {
+          const changesNotSavedMessage = locDic.localize(
+            "menuconfig.changesNotSaved",
+            "Changes in GUI Menuconfig have not been saved. Would you like to save them?"
+          );
+          const saveMsg = locDic.localize("menuconfig.save", "Save");
+          const discardMsg = locDic.localize(
+            "menuconfig.discard",
+            "Don't save"
+          );
+          const returnToGuiconfigMsg = locDic.localize(
+            "menuconfig.returnGuiconfig",
+            "Return to GUI Menuconfig"
+          );
+          const isModal = process.platform !== "win32" ? true : false;
+          vscode.window
+            .showInformationMessage(
+              changesNotSavedMessage,
+              { modal: isModal },
+              { title: saveMsg, isCloseAffordance: false },
+              { title: returnToGuiconfigMsg, isCloseAffordance: false },
+              { title: discardMsg, isCloseAffordance: true }
+            )
+            .then(selected => {
+              if (selected.title === saveMsg) {
+                ConfserverProcess.saveGuiConfigValues();
+              } else if (selected.title === returnToGuiconfigMsg) {
+                this.dispose();
+                vscode.commands.executeCommand("menuconfig.start");
+                return;
+              } else {
+                ConfserverProcess.loadGuiConfigValues(true);
+              }
+            });
         }
+        this.dispose();
+      },
+      null,
+      this.disposables
+    );
+
+    this.panel.webview.onDidReceiveMessage(async message => {
+      switch (message.command) {
+        case "updateValue":
+          ConfserverProcess.setUpdatedValue(message.updated_value as Menu);
+          break;
+        case "setDefault":
+          const changesNotSavedMessage = locDic.localize(
+            "menuconfig.confirmSetDefault",
+            "This action will delete your project sdkconfig. Continue?"
+          );
+          const yesMsg = locDic.localize("menuconfig.save", "Yes");
+          const noMsg = locDic.localize("menuconfig.discard", "No");
+          const isModal = process.platform !== "win32" ? true : false;
+          const selected = await vscode.window.showInformationMessage(
+            changesNotSavedMessage,
+            { modal: isModal },
+            { title: yesMsg, isCloseAffordance: false },
+            { title: noMsg, isCloseAffordance: true }
+          );
+          if (selected.title === yesMsg) {
+            vscode.window.withProgress(
+              {
+                cancellable: true,
+                location: vscode.ProgressLocation.Notification,
+                title: "ESP-IDF: Menuconfig"
+              },
+              async (
+                progress: vscode.Progress<{
+                  message: string;
+                  increment: number;
+                }>
+              ) => {
+                try {
+                  await ConfserverProcess.setDefaultValues(progress);
+                } catch (error) {
+                  Logger.errorNotify(error.message, error);
+                }
+              }
+            );
+          }
+          break;
+        case "saveChanges":
+          ConfserverProcess.saveGuiConfigValues();
+          const saveMessage = locDic.localize(
+            "menuconfig.saveValues",
+            "Saved changes in GUI menuconfig"
+          );
+          Logger.infoNotify(saveMessage);
+          break;
+        case "discardChanges":
+          ConfserverProcess.loadGuiConfigValues();
+          const discardMessage = locDic.localize(
+            "menuconfig.discardValues",
+            "Discarded changes in GUI menuconfig"
+          );
+          Logger.infoNotify(discardMessage);
+          break;
+        case "requestInitValues":
+          MenuConfigPanel.currentPanel.panel.webview.postMessage({
+            command: "load_initial_values",
+            menus: initialValues
+          });
+          break;
+        default:
+          const err = new Error(
+            `Menuconfig: Unrecognized command received, file: ${__filename}`
+          );
+          Logger.error(err.message, err);
+          break;
+      }
+    });
+  }
+
+  public dispose() {
+    MenuConfigPanel.currentPanel = undefined;
+    this.panel.dispose();
+  }
+
+  private updateConfigValues(values: string) {
+    // This function will be executed when confServerProcess
+    // receives a new JSON with values.
+    const jsonValues = JSON.parse(values);
+    if (Object.keys(jsonValues.values).length <= 0) {
+      return;
     }
 
-    private static readonly viewType = "menuconfig";
-    private readonly curWorkspaceFolder: vscode.Uri;
-    private readonly panel: vscode.WebviewPanel;
-    private disposables: vscode.Disposable[] = [];
-
-    private constructor(extensionPath: string, column: vscode.ViewColumn,
-                        curWorkspaceFolder: vscode.Uri,
-                        initialValues: Menu[]) {
-        this.curWorkspaceFolder = curWorkspaceFolder;
-
-        const menuconfigPanelTitle = locDic.localize("menuconfig.panelName", "IDF Menuconfig");
-        this.panel = vscode.window.createWebviewPanel(MenuConfigPanel.viewType, menuconfigPanelTitle, column, {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(path.join(extensionPath, "dist", "views"))],
-        });
-
-        this.panel.webview.html = this.createMenuconfigHtml(extensionPath);
-
-        ConfserverProcess.registerListener(this.updateConfigValues);
-
-        const menuconfigViewDict = new LocDictionary("menuconfig", "views");
-        this.panel.webview.postMessage({
-            command: "load_dictionary",
-            text_dictionary: menuconfigViewDict.getDictionary(),
-        });
-
-        this.panel.onDidDispose(() => {
-            if (!ConfserverProcess.areValuesSaved()) {
-                const changesNotSavedMessage = locDic.localize("menuconfig.changesNotSaved",
-                                "Changes in GUI Menuconfig have not been saved. Would you like to save them?");
-                const saveMsg = locDic.localize("menuconfig.save", "Save");
-                const discardMsg = locDic.localize("menuconfig.discard", "Don't save");
-                const returnToGuiconfigMsg = locDic.localize("menuconfig.returnGuiconfig", "Return to GUI Menuconfig");
-                const isModal = process.platform !== "win32" ? true : false;
-                vscode.window.showInformationMessage(changesNotSavedMessage,
-                    { modal: isModal },
-                    { title: saveMsg, isCloseAffordance: false },
-                    { title: returnToGuiconfigMsg, isCloseAffordance: false },
-                    { title: discardMsg, isCloseAffordance: true }).then((selected) => {
-                        if (selected.title === saveMsg) {
-                            ConfserverProcess.saveGuiConfigValues();
-                        } else if (selected.title === returnToGuiconfigMsg) {
-                            this.dispose();
-                            vscode.commands.executeCommand("menuconfig.start");
-                            return;
-                        } else {
-                            ConfserverProcess.loadGuiConfigValues(true);
-                        }
-                    });
-            }
-            this.dispose();
-        }, null, this.disposables);
-
-        this.panel.webview.onDidReceiveMessage(async (message) => {
-            switch (message.command) {
-                case "updateValue":
-                    ConfserverProcess.setUpdatedValue(message.updated_value as Menu);
-                    break;
-                case "setDefault":
-                    const changesNotSavedMessage = locDic.localize("menuconfig.confirmSetDefault",
-                        "This action will delete your project sdkconfig. Continue?");
-                    const yesMsg = locDic.localize("menuconfig.save", "Yes");
-                    const noMsg = locDic.localize("menuconfig.discard", "No");
-                    const isModal = process.platform !== "win32" ? true : false;
-                    const selected = await vscode.window.showInformationMessage(changesNotSavedMessage,
-                        { modal: isModal },
-                        { title: yesMsg, isCloseAffordance: false },
-                        { title: noMsg, isCloseAffordance: true });
-                    if (selected.title === yesMsg) {
-                        vscode.window.withProgress({
-                            cancellable: true,
-                            location: vscode.ProgressLocation.Notification,
-                            title: "ESP-IDF: Menuconfig",
-                        }, async (progress: vscode.Progress<{ message: string, increment: number }>) => {
-                            try {
-                                await ConfserverProcess.setDefaultValues(progress);
-                            } catch (error) {
-                                Logger.errorNotify(error.message, error);
-                            }
-                        });
-                    }
-                    break;
-                case "saveChanges":
-                    ConfserverProcess.saveGuiConfigValues();
-                    const saveMessage = locDic.localize("menuconfig.saveValues",
-                        "Saved changes in GUI menuconfig");
-                    Logger.infoNotify(saveMessage);
-                    break;
-                case "discardChanges":
-                    ConfserverProcess.loadGuiConfigValues();
-                    const discardMessage = locDic.localize("menuconfig.discardValues",
-                        "Discarded changes in GUI menuconfig");
-                    Logger.infoNotify(discardMessage);
-                    break;
-                case "requestInitValues":
-                    MenuConfigPanel.currentPanel.panel.webview.postMessage(
-                        { command: "load_initial_values", menus: initialValues });
-                    break;
-                default:
-                    const err = new Error(`Menuconfig: Unrecognized command received, file: ${__filename}`);
-                    Logger.error(err.message, err);
-                    break;
-            }
-        });
-
+    if (jsonValues.error) {
+      const err = new Error(`Invalid data error: ${jsonValues.error}`);
+      Logger.error(err.message, err);
+      return;
     }
+    const updatedMenus = ConfserverProcess.updateValues(values);
+    MenuConfigPanel.currentPanel.panel.webview.postMessage({
+      command: "update_values",
+      updated_values: updatedMenus
+    });
+  }
 
-    public dispose() {
-        MenuConfigPanel.currentPanel = undefined;
-        this.panel.dispose();
-    }
+  private createMenuconfigHtml(extensionPath: string): string {
+    const vuePath = vscode.Uri.file(
+      path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
+    ).with({ scheme: "vscode-resource" });
 
-    private updateConfigValues(values: string) {
-        // This function will be executed when confServerProcess
-        // receives a new JSON with values.
-        const jsonValues = JSON.parse(values);
-        if (Object.keys(jsonValues.values).length <= 0) {
-            return;
-        }
-
-        if (jsonValues.error) {
-            const err = new Error(`Invalid data error: ${jsonValues.error}`);
-            Logger.error(err.message, err);
-            return;
-        }
-        const updatedMenus = ConfserverProcess.updateValues(values);
-        MenuConfigPanel.currentPanel.panel.webview.postMessage(
-            {command: "update_values", updated_values: updatedMenus});
-    }
-
-    private createMenuconfigHtml(extensionPath: string): string {
-        const vuePath = vscode.Uri.file(
-            path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")).with({ scheme: "vscode-resource"});
-
-        return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -182,6 +242,5 @@ export class MenuConfigPanel {
             </body>
             <script src="${vuePath}"></script>
         </html>`;
-    }
-
+  }
 }

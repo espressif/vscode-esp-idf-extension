@@ -24,33 +24,41 @@ import * as idfConf from "../../../idfConfiguration";
 import { appendIdfAndToolsToPath, spawn } from "../../../utils";
 
 export class LogTraceProc {
-    private readonly traceFilePath: string;
-    private readonly elfFilePath: string;
-    private readonly workspaceRoot: vscode.Uri;
+  private readonly traceFilePath: string;
+  private readonly elfFilePath: string;
+  private readonly workspaceRoot: vscode.Uri;
 
-    constructor(workspaceRoot: vscode.Uri, traceFilePath: string, elfFilePath: string) {
-        this.workspaceRoot = workspaceRoot;
-        this.traceFilePath = traceFilePath;
-        this.elfFilePath = elfFilePath;
-    }
+  constructor(
+    workspaceRoot: vscode.Uri,
+    traceFilePath: string,
+    elfFilePath: string
+  ) {
+    this.workspaceRoot = workspaceRoot;
+    this.traceFilePath = traceFilePath;
+    this.elfFilePath = elfFilePath;
+  }
 
-    public async parse(): Promise<Buffer> {
-        if (!existsSync(this.elfFilePath)) {
-            throw new Error(`Elf file doesn't exists, ${this.elfFilePath}`);
-        }
-        if (!existsSync(this.traceFilePath)) {
-            throw new Error(`Trace file doesn't exists, ${this.traceFilePath}`);
-        }
-        const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-        appendIdfAndToolsToPath();
-        return await spawn(pythonBinPath, ["logtrace_proc.py", this.traceFilePath, this.elfFilePath], {
-            cwd: this.appTraceToolsPath(),
-            env: process.env,
-        });
+  public async parse(): Promise<Buffer> {
+    if (!existsSync(this.elfFilePath)) {
+      throw new Error(`Elf file doesn't exists, ${this.elfFilePath}`);
     }
+    if (!existsSync(this.traceFilePath)) {
+      throw new Error(`Trace file doesn't exists, ${this.traceFilePath}`);
+    }
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    appendIdfAndToolsToPath();
+    return await spawn(
+      pythonBinPath,
+      ["logtrace_proc.py", this.traceFilePath, this.elfFilePath],
+      {
+        cwd: this.appTraceToolsPath(),
+        env: process.env
+      }
+    );
+  }
 
-    private appTraceToolsPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-        return join(idfPathDir, "tools", "esp_app_trace");
-    }
+  private appTraceToolsPath(): string {
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    return join(idfPathDir, "tools", "esp_app_trace");
+  }
 }

@@ -20,26 +20,32 @@ import * as vscode from "vscode";
 import * as winston from "winston";
 
 export default class UserNotificationManagerTransport extends winston.Transport {
+  constructor(options: any) {
+    super(options);
+  }
 
-    constructor(options: any) {
-        super(options);
+  protected log(
+    level: string,
+    message: string,
+    metadata?: any,
+    callback?: (arg1, arg2) => void
+  ) {
+    if (metadata && metadata.user) {
+      if (level === "info") {
+        vscode.window.showInformationMessage(message);
+      } else if (level === "warn") {
+        vscode.window.showWarningMessage(message);
+      } else if (level === "error") {
+        vscode.window.showErrorMessage(message);
+      } else {
+        winston.error(
+          `Invalid error level '${level}' for user notification. ${message}`
+        );
+      }
     }
-
-    protected log(level: string, message: string, metadata?: any, callback?: (arg1, arg2) => void) {
-        if (metadata && metadata.user) {
-            if (level === "info") {
-                vscode.window.showInformationMessage(message);
-            } else if (level === "warn") {
-                vscode.window.showWarningMessage(message);
-            } else if (level === "error") {
-                vscode.window.showErrorMessage(message);
-            } else {
-                winston.error(`Invalid error level '${level}' for user notification. ${message}`);
-            }
-        }
-        super.emit("logged");
-        if (callback) {
-            callback(null, true);
-        }
+    super.emit("logged");
+    if (callback) {
+      callback(null, true);
     }
+  }
 }
