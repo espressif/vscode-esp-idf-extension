@@ -209,15 +209,6 @@ export class OnBoardingPanel {
                   this.panel.webview.postMessage({
                     command: "set_tools_check_finish",
                   });
-                }
-                this.panel.webview.postMessage({
-                  command: "respond_check_idf_tools_path",
-                  dictToolsExist: dictTools,
-                });
-                const toolsNotFound = dictTools.filter(
-                  (val) => val.doesToolExist === false
-                );
-                if (toolsNotFound.length === 0) {
                   idfConf.writeParameter(
                     "idf.customExtraPaths",
                     message.custom_paths,
@@ -225,6 +216,15 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 }
+                this.idfToolsManager.writeMetadataFromExtraPaths(
+                  message.custom_paths,
+                  message.custom_vars,
+                  dictTools
+                );
+                this.panel.webview.postMessage({
+                  command: "respond_check_idf_tools_path",
+                  dictToolsExist: dictTools,
+                });
                 if (!utils.canAccessFile(message.py_bin_path, constants.R_OK)) {
                   const notAccessMsg = `${message.py_bin_path} is not accesible.`;
                   vscode.window.showErrorMessage(notAccessMsg);
@@ -402,14 +402,36 @@ export class OnBoardingPanel {
               0,
               message.venv.path.indexOf("python_env") - 1
             );
-            idfConf.writeParameter("idf.toolsPath", toolsDir);
-            idfConf.writeParameter("idf.espIdfPath", message.idf.path);
-            idfConf.writeParameter("idf.customExtraPaths", extraPaths);
+            idfConf.writeParameter(
+              "idf.toolsPath",
+              toolsDir,
+              this.confTarget,
+              this.selectedWorkspaceFolder
+            );
+            idfConf.writeParameter(
+              "idf.espIdfPath",
+              message.idf.path,
+              this.confTarget,
+              this.selectedWorkspaceFolder
+            );
+            idfConf.writeParameter(
+              "idf.customExtraPaths",
+              extraPaths,
+              this.confTarget,
+              this.selectedWorkspaceFolder
+            );
             idfConf.writeParameter(
               "idf.customExtraVars",
-              JSON.stringify(extraVars)
+              JSON.stringify(extraVars),
+              this.confTarget,
+              this.selectedWorkspaceFolder
             );
-            idfConf.writeParameter("idf.pythonBinPath", message.venv.path);
+            idfConf.writeParameter(
+              "idf.pythonBinPath",
+              message.venv.path,
+              this.confTarget,
+              this.selectedWorkspaceFolder
+            );
             Logger.infoNotify(`Selected configuration has been saved.`);
           }
           break;

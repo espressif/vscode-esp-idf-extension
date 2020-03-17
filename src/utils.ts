@@ -715,6 +715,38 @@ export async function startPythonReqsProcess(
   );
 }
 
+export async function writeToMetadataFile(toolsInfo: ITool[]) {
+  const metadataFile = path.join(
+    extensionContext.extensionPath,
+    "metadata.json"
+  );
+  await doesPathExists(metadataFile).then(async (doesFileExists) => {
+    if (doesFileExists) {
+      await readJson(metadataFile).then(async (metadata: IMetadataFile) => {
+        if (metadata.tools) {
+          for (const tool of toolsInfo) {
+            const existingPath = metadata.tools.filter(
+              (toolMeta) => toolMeta.path === tool.path
+            );
+            if (
+              typeof existingPath === "undefined" ||
+              existingPath.length === 0
+            ) {
+              metadata.tools.push(tool);
+            }
+          }
+        } else {
+          metadata.tools = toolsInfo;
+        }
+        await writeJson(metadataFile, metadata);
+      });
+    } else {
+      const metadata: IMetadataFile = { tools: toolsInfo } as IMetadataFile;
+      await writeJson(metadataFile, metadata);
+    }
+  });
+}
+
 export async function validateToolsFromMetadata(
   selectedIdfPath: string,
   toolsMeta: ITool[]

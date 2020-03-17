@@ -251,10 +251,6 @@ export class IdfToolsManager {
   }
 
   public async generateToolsExtraPaths(toolsDir: string) {
-    const metadataFile = path.join(
-      utils.extensionContext.extensionPath,
-      "metadata.json"
-    );
     const toolsMetadata = await this.getPackageList().then((pkgs) => {
       return pkgs.map((pkg) => {
         const versionToUse = this.getVersionToUse(pkg);
@@ -279,40 +275,61 @@ export class IdfToolsManager {
         return toolMetadata;
       });
     });
-    await utils.doesPathExists(metadataFile).then(async (doesFileExists) => {
-      if (doesFileExists) {
-        await utils
-          .readJson(metadataFile)
-          .then(async (metadata: IMetadataFile) => {
-            if (metadata.tools) {
-              for (const tool of toolsMetadata) {
-                const existingPath = metadata.tools.filter(
-                  (toolMeta) => toolMeta.path === tool.path
-                );
-                if (
-                  typeof existingPath === "undefined" ||
-                  existingPath.length === 0
-                ) {
-                  metadata.tools.push(tool);
-                }
-              }
-            } else {
-              metadata.tools = toolsMetadata;
-            }
-            await utils.writeJson(metadataFile, metadata);
-          });
-      } else {
-        const metadata: IMetadataFile = {
-          tools: toolsMetadata,
-        } as IMetadataFile;
-        await utils.writeJson(metadataFile, metadata);
-      }
-    });
 
+    await utils.writeToMetadataFile(toolsMetadata);
     return toolsMetadata
       .reduce((prev, curr) => {
         return `${prev}${path.delimiter}${curr.path}`;
       }, "")
       .substr(1);
+  }
+
+  public async writeMetadataFromExtraPaths(
+    pathsToVerify: string,
+    extraVars: {},
+    toolsVersion
+  ) {
+    await this.getPackageList().then(async (pkgs) => {
+      const promises = pkgs.map(async (pkg) => {
+        const updatedVars = {};
+        for (const k of Object.keys(pkg.export_vars)) {
+          if (Object.prototype.hasOwnProperty.call(extraVars, k)) {
+            updatedVars[k] = extraVars[k];
+          }
+        }
+        const toolVersion = toolsVersion.filter((t) => t.id === pkg.name);
+        const locCmd = process.platform === "win32" ? "where" : "which";
+        const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
+        const toolPath = await utils
+          .execChildProcess(
+            `${locCmd} ${pkg.version_cmd[0]}`,
+            process.cwd(),
+            this.toolsManagerChannel,
+            { cwd: process.cwd(), env: { PATH: pathModified } }
+          )
+          .catch((reason) => {
+            this.toolsManagerChannel.appendLine(reason);
+            Logger.error(reason, new Error(reason));
+            return "Error";
+          });
+        const ending = `${path.sep}${pkg.version_cmd[0]}`;
+        const toolDirPath = toolPath.slice(
+          0,
+          toolPath.length - ending.length - 1
+        );
+        const toolInfo = {
+          id: uuidv4(),
+          name: pkg.name,
+          path: toolDirPath,
+          version: toolVersion[0].actual,
+          env: updatedVars,
+        } as ITool;
+        return toolInfo;
+      });
+
+      await Promise.all(promises).then(async (toolsInfo) => {
+        await utils.writeToMetadataFile(toolsInfo);
+      });
+    });
   }
 }
