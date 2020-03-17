@@ -21,8 +21,8 @@ jobs:
       - name: Install Node Dependencies
         run: yarn
 
-      - name: Typescript Linting
-        run: yarn run tslint
+      - name: Prettier Check
+        run: yarn prettier --check "**/*.*"
 
       - name: Check Node Packages Vulnerabilities
         run: yarn audit
