@@ -58,6 +58,7 @@
         </div>
         <div class="container" v-if="heap">
           <div class="notification">
+            <quick-action-menu v-on:change="heapViewChange"></quick-action-menu>
             <div>
               <plot
                 v-show="heapView.plot"
@@ -85,8 +86,6 @@
                 v-bind:total-count="totalCount"
               />
             </div>
-
-            <quick-action-menu v-on:change="heapViewChange"></quick-action-menu>
           </div>
           <quick-call-stack
             v-if="tracePane"
