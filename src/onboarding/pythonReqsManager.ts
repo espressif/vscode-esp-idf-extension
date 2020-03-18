@@ -83,6 +83,7 @@ export async function checkPythonRequirements(
             adapterReqLog.indexOf("are not satisfied") < 0
           ) {
             OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
+            await savePythonEnvInMetadataFile(pythonBinPath);
           }
         });
     })

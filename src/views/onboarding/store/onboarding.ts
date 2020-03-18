@@ -40,6 +40,7 @@ export const onboardState: IState = {
   pathDelimiter: "",
   pyBinPath: "",
   previousIsValid: false,
+  pyBinPath: "",
   pyLog: "",
   pyVersionList: [],
   pythonSysPathIsValid: false,

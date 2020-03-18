@@ -272,6 +272,13 @@ window.addEventListener("message", (event) => {
         store.commit("setToolsVersionsMetadata", message.toolsVersions);
       }
       break;
+    case "load_python_bin_path":
+      if (message.pythonBinPath) {
+        // tslint:disable-next-line: no-console
+        console.log(message.pythonBinPath);
+        store.commit("setPythonBinPath", message.pythonBinPath);
+      }
+      break;
     case "previous_tools_validation_done":
       store.commit("setPreviousIsValid", true);
       break;

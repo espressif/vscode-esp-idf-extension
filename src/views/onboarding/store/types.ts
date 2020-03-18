@@ -64,6 +64,7 @@ export interface IState {
   pathDelimiter: string;
   pyBinPath: string;
   previousIsValid: boolean;
+  pyBinPath: string;
   pyLog: string;
   pyVersionList: string[];
   pythonSysPathIsValid: boolean;
