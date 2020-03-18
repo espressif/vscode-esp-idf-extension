@@ -10,9 +10,10 @@
                         {{ ver.path }}
                     </option>
                 </select>
-                <br><br>
+                <p>Selected ESP-IDF Path version: {{ previousIdfVersion }}</p>
                 <div v-if="venvVersionsMetadata && venvVersionsMetadata.length > 0">
                     <label for="python-version-select">Python version:</label>
+                    <br><br>
                     <select v-model="selectedVenvMetadata" @change="setPreviousIsValid(false)">
                         <option v-for="env in venvVersionsMetadata" :key="env.id" :value="env">
                             {{ env.path }}
@@ -59,6 +60,7 @@ export default class UsePrevious extends Vue {
     @State("venvVersionsMetadata") private storeVenvVersionsMetadata: IPath[];
     @State("selectedVenvMetadata") private storeSelectedVenvMetadata: IPath;
     @State("toolsInMetadata") private storeToolsInMetadata: ITool[];
+    @State("previousIdfVersion") private storePreviousIdfVersion: string;
     @State("previousIsValid") private storePreviousIsValid: boolean;
     @Action("checkPreviousAreValid") private checkAreValid;
     @Action("getPyVenvIdfToolsForVersion") private getPyVenvIdfTools;
@@ -91,6 +93,10 @@ export default class UsePrevious extends Vue {
 
     get toolsInMetadata() {
         return this.storeToolsInMetadata;
+    }
+
+    get previousIdfVersion() {
+        return this.storePreviousIdfVersion;
     }
 
     get previousIsValid() {
@@ -166,5 +172,8 @@ export default class UsePrevious extends Vue {
     }
     .toolsMetadata input {
         width: -webkit-fill-available;
+    }
+    select {
+        width: 100%;
     }
 </style>

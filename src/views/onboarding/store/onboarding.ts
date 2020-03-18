@@ -38,7 +38,7 @@ export const onboardState: IState = {
   isPyInstallCompleted: false,
   isToolsCheckCompleted: false,
   pathDelimiter: "",
-  pyBinPath: "",
+  previousIdfVersion: "",
   previousIsValid: false,
   pyBinPath: "",
   pyLog: "",

@@ -254,6 +254,11 @@ window.addEventListener("message", (event) => {
         );
       }
       break;
+    case "load_selected_esp_idf_previous":
+      if (message.idfVersion) {
+        store.commit("setPreviousSettingsIdfVersion", message.idfVersion);
+      }
+      break;
     case "load_venv_versions_metadata":
       if (message.venvVersions) {
         store.commit("setVenvVersionsMetadata", message.venvVersions);
@@ -274,8 +279,6 @@ window.addEventListener("message", (event) => {
       break;
     case "load_python_bin_path":
       if (message.pythonBinPath) {
-        // tslint:disable-next-line: no-console
-        console.log(message.pythonBinPath);
         store.commit("setPythonBinPath", message.pythonBinPath);
       }
       break;

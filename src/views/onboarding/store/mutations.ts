@@ -132,6 +132,11 @@ export const mutations: MutationTree<IState> = {
     newState.pathDelimiter = pathDelimiter;
     Object.assign(state, newState);
   },
+  setPreviousSettingsIdfVersion(state, idfVersion: string) {
+    const newState = state;
+    newState.previousIdfVersion = idfVersion;
+    Object.assign(state, newState);
+  },
   setRequiredToolsVersion(state, requiredToolsVersions: IToolStatus[]) {
     const newState = state;
     newState.requiredToolsVersions = requiredToolsVersions;

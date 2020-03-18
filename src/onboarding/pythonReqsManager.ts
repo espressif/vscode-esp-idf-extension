@@ -198,7 +198,7 @@ export async function savePythonEnvInMetadataFile(pythonEnvBinPath: string) {
         .readJson(metadataFile)
         .then(async (metadata: IMetadataFile) => {
           if (metadata.venv) {
-            const existingPath = metadata.idf.filter(
+            const existingPath = metadata.venv.filter(
               (venvMeta) => venvMeta.path === pythonEnvMetadata.path
             );
             if (

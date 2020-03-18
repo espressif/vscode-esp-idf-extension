@@ -676,6 +676,10 @@ export class OnBoardingPanel {
 
   private loadMetadataForIdfPath(idfPath: string) {
     utils.getEspIdfVersion(idfPath).then(async (idfVersion) => {
+      this.panel.webview.postMessage({
+        command: "load_selected_esp_idf_previous",
+        idfVersion,
+      });
       if (this.metadataJson && this.metadataJson.venv) {
         const venvForIdfVersion = this.metadataJson.venv.filter(
           (pyEnv: IPath) => {
