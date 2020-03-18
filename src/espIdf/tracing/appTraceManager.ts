@@ -155,7 +155,7 @@ export class AppTraceManager extends EventEmitter {
         const skipSize = idfConf.readParameter("trace.skip_size");
         const startTrackingHandler = this.sendCommandToTCLSession(
           [
-            "esp32",
+            "esp",
             "apptrace",
             "start",
             fileName,

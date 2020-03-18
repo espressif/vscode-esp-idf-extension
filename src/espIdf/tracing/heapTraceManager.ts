@@ -78,7 +78,6 @@ export class HeapTraceManager extends EventEmitter {
           workspace,
           "trace"
         )}/htrace_${new Date().getTime()}.svdat`;
-        const target = idfConf.readParameter("idf.adapterTargetName");
         let showStopButtonTimer: any;
 
         commandChain
@@ -120,10 +119,13 @@ export class HeapTraceManager extends EventEmitter {
           })
           .buildCommand({
             command: `rbp 0x${addresses.heap_trace_start}`,
-            responseHandler: { type: "commandResponse", handler: ["\u001a"] }
+            responseHandler: {
+              type: "commandResponse",
+              handler: [TCLClient.DELIMITER]
+            }
           })
           .buildCommand({
-            command: `${target} sysview_mcore start ${fileName}`,
+            command: `esp sysview_mcore start ${fileName}`,
             responseHandler: { type: "commandResponse", handler: [] }
           })
           .buildCommand({
@@ -146,10 +148,13 @@ export class HeapTraceManager extends EventEmitter {
           })
           .buildCommand({
             command: `rbp 0x${addresses.heap_trace_stop}`,
-            responseHandler: { type: "commandResponse", handler: ["\u001a"] }
+            responseHandler: {
+              type: "commandResponse",
+              handler: [TCLClient.DELIMITER]
+            }
           })
           .buildCommand({
-            command: `${target} sysview stop`,
+            command: `esp sysview stop`,
             responseHandler: { type: "commandResponse", handler: [] }
           })
           .on("response", async (resp: Buffer, from: string) => {
