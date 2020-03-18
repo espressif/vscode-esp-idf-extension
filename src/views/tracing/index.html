@@ -65,18 +65,19 @@
                 v-bind:chart="plotData"
                 v-on:selected="plotSelected"
                 v-bind:events="eventIDs"
-              />
+              >
+              </plot>
               <call-stack
                 v-show="heapView.callStack"
                 v-bind:callstack="callStacks"
                 v-bind:cache="callersAddressTranslationTable"
                 v-on:event-filter-updated="filterCallStacks"
-              />
+              ></call-stack>
               <leak-list
                 v-show="heapView.leaks"
                 v-bind:leaks="allocLookupTable"
                 v-bind:cache="callersAddressTranslationTable"
-              />
+              ></leak-list>
               <stats-view
                 v-show="heapView.stats"
                 v-bind:persistent-count="persistentCount"
@@ -84,7 +85,7 @@
                 v-bind:transient-count="transientCount"
                 v-bind:total-bytes="totalBytes"
                 v-bind:total-count="totalCount"
-              />
+              ></stats-view>
             </div>
           </div>
           <quick-call-stack
