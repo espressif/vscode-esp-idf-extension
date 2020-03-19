@@ -1,5 +1,7 @@
 # ESP-IDF Visual Studio Code Extension
 
+![CI](https://github.com/espressif/vscode-esp-idf-extension/workflows/CI/badge.svg)
+
 Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](https://github.com/espressif/esp-idf) is official development framework for the [ESP-32](https://espressif.com/en/products/hardware/esp32/overview) chip.
 
 The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
