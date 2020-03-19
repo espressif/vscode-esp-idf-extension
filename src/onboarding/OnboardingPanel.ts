@@ -190,7 +190,14 @@ export class OnBoardingPanel {
               this.selectedWorkspaceFolder
             );
             this.updateIdfToolsManager(message.idf_path);
-            saveIdfPathInMetadataFile(message.idf_path);
+            saveIdfPathInMetadataFile(message.idf_path).then(async () => {
+              await utils.loadMetadata().then((metadataJson) => {
+                this.updatePreviousIdfFromMetadata(
+                  message.idf_path,
+                  metadataJson
+                );
+              });
+            });
           }
           break;
         case "checkIdfToolsForPaths":
@@ -238,7 +245,12 @@ export class OnBoardingPanel {
                   this.extensionPath,
                   this.selectedWorkspaceFolder,
                   message.py_bin_path
-                );
+                ).then(async () => {
+                  const espIdfPath = idfConf.readParameter("idf.espIdfPath");
+                  await utils.loadMetadata().then((metadataJson) => {
+                    this.loadMetadataForIdfPath(espIdfPath, metadataJson);
+                  });
+                });
               });
           } else {
             if (message.py_bin_path === "") {
@@ -304,10 +316,17 @@ export class OnBoardingPanel {
                   this.confTarget,
                   this.selectedWorkspaceFolder,
                   this.pythonSystemBinPath
-                ).catch((reason) => {
-                  OutputChannel.appendLine(reason);
-                  Logger.info(reason);
-                });
+                )
+                  .then(async () => {
+                    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
+                    await utils.loadMetadata().then((metadataJson) => {
+                      this.loadMetadataForIdfPath(espIdfPath, metadataJson);
+                    });
+                  })
+                  .catch((reason) => {
+                    OutputChannel.appendLine(reason);
+                    Logger.info(reason);
+                  });
               });
           }
           break;
@@ -316,7 +335,7 @@ export class OnBoardingPanel {
           break;
         case "getPyVenvIdfToolsForVersion":
           if (message.idf && message.idf.path) {
-            this.loadMetadataForIdfPath(message.idf.path);
+            this.loadMetadataForIdfPath(message.idf.path, this.metadataJson);
           }
           break;
         case "checkPreviousAreValid":
@@ -509,6 +528,11 @@ export class OnBoardingPanel {
               await saveIdfPathInMetadataFile(
                 path.join(message.idfPath, "esp-idf")
               );
+              const metadataJson = await utils.loadMetadata();
+              this.updatePreviousIdfFromMetadata(
+                path.join(message.idfPath, "esp-idf"),
+                metadataJson
+              );
               await this.updateIdfToolsManager(
                 path.join(message.idfPath, "esp-idf")
               );
@@ -655,36 +679,43 @@ export class OnBoardingPanel {
       });
     }
 
-    if (onboardingArgs.metadataJson && this.metadataJson.idf) {
-      this.metadataJson = onboardingArgs.metadataJson;
-      const idfVersions = this.metadataJson.idf;
-      this.panel.webview.postMessage({
-        command: "load_idf_versions_metadata",
-        idfVersions,
-      });
-      const selectedIdf = this.metadataJson.idf.find((idfMeta) => {
-        return idfMeta.path === espIdfPath;
-      });
-      const selected = selectedIdf;
-      this.panel.webview.postMessage({
-        command: "load_selected_idf_version_metadata",
-        selectedEspIdfVersionMetadata: selected,
-      });
-      this.loadMetadataForIdfPath(espIdfPath);
+    if (onboardingArgs.metadataJson && onboardingArgs.metadataJson.idf) {
+      this.updatePreviousIdfFromMetadata(
+        espIdfPath,
+        onboardingArgs.metadataJson
+      );
     }
   }
 
-  private loadMetadataForIdfPath(idfPath: string) {
+  private updatePreviousIdfFromMetadata(
+    espIdfPath: string,
+    metadataJson: IMetadataFile
+  ) {
+    this.metadataJson = metadataJson;
+    const idfVersions = metadataJson.idf;
+    this.panel.webview.postMessage({
+      command: "load_idf_versions_metadata",
+      idfVersions,
+    });
+    const selectedIdf = metadataJson.idf.find((idfMeta) => {
+      return idfMeta.path === espIdfPath;
+    });
+    this.panel.webview.postMessage({
+      command: "load_selected_idf_version_metadata",
+      selectedEspIdfVersionMetadata: selectedIdf,
+    });
+    this.loadMetadataForIdfPath(espIdfPath, metadataJson);
+  }
+
+  private loadMetadataForIdfPath(idfPath: string, metadataJson: IMetadataFile) {
     utils.getEspIdfVersion(idfPath).then(async (idfVersion) => {
       this.panel.webview.postMessage({
         command: "load_selected_esp_idf_previous",
         idfVersion,
       });
-      if (this.metadataJson && this.metadataJson.venv) {
-        const venvForIdfVersion = this.metadataJson.venv.filter(
-          (pyEnv: IPath) => {
-            return pyEnv.path.indexOf(idfVersion) > -1;
-          }
+      if (metadataJson && metadataJson.venv) {
+        const venvForIdfVersion = metadataJson.venv.filter(
+          (pyEnv: IPath) => pyEnv.path.indexOf(idfVersion) > -1
         );
         this.panel.webview.postMessage({
           command: "load_venv_versions_metadata",
@@ -718,7 +749,7 @@ export class OnBoardingPanel {
             .then((pkgs) => {
               return pkgs.map((pkg) => {
                 const versionToUse = previousToolsManager.getVersionToUse(pkg);
-                const toolMeta = this.metadataJson.tools.find((tool) => {
+                const toolMeta = metadataJson.tools.find((tool) => {
                   return (
                     tool.version === versionToUse && tool.name === pkg.name
                   );
