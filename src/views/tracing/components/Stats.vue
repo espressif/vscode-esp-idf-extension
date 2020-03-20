@@ -33,6 +33,13 @@
   </table>
 </template>
 
+<style lang="scss" scoped>
+.table thead th,
+.table thead td {
+  color: var(--vscode-foreground);
+}
+</style>
+
 <script lang="ts">
 import Vue from "vue";
 export default Vue.extend({

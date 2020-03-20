@@ -74,8 +74,8 @@ const app = new Vue({
     log: null,
     heap: false,
     heapView: {
-      stats: true,
-      plot: false,
+      stats: false,
+      plot: true,
       callStack: false,
       leaks: false
     },

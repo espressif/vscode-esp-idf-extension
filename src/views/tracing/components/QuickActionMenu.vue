@@ -2,17 +2,17 @@
   <div>
     <button
       class="button no-bottom-border"
-      data-dict-key="stats"
-      v-on:click="heapViewChange"
-    >
-      Overall Stats
-    </button>
-    <button
-      class="button no-bottom-border"
       data-dict-key="plot"
       v-on:click="heapViewChange"
     >
       Visual Data
+    </button>
+    <button
+      class="button no-bottom-border"
+      data-dict-key="stats"
+      v-on:click="heapViewChange"
+    >
+      Overall Stats
     </button>
     <button
       class="button no-bottom-border"
