@@ -37,7 +37,7 @@
 import Vue from "vue";
 export default Vue.extend({
   props: {
-    persistentCount: String,
+    persistentCount: Number,
     persistentBytes: Number,
     transientCount: Number,
     totalBytes: Number,
