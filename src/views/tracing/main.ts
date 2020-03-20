@@ -263,10 +263,23 @@ const app = new Vue({
     },
     transientCount() {
       //total number of memory allocations that have been freed
-      return 0;
+      if (!plotDataReceived) {
+        return 0;
+      }
+      return (
+        plotDataReceived.events.filter(
+          (event: any) => event.id === this.eventIDs.alloc
+        ).length - this.persistentCount
+      );
     },
     totalBytes() {
       //total allocated memory
+      if (!plotDataReceived) {
+        return 0;
+      }
+      return plotDataReceived.events
+        .filter((event: any) => event.id === this.eventIDs.alloc)
+        .reduce((acc: any, current: any) => acc + current.size, 0);
     },
     totalCount() {
       return this.persistentCount + this.transientCount;
