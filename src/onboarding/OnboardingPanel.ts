@@ -192,6 +192,7 @@ export class OnBoardingPanel {
             this.updateIdfToolsManager(message.idf_path);
             saveIdfPathInMetadataFile(message.idf_path).then(async () => {
               await utils.loadMetadata().then((metadataJson) => {
+                onboardingArgs.metadataJson = metadataJson;
                 this.updatePreviousIdfFromMetadata(
                   message.idf_path,
                   metadataJson
@@ -248,6 +249,7 @@ export class OnBoardingPanel {
                 ).then(async () => {
                   const espIdfPath = idfConf.readParameter("idf.espIdfPath");
                   await utils.loadMetadata().then((metadataJson) => {
+                    onboardingArgs.metadataJson = metadataJson;
                     this.loadMetadataForIdfPath(espIdfPath, metadataJson);
                   });
                 });
@@ -320,6 +322,7 @@ export class OnBoardingPanel {
                   .then(async () => {
                     const espIdfPath = idfConf.readParameter("idf.espIdfPath");
                     await utils.loadMetadata().then((metadataJson) => {
+                      onboardingArgs.metadataJson = metadataJson;
                       this.loadMetadataForIdfPath(espIdfPath, metadataJson);
                     });
                   })
@@ -529,6 +532,7 @@ export class OnBoardingPanel {
                 path.join(message.idfPath, "esp-idf")
               );
               const metadataJson = await utils.loadMetadata();
+              onboardingArgs.metadataJson = metadataJson;
               this.updatePreviousIdfFromMetadata(
                 path.join(message.idfPath, "esp-idf"),
                 metadataJson
