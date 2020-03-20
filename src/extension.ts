@@ -529,6 +529,8 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
+
   registerIDFCommand("espIdf.flashDevice", flash);
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -1253,6 +1255,23 @@ function createMonitor(): any {
     const envSetCmd = process.platform === "win32" ? "set" : "export";
     monitorTerminal.sendText(`${envSetCmd} IDF_PATH=${idfPathDir}`);
     monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
+  });
+}
+
+function createIdfTerminal() {
+  PreCheck.perform([webIdeCheck, openFolderCheck], () => {
+    const modifiedEnv = utils.appendIdfAndToolsToPath();
+    const espIdfTerminal = vscode.window.createTerminal({
+      name: "ESP-IDF Terminal",
+      env: modifiedEnv,
+      cwd: workspaceRoot.fsPath,
+    });
+    espIdfTerminal.show();
+    const envSetCmd =
+      process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
+    espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
+    const clearCmd = process.platform === "win32" ? "cls" : "clear";
+    espIdfTerminal.sendText(clearCmd);
   });
 }
 

@@ -26,6 +26,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.configDevice",
@@ -312,6 +313,10 @@
         "title": "%espIdf.createVsCodeFolder.title%"
       },
       {
+        "command": "espIdf.createIdfTerminal",
+        "title": "%espIdf.createIdfTerminal.title%"
+      },
+      {
         "command": "espIdf.setPath",
         "title": "%espIdf.setPath.title%"
       },
@@ -485,7 +490,7 @@
     "snippets": [
       {
         "language": "kconfig",
-        "path": "./src/kconfig/kconfig.code-snippets"
+        "path": "./snippets/kconfig.code-snippets"
       }
     ]
   },

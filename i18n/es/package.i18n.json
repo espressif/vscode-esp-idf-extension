@@ -1,5 +1,6 @@
 {
   "espIdf.createFiles.title": "ESP-IDF: Crear proyecto",
+  "espIdf.createIdfTerminal.title": "ESP-IDF: Abrir terminal ESP-IDF",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Agregar carpeta de configuración vscode",
   "espIdf.setPath.title": "ESP-IDF: Configurar rutas ESP-IDF",
   "espIdf.setTarget.title": "ESP-IDF: Selecciona el dispositivo Espressif a utilizar",

@@ -523,9 +523,13 @@ export function validateFileSizeAndChecksum(
 }
 
 export function appendIdfAndToolsToPath() {
+  const modifiedEnv: NodeJS.ProcessEnv = {};
+  Object.assign(modifiedEnv, process.env);
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-  if (!process.env.PATH.includes(extraPaths)) {
-    process.env.PATH = extraPaths + path.delimiter + process.env.PATH;
+  const originalPath =
+    process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH;
+  if (originalPath && !originalPath.includes(extraPaths)) {
+    modifiedEnv.PATH = extraPaths + path.delimiter + originalPath;
   }
 
   const customVars = idfConf.readParameter("idf.customExtraVars") as string;
@@ -533,7 +537,7 @@ export function appendIdfAndToolsToPath() {
     try {
       for (const envVar in JSON.parse(customVars)) {
         if (envVar) {
-          process.env[envVar] = customVars[envVar];
+          modifiedEnv[envVar] = customVars[envVar];
         }
       }
     } catch (error) {
@@ -542,15 +546,40 @@ export function appendIdfAndToolsToPath() {
   }
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-  process.env.IDF_PATH = idfPathDir || process.env.IDF_PATH;
+  modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
+  modifiedEnv.PATH =
+    path.join(modifiedEnv.IDF_PATH, "tools") +
+    path.delimiter +
+    modifiedEnv.PATH;
+  let IDF_ADD_PATHS_EXTRAS = path.join(
+    modifiedEnv.IDF_PATH,
+    "components",
+    "esptool_py",
+    "esptool"
+  );
+  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
+    modifiedEnv.IDF_PATH,
+    "components",
+    "espcoredump"
+  )}`;
+  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
+    modifiedEnv.IDF_PATH,
+    "components",
+    "partition_table"
+  )}`;
+  modifiedEnv.PATH = `"${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv.PATH}"`;
 
   const idfTarget = idfConf.readParameter("idf.adapterTargetName");
-  process.env.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
+  modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
-  process.env.PYTHON =
-    idfConf.readParameter("idf.pythonBinPath") || process.env.PYTHON;
+  modifiedEnv.PYTHON =
+    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
 
-  return process.env;
+  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
+    path.dirname(modifiedEnv.PYTHON)
+  );
+
+  return modifiedEnv;
 }
 
 export async function isBinInPath(binaryName: string, workDirectory: string) {
