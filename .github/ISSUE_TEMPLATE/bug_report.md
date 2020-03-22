@@ -31,5 +31,11 @@ If applicable, add screenshots to help explain your problem.
 - ESP-IDF Version: [e.g. v3.2.2]
 - Python Version: [e.g. 2.7.10]
 
+**Logs**
+If applicable, please share the log file which can be obtained from
+
+- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
+- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
+
 **Additional context**
 Add any other context about the problem here.
