@@ -20,7 +20,8 @@ import { ChildProcess, spawn } from "child_process";
 import { mkdirSync } from "fs";
 import { join } from "path";
 import * as treeKill from "tree-kill";
-import { OutputChannel } from "vscode";
+import { OutputChannel, workspace } from "vscode";
+import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 
 export class BuildManager {
@@ -33,6 +34,13 @@ export class BuildManager {
         this.outputChannel = outputChannel;
     }
     public async build() {
+        try {
+            await workspace.saveAll();
+        } catch (error) {
+            const errorMessage = "Failed to save unsaved files, ignoring and continuing with the build";
+            Logger.error(errorMessage, error);
+            Logger.warnNotify(errorMessage);
+        }
         await this._build("cmake", [
             "-G", "Ninja",
             `..`,
