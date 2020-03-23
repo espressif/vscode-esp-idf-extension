@@ -79,7 +79,19 @@ const LeakList = Vue.extend({
   },
   computed: {
     leakList() {
-      return Object.keys(this.leaks);
+      return Object.keys(this.leaks).filter(calls => {
+        if (this.filter.functionName && this.filter.functionName !== "") {
+          return (
+            this.fetchFunctionNameForAddr(calls)
+              .toLowerCase()
+              .match(this.filter.functionName.toLowerCase()) ||
+            this.fetchFunctionFilePath(calls)
+              .toLowerCase()
+              .match(this.filter.functionName.toLowerCase())
+          );
+        }
+        return true;
+      });
     },
     totalMemory() {
       let total = 0;
@@ -107,6 +119,20 @@ const LeakList = Vue.extend({
         });
       }
       this.isExpanded = !this.isExpanded;
+    },
+    fetchFunctionNameForAddr(addr: string): string {
+      const tree = this.createTreeFromAddressArray(addr);
+      if (tree && tree.name) {
+        return tree.name;
+      }
+      return addr;
+    },
+    fetchFunctionFilePath(addr: string): string {
+      const tree = this.createTreeFromAddressArray(addr);
+      if (tree && tree.description) {
+        return tree.description;
+      }
+      return addr;
     }
   }
 });
