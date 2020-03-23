@@ -28,7 +28,7 @@
 	"param.toolsPath": "Ruta de las herramientas de ESP-IDF (IDF_TOOLS_PATH)",
 	"param.exportPaths": "Rutas para agregar a PATH",
 	"param.exportVars": "Variables para agregar a variables de sistema",
-	"param.espIdfPath": "Ruta del entorno de trabajo ESP-IDF (IDF_PATH)" ,
+	"param.espIdfPath": "Ruta del entorno de trabajo ESP-IDF (IDF_PATH)",
 	"param.useIDFKConfigStyle": "Habilitar/Deshabilitar validación de estilo ESP-IDF para archivos Kconfig",
 	"param.showOnboardingOnInit": "Mostrar ventana de configuración ESP-IDF",
 	"view.components.name": "Componentes de proyecto",
@@ -40,5 +40,6 @@
 	"trace.trace_size.description": "trace_size will set for the apptrace",
 	"trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
 	"trace.wait4halt.description": "wait4halt will be set for the apptrace",
-	"trace.skip_size.description": "skip_size will be set for the apptrace"
+	"trace.skip_size.description": "skip_size will be set for the apptrace",
+	"param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos"
 }
