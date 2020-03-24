@@ -13,12 +13,12 @@
 // limitations under the License.
 
 export class PackageError extends Error {
-    constructor(
-        public message: string,
-        public methodName: string,
-        public innerError: any = null,
-        public errorCode: string = " ",
-    ) {
-        super(message);
-    }
+  constructor(
+    public message: string,
+    public methodName: string,
+    public innerError: any = null,
+    public errorCode: string = " "
+  ) {
+    super(message);
+  }
 }

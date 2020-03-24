@@ -13,19 +13,17 @@
 // limitations under the License.
 
 export class PyReqLog {
-    private logListener;
-    private log: string;
-    constructor(
-        logListener,
-    ) {
-        this.log = "";
-        this.logListener = logListener;
-    }
-    set Log(val) {
-        this.log += val;
-        this.logListener(this.log);
-    }
-    get Log() {
-        return this.log;
-    }
+  private logListener;
+  private log: string;
+  constructor(logListener) {
+    this.log = "";
+    this.logListener = logListener;
+  }
+  set Log(val) {
+    this.log += val;
+    this.logListener(this.log);
+  }
+  get Log() {
+    return this.log;
+  }
 }

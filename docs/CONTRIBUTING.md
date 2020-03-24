@@ -24,27 +24,27 @@ If you can't find the issue in the already opened issues then please make sure t
 
 - Reference the issue in the commit message just after the first line
 - Consider starting the commit message with an [applicable emoji](https://gitmoji.carloscuesta.me)
-    - :art: `:art:` Improving structure / format of the code.
-    - :pencil2: `:pencil2:` Fixing typos.
-    - :zap: `:zap:` Improving performance.
-    - :fire: `:fire:` Removing files.
-    - :bug: `:bug:` Fixing a bug.
-    - :sparkles: `:sparkles:` Introducing new feature.
-    - :pencil: `:pencil:` Writing docs.
-    - :lipstick: `:lipstick:` Updating the web-view UI or style files
-    - :white_check_mark: `:white_check_mark:` Updating tests.
-    - :lock: `:lock:` Fixing security issues including node dependencies audit.
-    - :apple: `:apple:` Fixing something on macOS.
-    - :penguin: `:penguin:` Fixing something on Linux.
-    - :checkered_flag: `:checkered_flag:` Fixing something on Windows.
-    - :construction: `:construction:` Work in progress.
-    - :see_no_evil: `:see_no_evil:` Adding or updating a .gitignore file
-    - :twisted_rightwards_arrows: `:twisted_rightwards_arrows:` Merging branches.
-    - :rewind: `:rewind:` Reverting changes.
-    - :bookmark: `:bookmark:` Releasing / Version tags.
-    - :heavy_plus_sign: `:heavy_plus_sign:` Adding a dependency.
-    - :heavy_minus_sign: `:heavy_minus_sign:` Removing a dependency.
-    - :poop: `:poop:` Writing bad code that needs to be improved, just kidding please try to avoid this!
+  - :art: `:art:` Improving structure / format of the code.
+  - :pencil2: `:pencil2:` Fixing typos.
+  - :zap: `:zap:` Improving performance.
+  - :fire: `:fire:` Removing files.
+  - :bug: `:bug:` Fixing a bug.
+  - :sparkles: `:sparkles:` Introducing new feature.
+  - :pencil: `:pencil:` Writing docs.
+  - :lipstick: `:lipstick:` Updating the web-view UI or style files
+  - :white_check_mark: `:white_check_mark:` Updating tests.
+  - :lock: `:lock:` Fixing security issues including node dependencies audit.
+  - :apple: `:apple:` Fixing something on macOS.
+  - :penguin: `:penguin:` Fixing something on Linux.
+  - :checkered_flag: `:checkered_flag:` Fixing something on Windows.
+  - :construction: `:construction:` Work in progress.
+  - :see_no_evil: `:see_no_evil:` Adding or updating a .gitignore file
+  - :twisted_rightwards_arrows: `:twisted_rightwards_arrows:` Merging branches.
+  - :rewind: `:rewind:` Reverting changes.
+  - :bookmark: `:bookmark:` Releasing / Version tags.
+  - :heavy_plus_sign: `:heavy_plus_sign:` Adding a dependency.
+  - :heavy_minus_sign: `:heavy_minus_sign:` Removing a dependency.
+  - :poop: `:poop:` Writing bad code that needs to be improved, just kidding please try to avoid this!
 
 ## I18N related contributions
 

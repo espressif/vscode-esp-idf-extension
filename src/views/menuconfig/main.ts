@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCaretDown, faCaretRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCaretDown,
+  faCaretRight,
+  faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import vuescroll from "vue-scroll";
@@ -34,31 +38,31 @@ Vue.use(VueTheMask);
 
 // tslint:disable-next-line: no-unused-expression
 new Vue({
-    el: "#menuconfig",
-    components: { Menuconfig },
-    store,
-    template: "<Menuconfig />",
+  el: "#menuconfig",
+  components: { Menuconfig },
+  store,
+  template: "<Menuconfig />",
 });
 
 window.addEventListener("message", (event) => {
-    const message = event.data;
-    switch (message.command) {
-        case "load_initial_values":
-            if (message.menus) {
-                store.commit("setInitialValues", message.menus);
-            }
-            break;
-        case "update_values":
-            if (message.updated_values) {
-                store.commit("updateValues", message.updated_values);
-            }
-            break;
-        case "load_dictionary":
-            if (message.text_dictionary) {
-                store.commit("loadTextDictionary", message.text_dictionary);
-            }
-            break;
-        default:
-            break;
-    }
+  const message = event.data;
+  switch (message.command) {
+    case "load_initial_values":
+      if (message.menus) {
+        store.commit("setInitialValues", message.menus);
+      }
+      break;
+    case "update_values":
+      if (message.updated_values) {
+        store.commit("updateValues", message.updated_values);
+      }
+      break;
+    case "load_dictionary":
+      if (message.text_dictionary) {
+        store.commit("loadTextDictionary", message.text_dictionary);
+      }
+      break;
+    default:
+      break;
+  }
 });

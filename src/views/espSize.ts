@@ -39,7 +39,8 @@ const app = new Vue({
     isOverviewEnabled: true,
     overviewData: {},
     searchText: "",
-    subtitle: "Size analysis will provide users with in-depth analysis of the binary file generated from the project.",
+    subtitle:
+      "Size analysis will provide users with in-depth analysis of the binary file generated from the project.",
     title: "<strong>ESP-IDF</strong>&nbsp;Size Analysis",
   },
   methods: {
@@ -79,7 +80,11 @@ const app = new Vue({
         if (archive === archiveName) {
           toggleVisibility = !this.archives[archive].isFileInfoVisible;
         }
-        this.$set(this.archives[archive], "isFileInfoVisible", toggleVisibility);
+        this.$set(
+          this.archives[archive],
+          "isFileInfoVisible",
+          toggleVisibility
+        );
       });
     },
     convertToKB(byte: number) {
@@ -97,7 +102,13 @@ const app = new Vue({
         filteredObj = {};
         Object.keys(this.archives).forEach((archive) => {
           // tslint:disable-next-line: max-line-length
-          if (archive.toLowerCase().match(searchText.toLowerCase()) || (this.archives[archive].files && Object.keys(this.archives[archive].files).filter((file) => file.toLowerCase().match(this.searchText.toLowerCase())).length > 0)) {
+          if (
+            archive.toLowerCase().match(searchText.toLowerCase()) ||
+            (this.archives[archive].files &&
+              Object.keys(this.archives[archive].files).filter((file) =>
+                file.toLowerCase().match(this.searchText.toLowerCase())
+              ).length > 0)
+          ) {
             filteredObj[archive] = this.archives[archive];
           }
         });

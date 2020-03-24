@@ -15,52 +15,52 @@
 import * as tmp from "tmp";
 
 export interface IFileInfo {
-    sha256: string;
-    size: number;
-    url: string;
+  sha256: string;
+  size: number;
+  url: string;
 }
 
 export interface IVersion {
-    name: string;
-    status: string;
-    win32: IFileInfo;
-    win64: IFileInfo;
-    macos: IFileInfo;
-    linux_am64: IFileInfo;
-    linux_i686: IFileInfo;
+  name: string;
+  status: string;
+  win32: IFileInfo;
+  win64: IFileInfo;
+  macos: IFileInfo;
+  linux_am64: IFileInfo;
+  linux_i686: IFileInfo;
 }
 
 export interface IPlatformOverride {
-    install: string;
-    platforms: string[];
-    export_paths: [string[]];
+  install: string;
+  platforms: string[];
+  export_paths: [string[]];
 }
 
 export interface IPackage {
-    // Path to binaries
-    binaries: string[];
+  // Path to binaries
+  binaries: string[];
 
-    // Description of the package
-    description: string;
+  // Description of the package
+  description: string;
 
-    export_paths: [string[]];
+  export_paths: [string[]];
 
-    // Exports paths
-    export_vars: {};
+  // Exports paths
+  export_vars: {};
 
-    platform_overrides: IPlatformOverride[];
+  platform_overrides: IPlatformOverride[];
 
-    install: string;
+  install: string;
 
-    name: string;
+  name: string;
 
-    version_cmd: string[];
+  version_cmd: string[];
 
-    version_regex: string;
+  version_regex: string;
 
-    version_regex_replace: string;
+  version_regex_replace: string;
 
-    versions: IVersion[];
+  versions: IVersion[];
 
-    strip_container_dirs: number;
+  strip_container_dirs: number;
 }
