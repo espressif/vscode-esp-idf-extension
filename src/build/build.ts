@@ -20,7 +20,9 @@ import { ChildProcess, spawn } from "child_process";
 import { mkdirSync } from "fs";
 import { join } from "path";
 import * as treeKill from "tree-kill";
-import { OutputChannel } from "vscode";
+import { OutputChannel, workspace } from "vscode";
+import * as idfConf from "../idfConfiguration";
+import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 
 export class BuildManager {
@@ -33,6 +35,14 @@ export class BuildManager {
     this.outputChannel = outputChannel;
   }
   public async build() {
+    try {
+      await this.saveBeforeBuild();
+    } catch (error) {
+      const errorMessage =
+        "Failed to save unsaved files, ignoring and continuing with the build";
+      Logger.error(errorMessage, error);
+      Logger.warnNotify(errorMessage);
+    }
     await this._build("cmake", ["-G", "Ninja", `..`]);
     await this._build("cmake", ["--build", "."]);
   }
@@ -104,5 +114,11 @@ export class BuildManager {
   }
   private buildDone() {
     BuildManager.isBuilding = false;
+  }
+  private async saveBeforeBuild() {
+    const shallSaveBeforeBuild = idfConf.readParameter("idf.saveBeforeBuild");
+    if (shallSaveBeforeBuild) {
+      await workspace.saveAll();
+    }
   }
 }
