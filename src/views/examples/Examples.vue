@@ -10,7 +10,7 @@
                 @click="toggleExampleDetail(item)"
                 v-text="item.name"
                 :class="{
-                  selectedItem: storeSelectedExample.name === item.name
+                  selectedItem: storeSelectedExample.name === item.name,
                 }"
               />
             </li>
@@ -74,7 +74,7 @@ export default class Examples extends Vue {
       pedantic: false,
       sanitize: true,
       smartLists: true,
-      smartypants: false
+      smartypants: false,
     });
     return marked(this.storeExampleDetail);
   }
@@ -93,7 +93,7 @@ export default class Examples extends Vue {
 
   public groupBy(array: string[], key: string) {
     const result = {};
-    array.forEach(item => {
+    array.forEach((item) => {
       if (!result[item[key]]) {
         result[item[key]] = [];
       }
@@ -105,7 +105,7 @@ export default class Examples extends Vue {
   public openExample(selectedExample: IExample) {
     this.storeOpenExample({
       pathToOpen: selectedExample.path,
-      name: selectedExample.name
+      name: selectedExample.name,
     });
   }
 

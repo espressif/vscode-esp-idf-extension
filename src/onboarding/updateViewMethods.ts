@@ -17,41 +17,41 @@ import { OnBoardingPanel } from "./OnboardingPanel";
 export function sendDownloadPercentage(pkgName, updatedPercentage) {
   OnBoardingPanel.postMessage({
     command: "update_pkgs_download_percentage",
-    updatedPkgDownloadStatus: { id: pkgName, progress: updatedPercentage }
+    updatedPkgDownloadStatus: { id: pkgName, progress: updatedPercentage },
   });
 }
 
 export function sendChecksumResult(pkgName, updatedChecksumResult) {
   OnBoardingPanel.postMessage({
     command: "checksum_result",
-    isChecksumEqual: { id: pkgName, hashResult: updatedChecksumResult }
+    isChecksumEqual: { id: pkgName, hashResult: updatedChecksumResult },
   });
 }
 
 export function sendDownloadDetail(pkgName, updatedDetail) {
   OnBoardingPanel.postMessage({
     command: "update_pkg_download_detail",
-    updatedPkgDownloadDetail: { id: pkgName, progressDetail: updatedDetail }
+    updatedPkgDownloadDetail: { id: pkgName, progressDetail: updatedDetail },
   });
 }
 
 export function sendDownloadFailed(pkgName, failedFlag) {
   OnBoardingPanel.postMessage({
     command: "set_pkg_download_failed",
-    updatedPkgFailed: { id: pkgName, hasFailed: failedFlag }
+    updatedPkgFailed: { id: pkgName, hasFailed: failedFlag },
   });
 }
 
 export function sendDownloadEspIdfPercentage(version, updatedPercentage) {
   OnBoardingPanel.postMessage({
     command: "update_espidf_download_percentage",
-    updatedIdfDownloadStatus: { id: version, progress: updatedPercentage }
+    updatedIdfDownloadStatus: { id: version, progress: updatedPercentage },
   });
 }
 
 export function sendDownloadEspIdfDetail(version, updatedDetail) {
   OnBoardingPanel.postMessage({
     command: "update_espidf_download_detail",
-    updatedIdfDownloadDetail: { id: version, progressDetail: updatedDetail }
+    updatedIdfDownloadDetail: { id: version, progressDetail: updatedDetail },
   });
 }

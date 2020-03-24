@@ -31,7 +31,7 @@ import { Menu } from "../../espIdf/menuconfig/Menu";
 
 function filterItems(items: Menu[], searchString: string) {
   const filteredItems: Menu[] = [];
-  items.forEach(item => {
+  items.forEach((item) => {
     if (item.isVisible) {
       if (
         item.isVisible &&
@@ -72,11 +72,11 @@ export default class Menuconfig extends Vue {
   }
 
   get menuItems() {
-    return this.storeItems.filter(i => i.type === "menu");
+    return this.storeItems.filter((i) => i.type === "menu");
   }
 
   public onScroll() {
-    Array.from(document.querySelectorAll(".sidenav li")).forEach(el => {
+    Array.from(document.querySelectorAll(".sidenav li")).forEach((el) => {
       const sectionId: string = el.getAttribute("href") || "";
       const refElement = document.querySelector(sectionId);
       const topbar = document.querySelector("#topbar") as HTMLElement;
@@ -87,7 +87,7 @@ export default class Menuconfig extends Vue {
           topbar.getBoundingClientRect().bottom <
           topbar.offsetHeight
       ) {
-        Array.from(document.querySelectorAll(".sidenav li")).forEach(menu =>
+        Array.from(document.querySelectorAll(".sidenav li")).forEach((menu) =>
           menu.classList.remove("selectedSection")
         );
         el.classList.add("selectedSection");

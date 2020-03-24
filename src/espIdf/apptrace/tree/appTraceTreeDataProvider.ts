@@ -57,11 +57,11 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "play_light.svg"
-      )
+      ),
     };
     this.appTraceStartButton.command = {
       command: "espIdf.apptrace",
-      title: ""
+      title: "",
     };
   }
   public registerDataProviderForTree(treeName: string): vscode.Disposable {
@@ -90,7 +90,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "play_light.svg"
-      )
+      ),
     };
     this.appTraceStartButton.description = "";
     this.refresh();
@@ -117,7 +117,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "stop_light.svg"
-      )
+      ),
     };
     this.refresh();
   }

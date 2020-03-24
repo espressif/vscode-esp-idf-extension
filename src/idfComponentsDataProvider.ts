@@ -57,7 +57,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
   public getChildren(element?: IdfComponent): Thenable<IdfComponent[]> {
     // let components: IdfComponent[] = utils.readDirSync(element.uri);
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (element) {
         resolve(utils.readComponentsDirs(element.uri.fsPath));
       } else {
@@ -90,7 +90,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
             projDescJson.build_components[i],
             vscode.TreeItemCollapsibleState.Collapsed,
             vscode.Uri.file(projDescJson.build_component_paths[i]).with({
-              scheme: "vscode-resource"
+              scheme: "vscode-resource",
             })
           );
 

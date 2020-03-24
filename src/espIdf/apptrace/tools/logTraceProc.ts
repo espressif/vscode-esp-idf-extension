@@ -52,7 +52,7 @@ export class LogTraceProc {
       ["logtrace_proc.py", this.traceFilePath, this.elfFilePath],
       {
         cwd: this.appTraceToolsPath(),
-        env: process.env
+        env: process.env,
       }
     );
   }

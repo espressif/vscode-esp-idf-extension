@@ -19,7 +19,7 @@ import {
   faCheck,
   faFolder,
   faFolderOpen,
-  faTimes
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
@@ -34,14 +34,14 @@ const routes = [
   { path: "/", component: App },
   { path: "/download", component: Download },
   { path: "/toolsetup", component: ToolSetup },
-  { path: "/gitpycheck", component: GitPyCheck }
+  { path: "/gitpycheck", component: GitPyCheck },
 ];
 
 Vue.use(VueRouter);
 
 const router = new VueRouter({
   routes,
-  base: __dirname
+  base: __dirname,
 });
 
 library.add(
@@ -60,13 +60,13 @@ new Vue({
   components: { App },
   store,
   data: {
-    versions: []
+    versions: [],
   },
   router,
-  template: "<App />"
+  template: "<App />",
 });
 
-window.addEventListener("message", event => {
+window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
     case "load_idf_path":

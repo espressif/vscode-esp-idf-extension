@@ -106,7 +106,7 @@ export class AppTraceManager extends EventEmitter {
       value: savedConf,
       prompt,
       ignoreFocusOut: true,
-      validateInput: validatorFunction
+      validateInput: validatorFunction,
     });
     if (userInput) {
       await idfConf.writeParameter(paramName, userInput);
@@ -158,7 +158,7 @@ export class AppTraceManager extends EventEmitter {
             traceSize,
             stopTmo,
             wait4halt,
-            skipSize
+            skipSize,
           ].join(" ")
         );
         const tracingStatusHandler = this.appTracingStatusChecker(() => {

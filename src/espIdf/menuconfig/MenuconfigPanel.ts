@@ -69,8 +69,8 @@ export class MenuConfigPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, "dist", "views"))
-        ]
+          vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+        ],
       }
     );
 
@@ -81,7 +81,7 @@ export class MenuConfigPanel {
     const menuconfigViewDict = new LocDictionary("menuconfig", "views");
     this.panel.webview.postMessage({
       command: "load_dictionary",
-      text_dictionary: menuconfigViewDict.getDictionary()
+      text_dictionary: menuconfigViewDict.getDictionary(),
     });
 
     this.panel.onDidDispose(
@@ -109,7 +109,7 @@ export class MenuConfigPanel {
               { title: returnToGuiconfigMsg, isCloseAffordance: false },
               { title: discardMsg, isCloseAffordance: true }
             )
-            .then(selected => {
+            .then((selected) => {
               if (selected.title === saveMsg) {
                 ConfserverProcess.saveGuiConfigValues();
               } else if (selected.title === returnToGuiconfigMsg) {
@@ -127,7 +127,7 @@ export class MenuConfigPanel {
       this.disposables
     );
 
-    this.panel.webview.onDidReceiveMessage(async message => {
+    this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "updateValue":
           ConfserverProcess.setUpdatedValue(message.updated_value as Menu);
@@ -151,7 +151,7 @@ export class MenuConfigPanel {
               {
                 cancellable: true,
                 location: vscode.ProgressLocation.Notification,
-                title: "ESP-IDF: Menuconfig"
+                title: "ESP-IDF: Menuconfig",
               },
               async (
                 progress: vscode.Progress<{
@@ -187,7 +187,7 @@ export class MenuConfigPanel {
         case "requestInitValues":
           MenuConfigPanel.currentPanel.panel.webview.postMessage({
             command: "load_initial_values",
-            menus: initialValues
+            menus: initialValues,
           });
           break;
         default:
@@ -221,7 +221,7 @@ export class MenuConfigPanel {
     const updatedMenus = ConfserverProcess.updateValues(values);
     MenuConfigPanel.currentPanel.panel.webview.postMessage({
       command: "update_values",
-      updated_values: updatedMenus
+      updated_values: updatedMenus,
     });
   }
 

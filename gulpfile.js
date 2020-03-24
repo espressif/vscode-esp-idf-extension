@@ -23,10 +23,10 @@ const glob = require("glob");
 // If all VS Code languages are supported you can use nls.coreLanguages
 const languages = []; // [{ folderName: 'zh-CN', id: 'zh-CN' }, { folderName: 'es', id: 'es' }];
 
-const getDirs = p =>
-  readdirSync(p).filter(f => statSync(join(p, f)).isDirectory());
+const getDirs = (p) =>
+  readdirSync(p).filter((f) => statSync(join(p, f)).isDirectory());
 const languagesDirs = getDirs(join(__dirname, "i18n"));
-languagesDirs.forEach(langDir => {
+languagesDirs.forEach((langDir) => {
   languages.push({ folderName: langDir, id: langDir });
 });
 
@@ -71,7 +71,7 @@ const reduceSchemaObj = (schemaObj, parts) => {
 
 function validateLocalizationFiles(done) {
   const schema = require("./schema.i18n.json");
-  languages.forEach(l => {
+  languages.forEach((l) => {
     const langDirPath = join(
       __dirname,
       "i18n",
@@ -83,16 +83,16 @@ function validateLocalizationFiles(done) {
       if (err) {
         throw err;
       }
-      locFiles.forEach(locFile => {
+      locFiles.forEach((locFile) => {
         const localeJson = require(locFile);
         const parts = getPathParts(locFile);
         const schemaKeys = reduceSchemaObj(schema, parts);
-        schemaKeys.forEach(schemaKey => {
+        schemaKeys.forEach((schemaKey) => {
           if (!localeJson.hasOwnProperty(schemaKey)) {
             throw new Error(`${schemaKey} not defined in ${locFile}`);
           }
         });
-        Object.keys(localeJson).forEach(fileKey => {
+        Object.keys(localeJson).forEach((fileKey) => {
           if (schemaKeys.indexOf(fileKey) < 0) {
             console.log(`Unknown property ${fileKey} defined in ${locFile}`);
           }

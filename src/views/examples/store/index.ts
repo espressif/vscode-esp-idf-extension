@@ -43,7 +43,7 @@ export const examplesState: IState = {
   examplesPaths: [],
   selectedExample: { path: "", category: "", name: "" },
   hasExampleDetail: false,
-  exampleDetail: ""
+  exampleDetail: "",
 };
 
 export const mutations: MutationTree<IState> = {
@@ -67,7 +67,7 @@ export const mutations: MutationTree<IState> = {
     const newState = state;
     newState.hasExampleDetail = !newState.hasExampleDetail;
     Object.assign(state, newState);
-  }
+  },
 };
 
 export const actions: ActionTree<IState, any> = {
@@ -78,21 +78,21 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "openExampleProject",
       project_path: payload.pathToOpen,
-      name: payload.name
+      name: payload.name,
     });
   },
   getExampleDetail(context, payload) {
     vscode.postMessage({
       command: "getExampleDetail",
-      path: payload.pathToOpen
+      path: payload.pathToOpen,
     });
-  }
+  },
 };
 
 export const examples: StoreOptions<IState> = {
   state: examplesState,
   mutations,
-  actions
+  actions,
 };
 
 export const store = new Vuex.Store(examples);

@@ -27,12 +27,12 @@ export async function getPythonBinToUse(
   pythonBinPath: string
 ): Promise<string> {
   return getPythonEnvPath(espDir, idfToolsDir, pythonBinPath).then(
-    pyEnvPath => {
+    (pyEnvPath) => {
       const pythonInEnv =
         process.platform === "win32"
           ? path.join(pyEnvPath, "Scripts", "python.exe")
           : path.join(pyEnvPath, "bin", "python");
-      return pathExists(pythonInEnv).then(haveVirtualPython => {
+      return pathExists(pythonInEnv).then((haveVirtualPython) => {
         return haveVirtualPython ? pythonInEnv : pythonBinPath;
       });
     }
@@ -76,7 +76,7 @@ export async function installPythonEnv(
     pythonBinPath.indexOf(virtualEnvPython) < 0 &&
     utils.fileExists(virtualEnvPython)
   ) {
-    await del(pyEnvPath, { force: true }).catch(err => {
+    await del(pyEnvPath, { force: true }).catch((err) => {
       Logger.errorNotify("Error deleting virtualenv files", err);
     });
   }
@@ -143,7 +143,7 @@ export async function getPythonEnvPath(
 export async function checkPythonExists(pythonBin: string, workingDir: string) {
   return await utils
     .execChildProcess(`${pythonBin} --version`, workingDir)
-    .then(result => {
+    .then((result) => {
       if (result) {
         const match = result.match(/Python\s\d+(.\d+)?(.\d+)?/g);
         if (match && match.length > 0) {
@@ -157,7 +157,7 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
         }
       }
     })
-    .catch(err => {
+    .catch((err) => {
       if (err.message) {
         const match = err.message.match(/Python\s\d+.\d+.\d+/g);
         if (match && match.length > 0) {
@@ -174,7 +174,7 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
 export async function checkPipExists(pythonBin: string, workingDir: string) {
   return await utils
     .execChildProcess(`${pythonBin} -m pip --version`, workingDir)
-    .then(result => {
+    .then((result) => {
       if (result) {
         const match = result.match(/pip\s\d+(.\d+)?(.\d+)?/g);
         if (match && match.length > 0) {
@@ -188,7 +188,7 @@ export async function checkPipExists(pythonBin: string, workingDir: string) {
         }
       }
     })
-    .catch(err => {
+    .catch((err) => {
       Logger.errorNotify("Python pip is not found in current environment", err);
       return false;
     });
@@ -207,10 +207,10 @@ export async function getIdfToolsPythonList(
 ): Promise<string[]> {
   return utils
     .dirExistPromise(idfToolsDir)
-    .then(async doesExist => {
+    .then(async (doesExist) => {
       if (doesExist) {
         const pyEnvDir = path.join(idfToolsDir, "python_env");
-        return await utils.dirExistPromise(pyEnvDir).then(doesPyEnvExist => {
+        return await utils.dirExistPromise(pyEnvDir).then((doesPyEnvExist) => {
           if (doesPyEnvExist) {
             const results: string[] = [];
             const pythonBinaries = utils.getDirectories(pyEnvDir);
@@ -221,7 +221,7 @@ export async function getIdfToolsPythonList(
               process.platform === "win32"
                 ? ["Scripts", "python.exe"]
                 : ["bin", "python"];
-            pythonBinaries.forEach(pythonEnv => {
+            pythonBinaries.forEach((pythonEnv) => {
               const pyBin = path.join(pyEnvDir, pythonEnv, ...pyDir);
               if (utils.fileExists(pyBin)) {
                 results.push(pyBin);
@@ -236,7 +236,7 @@ export async function getIdfToolsPythonList(
         return [] as string[];
       }
     })
-    .catch(err => {
+    .catch((err) => {
       Logger.errorNotify(
         "Error while checking ESP-IDF Tools directory exists.",
         err
@@ -248,13 +248,13 @@ export async function getIdfToolsPythonList(
 export async function getUnixPythonList(workingDir: string) {
   return await utils
     .execChildProcess("which -a python python3", workingDir)
-    .then(result => {
+    .then((result) => {
       if (result) {
         const resultList = result.trim().split("\n");
         return resultList;
       }
     })
-    .catch(err => {
+    .catch((err) => {
       Logger.errorNotify("Error looking for python in system", err);
       return ["Not found"];
     });
@@ -265,12 +265,12 @@ export async function getPythonBinListWindows(workingDir: string) {
   const registryRootLocations = [
     "HKEY_CURRENT_USER\\SOFTWARE\\PYTHON",
     "HKEY_LOCAL_MACHINE\\SOFTWARE\\PYTHON",
-    "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432NODE\\PYTHON"
+    "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432NODE\\PYTHON",
   ];
   for (const root of registryRootLocations) {
     await utils
       .execChildProcess("reg query " + root, workingDir)
-      .then(async result => {
+      .then(async (result) => {
         if (result.trim() === "") {
           return;
         }
@@ -278,7 +278,7 @@ export async function getPythonBinListWindows(workingDir: string) {
         for (const company of companies) {
           await utils
             .execChildProcess("reg query " + company, workingDir)
-            .then(async companyTags => {
+            .then(async (companyTags) => {
               if (companyTags.trim() === "") {
                 return;
               }
@@ -291,13 +291,13 @@ export async function getPythonBinListWindows(workingDir: string) {
                   "reg query " + tags[tags.length - 1],
                   workingDir
                 )
-                .then(keyValues => {
+                .then((keyValues) => {
                   const values = keyValues.trim().split("\r\n");
                   for (const val of values) {
                     if (val.indexOf("InstallPath") !== -1) {
                       utils
                         .execChildProcess("reg query " + val, workingDir)
-                        .then(installPaths => {
+                        .then((installPaths) => {
                           const binPaths = installPaths.trim().split("\r\n");
                           for (const iPath of binPaths) {
                             const trimPath = iPath.trim().split(/\s+/);
@@ -306,7 +306,7 @@ export async function getPythonBinListWindows(workingDir: string) {
                             }
                           }
                         })
-                        .catch(err => {
+                        .catch((err) => {
                           Logger.error(
                             "Error looking for python in windows system",
                             err
@@ -315,19 +315,19 @@ export async function getPythonBinListWindows(workingDir: string) {
                     }
                   }
                 })
-                .catch(err => {
+                .catch((err) => {
                   Logger.error(
                     "Error looking for python in windows system",
                     err
                   );
                 });
             })
-            .catch(err => {
+            .catch((err) => {
               Logger.error("Error looking for python in windows system", err);
             });
         }
       })
-      .catch(err => {
+      .catch((err) => {
         Logger.error("Error looking for python in windows", err);
       });
   }

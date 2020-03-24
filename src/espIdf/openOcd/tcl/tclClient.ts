@@ -47,7 +47,7 @@ export class TCLClient extends EventEmitter {
         sock.destroy();
         resolve(true);
       });
-      sock.on("error", error => {
+      sock.on("error", (error) => {
         sock.destroy();
         resolve(false);
       });
@@ -71,14 +71,14 @@ export class TCLClient extends EventEmitter {
       this.isRunning = true;
       this.sendCommandToSocket(command);
     });
-    this.sock.on("data", data => {
+    this.sock.on("data", (data) => {
       flushBuffer = Buffer.concat([flushBuffer, data]);
       if (data.includes(TCLClient.DELIMITER)) {
         this.emit("response", flushBuffer);
         flushBuffer = Buffer.alloc(0);
       }
     });
-    this.sock.on("error", error => {
+    this.sock.on("error", (error) => {
       this.emit("error", error);
     });
   }

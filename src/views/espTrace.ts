@@ -39,16 +39,16 @@ const app = new Vue({
     title: "<strong>ESP-IDF</strong>&nbsp;App Tracing Reporter",
     fileName: "",
     isCalculating: false,
-    log: null
+    log: null,
   },
   methods: {
     showReport() {
       this.isCalculating = !this.isCalculating;
       vscode.postMessage({
-        command: "calculate"
+        command: "calculate",
       });
-    }
-  }
+    },
+  },
 });
 
 const updateModelWithTraceData = ({ trace }) => {

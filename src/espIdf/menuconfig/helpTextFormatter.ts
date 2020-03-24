@@ -29,7 +29,7 @@ export function formatRedText(htmlString) {
   if (htmlString && htmlString.match(redTextRegex) !== null) {
     let newHtmlString = htmlString;
     const matches = htmlString.match(redTextRegex);
-    matches.forEach(match => {
+    matches.forEach((match) => {
       const newMatch = `<span>${match.substr(2, match.length - 4)}</span>`;
       newHtmlString = newHtmlString.replace(match, newMatch);
     });
@@ -43,7 +43,7 @@ export function formatLinkText(htmlString) {
   if (htmlString && htmlString.match(linkRegex) !== null) {
     let newHtmlString = htmlString;
     const linkMatches = htmlString.match(linkRegex);
-    linkMatches.forEach(link => {
+    linkMatches.forEach((link) => {
       const newLink = `<a href="${link}">${link}</a>`;
       newHtmlString = newHtmlString.replace(link, newLink);
     });
@@ -64,7 +64,7 @@ export function formatBulletPoint(htmlString) {
       htmlString.lastIndexOf("\n-") < middleRegex.lastIndex
     ) {
       const bulletPointMatches = htmlString.match(middleRegex);
-      bulletPointMatches.forEach(bulletPoint => {
+      bulletPointMatches.forEach((bulletPoint) => {
         const replacement = `${bulletPoint
           .replace(bulletPointStart, "<ul><li>")
           .replace(bulletPointRegex, "</li><li>")}</li></ul>`;

@@ -16,7 +16,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCaretDown,
   faCaretRight,
-  faInfoCircle
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
@@ -41,10 +41,10 @@ new Vue({
   el: "#menuconfig",
   components: { Menuconfig },
   store,
-  template: "<Menuconfig />"
+  template: "<Menuconfig />",
 });
 
-window.addEventListener("message", event => {
+window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
     case "load_initial_values":

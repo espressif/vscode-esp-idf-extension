@@ -65,7 +65,7 @@ export class IDFSize {
       const overview = await this.idfCommandInvoker([
         "idf_size.py",
         mapFilePath,
-        "--json"
+        "--json",
       ]);
       progress.report({ increment: 30, message: locMsg });
 
@@ -77,7 +77,7 @@ export class IDFSize {
         "idf_size.py",
         mapFilePath,
         "--archives",
-        "--json"
+        "--json",
       ]);
       progress.report({ increment: 30, message: locMsg });
 
@@ -89,7 +89,7 @@ export class IDFSize {
         "idf_size.py",
         mapFilePath,
         "--file",
-        "--json"
+        "--json",
       ]);
       progress.report({ increment: 30, message: locMsg });
 
@@ -120,7 +120,7 @@ export class IDFSize {
         "idf.pythonBinPath"
       ) as string;
       const buffOut = await spawn(pythonBinPath, args, {
-        cwd: idfPath
+        cwd: idfPath,
       });
       const buffStr = buffOut.toString();
       const buffObj = JSON.parse(buffStr);

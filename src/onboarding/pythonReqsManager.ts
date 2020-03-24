@@ -33,7 +33,7 @@ export async function checkPythonRequirements(workingDir: string) {
   if (!canCheck) {
     OnBoardingPanel.postMessage({
       command: "response_py_req_check",
-      py_req_log: "Python or pip have not been found in your environment."
+      py_req_log: "Python or pip have not been found in your environment.",
     });
     return;
   }
@@ -57,29 +57,29 @@ export async function checkPythonRequirements(workingDir: string) {
       workingDir,
       OutputChannel.init()
     )
-    .then(pyReqLog => {
+    .then((pyReqLog) => {
       const resultLog = `Checking Python requirements using ${pythonBin}\n${pyReqLog}`;
       OutputChannel.appendLine(resultLog);
       Logger.info(resultLog);
       OnBoardingPanel.postMessage({
         command: "response_py_req_check",
-        py_req_log: resultLog
+        py_req_log: resultLog,
       });
       if (pyReqLog.indexOf("are not satisfied") < 0) {
         OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
       }
     })
-    .catch(reason => {
+    .catch((reason) => {
       if (reason.message) {
         Logger.error(reason.message, reason);
         OnBoardingPanel.postMessage({
           command: "response_py_req_check",
-          py_req_log: reason.message
+          py_req_log: reason.message,
         });
       } else {
         OnBoardingPanel.postMessage({
           command: "response_py_req_check",
-          py_req_log: reason
+          py_req_log: reason,
         });
       }
     });
@@ -111,7 +111,7 @@ export async function installPythonRequirements(workingDir: string) {
       pythonBinPath,
       OutputChannel.init()
     )
-    .then(async virtualEnvPythonBin => {
+    .then(async (virtualEnvPythonBin) => {
       if (virtualEnvPythonBin) {
         await idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
         OutputChannel.appendLine("Python requirements has been installed.");
@@ -123,7 +123,7 @@ export async function installPythonRequirements(workingDir: string) {
         OutputChannel.appendLine("Python requirements has not been installed.");
       }
     })
-    .catch(reason => {
+    .catch((reason) => {
       if (reason.message) {
         OutputChannel.appendLine(reason.message);
         sendPyReqLog(reason.message);
@@ -165,6 +165,6 @@ export async function getPythonList(workingDir: string) {
 export function sendPyReqLog(log: string) {
   OnBoardingPanel.postMessage({
     command: "response_py_req_install",
-    py_req_log: log
+    py_req_log: log,
   });
 }

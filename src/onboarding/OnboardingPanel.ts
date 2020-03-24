@@ -89,8 +89,8 @@ export class OnBoardingPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, "dist", "views"))
-        ]
+          vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+        ],
       }
     );
 
@@ -98,12 +98,12 @@ export class OnBoardingPanel {
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
-    this.panel.webview.onDidReceiveMessage(message => {
+    this.panel.webview.onDidReceiveMessage((message) => {
       switch (message.command) {
         case "command":
           this.panel.webview.postMessage({
             command: "command",
-            value: "exampleValue"
+            value: "exampleValue",
           });
           break;
         case "checkIdfPath":
@@ -114,15 +114,15 @@ export class OnBoardingPanel {
               "idf.py"
             );
             const doesIdfExist = utils.fileExists(idfBinaryPath);
-            utils.getEspIdfVersion(message.new_value).then(idfVersion => {
+            utils.getEspIdfVersion(message.new_value).then((idfVersion) => {
               this.panel.webview.postMessage({
                 command: "response_check_idf_version",
-                version: idfVersion
+                version: idfVersion,
               });
             });
             this.panel.webview.postMessage({
               command: "response_check_idf_path",
-              doesIdfExists: doesIdfExist
+              doesIdfExists: doesIdfExist,
             });
           }
           break;
@@ -135,21 +135,21 @@ export class OnBoardingPanel {
         case "checkIdfToolsForPaths":
           this.idfToolsManager
             .checkToolsVersion(message.new_value)
-            .then(dictTools => {
+            .then((dictTools) => {
               const pkgsNotFound = dictTools.filter(
-                p => p.doesToolExist === false
+                (p) => p.doesToolExist === false
               );
               if (pkgsNotFound.length === 0) {
                 this.panel.webview.postMessage({
-                  command: "set_tools_check_finish"
+                  command: "set_tools_check_finish",
                 });
               }
               this.panel.webview.postMessage({
                 command: "respond_check_idf_tools_path",
-                dictToolsExist: dictTools
+                dictToolsExist: dictTools,
               });
               const toolsNotFound = dictTools.filter(
-                val => val.doesToolExist === false
+                (val) => val.doesToolExist === false
               );
               if (toolsNotFound.length === 0) {
                 idfConf.writeParameter(
@@ -161,10 +161,10 @@ export class OnBoardingPanel {
             });
           break;
         case "getRequiredToolsInfo":
-          this.idfToolsManager.getRequiredToolsInfo().then(requiredTools => {
+          this.idfToolsManager.getRequiredToolsInfo().then((requiredTools) => {
             this.panel.webview.postMessage({
               command: "reply_required_tools_versions",
-              requiredToolsVersions: requiredTools
+              requiredToolsVersions: requiredTools,
             });
           });
           break;
@@ -200,7 +200,7 @@ export class OnBoardingPanel {
                   this.extensionPath,
                   this.idfToolsManager,
                   message.new_value
-                ).catch(reason => {
+                ).catch((reason) => {
                   OutputChannel.appendLine(reason);
                   Logger.info(reason);
                 });
@@ -237,13 +237,13 @@ export class OnBoardingPanel {
             .showOpenDialog({
               canSelectFolders: true,
               canSelectFiles: false,
-              canSelectMany: false
+              canSelectMany: false,
             })
             .then((selectedFolder: vscode.Uri[]) => {
               if (selectedFolder && selectedFolder.length > 0) {
                 this.panel.webview.postMessage({
                   command: "response_selected_espidf_folder",
-                  selected_folder: selectedFolder[0].fsPath
+                  selected_folder: selectedFolder[0].fsPath,
                 });
               } else {
                 vscode.window.showInformationMessage("No folder selected");
@@ -255,13 +255,13 @@ export class OnBoardingPanel {
             .showOpenDialog({
               canSelectFolders: true,
               canSelectFiles: false,
-              canSelectMany: false
+              canSelectMany: false,
             })
             .then((selectedFolder: vscode.Uri[]) => {
               if (selectedFolder && selectedFolder.length > 0) {
                 this.panel.webview.postMessage({
                   command: "response_selected_tools_folder",
-                  selected_folder: selectedFolder[0].fsPath
+                  selected_folder: selectedFolder[0].fsPath,
                 });
               } else {
                 vscode.window.showInformationMessage("No folder selected");
@@ -332,20 +332,20 @@ export class OnBoardingPanel {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath");
     this.panel.webview.postMessage({
       command: "load_idf_path",
-      idf_path: espIdfPath
+      idf_path: espIdfPath,
     });
     // Give initial IDF_TOOLS_PATH
     const idfToolsPath = idfConf.readParameter("idf.toolsPath");
     this.panel.webview.postMessage({
       command: "load_idf_tools_path",
-      idf_tools_path: idfToolsPath
+      idf_tools_path: idfToolsPath,
     });
     // Give initial download path for idf_path
     const idfDownloadPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
     this.panel.webview.postMessage({
       command: "load_idf_download_path",
-      idf_path: idfDownloadPath
+      idf_path: idfDownloadPath,
     });
 
     // Show onboarding on extension activate
@@ -354,45 +354,45 @@ export class OnBoardingPanel {
     );
     this.panel.webview.postMessage({
       command: "load_show_onboarding",
-      show_onboarding_on_init: showOnboardingOnInit
+      show_onboarding_on_init: showOnboardingOnInit,
     });
 
     this.panel.webview.postMessage({
       command: "load_path_delimiter",
-      pathDelimiter: path.delimiter
+      pathDelimiter: path.delimiter,
     });
 
     // Give initial values of idf.customExtraPaths
     const customExtraPaths = idfConf.readParameter("idf.customExtraPaths");
     this.panel.webview.postMessage({
       command: "load_custom_paths",
-      custom_paths: customExtraPaths
+      custom_paths: customExtraPaths,
     });
 
     // Initial ESP-IDF version list
     this.panel.webview.postMessage({
       command: "load_idf_versions",
-      versions: onboardingArgs.espIdfVersionList
+      versions: onboardingArgs.espIdfVersionList,
     });
     this.panel.webview.postMessage({
       command: "load_git_version",
-      gitVersion: onboardingArgs.gitVersion
+      gitVersion: onboardingArgs.gitVersion,
     });
     this.panel.webview.postMessage({
       command: "load_py_version_list",
-      pyVersionList: onboardingArgs.pythonVersions
+      pyVersionList: onboardingArgs.pythonVersions,
     });
 
     const customVars = idfConf.readParameter("idf.customExtraVars");
     if (utils.isJson(customVars)) {
       this.panel.webview.postMessage({
         command: "load_custom_paths",
-        custom_vars: JSON.parse(customVars)
+        custom_vars: JSON.parse(customVars),
       });
     } else {
       this.panel.webview.postMessage({
         command: "load_env_vars_def",
-        env_vars: onboardingArgs.expectedEnvVars
+        env_vars: onboardingArgs.expectedEnvVars,
       });
     }
   }

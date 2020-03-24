@@ -44,14 +44,14 @@ export class DownloadManager {
     progress: vscode.Progress<{ message?: string; increment?: number }>,
     pkgsProgress?: PackageProgress[]
   ): Promise<void> {
-    return idfToolsManager.getPackageList().then(packages => {
+    return idfToolsManager.getPackageList().then((packages) => {
       let count: number = 1;
       return utils.buildPromiseChain(
         packages,
         (pkg): Promise<void> => {
           let pkgProgressToUse: PackageProgress;
           if (pkgsProgress) {
-            pkgProgressToUse = pkgsProgress.find(pkgProgress => {
+            pkgProgressToUse = pkgsProgress.find((pkgProgress) => {
               return pkgProgress.name === pkg.name;
             });
           }
@@ -91,7 +91,7 @@ export class DownloadManager {
     const destPath = this.getToolPackagesPath(["dist"]);
     const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
 
-    await pathExists(absolutePath).then(async pkgExists => {
+    await pathExists(absolutePath).then(async (pkgExists) => {
       if (pkgExists) {
         await utils
           .validateFileSizeAndChecksum(
@@ -99,7 +99,7 @@ export class DownloadManager {
             urlInfoToUse.sha256,
             urlInfoToUse.size
           )
-          .then(async checksumEqual => {
+          .then(async (checksumEqual) => {
             if (checksumEqual) {
               pkgProgress.FileMatchChecksum = checksumEqual;
               this.appendChannel(
@@ -184,7 +184,7 @@ export class DownloadManager {
       host: parsedUrl.host,
       path: parsedUrl.pathname,
       rejectUnauthorized: proxyStrictSSL,
-      timeout: 3000
+      timeout: 3000,
     };
 
     return new Promise<http.IncomingMessage>((resolve, reject) => {
@@ -243,7 +243,7 @@ export class DownloadManager {
               destinationPath,
               fileName
             );
-            await ensureDir(destinationPath, { mode: 0o775 }).catch(err => {
+            await ensureDir(destinationPath, { mode: 0o775 }).catch((err) => {
               if (err) {
                 return reject(
                   new PackageError(
@@ -259,7 +259,7 @@ export class DownloadManager {
               { mode: 0o775 }
             );
 
-            fileStream.on("error", e => {
+            fileStream.on("error", (e) => {
               this.appendChannel(e);
               return reject(
                 new PackageError(
@@ -274,7 +274,7 @@ export class DownloadManager {
               `${fileName} has (${Math.ceil(packageSize / 1024)}) KB`
             );
 
-            response.on("data", data => {
+            response.on("data", (data) => {
               downloadedSize += data.length;
               downloadPercentage = (downloadedSize / packageSize) * 100;
               progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
@@ -303,7 +303,7 @@ export class DownloadManager {
               return resolve(response);
             });
 
-            response.on("error", error => {
+            response.on("error", (error) => {
               error.stack
                 ? this.appendChannel(error.stack)
                 : this.appendChannel(error.message);
@@ -328,7 +328,7 @@ export class DownloadManager {
         };
         const req = https.request(options, handleResponse);
 
-        req.on("error", error => {
+        req.on("error", (error) => {
           return reject(
             new PackageError(
               "HTTP/HTTPS Request error " + urlString,

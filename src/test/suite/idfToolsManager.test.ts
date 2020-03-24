@@ -74,13 +74,13 @@ suite("IDF Tools Manager Tests", async () => {
             ]
           }]}`);
   const mockUpContext: ExtensionContext = {
-    extensionPath: __dirname
+    extensionPath: __dirname,
   } as ExtensionContext;
   utils.setExtensionContext(mockUpContext);
   const platInfo: PlatformInformation = {
     architecture: "x86_64",
     platform: "darwin",
-    platformToUse: "macos"
+    platformToUse: "macos",
   };
   const output = OutputChannel.init();
   const idfToolsManager = new IdfToolsManager(
@@ -91,13 +91,13 @@ suite("IDF Tools Manager Tests", async () => {
   const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
 
   test("Get Packages List", async () => {
-    await idfToolsManager.getPackageList(["ninja"]).then(packages => {
+    await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
       assert.equal(packages[0].description, "Ninja build system");
     });
   });
 
   test("Obtain Url for current OS", async () => {
-    await idfToolsManager.getPackageList(["ninja"]).then(packages => {
+    await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
       const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(packages[0]);
       assert.equal(pkgUrl.url, "https://dl.espressif.com/dl/mytest.zip");
       assert.equal(
@@ -112,7 +112,7 @@ suite("IDF Tools Manager Tests", async () => {
   // In the project is included the Linux version (which is used by CI)
   // In order to run tests locally, please replace Linux ninja for your OS ninja binary.
   test("Verify installed version", async () => {
-    await idfToolsManager.getPackageList(["ninja"]).then(async packages => {
+    await idfToolsManager.getPackageList(["ninja"]).then(async (packages) => {
       const result = await idfToolsManager.checkBinariesVersion(
         packages[0],
         mockInstallPath
@@ -123,7 +123,7 @@ suite("IDF Tools Manager Tests", async () => {
 
   test("Verify all packages exists", async () => {
     const results = await idfToolsManager.verifyPackages(mockInstallPath, [
-      "ninja"
+      "ninja",
     ]);
     // tslint:disable-next-line: no-string-literal
     assert.equal(results["ninja"], "1.9.0");

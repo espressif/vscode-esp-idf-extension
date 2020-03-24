@@ -27,7 +27,7 @@
           class="switch_1"
           @change="onChange"
         />
-        <label for="config.id" style="display: block" v-text="config.title" />
+        <label for="config.id" style="display: block;" v-text="config.title" />
         <font-awesome-icon
           icon="info-circle"
           class="info-icon"
@@ -81,7 +81,10 @@
         mask="0xWWWWWWWWWW"
         :masked="false"
         :tokens="{
-          W: { pattern: /[0-9a-fA-F]/, transform: v => v.toLocaleUpperCase() }
+          W: {
+            pattern: /[0-9a-fA-F]/,
+            transform: (v) => v.toLocaleUpperCase(),
+          },
         }"
         class="form-control inline-block"
         @change.native="onChange"
@@ -101,7 +104,7 @@
           class="switch_1"
           @change="onChange"
         />
-        <label :for="config.id" style="display: block" v-text="config.title" />
+        <label :for="config.id" style="display: block;" v-text="config.title" />
         <font-awesome-icon
           icon="info-circle"
           class="info-icon"

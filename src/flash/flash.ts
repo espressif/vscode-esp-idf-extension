@@ -111,7 +111,7 @@ export class FlashManager {
         "--flash_freq",
         this.model.frequency,
         "--flash_size",
-        this.model.size
+        this.model.size,
       ];
       for (const flashFile of this.model.flashSections) {
         flasherArgs.push(flashFile.address, flashFile.binFilePath);
@@ -121,7 +121,7 @@ export class FlashManager {
         "idf.pythonBinPath"
       ) as string;
       this.server = spawn(pythonBinPath, flasherArgs, {
-        cwd: this.buildDir
+        cwd: this.buildDir,
       });
 
       this.server.on("close", (code: number, signal: string) => {

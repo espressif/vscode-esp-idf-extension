@@ -18,7 +18,7 @@ export enum menuType {
   int = "int",
   choice = "choice",
   hex = "hex",
-  menu = "menu"
+  menu = "menu",
 }
 
 export class Menu {

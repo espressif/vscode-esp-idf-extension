@@ -63,8 +63,8 @@ export class AppTraceArchiveTreeDataProvider
     if (existsSync(traceFolder)) {
       let i = 1;
       readdirSync(traceFolder)
-        .filter(trace => trace.endsWith(".trace"))
-        .forEach(trace => {
+        .filter((trace) => trace.endsWith(".trace"))
+        .forEach((trace) => {
           const name = trace.split("_");
           const appTraceArchiveNode = new AppTraceArchiveItems(
             `Trace Log #${i++}`
@@ -74,7 +74,7 @@ export class AppTraceArchiveTreeDataProvider
           appTraceArchiveNode.command = {
             command: "espIdf.apptrace.archive.showReport",
             title: "Show Report",
-            arguments: [appTraceArchiveNode]
+            arguments: [appTraceArchiveNode],
           };
           appTraceArchiveNode.iconPath = {
             light: join(
@@ -96,7 +96,7 @@ export class AppTraceArchiveTreeDataProvider
               "..",
               "media",
               "log_dark.svg"
-            )
+            ),
           };
           appTraceArchiveNode.description = this.sinceAgo(
             name[1].split(".trace")[0]

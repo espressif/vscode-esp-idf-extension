@@ -18,7 +18,7 @@ import {
   IEspIdfStatus,
   IState,
   IToolStatus,
-  IToolVersionResult
+  IToolVersionResult,
 } from "./types";
 
 export const mutations: MutationTree<IState> = {
@@ -138,7 +138,7 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus = {
       id: idfVersionList[0].name,
       progress: "0.00%",
-      progressDetail: ""
+      progressDetail: "",
     };
     Object.assign(state, newState);
   },
@@ -148,7 +148,7 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus = {
       id: selectedVersion.name,
       progress: "0.00%",
-      progressDetail: ""
+      progressDetail: "",
     };
     Object.assign(state, newState);
   },
@@ -172,14 +172,14 @@ export const mutations: MutationTree<IState> = {
   updatePkgDownloadPercentage(state, pkgUpdatePercentage: IToolStatus) {
     const newState = state;
     newState.requiredToolsVersions = state.requiredToolsVersions.map(
-      pkgInfo => {
+      (pkgInfo) => {
         const newPkgPercentage: IToolStatus = {
           expected: pkgInfo.expected,
           hashResult: pkgInfo.hashResult,
           id: pkgInfo.id,
           progress: pkgUpdatePercentage.progress,
           progressDetail: pkgInfo.progressDetail,
-          hasFailed: pkgInfo.hasFailed
+          hasFailed: pkgInfo.hasFailed,
         };
         return pkgInfo.id === pkgUpdatePercentage.id
           ? newPkgPercentage
@@ -191,14 +191,14 @@ export const mutations: MutationTree<IState> = {
   updatePkgHashResult(state, pkgUpdateHashResult: IToolStatus) {
     const newState = state;
     newState.requiredToolsVersions = state.requiredToolsVersions.map(
-      pkgInfo => {
+      (pkgInfo) => {
         const newPkg: IToolStatus = {
           expected: pkgInfo.expected,
           hashResult: pkgUpdateHashResult.hashResult,
           id: pkgInfo.id,
           progress: pkgInfo.progress,
           progressDetail: pkgInfo.progressDetail,
-          hasFailed: pkgInfo.hasFailed
+          hasFailed: pkgInfo.hasFailed,
         };
         return pkgInfo.id === pkgUpdateHashResult.id ? newPkg : pkgInfo;
       }
@@ -208,14 +208,14 @@ export const mutations: MutationTree<IState> = {
   updateDownloadDetail(state, updatedPkgDownloadDetail) {
     const newState = state;
     newState.requiredToolsVersions = state.requiredToolsVersions.map(
-      pkgInfo => {
+      (pkgInfo) => {
         const newPkg: IToolStatus = {
           expected: pkgInfo.expected,
           hashResult: pkgInfo.hashResult,
           id: pkgInfo.id,
           progress: pkgInfo.progress,
           progressDetail: updatedPkgDownloadDetail.progressDetail,
-          hasFailed: pkgInfo.hasFailed
+          hasFailed: pkgInfo.hasFailed,
         };
         return pkgInfo.id === updatedPkgDownloadDetail.id ? newPkg : pkgInfo;
       }
@@ -225,14 +225,14 @@ export const mutations: MutationTree<IState> = {
   updatePkgFailed(state, updatePkgFailed) {
     const newState = state;
     newState.requiredToolsVersions = state.requiredToolsVersions.map(
-      pkgInfo => {
+      (pkgInfo) => {
         const newPkg: IToolStatus = {
           expected: pkgInfo.expected,
           hashResult: pkgInfo.hashResult,
           id: pkgInfo.id,
           progress: pkgInfo.progress,
           progressDetail: pkgInfo.progressDetail,
-          hasFailed: updatePkgFailed.hasFailed
+          hasFailed: updatePkgFailed.hasFailed,
         };
         return pkgInfo.id === updatePkgFailed.id ? newPkg : pkgInfo;
       }
@@ -244,7 +244,7 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus = {
       id: newState.idfDownloadStatus.id,
       progress: newState.idfDownloadStatus.progress,
-      progressDetail: updatedIdfDownloadDetail.progressDetail
+      progressDetail: updatedIdfDownloadDetail.progressDetail,
     };
     Object.assign(state, newState);
   },
@@ -253,8 +253,8 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus = {
       id: newState.idfDownloadStatus.id,
       progress: updatedIdfDownloadProgress.progress,
-      progressDetail: newState.idfDownloadStatus.progressDetail
+      progressDetail: newState.idfDownloadStatus.progressDetail,
     };
     Object.assign(state, newState);
-  }
+  },
 };

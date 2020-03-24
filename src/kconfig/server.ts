@@ -23,7 +23,7 @@ import {
   ProposedFeatures,
   TextDocument,
   TextDocumentPositionParams,
-  TextDocuments
+  TextDocuments,
 } from "vscode-languageserver";
 import { Stack } from "../stack";
 
@@ -56,10 +56,10 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       completionProvider: {
-        resolveProvider: true
+        resolveProvider: true,
       },
-      textDocumentSync: documents.syncKind
-    }
+      textDocumentSync: documents.syncKind,
+    },
   };
 });
 
@@ -71,7 +71,7 @@ connection.onInitialized(() => {
     );
   }
   if (hasWorkspaceFolderCapability) {
-    connection.workspace.onDidChangeWorkspaceFolders(event => {
+    connection.workspace.onDidChangeWorkspaceFolders((event) => {
       connection.console.log("Workspace folder change received.");
     });
   }
@@ -85,14 +85,14 @@ interface IKconfigSettings {
 
 const defaultSettings: IKconfigSettings = {
   maxNumberOfProblems: 1000,
-  useIDFKconfigStyle: false
+  useIDFKconfigStyle: false,
 };
 let globalSettings: IKconfigSettings = defaultSettings;
 
 // Cache of open documents settings
 const docsSettings: Map<string, Thenable<IKconfigSettings>> = new Map();
 
-connection.onDidChangeConfiguration(change => {
+connection.onDidChangeConfiguration((change) => {
   if (hasConfigCapability) {
     docsSettings.clear();
   } else {
@@ -110,19 +110,19 @@ function getDocumentsSettings(resource: string): Thenable<IKconfigSettings> {
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: "idf"
+      section: "idf",
     });
     docsSettings.set(resource, result);
   }
   return result;
 }
 
-documents.onDidClose(e => {
+documents.onDidClose((e) => {
   docsSettings.delete(e.document.uri);
 });
 
 // The document content has changed, which triggers the next method
-documents.onDidChangeContent(change => {
+documents.onDidChangeContent((change) => {
   validateKConfigDocument(change.document);
 });
 
@@ -145,7 +145,7 @@ async function validateKConfigDocument(
   diagnostics.push(
     ...getBlockDiagnosticsFor(menuPattern, endmenuPattern, kconfigDocument, [
       "menu",
-      "endmenu"
+      "endmenu",
     ])
   );
   diagnostics.push(
@@ -185,10 +185,10 @@ function getLineDiagnostics(kconfigDocument: TextDocument) {
         message: `Line ${lineNum} text should be 120 chars max. (${line.length})`,
         range: {
           end: kconfigDocument.positionAt(textPosition + line.length),
-          start: kconfigDocument.positionAt(textPosition)
+          start: kconfigDocument.positionAt(textPosition),
         },
         severity: DiagnosticSeverity.Warning,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -203,10 +203,12 @@ function getLineDiagnostics(kconfigDocument: TextDocument) {
           end: kconfigDocument.positionAt(
             textPosition + backslashMatch.index + backslashMatch.input.length
           ),
-          start: kconfigDocument.positionAt(textPosition + backslashMatch.index)
+          start: kconfigDocument.positionAt(
+            textPosition + backslashMatch.index
+          ),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
       backslashMatch = backslashWrappedPattern.exec(line);
@@ -222,10 +224,10 @@ function getLineDiagnostics(kconfigDocument: TextDocument) {
           end: kconfigDocument.positionAt(
             textPosition + badStartMatch.index + badStartMatch.input.length
           ),
-          start: kconfigDocument.positionAt(textPosition + badStartMatch.index)
+          start: kconfigDocument.positionAt(textPosition + badStartMatch.index),
         },
         severity: DiagnosticSeverity.Warning,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
       badStartMatch = badStartPattern.exec(line);
@@ -238,10 +240,10 @@ function getLineDiagnostics(kconfigDocument: TextDocument) {
         message: `Line ${lineNum} should not have trailing whitespace`,
         range: {
           end: kconfigDocument.positionAt(textPosition + line.length),
-          start: kconfigDocument.positionAt(textPosition + line.length - 1)
+          start: kconfigDocument.positionAt(textPosition + line.length - 1),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -321,10 +323,10 @@ function getTreeIndentDiagnostics(kconfigDocument: TextDocument) {
           end: kconfigDocument.positionAt(
             textPosition + lineMatch.index + lineMatch[1].length
           ),
-          start: kconfigDocument.positionAt(textPosition)
+          start: kconfigDocument.positionAt(textPosition),
         },
         severity: DiagnosticSeverity.Warning,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -363,10 +365,10 @@ function getStringDiagnostics(kconfigDocument: TextDocument): Diagnostic[] {
           end: kconfigDocument.positionAt(textPosition + line.length),
           start: kconfigDocument.positionAt(
             textPosition + keyMatch.index + keyMatch[1].length
-          )
+          ),
         },
         severity: DiagnosticSeverity.Warning,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -406,10 +408,10 @@ function getBlockDiagnosticsFor(
         message: `${blockName[0]} statement doesn't have corresponding ${blockName[1]}`,
         range: {
           end: kconfigDocument.positionAt(openIndices[i] + openWordLength),
-          start: kconfigDocument.positionAt(openIndices[i])
+          start: kconfigDocument.positionAt(openIndices[i]),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
       continue;
@@ -433,10 +435,10 @@ function getBlockDiagnosticsFor(
         message: `${blockName[0]} statement doesn't have corresponding ${blockName[1]}`,
         range: {
           end: kconfigDocument.positionAt(openIndices[i] + openWordLength),
-          start: kconfigDocument.positionAt(openIndices[i])
+          start: kconfigDocument.positionAt(openIndices[i]),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -470,10 +472,10 @@ function getEmptyBlocksDiagnostics(
           ),
           start: kconfigDocument.positionAt(
             menuMatch.index + menuMatch[1].length
-          )
+          ),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -497,10 +499,10 @@ function getEmptyBlocksDiagnostics(
           ),
           start: kconfigDocument.positionAt(
             choiceMatch.index + choiceMatch[1].length
-          )
+          ),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -524,10 +526,10 @@ function getEmptyBlocksDiagnostics(
           ),
           start: kconfigDocument.positionAt(
             ifBlockMatch.index + ifBlockMatch[1].length
-          )
+          ),
         },
         severity: DiagnosticSeverity.Error,
-        source: `${problemSourceName}`
+        source: `${problemSourceName}`,
       };
       diagnostics.push(diagnostic);
     }
@@ -544,133 +546,133 @@ connection.onCompletion(
       {
         data: 1,
         kind: CompletionItemKind.Text,
-        label: "config "
+        label: "config ",
       },
       {
         data: 2,
         kind: CompletionItemKind.Text,
-        label: "menu "
+        label: "menu ",
       },
       {
         data: 3,
         kind: CompletionItemKind.Text,
-        label: "endmenu"
+        label: "endmenu",
       },
       {
         data: 4,
         kind: CompletionItemKind.Text,
-        label: "bool "
+        label: "bool ",
       },
       {
         data: 5,
         kind: CompletionItemKind.Text,
-        label: "depends on "
+        label: "depends on ",
       },
       {
         data: 6,
         kind: CompletionItemKind.Text,
-        label: "help "
+        label: "help ",
       },
       {
         data: 7,
         kind: CompletionItemKind.Text,
-        label: "hex "
+        label: "hex ",
       },
       {
         data: 8,
         kind: CompletionItemKind.Text,
-        label: "tristate "
+        label: "tristate ",
       },
       {
         data: 9,
         kind: CompletionItemKind.Text,
-        label: "int "
+        label: "int ",
       },
       {
         data: 10,
         kind: CompletionItemKind.Text,
-        label: "string "
+        label: "string ",
       },
       {
         data: 11,
         kind: CompletionItemKind.Text,
-        label: "prompt "
+        label: "prompt ",
       },
       {
         data: 12,
         kind: CompletionItemKind.Text,
-        label: "default "
+        label: "default ",
       },
       {
         data: 13,
         kind: CompletionItemKind.Text,
-        label: "if "
+        label: "if ",
       },
       {
         data: 14,
         kind: CompletionItemKind.Text,
-        label: "endif"
+        label: "endif",
       },
       {
         data: 15,
         kind: CompletionItemKind.Text,
-        label: "visible if "
+        label: "visible if ",
       },
       {
         data: 16,
         kind: CompletionItemKind.Text,
-        label: "range "
+        label: "range ",
       },
       {
         data: 17,
         kind: CompletionItemKind.Text,
-        label: "option "
+        label: "option ",
       },
       {
         data: 18,
         kind: CompletionItemKind.Text,
-        label: "defconfig_list"
+        label: "defconfig_list",
       },
       {
         data: 19,
         kind: CompletionItemKind.Text,
-        label: "modules "
+        label: "modules ",
       },
       {
         data: 20,
         kind: CompletionItemKind.Text,
-        label: "allnoconfig_y"
+        label: "allnoconfig_y",
       },
       {
         data: 21,
         kind: CompletionItemKind.Text,
-        label: "menuconfig "
+        label: "menuconfig ",
       },
       {
         data: 22,
         kind: CompletionItemKind.Text,
-        label: "comment "
+        label: "comment ",
       },
       {
         data: 23,
         kind: CompletionItemKind.Text,
-        label: "source "
+        label: "source ",
       },
       {
         data: 24,
         kind: CompletionItemKind.Text,
-        label: "choice "
+        label: "choice ",
       },
       {
         data: 25,
         kind: CompletionItemKind.Text,
-        label: "endchoice"
+        label: "endchoice",
       },
       {
         data: 26,
         kind: CompletionItemKind.Text,
-        label: "mainmenu "
-      }
+        label: "mainmenu ",
+      },
     ];
   }
 );

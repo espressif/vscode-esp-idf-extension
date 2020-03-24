@@ -37,7 +37,7 @@ export async function getOnboardingInitialValues(
   const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
   progress.report({
     increment: 10,
-    message: "Loading ESP-IDF Tools information..."
+    message: "Loading ESP-IDF Tools information...",
   });
   const idfToolsManager = new IdfToolsManager(
     toolsJson,
@@ -56,6 +56,6 @@ export async function getOnboardingInitialValues(
     expectedEnvVars,
     gitVersion,
     idfToolsManager,
-    pythonVersions
+    pythonVersions,
   } as IOnboardingArgs;
 }

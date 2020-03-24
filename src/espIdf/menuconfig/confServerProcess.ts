@@ -25,7 +25,7 @@ import { Logger } from "../../logger/logger";
 import {
   appendIdfAndToolsToPath,
   delConfigFile,
-  isStringNotEmpty
+  isStringNotEmpty,
 } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
@@ -33,7 +33,7 @@ import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (!ConfserverProcess.instance) {
         ConfserverProcess.instance = new ConfserverProcess(
           workspaceFolder,
@@ -116,7 +116,7 @@ export class ConfserverProcess {
     ConfserverProcess.instance.isSavingSdkconfig = true;
     const saveRequest = JSON.stringify({
       version: 2,
-      save: ConfserverProcess.instance.configFile
+      save: ConfserverProcess.instance.configFile,
     });
     ConfserverProcess.instance.confServerChannel.appendLine(saveRequest);
     ConfserverProcess.instance.confServerProcess.stdin.write(saveRequest);
@@ -127,7 +127,7 @@ export class ConfserverProcess {
   public static loadGuiConfigValues(isClosingWithoutSaving?: boolean) {
     const loadRequest = JSON.stringify({
       version: 2,
-      load: ConfserverProcess.instance.configFile
+      load: ConfserverProcess.instance.configFile,
     });
     ConfserverProcess.instance.confServerChannel.appendLine(loadRequest);
     ConfserverProcess.instance.confServerProcess.stdin.write(loadRequest);
@@ -152,19 +152,19 @@ export class ConfserverProcess {
       idfPyPath,
       "-C",
       ConfserverProcess.instance.workspaceFolder.fsPath,
-      "reconfigure"
+      "reconfigure",
     ]);
 
     progress.report({ increment: 10, message: "Loading default values..." });
 
     return new Promise((resolve, reject) => {
-      getSdkconfigProcess.stderr.on("data", data => {
+      getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           ConfserverProcess.instance.printError(data.toString());
           reject();
         }
       });
-      getSdkconfigProcess.stdout.on("data", data => {
+      getSdkconfigProcess.stdout.on("data", (data) => {
         ConfserverProcess.instance.confServerChannel.appendLine(
           data.toString()
         );
@@ -248,11 +248,11 @@ export class ConfserverProcess {
       idfPath,
       "-C",
       workspaceFolder.fsPath,
-      "confserver"
+      "confserver",
     ]);
     ConfserverProcess.progress.report({
       increment: 30,
-      message: "Configuring server"
+      message: "Configuring server",
     });
     this.setupConfigServer();
     this.jsonListener = this.initMenuConfigPanel;
@@ -296,23 +296,23 @@ export class ConfserverProcess {
   }
 
   private setupConfigServer() {
-    this.confServerProcess.stdout.on("data", data => {
+    this.confServerProcess.stdout.on("data", (data) => {
       this.receivedDataBuffer += data;
       ConfserverProcess.progress.report({
         increment: 3,
-        message: "Loading initial values..."
+        message: "Loading initial values...",
       });
       Logger.info(data.toString());
       this.confServerChannel.appendLine(data.toString());
       this.checkIfJsonIsReceived();
     });
-    this.confServerProcess.stderr.on("data", data => {
+    this.confServerProcess.stderr.on("data", (data) => {
       const dataStr = data.toString();
       const ignoreList = [
         "Server running, waiting for requests on stdin..",
         "Saving config to",
         "Loading config from",
-        "The following config symbol(s) were not visible so were not updated"
+        "The following config symbol(s) were not visible so were not updated",
       ];
 
       if (isStringNotEmpty(dataStr)) {
@@ -325,7 +325,7 @@ export class ConfserverProcess {
         }
       }
     });
-    this.confServerProcess.on("error", err => {
+    this.confServerProcess.on("error", (err) => {
       err.stack === null
         ? this.printError(err.message)
         : this.printError(err.stack);

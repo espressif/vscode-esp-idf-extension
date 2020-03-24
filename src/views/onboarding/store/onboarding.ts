@@ -44,11 +44,11 @@ export const onboardState: IState = {
   showIdfToolsChecks: false,
   showOnboardingOnInit: true,
   toolsSelectedSetupMode: "empty",
-  toolsCheckResults: []
+  toolsCheckResults: [],
 };
 
 export const onboarding: StoreOptions<IState> = {
   actions,
   mutations,
-  state: onboardState
+  state: onboardState,
 };

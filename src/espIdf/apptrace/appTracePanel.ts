@@ -50,9 +50,9 @@ export class AppTracePanel {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))
+          vscode.Uri.file(path.join(context.extensionPath, "dist", "views")),
         ],
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
     AppTracePanel.currentPanel = new AppTracePanel(
@@ -91,17 +91,17 @@ export class AppTracePanel {
     this.sendCommandToWebview("initialLoad", this._traceData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
     this._panel.webview.onDidReceiveMessage(
-      msg => {
+      (msg) => {
         switch (msg.command) {
           case "calculate":
             this.check()
-              .then(resp => {
+              .then((resp) => {
                 const ansiToHtmlConverter = new AnsiToHtml();
                 this.sendCommandToWebview("calculated", {
-                  log: ansiToHtmlConverter.toHtml(resp)
+                  log: ansiToHtmlConverter.toHtml(resp),
                 });
               })
-              .catch(error => {
+              .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
                   ? Logger.errorNotify(error.message, error)
@@ -143,14 +143,14 @@ export class AppTracePanel {
     }
     const elfPath = path.join(workspaceURI.fsPath, "build");
     const elfFiles = [];
-    fs.readdirSync(elfPath).forEach(file => {
+    fs.readdirSync(elfPath).forEach((file) => {
       if (file.endsWith(".elf")) {
         elfFiles.push({ label: file, description: path.join(elfPath, file) });
       }
     });
     if (elfFiles.length > 1) {
       const pickedElf = await vscode.window.showQuickPick(elfFiles, {
-        placeHolder: "Select ELF File to be use for the report generation"
+        placeHolder: "Select ELF File to be use for the report generation",
       });
       if (!pickedElf) {
         throw new Error("Select valid ELF file for showing report");
@@ -165,7 +165,7 @@ export class AppTracePanel {
     if (this._panel.webview) {
       this._panel.webview.postMessage({
         command,
-        value
+        value,
       });
     }
   }
@@ -181,7 +181,7 @@ export class AppTracePanel {
     }
     let html = fs.readFileSync(htmlFilePath).toString();
     const fileUrl = vscode.Uri.file(htmlFilePath).with({
-      scheme: "vscode-resource"
+      scheme: "vscode-resource",
     });
     if (/(<head(\s.*)?>)/.test(html)) {
       html = html.replace(
