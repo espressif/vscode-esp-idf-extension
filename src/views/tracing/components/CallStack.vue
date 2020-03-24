@@ -92,19 +92,19 @@ const CallStack = Vue.extend({
   name: "CallStack",
   props: {
     callstack: Array as any,
-    cache: Object
+    cache: Object,
   },
   data() {
     return {
       isExpanded: false,
       filter: {
         functionName: "",
-        selectedEventType: "all"
+        selectedEventType: "all",
       },
       sort: {
         by: "",
-        order: 0
-      }
+        order: 0,
+      },
     };
   },
   methods: {
@@ -123,8 +123,15 @@ const CallStack = Vue.extend({
           : addr
         : addr;
     },
+    fetchFilePathForAddr(addr: string): string {
+      return this.cache[addr]
+        ? this.cache[addr].filePath !== ""
+          ? this.cache[addr].filePath
+          : addr
+        : addr;
+    },
     reverseCallStack() {
-      this.callstack.forEach(calls => {
+      this.callstack.forEach((calls) => {
         calls.reverse();
       });
     },
@@ -143,22 +150,27 @@ const CallStack = Vue.extend({
     },
     collapseOrExpandCalls() {
       if (this.$refs.callRef && this.$refs.callRef.length > 0) {
-        this.$refs.callRef.forEach(calls => {
+        this.$refs.callRef.forEach((calls) => {
           calls.collapseAndExpandAll &&
             calls.collapseAndExpandAll(!this.isExpanded);
         });
       }
       this.isExpanded = !this.isExpanded;
-    }
+    },
   },
   computed: {
     callStack() {
       return this.callstack
-        .filter(calls => {
+        .filter((calls) => {
           if (this.filter.functionName && this.filter.functionName !== "") {
-            return this.fetchFunctionNameForAddr(calls[0])
-              .toLowerCase()
-              .match(this.filter.functionName.toLowerCase());
+            return (
+              this.fetchFunctionNameForAddr(calls[0])
+                .toLowerCase()
+                .match(this.filter.functionName.toLowerCase()) ||
+              this.fetchFilePathForAddr(calls[0])
+                .toLowerCase()
+                .match(this.filter.functionName.toLowerCase())
+            );
           }
           return true;
         })
@@ -171,12 +183,12 @@ const CallStack = Vue.extend({
     },
     totalMemory() {
       let total = 0;
-      Object.keys(this.cache).forEach(addr => {
+      Object.keys(this.cache).forEach((addr) => {
         total += this.cache[addr].size ? this.cache[addr].size : 0;
       });
       return total;
-    }
-  }
+    },
+  },
 });
 export default CallStack;
 </script>
