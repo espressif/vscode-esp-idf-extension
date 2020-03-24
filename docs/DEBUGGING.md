@@ -36,7 +36,7 @@ If you prefer using Microsoft C/C++ Extension to debug, the user community have 
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
-      "miDebuggerPath": "xtensa-esp32-elf-gdb",
+      "miDebuggerPath": "${command:espIdf.getXtensaGdb}",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "windows": {
         "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"

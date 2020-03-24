@@ -531,6 +531,13 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.getXtensaGdb", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+      return await utils.findBinaryFullPath("xtensa-esp32-elf-gdb", extraPaths);
+    });
+  });
+
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], () => {
       utils.createVscodeFolder(workspaceRoot.fsPath);
