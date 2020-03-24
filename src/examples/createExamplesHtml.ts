@@ -16,10 +16,11 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 export function createExamplesHtml(extensionPath: string): string {
-    const vuePath = vscode.Uri.file(
-        path.join(extensionPath, "dist", "views", "examples-bundle.js")).with({ scheme: "vscode-resource"});
+  const vuePath = vscode.Uri.file(
+    path.join(extensionPath, "dist", "views", "examples-bundle.js")
+  ).with({ scheme: "vscode-resource" });
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">

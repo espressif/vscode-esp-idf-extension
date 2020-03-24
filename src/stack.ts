@@ -12,32 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export const Stack = function() {
-    this.count = 0;
-    this.storage = {};
+export const Stack = function () {
+  this.count = 0;
+  this.storage = {};
 };
 
-Stack.prototype.push = function(value) {
-    this.storage[this.count] = value;
-    this.count++;
+Stack.prototype.push = function (value) {
+  this.storage[this.count] = value;
+  this.count++;
 };
 
-Stack.prototype.pop = function() {
-    // Check if the stack is empty
-    if (this.count === 0) {
-        return undefined;
-    }
+Stack.prototype.pop = function () {
+  // Check if the stack is empty
+  if (this.count === 0) {
+    return undefined;
+  }
 
-    this.count--;
-    const result = this.storage[this.count];
-    delete this.storage[this.count];
-    return result;
+  this.count--;
+  const result = this.storage[this.count];
+  delete this.storage[this.count];
+  return result;
 };
 
-Stack.prototype.size = function() {
-    return this.count;
+Stack.prototype.size = function () {
+  return this.count;
 };
 
-Stack.prototype.peek = function() {
-    return this.storage[this.count - 1];
+Stack.prototype.peek = function () {
+  return this.storage[this.count - 1];
 };

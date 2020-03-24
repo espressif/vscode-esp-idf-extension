@@ -1,6 +1,6 @@
 {
-    "serial.notSerialPortFoundMessage": "No se ha encontrado un puerto serial",
-    "serial.portHasBeenSelectedMessage": "El puerto se ha actualizado a ",
-    "serial.noPortSelectedMessage": "Ningun puerto seleccionado.",
-    "serial.selectSerialPortMessage":"Selecciona el puerto serial de tu dispositivo."
+  "serial.notSerialPortFoundMessage": "No se ha encontrado un puerto serial",
+  "serial.portHasBeenSelectedMessage": "El puerto se ha actualizado a ",
+  "serial.noPortSelectedMessage": "Ningun puerto seleccionado.",
+  "serial.selectSerialPortMessage": "Selecciona el puerto serial de tu dispositivo."
 }

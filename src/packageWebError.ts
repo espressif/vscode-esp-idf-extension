@@ -17,12 +17,13 @@ import { IPackage } from "./IPackage";
 import { PackageError } from "./packageError";
 
 export class PackageManagerWebError extends PackageError {
-    constructor(
-        public socket: net.Socket,
-        public message: string,
-        public methodName: string,
-        public innerError: any = null,
-        public errorCode: string = "") {
-            super(message, methodName, innerError, errorCode);
-    }
+  constructor(
+    public socket: net.Socket,
+    public message: string,
+    public methodName: string,
+    public innerError: any = null,
+    public errorCode: string = ""
+  ) {
+    super(message, methodName, innerError, errorCode);
+  }
 }

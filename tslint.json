@@ -1,11 +1,7 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
-        "object-literal-sort-keys": false
-    },
-    "rulesDirectory": []
+  "defaultSeverity": "error",
+  "extends": ["tslint-plugin-prettier", "tslint-config-prettier"],
+  "rules": {
+    "prettier": true
+  }
 }

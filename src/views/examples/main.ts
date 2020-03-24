@@ -43,7 +43,9 @@ window.addEventListener("message", (event) => {
     case "set_initial_example":
       if (message.selected_example) {
         store.commit("setSelectedExample", message.selected_example);
-        store.dispatch("getExampleDetail", { pathToOpen: message.selected_example.path });
+        store.dispatch("getExampleDetail", {
+          pathToOpen: message.selected_example.path,
+        });
       }
       break;
     default:

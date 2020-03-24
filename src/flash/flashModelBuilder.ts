@@ -19,26 +19,28 @@
 import { readJSON } from "fs-extra";
 import { FlashModel, FlashSection } from "./flashModel";
 
-export function createFlashModel(modelJsonPath: string, port: string, baudRate: string): Promise<FlashModel> {
-
-    return readJSON(modelJsonPath).then((flashArgsJson) => {
-        const flashModel: FlashModel = {
-            baudRate,
-            port,
-            size: flashArgsJson.flash_settings.flash_size,
-            frequency: flashArgsJson.flash_settings.flash_freq,
-            mode: flashArgsJson.flash_settings.flash_mode,
-            flashSections: [],
-        };
-        Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
-            if (fileKey && flashArgsJson.flash_files[fileKey]) {
-                flashModel.flashSections.push(
-                    {
-                        address: fileKey,
-                        binFilePath: flashArgsJson.flash_files[fileKey],
-                    } as FlashSection);
-            }
-        });
-        return flashModel;
+export function createFlashModel(
+  modelJsonPath: string,
+  port: string,
+  baudRate: string
+): Promise<FlashModel> {
+  return readJSON(modelJsonPath).then((flashArgsJson) => {
+    const flashModel: FlashModel = {
+      baudRate,
+      port,
+      size: flashArgsJson.flash_settings.flash_size,
+      frequency: flashArgsJson.flash_settings.flash_freq,
+      mode: flashArgsJson.flash_settings.flash_mode,
+      flashSections: [],
+    };
+    Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
+      if (fileKey && flashArgsJson.flash_files[fileKey]) {
+        flashModel.flashSections.push({
+          address: fileKey,
+          binFilePath: flashArgsJson.flash_files[fileKey],
+        } as FlashSection);
+      }
     });
+    return flashModel;
+  });
 }

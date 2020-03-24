@@ -24,88 +24,85 @@ import { OutputChannel } from "vscode";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 
 export class BuildManager {
-    public static isBuilding: boolean;
-    private readonly buildProjectDir: string;
-    private readonly outputChannel: OutputChannel;
-    private server: ChildProcess;
-    constructor(buildProjectDir: string, outputChannel?: OutputChannel) {
-        this.buildProjectDir = buildProjectDir;
-        this.outputChannel = outputChannel;
+  public static isBuilding: boolean;
+  private readonly buildProjectDir: string;
+  private readonly outputChannel: OutputChannel;
+  private server: ChildProcess;
+  constructor(buildProjectDir: string, outputChannel?: OutputChannel) {
+    this.buildProjectDir = buildProjectDir;
+    this.outputChannel = outputChannel;
+  }
+  public async build() {
+    await this._build("cmake", ["-G", "Ninja", `..`]);
+    await this._build("cmake", ["--build", "."]);
+  }
+  public cancel() {
+    if (this.server && !this.server.killed) {
+      // this.server.kill("SIGKILL");
+      treeKill(this.server.pid, "SIGKILL");
+      this.server = undefined;
+      this.outputToOutputChannel("\n❌ [Build] : Stopped!\n");
     }
-    public async build() {
-        await this._build("cmake", [
-            "-G", "Ninja",
-            `..`,
-        ]);
-        await this._build("cmake", ["--build", "."]);
-    }
-    public cancel() {
-        if (this.server && !this.server.killed) {
-            // this.server.kill("SIGKILL");
-            treeKill(this.server.pid, "SIGKILL");
-            this.server = undefined;
-            this.outputToOutputChannel("\n❌ [Build] : Stopped!\n");
+  }
+  private async _build(command: string, args?: string[]) {
+    return new Promise((resolve, reject) => {
+      if (BuildManager.isBuilding) {
+        return reject(new Error("ALREADY_BUILDING"));
+      }
+
+      this.buildStarted();
+
+      const buildPath = this.createBuildDirIfNotExists();
+
+      appendIdfAndToolsToPath();
+
+      this.server = spawn(command, args, {
+        cwd: buildPath,
+      });
+
+      this.server.on("close", (code: number, signal: string) => {
+        this.buildDone();
+
+        if (signal === "SIGKILL") {
+          return reject(new Error(`BUILD_TERMINATED`));
         }
-    }
-    private async _build(command: string, args?: string[]) {
-        return new Promise((resolve, reject) => {
-            if (BuildManager.isBuilding) {
-                return reject(new Error("ALREADY_BUILDING"));
-            }
-
-            this.buildStarted();
-
-            const buildPath = this.createBuildDirIfNotExists();
-
-            appendIdfAndToolsToPath();
-
-            this.server = spawn(command, args, {
-                cwd: buildPath,
-            });
-
-            this.server.on("close", (code: number, signal: string) => {
-                this.buildDone();
-
-                if (signal === "SIGKILL") {
-                    return reject(new Error(`BUILD_TERMINATED`));
-                }
-                if (code !== 0) {
-                    return reject(new Error(`NON_ZERO_EXIT_CODE:${code}`));
-                }
-                resolve();
-            });
-
-            this.server.on("error", (error: Error) => {
-                this.buildDone();
-
-                reject(error);
-            });
-
-            this.server.stdout.on("data", (chunk: Buffer) => {
-                this.outputToOutputChannel(chunk.toString());
-            });
-
-            this.server.stderr.on("data", (chunk: Buffer) => {
-                this.outputToOutputChannel(`⚠️ ${chunk.toString()}`);
-            });
-        });
-    }
-    private createBuildDirIfNotExists(): string {
-        const buildPath = join(this.buildProjectDir, "build");
-        if (!canAccessFile(buildPath)) {
-            mkdirSync(buildPath);
+        if (code !== 0) {
+          return reject(new Error(`NON_ZERO_EXIT_CODE:${code}`));
         }
-        return buildPath;
+        resolve();
+      });
+
+      this.server.on("error", (error: Error) => {
+        this.buildDone();
+
+        reject(error);
+      });
+
+      this.server.stdout.on("data", (chunk: Buffer) => {
+        this.outputToOutputChannel(chunk.toString());
+      });
+
+      this.server.stderr.on("data", (chunk: Buffer) => {
+        this.outputToOutputChannel(`⚠️ ${chunk.toString()}`);
+      });
+    });
+  }
+  private createBuildDirIfNotExists(): string {
+    const buildPath = join(this.buildProjectDir, "build");
+    if (!canAccessFile(buildPath)) {
+      mkdirSync(buildPath);
     }
-    private outputToOutputChannel(data: string) {
-        if (this.outputChannel) {
-            this.outputChannel.append(data);
-        }
+    return buildPath;
+  }
+  private outputToOutputChannel(data: string) {
+    if (this.outputChannel) {
+      this.outputChannel.append(data);
     }
-    private buildStarted() {
-        BuildManager.isBuilding = true;
-    }
-    private buildDone() {
-        BuildManager.isBuilding = false;
-    }
+  }
+  private buildStarted() {
+    BuildManager.isBuilding = true;
+  }
+  private buildDone() {
+    BuildManager.isBuilding = false;
+  }
 }
