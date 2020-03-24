@@ -1,148 +1,148 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Build - Build project",
-            "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py build",
-            "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py build"
-            },
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}"
-                }
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                } 
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Set ESP-IDF Target",
-            "type": "shell",
-            "command": "${command:espIdf.setTarget}",
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(//d+):(//d+)://s+(warning|error)://s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                } 
-            },
-        },
-        {
-            "label": "Clean - Clean the project",
-            "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py fullclean",
-            "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean"
-            },
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}"
-                }
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                } 
-            },
-        },
-        {
-            "label": "Flash - Flash the device",
-            "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} flash",
-            "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.baudRate}"
-            },
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}"
-                }
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                } 
-            },
-        },
-        {
-            "label": "Monitor: Start the monitor",
-            "type": "shell",
-            "dependsOn": "Flash - Flash the device",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
-            "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
-            },
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}"
-                }
-            },
-        },
-        {
-            "label":"OpenOCD: Start openOCD",
-            "type":"shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "never",
-                "focus": false,
-                "panel":"new"
-            },
-            "command":"openocd -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}",
-            "windows": {
-                "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}"
-            },
-            "options": {
-                "env": {
-                    "PATH": "${config:idf.customExtraPaths}"
-                }
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                } 
-            },
-        },
-    ]
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build - Build project",
+      "type": "shell",
+      "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py build",
+      "windows": {
+        "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py build"
+      },
+      "options": {
+        "env": {
+          "PATH": "${config:idf.customExtraPaths}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Set ESP-IDF Target",
+      "type": "shell",
+      "command": "${command:espIdf.setTarget}",
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(//d+):(//d+)://s+(warning|error)://s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "Clean - Clean the project",
+      "type": "shell",
+      "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py fullclean",
+      "windows": {
+        "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean"
+      },
+      "options": {
+        "env": {
+          "PATH": "${config:idf.customExtraPaths}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "Flash - Flash the device",
+      "type": "shell",
+      "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} flash",
+      "windows": {
+        "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.baudRate}"
+      },
+      "options": {
+        "env": {
+          "PATH": "${config:idf.customExtraPaths}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    },
+    {
+      "label": "Monitor: Start the monitor",
+      "type": "shell",
+      "dependsOn": "Flash - Flash the device",
+      "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.baudRate} monitor",
+      "windows": {
+        "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py monitor -p ${config:idf.portWin} -b ${config:idf.baudRate}"
+      },
+      "options": {
+        "env": {
+          "PATH": "${config:idf.customExtraPaths}"
+        }
+      }
+    },
+    {
+      "label": "OpenOCD: Start openOCD",
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "never",
+        "focus": false,
+        "panel": "new"
+      },
+      "command": "openocd -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}",
+      "windows": {
+        "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}"
+      },
+      "options": {
+        "env": {
+          "PATH": "${config:idf.customExtraPaths}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    }
+  ]
 }

@@ -1,11 +1,10 @@
 ---
+
 name: Bug report
 about: Create a report to help us improve
 title: ""
 labels: "bug-github"
----
-
-**Pre Bug Report Checklist**
+---**Pre Bug Report Checklist**
 Before reporting any bug please make sure of these points.
 
 - [ ] Make sure you have searched for existing bugs and features request before you post an issue.
@@ -30,6 +29,12 @@ If applicable, add screenshots to help explain your problem.
 - VSCode Version: [e.g. 1.35.1]
 - ESP-IDF Version: [e.g. v3.2.2]
 - Python Version: [e.g. 2.7.10]
+
+**Logs**
+If applicable, please share the log file which can be obtained from
+
+- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
+- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
 **Additional context**
 Add any other context about the problem here.
