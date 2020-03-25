@@ -24,70 +24,84 @@ import { PreCheck, spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
 export class SerialPort {
-    public static shared(): SerialPort {
-        if (!SerialPort.instance) {
-            SerialPort.instance = new SerialPort();
+  public static shared(): SerialPort {
+    if (!SerialPort.instance) {
+      SerialPort.instance = new SerialPort();
+    }
+    return SerialPort.instance;
+  }
+
+  private static instance: SerialPort;
+  private locDic: LocDictionary;
+
+  private constructor() {
+    this.locDic = new LocDictionary(__filename);
+  }
+  public promptUserToSelect(): any {
+    SerialPort.shared().displayList();
+  }
+  private async displayList() {
+    const msgDefault =
+      "Select the available serial port where your device is connected.";
+    const msg = this.locDic.localize(
+      "serial.selectSerialPortMessage",
+      msgDefault
+    );
+
+    try {
+      const portList = await this.list();
+      const chosen = await vscode.window.showQuickPick(
+        portList.map((l: SerialPortDetails) => {
+          return {
+            description: l.manufacturer,
+            label: l.comName,
+          };
+        }),
+        { placeHolder: msg }
+      );
+      if (chosen && chosen.label) {
+        this.updatePortListStatus(chosen.label);
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        "Something went wrong while getting the serial port list",
+        error
+      );
+    }
+  }
+
+  private updatePortListStatus(l: string) {
+    idfConf.writeParameter("idf.port", l);
+    const portHasBeenSelectedMsg = this.locDic.localize(
+      "serial.portHasBeenSelectedMessage",
+      "Port has been updated to "
+    );
+    Logger.infoNotify(portHasBeenSelectedMsg + l);
+  }
+
+  private list(): Thenable<SerialPortDetails[]> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const pythonBinPath = idfConf.readParameter(
+          "idf.pythonBinPath"
+        ) as string;
+        const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
+        const regexp = /\'(.*?)\'/g;
+        const arrayPrint = buff.toString().match(regexp);
+        const choices: SerialPortDetails[] = Array<SerialPortDetails>();
+
+        if (arrayPrint) {
+          arrayPrint.forEach((portStr) => {
+            const portChoice = portStr.replace(/'/g, "").trim();
+            choices.push(new SerialPortDetails(portChoice));
+          });
+          resolve(choices);
+        } else {
+          reject(new Error("No serial ports found"));
         }
-        return SerialPort.instance;
-    }
-
-    private static instance: SerialPort;
-    private locDic: LocDictionary;
-
-    private constructor() {
-        this.locDic = new LocDictionary(__filename);
-    }
-    public promptUserToSelect(): any {
-        SerialPort.shared().displayList();
-    }
-    private async displayList() {
-        const msgDefault = "Select the available serial port where your device is connected.";
-        const msg = this.locDic.localize("serial.selectSerialPortMessage", msgDefault);
-
-        try {
-            const portList = await this.list();
-            const chosen = await vscode.window.showQuickPick(portList.map((l: SerialPortDetails) => {
-                return {
-                    description: l.manufacturer,
-                    label: l.comName,
-                };
-            }), { placeHolder: msg });
-            if (chosen && chosen.label) {
-                this.updatePortListStatus(chosen.label);
-            }
-        } catch (error) {
-            Logger.errorNotify("Something went wrong while getting the serial port list", error);
-        }
-    }
-
-    private updatePortListStatus(l: string) {
-        idfConf.writeParameter("idf.port", l);
-        const portHasBeenSelectedMsg = this.locDic.localize("serial.portHasBeenSelectedMessage",
-            "Port has been updated to ");
-        Logger.infoNotify(portHasBeenSelectedMsg + l);
-    }
-
-    private list(): Thenable<SerialPortDetails[]> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-                const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
-                const regexp = /\'(.*?)\'/g;
-                const arrayPrint = buff.toString().match(regexp);
-                const choices: SerialPortDetails[] = Array<SerialPortDetails>();
-
-                if (arrayPrint) {
-                    arrayPrint.forEach((portStr) => {
-                        const portChoice = portStr.replace(/'/g, "").trim();
-                        choices.push(new SerialPortDetails(portChoice));
-                    });
-                    resolve(choices);
-                } else {
-                    reject(new Error("No serial ports found"));
-                }
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 }

@@ -24,7 +24,7 @@ before_script:
 copyright_lint_test:
   image: $CI_DOCKER_REGISTRY/python-static-code-analysis
   stage: lint
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   before_script:
     - echo "Skipping before_script"
   script:
@@ -33,14 +33,14 @@ copyright_lint_test:
 typescript_lint_test:
   image: node:slim
   stage: lint
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   script:
     - yarn run tslint
 
 node_vulnerabilities_test:
   image: node:slim
   stage: lint
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   script:
     - yarn audit --registry=https://registry.npmjs.org
   allow_failure: true
@@ -48,7 +48,7 @@ node_vulnerabilities_test:
 python_lint_test:
   image: $CI_DOCKER_REGISTRY/ubuntu-test-env
   stage: lint
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   artifacts:
     when: on_failure
     paths:
@@ -66,7 +66,7 @@ python_lint_test:
 build_vsix:
   image: electronuserland/builder:11
   stage: build
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   artifacts:
     paths:
       - esp-idf-extension-*.vsix
@@ -112,10 +112,10 @@ deploy_github:
 tests_extension_units:
   image: $CI_DOCKER_REGISTRY/ubuntu-vscode:1-d2303206
   stage: extension_tests
-  tags: [ "build", "internet", "amd64" ]
+  tags: ["build", "internet", "amd64"]
   artifacts:
     paths:
-    - "*.log"
+      - "*.log"
     reports:
       junit:
         - results/*

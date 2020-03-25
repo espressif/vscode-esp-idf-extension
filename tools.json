@@ -2,21 +2,13 @@
   "tools": [
     {
       "description": "Toolchain for Xtensa (ESP32) based on GCC",
-      "export_paths": [
-        [
-          "xtensa-esp32-elf",
-          "bin"
-        ]
-      ],
+      "export_paths": [["xtensa-esp32-elf", "bin"]],
       "export_vars": {},
       "info_url": "https://github.com/espressif/crosstool-NG",
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "xtensa-esp32-elf",
-      "version_cmd": [
-        "xtensa-esp32-elf-gcc",
-        "--version"
-      ],
+      "version_cmd": ["xtensa-esp32-elf-gcc", "--version"],
       "version_regex": "\\(crosstool-NG\\s+(?:crosstool-ng-)?([0-9a-z\\.\\-]+)\\)\\s*([0-9\\.]+)",
       "version_regex_replace": "\\1-\\2",
       "versions": [
@@ -58,21 +50,13 @@
     },
     {
       "description": "Toolchain for Xtensa (ESP32-S2) based on GCC",
-      "export_paths": [
-        [
-          "xtensa-esp32s2-elf",
-          "bin"
-        ]
-      ],
+      "export_paths": [["xtensa-esp32s2-elf", "bin"]],
       "export_vars": {},
       "info_url": "https://github.com/espressif/crosstool-NG",
       "install": "always",
       "license": "GPL-3.0-with-GCC-exception",
       "name": "xtensa-esp32s2-elf",
-      "version_cmd": [
-        "xtensa-esp32s2-elf-gcc",
-        "--version"
-      ],
+      "version_cmd": ["xtensa-esp32s2-elf-gcc", "--version"],
       "version_regex": "\\(crosstool-NG\\s+(?:crosstool-ng-)?([0-9a-z\\.\\-]+)\\)\\s*([0-9\\.]+)",
       "version_regex_replace": "\\1-\\2",
       "versions": [
@@ -118,12 +102,7 @@
     },
     {
       "description": "Toolchain for ESP32 ULP coprocessor",
-      "export_paths": [
-        [
-          "esp32ulp-elf-binutils",
-          "bin"
-        ]
-      ],
+      "export_paths": [["esp32ulp-elf-binutils", "bin"]],
       "export_vars": {},
       "info_url": "https://github.com/espressif/binutils-esp32ulp",
       "install": "always",
@@ -132,16 +111,10 @@
       "platform_overrides": [
         {
           "install": "on_request",
-          "platforms": [
-            "linux-armel",
-            "linux-i686"
-          ]
+          "platforms": ["linux-armel", "linux-i686"]
         }
       ],
-      "version_cmd": [
-        "esp32ulp-elf-as",
-        "--version"
-      ],
+      "version_cmd": ["esp32ulp-elf-as", "--version"],
       "version_regex": "\\(GNU Binutils\\)\\s+([0-9a-z\\.\\-]+)",
       "versions": [
         {
@@ -172,11 +145,7 @@
     },
     {
       "description": "CMake build system",
-      "export_paths": [
-        [
-          "bin"
-        ]
-      ],
+      "export_paths": [["bin"]],
       "export_vars": {},
       "info_url": "https://github.com/Kitware/CMake",
       "install": "on_request",
@@ -185,29 +154,15 @@
       "platform_overrides": [
         {
           "install": "always",
-          "platforms": [
-            "win32",
-            "win64"
-          ]
+          "platforms": ["win32", "win64"]
         },
         {
-          "export_paths": [
-            [
-              "CMake.app",
-              "Contents",
-              "bin"
-            ]
-          ],
-          "platforms": [
-            "macos"
-          ]
+          "export_paths": [["CMake.app", "Contents", "bin"]],
+          "platforms": ["macos"]
         }
       ],
       "strip_container_dirs": 1,
-      "version_cmd": [
-        "cmake",
-        "--version"
-      ],
+      "version_cmd": ["cmake", "--version"],
       "version_regex": "cmake version ([0-9.]+)",
       "versions": [
         {
@@ -238,12 +193,7 @@
     },
     {
       "description": "OpenOCD for ESP32",
-      "export_paths": [
-        [
-          "openocd-esp32",
-          "bin"
-        ]
-      ],
+      "export_paths": [["openocd-esp32", "bin"]],
       "export_vars": {
         "OPENOCD_SCRIPTS": "${TOOL_PATH}/openocd-esp32/share/openocd/scripts"
       },
@@ -254,15 +204,10 @@
       "platform_overrides": [
         {
           "install": "on_request",
-          "platforms": [
-            "linux-i686"
-          ]
+          "platforms": ["linux-i686"]
         }
       ],
-      "version_cmd": [
-        "openocd",
-        "--version"
-      ],
+      "version_cmd": ["openocd", "--version"],
       "version_regex": "Open On-Chip Debugger\\s+([a-z0-9.-]+)\\s+",
       "versions": [
         {
@@ -298,11 +243,7 @@
     },
     {
       "description": "Ninja build system",
-      "export_paths": [
-        [
-          ""
-        ]
-      ],
+      "export_paths": [[""]],
       "export_vars": {},
       "info_url": "https://github.com/ninja-build/ninja",
       "install": "on_request",
@@ -311,16 +252,10 @@
       "platform_overrides": [
         {
           "install": "always",
-          "platforms": [
-            "win32",
-            "win64"
-          ]
+          "platforms": ["win32", "win64"]
         }
       ],
-      "version_cmd": [
-        "ninja",
-        "--version"
-      ],
+      "version_cmd": ["ninja", "--version"],
       "version_regex": "([0-9.]+)",
       "versions": [
         {
@@ -346,11 +281,7 @@
     },
     {
       "description": "IDF wrapper tool for Windows",
-      "export_paths": [
-        [
-          ""
-        ]
-      ],
+      "export_paths": [[""]],
       "export_vars": {},
       "info_url": "https://github.com/espressif/esp-idf/tree/master/tools/windows/idf_exe",
       "install": "never",
@@ -359,16 +290,10 @@
       "platform_overrides": [
         {
           "install": "always",
-          "platforms": [
-            "win32",
-            "win64"
-          ]
+          "platforms": ["win32", "win64"]
         }
       ],
-      "version_cmd": [
-        "idf.py.exe",
-        "-v"
-      ],
+      "version_cmd": ["idf.py.exe", "-v"],
       "version_regex": "([0-9.]+)",
       "versions": [
         {
@@ -389,11 +314,7 @@
     },
     {
       "description": "Ccache (compiler cache)",
-      "export_paths": [
-        [
-          ""
-        ]
-      ],
+      "export_paths": [[""]],
       "export_vars": {},
       "info_url": "https://github.com/ccache/ccache",
       "install": "never",
@@ -402,15 +323,10 @@
       "platform_overrides": [
         {
           "install": "always",
-          "platforms": [
-            "win64"
-          ]
+          "platforms": ["win64"]
         }
       ],
-      "version_cmd": [
-        "ccache.exe",
-        "--version"
-      ],
+      "version_cmd": ["ccache.exe", "--version"],
       "version_regex": "ccache version ([0-9.]+)",
       "versions": [
         {

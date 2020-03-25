@@ -16,70 +16,77 @@ import * as os from "os";
 import * as utils from "./utils";
 
 export class PlatformInformation {
-    public static GetPlatformInformation(): Promise<PlatformInformation> {
-        const platform: string = os.platform();
-        let architecturePromise: Promise<string>;
+  public static GetPlatformInformation(): Promise<PlatformInformation> {
+    const platform: string = os.platform();
+    let architecturePromise: Promise<string>;
 
-        switch (platform) {
-            case "win32":
-                architecturePromise = PlatformInformation.GetWindowsArchitecture();
-                break;
-            case "linux":
-                architecturePromise = PlatformInformation.GetUnixArchitecture();
-                break;
-            case "darwin":
-                architecturePromise = PlatformInformation.GetUnixArchitecture();
-            default:
-                break;
+    switch (platform) {
+      case "win32":
+        architecturePromise = PlatformInformation.GetWindowsArchitecture();
+        break;
+      case "linux":
+        architecturePromise = PlatformInformation.GetUnixArchitecture();
+        break;
+      case "darwin":
+        architecturePromise = PlatformInformation.GetUnixArchitecture();
+      default:
+        break;
+    }
+    return Promise.all<string>([architecturePromise]).then(([architecture]) => {
+      return new PlatformInformation(platform, architecture);
+    });
+  }
+
+  public get platformToUse(): string {
+    switch (this.platform) {
+      case "darwin":
+        return "macos";
+      case "win32":
+        return this.architecture === "x86" ? "win32" : "win64";
+      case "linux":
+        return this.architecture === "x86" ? "linux-i686" : "linux-amd64";
+      default:
+        break;
+    }
+  }
+
+  public static GetUnknownArchitecture(): string {
+    return "Unknown";
+  }
+
+  public static GetUnixArchitecture(): Promise<string> {
+    return utils
+      .execChildProcess("uname -m", utils.extensionContext.extensionPath)
+      .then((architecture) => {
+        if (architecture) {
+          return architecture.trim();
         }
-        return Promise.all<string>([architecturePromise])
-            .then(([architecture]) => {
-                return new PlatformInformation(platform, architecture);
-            });
-    }
+      });
+  }
 
-    public get platformToUse(): string {
-        switch (this.platform) {
-            case "darwin":
-                return "macos";
-            case "win32":
-                return this.architecture === "x86" ? "win32" : "win64";
-            case "linux":
-                return this.architecture === "x86" ? "linux-i686" : "linux-amd64";
-            default:
-                break;
+  private static GetWindowsArchitecture(): Promise<string> {
+    return utils
+      .execChildProcess(
+        "wmic os get osarchitecture",
+        utils.extensionContext.extensionPath
+      )
+      .then((architecture) => {
+        if (architecture) {
+          const archArray: string[] = architecture.split(os.EOL);
+          if (archArray.length > 2) {
+            const arch: string = archArray[1].trim();
+            if (arch.indexOf("64") >= 0) {
+              return "x86_x64";
+            } else if (arch.indexOf("32") >= 0) {
+              return "x86";
+            }
+          }
         }
-    }
-
-    public static GetUnknownArchitecture(): string { return "Unknown"; }
-
-    public static GetUnixArchitecture(): Promise<string> {
-        return utils.execChildProcess("uname -m", utils.extensionContext.extensionPath)
-        .then((architecture) => {
-            if (architecture) {
-                return architecture.trim();
-            }
-        });
-    }
-
-    private static GetWindowsArchitecture(): Promise<string> {
-        return utils.execChildProcess("wmic os get osarchitecture", utils.extensionContext.extensionPath)
-        .then((architecture) => {
-            if (architecture) {
-                const archArray: string[] = architecture.split(os.EOL);
-                if (archArray.length > 2) {
-                    const arch: string = archArray[1].trim();
-                    if (arch.indexOf("64") >= 0) {
-                        return "x86_x64";
-                    } else if (arch.indexOf("32") >= 0) {
-                        return "x86";
-                    }
-                }
-            }
-            return PlatformInformation.GetUnknownArchitecture();
-        }).catch((err) => {
-            return PlatformInformation.GetUnknownArchitecture();
-        });
-    }
-    constructor(public platform: string, public architecture: string) { }
+        return PlatformInformation.GetUnknownArchitecture();
+      })
+      .catch((err) => {
+        return PlatformInformation.GetUnknownArchitecture();
+      });
+  }
+  constructor(public platform: string, public architecture: string) {}
 }

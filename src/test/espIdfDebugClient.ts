@@ -22,125 +22,139 @@ import { ProtocolClient } from "vscode-debugadapter-testsupport/lib/protocolClie
 import { DebugProtocol } from "vscode-debugprotocol";
 
 export class EspIdfDebugClient extends ProtocolClient {
-    private runtime: string;
-    private execArgs: string[];
-    private adapterProcess: cp.ChildProcess;
-    private spawnOptions: cp.SpawnOptions;
-    private enableStderr: boolean;
-    private debugType: string;
-    private socket: net.Socket;
-    private defaultPort: number = 43474;
+  private runtime: string;
+  private execArgs: string[];
+  private adapterProcess: cp.ChildProcess;
+  private spawnOptions: cp.SpawnOptions;
+  private enableStderr: boolean;
+  private debugType: string;
+  private socket: net.Socket;
+  private defaultPort: number = 43474;
 
-    constructor(
-        runtime: string,
-        execArgs: string[], debugType: string,
-        spawnOptions: cp.SpawnOptions,
-        enableStderr: boolean,
-        defaultPort?: number) {
-            super();
-            this.runtime = runtime;
-            this.execArgs = execArgs;
-            this.spawnOptions = spawnOptions;
-            this.enableStderr = enableStderr;
-            this.debugType = debugType;
-            if (defaultPort) {
-                this.defaultPort = defaultPort;
-            }
+  constructor(
+    runtime: string,
+    execArgs: string[],
+    debugType: string,
+    spawnOptions: cp.SpawnOptions,
+    enableStderr: boolean,
+    defaultPort?: number
+  ) {
+    super();
+    this.runtime = runtime;
+    this.execArgs = execArgs;
+    this.spawnOptions = spawnOptions;
+    this.enableStderr = enableStderr;
+    this.debugType = debugType;
+    if (defaultPort) {
+      this.defaultPort = defaultPort;
     }
-    /**
-     * Starts a new debug adapter and sets up communication via stdin/stdout.
-     * When port number is specified, this class will not execute the debug adapter
-     * and it will connect to specified port directly.
-     */
-    public startClient(port?: number): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (typeof port === "number") {
-                this.socket = net.createConnection(port, "127.0.0.1", () => {
-                    this.connect(this.socket, this.socket);
-                    resolve();
-                });
-            } else {
-                this.adapterProcess = cp.spawn(this.runtime, this.execArgs, this.spawnOptions);
-                const sanitize = (s: string) => s.toString().replace(/\r?\n$/mg, "");
-                this.adapterProcess.stderr.on("data", (data: string) => {
-                    // tslint:disable-next-line: no-console
-                    console.log(data.toString());
-                    if (this.enableStderr) {
-                        // tslint:disable-next-line: no-console
-                        console.log(sanitize(data));
-                    }
-                });
-
-                this.adapterProcess.stdout.on("data", (data: Buffer) => {
-                    // tslint:disable-next-line: no-console
-                    console.log(data.toString());
-                    if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
-                        this.socket = net.createConnection(this.defaultPort, "127.0.0.1", () => {
-                            this.connect(this.socket, this.socket);
-                            resolve();
-                        });
-                    }
-                });
-
-                this.adapterProcess.on("error", (err) => {
-                    reject(err);
-                });
-                this.adapterProcess.on("exit", (code: number, signal: string) => {
-                    if (code) {
-                        // tslint:disable-next-line: no-console
-                        console.log(sanitize(`debug adapter exit code: ${code}`));
-                    }
-                });
-            }
+  }
+  /**
+   * Starts a new debug adapter and sets up communication via stdin/stdout.
+   * When port number is specified, this class will not execute the debug adapter
+   * and it will connect to specified port directly.
+   */
+  public startClient(port?: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (typeof port === "number") {
+        this.socket = net.createConnection(port, "127.0.0.1", () => {
+          this.connect(this.socket, this.socket);
+          resolve();
         });
-    }
-
-    public stop(): Promise<void> {
-        return this.disconnectRequest().then(() => {
-            this.stopAdapter();
-        }).catch(() => {
-            this.stopAdapter();
+      } else {
+        this.adapterProcess = cp.spawn(
+          this.runtime,
+          this.execArgs,
+          this.spawnOptions
+        );
+        const sanitize = (s: string) => s.toString().replace(/\r?\n$/gm, "");
+        this.adapterProcess.stderr.on("data", (data: string) => {
+          // tslint:disable-next-line: no-console
+          console.log(data.toString());
+          if (this.enableStderr) {
+            // tslint:disable-next-line: no-console
+            console.log(sanitize(data));
+          }
         });
-    }
 
-    public initializeRequest(
-        args?: DebugProtocol.InitializeRequestArguments):
-        Promise<DebugProtocol.InitializeResponse> {
-        if (!args) {
-            args = {
-                adapterID: this.debugType,
-                columnsStartAt1: true,
-                linesStartAt1: true,
-                pathFormat: "path",
-            };
-        }
-        return this.send("initialize", args);
-    }
-
-    public waitForEvent(eventType: string): Promise<DebugProtocol.Event> {
-        return new Promise((resolve, reject) => {
-            this.on(eventType, (event) => {
-                resolve(event);
-            });
+        this.adapterProcess.stdout.on("data", (data: Buffer) => {
+          // tslint:disable-next-line: no-console
+          console.log(data.toString());
+          if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
+            this.socket = net.createConnection(
+              this.defaultPort,
+              "127.0.0.1",
+              () => {
+                this.connect(this.socket, this.socket);
+                resolve();
+              }
+            );
+          }
         });
-    }
 
-    public waitForResponse(): Promise<DebugProtocol.Response> {
-        return new Promise((resolve, reject) => {
-            this.on("responded", (response) => {
-                resolve(response);
-            });
+        this.adapterProcess.on("error", (err) => {
+          reject(err);
         });
-    }
+        this.adapterProcess.on("exit", (code: number, signal: string) => {
+          if (code) {
+            // tslint:disable-next-line: no-console
+            console.log(sanitize(`debug adapter exit code: ${code}`));
+          }
+        });
+      }
+    });
+  }
 
-    private stopAdapter() {
-        if (this.adapterProcess) {
-            this.adapterProcess.kill("SIGKILL");
-            this.adapterProcess = null;
-        }
-    }
+  public stop(): Promise<void> {
+    return this.disconnectRequest()
+      .then(() => {
+        this.stopAdapter();
+      })
+      .catch(() => {
+        this.stopAdapter();
+      });
+  }
 
-    private disconnectRequest(args?: DebugProtocol.DisconnectArguments): Promise<DebugProtocol.DisconnectResponse> {
-        return this.send("disconnect", args);
+  public initializeRequest(
+    args?: DebugProtocol.InitializeRequestArguments
+  ): Promise<DebugProtocol.InitializeResponse> {
+    if (!args) {
+      args = {
+        adapterID: this.debugType,
+        columnsStartAt1: true,
+        linesStartAt1: true,
+        pathFormat: "path",
+      };
     }
+    return this.send("initialize", args);
+  }
+
+  public waitForEvent(eventType: string): Promise<DebugProtocol.Event> {
+    return new Promise((resolve, reject) => {
+      this.on(eventType, (event) => {
+        resolve(event);
+      });
+    });
+  }
+
+  public waitForResponse(): Promise<DebugProtocol.Response> {
+    return new Promise((resolve, reject) => {
+      this.on("responded", (response) => {
+        resolve(response);
+      });
+    });
+  }
+
+  private stopAdapter() {
+    if (this.adapterProcess) {
+      this.adapterProcess.kill("SIGKILL");
+      this.adapterProcess = null;
+    }
+  }
+
+  private disconnectRequest(
+    args?: DebugProtocol.DisconnectArguments
+  ): Promise<DebugProtocol.DisconnectResponse> {
+    return this.send("disconnect", args);
+  }
 }

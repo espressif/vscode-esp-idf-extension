@@ -25,8 +25,8 @@ import { PlatformInformation } from "../../PlatformInformation";
 import * as utils from "../../utils";
 
 suite("IDF Tools Manager Tests", async () => {
-    // Common setup variables
-    const packageJsonMockUp = JSON.parse(`{
+  // Common setup variables
+  const packageJsonMockUp = JSON.parse(`{
         "tools": [{
             "description": "Ninja build system",
             "export_paths": [
@@ -73,42 +73,59 @@ suite("IDF Tools Manager Tests", async () => {
               }
             ]
           }]}`);
-    const mockUpContext: ExtensionContext = { extensionPath : __dirname} as ExtensionContext;
-    utils.setExtensionContext(mockUpContext);
-    const platInfo: PlatformInformation = { architecture: "x86_64", platform: "darwin",
-        platformToUse: "macos" };
-    const output = OutputChannel.init();
-    const idfToolsManager = new IdfToolsManager(packageJsonMockUp, platInfo, output);
-    const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
+  const mockUpContext: ExtensionContext = {
+    extensionPath: __dirname,
+  } as ExtensionContext;
+  utils.setExtensionContext(mockUpContext);
+  const platInfo: PlatformInformation = {
+    architecture: "x86_64",
+    platform: "darwin",
+    platformToUse: "macos",
+  };
+  const output = OutputChannel.init();
+  const idfToolsManager = new IdfToolsManager(
+    packageJsonMockUp,
+    platInfo,
+    output
+  );
+  const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
 
-    test("Get Packages List", async () => {
-        await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
-            assert.equal(packages[0].description, "Ninja build system");
-        });
+  test("Get Packages List", async () => {
+    await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
+      assert.equal(packages[0].description, "Ninja build system");
     });
+  });
 
-    test("Obtain Url for current OS", async () => {
-        await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
-            const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(packages[0]);
-            assert.equal(pkgUrl.url, "https://dl.espressif.com/dl/mytest.zip");
-            assert.equal(pkgUrl.sha256, "9504cd1783ef3c242d06330a50d54dc8f838b605f5fc3e892c47254929f7350c");
-            assert.equal(pkgUrl.size, "91457");
-        });
+  test("Obtain Url for current OS", async () => {
+    await idfToolsManager.getPackageList(["ninja"]).then((packages) => {
+      const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(packages[0]);
+      assert.equal(pkgUrl.url, "https://dl.espressif.com/dl/mytest.zip");
+      assert.equal(
+        pkgUrl.sha256,
+        "9504cd1783ef3c242d06330a50d54dc8f838b605f5fc3e892c47254929f7350c"
+      );
+      assert.equal(pkgUrl.size, "91457");
     });
+  });
 
-    // Following two tests use ninja binary in {DIR}/testFiles
-    // In the project is included the Linux version (which is used by CI)
-    // In order to run tests locally, please replace Linux ninja for your OS ninja binary.
-    test("Verify installed version", async () => {
-        await idfToolsManager.getPackageList(["ninja"]).then(async (packages) => {
-          const result = await idfToolsManager.checkBinariesVersion(packages[0], mockInstallPath);
-          assert.equal(result, "1.9.0");
-        });
+  // Following two tests use ninja binary in {DIR}/testFiles
+  // In the project is included the Linux version (which is used by CI)
+  // In order to run tests locally, please replace Linux ninja for your OS ninja binary.
+  test("Verify installed version", async () => {
+    await idfToolsManager.getPackageList(["ninja"]).then(async (packages) => {
+      const result = await idfToolsManager.checkBinariesVersion(
+        packages[0],
+        mockInstallPath
+      );
+      assert.equal(result, "1.9.0");
     });
+  });
 
-    test("Verify all packages exists", async () => {
-      const results = await idfToolsManager.verifyPackages(mockInstallPath, ["ninja"]);
-      // tslint:disable-next-line: no-string-literal
-      assert.equal(results["ninja"], "1.9.0");
-    });
+  test("Verify all packages exists", async () => {
+    const results = await idfToolsManager.verifyPackages(mockInstallPath, [
+      "ninja",
+    ]);
+    // tslint:disable-next-line: no-string-literal
+    assert.equal(results["ninja"], "1.9.0");
+  });
 });

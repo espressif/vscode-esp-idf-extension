@@ -25,79 +25,115 @@ import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
 export class IDFSize {
-    private readonly workspaceRoot: vscode.Uri;
-    private isCanceled: boolean;
-    private locDict: LocDictionary;
-    constructor(workspaceRoot: vscode.Uri) {
-        this.workspaceRoot = workspaceRoot;
-        this.locDict = new LocDictionary(__filename);
+  private readonly workspaceRoot: vscode.Uri;
+  private isCanceled: boolean;
+  private locDict: LocDictionary;
+  constructor(workspaceRoot: vscode.Uri) {
+    this.workspaceRoot = workspaceRoot;
+    this.locDict = new LocDictionary(__filename);
+  }
+  public cancel() {
+    this.isCanceled = true;
+  }
+  public async calculateWithProgress(
+    progress: vscode.Progress<{ message: string; increment: number }>
+  ) {
+    if (this.isCanceled) {
+      throw new Error(
+        this.locDict.localize(
+          "idfSize.canceledError",
+          "Cannot proceed with size analysis on a canceled context"
+        )
+      );
     }
-    public cancel() {
-        this.isCanceled = true;
+    const isBuilt = await this.isBuiltAlready();
+    if (!isBuilt) {
+      throw new Error(
+        this.locDict.localize(
+          "idfSize.buildFirstError",
+          "Build is required for a size analysis, build your project first"
+        )
+      );
     }
-    public async calculateWithProgress(progress: vscode.Progress<{ message: string, increment: number }>) {
-        if (this.isCanceled) {
-            throw new Error(
-                this.locDict.localize(
-                    "idfSize.canceledError", "Cannot proceed with size analysis on a canceled context"));
-        }
-        const isBuilt = await this.isBuiltAlready();
-        if (!isBuilt) {
-            throw new Error(
-                this.locDict.localize(
-                    "idfSize.buildFirstError", "Build is required for a size analysis, build your project first"));
-        }
-        try {
-            const mapFilePath = await this.mapFilePath();
+    try {
+      const mapFilePath = await this.mapFilePath();
 
-            let locMsg = this.locDict.localize("idfSize.overviewMsg", "Gathering Overview");
-            const overview = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--json"]);
-            progress.report({ increment: 30, message: locMsg });
+      let locMsg = this.locDict.localize(
+        "idfSize.overviewMsg",
+        "Gathering Overview"
+      );
+      const overview = await this.idfCommandInvoker([
+        "idf_size.py",
+        mapFilePath,
+        "--json",
+      ]);
+      progress.report({ increment: 30, message: locMsg });
 
-            locMsg = this.locDict.localize("idfSize.archivesMsg", "Gathering Archive List");
-            const archives = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--archives", "--json"]);
-            progress.report({ increment: 30, message: locMsg });
+      locMsg = this.locDict.localize(
+        "idfSize.archivesMsg",
+        "Gathering Archive List"
+      );
+      const archives = await this.idfCommandInvoker([
+        "idf_size.py",
+        mapFilePath,
+        "--archives",
+        "--json",
+      ]);
+      progress.report({ increment: 30, message: locMsg });
 
-            locMsg = this.locDict.localize("idfSize.filesMsg", "Calculating File Sizes for all the archives");
-            const files = await this.idfCommandInvoker(["idf_size.py", mapFilePath, "--file", "--json"]);
-            progress.report({ increment: 30, message: locMsg });
+      locMsg = this.locDict.localize(
+        "idfSize.filesMsg",
+        "Calculating File Sizes for all the archives"
+      );
+      const files = await this.idfCommandInvoker([
+        "idf_size.py",
+        mapFilePath,
+        "--file",
+        "--json",
+      ]);
+      progress.report({ increment: 30, message: locMsg });
 
-            return { archives, files, overview };
-        } catch (error) {
-            throw error;
-        }
+      return { archives, files, overview };
+    } catch (error) {
+      throw error;
     }
+  }
 
-    private async mapFilePath() {
-        const projectName = await getProjectName(this.workspaceRoot.fsPath);
-        return path.join(this.workspaceRoot.fsPath, "build", `${projectName}.map`);
-    }
+  private async mapFilePath() {
+    const projectName = await getProjectName(this.workspaceRoot.fsPath);
+    return path.join(this.workspaceRoot.fsPath, "build", `${projectName}.map`);
+  }
 
-    private idfPath(): string {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-        return path.join(idfPathDir, "tools");
-    }
+  private idfPath(): string {
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    return path.join(idfPathDir, "tools");
+  }
 
-    private async isBuiltAlready() {
-        return fileExists(await this.mapFilePath());
-    }
+  private async isBuiltAlready() {
+    return fileExists(await this.mapFilePath());
+  }
 
-    private async idfCommandInvoker(args: string[]) {
-        const idfPath = this.idfPath();
-        try {
-            const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-            const buffOut = await spawn(pythonBinPath, args, {
-                cwd: idfPath,
-            });
-            const buffStr = buffOut.toString();
-            const buffObj = JSON.parse(buffStr);
-            return buffObj;
-        } catch (error) {
-            const throwableError = new Error(
-                this.locDict.localize(
-                    "idfSize.commandError", "Error encountered while calling idf_size.py"));
-            Logger.error(error.message, error);
-            throw throwableError;
-        }
+  private async idfCommandInvoker(args: string[]) {
+    const idfPath = this.idfPath();
+    try {
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      const buffOut = await spawn(pythonBinPath, args, {
+        cwd: idfPath,
+      });
+      const buffStr = buffOut.toString();
+      const buffObj = JSON.parse(buffStr);
+      return buffObj;
+    } catch (error) {
+      const throwableError = new Error(
+        this.locDict.localize(
+          "idfSize.commandError",
+          "Error encountered while calling idf_size.py"
+        )
+      );
+      Logger.error(error.message, error);
+      throw throwableError;
     }
+  }
 }

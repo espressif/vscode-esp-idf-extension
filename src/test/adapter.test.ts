@@ -21,32 +21,41 @@ import * as path from "path";
 import { EspIdfDebugClient } from "./espIdfDebugClient";
 
 suite("Debug Adapter Tests", () => {
-    const DEBUG_ADAPTER = path.join(__dirname, "..", "..", "esp_debug_adapter", "debug_adapter_main.py");
-    const portToUse = 43474; // To use in server mode, i.e. start debug adapter yourself
+  const DEBUG_ADAPTER = path.join(
+    __dirname,
+    "..",
+    "..",
+    "esp_debug_adapter",
+    "debug_adapter_main.py"
+  );
+  const portToUse = 43474; // To use in server mode, i.e. start debug adapter yourself
 
-    let debugClient: EspIdfDebugClient;
+  let debugClient: EspIdfDebugClient;
 
-    setup( (done) => {
-        debugClient = new EspIdfDebugClient(
-            "python",
-            ["-u", DEBUG_ADAPTER, "-cc"], "espidf", { cwd: __dirname }, true);
-        // Use portToUse here to attach to existing server. May be easier to debug initially
-        debugClient.startClient().then(() => done());
+  setup((done) => {
+    debugClient = new EspIdfDebugClient(
+      "python",
+      ["-u", DEBUG_ADAPTER, "-cc"],
+      "espidf",
+      { cwd: __dirname },
+      true
+    );
+    // Use portToUse here to attach to existing server. May be easier to debug initially
+    debugClient.startClient().then(() => done());
+  });
+
+  suite("initialize", () => {
+    test("should return supported features", async () => {
+      const initArgs = {
+        adapterID: "espidf",
+        clientID: "vscode",
+        columnsStartAt1: true,
+        linesStartAt1: true,
+      };
+      await debugClient.initializeRequest(initArgs).then((response) => {
+        response.body = response.body || {};
+        assert.equal(response.body.supportsConfigurationDoneRequest, true);
+      });
     });
-
-    suite("initialize", () => {
-        test("should return supported features", async () => {
-            const initArgs = {
-                adapterID: "espidf",
-                clientID: "vscode",
-                columnsStartAt1: true,
-                linesStartAt1: true,
-            };
-            await debugClient.initializeRequest(initArgs).then((response) => {
-                response.body = response.body || {};
-                assert.equal(response.body.supportsConfigurationDoneRequest, true);
-            });
-        });
-    });
-
+  });
 });

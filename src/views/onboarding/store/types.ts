@@ -13,60 +13,60 @@
 // limitations under the License.
 
 export interface IToolVersionResult {
-    actual: string;
-    doesToolExist: boolean;
-    expected: string;
-    id: string;
+  actual: string;
+  doesToolExist: boolean;
+  expected: string;
+  id: string;
 }
 
 export interface IToolStatus {
-    expected: string;
-    hashResult: boolean;
-    hasFailed: boolean;
-    id: string;
-    progress: string;
-    progressDetail: string;
+  expected: string;
+  hashResult: boolean;
+  hasFailed: boolean;
+  id: string;
+  progress: string;
+  progressDetail: string;
 }
 
 export interface IEspIdfLink {
-    filename: string;
-    name: string;
-    mirror: string;
-    url: string;
+  filename: string;
+  name: string;
+  mirror: string;
+  url: string;
 }
 
 export interface IEspIdfStatus {
-    id: string;
-    progress: string;
-    progressDetail: string;
+  id: string;
+  progress: string;
+  progressDetail: string;
 }
 
 export interface IState {
-    customExtraPaths: string;
-    downloadedIdfZipPath: string;
-    doesIdfPathExist: boolean;
-    envVars: object;
-    gitVersion: string;
-    idfPath: string;
-    idfDownloadPath: string;
-    idfDownloadStatus: IEspIdfStatus;
-    idfDownloadState: string;
-    idfToolsPath: string;
-    idfVersion: string;
-    idfVersionList: IEspIdfLink[];
-    isIDFZipExtracted: boolean;
-    isInstallationCompleted: boolean;
-    isPyInstallCompleted: boolean;
-    isToolsCheckCompleted: boolean;
-    pathDelimiter: string;
-    pyLog: string;
-    pyVersionList: string[];
-    requiredToolsVersions: IToolStatus[];
-    selectedIdfVersion: IEspIdfLink;
-    selectedPythonVersion: string;
-    showIdfPathCheck: boolean;
-    showIdfToolsChecks: boolean;
-    showOnboardingOnInit: boolean;
-    toolsCheckResults: IToolVersionResult[];
-    toolsSelectedSetupMode: string;
+  customExtraPaths: string;
+  downloadedIdfZipPath: string;
+  doesIdfPathExist: boolean;
+  envVars: object;
+  gitVersion: string;
+  idfPath: string;
+  idfDownloadPath: string;
+  idfDownloadStatus: IEspIdfStatus;
+  idfDownloadState: string;
+  idfToolsPath: string;
+  idfVersion: string;
+  idfVersionList: IEspIdfLink[];
+  isIDFZipExtracted: boolean;
+  isInstallationCompleted: boolean;
+  isPyInstallCompleted: boolean;
+  isToolsCheckCompleted: boolean;
+  pathDelimiter: string;
+  pyLog: string;
+  pyVersionList: string[];
+  requiredToolsVersions: IToolStatus[];
+  selectedIdfVersion: IEspIdfLink;
+  selectedPythonVersion: string;
+  showIdfPathCheck: boolean;
+  showIdfToolsChecks: boolean;
+  showOnboardingOnInit: boolean;
+  toolsCheckResults: IToolVersionResult[];
+  toolsSelectedSetupMode: string;
 }

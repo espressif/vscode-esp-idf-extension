@@ -21,72 +21,77 @@ import * as winston from "winston";
 import UserNotificationManagerTransport from "../userNotificationManager/userNotificationManager";
 
 export class Logger {
+  public static init(context: vscode.ExtensionContext): Logger {
+    Logger.instance = new Logger(context);
+    return Logger.instance;
+  }
 
-    public static init(context: vscode.ExtensionContext): Logger {
-        Logger.instance = new Logger(context);
-        return Logger.instance;
+  public static infoNotify(message: string, metadata?: any) {
+    if (!metadata) {
+      metadata = {};
     }
+    metadata.user = true;
+    Logger.info(message, metadata);
+  }
 
-    public static infoNotify(message: string, metadata?: any) {
-        if (!metadata) {
-            metadata = {};
-        }
-        metadata.user = true;
-        Logger.info(message, metadata);
+  public static info(message: string, metadata?: any) {
+    Logger.checkInitialized();
+    winston.info(message, metadata);
+  }
+
+  public static warnNotify(message: string, metadata?: any) {
+    if (!metadata) {
+      metadata = {};
     }
+    metadata.user = true;
+    Logger.warn(message, metadata);
+  }
 
-    public static info(message: string, metadata?: any) {
-        Logger.checkInitialized();
-        winston.info(message, metadata);
+  public static warn(message: string, metadata?: any) {
+    Logger.checkInitialized();
+    winston.warn(message, metadata);
+  }
+
+  public static errorNotify(message: string, error: Error, metadata?: any) {
+    if (!metadata) {
+      metadata = {};
     }
+    metadata.user = true;
+    Logger.error(message, error, metadata);
+  }
 
-    public static warnNotify(message: string, metadata?: any) {
-        if (!metadata) {
-            metadata = {};
-        }
-        metadata.user = true;
-        Logger.warn(message, metadata);
+  public static error(message: string, error: Error, metadata?: any) {
+    Logger.checkInitialized();
+    winston.log("error", message, {
+      ...metadata,
+      message: error.message,
+      stack: error.stack,
+    });
+  }
+
+  private static instance: Logger;
+
+  private static checkInitialized() {
+    if (!Logger.instance) {
+      throw new Error(
+        "need to initialize the logger first use:: Logger.init()"
+      );
     }
+  }
 
-    public static warn(message: string, metadata?: any) {
-        Logger.checkInitialized();
-        winston.warn(message, metadata);
-    }
+  private LOG_FILE_NAME = "esp_idf_vsc_ext.log";
 
-    public static errorNotify(message: string, error: Error, metadata?: any) {
-        if (!metadata) {
-            metadata = {};
-        }
-        metadata.user = true;
-        Logger.error(message, error, metadata);
-    }
-
-    public static error(message: string, error: Error, metadata?: any) {
-        Logger.checkInitialized();
-        winston.log("error", message, { ...metadata, message: error.message, stack: error.stack });
-    }
-
-    private static instance: Logger;
-
-    private static checkInitialized() {
-        if (!Logger.instance) {
-            throw new Error("need to initialize the logger first use:: Logger.init()");
-        }
-    }
-
-    private LOG_FILE_NAME = "esp_idf_vsc_ext.log";
-
-    private constructor(context: vscode.ExtensionContext) {
-        winston.configure({
-            transports: [
-                new (winston.transports.File)({
-                    filename: context.asAbsolutePath(this.LOG_FILE_NAME),
-                    level: "warn",
-                }),
-                new UserNotificationManagerTransport({
-                    level: "info",
-                }),
-            ],
-        });
-    }
+  private constructor(context: vscode.ExtensionContext) {
+    winston.configure({
+      transports: [
+        new winston.transports.File({
+          filename: context.asAbsolutePath(this.LOG_FILE_NAME),
+          level: "warn",
+        }),
+        new UserNotificationManagerTransport({
+          level: "info",
+        }),
+      ],
+    });
+  }
 }

@@ -22,24 +22,27 @@ import * as utils from "./utils";
 const locDic = new LocDictionary(__filename);
 
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
+  private OnDidChangeTreeData: EventEmitter<
+    IdfComponent | undefined
+  > = new EventEmitter<IdfComponent | undefined>();
+  // tslint:disable-next-line:member-ordering
+  public readonly onDidChangeTreeData: vscode.Event<
+    IdfComponent | undefined
+  > = this.OnDidChangeTreeData.event;
 
-    private OnDidChangeTreeData: EventEmitter<IdfComponent | undefined> = new EventEmitter<IdfComponent | undefined>();
-    // tslint:disable-next-line:member-ordering
-    public readonly onDidChangeTreeData: vscode.Event<IdfComponent | undefined> = this.OnDidChangeTreeData.event;
+  private projectDescriptionJsonPath: string;
 
-    private projectDescriptionJsonPath: string;
+  constructor(projectDescriptionPath: string) {
+    this.projectDescriptionJsonPath = projectDescriptionPath;
+  }
 
-    constructor(projectDescriptionPath: string) {
-        this.projectDescriptionJsonPath = projectDescriptionPath;
-    }
+  public refresh(projectDescriptionPath: string): void {
+    this.projectDescriptionJsonPath = projectDescriptionPath;
+    this.OnDidChangeTreeData.fire();
+  }
 
-    public refresh(projectDescriptionPath: string): void {
-        this.projectDescriptionJsonPath = projectDescriptionPath;
-        this.OnDidChangeTreeData.fire();
-    }
-
-    public getTreeItem(element: IdfComponent): TreeItem {
-        /* return {
+  public getTreeItem(element: IdfComponent): TreeItem {
+    /* return {
             resourceUri: element.uri,
             collapsibleState: element.isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : void 0,
             command: element.isDirectory ? void 0 : {
@@ -48,56 +51,73 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
                 title: 'Open IDF component'
             }
         }; */
-        return element;
-    }
+    return element;
+  }
 
-    public getChildren(element?: IdfComponent): Thenable<IdfComponent[]> {
-        // let components: IdfComponent[] = utils.readDirSync(element.uri);
+  public getChildren(element?: IdfComponent): Thenable<IdfComponent[]> {
+    // let components: IdfComponent[] = utils.readDirSync(element.uri);
 
-        return new Promise((resolve) => {
-            if (element) {
-                resolve(utils.readComponentsDirs(element.uri.fsPath));
-            } else {
-                resolve(this.getComponentsInProject());
-            }
-        });
+    return new Promise((resolve) => {
+      if (element) {
+        resolve(utils.readComponentsDirs(element.uri.fsPath));
+      } else {
+        resolve(this.getComponentsInProject());
+      }
+    });
+  }
 
-    }
+  private getComponentsInProject(): IdfComponent[] {
+    if (utils.fileExists(this.projectDescriptionJsonPath)) {
+      const componentsList: IdfComponent[] = [];
+      const userComponentsList: IdfComponent[] = [];
+      const projDescJson = JSON.parse(
+        utils.readFileSync(this.projectDescriptionJsonPath)
+      );
 
-    private getComponentsInProject(): IdfComponent[] {
-        if (utils.fileExists(this.projectDescriptionJsonPath)) {
-            const componentsList: IdfComponent[] = [];
-            const userComponentsList: IdfComponent[] = [];
-            const projDescJson = JSON.parse(utils.readFileSync(this.projectDescriptionJsonPath));
+      const defaultComponentsDir = idfConf.readParameter("idf.espIdfPath");
 
-            const defaultComponentsDir = idfConf.readParameter("idf.espIdfPath");
+      if (
+        Object.prototype.hasOwnProperty.call(
+          projDescJson,
+          "build_component_paths"
+        )
+      ) {
+        for (let i = 0; i < projDescJson.build_component_paths.length; i++) {
+          if (projDescJson.build_component_paths[i] === "") {
+            continue;
+          }
+          const element: IdfComponent = new IdfComponent(
+            projDescJson.build_components[i],
+            vscode.TreeItemCollapsibleState.Collapsed,
+            vscode.Uri.file(projDescJson.build_component_paths[i]).with({
+              scheme: "vscode-resource",
+            })
+          );
 
-            if (Object.prototype.hasOwnProperty.call(projDescJson, "build_component_paths")) {
-                for (let i = 0; i < projDescJson.build_component_paths.length; i++) {
-                    if (projDescJson.build_component_paths[i] === "") {
-                        continue;
-                    }
-                    const element: IdfComponent = new IdfComponent(
-                        projDescJson.build_components[i],
-                        vscode.TreeItemCollapsibleState.Collapsed,
-                        vscode.Uri.file(projDescJson.build_component_paths[i]).with({ scheme: "vscode-resource"}));
-
-                    if (element.uri.fsPath.startsWith(defaultComponentsDir)) {
-                        componentsList.push(element);
-                    } else {
-                        userComponentsList.push(element);
-                    }
-                }
-            }
-            const sortedUserList = userComponentsList.sort((a, b) => (a.label > b.label ? 1 : -1));
-            const sortedDefaultList = componentsList.sort((a, b) => (a.label > b.label ? 1 : -1));
-
-            return sortedUserList.concat(sortedDefaultList);
-        } else {
-            Logger.errorNotify(locDic.localize("idfComponentDataProvider.proj_desc_not_found",
-            "File project_description.json cannot be found."), new Error("File-Not-Found"));
-            return null;
+          if (element.uri.fsPath.startsWith(defaultComponentsDir)) {
+            componentsList.push(element);
+          } else {
+            userComponentsList.push(element);
+          }
         }
-    }
+      }
+      const sortedUserList = userComponentsList.sort((a, b) =>
+        a.label > b.label ? 1 : -1
+      );
+      const sortedDefaultList = componentsList.sort((a, b) =>
+        a.label > b.label ? 1 : -1
+      );
 
+      return sortedUserList.concat(sortedDefaultList);
+    } else {
+      Logger.errorNotify(
+        locDic.localize(
+          "idfComponentDataProvider.proj_desc_not_found",
+          "File project_description.json cannot be found."
+        ),
+        new Error("File-Not-Found")
+      );
+      return null;
+    }
+  }
 }

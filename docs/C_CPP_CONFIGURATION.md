@@ -30,7 +30,7 @@ An example configuration that should work with most projects is shown below.
                     "${config:idf.espIdfPathWin}/components",
                     "${workspaceFolder}"
                 ],
-                "limitSymbolsToIncludedHeaders": false   
+                "limitSymbolsToIncludedHeaders": false
             }
         }
     ],
@@ -40,7 +40,7 @@ An example configuration that should work with most projects is shown below.
 
 ## Configuration with compile_commands.json
 
-For this configuration, you must build your project beforehand in order to generate `${workspaceFolder}/build/compile_commands.json` (where ${workspaceFolder} is your project directory). This file will then be used to resolve your C/C++ headers.
+For this configuration, you must build your project beforehand in order to generate `${workspaceFolder}/build/compile_commands.json` (where \${workspaceFolder} is your project directory). This file will then be used to resolve your C/C++ headers.
 
 ```
 
