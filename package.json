@@ -293,6 +293,12 @@
             "default": "0",
             "scope": "resource",
             "description": "%trace.skip_size.description%"
+          },
+          "idf.saveBeforeBuild": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.saveBeforeBuildDescription%"
           }
         }
       }

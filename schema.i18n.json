@@ -109,6 +109,7 @@
     "trace.trace_size.description",
     "trace.stop_tmo.description",
     "trace.wait4halt.description",
-    "trace.skip_size.description"
+    "trace.skip_size.description",
+    "param.saveBeforeBuildDescription"
   ]
 }

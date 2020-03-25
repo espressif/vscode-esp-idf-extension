@@ -41,5 +41,6 @@
   "trace.trace_size.description": "trace_size will set for the apptrace",
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
-  "trace.skip_size.description": "skip_size will be set for the apptrace"
+  "trace.skip_size.description": "skip_size will be set for the apptrace",
+  "param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos"
 }

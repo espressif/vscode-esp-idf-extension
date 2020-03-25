@@ -172,13 +172,13 @@ export class InstallManager {
                           )
                         );
                       });
+
                       await ensureDir(path.dirname(absolutePath), {
                         mode: 0o775,
                       })
                         .then(async () => {
                           const absoluteEntryTmpPath: string =
                             absolutePath + ".tmp";
-
                           await pathExists(absoluteEntryTmpPath).then(
                             async (doesTmpPathExists) => {
                               if (doesTmpPathExists) {
@@ -196,7 +196,6 @@ export class InstallManager {
                               }
                             }
                           );
-
                           const writeStream: fs.WriteStream = fs.createWriteStream(
                             absoluteEntryTmpPath,
                             { mode: 0o755 }
