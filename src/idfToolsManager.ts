@@ -44,7 +44,7 @@ export class IdfToolsManager {
             }
             if (pkg.platform_overrides) {
               const overrideIndex = pkg.platform_overrides.filter(
-                platOverride => {
+                (platOverride) => {
                   return (
                     platOverride.platforms.indexOf(
                       this.platformInfo.platformToUse
@@ -74,7 +74,7 @@ export class IdfToolsManager {
         }
       }
 
-      const packagesToInstall = this.allPackages.filter(pkg => {
+      const packagesToInstall = this.allPackages.filter((pkg) => {
         return (
           pkg.install === "always" ||
           (onReqPkgs &&
@@ -87,13 +87,13 @@ export class IdfToolsManager {
   }
 
   public verifyPackages(pathsToVerify: string, onReqPkgs?: string[]): {} {
-    return this.getPackageList(onReqPkgs).then(async packages => {
+    return this.getPackageList(onReqPkgs).then(async (packages) => {
       const promiseArr = {};
-      const names = packages.map(pkg => pkg.name);
-      const promises = packages.map(pkg =>
+      const names = packages.map((pkg) => pkg.name);
+      const promises = packages.map((pkg) =>
         this.checkBinariesVersion(pkg, pathsToVerify)
       );
-      return Promise.all(promises).then(versionExistsArr => {
+      return Promise.all(promises).then((versionExistsArr) => {
         names.forEach(
           (pkgName, index) => (promiseArr[pkgName] = versionExistsArr[index])
         );
@@ -103,7 +103,7 @@ export class IdfToolsManager {
   }
 
   public obtainUrlInfoForPlatform(pkg: IPackage): IFileInfo {
-    const versions = pkg.versions.filter(value => {
+    const versions = pkg.versions.filter((value) => {
       return (
         (value.status === "recommended" ||
           value.status === "supported" ||
@@ -121,7 +121,7 @@ export class IdfToolsManager {
   }
 
   public getVersionToUse(pkg: IPackage): string {
-    const versions = pkg.versions.filter(value => {
+    const versions = pkg.versions.filter((value) => {
       return (
         (value.status === "recommended" ||
           value.status === "supported" ||
@@ -145,7 +145,7 @@ export class IdfToolsManager {
         process.cwd(),
         IdfToolsManager.toolsManagerChannel
       )
-      .then(resp => {
+      .then((resp) => {
         const regexResult = resp.match(pkg.version_regex);
         if (regexResult.length > 0) {
           if (pkg.version_regex_replace) {
@@ -162,7 +162,7 @@ export class IdfToolsManager {
         }
         return "No match";
       })
-      .catch(reason => {
+      .catch((reason) => {
         IdfToolsManager.toolsManagerChannel.appendLine(reason);
         return "Error";
       });
@@ -196,7 +196,7 @@ export class IdfToolsManager {
     const exportedVarDict = {};
     const pkgs = await this.getPackageList();
     for (const pkg of pkgs) {
-      Object.keys(pkg.export_vars).forEach(key => {
+      Object.keys(pkg.export_vars).forEach((key) => {
         if (Object.keys(exportedVarDict).indexOf(key) === -1) {
           exportedVarDict[key] = pkg.export_vars[key];
         }
@@ -224,22 +224,22 @@ export class IdfToolsManager {
   }
 
   public async getRequiredToolsInfo() {
-    return this.getPackageList().then(packages => {
-      return packages.map(pkg => {
-        const pkgVersionsForPlatform = pkg.versions.filter(version => {
+    return this.getPackageList().then((packages) => {
+      return packages.map((pkg) => {
+        const pkgVersionsForPlatform = pkg.versions.filter((version) => {
           return (
             Object.getOwnPropertyNames(version).indexOf(
               this.platformInfo.platformToUse
             ) > -1
           );
         });
-        const expectedVersions = pkgVersionsForPlatform.map(p => p.name);
+        const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
         return {
           expected: expectedVersions.join(","),
           hashResult: false,
           id: pkg.name,
           progress: "0.00%",
-          hasFailed: false
+          hasFailed: false,
         };
       });
     });
@@ -247,16 +247,16 @@ export class IdfToolsManager {
 
   public async checkToolsVersion(pathToVerify: string) {
     const versions = await this.verifyPackages(pathToVerify);
-    const pkgs = await this.getPackageList().then(packages => {
-      return packages.map(pkg => {
-        const expectedVersions = pkg.versions.map(p => p.name);
+    const pkgs = await this.getPackageList().then((packages) => {
+      return packages.map((pkg) => {
+        const expectedVersions = pkg.versions.map((p) => p.name);
         const isToolVersionCorrect =
           expectedVersions.indexOf(versions[pkg.name]) > -1;
         return {
           actual: versions[pkg.name],
           doesToolExist: isToolVersionCorrect,
           expected: expectedVersions.join(" or \n"),
-          id: pkg.name
+          id: pkg.name,
         };
       });
     });

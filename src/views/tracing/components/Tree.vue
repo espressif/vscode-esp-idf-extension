@@ -24,11 +24,11 @@ import Vue from "vue";
 const Tree = Vue.extend({
   name: "Tree",
   props: {
-    tree: Object
+    tree: Object,
   },
   data() {
     return {
-      isOpen: false
+      isOpen: false,
     };
   },
   methods: {
@@ -40,8 +40,8 @@ const Tree = Vue.extend({
     openFileAtLine(filePath: string, lineNumber: string) {
       const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
       this.$root.treeOpenFileHandler(filePath, lineNumberInt);
-    }
-  }
+    },
+  },
 });
 export default Tree;
 </script>

@@ -16,7 +16,7 @@ import Vue from "vue";
 const QuickCallStack = Vue.extend({
   name: "QuickCallStack",
   props: {
-    info: Object
+    info: Object,
   },
   methods: {
     dismiss() {
@@ -24,8 +24,8 @@ const QuickCallStack = Vue.extend({
     },
     createTreeFromAddressArray(e) {
       return this.$root.createTreeFromAddressArray(e);
-    }
-  }
+    },
+  },
 });
 export default QuickCallStack;
 </script>

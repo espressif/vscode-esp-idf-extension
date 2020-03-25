@@ -45,7 +45,7 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
       "python",
       ["sysviewtrace_proc.py", "-j", this.traceFilePath],
       {
-        cwd: this.appTraceToolsPath()
+        cwd: this.appTraceToolsPath(),
       }
     );
   }

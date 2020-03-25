@@ -1,5 +1,5 @@
 {
-    "save" : "Guardar",
-    "discard": "Descartar",
-    "reset": "Reiniciar"
+  "save": "Guardar",
+  "discard": "Descartar",
+  "reset": "Reiniciar"
 }

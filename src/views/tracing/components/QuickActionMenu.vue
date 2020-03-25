@@ -40,8 +40,8 @@ const QuickActionMenu = Vue.extend({
       const target: HTMLElement = evt.target as HTMLElement;
       const buttonKey = target.dataset.dictKey;
       this.$emit("change", buttonKey);
-    }
-  }
+    },
+  },
 });
 export default QuickActionMenu;
 </script>

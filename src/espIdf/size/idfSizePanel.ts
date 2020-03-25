@@ -41,9 +41,9 @@ export class IDFSizePanel {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))
+          vscode.Uri.file(path.join(context.extensionPath, "dist", "views")),
         ],
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
     IDFSizePanel.currentPanel = new IDFSizePanel(
@@ -87,7 +87,7 @@ export class IDFSizePanel {
     this._panel.webview.postMessage(this._webviewData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
     this._panel.webview.onDidReceiveMessage(
-      msg => {
+      (msg) => {
         switch (msg.command) {
           case "flash":
             vscode.commands.executeCommand("espIdf.flashDevice");
@@ -119,7 +119,7 @@ export class IDFSizePanel {
     }
     let html = fs.readFileSync(htmlFilePath).toString();
     const fileUrl = vscode.Uri.file(htmlFilePath).with({
-      scheme: "vscode-resource"
+      scheme: "vscode-resource",
     });
     if (/(<head(\s.*)?>)/.test(html)) {
       html = html.replace(

@@ -57,7 +57,7 @@ export class PlatformInformation {
   public static GetUnixArchitecture(): Promise<string> {
     return utils
       .execChildProcess("uname -m", utils.extensionContext.extensionPath)
-      .then(architecture => {
+      .then((architecture) => {
         if (architecture) {
           return architecture.trim();
         }
@@ -70,7 +70,7 @@ export class PlatformInformation {
         "wmic os get osarchitecture",
         utils.extensionContext.extensionPath
       )
-      .then(architecture => {
+      .then((architecture) => {
         if (architecture) {
           const archArray: string[] = architecture.split(os.EOL);
           if (archArray.length > 2) {
@@ -84,7 +84,7 @@ export class PlatformInformation {
         }
         return PlatformInformation.GetUnknownArchitecture();
       })
-      .catch(err => {
+      .catch((err) => {
         return PlatformInformation.GetUnknownArchitecture();
       });
   }

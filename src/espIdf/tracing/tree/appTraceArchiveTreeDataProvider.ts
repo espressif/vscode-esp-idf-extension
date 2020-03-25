@@ -22,7 +22,7 @@ import * as vscode from "vscode";
 
 enum TraceType {
   AppTrace = 0,
-  HeapTrace = 1
+  HeapTrace = 1,
 }
 
 class AppTraceArchiveItems extends vscode.TreeItem {
@@ -71,8 +71,8 @@ export class AppTraceArchiveTreeDataProvider
       let appTraceCounter = 1;
       const appTraceArchives = [];
       traceLists
-        .filter(trace => trace.endsWith(".trace"))
-        .forEach(trace => {
+        .filter((trace) => trace.endsWith(".trace"))
+        .forEach((trace) => {
           const label = `Trace Log #${appTraceCounter++}`;
           const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
             label,
@@ -89,8 +89,8 @@ export class AppTraceArchiveTreeDataProvider
       appTraceCounter = 1;
 
       traceLists
-        .filter(trace => trace.endsWith(".svdat"))
-        .forEach(trace => {
+        .filter((trace) => trace.endsWith(".svdat"))
+        .forEach((trace) => {
           const label = `Heap Trace #${appTraceCounter++}`;
           const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
             label,
@@ -121,7 +121,7 @@ export class AppTraceArchiveTreeDataProvider
     appTraceArchiveNode.command = {
       command: "espIdf.apptrace.archive.showReport",
       title: "Show Report",
-      arguments: [appTraceArchiveNode]
+      arguments: [appTraceArchiveNode],
     };
     appTraceArchiveNode.iconPath = {
       light: join(
@@ -143,7 +143,7 @@ export class AppTraceArchiveTreeDataProvider
         "..",
         "media",
         "log_dark.svg"
-      )
+      ),
     };
     appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
     return appTraceArchiveNode;

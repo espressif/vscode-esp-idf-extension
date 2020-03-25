@@ -57,7 +57,7 @@ export class BuildManager {
       appendIdfAndToolsToPath();
 
       this.server = spawn(command, args, {
-        cwd: buildPath
+        cwd: buildPath,
       });
 
       this.server.on("close", (code: number, signal: string) => {

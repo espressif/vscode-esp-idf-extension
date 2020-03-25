@@ -53,7 +53,7 @@ export abstract class AbstractTracingToolManager {
 
   protected preCheck(filePaths: string[], mode: number): boolean {
     let didPassAll = true;
-    filePaths.forEach(filePath => {
+    filePaths.forEach((filePath) => {
       if (!canAccessFile(filePath, mode)) {
         didPassAll = false;
       }

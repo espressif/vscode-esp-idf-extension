@@ -48,11 +48,11 @@ const Calls = Vue.extend({
   props: {
     tree: Object,
     space: Number,
-    total: Number
+    total: Number,
   },
   data() {
     return {
-      isOpen: false
+      isOpen: false,
     };
   },
   methods: {
@@ -62,7 +62,7 @@ const Calls = Vue.extend({
       }
     },
     collapseAndExpandAll(isExpand: boolean) {
-      this.$children.forEach(child => {
+      this.$children.forEach((child) => {
         child.collapseAndExpandAll(isExpand);
         if (this.tree.child) {
           this.isOpen = isExpand;
@@ -75,13 +75,13 @@ const Calls = Vue.extend({
     openFileAtLine(filePath: string, lineNumber: string) {
       const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
       this.$root.treeOpenFileHandler(filePath, lineNumberInt);
-    }
+    },
   },
   computed: {
     spaces() {
       return new Array(this.space).join("&nbsp;&nbsp;&nbsp;&nbsp;");
-    }
-  }
+    },
+  },
 });
 export default Calls;
 </script>

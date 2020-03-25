@@ -88,9 +88,9 @@ export function spawn(
     child.stdout.on("data", sendToOutputChannel);
     child.stderr.on("data", sendToOutputChannel);
 
-    child.on("error", error => reject({ error }));
+    child.on("error", (error) => reject({ error }));
 
-    child.on("exit", code => {
+    child.on("exit", (code) => {
       if (code === 0) {
         resolve(buff);
       } else {
@@ -113,7 +113,7 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
 }
 
 export async function sleep(ms: number): Promise<any> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
@@ -144,21 +144,21 @@ export function createVscodeFolder(curWorkspaceFsPath: string) {
 }
 
 export function chooseTemplateDir() {
-  const templatesAvailable = fs.readdirSync(templateDir).filter(file => {
+  const templatesAvailable = fs.readdirSync(templateDir).filter((file) => {
     return (
       fs.statSync(path.join(templateDir, file)).isDirectory() &&
       file !== ".vscode"
     );
   });
   const templates = [];
-  templatesAvailable.forEach(templDir => {
+  templatesAvailable.forEach((templDir) => {
     templates.push({ label: templDir, target: templDir });
   });
   return templates;
 }
 
 export function getDirectories(dirPath) {
-  return fs.readdirSync(dirPath).filter(file => {
+  return fs.readdirSync(dirPath).filter((file) => {
     return fs.statSync(path.join(dirPath, file)).isDirectory();
   });
 }
@@ -173,7 +173,7 @@ export function createSkeleton(
 
 export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
   createVscodeFolder(destinationDir);
-  copy(srcDirPath, destinationDir).catch(err => {
+  copy(srcDirPath, destinationDir).catch((err) => {
     Logger.errorNotify(err, err);
   });
 }
@@ -211,7 +211,7 @@ export function readComponentsDirs(filePath): IdfComponent[] {
       : {
           arguments: [vscode.Uri.file(path.join(filePath, file))],
           command: "espIdf.openIdfDocument",
-          title: openComponentMsg
+          title: openComponentMsg,
         };
     const component = new IdfComponent(
       file,
@@ -244,7 +244,7 @@ export function execChildProcess(
     ? opts
     : {
         cwd: workingDirectory,
-        maxBuffer: 500 * 1024
+        maxBuffer: 500 * 1024,
       };
   return new Promise<string>((resolve, reject) => {
     childProcess.exec(
@@ -311,7 +311,7 @@ export function getToolPackagesPath(toolPackage: string[]) {
 export async function getToolsJsonPath(newIdfPath: string) {
   const espIdfVersion = await getEspIdfVersion(newIdfPath);
   let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
-  await pathExists(jsonToUse).then(exists => {
+  await pathExists(jsonToUse).then((exists) => {
     if (!exists) {
       const idfToolsJsonToUse =
         espIdfVersion.localeCompare("4.0") < 0
@@ -348,7 +348,7 @@ export function getHttpsProxyAgent(): HttpsProxyAgent {
     auth: proxyUrl.auth,
     host: proxyUrl.hostname,
     port: parseInt(proxyUrl.port, 10),
-    rejectUnauthorized: strictProxy
+    rejectUnauthorized: strictProxy,
   };
   return new HttpsProxyAgent(proxyOptions);
 }
@@ -433,9 +433,9 @@ export function getSubProjects(dir: string): string[] {
     return [dir];
   } else {
     const subProjectsPathArray = [];
-    subDirs.forEach(subDir => {
+    subDirs.forEach((subDir) => {
       const subProjectsPaths = getSubProjects(path.join(dir, subDir));
-      subProjectsPaths.forEach(subProjPath => {
+      subProjectsPaths.forEach((subProjPath) => {
         subProjectsPathArray.push(subProjPath);
       });
     });
@@ -453,21 +453,21 @@ export async function getEspIdfVersion(workingDir: string) {
     return "x.x";
   }
   return await execChildProcess("git describe --tags", workingDir)
-    .then(rawEspIdfVersion => {
+    .then((rawEspIdfVersion) => {
       const espIdfVersionMatch = rawEspIdfVersion.match(/^v([0-9]+\.[0-9]+).*/);
       if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
         return "x.x";
       }
       return espIdfVersionMatch[1];
     })
-    .catch(reason => {
+    .catch((reason) => {
       return "x.x";
     });
 }
 
 export async function checkGitExists(workingDir: string) {
   return await execChildProcess("git --version", workingDir)
-    .then(result => {
+    .then((result) => {
       if (result) {
         const match = result.match(
           /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g
@@ -483,7 +483,7 @@ export async function checkGitExists(workingDir: string) {
         }
       }
     })
-    .catch(err => {
+    .catch((err) => {
       Logger.errorNotify("Git is not found in current environment", err);
       return "Not found";
     });
@@ -518,12 +518,12 @@ export function validateFileSizeAndChecksum(
   return new Promise<boolean>(async (resolve, reject) => {
     const algo = "sha256";
     const shashum = crypto.createHash(algo);
-    await pathExists(filePath).then(doesFileExists => {
+    await pathExists(filePath).then((doesFileExists) => {
       if (doesFileExists) {
         const fileSize = fs.statSync(filePath).size;
         const readStream = fs.createReadStream(filePath);
         let fileChecksum: string;
-        readStream.on("data", data => {
+        readStream.on("data", (data) => {
           shashum.update(data);
         });
         readStream.on("end", () => {
@@ -533,7 +533,7 @@ export function validateFileSizeAndChecksum(
           const comparisonResult = isChecksumEqual && isSizeEqual;
           resolve(comparisonResult);
         });
-        readStream.on("error", e => reject(e));
+        readStream.on("error", (e) => reject(e));
       } else {
         reject(false);
       }
@@ -575,7 +575,7 @@ export function appendIdfAndToolsToPath() {
 export async function isBinInPath(binaryName: string, workDirectory: string) {
   const cmd = process.platform === "win32" ? "where" : "which";
   return await spawn(cmd, [binaryName], { workDirectory })
-    .then(result => {
+    .then((result) => {
       if (
         result.toString() === "" ||
         result.toString().indexOf("Could not find files") < 0
@@ -586,7 +586,7 @@ export async function isBinInPath(binaryName: string, workDirectory: string) {
       }
       return "";
     })
-    .catch(err => {
+    .catch((err) => {
       if (err) {
         Logger.error(`Cannot access filePath: ${binaryName}`, err);
       }

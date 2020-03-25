@@ -92,7 +92,7 @@ export class KconfigMenuLoader {
       isVisible: false,
       dependsOn: config.depends_on,
       children: [],
-      value: null
+      value: null,
     };
     for (const child of config.children) {
       const childMenu: Menu = this.mapJsonToMenuObject(child);

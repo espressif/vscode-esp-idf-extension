@@ -15,18 +15,18 @@ externals.push("vscode");
 const extensionConfig = {
   entry: {
     extension: path.resolve(__dirname, "src", "extension.ts"),
-    kconfigServer: path.resolve(__dirname, "src", "kconfig", "server.ts")
+    kconfigServer: path.resolve(__dirname, "src", "kconfig", "server.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
     libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: "../[resource-path]"
+    devtoolModuleFilenameTemplate: "../[resource-path]",
   },
   target: "node",
   node: {
     __dirname: false,
-    __filename: true
+    __filename: true,
   },
   devtool: "source-map",
   externals: ["commonjs", "vscode"],
@@ -39,24 +39,24 @@ const extensionConfig = {
           {
             loader: "vscode-nls-dev/lib/webpack-loader",
             options: {
-              base: path.join(__dirname, "src")
-            }
+              base: path.join(__dirname, "src"),
+            },
           },
           {
             loader: "ts-loader",
             options: {
               compilerOptions: {
-                module: "es6"
-              }
-            }
-          }
-        ]
-      }
-    ]
+                module: "es6",
+              },
+            },
+          },
+        ],
+      },
+    ],
   },
   resolve: {
-    extensions: [".js", ".ts"]
-  }
+    extensions: [".js", ".ts"],
+  },
 };
 
 const webViewConfig = {
@@ -71,11 +71,17 @@ const webViewConfig = {
       "onboarding",
       "main.ts"
     ),
-    menuconfig: path.resolve(__dirname, "src", "views", "menuconfig", "main.ts")
+    menuconfig: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "menuconfig",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
-    filename: "[name]-bundle.js"
+    filename: "[name]-bundle.js",
   },
   module: {
     rules: [
@@ -84,15 +90,15 @@ const webViewConfig = {
         use: [
           MiniCssExtractPlugin.loader,
           {
-            loader: "css-loader"
+            loader: "css-loader",
           },
           {
             loader: "sass-loader",
             options: {
-              sourceMap: true
-            }
-          }
-        ]
+              sourceMap: true,
+            },
+          },
+        ],
       },
       {
         test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
@@ -101,62 +107,62 @@ const webViewConfig = {
             loader: "file-loader",
             options: {
               name: "[name].[ext]",
-              outputPath: "fonts/"
-            }
-          }
-        ]
+              outputPath: "fonts/",
+            },
+          },
+        ],
       },
       {
         test: /\.vue$/,
         use: "vue-loader",
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: ["vue-style-loader", "css-loader"]
+        use: ["vue-style-loader", "css-loader"],
       },
       {
         test: /\.tsx?$/,
         use: {
           loader: "ts-loader",
           options: {
-            appendTsSuffixTo: [/\.vue$/]
-          }
+            appendTsSuffixTo: [/\.vue$/],
+          },
         },
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+    ],
   },
   resolve: {
     extensions: [".ts", ".js", ".vue", ".json"],
     alias: {
-      vue$: "vue/dist/vue.esm.js"
-    }
+      vue$: "vue/dist/vue.esm.js",
+    },
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: "[name].bundle.css"
+      filename: "[name].bundle.css",
     }),
     new TSLintPlugin({
-      files: ["./*.ts"]
+      files: ["./*.ts"],
     }),
     new HtmlWebpackPlugin({
       chunks: ["size"],
       filename: "size.html",
-      template: path.join(__dirname, "src", "views", "size", "index.html")
+      template: path.join(__dirname, "src", "views", "size", "index.html"),
     }),
     new HtmlWebpackPlugin({
       chunks: ["tracing"],
       filename: "tracing.html",
-      template: path.join(__dirname, "src", "views", "tracing", "index.html")
+      template: path.join(__dirname, "src", "views", "tracing", "index.html"),
     }),
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
   ],
   devServer: {
     contentBase: path.join(__dirname),
     compress: true,
-    port: 9000
-  }
+    port: 9000,
+  },
 };
 
 module.exports = [extensionConfig, webViewConfig];

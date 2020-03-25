@@ -31,7 +31,7 @@ export function initSelectedWorkspace(status: vscode.StatusBarItem) {
     clickCommand: "espIdf.pickAWorkspaceFolder",
     currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
     tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
-    text: "${file-directory}"
+    text: "${file-directory}",
   };
   utils.updateStatus(status, workspaceFolderInfo);
   return workspaceRoot;

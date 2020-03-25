@@ -27,7 +27,7 @@ import {
   sendChecksumResult,
   sendDownloadDetail,
   sendDownloadFailed,
-  sendDownloadPercentage
+  sendDownloadPercentage,
 } from "./updateViewMethods";
 
 export async function downloadToolsInIdfToolsPath(
@@ -47,15 +47,15 @@ export async function downloadToolsInIdfToolsPath(
     {
       cancellable: false,
       location: vscode.ProgressLocation.Notification,
-      title: "ESP-IDF Tools"
+      title: "ESP-IDF Tools",
     },
     async (
       progress: vscode.Progress<{ message: string; increment?: number }>
     ) => {
       const packagesProgress = await idfToolsManager
         .getPackageList()
-        .then(pkgs => {
-          return pkgs.map(pkg => {
+        .then((pkgs) => {
+          return pkgs.map((pkg) => {
             return new PackageProgress(
               pkg.name,
               sendDownloadPercentage,
@@ -69,7 +69,7 @@ export async function downloadToolsInIdfToolsPath(
       Logger.info("");
       await downloadManager
         .downloadPackages(idfToolsManager, progress, packagesProgress)
-        .catch(reason => {
+        .catch((reason) => {
           OutputChannel.appendLine(reason);
           Logger.info(reason);
         });
@@ -80,12 +80,12 @@ export async function downloadToolsInIdfToolsPath(
         .then(() => {
           OnBoardingPanel.postMessage({ command: "set_tools_setup_finish" });
         })
-        .catch(reason => {
+        .catch((reason) => {
           OutputChannel.appendLine(reason);
           Logger.info(reason);
         });
       progress.report({
-        message: `Installing python virtualenv and ESP-IDF python requirements...`
+        message: `Installing python virtualenv and ESP-IDF python requirements...`,
       });
       OutputChannel.appendLine(
         "Installing python virtualenv and ESP-IDF python requirements..."
@@ -94,7 +94,7 @@ export async function downloadToolsInIdfToolsPath(
         "Installing python virtualenv and ESP-IDF python requirements..."
       );
       const pyEnvResult = await installPythonRequirements(workingDir).catch(
-        reason => {
+        (reason) => {
           OutputChannel.appendLine(reason);
           Logger.info(reason);
         }
@@ -132,7 +132,7 @@ export async function downloadToolsInIdfToolsPath(
       OnBoardingPanel.postMessage({
         command: "load_custom_paths",
         custom_vars: JSON.parse(exportVars),
-        custom_paths: exportPaths
+        custom_paths: exportPaths,
       });
     }
   );

@@ -67,12 +67,12 @@ export class OpenOCDManager extends EventEmitter {
     if (!OpenOCDManager.instance.isRunning()) {
       openOCDCommandSelectionPick.push({
         label: "Start OpenOCD",
-        description: ""
+        description: "",
       });
     } else {
       openOCDCommandSelectionPick.push({
         label: "Stop OpenOCD",
-        description: "Running"
+        description: "Running",
       });
     }
     const pick = await vscode.window.showQuickPick(openOCDCommandSelectionPick);
@@ -151,15 +151,15 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     const openOcdArgs = [];
-    this.openOcdConfigFilesList.forEach(configFile => {
+    this.openOcdConfigFilesList.forEach((configFile) => {
       openOcdArgs.push("-f");
       openOcdArgs.push(configFile);
     });
 
     this.server = spawn("openocd", openOcdArgs, {
-      cwd: workspace
+      cwd: workspace,
     });
-    this.server.stderr.on("data", data => {
+    this.server.stderr.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
       const regex = /Error:.*/i;
@@ -177,12 +177,12 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.displayChan.append(errStr);
     });
-    this.server.stdout.on("data", data => {
+    this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
       this.emit("data", this.chan);
     });
-    this.server.on("error", error => {
+    this.server.on("error", (error) => {
       this.emit("error", error, this.chan);
       this.stop();
     });

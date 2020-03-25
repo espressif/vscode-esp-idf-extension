@@ -57,8 +57,8 @@ export class ExamplesPlanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, "dist", "views"))
-        ]
+          vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+        ],
       }
     );
 
@@ -66,7 +66,7 @@ export class ExamplesPlanel {
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
-    this.panel.webview.onDidReceiveMessage(message => {
+    this.panel.webview.onDidReceiveMessage((message) => {
       switch (message.command) {
         case "openExampleProject":
           if (message.project_path && message.name) {
@@ -74,7 +74,7 @@ export class ExamplesPlanel {
               .showOpenDialog({
                 canSelectFolders: true,
                 canSelectFiles: false,
-                canSelectMany: false
+                canSelectMany: false,
               })
               .then((selectedFolder: vscode.Uri[]) => {
                 if (selectedFolder && selectedFolder[0].fsPath) {
@@ -108,19 +108,19 @@ export class ExamplesPlanel {
               path.join(message.path, "README.md")
             );
             readFile(pathToUse.fsPath).then(
-              content => {
+              (content) => {
                 this.panel.webview.postMessage({
                   command: "set_example_detail",
-                  example_detail: content.toString()
+                  example_detail: content.toString(),
                 });
               },
-              err => {
+              (err) => {
                 const notAvailable = "No README.md available for this project.";
                 Logger.info(notAvailable);
                 Logger.info(err);
                 this.panel.webview.postMessage({
                   command: "set_example_detail",
-                  example_detail: notAvailable
+                  example_detail: notAvailable,
                 });
                 vscode.window.showInformationMessage(notAvailable);
               }
@@ -143,9 +143,9 @@ export class ExamplesPlanel {
     const examplesPath = path.join(espIdfPath, "examples");
     const examplesCategories = utils.getDirectories(examplesPath);
     const examplesListPaths = utils.getSubProjects(examplesPath);
-    const exampleListInfo = examplesListPaths.map(examplePath => {
+    const exampleListInfo = examplesListPaths.map((examplePath) => {
       const exampleCategory = examplesCategories.find(
-        exampleCat => examplePath.indexOf(exampleCat) > -1
+        (exampleCat) => examplePath.indexOf(exampleCat) > -1
       );
       const regexToUse =
         process.platform === "win32" ? /([^\\]*)\\*$/ : /([^\/]*)\/*$/;
@@ -153,17 +153,17 @@ export class ExamplesPlanel {
       return {
         category: exampleCategory,
         name: exampleName,
-        path: examplePath
+        path: examplePath,
       };
     });
     this.panel.webview.postMessage({
       command: "set_examples_path",
-      example_list: exampleListInfo
+      example_list: exampleListInfo,
     });
 
     this.panel.webview.postMessage({
       command: "set_initial_example",
-      selected_example: exampleListInfo[0]
+      selected_example: exampleListInfo[0],
     });
   }
 }

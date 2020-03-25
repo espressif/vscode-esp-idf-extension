@@ -23,7 +23,7 @@ class AppTracerItems extends vscode.TreeItem {}
 
 export enum AppTraceButtonType {
   AppTraceButton = 0,
-  HeapTraceButton = 1
+  HeapTraceButton = 1,
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -68,7 +68,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "play_light.svg"
-      )
+      ),
     };
     button.description = "";
     this.refresh();
@@ -96,7 +96,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "stop_light.svg"
-      )
+      ),
     };
     this.refresh();
   }
@@ -138,7 +138,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "play_light.svg"
-      )
+      ),
     };
     this.appTraceButton.command = { command: "espIdf.apptrace", title: "" };
   }
@@ -165,7 +165,7 @@ export class AppTraceTreeDataProvider
         "..",
         "media",
         "play_light.svg"
-      )
+      ),
     };
     this.heapTraceButton.command = { command: "espIdf.heaptrace", title: "" };
   }

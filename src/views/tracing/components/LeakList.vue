@@ -67,19 +67,19 @@ const LeakList = Vue.extend({
   name: "LeakList",
   props: {
     cache: Object,
-    leaks: Object
+    leaks: Object,
   },
   data() {
     return {
       isExpanded: false,
       filter: {
-        functionName: ""
-      }
+        functionName: "",
+      },
     };
   },
   computed: {
     leakList() {
-      return Object.keys(this.leaks).filter(calls => {
+      return Object.keys(this.leaks).filter((calls) => {
         if (this.filter.functionName && this.filter.functionName !== "") {
           return (
             this.fetchFunctionNameForAddr(calls)
@@ -95,11 +95,11 @@ const LeakList = Vue.extend({
     },
     totalMemory() {
       let total = 0;
-      Object.keys(this.cache).forEach(addr => {
+      Object.keys(this.cache).forEach((addr) => {
         total += this.cache[addr].size ? this.cache[addr].size : 0;
       });
       return total;
-    }
+    },
   },
   methods: {
     createTreeFromAddressArray(addr: string): any {
@@ -107,13 +107,13 @@ const LeakList = Vue.extend({
       return this.$root.createTreeFromAddressArray(calls);
     },
     reverseCallStack() {
-      this.leakList.forEach(addr => {
+      this.leakList.forEach((addr) => {
         this.leaks[addr].evt.callers.reverse();
       });
     },
     collapseOrExpandCalls() {
       if (this.$refs.callRef && this.$refs.callRef.length > 0) {
-        this.$refs.callRef.forEach(calls => {
+        this.$refs.callRef.forEach((calls) => {
           calls.collapseAndExpandAll &&
             calls.collapseAndExpandAll(!this.isExpanded);
         });
@@ -133,8 +133,8 @@ const LeakList = Vue.extend({
         return tree.description;
       }
       return addr;
-    }
-  }
+    },
+  },
 });
 export default LeakList;
 </script>

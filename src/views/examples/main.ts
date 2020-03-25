@@ -22,12 +22,12 @@ new Vue({
   components: { Examples },
   store,
   data: {
-    versions: []
+    versions: [],
   },
-  template: "<Examples />"
+  template: "<Examples />",
 });
 
-window.addEventListener("message", event => {
+window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
     case "set_examples_path":
@@ -44,7 +44,7 @@ window.addEventListener("message", event => {
       if (message.selected_example) {
         store.commit("setSelectedExample", message.selected_example);
         store.dispatch("getExampleDetail", {
-          pathToOpen: message.selected_example.path
+          pathToOpen: message.selected_example.path,
         });
       }
       break;

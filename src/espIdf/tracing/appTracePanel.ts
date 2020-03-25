@@ -54,9 +54,9 @@ export class AppTracePanel {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(context.extensionPath, "dist", "views"))
+          vscode.Uri.file(path.join(context.extensionPath, "dist", "views")),
         ],
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
     AppTracePanel.currentPanel = new AppTracePanel(
@@ -97,7 +97,7 @@ export class AppTracePanel {
     this.sendCommandToWebview("initialLoad", this._traceData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
     this._panel.webview.onDidReceiveMessage(
-      msg => {
+      (msg) => {
         switch (msg.command) {
           case "webviewLoad":
             this.sendCommandToWebview("initialLoad", this._traceData);
@@ -107,10 +107,10 @@ export class AppTracePanel {
               .then((resp: string) => {
                 const ansiToHtmlConverter = new AnsiToHtml();
                 this.sendCommandToWebview("calculated", {
-                  log: ansiToHtmlConverter.toHtml(resp)
+                  log: ansiToHtmlConverter.toHtml(resp),
                 });
               })
-              .catch(error => {
+              .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
                   ? Logger.errorNotify(error.message, error)
@@ -122,12 +122,12 @@ export class AppTracePanel {
             break;
           case "calculateHeapTrace":
             this.parseHeapTraceData()
-              .then(async plot => {
+              .then(async (plot) => {
                 const elfMap = await this.readElf();
                 this.cache.elfMap = elfMap;
                 this.sendCommandToWebview("calculatedHeapTrace", { plot });
               })
-              .catch(error => {
+              .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
                   ? Logger.errorNotify(error.message, error)
@@ -165,7 +165,7 @@ export class AppTracePanel {
         : undefined;
       await vscode.window.showTextDocument(textDocument, {
         selection: selectionRange,
-        viewColumn: column || vscode.ViewColumn.One
+        viewColumn: column || vscode.ViewColumn.One,
       });
       // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
@@ -189,10 +189,10 @@ export class AppTracePanel {
     respArr.shift();
     respArr.shift();
     return respArr
-      .map(value => {
+      .map((value) => {
         return value.trim().split(/\s+/);
       })
-      .filter(value => {
+      .filter((value) => {
         return value[3] === "FUNC";
       });
   }
@@ -220,8 +220,8 @@ export class AppTracePanel {
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     if (addresses) {
-      const promises = Object.keys(addresses).map(add => {
-        const fn = async address => {
+      const promises = Object.keys(addresses).map((add) => {
+        const fn = async (address) => {
           const addr2line = new Addr2Line(
             workspaceRoot,
             await getElfFilePath(workspaceRoot),
@@ -238,12 +238,12 @@ export class AppTracePanel {
             filePath,
             lineNumber,
             fileName,
-            funcName
+            funcName,
           });
         };
         return fn(add);
       });
-      Promise.all(promises).then(resp => {
+      Promise.all(promises).then((resp) => {
         this.sendCommandToWebview("addressesResolved", addresses);
       });
     }
@@ -278,7 +278,7 @@ export class AppTracePanel {
     if (this._panel.webview) {
       this._panel.webview.postMessage({
         command,
-        value
+        value,
       });
     }
   }
@@ -294,7 +294,7 @@ export class AppTracePanel {
     }
     let html = fs.readFileSync(htmlFilePath).toString();
     const fileUrl = vscode.Uri.file(htmlFilePath).with({
-      scheme: "vscode-resource"
+      scheme: "vscode-resource",
     });
     if (/(<head(\s.*)?>)/.test(html)) {
       html = html.replace(

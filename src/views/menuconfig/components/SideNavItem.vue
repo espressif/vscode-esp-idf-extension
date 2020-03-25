@@ -47,7 +47,7 @@ export default class SideNavItem extends Vue {
   }
 
   get menuSubItems() {
-    return this.menu.children.filter(i => i.type === "menu" && i.isVisible);
+    return this.menu.children.filter((i) => i.type === "menu" && i.isVisible);
   }
 
   public collapse() {

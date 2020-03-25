@@ -44,40 +44,40 @@ export const menuState: State = {
   textDictionary: {
     save: "Save",
     discard: "Discard",
-    reset: "Reset"
-  }
+    reset: "Reset",
+  },
 };
 
 export const actions: ActionTree<State, any> = {
   sendNewValue(context, newValue) {
     vscode.postMessage({
       command: "updateValue",
-      updated_value: newValue
+      updated_value: newValue,
     });
   },
   saveGuiConfig() {
     // Save current items
     vscode.postMessage({
-      command: "saveChanges"
+      command: "saveChanges",
     });
   },
   resetGuiConfig() {
     // Reset current items
     vscode.postMessage({
-      command: "discardChanges"
+      command: "discardChanges",
     });
   },
   requestInitValues() {
     vscode.postMessage({
-      command: "requestInitValues"
+      command: "requestInitValues",
     });
   },
   setDefaultConfig() {
     // Set default items
     vscode.postMessage({
-      command: "setDefault"
+      command: "setDefault",
     });
-  }
+  },
 };
 
 export const mutations: MutationTree<State> = {
@@ -103,11 +103,11 @@ export const mutations: MutationTree<State> = {
   },
   updateValues(state, updatedValues) {
     Vue.set(state, "items", updatedValues);
-  }
+  },
 };
 
 export const menus: StoreOptions<State> = {
   actions,
   mutations,
-  state: menuState
+  state: menuState,
 };

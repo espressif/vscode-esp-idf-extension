@@ -65,7 +65,7 @@ export class Logger {
     winston.log("error", message, {
       ...metadata,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
   }
 
@@ -86,12 +86,12 @@ export class Logger {
       transports: [
         new winston.transports.File({
           filename: context.asAbsolutePath(this.LOG_FILE_NAME),
-          level: "warn"
+          level: "warn",
         }),
         new UserNotificationManagerTransport({
-          level: "info"
-        })
-      ]
+          level: "info",
+        }),
+      ],
     });
   }
 }

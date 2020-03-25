@@ -44,7 +44,7 @@ export class LogTraceProc extends AbstractTracingToolManager {
       "python",
       ["logtrace_proc.py", this.traceFilePath, this.elfFilePath],
       {
-        cwd: this.appTraceToolsPath()
+        cwd: this.appTraceToolsPath(),
       }
     );
   }

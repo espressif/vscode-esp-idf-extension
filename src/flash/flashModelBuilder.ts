@@ -24,20 +24,20 @@ export function createFlashModel(
   port: string,
   baudRate: string
 ): Promise<FlashModel> {
-  return readJSON(modelJsonPath).then(flashArgsJson => {
+  return readJSON(modelJsonPath).then((flashArgsJson) => {
     const flashModel: FlashModel = {
       baudRate,
       port,
       size: flashArgsJson.flash_settings.flash_size,
       frequency: flashArgsJson.flash_settings.flash_freq,
       mode: flashArgsJson.flash_settings.flash_mode,
-      flashSections: []
+      flashSections: [],
     };
-    Object.keys(flashArgsJson.flash_files).forEach(fileKey => {
+    Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
       if (fileKey && flashArgsJson.flash_files[fileKey]) {
         flashModel.flashSections.push({
           address: fileKey,
-          binFilePath: flashArgsJson.flash_files[fileKey]
+          binFilePath: flashArgsJson.flash_files[fileKey],
         } as FlashSection);
       }
     });

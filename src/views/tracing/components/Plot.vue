@@ -9,7 +9,7 @@ const Plot = Vue.extend({
   name: "Plot",
   props: {
     chart: Array,
-    events: Object as any
+    events: Object as any,
   },
   methods: {
     clickableTrace({ points }) {
@@ -36,32 +36,32 @@ const Plot = Vue.extend({
         traceInfo.size = evt.size;
       }
       this.$emit("selected", traceInfo);
-    }
+    },
   },
   data() {
     return {
       chartProp: {
         displaylogo: false,
         scrollZoom: true,
-        responsive: true
+        responsive: true,
       },
       layout: {
         yaxis: {
           fixedrange: false,
-          title: "Memory Used (in bytes)"
+          title: "Memory Used (in bytes)",
         },
         hovermode: "closest",
         title: "Heap Trace",
         xaxis: {
-          title: "time (in seconds)"
-        }
-      }
+          title: "time (in seconds)",
+        },
+      },
     };
   },
   mounted() {
     Plotly.newPlot("plot", this.chart, this.layout, this.chartProp);
     const plot = document.getElementById("plot") as any;
-    plot.on("plotly_click", d => {
+    plot.on("plotly_click", (d) => {
       this.plotClickHandler(d);
     });
   },
@@ -70,9 +70,9 @@ const Plot = Vue.extend({
       handler() {
         Plotly.react("plot", this.chart, this.layout);
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 });
 export default Plot;
 </script>

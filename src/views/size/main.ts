@@ -41,13 +41,13 @@ const app = new Vue({
     searchText: "",
     subtitle:
       "Size analysis will provide users with in-depth analysis of the binary file generated from the project.",
-    title: "<strong>ESP-IDF</strong>&nbsp;Size Analysis"
+    title: "<strong>ESP-IDF</strong>&nbsp;Size Analysis",
   },
   methods: {
     retryClicked() {
       if (vscode) {
         vscode.postMessage({
-          command: "retry"
+          command: "retry",
         });
       }
     },
@@ -58,7 +58,7 @@ const app = new Vue({
           this.isFlashing = false;
         }, 10 * SEC);
         vscode.postMessage({
-          command: "flash"
+          command: "flash",
         });
       }
     },
@@ -75,7 +75,7 @@ const app = new Vue({
       this.isOverviewEnabled = !this.isOverviewEnabled;
     },
     toggleArchiveFileInfoTable(archiveName: string) {
-      Object.keys(this.archives).forEach(archive => {
+      Object.keys(this.archives).forEach((archive) => {
         let toggleVisibility = false;
         if (archive === archiveName) {
           toggleVisibility = !this.archives[archive].isFileInfoVisible;
@@ -92,7 +92,7 @@ const app = new Vue({
     },
     convertToSpacedString(byte: number) {
       return byte.toLocaleString("en-US").replace(/,/g, " ");
-    }
+    },
   },
   computed: {
     filteredArchives() {
@@ -100,12 +100,12 @@ const app = new Vue({
       let filteredObj = this.archives;
       if (searchText !== "") {
         filteredObj = {};
-        Object.keys(this.archives).forEach(archive => {
+        Object.keys(this.archives).forEach((archive) => {
           // tslint:disable-next-line: max-line-length
           if (
             archive.toLowerCase().match(searchText.toLowerCase()) ||
             (this.archives[archive].files &&
-              Object.keys(this.archives[archive].files).filter(file =>
+              Object.keys(this.archives[archive].files).filter((file) =>
                 file.toLowerCase().match(this.searchText.toLowerCase())
               ).length > 0)
           ) {
@@ -116,7 +116,7 @@ const app = new Vue({
       return filteredObj;
     },
     filteredFiles() {
-      Object.keys(this.files).forEach(file => {
+      Object.keys(this.files).forEach((file) => {
         const archiveFileName = file.split(":");
         const archiveName = archiveFileName[0];
         const fileName = archiveFileName[1];
@@ -125,12 +125,12 @@ const app = new Vue({
         }
         this.$set(this.archives[archiveName].files, fileName, this.files[file]);
       });
-      Object.keys(this.archives).forEach(archive => {
+      Object.keys(this.archives).forEach((archive) => {
         this.$set(this.archives[archive], "isFileInfoVisible", false);
       });
       return {};
-    }
-  }
+    },
+  },
 });
 
 // Message Receiver

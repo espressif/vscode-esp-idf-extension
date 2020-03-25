@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: 
+    tags:
       - "v*"
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
 
       - name: Install Dependencies
         run: yarn
-      
+
       - name: VSIX Package
         run: yarn run package
 
@@ -31,7 +31,7 @@ jobs:
           prerelease: true
 
       - name: Upload Release Asset
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,7 +40,7 @@ jobs:
           asset_path: ./esp-idf-extension.vsix
           asset_name: esp-idf-extension-${{ github.ref }}.vsix
           asset_content_type: application/zip
-          
+
       - name: Marketplace release
         run: yarn run release
         env:

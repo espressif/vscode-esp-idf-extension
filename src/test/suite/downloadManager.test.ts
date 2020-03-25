@@ -79,10 +79,10 @@ suite("Download Manager Tests", () => {
               }
             ]
           }]}`);
-  const absPath = filename => path.join(__dirname, filename);
+  const absPath = (filename) => path.join(__dirname, filename);
   const mockUpContext: ExtensionContext = {
     extensionPath: __dirname,
-    asAbsolutePath: absPath
+    asAbsolutePath: absPath,
   } as ExtensionContext;
   utils.setExtensionContext(mockUpContext);
   Logger.init(mockUpContext);
@@ -90,7 +90,7 @@ suite("Download Manager Tests", () => {
   const platInfo: PlatformInformation = {
     architecture: "x86_64",
     platform: "darwin",
-    platformToUse: "macos"
+    platformToUse: "macos",
   } as PlatformInformation;
   const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
   const idfToolsManager = new IdfToolsManager(
@@ -103,23 +103,21 @@ suite("Download Manager Tests", () => {
 
   test("Download correct", async () => {
     // Setup
-    nock("https://dl.espressif.com/dl/")
-      .get("/test.zip")
-      .reply(
-        200,
-        {},
-        {
-          "content-disposition": "attachment; filename=ninja-win.zip",
-          "content-length": "12345",
-          "content-type": "application/octet-stream"
-        }
-      );
-    await idfToolsManager.getPackageList(["ninja"]).then(async pkgs => {
+    nock("https://dl.espressif.com/dl/").get("/test.zip").reply(
+      200,
+      {},
+      {
+        "content-disposition": "attachment; filename=ninja-win.zip",
+        "content-length": "12345",
+        "content-type": "application/octet-stream",
+      }
+    );
+    await idfToolsManager.getPackageList(["ninja"]).then(async (pkgs) => {
       const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(pkgs[0]);
       const destPath = path.resolve(mockInstallPath, "dist");
       await downloadManager
         .downloadFile(pkgUrl.url, 0, destPath)
-        .then(reply => {
+        .then((reply) => {
           assert.equal(reply.headers["content-length"], "12345");
         });
       const testFile = path.join(mockInstallPath, "dist", "test.zip");
@@ -130,18 +128,16 @@ suite("Download Manager Tests", () => {
 
   test("Download fail", async () => {
     // Setup
-    nock("https://dl.espressif.com/dl/")
-      .get("/test.zip")
-      .reply(401);
-    await idfToolsManager.getPackageList(["ninja"]).then(async pkgs => {
+    nock("https://dl.espressif.com/dl/").get("/test.zip").reply(401);
+    await idfToolsManager.getPackageList(["ninja"]).then(async (pkgs) => {
       const pkgUrl = idfToolsManager.obtainUrlInfoForPlatform(pkgs[0]);
       const destPath = path.resolve(mockInstallPath, "dist");
       await downloadManager
         .downloadFile(pkgUrl.url, 0, destPath)
-        .then(reply => {
+        .then((reply) => {
           assert.fail("Expected an error, didn't receive it");
         })
-        .catch(reason => {
+        .catch((reason) => {
           assert.equal(reason, "Error: HTTP/HTTPS Response Error");
         });
       const testFile = path.join(mockInstallPath, "dist", "test.zip");
@@ -156,7 +152,7 @@ suite("Download Manager Tests", () => {
     const testFileSize = 239;
     await utils
       .validateFileSizeAndChecksum(testFile, expectedHash, testFileSize)
-      .then(isValidFile => {
+      .then((isValidFile) => {
         assert.equal(isValidFile, true);
       });
   });
@@ -171,12 +167,12 @@ suite("Download Manager Tests", () => {
             url: "https://dl.espressif.com/dl/mytest.zip",
             sha256:
               "1e6c77c830842fe48c79d62f8aec25f29075551ecf50d4be948f5c197677ce5b",
-            size: 239
+            size: 239,
           },
           name: "1.9.0",
-          status: "recommended"
-        }
-      ]
+          status: "recommended",
+        },
+      ],
     } as IPackage;
     await installManager.installZipPackage(idfToolsManager, pkg).then(() => {
       const fileIsExtracted = utils.fileExists(
@@ -184,7 +180,7 @@ suite("Download Manager Tests", () => {
           "tools",
           pkg.name,
           pkg.versions[0].name,
-          "sample.txt"
+          "sample.txt",
         ])
       );
       assert.equal(fileIsExtracted, true);
@@ -201,12 +197,12 @@ suite("Download Manager Tests", () => {
             url: "https://dl.espressif.com/dl/tartest.tar.gz",
             sha256:
               "e506ea55c741db7727b8f4e6187d7f6dcc331f58b2e08dbd13b7fc862f7e1afb",
-            size: 306
+            size: 306,
           },
           name: "1.9.0",
-          status: "recommended"
-        }
-      ]
+          status: "recommended",
+        },
+      ],
     } as IPackage;
     await installManager.installTarPackage(idfToolsManager, pkg).then(() => {
       const isFileExtracted = utils.fileExists(
@@ -214,7 +210,7 @@ suite("Download Manager Tests", () => {
           "tools",
           pkg.name,
           pkg.versions[0].name,
-          "tarsample.txt"
+          "tarsample.txt",
         ])
       );
       assert.equal(isFileExtracted, true);

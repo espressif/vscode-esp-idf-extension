@@ -17,7 +17,7 @@ import { basename, dirname, join } from "path";
 
 export enum srcOp {
   delete,
-  other
+  other,
 }
 
 export class UpdateCmakeLists {
@@ -32,7 +32,7 @@ export class UpdateCmakeLists {
     const cmakeListFile = join(dirName, "CMakeLists.txt");
 
     UpdateCmakeLists.singletonPromise = new Promise((resolve, reject) => {
-      exists(cmakeListFile, doesFileExists => {
+      exists(cmakeListFile, (doesFileExists) => {
         if (doesFileExists) {
           readFile(cmakeListFile, "utf8", (err, content) => {
             if (err) {
@@ -59,7 +59,7 @@ export class UpdateCmakeLists {
             }
 
             if (newContent) {
-              writeFile(cmakeListFile, newContent, error => {
+              writeFile(cmakeListFile, newContent, (error) => {
                 if (error) {
                   this.writeFinished();
                   reject(error);

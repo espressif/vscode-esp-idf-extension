@@ -47,7 +47,7 @@ try {
 
 enum TraceType {
   AppTrace = 0,
-  HeapTrace = 1
+  HeapTrace = 1,
 }
 
 let plotDataReceived = {} as any;
@@ -77,7 +77,7 @@ const app = new Vue({
       stats: false,
       plot: true,
       callStack: false,
-      leaks: false
+      leaks: false,
     },
     eventIDs: { alloc: "", free: "", print: "" },
     loaded: false,
@@ -88,22 +88,22 @@ const app = new Vue({
       ts: 0,
       addr: "0xFF",
       size: 0,
-      callers: []
+      callers: [],
     },
     callStacks: [],
     pathInfo: {
       idfPath: "",
-      workspacePath: ""
+      workspacePath: "",
     },
     errorMsg: "",
     plotData: [],
     callersAddressTranslationTable: {},
-    allocLookupTable: {}
+    allocLookupTable: {},
   },
   methods: {
     filterCallStacks(filter: string) {
       const callStack = [];
-      plotDataReceived.events.forEach(event => {
+      plotDataReceived.events.forEach((event) => {
         if (event.callers) {
           let shallAdd = false;
           switch (filter) {
@@ -129,7 +129,7 @@ const app = new Vue({
               break;
           }
           if (shallAdd) {
-            callStack.push(event.callers.filter(value => value !== "0x0"));
+            callStack.push(event.callers.filter((value) => value !== "0x0"));
           }
         }
       });
@@ -149,7 +149,7 @@ const app = new Vue({
       return "?";
     },
     heapViewChange(buttonKey: string) {
-      Object.keys(this.heapView).forEach(key => {
+      Object.keys(this.heapView).forEach((key) => {
         if (key === buttonKey) {
           this.$set(this.heapView, key, true);
           return;
@@ -161,12 +161,12 @@ const app = new Vue({
       if (this.traceType === TraceType.HeapTrace) {
         this.isCalculating = !this.isCalculating;
         vscode.postMessage({
-          command: "calculateHeapTrace"
+          command: "calculateHeapTrace",
         });
       } else if (this.traceType === TraceType.AppTrace) {
         this.isCalculating = !this.isCalculating;
         vscode.postMessage({
-          command: "calculate"
+          command: "calculate",
         });
       } else {
         this.displayError(`Tracing Type Not yet implemented`);
@@ -197,7 +197,7 @@ const app = new Vue({
           filePath: stackInfo.filePath || "",
           lineNumber: stackInfo.lineNumber || "",
           count: stackInfo.count || "",
-          size: stackInfo.size || ""
+          size: stackInfo.size || "",
         };
       }
       return { address, filePath: "", lineNumber: "", count: "", size: "" };
@@ -207,20 +207,20 @@ const app = new Vue({
       vscode.postMessage({
         command,
         filePath,
-        lineNumber
+        lineNumber,
       });
     },
     createTreeFromAddressArray(addresses: string[]): object {
       const root = {};
       let currObj: any;
-      const filteredAddresses = addresses.filter(value => value !== "0x0");
+      const filteredAddresses = addresses.filter((value) => value !== "0x0");
       filteredAddresses.forEach((add: string, index: number) => {
         const {
           address,
           filePath,
           lineNumber,
           count,
-          size
+          size,
         } = this.resolveAddress(add);
         const lastElem = index + 1 === filteredAddresses.length ? true : false;
 
@@ -239,12 +239,12 @@ const app = new Vue({
         }
       });
       return root;
-    }
+    },
   },
   mounted() {
     if (!this.loaded) {
       vscode.postMessage({
-        command: "webviewLoad"
+        command: "webviewLoad",
       });
     }
   },
@@ -283,8 +283,8 @@ const app = new Vue({
     },
     totalCount() {
       return this.persistentCount + this.transientCount;
-    }
-  }
+    },
+  },
 });
 
 const drawPlot = (data: any[]) => {
@@ -391,7 +391,7 @@ const injectDataToGraph = (evt: any, data: any[]) => {
 };
 
 const traceExists = (evt: any, data: any[]): boolean => {
-  return data.filter(d => d.name === evt.ctx_name).length > 0;
+  return data.filter((d) => d.name === evt.ctx_name).length > 0;
 };
 
 const computeTotalScatterLine = (plot: any, data: any[]) => {
@@ -401,7 +401,7 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
     name: "Total Memory",
     x: [],
     y: [],
-    visible: "legendonly"
+    visible: "legendonly",
   };
   const evt = plot.events;
   evt
@@ -409,7 +409,7 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
       (value: any) =>
         value.id === app.eventIDs.alloc || value.id === app.eventIDs.free
     )
-    .forEach(e => {
+    .forEach((e) => {
       let finalSize = 0;
       if (e.id === app.eventIDs.alloc) {
         finalSize = e.size;
@@ -429,11 +429,11 @@ const computeTotalScatterLine = (plot: any, data: any[]) => {
   data.push(totalPlot);
 };
 
-const populateGlobalCallStackCountAndSize = value => {
+const populateGlobalCallStackCountAndSize = (value) => {
   app.callersAddressTranslationTable = value;
   plotDataReceived.events.forEach((evt: any) => {
     if (evt.callers) {
-      evt.callers.forEach(callAddr => {
+      evt.callers.forEach((callAddr) => {
         if (!app.callersAddressTranslationTable[callAddr]) {
           app.callersAddressTranslationTable[callAddr] = {};
         }
@@ -470,21 +470,21 @@ const plotData = ({ plot }) => {
       if (!traceExists(evt, data)) {
         data.push({
           line: {
-            shape: "hv"
+            shape: "hv",
           },
           fill: "tozeroy",
           name: evt.ctx_name,
           x: [],
           y: [],
           evt: [],
-          clickable: true
+          clickable: true,
         });
       }
       if (evt.callers) {
-        evt.callers.forEach(caller => {
+        evt.callers.forEach((caller) => {
           app.callersAddressTranslationTable[caller] = {};
         });
-        app.callStacks.push(evt.callers.filter(value => value !== "0x0"));
+        app.callStacks.push(evt.callers.filter((value) => value !== "0x0"));
       }
       injectDataToGraph(evt, data);
     });
@@ -493,7 +493,7 @@ const plotData = ({ plot }) => {
     }
     vscode.postMessage({
       command: "resolveAddresses",
-      addresses: app.callersAddressTranslationTable
+      addresses: app.callersAddressTranslationTable,
     });
     computeTotalScatterLine(plot, data);
     drawPlot(data);

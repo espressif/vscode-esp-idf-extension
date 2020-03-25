@@ -25,7 +25,7 @@ const platformDepConfigurations: string[] = [
   "idf.port",
   "idf.deviceInterface",
   "idf.board",
-  "idf.toolsPath"
+  "idf.toolsPath",
 ];
 
 export function addWinIfRequired(param: string) {

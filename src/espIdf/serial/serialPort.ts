@@ -54,7 +54,7 @@ export class SerialPort {
         portList.map((l: SerialPortDetails) => {
           return {
             description: l.manufacturer,
-            label: l.comName
+            label: l.comName,
           };
         }),
         { placeHolder: msg }
@@ -91,7 +91,7 @@ export class SerialPort {
         const choices: SerialPortDetails[] = Array<SerialPortDetails>();
 
         if (arrayPrint) {
-          arrayPrint.forEach(portStr => {
+          arrayPrint.forEach((portStr) => {
             const portChoice = portStr.replace(/'/g, "").trim();
             choices.push(new SerialPortDetails(portChoice));
           });

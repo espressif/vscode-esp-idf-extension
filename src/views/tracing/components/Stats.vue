@@ -48,7 +48,7 @@ export default Vue.extend({
     persistentBytes: Number,
     transientCount: Number,
     totalBytes: Number,
-    totalCount: Number
-  }
+    totalCount: Number,
+  },
 });
 </script>

@@ -90,14 +90,14 @@
               <span>Installed in </span>
               {{
                 idfTools +
-                  pathSep +
-                  "tools" +
-                  pathSep +
-                  toolVersion.id +
-                  pathSep +
-                  toolVersion.expected +
-                  pathSep +
-                  toolVersion.id
+                pathSep +
+                "tools" +
+                pathSep +
+                toolVersion.id +
+                pathSep +
+                toolVersion.expected +
+                pathSep +
+                toolVersion.id
               }}
             </p>
           </div>

@@ -27,7 +27,7 @@ import * as utils from "../utils";
 import { OnBoardingPanel } from "./OnboardingPanel";
 import {
   sendDownloadEspIdfDetail,
-  sendDownloadEspIdfPercentage
+  sendDownloadEspIdfPercentage,
 } from "./updateViewMethods";
 
 export interface IEspIdfLink {
@@ -44,7 +44,7 @@ export async function downloadInstallIdfVersion(
   const downloadedZipPath = path.join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
   const expectedDirectory = path.join(destPath, "esp-idf");
-  await utils.dirExistPromise(destPath).then(async containerFolderExists => {
+  await utils.dirExistPromise(destPath).then(async (containerFolderExists) => {
     if (!containerFolderExists) {
       Logger.infoNotify(
         `${destPath} doesn't exists. Please select an existing directory.`
@@ -53,7 +53,7 @@ export async function downloadInstallIdfVersion(
     }
     await utils
       .dirExistPromise(expectedDirectory)
-      .then(async espIdfFolderExists => {
+      .then(async (espIdfFolderExists) => {
         if (espIdfFolderExists) {
           OutputChannel.appendLine(
             `${expectedDirectory} already exists. Delete it or use another location`
@@ -65,7 +65,7 @@ export async function downloadInstallIdfVersion(
         }
         OnBoardingPanel.postMessage({
           command: "set_selected_download_state",
-          state: "download"
+          state: "download",
         });
         const downloadManager = new DownloadManager(destPath);
         const installManager = new InstallManager(destPath);
@@ -99,17 +99,17 @@ export async function downloadInstallIdfVersion(
               espIdfProgress.ProgressDetail = `${idfVersion.name} has been git cloned successfully`;
               OnBoardingPanel.postMessage({
                 command: "notify_idf_downloaded",
-                downloadedPath: "master"
+                downloadedPath: "master",
               });
               OnBoardingPanel.postMessage({ command: "notify_idf_extracted" });
               await idfConf.writeParameter("idf.espIdfPath", expectedDirectory);
             })
-            .catch(reason => {
+            .catch((reason) => {
               OutputChannel.appendLine(reason);
               Logger.infoNotify(reason);
               OnBoardingPanel.postMessage({
                 command: "set_selected_download_state",
-                state: "empty"
+                state: "empty",
               });
             });
         } else {
@@ -120,7 +120,7 @@ export async function downloadInstallIdfVersion(
               Logger.info(`Downloaded ${idfVersion.name}.\n`);
               OnBoardingPanel.postMessage({
                 command: "notify_idf_downloaded",
-                downloadedPath: downloadedZipPath
+                downloadedPath: downloadedZipPath,
               });
               await installManager
                 .installZipFile(downloadedZipPath, destPath)
@@ -132,7 +132,7 @@ export async function downloadInstallIdfVersion(
                     `Extracted ${downloadedZipPath} in ${destPath}.\n`
                   );
                   OnBoardingPanel.postMessage({
-                    command: "notify_idf_extracted"
+                    command: "notify_idf_extracted",
                   });
 
                   // Rename folder esp-idf-{version} to esp-idf
@@ -145,7 +145,7 @@ export async function downloadInstallIdfVersion(
                     );
                     OnBoardingPanel.postMessage({
                       command: "load_idf_path",
-                      idf_path: expectedDirectory
+                      idf_path: expectedDirectory,
                     });
                   });
                   await idfConf.writeParameter(
@@ -154,12 +154,12 @@ export async function downloadInstallIdfVersion(
                   );
                 });
             })
-            .catch(reason => {
+            .catch((reason) => {
               OutputChannel.appendLine(reason);
               Logger.infoNotify(reason);
               OnBoardingPanel.postMessage({
                 command: "set_selected_download_state",
-                state: "empty"
+                state: "empty",
               });
             });
         }
@@ -178,14 +178,11 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
   const preReleaseRegex = /v.+-rc/g;
   const betaRegex = /v.+-beta/g;
 
-  const versionList = data
-    .toString()
-    .trim()
-    .split(splitString);
-  const downloadList: IEspIdfLink[] = versionList.map(version => {
+  const versionList = data.toString().trim().split(splitString);
+  const downloadList: IEspIdfLink[] = versionList.map((version) => {
     if (version.startsWith("release/")) {
       const versionRoot = version.replace("release/", "");
-      const versionForRelease = versionList.find(ver =>
+      const versionForRelease = versionList.find((ver) =>
         ver.startsWith(versionRoot)
       );
       if (versionForRelease) {
@@ -199,14 +196,14 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
           mirror: mirrorZip.replace(
             versionRegex,
             version.replace("release/", "")
-          )
+          ),
         };
       } else {
         return {
           filename: `${version}`,
           name: version + " (release branch)",
           url: "",
-          mirror: ""
+          mirror: "",
         };
       }
     } else if (version.startsWith("v")) {
@@ -214,28 +211,28 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
         filename: `esp-idf-${version}.zip`,
         name: version + " (release version)",
         url: versionZip.replace(versionRegex, version),
-        mirror: mirrorZip.replace(versionRegex, version)
+        mirror: mirrorZip.replace(versionRegex, version),
       };
     } else if (preReleaseRegex.test(version)) {
       return {
         filename: `esp-idf-${version}.zip`,
         name: version + " (pre-release version)",
         url: versionZip.replace(versionRegex, version),
-        mirror: mirrorZip.replace(versionRegex, version)
+        mirror: mirrorZip.replace(versionRegex, version),
       };
     } else if (version === "master") {
       return {
         filename: `master`,
         name: version + " (development branch)",
         url: espIdfMasterZip,
-        mirror: espIdfMasterZip
+        mirror: espIdfMasterZip,
       };
     } else if (betaRegex.test(version)) {
       return {
         filename: `esp-idf-${version}.zip`,
         name: version + " (beta version)",
         url: versionZip.replace(versionRegex, version),
-        mirror: mirrorZip.replace(versionRegex, version)
+        mirror: mirrorZip.replace(versionRegex, version),
       };
     }
   });
@@ -252,7 +249,7 @@ export function downloadEspIdfVersionList(
   return new Promise<IEspIdfLink[]>(async (resolve, reject) => {
     await downloadManager
       .downloadFile(versionsUrl, 0, tmpdir())
-      .then(message => {
+      .then((message) => {
         Logger.info(message.statusMessage);
         fs.readFile(idfVersionList, (err, data) => {
           if (err) {
@@ -265,7 +262,7 @@ export function downloadEspIdfVersionList(
           resolve(downloadList);
         });
       })
-      .catch(err => {
+      .catch((err) => {
         // reject(err);
         const idfVersionListFallBack = path.join(
           extensionPath,
@@ -300,11 +297,11 @@ export function downloadEspIdfByClone(
         "--progress",
         "-b",
         branchName,
-        espIdfGithubRepo
+        espIdfGithubRepo,
       ],
       { cwd: installDirectoryPath }
     );
-    gitCloneProcess.stderr.on("data", data => {
+    gitCloneProcess.stderr.on("data", (data) => {
       OutputChannel.appendLine(data.toString());
       const errRegex = /\b(Error)\b/g;
       if (errRegex.test(data.toString())) {
@@ -319,7 +316,7 @@ export function downloadEspIdfByClone(
       }
     });
 
-    gitCloneProcess.stdout.on("data", data => {
+    gitCloneProcess.stdout.on("data", (data) => {
       OutputChannel.appendLine(data.toString());
       const progressRegex = /(\d+)(\.\d+)?%/g;
       const matches = data.toString().match(progressRegex);
@@ -348,7 +345,7 @@ export async function getEspIdfVersions(extensionPath: string) {
   );
   const manualVersion = {
     name: "Find ESP-IDF in your system",
-    filename: "manual"
+    filename: "manual",
   } as IEspIdfLink;
   versionList.push(manualVersion);
   return versionList;

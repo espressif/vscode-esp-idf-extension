@@ -30,7 +30,7 @@ import { Nm } from "./tools/xtensa/nm";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
   AppTraceButtonType,
-  AppTraceTreeDataProvider
+  AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
 
 export class HeapTraceManager extends EventEmitter {
@@ -72,7 +72,7 @@ export class HeapTraceManager extends EventEmitter {
         }
         const addresses = await this.getAddressFor([
           "heap_trace_start",
-          "heap_trace_stop"
+          "heap_trace_stop",
         ]);
         const fileName = `file://${join(
           workspace,
@@ -87,17 +87,17 @@ export class HeapTraceManager extends EventEmitter {
               type: "notificationResponse",
               handler: [
                 "type target_reset mode halt",
-                "type target_state state halted"
-              ]
-            }
+                "type target_state state halted",
+              ],
+            },
           })
           .buildCommand({
             command: `bp 0x${addresses.heap_trace_start} 4 hw`,
-            responseHandler: { type: "commandResponse", handler: [] }
+            responseHandler: { type: "commandResponse", handler: [] },
           })
           .buildCommand({
             command: `bp 0x${addresses.heap_trace_stop} 4 hw`,
-            responseHandler: { type: "commandResponse", handler: [] }
+            responseHandler: { type: "commandResponse", handler: [] },
           })
           .buildCommand({
             command: "resume",
@@ -106,27 +106,27 @@ export class HeapTraceManager extends EventEmitter {
               handler: [
                 "type target_event event resumed",
                 "type target_state state running",
-                "type target_state state halted"
-              ]
-            }
+                "type target_state state halted",
+              ],
+            },
           })
           .buildCommand({
             command: "reg pc",
             responseHandler: {
               type: "commandResponse",
-              handler: [addresses.heap_trace_start]
-            }
+              handler: [addresses.heap_trace_start],
+            },
           })
           .buildCommand({
             command: `rbp 0x${addresses.heap_trace_start}`,
             responseHandler: {
               type: "commandResponse",
-              handler: [TCLClient.DELIMITER]
-            }
+              handler: [TCLClient.DELIMITER],
+            },
           })
           .buildCommand({
             command: `esp sysview_mcore start ${fileName}`,
-            responseHandler: { type: "commandResponse", handler: [] }
+            responseHandler: { type: "commandResponse", handler: [] },
           })
           .buildCommand({
             command: "resume",
@@ -135,27 +135,27 @@ export class HeapTraceManager extends EventEmitter {
               handler: [
                 "type target_event event resumed",
                 "type target_state state running",
-                "type target_state state halted"
-              ]
-            }
+                "type target_state state halted",
+              ],
+            },
           })
           .buildCommand({
             command: "reg pc",
             responseHandler: {
               type: "commandResponse",
-              handler: [addresses.heap_trace_stop]
-            }
+              handler: [addresses.heap_trace_stop],
+            },
           })
           .buildCommand({
             command: `rbp 0x${addresses.heap_trace_stop}`,
             responseHandler: {
               type: "commandResponse",
-              handler: [TCLClient.DELIMITER]
-            }
+              handler: [TCLClient.DELIMITER],
+            },
           })
           .buildCommand({
             command: `esp sysview stop`,
-            responseHandler: { type: "commandResponse", handler: [] }
+            responseHandler: { type: "commandResponse", handler: [] },
           })
           .on("response", async (resp: Buffer, from: string) => {
             if (!commandChain.currentTask) {
@@ -173,10 +173,7 @@ export class HeapTraceManager extends EventEmitter {
                   const deleteIndices = new Set<number>();
                   handler.forEach((trail: string, index: number) => {
                     if (
-                      resp
-                        .toString()
-                        .toLowerCase()
-                        .match(trail.toLowerCase())
+                      resp.toString().toLowerCase().match(trail.toLowerCase())
                     ) {
                       deleteIndices.add(index);
                     }
@@ -280,12 +277,12 @@ export class HeapTraceManager extends EventEmitter {
     const respStr = resp.toString();
     const respArr = respStr.split("\n");
     const lookUpTable = {};
-    respArr.forEach(line => {
+    respArr.forEach((line) => {
       const lineArr = line.trim().split(/\s+/);
       lookUpTable[lineArr[2]] = lineArr[0];
     });
     const respObj = {};
-    symbols.forEach(symbol => {
+    symbols.forEach((symbol) => {
       respObj[symbol] = lookUpTable[symbol];
     });
     return respObj;
