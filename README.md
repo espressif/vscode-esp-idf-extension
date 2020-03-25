@@ -147,6 +147,7 @@ These are project IDF Project specific settings
 | `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation           |
 | `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                |
 | `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)          |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
