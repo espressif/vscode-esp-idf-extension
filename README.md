@@ -14,6 +14,10 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - Localization (English, Chinese, Spanish)of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
 
+## Demo
+
+![Espressif extension gif](./media/espressif_extension.gif)
+
 ## Prerequisites
 
 There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension.
@@ -39,9 +43,7 @@ There are several ways to install this extension to your VSCode, easiest one is 
 
 Launch VSCode Quick Open (<kbd>⌘</kbd>+<kbd>P</kbd> on Mac or <kbd>Ctrl</kbd>+<kbd>P</kbd> on Windows) and then paste the following command and press enter
 
-```none
-ext install esp-idf-extension
-```
+    ext install esp-idf-extension
 
 ### Install from `.vsix` file
 
@@ -78,7 +80,7 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
 
-  **Note:** If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required **compile_commands.json** used by [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to resolve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**. If you don't want to build your project beforehand, you can configure your project using [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md)
+      	__Note:__ If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required __compile_commands.json__ used by [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to resolve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**. If you don't want to build your project beforehand, you can configure your project using [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md)
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
@@ -144,6 +146,7 @@ These are project IDF Project specific settings
 | `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation           |
 | `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                |
 | `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)          |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
@@ -239,7 +242,7 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [ONBOARDING](./docs/ONBOARDING.md).
 
-When you start debug, an OpenOCD process starts in the background. OpenOCD Output log window is created in Visual Studio Code lower panel.
+When you start debug, an OpenOCD process starts in the background. OpenOCD Output log window is created in Visual Studio Code lower panel. To configure your project's launch.json to debug, please review [DEBUGGING](./docs/DEBUGGING.md).
 
 ## Kconfig files editor
 

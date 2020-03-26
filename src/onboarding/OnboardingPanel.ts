@@ -183,8 +183,8 @@ export class OnBoardingPanel {
                     { title: "No", isCloseAffordance: false }
                   );
                   if (selected.title === "Yes") {
-                    await ensureDir(message.new_value).then(() => {
-                      idfConf.writeParameter(
+                    await ensureDir(message.new_value).then(async () => {
+                      await idfConf.writeParameter(
                         "idf.toolsPath",
                         message.new_value
                       );
@@ -270,9 +270,14 @@ export class OnBoardingPanel {
           break;
         case "downloadEspIdfVersion":
           if (message.selectedVersion && message.idfPath) {
-            // this.getEspIdfVersions(message.selectedFolder);
             const idfVersion = message.selectedVersion as IEspIdfLink;
-            downloadInstallIdfVersion(idfVersion, message.idfPath);
+            downloadInstallIdfVersion(idfVersion, message.idfPath).then(
+              async () => {
+                await this.updateIdfToolsManager(
+                  path.join(message.idfPath, "esp-idf")
+                );
+              }
+            );
           }
           break;
         case "savePythonBinary":

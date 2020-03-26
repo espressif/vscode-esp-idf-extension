@@ -1,8 +1,8 @@
 {
-    "idfSize.canceledError" : "无法对取消的上下文进行大小分析",
-    "idfSize.buildFirstError": "项目未构建，请构建项目",
-    "idfSize.filesMsg": "计算所有归档的文件大小",
-    "idfSize.archivesMsg": "正在收集归档列表",
-    "idfSize.overviewMsg": "归档文件概述",
-    "idfSize.commandError": "调用 idf_size.py 时遇到错误"
+  "idfSize.canceledError": "无法对取消的上下文进行大小分析",
+  "idfSize.buildFirstError": "项目未构建，请构建项目",
+  "idfSize.filesMsg": "计算所有归档的文件大小",
+  "idfSize.archivesMsg": "正在收集归档列表",
+  "idfSize.overviewMsg": "归档文件概述",
+  "idfSize.commandError": "调用 idf_size.py 时遇到错误"
 }

@@ -53,7 +53,7 @@ export async function downloadInstallIdfVersion(
     }
     await utils
       .dirExistPromise(expectedDirectory)
-      .then((espIdfFolderExists) => {
+      .then(async (espIdfFolderExists) => {
         if (espIdfFolderExists) {
           OutputChannel.appendLine(
             `${expectedDirectory} already exists. Delete it or use another location`
@@ -84,8 +84,12 @@ export async function downloadInstallIdfVersion(
             `Downloading ESP-IDF ${idfVersion.filename} using git clone...\n`
           );
           Logger.info("Downloading ESP-IDF master using git clone...\n");
-          downloadEspIdfByClone(destPath, idfVersion.filename, espIdfProgress)
-            .then(() => {
+          await downloadEspIdfByClone(
+            destPath,
+            idfVersion.filename,
+            espIdfProgress
+          )
+            .then(async () => {
               OutputChannel.appendLine(
                 `ESP-IDF ${idfVersion.filename} has been cloned from Github.\n`
               );
@@ -98,7 +102,7 @@ export async function downloadInstallIdfVersion(
                 downloadedPath: "master",
               });
               OnBoardingPanel.postMessage({ command: "notify_idf_extracted" });
-              idfConf.writeParameter("idf.espIdfPath", expectedDirectory);
+              await idfConf.writeParameter("idf.espIdfPath", expectedDirectory);
             })
             .catch((reason) => {
               OutputChannel.appendLine(reason);
@@ -109,18 +113,18 @@ export async function downloadInstallIdfVersion(
               });
             });
         } else {
-          downloadManager
+          await downloadManager
             .downloadWithRetries(idfVersion.url, destPath, espIdfProgress)
-            .then(() => {
+            .then(async () => {
               OutputChannel.appendLine(`Downloaded ${idfVersion.name}.\n`);
               Logger.info(`Downloaded ${idfVersion.name}.\n`);
               OnBoardingPanel.postMessage({
                 command: "notify_idf_downloaded",
                 downloadedPath: downloadedZipPath,
               });
-              installManager
+              await installManager
                 .installZipFile(downloadedZipPath, destPath)
-                .then(() => {
+                .then(async () => {
                   OutputChannel.appendLine(
                     `Extracted ${downloadedZipPath} in ${destPath}.\n`
                   );
@@ -132,7 +136,7 @@ export async function downloadInstallIdfVersion(
                   });
 
                   // Rename folder esp-idf-{version} to esp-idf
-                  move(extractedDirectory, expectedDirectory).then(() => {
+                  await move(extractedDirectory, expectedDirectory).then(() => {
                     OutputChannel.appendLine(
                       `Renamed ${extractedDirectory} in ${expectedDirectory}.\n`
                     );
@@ -144,7 +148,10 @@ export async function downloadInstallIdfVersion(
                       idf_path: expectedDirectory,
                     });
                   });
-                  idfConf.writeParameter("idf.espIdfPath", expectedDirectory);
+                  await idfConf.writeParameter(
+                    "idf.espIdfPath",
+                    expectedDirectory
+                  );
                 });
             })
             .catch((reason) => {
@@ -239,8 +246,8 @@ export function downloadEspIdfVersionList(
   const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
   const versionsUrl = "https://dl.espressif.com/dl/esp-idf/idf_versions.txt";
 
-  return new Promise<IEspIdfLink[]>((resolve, reject) => {
-    downloadManager
+  return new Promise<IEspIdfLink[]>(async (resolve, reject) => {
+    await downloadManager
       .downloadFile(versionsUrl, 0, tmpdir())
       .then((message) => {
         Logger.info(message.statusMessage);

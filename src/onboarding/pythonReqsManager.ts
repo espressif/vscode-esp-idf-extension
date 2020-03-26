@@ -63,7 +63,7 @@ export async function checkPythonRequirements(workingDir: string) {
       OutputChannel.init()
     )
     .then(async (pyReqLog) => {
-      const resultLog = `Checking ESP-IDF requirements using ${pythonBin}\n${pyReqLog}`;
+      const resultLog = `Checking ESP-IDF Python requirements using ${pythonBin}\n${pyReqLog}`;
       OutputChannel.appendLine(resultLog);
       Logger.info(resultLog);
       OnBoardingPanel.postMessage({
@@ -134,9 +134,9 @@ export async function installPythonRequirements(workingDir: string) {
       pythonBinPath,
       OutputChannel.init()
     )
-    .then((virtualEnvPythonBin) => {
+    .then(async (virtualEnvPythonBin) => {
       if (virtualEnvPythonBin) {
-        idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
+        await idfConf.writeParameter("idf.pythonBinPath", virtualEnvPythonBin);
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
           OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });

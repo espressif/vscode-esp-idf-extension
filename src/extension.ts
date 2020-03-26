@@ -335,30 +335,18 @@ export async function activate(context: vscode.ExtensionContext) {
               paramName = "idf.espIdfPath";
               break;
             case "idfTools":
-              const enterIdfToolsPathMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterIdfToolsPathMessage",
                 "Enter IDF_TOOLS_PATH path"
               );
-              currentValue = idfConf.readParameter("idf.toolsPath");
-              idfConf.updateConfParameter(
-                "idf.toolsPath",
-                enterIdfToolsPathMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.toolsPath";
               break;
             case "customExtraPath":
-              const enterExtraPathsMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterCustomPathsMessage",
                 "Enter extra paths to append to PATH"
               );
-              currentValue = idfConf.readParameter("idf.customExtraPaths");
-              idfConf.updateConfParameter(
-                "idf.customExtraPaths",
-                enterExtraPathsMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.customExtraPaths";
               break;
             default:
               const noPathUpdatedMsg = locDic.localize(
@@ -428,17 +416,11 @@ export async function activate(context: vscode.ExtensionContext) {
           let paramName: string;
           switch (option.target) {
             case "deviceTarget":
-              const enterDeviceTargetMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterDeviceTargetMessage",
                 "Enter device target name"
               );
-              currentValue = idfConf.readParameter("idf.adapterTargetName");
-              idfConf.updateConfParameter(
-                "idf.adapterTargetName",
-                enterDeviceTargetMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.adapterTargetName";
               break;
             case "devicePort":
               msg = locDic.localize(
@@ -455,20 +437,11 @@ export async function activate(context: vscode.ExtensionContext) {
               paramName = "idf.baudRate";
               break;
             case "openOcdConfig":
-              const enterDeviceInterfaceMsg = locDic.localize(
+              msg = locDic.localize(
                 "extension.enterOpenOcdConfigMessage",
                 "Enter OpenOCD Configuration File Paths list"
               );
-              currentValue = idfConf.readParameter("idf.openOcdConfigs");
-              if (currentValue instanceof Array) {
-                currentValue = currentValue.join(",");
-              }
-              idfConf.updateConfParameter(
-                "idf.openOcdConfigs",
-                enterDeviceInterfaceMsg,
-                currentValue,
-                option.label
-              );
+              paramName = "idf.openOcdConfigs";
               break;
             default:
               const noParamUpdatedMsg = locDic.localize(
@@ -480,6 +453,9 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           if (msg && paramName) {
             currentValue = idfConf.readParameter(paramName);
+            if (currentValue instanceof Array) {
+              currentValue = currentValue.join(",");
+            }
             idfConf.updateConfParameter(
               paramName,
               msg,
@@ -541,7 +517,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.getProjectName", () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    return PreCheck.perform([openFolderCheck], async () => {
       return await getProjectName(workspaceRoot.fsPath);
     });
   });
@@ -600,24 +576,27 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window
         .showQuickPick(
           [
-            { description: "ESP32", label: "ESP32", target: "Esp32" },
-            { description: "ESP32-S2", label: "ESP32S", target: "Esp32_S2" },
+            { description: "ESP32", label: "ESP32", target: "esp32" },
+            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
-        .then((selected) => {
+        .then(async (selected) => {
           if (typeof selected === "undefined") {
             return;
           }
-          idfConf.writeParameter("idf.adapterTargetName", selected.target);
-          if (selected.target === "Esp32") {
+          await idfConf.writeParameter(
+            "idf.adapterTargetName",
+            selected.target
+          );
+          if (selected.target === "esp32") {
             idfConf.writeParameter("idf.openOcdConfigs", [
               "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg",
             ]);
           }
-          if (selected.target === "Esp32_S2") {
-            idfConf.writeParameter("idf.openOcdConfigs", [
+          if (selected.target === "esp32s2") {
+            await idfConf.writeParameter("idf.openOcdConfigs", [
               "interface/ftdi/esp32_devkitj_v1.cfg",
               "target/esp32s2.cfg",
             ]);
@@ -628,7 +607,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const pythonBinPath = idfConf.readParameter(
             "idf.pythonBinPath"
           ) as string;
-          utils
+          await utils
             .spawn(pythonBinPath, [idfPy, "set-target", selected.target], {
               cwd: workspaceRoot.fsPath,
             })
@@ -637,7 +616,7 @@ export async function activate(context: vscode.ExtensionContext) {
               OutputChannel.append(result.toString());
             })
             .catch((err) => {
-              if (err.message.indexOf("are satisfied") > -1) {
+              if (err.message && err.message.indexOf("are satisfied") > -1) {
                 Logger.info(err.message.toString());
                 OutputChannel.append(err.message.toString());
               } else {

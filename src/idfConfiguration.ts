@@ -51,10 +51,14 @@ export function readParameter(param: string) {
   return paramValue;
 }
 
-export function writeParameter(param: string, newValue) {
+export async function writeParameter(param: string, newValue) {
   const paramValue = addWinIfRequired(param);
   const configuration = vscode.workspace.getConfiguration();
-  configuration.update(paramValue, newValue, vscode.ConfigurationTarget.Global);
+  await configuration.update(
+    paramValue,
+    newValue,
+    vscode.ConfigurationTarget.Global
+  );
 }
 
 export function updateConfParameter(
@@ -63,10 +67,10 @@ export function updateConfParameter(
   currentValue,
   label
 ) {
-  vscode.window
+  return vscode.window
     .showInputBox({ placeHolder: confParamDescription, value: currentValue })
-    .then((newValue) => {
-      return new Promise((resolve, reject) => {
+    .then((newValue: string) => {
+      return new Promise(async (resolve, reject) => {
         if (newValue) {
           const typeOfConfig = checkTypeOfConfiguration(confParamName);
           let valueToWrite;
@@ -75,7 +79,7 @@ export function updateConfParameter(
           } else {
             valueToWrite = newValue;
           }
-          writeParameter(confParamName, valueToWrite);
+          await writeParameter(confParamName, valueToWrite);
           const updateMessage = locDic.localize(
             "idfConfiguration.hasBeenUpdated",
             " has been updated"

@@ -60,7 +60,7 @@ export class SerialPort {
         { placeHolder: msg }
       );
       if (chosen && chosen.label) {
-        this.updatePortListStatus(chosen.label);
+        await this.updatePortListStatus(chosen.label);
       }
     } catch (error) {
       Logger.errorNotify(
@@ -70,8 +70,8 @@ export class SerialPort {
     }
   }
 
-  private updatePortListStatus(l: string) {
-    idfConf.writeParameter("idf.port", l);
+  private async updatePortListStatus(l: string) {
+    await idfConf.writeParameter("idf.port", l);
     const portHasBeenSelectedMsg = this.locDic.localize(
       "serial.portHasBeenSelectedMessage",
       "Port has been updated to "

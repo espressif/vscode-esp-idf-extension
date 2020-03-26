@@ -1,10 +1,8 @@
 {
   "espIdf.createFiles.title": "ESP-IDF: 新建项目",
-  "espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
-  "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
-  "param.openOcdConfigFilesList": "OpenOCD脚本目录中的配置文件列表",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
   "espIdf.setPath.title": "ESP-IDF：配置路径",
+  "espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
   "espIdf.configDevice.title": "ESP-IDF：配置设备",
   "menuconfig.start.title": "ESP-IDF：启动 GUI 配置工具",
   "espIdf.setDefaultConfig.title": "ESP-IDF：设置项目默认的 sdkconfig 文件",
@@ -21,6 +19,8 @@
   "espIdf.openOCDCommand.title": "ESP-IDF：OpenOCD 管理器",
   "debug.initConfig.name": "ESP-IDF：启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
+  "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
+  "param.openOcdConfigFilesList": "OpenOCD脚本目录中的配置文件列表",
   "param.baudRate": "设备波特率",
   "param.port": "选中的烧录端口路径",
   "param.pythonBinPath": "项目构建使用的 Python 解释器的绝对路径",
@@ -40,5 +40,6 @@
   "trace.trace_size.description": "apptrace：设置 trace_size",
   "trace.stop_tmo.description": "apptrace：设置 stop_tmo",
   "trace.wait4halt.description": "apptrace：设置 wait4halt",
-  "trace.skip_size.description": "apptrace：设置 skip_size"
+  "trace.skip_size.description": "apptrace：设置 skip_size",
+  "param.saveBeforeBuildDescription": "在继续进行构建之前，将所有编辑的文件保存在工作区中，尽管如果无法保存文件，无论如何都会进行构建"
 }
