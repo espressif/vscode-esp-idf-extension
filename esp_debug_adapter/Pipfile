@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+click = "*"
+future = ">=0.17"
+psutil = "*"
+pygdbmi = "*"
+pylint = "*"
+requests = "*"
+typing = "*"
+xmlrunner = "*"
+"backports.functools-lru-cache" = "*"
+
+[requires]
+python_version = ">3.7"
