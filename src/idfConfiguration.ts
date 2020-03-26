@@ -39,9 +39,14 @@ export function addWinIfRequired(param: string) {
   return param;
 }
 
-export function readParameter(param: string) {
+export function readParameter(
+  param: string,
+  scope?: vscode.ConfigurationScope
+) {
   const paramUpdated = addWinIfRequired(param);
-  const paramValue = vscode.workspace.getConfiguration("").get(paramUpdated);
+  const paramValue = vscode.workspace
+    .getConfiguration("", scope)
+    .get(paramUpdated);
   if (typeof paramValue === "undefined") {
     return "";
   }
@@ -82,26 +87,33 @@ export function chooseConfigurationTarget() {
     });
 }
 
-export function writeParameter(
+export async function writeParameter(
   param: string,
   newValue,
-  target: vscode.ConfigurationTarget
+  target: vscode.ConfigurationTarget,
+  wsFolder: vscode.WorkspaceFolder = undefined
 ) {
   const paramValue = addWinIfRequired(param);
   if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
-    return vscode.window
-      .showWorkspaceFolderPick({
-        placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
-      })
-      .then(async (workspaceFolder) => {
-        if (workspaceFolder) {
-          return vscode.workspace
-            .getConfiguration("", workspaceFolder.uri)
-            .update(paramValue, newValue, target);
-        }
-      });
+    if (wsFolder) {
+      return await vscode.workspace
+        .getConfiguration("", wsFolder.uri)
+        .update(paramValue, newValue, target);
+    } else {
+      return vscode.window
+        .showWorkspaceFolderPick({
+          placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
+        })
+        .then(async (workspaceFolder) => {
+          if (workspaceFolder) {
+            return await vscode.workspace
+              .getConfiguration("", workspaceFolder.uri)
+              .update(paramValue, newValue, target);
+          }
+        });
+    }
   } else {
-    return vscode.workspace
+    return await vscode.workspace
       .getConfiguration()
       .update(paramValue, newValue, target);
   }

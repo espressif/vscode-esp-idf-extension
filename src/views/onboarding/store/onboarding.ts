@@ -43,11 +43,13 @@ export const onboardState: IState = {
   selectedConfTarget: CONF_TARGET_GLOBAL,
   selectedIdfVersion: undefined,
   selectedPythonVersion: "",
+  selectedWorkspaceFolder: "",
   showIdfPathCheck: false,
   showIdfToolsChecks: false,
   showOnboardingOnInit: true,
   toolsSelectedSetupMode: "empty",
   toolsCheckResults: [],
+  workspaceFolders: [],
 };
 
 export const onboarding: StoreOptions<IState> = {

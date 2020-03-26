@@ -71,6 +71,7 @@ export class OnBoardingPanel {
   private idfToolsManager: IdfToolsManager;
   private confTarget: vscode.ConfigurationTarget =
     vscode.ConfigurationTarget.Global;
+  private selectedWorkspaceFolder: vscode.WorkspaceFolder;
 
   private constructor(
     extensionPath: string,
@@ -131,6 +132,9 @@ export class OnBoardingPanel {
               this.confTarget = vscode.ConfigurationTarget.Workspace;
               if (vscode.workspace.workspaceFolders) {
                 this.confTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+                this.selectedWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+                  (f) => f.uri.fsPath === message.workspaceFolder
+                );
               } else {
                 this.panel.webview.postMessage({
                   command: "resetConfigurationTarget",
@@ -170,7 +174,8 @@ export class OnBoardingPanel {
             idfConf.writeParameter(
               "idf.espIdfPath",
               message.new_value,
-              this.confTarget
+              this.confTarget,
+              this.selectedWorkspaceFolder
             );
             this.updateIdfToolsManager(message.new_value);
           }
@@ -198,10 +203,14 @@ export class OnBoardingPanel {
                 idfConf.writeParameter(
                   "idf.customExtraPaths",
                   message.new_value,
-                  this.confTarget
+                  this.confTarget,
+                  this.selectedWorkspaceFolder
                 );
               }
-              checkPythonRequirements(this.extensionPath);
+              checkPythonRequirements(
+                this.extensionPath,
+                this.selectedWorkspaceFolder
+              );
             });
           break;
         case "getRequiredToolsInfo":
@@ -221,7 +230,8 @@ export class OnBoardingPanel {
                   idfConf.writeParameter(
                     "idf.toolsPath",
                     message.new_value,
-                    this.confTarget
+                    this.confTarget,
+                    this.selectedWorkspaceFolder
                   );
                 } else {
                   const selected = await vscode.window.showErrorMessage(
@@ -235,7 +245,8 @@ export class OnBoardingPanel {
                       await idfConf.writeParameter(
                         "idf.toolsPath",
                         message.new_value,
-                        this.confTarget
+                        this.confTarget,
+                        this.selectedWorkspaceFolder
                       );
                     });
                   } else {
@@ -249,7 +260,8 @@ export class OnBoardingPanel {
                   this.extensionPath,
                   this.idfToolsManager,
                   message.new_value,
-                  this.confTarget
+                  this.confTarget,
+                  this.selectedWorkspaceFolder
                 ).catch((reason) => {
                   OutputChannel.appendLine(reason);
                   Logger.info(reason);
@@ -275,12 +287,14 @@ export class OnBoardingPanel {
             idfConf.writeParameter(
               "idf.customExtraPaths",
               message.custom_paths,
-              this.confTarget
+              this.confTarget,
+              this.selectedWorkspaceFolder
             );
             idfConf.writeParameter(
               "idf.customExtraVars",
               JSON.stringify(message.custom_vars),
-              this.confTarget
+              this.confTarget,
+              this.selectedWorkspaceFolder
             );
           }
           break;
@@ -326,7 +340,8 @@ export class OnBoardingPanel {
             downloadInstallIdfVersion(
               idfVersion,
               message.idfPath,
-              this.confTarget
+              this.confTarget,
+              this.selectedWorkspaceFolder
             ).then(async () => {
               await this.updateIdfToolsManager(
                 path.join(message.idfPath, "esp-idf")
@@ -342,7 +357,8 @@ export class OnBoardingPanel {
             idfConf.writeParameter(
               "idf.pythonSystemBinPath",
               message.selectedPyBin,
-              this.confTarget
+              this.confTarget,
+              this.selectedWorkspaceFolder
             );
           }
           break;
@@ -384,14 +400,26 @@ export class OnBoardingPanel {
   }
 
   private sendInitialValues(onboardingArgs: IOnboardingArgs) {
+    // Send workspace folders
+    let selected;
+    if (vscode.workspace.workspaceFolders) {
+      const folders = vscode.workspace.workspaceFolders.map(
+        (f) => f.uri.fsPath
+      );
+      selected = vscode.workspace.workspaceFolders[0];
+      this.panel.webview.postMessage({
+        command: "loadWorkspaceFolders",
+        folders: folders,
+      });
+    }
     // Give initial IDF_PATH
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath", selected);
     this.panel.webview.postMessage({
       command: "load_idf_path",
       idf_path: espIdfPath,
     });
     // Give initial IDF_TOOLS_PATH
-    const idfToolsPath = idfConf.readParameter("idf.toolsPath");
+    const idfToolsPath = idfConf.readParameter("idf.toolsPath", selected);
     this.panel.webview.postMessage({
       command: "load_idf_tools_path",
       idf_tools_path: idfToolsPath,

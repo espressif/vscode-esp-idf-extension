@@ -11,10 +11,14 @@
         </ul>
         <p>
           Before using this extension,
-            <a href="https://git-scm.com/downloads">Git</a>
-          and <a href="https://www.python.org/downloads">Python</a> are required.
+          <a href="https://git-scm.com/downloads">Git</a>
+          and <a href="https://www.python.org/downloads">Python</a> are
+          required.
+          <br />
           Please read
-          <a href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites">
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites"
+          >
             ESP-IDF Prerequisites.
           </a>
         </p>
@@ -32,17 +36,32 @@
           <label for="showOnboarding">
             Show Onboarding on Visual Studio Code start.
           </label>
-          <br><br>
+          <br /><br />
           <label for="configurationTarget">
             Where to save configuration settings ?
           </label>
+          <br />
+          <br />
           <select v-model="selectedConfTarget">
             <option value="1">User settings</option>
             <option value="2">Workspace settings</option>
             <option value="3">Workspace folder settings</option>
           </select>
-          <br><br>
-          <router-link  v-on:click.native="initSetup" to='/gitpycheck' class="enter-button">START</router-link>
+          <br /><br />
+          <div v-if="selectedConfTarget === '3'">
+            <select v-model="selectedWorkspaceFolder">
+              <option v-for="ws in workspaceFolders" :value="ws" :key="ws">
+                {{ ws }}
+              </option>
+            </select>
+            <br /><br />
+          </div>
+          <router-link
+            v-on:click.native="initSetup"
+            to="/gitpycheck"
+            class="enter-button"
+            >START</router-link
+          >
         </div>
       </div>
     </div>
@@ -64,8 +83,11 @@ export default class App extends Vue {
   public isNotWelcomePage: boolean = false;
   @State("showOnboardingOnInit") private storeShowOnboardingOnInit: boolean;
   @State("selectedConfTarget") private storeSelectedConfTarget: number;
+  @State("workspaceFolders") private storeWorkspaceFolders: string[];
+  @State("selectedWorkspaceFolder") private storeSelectedWorkspace: string;
   @Mutation private setShowOnboardingOnInit;
   @Mutation("updateConfTarget") private modifyConfTarget;
+  @Mutation private setSelectedWorkspaceFolder;
   @Action private updateConfTarget;
   @Action private updateShowOnboardingOnInit;
   @Action private requestInitValues;
@@ -82,6 +104,7 @@ export default class App extends Vue {
     return this.storeSelectedConfTarget;
   }
   set selectedConfTarget(val) {
+    console.log(val);
     this.updateConfTarget(val);
     this.modifyConfTarget(val);
   }
@@ -92,6 +115,17 @@ export default class App extends Vue {
   set showOnboardingOnInit(val) {
     this.setShowOnboardingOnInit(val);
     this.updateShowOnboardingOnInit(val);
+  }
+
+  get workspaceFolders() {
+    return this.storeWorkspaceFolders;
+  }
+
+  get selectedWorkspaceFolder() {
+    return this.storeSelectedWorkspace;
+  }
+  set selectedWorkspaceFolder(newFolder) {
+    this.setSelectedWorkspaceFolder(newFolder);
   }
 
   private mounted() {

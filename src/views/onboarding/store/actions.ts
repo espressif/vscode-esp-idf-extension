@@ -94,6 +94,7 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "updateConfigurationTarget",
       confTarget: parseInt(value, 10),
+      workspaceFolder: context.state.selectedWorkspaceFolder,
     });
   },
 };

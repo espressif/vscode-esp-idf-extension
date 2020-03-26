@@ -14,7 +14,7 @@
 
 import { pathExists } from "fs-extra";
 import * as path from "path";
-import { ConfigurationTarget } from "vscode";
+import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
@@ -23,11 +23,18 @@ import * as utils from "../utils";
 import { OnBoardingPanel } from "./OnboardingPanel";
 import { PyReqLog } from "./PyReqLog";
 
-export async function checkPythonRequirements(workingDir: string) {
+export async function checkPythonRequirements(
+  workingDir: string,
+  selectedWorkspaceFolder: WorkspaceFolder
+) {
   const pythonSystemBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath"
+    "idf.pythonSystemBinPath",
+    selectedWorkspaceFolder
   ) as string;
-  const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+  const pythonBinPath = idfConf.readParameter(
+    "idf.pythonBinPath",
+    selectedWorkspaceFolder
+  ) as string;
   process.env.PATH =
     path.dirname(pythonSystemBinPath) + path.delimiter + process.env.PATH;
   const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
@@ -38,8 +45,14 @@ export async function checkPythonRequirements(workingDir: string) {
     });
     return;
   }
-  const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-  const idfToolsPath = idfConf.readParameter("idf.toolsPath") as string;
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    selectedWorkspaceFolder
+  ) as string;
+  const idfToolsPath = idfConf.readParameter(
+    "idf.toolsPath",
+    selectedWorkspaceFolder
+  ) as string;
   const reqFilePath = path.join(
     espIdfPath,
     "tools",
@@ -111,10 +124,12 @@ export async function checkPythonRequirements(workingDir: string) {
 
 export async function installPythonRequirements(
   workingDir: string,
-  confTarget: ConfigurationTarget
+  confTarget: ConfigurationTarget,
+  selectedWorkspaceFolder: WorkspaceFolder
 ) {
   const pythonBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath"
+    "idf.pythonSystemBinPath",
+    selectedWorkspaceFolder
   ) as string;
   process.env.PATH =
     path.dirname(pythonBinPath) + path.delimiter + process.env.PATH;
@@ -126,8 +141,14 @@ export async function installPythonRequirements(
     );
     return;
   }
-  const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-  const idfToolsPath = idfConf.readParameter("idf.toolsPath") as string;
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    selectedWorkspaceFolder
+  ) as string;
+  const idfToolsPath = idfConf.readParameter(
+    "idf.toolsPath",
+    selectedWorkspaceFolder
+  ) as string;
   const logTracker = new PyReqLog(sendPyReqLog);
   process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return await pythonManager
@@ -143,7 +164,8 @@ export async function installPythonRequirements(
         await idfConf.writeParameter(
           "idf.pythonBinPath",
           virtualEnvPythonBin,
-          confTarget
+          confTarget,
+          selectedWorkspaceFolder
         );
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
@@ -184,11 +206,6 @@ export async function checkPythonPipExists(
 
 export async function getPythonList(workingDir: string) {
   const pyVersionList = await pythonManager.getPythonBinList(workingDir);
-  const idfToolsPath = idfConf.readParameter("idf.toolsPath") as string;
-  const pyEnvList = await pythonManager.getIdfToolsPythonList(idfToolsPath);
-  if (pyEnvList && pyEnvList.length > 0) {
-    pyVersionList.push(...pyEnvList);
-  }
   pyVersionList.push("Provide python executable path");
   return pyVersionList;
 }

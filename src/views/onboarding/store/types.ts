@@ -65,9 +65,11 @@ export interface IState {
   selectedConfTarget: number;
   selectedIdfVersion: IEspIdfLink;
   selectedPythonVersion: string;
+  selectedWorkspaceFolder: string;
   showIdfPathCheck: boolean;
   showIdfToolsChecks: boolean;
   showOnboardingOnInit: boolean;
   toolsCheckResults: IToolVersionResult[];
   toolsSelectedSetupMode: string;
+  workspaceFolders: string[];
 }
