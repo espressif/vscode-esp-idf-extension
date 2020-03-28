@@ -56,7 +56,6 @@ jobs:
           DISPLAY: ":99.0"
 
       - name: Upload testing.results.log
-        if: always()
         uses: actions/upload-artifact@v1
         with:
           name: testing.results.log
