@@ -135,7 +135,6 @@ export function resolveVariables(configPath: string) {
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
     }
-
     return match;
   });
 }
