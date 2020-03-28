@@ -6,7 +6,7 @@
   "version": "0.1.4",
   "license": "Apache-2.0",
   "publisher": "espressif",
-  "icon": "espressif_icon.png",
+  "icon": "media/espressif_icon.png",
   "galleryBanner": {
     "color": "#636363",
     "theme": "dark"
