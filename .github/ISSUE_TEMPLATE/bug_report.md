@@ -1,10 +1,11 @@
 ---
-
 name: Bug report
 about: Create a report to help us improve
 title: ""
 labels: "bug-github"
----**Pre Bug Report Checklist**
+---
+
+**Pre Bug Report Checklist**
 Before reporting any bug please make sure of these points.
 
 - [ ] Make sure you have searched for existing bugs and features request before you post an issue.
