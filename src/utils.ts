@@ -611,15 +611,10 @@ export async function findBinaryFullPath(
 ) {
   const locCmd = process.platform === "win32" ? "where" : "which";
   const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-  const result = await execChildProcess(
+  return await execChildProcess(
     `${locCmd} ${binName}`,
     process.cwd(),
     this.toolsManagerChannel,
     { cwd: process.cwd(), env: { PATH: pathModified } }
-  ).catch((reason) => {
-    this.toolsManagerChannel.appendLine(reason);
-    Logger.error(reason, new Error(reason));
-    return "Error";
-  });
-  return result.trim();
+  );
 }
