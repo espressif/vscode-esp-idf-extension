@@ -544,6 +544,7 @@ export async function activate(context: vscode.ExtensionContext) {
           "xtensa-esp32-elf-gdb is not found in idf.customExtraPaths",
           error
         );
+        return;
       }
     });
   });
