@@ -291,6 +291,10 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.selectConfTarget", () => {
+    idfConf.chooseConfigurationTarget();
+  });
+
   registerIDFCommand("espIdf.setPath", () => {
     PreCheck.perform([webIdeCheck], () => {
       const selectFrameworkMsg = locDic.localize(
@@ -583,7 +587,7 @@ export async function activate(context: vscode.ExtensionContext) {
           if (typeof selected === "undefined") {
             return;
           }
-          const configurationTarget = await idfConf.chooseConfigurationTarget();
+          const configurationTarget = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(
             "idf.adapterTargetName",
             selected.target,

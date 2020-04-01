@@ -57,6 +57,7 @@ export function readParameter(
 }
 
 export function chooseConfigurationTarget() {
+  const previousTarget = readParameter("idf.saveScope");
   return vscode.window
     .showQuickPick(
       [
@@ -78,11 +79,16 @@ export function chooseConfigurationTarget() {
       ],
       { placeHolder: "Where to save the configuration?" }
     )
-    .then((option) => {
+    .then(async (option) => {
       if (option) {
+        await writeParameter(
+          "idf.saveScope",
+          option.target,
+          vscode.ConfigurationTarget.Global
+        );
         return option.target;
       } else {
-        return vscode.ConfigurationTarget.Global;
+        return previousTarget || vscode.ConfigurationTarget.Global;
       }
     });
 }
@@ -137,7 +143,7 @@ export function updateConfParameter(
           } else {
             valueToWrite = newValue;
           }
-          const target = await chooseConfigurationTarget();
+          const target = readParameter("idf.saveScope");
           if (
             typeof vscode.workspace.workspaceFolders === "undefined" &&
             target !== vscode.ConfigurationTarget.Global

@@ -71,14 +71,13 @@ export class SerialPort {
   }
 
   private async updatePortListStatus(l: string) {
-    await idfConf.chooseConfigurationTarget().then(async (target) => {
-      await idfConf.writeParameter("idf.port", l, target);
-      const portHasBeenSelectedMsg = this.locDic.localize(
-        "serial.portHasBeenSelectedMessage",
-        "Port has been updated to "
-      );
-      Logger.infoNotify(portHasBeenSelectedMsg + l);
-    });
+    const target = idfConf.readParameter("idf.saveScope");
+    await idfConf.writeParameter("idf.port", l, target);
+    const portHasBeenSelectedMsg = this.locDic.localize(
+      "serial.portHasBeenSelectedMessage",
+      "Port has been updated to "
+    );
+    Logger.infoNotify(portHasBeenSelectedMsg + l);
   }
 
   private list(): Thenable<SerialPortDetails[]> {
