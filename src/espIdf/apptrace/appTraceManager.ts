@@ -109,7 +109,8 @@ export class AppTraceManager extends EventEmitter {
       validateInput: validatorFunction,
     });
     if (userInput) {
-      await idfConf.writeParameter(paramName, userInput);
+      const target = idfConf.readParameter("idf.saveScope");
+      await idfConf.writeParameter(paramName, userInput, target);
     }
   }
 

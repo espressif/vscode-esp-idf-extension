@@ -90,4 +90,11 @@ export const actions: ActionTree<IState, any> = {
       showOnboarding: value,
     });
   },
+  updateConfTarget(context, value) {
+    vscode.postMessage({
+      command: "updateConfigurationTarget",
+      confTarget: parseInt(value, 10),
+      workspaceFolder: context.state.selectedWorkspaceFolder,
+    });
+  },
 };

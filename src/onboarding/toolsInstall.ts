@@ -33,7 +33,9 @@ import {
 export async function downloadToolsInIdfToolsPath(
   workingDir: string,
   idfToolsManager: IdfToolsManager,
-  installDir: string
+  installDir: string,
+  confTarget: vscode.ConfigurationTarget,
+  selectedWorkspaceFolder: vscode.WorkspaceFolder
 ) {
   // In case IDF tools path is of the form path1:path2, tell the user for single path
   const manyPathsInIdfTools = installDir.split(path.delimiter);
@@ -93,20 +95,27 @@ export async function downloadToolsInIdfToolsPath(
       Logger.info(
         "Installing python virtualenv and ESP-IDF python requirements..."
       );
-      const pyEnvResult = await installPythonRequirements(workingDir).catch(
-        (reason) => {
-          OutputChannel.appendLine(reason);
-          Logger.info(reason);
-        }
-      );
+      const pyEnvResult = await installPythonRequirements(
+        workingDir,
+        confTarget,
+        selectedWorkspaceFolder
+      ).catch((reason) => {
+        OutputChannel.appendLine(reason);
+        Logger.info(reason);
+      });
       let exportPaths = await idfToolsManager.exportPaths(
         path.join(installDir, "tools")
       );
       const pythonSystemBinPath = idfConf.readParameter(
-        "idf.pythonSystemBinPath"
+        "idf.pythonSystemBinPath",
+        selectedWorkspaceFolder
       ) as string;
       const pythonBinPath =
-        pyEnvResult || (idfConf.readParameter("idf.pythonBinPath") as string);
+        pyEnvResult ||
+        (idfConf.readParameter(
+          "idf.pythonBinPath",
+          selectedWorkspaceFolder
+        ) as string);
       // Append System Python and Virtual Env Python to PATH
       exportPaths =
         path.dirname(pythonBinPath) +
@@ -127,8 +136,18 @@ export async function downloadToolsInIdfToolsPath(
       Logger.info(exportPaths);
       OutputChannel.appendLine("");
       Logger.info("");
-      await idfConf.writeParameter("idf.customExtraPaths", exportPaths);
-      await idfConf.writeParameter("idf.customExtraVars", exportVars);
+      await idfConf.writeParameter(
+        "idf.customExtraPaths",
+        exportPaths,
+        confTarget,
+        selectedWorkspaceFolder
+      );
+      await idfConf.writeParameter(
+        "idf.customExtraVars",
+        exportVars,
+        confTarget,
+        selectedWorkspaceFolder
+      );
       OnBoardingPanel.postMessage({
         command: "load_custom_paths",
         custom_vars: JSON.parse(exportVars),

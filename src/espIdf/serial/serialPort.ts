@@ -20,7 +20,7 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
-import { PreCheck, spawn } from "../../utils";
+import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
 export class SerialPort {
@@ -71,7 +71,8 @@ export class SerialPort {
   }
 
   private async updatePortListStatus(l: string) {
-    await idfConf.writeParameter("idf.port", l);
+    const target = idfConf.readParameter("idf.saveScope");
+    await idfConf.writeParameter("idf.port", l, target);
     const portHasBeenSelectedMsg = this.locDic.localize(
       "serial.portHasBeenSelectedMessage",
       "Port has been updated to "
