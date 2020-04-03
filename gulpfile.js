@@ -25,7 +25,7 @@ const languages = []; // [{ folderName: 'zh-CN', id: 'zh-CN' }, { folderName: 'e
 
 const getDirs = (p) =>
   readdirSync(p).filter((f) => statSync(join(p, f)).isDirectory());
-const languagesDirs = getDirs(join(process.cwd(), "i18n"));
+const languagesDirs = getDirs(join(__dirname, "i18n"));
 languagesDirs.forEach((langDir) => {
   languages.push({ folderName: langDir, id: langDir });
 });
@@ -71,7 +71,7 @@ function validateLocalizationFiles(done) {
   const schema = require("./schema.i18n.json");
   languages.forEach((l) => {
     const langDirPath = join(
-      process.cwd(),
+      __dirname,
       "i18n",
       l.folderName,
       "**",
