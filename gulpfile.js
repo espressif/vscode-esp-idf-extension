@@ -54,10 +54,8 @@ function vscePackage(done) {
 }
 
 function getPathParts(pathToUse) {
-  const parts = pathToUse
-    .replace(join(__dirname, "i18n"), "")
-    .split(/(?:\\|\/)/g);
-  parts.splice(0, 2);
+  const parts = pathToUse.split(/(?:\\|\/)/g);
+  parts.splice(0, parts.indexOf("i18n") + 2);
   parts[parts.length - 1] = parts[parts.length - 1].replace(/(\.).*/g, "");
   return parts;
 }
