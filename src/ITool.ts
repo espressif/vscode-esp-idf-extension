@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export interface ITool {
-  name: string;
-  version: string;
+export interface IPath {
   id: string; // uuid package
   path: string;
-  env: {};
 }
 
-export interface IPath {
-  id: string;
-  path: string;
+export interface ITool extends IPath {
+  name: string;
+  version: string;
+  env: {};
 }
 
 export interface IMetadataFile {
