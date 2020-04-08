@@ -210,7 +210,7 @@ export function readJson(jsonPath: string) {
 
 export function writeJson(jsonPath: string, object: any) {
   return writeJSON(jsonPath, object, {
-    spaces: vscode.workspace.getConfiguration().get("editor.tabSize"),
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
   });
 }
 
@@ -341,15 +341,14 @@ export function getToolPackagesPath(toolPackage: string[]) {
 export async function getToolsJsonPath(newIdfPath: string) {
   const espIdfVersion = await getEspIdfVersion(newIdfPath);
   let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
-  await pathExists(jsonToUse).then((exists) => {
-    if (!exists) {
-      const idfToolsJsonToUse =
-        espIdfVersion.localeCompare("4.0") < 0
-          ? "fallback-tools.json"
-          : "tools.json";
-      jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
-    }
-  });
+  const exists = await pathExists(jsonToUse);
+  if (!exists) {
+    const idfToolsJsonToUse =
+      espIdfVersion.localeCompare("4.0") < 0
+        ? "fallback-tools.json"
+        : "tools.json";
+    jsonToUse = path.join(extensionContext.extensionPath, idfToolsJsonToUse);
+  }
   return jsonToUse;
 }
 
@@ -482,49 +481,49 @@ export async function getEspIdfVersion(workingDir: string) {
     );
     return "x.x";
   }
-  return await execChildProcess("git describe --tags", workingDir)
-    .then((rawEspIdfVersion) => {
-      const espIdfVersionMatch = rawEspIdfVersion.match(
-        /^^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
-      );
-      if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
-        return "x.x";
-      }
-      let espVersion: string = "";
-      for (let i = 1; i < espIdfVersionMatch.length; i++) {
-        if (espIdfVersionMatch[i]) {
-          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
-        }
-      }
-      return espVersion.substr(1);
-    })
-    .catch((reason) => {
+  try {
+    const rawEspIdfVersion = await execChildProcess(
+      "git describe --tags",
+      workingDir
+    );
+    const espIdfVersionMatch = rawEspIdfVersion.match(
+      /^^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
+    );
+    if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
       return "x.x";
-    });
+    }
+    let espVersion: string = "";
+    for (let i = 1; i < espIdfVersionMatch.length; i++) {
+      if (espIdfVersionMatch[i]) {
+        espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+      }
+    }
+    return espVersion.substr(1);
+  } catch (error) {
+    return "x.x";
+  }
 }
 
 export async function checkGitExists(workingDir: string) {
-  return await execChildProcess("git --version", workingDir)
-    .then((result) => {
-      if (result) {
-        const match = result.match(
-          /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g
+  try {
+    const result = await execChildProcess("git --version", workingDir);
+    if (result) {
+      const match = result.match(
+        /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g
+      );
+      if (match && match.length > 0) {
+        return match[0].replace("git version ", "");
+      } else {
+        Logger.errorNotify(
+          "Git is not found in current environment",
+          Error("")
         );
-        if (match && match.length > 0) {
-          return match[0].replace("git version ", "");
-        } else {
-          Logger.errorNotify(
-            "Git is not found in current environment",
-            Error("")
-          );
-          return "Not found";
-        }
       }
-    })
-    .catch((err) => {
-      Logger.errorNotify("Git is not found in current environment", err);
-      return "Not found";
-    });
+    }
+  } catch (error) {
+    Logger.errorNotify("Git is not found in current environment", error);
+  }
+  return "Not found";
 }
 
 export function buildPromiseChain<TItem, TPromise>(
@@ -556,26 +555,25 @@ export function validateFileSizeAndChecksum(
   return new Promise<boolean>(async (resolve, reject) => {
     const algo = "sha256";
     const shashum = crypto.createHash(algo);
-    await pathExists(filePath).then((doesFileExists) => {
-      if (doesFileExists) {
-        const fileSize = fs.statSync(filePath).size;
-        const readStream = fs.createReadStream(filePath);
-        let fileChecksum: string;
-        readStream.on("data", (data) => {
-          shashum.update(data);
-        });
-        readStream.on("end", () => {
-          fileChecksum = shashum.digest("hex");
-          const isChecksumEqual = fileChecksum === expectedHash;
-          const isSizeEqual = fileSize === expectedFileSize;
-          const comparisonResult = isChecksumEqual && isSizeEqual;
-          resolve(comparisonResult);
-        });
-        readStream.on("error", (e) => reject(e));
-      } else {
-        reject(false);
-      }
-    });
+    const doesFileExists = await pathExists(filePath);
+    if (doesFileExists) {
+      const fileSize = fs.statSync(filePath).size;
+      const readStream = fs.createReadStream(filePath);
+      let fileChecksum: string;
+      readStream.on("data", (data) => {
+        shashum.update(data);
+      });
+      readStream.on("end", () => {
+        fileChecksum = shashum.digest("hex");
+        const isChecksumEqual = fileChecksum === expectedHash;
+        const isSizeEqual = fileSize === expectedFileSize;
+        const comparisonResult = isChecksumEqual && isSizeEqual;
+        resolve(comparisonResult);
+      });
+      readStream.on("error", (e) => reject(e));
+    } else {
+      reject(false);
+    }
   });
 }
 
@@ -684,16 +682,13 @@ export async function loadMetadata() {
     extensionContext.extensionPath,
     "metadata.json"
   );
-  return await doesPathExists(metadataFile).then(async (doesMetadataExist) => {
-    if (doesMetadataExist) {
-      return await readJson(metadataFile).then((metadata: IMetadataFile) => {
-        return metadata;
-      });
-    } else {
-      Logger.info(`${metadataFile} doesn't exist.`);
-      return;
-    }
-  });
+  const doesMetadataExist = await doesPathExists(metadataFile);
+  if (doesMetadataExist) {
+    return (await readJson(metadataFile)) as IMetadataFile;
+  } else {
+    Logger.info(`${metadataFile} doesn't exist.`);
+    return;
+  }
 }
 
 export async function startPythonReqsProcess(
@@ -720,31 +715,26 @@ export async function writeToMetadataFile(toolsInfo: ITool[]) {
     extensionContext.extensionPath,
     "metadata.json"
   );
-  await doesPathExists(metadataFile).then(async (doesFileExists) => {
-    if (doesFileExists) {
-      await readJson(metadataFile).then(async (metadata: IMetadataFile) => {
-        if (metadata.tools) {
-          for (const tool of toolsInfo) {
-            const existingPath = metadata.tools.filter(
-              (toolMeta) => toolMeta.path === tool.path
-            );
-            if (
-              typeof existingPath === "undefined" ||
-              existingPath.length === 0
-            ) {
-              metadata.tools.push(tool);
-            }
-          }
-        } else {
-          metadata.tools = toolsInfo;
+  const doesFileExists = await doesPathExists(metadataFile);
+  if (doesFileExists) {
+    const metadata = await readJson(metadataFile);
+    if (metadata.tools) {
+      for (const tool of toolsInfo) {
+        const existingPath = metadata.tools.filter(
+          (toolMeta) => toolMeta.path === tool.path
+        );
+        if (typeof existingPath === "undefined" || existingPath.length === 0) {
+          metadata.tools.push(tool);
         }
-        await writeJson(metadataFile, metadata);
-      });
+      }
     } else {
-      const metadata: IMetadataFile = { tools: toolsInfo } as IMetadataFile;
-      await writeJson(metadataFile, metadata);
+      metadata.tools = toolsInfo;
     }
-  });
+    await writeJson(metadataFile, metadata);
+  } else {
+    const metadata: IMetadataFile = { tools: toolsInfo } as IMetadataFile;
+    await writeJson(metadataFile, metadata);
+  }
 }
 
 export async function validateToolsFromMetadata(
@@ -754,30 +744,26 @@ export async function validateToolsFromMetadata(
   const platformInfo = await PlatformInformation.GetPlatformInformation();
   const toolsJsonPath = await getToolsJsonPath(selectedIdfPath);
   const resultDict = {};
-  return await readJSON(toolsJsonPath).then(async (toolsObj) => {
-    const idfToolsManager = new IdfToolsManager(
-      toolsObj,
-      platformInfo,
-      OutputChannel.init()
-    );
-    return await idfToolsManager.getPackageList().then(async (pkgs) => {
-      const promises = pkgs.map((pkg) => {
-        const pathToVerify = toolsMeta.find((tool) => tool.name === pkg.name);
-        if (pathToVerify) {
-          return idfToolsManager.checkBinariesVersion(pkg, pathToVerify.path);
-        }
-      });
-      await Promise.all(promises).then((versionExistsArr) => {
-        pkgs.forEach((pkg, index) => {
-          resultDict[pkg.name] =
-            pkg.versions.findIndex(
-              (ver) => ver.name === versionExistsArr[index]
-            ) > -1;
-        });
-      });
-      return resultDict;
-    });
+  const toolsObj = await readJSON(toolsJsonPath);
+  const idfToolsManager = new IdfToolsManager(
+    toolsObj,
+    platformInfo,
+    OutputChannel.init()
+  );
+  const pkgs = await idfToolsManager.getPackageList();
+  const promises = pkgs.map((pkg) => {
+    const pathToVerify = toolsMeta.find((tool) => tool.name === pkg.name);
+    if (pathToVerify) {
+      return idfToolsManager.checkBinariesVersion(pkg, pathToVerify.path);
+    }
   });
+  const versionExistsArr = await Promise.all(promises);
+  pkgs.forEach((pkg, index) => {
+    resultDict[pkg.name] =
+      pkg.versions.findIndex((ver) => ver.name === versionExistsArr[index]) >
+      -1;
+  });
+  return resultDict;
 }
 
 export async function validateCurrentExtraPaths() {
@@ -785,29 +771,25 @@ export async function validateCurrentExtraPaths() {
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
   const platformInfo = await PlatformInformation.GetPlatformInformation();
   const toolsJsonPath = await getToolsJsonPath(idfPathDir);
-  return await readJSON(toolsJsonPath).then(async (toolsObj) => {
-    const idfToolsManager = new IdfToolsManager(
-      toolsObj,
-      platformInfo,
-      OutputChannel.init()
-    );
-    return await idfToolsManager
-      .checkToolsVersion(extraPaths)
-      .then((toolsDict) => {
-        const pkgsNotFound = toolsDict.filter((p) => p.doesToolExist === false);
-        if (pkgsNotFound && pkgsNotFound.length === 0) {
-          return true;
-        } else {
-          for (const pkg of pkgsNotFound) {
-            const pkgMessage = `Path for ${pkg.id} is not valid in idf.customExtraPaths.`;
-            const errorLog = `Tool ${pkg.id} expected version: ${pkg.expected} and received ${pkg.actual}`;
-            Logger.infoNotify(pkgMessage);
-            Logger.error(errorLog, new Error(errorLog));
-            OutputChannel.appendLine(pkgMessage);
-            OutputChannel.appendLine(errorLog);
-          }
-          return false;
-        }
-      });
-  });
+  const toolsObj = await readJSON(toolsJsonPath);
+  const idfToolsManager = new IdfToolsManager(
+    toolsObj,
+    platformInfo,
+    OutputChannel.init()
+  );
+  const toolsDict = await idfToolsManager.checkToolsVersion(extraPaths);
+  const pkgsNotFound = toolsDict.filter((p) => p.doesToolExist === false);
+  if (pkgsNotFound && pkgsNotFound.length === 0) {
+    return true;
+  } else {
+    for (const pkg of pkgsNotFound) {
+      const pkgMessage = `Path for ${pkg.id} is not valid in idf.customExtraPaths.`;
+      const errorLog = `Tool ${pkg.id} expected version: ${pkg.expected} and received ${pkg.actual}`;
+      Logger.infoNotify(pkgMessage);
+      Logger.error(errorLog, new Error(errorLog));
+      OutputChannel.appendLine(pkgMessage);
+      OutputChannel.appendLine(errorLog);
+    }
+    return false;
+  }
 }

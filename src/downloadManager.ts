@@ -91,44 +91,36 @@ export class DownloadManager {
     const destPath = this.getToolPackagesPath(["dist"]);
     const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
 
-    await pathExists(absolutePath).then(async (pkgExists) => {
-      if (pkgExists) {
-        await utils
-          .validateFileSizeAndChecksum(
-            absolutePath,
-            urlInfoToUse.sha256,
-            urlInfoToUse.size
-          )
-          .then(async (checksumEqual) => {
-            if (checksumEqual) {
-              pkgProgress.FileMatchChecksum = checksumEqual;
-              this.appendChannel(
-                `Found ${pkg.name} in ${this.installPath + path.sep}dist`
-              );
-              pkgProgress.Progress = `100.00%`;
-              pkgProgress.ProgressDetail = `(${(
-                urlInfoToUse.size / 1024
-              ).toFixed(2)} /
-                                ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
-              return;
-            } else {
-              await del(absolutePath);
-              await this.downloadWithRetries(
-                urlInfoToUse.url,
-                destPath,
-                pkgProgress
-              );
-            }
-          });
-      } else {
-        await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
-      }
-      pkgProgress.FileMatchChecksum = await utils.validateFileSizeAndChecksum(
+    const pkgExists = await pathExists(absolutePath);
+    if (pkgExists) {
+      const checksumEqual = await utils.validateFileSizeAndChecksum(
         absolutePath,
         urlInfoToUse.sha256,
         urlInfoToUse.size
       );
-    });
+      if (checksumEqual) {
+        pkgProgress.FileMatchChecksum = checksumEqual;
+        this.appendChannel(
+          `Found ${pkg.name} in ${this.installPath + path.sep}dist`
+        );
+        pkgProgress.Progress = `100.00%`;
+        pkgProgress.ProgressDetail = `(${(urlInfoToUse.size / 1024).toFixed(
+          2
+        )} /
+                          ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
+        return;
+      } else {
+        await del(absolutePath);
+        await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
+      }
+    } else {
+      await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
+    }
+    pkgProgress.FileMatchChecksum = await utils.validateFileSizeAndChecksum(
+      absolutePath,
+      urlInfoToUse.sha256,
+      urlInfoToUse.size
+    );
   }
 
   public async downloadWithRetries(

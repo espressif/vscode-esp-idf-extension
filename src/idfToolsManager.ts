@@ -88,19 +88,17 @@ export class IdfToolsManager {
   }
 
   public async verifyPackages(pathsToVerify: string, onReqPkgs?: string[]) {
-    return await this.getPackageList(onReqPkgs).then(async (packages) => {
-      const promiseArr = {};
-      const names = packages.map((pkg) => pkg.name);
-      const promises = packages.map((pkg) =>
-        this.checkBinariesVersion(pkg, pathsToVerify)
-      );
-      return await Promise.all(promises).then((versionExistsArr) => {
-        names.forEach(
-          (pkgName, index) => (promiseArr[pkgName] = versionExistsArr[index])
-        );
-        return promiseArr;
-      });
+    const packages = await this.getPackageList(onReqPkgs);
+    const promiseArr = {};
+    const names = packages.map((pkg) => pkg.name);
+    const promises = packages.map((pkg) =>
+      this.checkBinariesVersion(pkg, pathsToVerify)
+    );
+    const versionExistsArray = await Promise.all(promises);
+    names.forEach((pkgName, index) => {
+      return (promiseArr[pkgName] = versionExistsArray[index]);
     });
+    return promiseArr;
   }
 
   public obtainUrlInfoForPlatform(pkg: IPackage): IFileInfo {
@@ -151,32 +149,33 @@ export class IdfToolsManager {
       modifiedPath = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
     }
     const versionCmd = pkg.version_cmd.join(" ");
-    return utils
-      .execChildProcess(versionCmd, process.cwd(), this.toolsManagerChannel, {
-        env: { PATH: modifiedPath },
-      })
-      .then((resp) => {
-        const regexResult = resp.match(pkg.version_regex);
-        if (regexResult.length > 0) {
-          if (pkg.version_regex_replace) {
-            let replaceRegexResult = pkg.version_regex_replace;
-            for (let i = 0; i < regexResult.length; i++) {
-              replaceRegexResult = replaceRegexResult.replace(
-                "\\" + i,
-                regexResult[i]
-              );
-            }
-            return replaceRegexResult;
+    try {
+      const resp = await utils.execChildProcess(
+        versionCmd,
+        process.cwd(),
+        this.toolsManagerChannel,
+        { env: { PATH: modifiedPath } }
+      );
+      const regexResult = resp.match(pkg.version_regex);
+      if (regexResult.length > 0) {
+        if (pkg.version_regex_replace) {
+          let replaceRegexResult = pkg.version_regex_replace;
+          for (let i = 0; i < regexResult.length; i++) {
+            replaceRegexResult = replaceRegexResult.replace(
+              "\\" + i,
+              regexResult[i]
+            );
           }
-          return regexResult[1];
+          return replaceRegexResult;
         }
-        return "No match";
-      })
-      .catch((reason) => {
-        this.toolsManagerChannel.appendLine(reason);
-        Logger.error(reason, new Error(reason));
-        return "Error";
-      });
+        return regexResult[1];
+      }
+    } catch (error) {
+      this.toolsManagerChannel.appendLine(error);
+      Logger.error(error, error);
+      return "Error";
+    }
+    return "No match";
   }
 
   public async getListOfReqEnvVars() {
@@ -211,69 +210,65 @@ export class IdfToolsManager {
   }
 
   public async getRequiredToolsInfo() {
-    return this.getPackageList().then((packages) => {
-      return packages.map((pkg) => {
-        const pkgVersionsForPlatform = pkg.versions.filter((version) => {
-          return (
-            Object.getOwnPropertyNames(version).indexOf(
-              this.platformInfo.platformToUse
-            ) > -1
-          );
-        });
-        const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
-        return {
-          expected: expectedVersions.join(","),
-          hashResult: false,
-          id: pkg.name,
-          progress: "0.00%",
-          hasFailed: false,
-        };
+    const packages = await this.getPackageList();
+    return packages.map((pkg) => {
+      const pkgVersionsForPlatform = pkg.versions.filter((version) => {
+        return (
+          Object.getOwnPropertyNames(version).indexOf(
+            this.platformInfo.platformToUse
+          ) > -1
+        );
       });
+      const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
+      return {
+        expected: expectedVersions.join(","),
+        hashResult: false,
+        id: pkg.name,
+        progress: "0.00%",
+        hasFailed: false,
+      };
     });
   }
 
   public async checkToolsVersion(pathToVerify: string) {
     const versions = await this.verifyPackages(pathToVerify);
-    const pkgs = await this.getPackageList().then((packages) => {
-      return packages.map((pkg) => {
-        const expectedVersions = pkg.versions.map((p) => p.name);
-        const isToolVersionCorrect =
-          expectedVersions.indexOf(versions[pkg.name]) > -1;
-        return {
-          actual: versions[pkg.name],
-          doesToolExist: isToolVersionCorrect,
-          expected: expectedVersions.join(" or \n"),
-          id: pkg.name,
-        };
-      });
+    const packages = await this.getPackageList();
+    return packages.map((pkg) => {
+      const expectedVersions = pkg.versions.map((p) => p.name);
+      const isToolVersionCorrect =
+        expectedVersions.indexOf(versions[pkg.name]) > -1;
+      return {
+        actual: versions[pkg.name],
+        doesToolExist: isToolVersionCorrect,
+        expected: expectedVersions.join(" or \n"),
+        id: pkg.name,
+      };
     });
-    return pkgs;
   }
 
   public async generateToolsExtraPaths(toolsDir: string) {
-    const toolsMetadata = await this.getPackageList().then((pkgs) => {
-      return pkgs.map((pkg) => {
-        const versionToUse = this.getVersionToUse(pkg);
-        let toolPath: string;
-        const basePath = path.join(toolsDir, pkg.name, versionToUse);
-        if (pkg.binaries) {
-          toolPath = path.join(basePath, ...pkg.binaries);
-        } else {
-          toolPath = basePath;
-        }
-        const updatedVars = {};
-        for (const k of Object.keys(pkg.export_vars)) {
-          updatedVars[k] = pkg.export_vars[k].replace("${TOOL_PATH}", basePath);
-        }
-        const toolMetadata: ITool = {
-          id: uuidv4(),
-          name: pkg.name,
-          path: toolPath,
-          version: versionToUse,
-          env: updatedVars,
-        } as ITool;
-        return toolMetadata;
-      });
+    const pkgs = await this.getPackageList();
+    const toolsMetadata = pkgs.map((pkg) => {
+      const versionToUse = this.getVersionToUse(pkg);
+      let toolPath: string;
+      const basePath = path.join(toolsDir, pkg.name, versionToUse);
+      if (pkg.binaries) {
+        toolPath = path.join(basePath, ...pkg.binaries);
+      } else {
+        toolPath = basePath;
+      }
+      const updatedVars = {};
+      for (const k of Object.keys(pkg.export_vars)) {
+        updatedVars[k] = pkg.export_vars[k].replace("${TOOL_PATH}", basePath);
+      }
+      const toolMetadata: ITool = {
+        id: uuidv4(),
+        name: pkg.name,
+        path: toolPath,
+        version: versionToUse,
+        env: updatedVars,
+      } as ITool;
+      return toolMetadata;
     });
 
     await utils.writeToMetadataFile(toolsMetadata);
@@ -289,7 +284,8 @@ export class IdfToolsManager {
     extraVars: {},
     toolsVersion
   ) {
-    await this.getPackageList().then(async (pkgs) => {
+    try {
+      const pkgs = await this.getPackageList();
       const promises = pkgs.map(async (pkg) => {
         const updatedVars = {};
         for (const k of Object.keys(pkg.export_vars)) {
@@ -298,20 +294,12 @@ export class IdfToolsManager {
           }
         }
         const toolVersion = toolsVersion.filter((t) => t.id === pkg.name);
-        const locCmd = process.platform === "win32" ? "where" : "which";
         const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-        const toolPath = await utils
-          .execChildProcess(
-            `${locCmd} ${pkg.version_cmd[0]}`,
-            process.cwd(),
-            this.toolsManagerChannel,
-            { cwd: process.cwd(), env: { PATH: pathModified } }
-          )
-          .catch((reason) => {
-            this.toolsManagerChannel.appendLine(reason);
-            Logger.error(reason, new Error(reason));
-            return "Error";
-          });
+        const toolPath = await utils.isBinInPath(
+          pkg.version_cmd[0],
+          process.cwd(),
+          { PATH: pathModified }
+        );
         const ending = `${path.sep}${pkg.version_cmd[0]}`;
         const toolDirPath = toolPath.slice(
           0,
@@ -327,9 +315,12 @@ export class IdfToolsManager {
         return toolInfo;
       });
 
-      await Promise.all(promises).then(async (toolsInfo) => {
-        await utils.writeToMetadataFile(toolsInfo);
-      });
-    });
+      const toolsInfo = await Promise.all(promises);
+      await utils.writeToMetadataFile(toolsInfo);
+    } catch (error) {
+      this.toolsManagerChannel.appendLine(error);
+      Logger.error(error, error);
+      return "Error";
+    }
   }
 }
