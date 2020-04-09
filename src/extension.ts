@@ -1271,7 +1271,7 @@ function createIdfTerminal() {
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
-      cwd: workspaceRoot.fsPath,
+      cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
     });
     espIdfTerminal.show();
     const envSetCmd =
