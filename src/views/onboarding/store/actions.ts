@@ -34,7 +34,7 @@ export const actions: ActionTree<IState, any> = {
   saveIdfPath(context) {
     vscode.postMessage({
       command: "saveNewIdfPath",
-      new_value: context.state.idfPath,
+      idf_path: context.state.idfPath,
     });
   },
   checkManualExportPaths(context) {
@@ -52,7 +52,8 @@ export const actions: ActionTree<IState, any> = {
   downloadTools(context) {
     vscode.postMessage({
       command: "downloadToolsInPath",
-      new_value: context.state.idfToolsPath,
+      tools_path: context.state.idfToolsPath,
+      idf_path: context.state.idfPath,
     });
   },
   saveCustomPathsEnvVars(context) {
