@@ -46,13 +46,13 @@ export class LogTraceProc {
       throw new Error(`Trace file doesn't exists, ${this.traceFilePath}`);
     }
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath();
     return await spawn(
       pythonBinPath,
       ["logtrace_proc.py", this.traceFilePath, this.elfFilePath],
       {
         cwd: this.appTraceToolsPath(),
-        env: process.env,
+        env: modifiedEnv,
       }
     );
   }
