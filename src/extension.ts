@@ -231,6 +231,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkWatchDisposable);
 
+  vscode.window.onDidCloseTerminal((terminal: vscode.Terminal) => {
+    terminal.dispose();
+    setTimeout(() => {
+      monitorTerminal = undefined;
+    }, 200);
+  });
+
   registerIDFCommand("espIdf.createFiles", async () => {
     const option = await vscode.window.showQuickPick(
       utils.chooseTemplateDir(),
@@ -1228,7 +1235,7 @@ function createMonitor(): any {
     const port = idfConf.readParameter("idf.port");
     const idfPath = path.join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = utils.appendIdfAndToolsToPath();
-    if (!utils.canAccessFile(pythonBinPath)) {
+    if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath)) {
       Logger.errorNotify(
         "Python binary path is not defined",
         new Error("idf.pythonBinPath is not defined")
