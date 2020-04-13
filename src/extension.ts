@@ -1235,7 +1235,7 @@ function createMonitor(): any {
     const port = idfConf.readParameter("idf.port");
     const idfPath = path.join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = utils.appendIdfAndToolsToPath();
-    if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath)) {
+    if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)) {
       Logger.errorNotify(
         "Python binary path is not defined",
         new Error("idf.pythonBinPath is not defined")
