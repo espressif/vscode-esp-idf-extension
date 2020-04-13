@@ -71,6 +71,8 @@
     "espIdf.createFiles.title",
     "espIdf.createVsCodeFolder.title",
     "espIdf.setPath.title",
+    "espIdf.createIdfTerminal.title",
+    "espIdf.selectConfTarget.title",
     "espIdf.setTarget.title",
     "espIdf.configDevice.title",
     "menuconfig.start.title",
@@ -110,6 +112,7 @@
     "trace.stop_tmo.description",
     "trace.wait4halt.description",
     "trace.skip_size.description",
-    "param.saveBeforeBuildDescription"
+    "param.saveBeforeBuildDescription",
+    "param.saveScope"
   ]
 }

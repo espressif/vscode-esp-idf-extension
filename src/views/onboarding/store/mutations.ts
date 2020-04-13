@@ -159,6 +159,17 @@ export const mutations: MutationTree<IState> = {
     newState.downloadedIdfZipPath = "";
     Object.assign(state, newState);
   },
+  setSelectedWorkspaceFolder(state, newWorkspaceFolder: string) {
+    const newState = state;
+    newState.selectedWorkspaceFolder = newWorkspaceFolder;
+    Object.assign(state, newState);
+  },
+  setWorkspaceFolders(state, workspaceFolders: string[]) {
+    const newState = state;
+    newState.workspaceFolders = workspaceFolders;
+    newState.selectedWorkspaceFolder = workspaceFolders[0];
+    Object.assign(state, newState);
+  },
   setDownloadedZipPath(state, downloadedIdfZipPath: string) {
     const newState = state;
     newState.downloadedIdfZipPath = downloadedIdfZipPath;
@@ -237,6 +248,11 @@ export const mutations: MutationTree<IState> = {
         return pkgInfo.id === updatePkgFailed.id ? newPkg : pkgInfo;
       }
     );
+    Object.assign(state, newState);
+  },
+  updateConfTarget(state, confTarget) {
+    const newState = state;
+    newState.selectedConfTarget = confTarget;
     Object.assign(state, newState);
   },
   updateIdfDownloadDetail(state, updatedIdfDownloadDetail: IEspIdfStatus) {

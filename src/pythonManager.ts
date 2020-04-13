@@ -234,49 +234,6 @@ export async function getPythonBinList(workingDir: string) {
   }
 }
 
-export async function getIdfToolsPythonList(
-  idfToolsDir: string
-): Promise<string[]> {
-  return utils
-    .dirExistPromise(idfToolsDir)
-    .then(async (doesExist) => {
-      if (doesExist) {
-        const pyEnvDir = path.join(idfToolsDir, "python_env");
-        return await utils.dirExistPromise(pyEnvDir).then((doesPyEnvExist) => {
-          if (doesPyEnvExist) {
-            const results: string[] = [];
-            const pythonBinaries = utils.getDirectories(pyEnvDir);
-            if (!pythonBinaries || pythonBinaries.length < 1) {
-              return [] as string[];
-            }
-            const pyDir =
-              process.platform === "win32"
-                ? ["Scripts", "python.exe"]
-                : ["bin", "python"];
-            pythonBinaries.forEach((pythonEnv) => {
-              const pyBin = path.join(pyEnvDir, pythonEnv, ...pyDir);
-              if (utils.fileExists(pyBin)) {
-                results.push(pyBin);
-              }
-            });
-            return results;
-          } else {
-            return [] as string[];
-          }
-        });
-      } else {
-        return [] as string[];
-      }
-    })
-    .catch((err) => {
-      Logger.errorNotify(
-        "Error while checking ESP-IDF Tools directory exists.",
-        err
-      );
-      return [] as string[];
-    });
-}
-
 export async function getUnixPythonList(workingDir: string) {
   return await utils
     .execChildProcess("which -a python python3", workingDir)

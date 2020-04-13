@@ -26,8 +26,10 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
+    "onCommand:espIdf.selectConfTarget",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
     "onCommand:espIdf.setDefaultConfig",
@@ -298,6 +300,22 @@
             "default": true,
             "scope": "resource",
             "description": "%param.saveBeforeBuildDescription%"
+          },
+          "idf.saveScope": {
+            "type": "number",
+            "default": "1",
+            "enum": [
+              1,
+              2,
+              3
+            ],
+            "enumDescriptions": [
+              "Global",
+              "Workspace",
+              "WorkspaceFolder"
+            ],
+            "scope": "resource",
+            "description": "%param.saveScope%"
           }
         }
       }
@@ -312,8 +330,16 @@
         "title": "%espIdf.createVsCodeFolder.title%"
       },
       {
+        "command": "espIdf.createIdfTerminal",
+        "title": "%espIdf.createIdfTerminal.title%"
+      },
+      {
         "command": "espIdf.setPath",
         "title": "%espIdf.setPath.title%"
+      },
+      {
+        "command": "espIdf.selectConfTarget",
+        "title": "%espIdf.selectConfTarget.title%"
       },
       {
         "command": "espIdf.setTarget",
@@ -485,7 +511,7 @@
     "snippets": [
       {
         "language": "kconfig",
-        "path": "./src/kconfig/kconfig.code-snippets"
+        "path": "./snippets/kconfig.code-snippets"
       }
     ]
   },

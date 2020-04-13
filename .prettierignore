@@ -11,6 +11,7 @@ yarn.lock
 kconfig.code-snippets
 espressif_icon.png
 get_serial_list.py
+.yarnrc
 
 #dirs
 .vscode

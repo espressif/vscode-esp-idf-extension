@@ -17,6 +17,7 @@ import * as fs from "fs";
 import { move } from "fs-extra";
 import { EOL, tmpdir } from "os";
 import * as path from "path";
+import { ConfigurationTarget, WorkspaceFolder } from "vscode";
 import { DownloadManager } from "../downloadManager";
 import * as idfConf from "../idfConfiguration";
 import { InstallManager } from "../installManager";
@@ -39,7 +40,9 @@ export interface IEspIdfLink {
 
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
-  destPath: string
+  destPath: string,
+  confTarget: ConfigurationTarget,
+  selectedWorkspaceFolder: WorkspaceFolder
 ) {
   const downloadedZipPath = path.join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
@@ -102,7 +105,12 @@ export async function downloadInstallIdfVersion(
                 downloadedPath: "master",
               });
               OnBoardingPanel.postMessage({ command: "notify_idf_extracted" });
-              await idfConf.writeParameter("idf.espIdfPath", expectedDirectory);
+              await idfConf.writeParameter(
+                "idf.espIdfPath",
+                expectedDirectory,
+                confTarget,
+                selectedWorkspaceFolder
+              );
             })
             .catch((reason) => {
               OutputChannel.appendLine(reason);
@@ -150,7 +158,9 @@ export async function downloadInstallIdfVersion(
                   });
                   await idfConf.writeParameter(
                     "idf.espIdfPath",
-                    expectedDirectory
+                    expectedDirectory,
+                    confTarget,
+                    selectedWorkspaceFolder
                   );
                 });
             })

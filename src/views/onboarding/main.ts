@@ -209,6 +209,7 @@ window.addEventListener("message", (event) => {
       if (message.selected_folder) {
         store.commit("setIdfPath", message.selected_folder);
         store.commit("setIdfDownloadPath", message.selected_folder);
+        store.commit("showIdfPathCheck", false);
       }
       break;
     case "load_show_onboarding":
@@ -219,6 +220,14 @@ window.addEventListener("message", (event) => {
         );
       }
       break;
+    case "resetConfigurationTarget":
+      if (message.confTarget) {
+        store.commit("updateConfTarget", message.confTarget);
+      }
+    case "loadWorkspaceFolders":
+      if (message.folders) {
+        store.commit("setWorkspaceFolders", message.folders);
+      }
     default:
       break;
   }
