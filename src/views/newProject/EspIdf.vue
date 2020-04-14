@@ -73,7 +73,6 @@ export default class Espidf extends Vue {
     return this.storeSelectedIdfVersion;
   }
   set selectedIdfVersion(val) {
-    console.log(val);
     this.setSelectedIdf(val);
     this.getIdfVersion(val);
   }
