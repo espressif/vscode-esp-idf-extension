@@ -72,7 +72,7 @@ export async function checkPythonRequirements(
   process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   await utils
     .execChildProcess(
-      `"${pythonBin}" ${reqFilePath} -r ${requirements}`,
+      `"${pythonBin}" "${reqFilePath}" -r "${requirements}"`,
       workingDir,
       OutputChannel.init()
     )
@@ -86,7 +86,7 @@ export async function checkPythonRequirements(
       });
       await utils
         .execChildProcess(
-          `"${pythonBin}" ${reqFilePath} -r ${debugAdapterRequirements}`,
+          `"${pythonBin}" "${reqFilePath}" -r "${debugAdapterRequirements}"`,
           workingDir,
           OutputChannel.init()
         )

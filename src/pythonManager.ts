@@ -48,7 +48,7 @@ export async function installPythonEnv(
 ) {
   // Check if already in virtualenv and install
   const isInsideVirtualEnv = await utils.execChildProcess(
-    `${pythonBinPath} -c "import sys; print(hasattr(sys, 'real_prefix'))"`,
+    `"${pythonBinPath}" -c "import sys; print(hasattr(sys, 'real_prefix'))"`,
     idfToolsDir,
     channel
   );
@@ -104,7 +104,7 @@ export async function installPythonEnv(
     envModule = "venv";
   } else {
     envModule = "virtualenv";
-    const virtualEnvInstallCmd = `${pythonBinPath} -m pip install virtualenv --user`;
+    const virtualEnvInstallCmd = `"${pythonBinPath}" -m pip install virtualenv --user`;
     const virtualEnvInstallResult = await utils.execChildProcess(
       virtualEnvInstallCmd,
       idfToolsDir,
@@ -118,7 +118,7 @@ export async function installPythonEnv(
   }
 
   const createVirtualEnvResult = await utils.execChildProcess(
-    `${pythonBinPath} -m ${envModule} "${pyEnvPath}"`,
+    `"${pythonBinPath}" -m ${envModule} "${pyEnvPath}"`,
     idfToolsDir,
     channel
   );
@@ -130,7 +130,7 @@ export async function installPythonEnv(
   pyTracker.Log = installPyPkgsMsg;
   // ESP-IDF Python Requirements
   const espIdfReqInstallResult = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install -r ${requirements}`,
+    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
     pyEnvPath,
     channel
   );
@@ -142,7 +142,7 @@ export async function installPythonEnv(
   // Debug Adapter Python Requirements
   pyTracker.Log = installDAPyPkgsMsg;
   const pyDAReqInstallResult = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install -r ${debugAdapterRequirements}`,
+    `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
     pyEnvPath,
     channel
   );
