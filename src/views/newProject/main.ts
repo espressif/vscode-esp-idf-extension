@@ -18,7 +18,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import App from "./App.vue";
 import Components from "./Components.vue";
-import Espidf from "./Espidf.vue";
+import Espidf from "./EspIdf.vue";
 import Examples from "./Examples.vue";
 import IdfComponent from "./components/idfComponent.vue";
 import Tool from "./components/tool.vue";
