@@ -22,6 +22,7 @@ import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
 export interface State {
   components: IComponent[];
   currentComponentPath: string;
+  idfPathVersion: string;
   idfVersions: IPath[];
   isValid: boolean;
   pyVenvList: IPath[];
@@ -44,6 +45,7 @@ try {
 export const projectState: State = {
   components: [],
   currentComponentPath: "",
+  idfPathVersion: "",
   idfVersions: [],
   isValid: false,
   pyVenvList: [],
@@ -72,6 +74,12 @@ export const actions: ActionTree<State, any> = {
       idf: context.state.selectedIdfVersion,
       tools: context.state.toolsInMetadata,
       venv: context.state.selectedVenv,
+    });
+  },
+  getIdfVersion(context, newIdfPath) {
+    vscode.postMessage({
+      command: "getIdfVersion",
+      idf_path: newIdfPath,
     });
   },
   loadExamples(context) {
@@ -106,6 +114,11 @@ export const mutations: MutationTree<State> = {
   setIsValid(state, isValid) {
     const newState = state;
     newState.isValid = isValid;
+    state = { ...newState };
+  },
+  setIdfPathVersion(state, currentIdfVersion: string) {
+    const newState = state;
+    newState.idfPathVersion = currentIdfVersion;
     state = { ...newState };
   },
   setIdfVersions(state, idfVersions: IPath[]) {

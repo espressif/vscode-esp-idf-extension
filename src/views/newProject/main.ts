@@ -81,6 +81,15 @@ window.addEventListener("message", (event) => {
       if (message.examples) {
         store.commit("setTemplates", message.examples);
       }
+      break;
+    case "load_current_idf_version":
+      if (message.idfVersion) {
+        store.commit("setIdfPathVersion", message.idfVersion);
+      }
+      if (message.idfPath) {
+        store.commit("setSelectedIdf", message.idfPath);
+      }
+      break;
     case "load_idf_versions":
       if (message.idfVersions) {
         store.commit("setIdfVersions", message.idfVersions);

@@ -10,6 +10,7 @@
         }}</option>
       </select>
       <br />
+      <p>Selected ESP-IDF Path version: {{ idfPathVersion }}</p>
       <br />
     </div>
     <div v-if="pyVenvList && pyVenvList.length > 0">
@@ -46,6 +47,7 @@ import { IMetadataFile, IPath, ITool } from "../../ITool";
 
 @Component
 export default class Espidf extends Vue {
+  @State("idfPathVersion") private storeIdfPathVersion: string;
   @State("idfVersions") private storeIdfVersions: IPath[];
   @State("isValid") private storeIsValid: boolean;
   @State("pyVenvList") private storePyVenvList: IPath[];
@@ -54,7 +56,13 @@ export default class Espidf extends Vue {
   @State("toolsInMetadata") private storeToolsInMetadata: ITool[];
   @Action private requestInitValues;
   @Action("checkIsValid") private checkToolsAreValid;
+  @Action private getIdfVersion;
+  @Mutation private setSelectedIdf;
+  @Mutation private setSelectedVenv;
 
+  get idfPathVersion() {
+    return this.storeIdfPathVersion;
+  }
   get idfVersions() {
     return this.storeIdfVersions;
   }
@@ -64,6 +72,11 @@ export default class Espidf extends Vue {
   get selectedIdfVersion() {
     return this.storeSelectedIdfVersion;
   }
+  set selectedIdfVersion(val) {
+    console.log(val);
+    this.setSelectedIdf(val);
+    this.getIdfVersion(val);
+  }
 
   get pyVenvList() {
     return this.storePyVenvList;
@@ -71,6 +84,9 @@ export default class Espidf extends Vue {
 
   get selectedVenv() {
     return this.storeSelectedVenv;
+  }
+  set selectedVenv(newVenv) {
+    this.setSelectedVenv(newVenv);
   }
 
   get toolsInMetadata() {

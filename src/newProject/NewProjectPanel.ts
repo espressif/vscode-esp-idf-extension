@@ -144,6 +144,20 @@ export class NewProjectPanel {
               }
             });
           break;
+        case "getIdfVersion":
+          if (message.idf_path) {
+            utils.getEspIdfVersion(message.idf_path.path).then((idfVersion) => {
+              this.panel.webview.postMessage({
+                command: "load_current_idf_version",
+                idfVersion,
+                idfPath: message.idf_path,
+              });
+              this.loadToolsVenvForIdf(
+                newProjectArgs.metadata,
+                message.idf_path
+              );
+            });
+          }
         case "requestInitValues":
           this.loadInitialMetadata(newProjectArgs.metadata);
           break;
@@ -163,12 +177,23 @@ export class NewProjectPanel {
     const selectedIdf =
       metadata.idf.find((idfVersion) => idfVersion.path === espIdfPath) ||
       metadata.idf[0];
+    await this.loadToolsVenvForIdf(metadata, selectedIdf);
+  }
+
+  public async loadToolsVenvForIdf(
+    metadata: IMetadataFile,
+    selectedIdf: IPath
+  ) {
     this.panel.webview.postMessage({
       command: "load_idf_versions",
       idfVersions: metadata.idf,
       selectedIdf,
     });
     const idfVersion = await utils.getEspIdfVersion(selectedIdf.path);
+    this.panel.webview.postMessage({
+      command: "load_current_idf_version",
+      idfVersion,
+    });
     const pyVenvList = metadata.venv.filter(
       (venv) => venv.path.indexOf(idfVersion) > -1
     );
