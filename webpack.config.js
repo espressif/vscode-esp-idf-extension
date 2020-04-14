@@ -82,7 +82,7 @@ const webViewConfig = {
       __dirname,
       "src",
       "views",
-      "newproject",
+      "newProject",
       "main.ts"
     ),
   },
