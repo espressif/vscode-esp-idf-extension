@@ -19,6 +19,7 @@ import {
   faCheck,
   faFolder,
   faFolderOpen,
+  faPlusSquare,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
@@ -53,6 +54,7 @@ library.add(
   faCheck,
   faFolder,
   faFolderOpen,
+  faPlusSquare,
   faTimes
 );
 Vue.component("font-awesome-icon", FontAwesomeIcon);

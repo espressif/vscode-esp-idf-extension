@@ -67,6 +67,7 @@
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
+    "onCommand:newProject.start",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
@@ -510,6 +511,10 @@
       {
         "command": "menuconfig.start",
         "title": "%menuconfig.start.title%"
+      },
+      {
+        "command": "newProject.start",
+        "title": "%newProject.start.title%"
       },
       {
         "command": "onboarding.start",

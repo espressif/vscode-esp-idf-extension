@@ -77,6 +77,7 @@
     "espIdf.setTarget.title",
     "espIdf.configDevice.title",
     "menuconfig.start.title",
+    "newProject.start.title",
     "espIdf.setDefaultConfig.title",
     "espIdf.selectPort.title",
     "espIdf.buildDevice.title",

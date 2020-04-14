@@ -16,7 +16,7 @@ import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
 import * as vscode from "vscode";
 import { IFileInfo, IPackage } from "./IPackage";
-import { IMetadataFile, ITool } from "./ITool";
+import { ITool } from "./ITool";
 import { Logger } from "./logger/logger";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";

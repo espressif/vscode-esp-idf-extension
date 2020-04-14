@@ -78,6 +78,13 @@ const webViewConfig = {
       "main.ts"
     ),
     sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
+    newproject: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "newproject",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

@@ -17,7 +17,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { IdfToolsManager } from "../idfToolsManager";
-import { IMetadataFile, IPath, ITool } from "../ITool";
+import { IMetadataFile, IPath, getToolsInMetadataForIdfPath } from "../ITool";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
@@ -740,47 +740,13 @@ export class OnBoardingPanel {
           command: "load_selected_venv_version_metadata",
           selectedVenvVersionMetadata: selectedPyBin,
         });
-        const platformInfo = await PlatformInformation.GetPlatformInformation();
-        const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
-        await utils.readJson(toolsJsonPath).then(async (toolsJson) => {
-          const previousToolsManager = new IdfToolsManager(
-            toolsJson,
-            platformInfo,
-            OutputChannel.init()
-          );
-          const toolsMetadata = await previousToolsManager
-            .getPackageList()
-            .then((pkgs) => {
-              return pkgs.map((pkg) => {
-                const versionToUse = previousToolsManager.getVersionToUse(pkg);
-                const toolMeta = metadataJson.tools.find((tool) => {
-                  return (
-                    tool.version === versionToUse && tool.name === pkg.name
-                  );
-                });
-                if (toolMeta) {
-                  return {
-                    name: pkg.name,
-                    path: toolMeta.path,
-                    version: toolMeta.version,
-                    id: toolMeta.id,
-                    env: toolMeta.env,
-                  } as ITool;
-                } else {
-                  return {
-                    name: pkg.name,
-                    path: "",
-                    version: versionToUse,
-                    id: `${pkg.name}-${versionToUse}`,
-                    env: pkg.export_vars,
-                  } as ITool;
-                }
-              });
-            });
-          this.panel.webview.postMessage({
-            command: "load_tools_versions_metadata",
-            toolsVersions: toolsMetadata,
-          });
+        const toolsMetadata = await getToolsInMetadataForIdfPath(
+          idfPath,
+          metadataJson.tools
+        );
+        this.panel.webview.postMessage({
+          command: "load_tools_versions_metadata",
+          toolsVersions: toolsMetadata,
         });
       }
     });

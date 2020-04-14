@@ -20,6 +20,7 @@ import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
+import { getExamplesList } from "./Examples";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -87,8 +88,8 @@ export class ExamplesPlanel {
                     message.name
                   );
                   ensureDir(resultFolder)
-                    .then(() => {
-                      utils.copyFromSrcProject(
+                    .then(async () => {
+                      await utils.copyFromSrcProject(
                         message.project_path,
                         resultFolder
                       );
@@ -148,22 +149,7 @@ export class ExamplesPlanel {
 
   private obtainExamplesList() {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const examplesPath = path.join(espIdfPath, "examples");
-    const examplesCategories = utils.getDirectories(examplesPath);
-    const examplesListPaths = utils.getSubProjects(examplesPath);
-    const exampleListInfo = examplesListPaths.map((examplePath) => {
-      const exampleCategory = examplesCategories.find(
-        (exampleCat) => examplePath.indexOf(exampleCat) > -1
-      );
-      const regexToUse =
-        process.platform === "win32" ? /([^\\]*)\\*$/ : /([^\/]*)\/*$/;
-      const exampleName = examplePath.match(regexToUse)[1];
-      return {
-        category: exampleCategory,
-        name: exampleName,
-        path: examplePath,
-      };
-    });
+    const exampleListInfo = getExamplesList(espIdfPath);
     this.panel.webview.postMessage({
       command: "set_examples_path",
       example_list: exampleListInfo,

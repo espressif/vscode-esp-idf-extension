@@ -49,6 +49,8 @@ import { createFlashModel } from "./flash/flashModelBuilder";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { NewProjectPanel } from "./newProject/NewProjectPanel";
+import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { OutputChannel } from "./logger/outputChannel";
 import { getOnboardingInitialValues } from "./onboarding/onboardingInit";
 import { OnBoardingPanel } from "./onboarding/OnboardingPanel";
@@ -881,6 +883,31 @@ export async function activate(context: vscode.ExtensionContext) {
             });
         });
     });
+  });
+
+  registerIDFCommand("newProject.start", () => {
+    try {
+      if (NewProjectPanel.isCreatedAndHidden()) {
+        NewProjectPanel.createOrShow(context.extensionPath);
+        return;
+      }
+      vscode.window.withProgress(
+        {
+          cancellable: false,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: New Project Wizard",
+        },
+        async (
+          progress: vscode.Progress<{ increment: number; message: string }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          const newProjectArgs = await getNewProjectArgs(progress);
+          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
+        }
+      );
+    } catch (error) {
+      Logger.errorNotify(error.message, error);
+    }
   });
 
   registerIDFCommand("onboarding.start", () => {

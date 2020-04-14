@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { IdfToolsManager } from "./idfToolsManager";
+import { PlatformInformation } from "./PlatformInformation";
+import * as utils from "./utils";
+import { OutputChannel } from "./logger/outputChannel";
+
 export interface IPath {
   id: string; // uuid package
   path: string;
@@ -27,4 +32,34 @@ export interface IMetadataFile {
   idf: IPath[];
   tools: ITool[];
   venv: IPath[];
+}
+
+export async function getToolsInMetadataForIdfPath(
+  idfPath: string,
+  toolsList: ITool[]
+) {
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+  const toolsJson = await utils.readJson(toolsJsonPath);
+  const toolsManager = new IdfToolsManager(
+    toolsJson,
+    platformInfo,
+    OutputChannel.init()
+  );
+  const packages = await toolsManager.getPackageList();
+  const toolsMetadata = packages.map((pkg) => {
+    const versionToUse = toolsManager.getVersionToUse(pkg);
+    const tool =
+      toolsList.find(
+        (t) => t.version === versionToUse && t.name === pkg.name
+      ) ||
+      ({
+        env: pkg.export_vars,
+        id: `${pkg.name}-${versionToUse}`,
+        name: pkg.name,
+        path: "",
+      } as ITool);
+    return tool;
+  });
+  return toolsMetadata;
 }
