@@ -16,3 +16,5 @@ jobs:
           stale-pr-message: "Pull request is marked as stale since there are no activities."
           stale-issue-label: "stale"
           stale-pr-label: "stale"
+          days-before-stale: 15
+          days-before-close: 5
