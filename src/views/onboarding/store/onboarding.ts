@@ -17,6 +17,8 @@ import { actions } from "./actions";
 import { mutations } from "./mutations";
 import { IState } from "./types";
 
+const CONF_TARGET_GLOBAL = 1;
+
 export const onboardState: IState = {
   customExtraPaths: "",
   downloadedIdfZipPath: "",
@@ -38,13 +40,16 @@ export const onboardState: IState = {
   pyLog: "",
   pyVersionList: [],
   requiredToolsVersions: [],
+  selectedConfTarget: CONF_TARGET_GLOBAL,
   selectedIdfVersion: undefined,
   selectedPythonVersion: "",
+  selectedWorkspaceFolder: "",
   showIdfPathCheck: false,
   showIdfToolsChecks: false,
   showOnboardingOnInit: true,
   toolsSelectedSetupMode: "empty",
   toolsCheckResults: [],
+  workspaceFolders: [],
 };
 
 export const onboarding: StoreOptions<IState> = {

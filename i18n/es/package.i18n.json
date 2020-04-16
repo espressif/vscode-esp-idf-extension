@@ -1,7 +1,9 @@
 {
   "espIdf.createFiles.title": "ESP-IDF: Crear proyecto",
+  "espIdf.createIdfTerminal.title": "ESP-IDF: Abrir terminal ESP-IDF",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Agregar carpeta de configuración vscode",
   "espIdf.setPath.title": "ESP-IDF: Configurar rutas ESP-IDF",
+  "espIdf.selectConfTarget.title": "ESP-IDF: Selecciona donde almacenar tu configuración",
   "espIdf.setTarget.title": "ESP-IDF: Selecciona el dispositivo Espressif a utilizar",
   "espIdf.configDevice.title": "ESP-IDF: Configuración del dispositivo",
   "menuconfig.start.title": "ESP-IDF: Abrir herramienta de configuración ESP-IDF GUI",
@@ -42,5 +44,6 @@
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
-  "param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos"
+  "param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos",
+  "param.saveScope": "Dónde se almacena las configuraciones para comandos ESP-IDF usando enum vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3"
 }

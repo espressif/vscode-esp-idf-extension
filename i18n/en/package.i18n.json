@@ -1,8 +1,10 @@
 {
   "espIdf.createFiles.title": "ESP-IDF: Create project",
+  "espIdf.createIdfTerminal.title": "ESP-IDF: Open ESP-IDF Terminal",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Add vscode configuration folder",
   "espIdf.setPath.title": "ESP-IDF: Configure Paths",
   "espIdf.setTarget.title": "ESP-IDF: Set Espressif device target",
+  "espIdf.selectConfTarget.title": "ESP-IDF: Select where to save configuration settings",
   "espIdf.configDevice.title": "ESP-IDF:Device configuration",
   "menuconfig.start.title": "ESP-IDF: Launch gui configuration tool",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Set default sdkconfig file in project",
@@ -42,5 +44,6 @@
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
-  "param.saveBeforeBuildDescription": "Save all the edited files in the workspace before proceeding with the build, although if fail to save files it will build anyways"
+  "param.saveBeforeBuildDescription": "Save all the edited files in the workspace before proceeding with the build, although if fail to save files it will build anyways",
+  "param.saveScope": "Where to save configuration with ESP-IDF commands with number value as vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3"
 }
