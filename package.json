@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "preview": true,
   "displayName": "Espressif IDF",
-  "description": "Espressif IoT Development Framework",
+  "description": "Espressif's official vscode extension for developing IoT application using ESP-IDF, aiming ESP-32, ESP-32-S2 chips",
   "version": "0.2.0",
   "license": "Apache-2.0",
   "publisher": "espressif",
@@ -23,6 +23,18 @@
     "Snippets",
     "Other",
     "Debuggers"
+  ],
+  "keywords": [
+    "ESP-IDF",
+    "ESP",
+    "Espressif",
+    "ESP-32",
+    "ESP-32-S2",
+    "esp32",
+    "esp8266",
+    "iot",
+    "wifi",
+    "soc"
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
