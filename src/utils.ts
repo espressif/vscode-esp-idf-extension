@@ -530,6 +530,7 @@ export function appendIdfAndToolsToPath() {
     process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH;
   if (originalPath && !originalPath.includes(extraPaths)) {
     modifiedEnv.PATH = extraPaths + path.delimiter + originalPath;
+    modifiedEnv.Path = extraPaths + path.delimiter + originalPath;
   }
 
   const customVars = idfConf.readParameter("idf.customExtraVars") as string;
@@ -582,24 +583,24 @@ export function appendIdfAndToolsToPath() {
   return modifiedEnv;
 }
 
-export async function isBinInPath(binaryName: string, workDirectory: string) {
+export async function isBinInPath(
+  binaryName: string,
+  workDirectory: string,
+  env: NodeJS.ProcessEnv
+) {
   const cmd = process.platform === "win32" ? "where" : "which";
-  return await spawn(cmd, [binaryName], { workDirectory })
-    .then((result) => {
-      if (
-        result.toString() === "" ||
-        result.toString().indexOf("Could not find files") < 0
-      ) {
-        return binaryName.localeCompare(result.toString().trim()) === 0
-          ? ""
-          : result.toString().trim();
-      }
-      return "";
-    })
-    .catch((err) => {
-      if (err) {
-        Logger.error(`Cannot access filePath: ${binaryName}`, err);
-      }
-      return "";
-    });
+  try {
+    const result = await spawn(cmd, [binaryName], { cwd: workDirectory, env });
+    if (
+      result.toString() === "" ||
+      result.toString().indexOf("Could not find files") < 0
+    ) {
+      return binaryName.localeCompare(result.toString().trim()) === 0
+        ? ""
+        : result.toString().trim();
+    }
+  } catch (error) {
+    Logger.error(`Cannot access filePath: ${binaryName}`, error);
+  }
+  return "";
 }

@@ -64,10 +64,11 @@ export class BuildManager {
 
       const buildPath = this.createBuildDirIfNotExists();
 
-      appendIdfAndToolsToPath();
+      const modifiedEnv = appendIdfAndToolsToPath();
 
       this.server = spawn(command, args, {
         cwd: buildPath,
+        env: modifiedEnv,
       });
 
       this.server.on("close", (code: number, signal: string) => {

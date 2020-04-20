@@ -105,11 +105,11 @@ export class OpenOCDManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath();
     const workspace = vscode.workspace.workspaceFolders
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : "";
-    if (!isBinInPath("openocd", workspace)) {
+    if (!isBinInPath("openocd", workspace, modifiedEnv)) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"
       );
@@ -137,6 +137,7 @@ export class OpenOCDManager extends EventEmitter {
 
     this.server = spawn("openocd", openOcdArgs, {
       cwd: workspace,
+      env: modifiedEnv,
     });
     this.server.stderr.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;

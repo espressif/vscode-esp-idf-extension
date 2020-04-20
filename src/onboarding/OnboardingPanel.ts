@@ -170,48 +170,50 @@ export class OnBoardingPanel {
           }
           break;
         case "saveNewIdfPath":
-          if (message.new_value) {
+          if (message.idf_path) {
             idfConf.writeParameter(
               "idf.espIdfPath",
-              message.new_value,
+              message.idf_path,
               this.confTarget,
               this.selectedWorkspaceFolder
             );
-            this.updateIdfToolsManager(message.new_value);
+            this.updateIdfToolsManager(message.idf_path);
           }
           break;
         case "checkIdfToolsForPaths":
-          this.idfToolsManager
-            .checkToolsVersion(message.new_value)
-            .then((dictTools) => {
-              const pkgsNotFound = dictTools.filter(
-                (p) => p.doesToolExist === false
-              );
-              if (pkgsNotFound.length === 0) {
+          if (message.new_value) {
+            this.idfToolsManager
+              .checkToolsVersion(message.new_value)
+              .then((dictTools) => {
+                const pkgsNotFound = dictTools.filter(
+                  (p) => p.doesToolExist === false
+                );
+                if (pkgsNotFound.length === 0) {
+                  this.panel.webview.postMessage({
+                    command: "set_tools_check_finish",
+                  });
+                }
                 this.panel.webview.postMessage({
-                  command: "set_tools_check_finish",
+                  command: "respond_check_idf_tools_path",
+                  dictToolsExist: dictTools,
                 });
-              }
-              this.panel.webview.postMessage({
-                command: "respond_check_idf_tools_path",
-                dictToolsExist: dictTools,
-              });
-              const toolsNotFound = dictTools.filter(
-                (val) => val.doesToolExist === false
-              );
-              if (toolsNotFound.length === 0) {
-                idfConf.writeParameter(
-                  "idf.customExtraPaths",
-                  message.new_value,
-                  this.confTarget,
+                const toolsNotFound = dictTools.filter(
+                  (val) => val.doesToolExist === false
+                );
+                if (toolsNotFound.length === 0) {
+                  idfConf.writeParameter(
+                    "idf.customExtraPaths",
+                    message.new_value,
+                    this.confTarget,
+                    this.selectedWorkspaceFolder
+                  );
+                }
+                checkPythonRequirements(
+                  this.extensionPath,
                   this.selectedWorkspaceFolder
                 );
-              }
-              checkPythonRequirements(
-                this.extensionPath,
-                this.selectedWorkspaceFolder
-              );
-            });
+              });
+          }
           break;
         case "getRequiredToolsInfo":
           this.idfToolsManager.getRequiredToolsInfo().then((requiredTools) => {
@@ -222,14 +224,14 @@ export class OnBoardingPanel {
           });
           break;
         case "downloadToolsInPath":
-          if (message.new_value) {
+          if (message.idf_path && message.tools_path) {
             utils
-              .dirExistPromise(message.new_value)
+              .dirExistPromise(message.tools_path)
               .then(async (doesDirExists: boolean) => {
                 if (doesDirExists) {
-                  idfConf.writeParameter(
+                  await idfConf.writeParameter(
                     "idf.toolsPath",
-                    message.new_value,
+                    message.tools_path,
                     this.confTarget,
                     this.selectedWorkspaceFolder
                   );
@@ -241,10 +243,10 @@ export class OnBoardingPanel {
                     { title: "No", isCloseAffordance: false }
                   );
                   if (selected.title === "Yes") {
-                    await ensureDir(message.new_value).then(async () => {
+                    await ensureDir(message.tools_path).then(async () => {
                       await idfConf.writeParameter(
                         "idf.toolsPath",
-                        message.new_value,
+                        message.tools_path,
                         this.confTarget,
                         this.selectedWorkspaceFolder
                       );
@@ -257,9 +259,9 @@ export class OnBoardingPanel {
                   }
                 }
                 downloadToolsInIdfToolsPath(
-                  this.extensionPath,
+                  message.idf_path,
                   this.idfToolsManager,
-                  message.new_value,
+                  message.tools_path,
                   this.confTarget,
                   this.selectedWorkspaceFolder
                 ).catch((reason) => {
