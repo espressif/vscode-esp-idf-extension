@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "preview": true,
   "displayName": "Espressif IDF",
-  "description": "Espressif IoT Development Framework",
+  "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
   "version": "0.2.0",
   "license": "Apache-2.0",
   "publisher": "espressif",
@@ -23,6 +23,18 @@
     "Snippets",
     "Other",
     "Debuggers"
+  ],
+  "keywords": [
+    "ESP-IDF",
+    "ESP",
+    "Espressif",
+    "ESP32",
+    "ESP32-S2",
+    "esp32",
+    "esp32s2",
+    "iot",
+    "wifi",
+    "soc"
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
