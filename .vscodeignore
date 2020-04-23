@@ -22,4 +22,5 @@ tslint.json
 yarn.lock
 package-lock.json
 node_modules
+gulpfile.js
 .yarnrc
