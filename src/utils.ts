@@ -604,3 +604,17 @@ export async function isBinInPath(
   }
   return "";
 }
+
+export async function findBinaryFullPath(
+  binName: string,
+  pathsToVerify: string
+) {
+  const locCmd = process.platform === "win32" ? "where" : "which";
+  const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
+  return await execChildProcess(
+    `${locCmd} ${binName}`,
+    process.cwd(),
+    this.toolsManagerChannel,
+    { cwd: process.cwd(), env: { PATH: pathModified } }
+  );
+}
