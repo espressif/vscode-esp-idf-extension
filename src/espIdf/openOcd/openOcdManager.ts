@@ -114,7 +114,7 @@ export class OpenOCDManager extends EventEmitter {
         "Invalid OpenOCD bin path or access is denied for the user"
       );
     }
-    if (typeof process.env.OPENOCD_SCRIPTS === "undefined") {
+    if (typeof modifiedEnv.OPENOCD_SCRIPTS === "undefined") {
       throw new Error(
         "OPENOCD_SCRIPTS environment variable is missing. Please set it in idf.customExtraVars or in your system environment variables."
       );

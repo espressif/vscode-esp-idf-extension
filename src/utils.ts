@@ -533,10 +533,13 @@ export function appendIdfAndToolsToPath() {
     modifiedEnv.Path = extraPaths + path.delimiter + originalPath;
   }
 
-  const customVars = idfConf.readParameter("idf.customExtraVars") as string;
-  if (customVars) {
+  const customVarsString = idfConf.readParameter(
+    "idf.customExtraVars"
+  ) as string;
+  if (customVarsString) {
     try {
-      for (const envVar in JSON.parse(customVars)) {
+      const customVars = JSON.parse(customVarsString);
+      for (const envVar in customVars) {
         if (envVar) {
           modifiedEnv[envVar] = customVars[envVar];
         }
