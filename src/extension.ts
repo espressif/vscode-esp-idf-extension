@@ -532,6 +532,12 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
 
+  registerIDFCommand("espIdf.genCoverage", () => {
+    return PreCheck.perform([openFolderCheck], () => {
+      console.log("get coverage");
+    });
+  });
+
   registerIDFCommand("espIdf.getProjectName", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       return await getProjectName(workspaceRoot.fsPath);

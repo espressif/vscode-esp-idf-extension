@@ -236,6 +236,10 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
 
+## Code Coverage
+
+Please take a look at [Code Coverage](./docs/COVERAGE.md).
+
 ## Debugging
 
 Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [ONBOARDING](./docs/ONBOARDING.md).
