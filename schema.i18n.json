@@ -88,6 +88,7 @@
     "espIdf.size.title",
     "espIdf.apptrace.title",
     "espIdf.openOCDCommand.title",
+    "espIdf.genCoverage.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

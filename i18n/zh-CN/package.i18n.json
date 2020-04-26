@@ -19,6 +19,7 @@
   "espIdf.size.title": "ESP-IDF：分析二进制文件的大小",
   "espIdf.apptrace.title": "ESP-IDF：跟踪应用程序",
   "espIdf.openOCDCommand.title": "ESP-IDF：OpenOCD 管理器",
+  "espIdf.genCoverage.title": "ESP-IDF: 添加编辑器覆盖范围",
   "debug.initConfig.name": "ESP-IDF：启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",

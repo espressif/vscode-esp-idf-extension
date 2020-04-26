@@ -63,6 +63,7 @@
     "onCommand:espIdf.apptrace.customize",
     "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
+    "onCommand:espIdf.genCoverage",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onView:idfAppTracer",
@@ -421,6 +422,10 @@
       {
         "command": "espIdf.apptrace.customize",
         "title": "%espIdf.apptrace.customize.title%"
+      },
+      {
+        "command": "espIdf.genCoverage",
+        "title": "%espIdf.genCoverage.title%"
       }
     ],
     "breakpoints": [

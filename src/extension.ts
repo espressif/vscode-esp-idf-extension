@@ -58,6 +58,7 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { CoverageRenderer, CoverageOptions } from "./coverage/renderer";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -534,7 +535,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], () => {
-      console.log("get coverage");
+      const options: CoverageOptions = {
+        darkThemeCoveredBackgroundColor: "",
+        darkThemeUncoveredBackgroundColor: "",
+        lightThemeCoveredBackgroundColor: "",
+        lightThemeUncoveredBackgroundColor: "",
+        overviewRuleLane: undefined,
+      };
+      const covRenderer = new CoverageRenderer(workspaceRoot, options);
+      covRenderer.renderCoverage();
     });
   });
 

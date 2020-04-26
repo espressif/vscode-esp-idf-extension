@@ -20,6 +20,7 @@
   "espIdf.apptrace.title": "ESP-IDF: App Trace",
   "espIdf.heaptrace.title": "ESP-IDF: Heap Trace",
   "espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",
+  "espIdf.genCoverage.title": "ESP-IDF: Agregar cobertura al editor",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",
