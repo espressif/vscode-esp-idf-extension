@@ -109,6 +109,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Show ESP-IDF Examples Projects                  |
+| Add Editor coverage                             |
+| Remove Editor coverage                          |
+| Get HTML Coverage Report for project            |
 
 ## ESP-IDF Configure extension
 
@@ -133,18 +136,22 @@ This extension contributes the following settings that can be later updated in s
 
 These are project IDF Project specific settings
 
-| Setting                    | Description                                                         |
-| -------------------------- | ------------------------------------------------------------------- |
-| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                         |
-| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                       |
-| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts  |
-| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                      |
-| `idf.customExtraVars`      | Variables to be added to system environment variables               |
-| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                           |
-| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation           |
-| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                |
-| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
-| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)          |
+| Setting                    | Description                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                           |
+| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                         |
+| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts    |
+| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                        |
+| `idf.customExtraVars`      | Variables to be added to system environment variables                 |
+| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                             |
+| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation             |
+| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                  |
+| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder   |
+| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)            |
+| `idf.coveredLightTheme`    | Background color for covered lines in light theme for gcov coverage   |
+| `idf.coveredDarkTheme`     | Background color for covered lines in dark theme for gcov coverage    |
+| `idf.uncoveredLightTheme`  | Background color for uncovered lines in light theme for gcov coverage |
+| `idf.uncoveredDarkTheme`   | Background color for uncovered lines in dark theme for gcov coverage  |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
@@ -238,7 +245,7 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 ## Code Coverage
 
-Please take a look at [Code Coverage](./docs/COVERAGE.md).
+We provide editor highlight code coverage and HTML reports for your ESP-IDF project, if coverage files are generated on build. For more info please take a look at [Code Coverage](./docs/COVERAGE.md).
 
 ## Debugging
 

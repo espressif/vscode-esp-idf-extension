@@ -44,14 +44,15 @@ export async function buildHtml(dirPath: string) {
 
 function _runCmd(cmd: string, args: string[], dirPath: string) {
   const modifiedEnv = appendIdfAndToolsToPath();
-  console.log(`${cmd} ${args.join(" ")}`);
   return execChildProcess(
     `${cmd} ${args.join(" ")}`,
     dirPath,
     OutputChannel.init(),
     { env: modifiedEnv, cwd: dirPath }
   ).catch((e) => {
-    Logger.error("Error on gcov cmd", e);
+    const msg = e.message ? e.message : e;
+    Logger.error("Error on gcov cmd.\n" + msg, e);
+    OutputChannel.appendLine("Error building gcov cmd.\n" + msg);
     return "";
   });
 }
@@ -96,4 +97,20 @@ export async function generateCoverageForEditors(
     }
   }
   return coveredEditors;
+}
+
+export async function previewReport(dirPath: string) {
+  try {
+    const reportHtml = await buildHtml(dirPath);
+    const previewPanel = vscode.window.createWebviewPanel(
+      "gcoveragePreview",
+      "Coverage report",
+      vscode.ViewColumn.One
+    );
+    previewPanel.webview.html = reportHtml;
+  } catch (e) {
+    const msg = e.message ? e.message : e;
+    Logger.error("Error building gcov html.\n" + msg, e);
+    OutputChannel.appendLine("Error building gcov html.\n" + msg);
+  }
 }

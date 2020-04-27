@@ -17,6 +17,7 @@ import {
   generateCoverageForEditors,
   textEditorWithCoverage,
 } from "./coverageService";
+import * as idfConf from "../idfConfiguration";
 
 export interface CoverageOptions {
   darkThemeCoveredBackgroundColor: string;
@@ -24,6 +25,25 @@ export interface CoverageOptions {
   darkThemeUncoveredBackgroundColor: string;
   lightThemeUncoveredBackgroundColor: string;
   overviewRuleLane: vscode.OverviewRulerLane;
+}
+
+export function getCoverageOptions() {
+  const coverageOptions: CoverageOptions = {
+    darkThemeCoveredBackgroundColor: idfConf.readParameter(
+      "idf.coveredDarkTheme"
+    ),
+    darkThemeUncoveredBackgroundColor: idfConf.readParameter(
+      "idf.uncoveredDarkTheme"
+    ),
+    lightThemeCoveredBackgroundColor: idfConf.readParameter(
+      "idf.coveredLightTheme"
+    ),
+    lightThemeUncoveredBackgroundColor: idfConf.readParameter(
+      "idf.uncoveredLightTheme"
+    ),
+    overviewRuleLane: vscode.OverviewRulerLane.Right,
+  };
+  return coverageOptions;
 }
 
 export class CoverageRenderer {
@@ -64,14 +84,14 @@ export class CoverageRenderer {
   }
 
   private setDecoratorsForEditor(editorsWithCov: textEditorWithCoverage[]) {
-    for (const editor of editorsWithCov) {
-      editor.editor.setDecorations(
+    for (const covEditor of editorsWithCov) {
+      covEditor.editor.setDecorations(
         this.coveredDecoratorType,
-        editor.coveredLines
+        covEditor.coveredLines
       );
-      editor.editor.setDecorations(
+      covEditor.editor.setDecorations(
         this.notCoveredDecoratorType,
-        editor.uncoveredLines
+        covEditor.uncoveredLines
       );
     }
   }
@@ -93,5 +113,10 @@ export class CoverageRenderer {
       editor.setDecorations(this.coveredDecoratorType, []);
       editor.setDecorations(this.notCoveredDecoratorType, []);
     }
+  }
+
+  public dispose() {
+    this.coveredDecoratorType.dispose();
+    this.notCoveredDecoratorType.dispose();
   }
 }
