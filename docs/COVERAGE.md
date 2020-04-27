@@ -7,7 +7,7 @@ Your ESP-IDF project should be configured to generate gcda/gcno coverage files u
 This extension also requires `gcovr` to generate JSON and HTML reports from generated files. This is installed as Python dependencies when following the **ESP-IDF: Configure ESP-IDF extension** command.
 Please take a look at [ONBOARDING](./docs/ONBOARDING.md) for more information.
 
-Make sure you have properly configure xtensa toolchain in your PATH since the gcov executable used is `xtensa-esp32-elf-gcov` and `gcovr` exists in your `${idf.pythonBinPath}`.
+Make sure you have properly configure xtensa toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `xtensa-esp32-elf-gcov` and `gcovr` exists in your `${idf.pythonBinPath}`.
 
 ## Editor Coverage
 

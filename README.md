@@ -245,7 +245,7 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 ## Code Coverage
 
-We provide editor highlight code coverage and HTML reports for your ESP-IDF project, if coverage files are generated on build. For more info please take a look at [Code Coverage](./docs/COVERAGE.md).
+We provide editor code coverage highlight and HTML reports for ESP-IDF projects, if coverage files are generated on build directory. For more info please take a look at [Code Coverage](./docs/COVERAGE.md).
 
 ## Debugging
 
