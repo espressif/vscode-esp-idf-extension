@@ -76,6 +76,37 @@
   ],
   "main": "./dist/extension",
   "contributes": {
+    "problemMatchers": [
+      {
+        "name": "idfRelative",
+        "owner": "cpp",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^\\.\\.(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      {
+        "name": "idfAbsolute",
+        "owner": "cpp",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^[^\\.](.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {

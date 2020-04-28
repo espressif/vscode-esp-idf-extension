@@ -60,6 +60,7 @@ import {
 } from "./workspaceConfig";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
+import { buildTaskProvider } from "./build/buildTask";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -960,6 +961,7 @@ const build = () => {
       workspaceRoot.fsPath,
       idfBuildChannel
     );
+    const buildTask = new buildTaskProvider(workspaceRoot.fsPath);
     if (BuildManager.isBuilding || FlashManager.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
@@ -982,6 +984,10 @@ const build = () => {
         cancelToken: vscode.CancellationToken
       ) => {
         cancelToken.onCancellationRequested(() => {
+          buildTask.cancel();
+        });
+        await buildTask.build();
+        /* cancelToken.onCancellationRequested(() => {
           buildManager.cancel();
         });
         idfBuildChannel.clear();
@@ -1018,7 +1024,7 @@ const build = () => {
             "Something went wrong while trying to build the project",
             error
           );
-        }
+        } */
       }
     );
   });
