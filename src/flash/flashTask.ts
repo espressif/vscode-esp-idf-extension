@@ -23,6 +23,7 @@ import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { Logger } from "../logger/logger";
+import { TaskManager } from "../taskManager";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -43,7 +44,7 @@ export class FlashTask {
     this.model = model;
   }
 
-  private flashing(flag: boolean) {
+  public flashing(flag: boolean) {
     FlashTask.isFlashing = flag;
   }
 
@@ -76,21 +77,17 @@ export class FlashTask {
     }
     this.verifyArgs();
     const flashExecution = this._flashExecution();
-    const flashTask = new vscode.Task(
+    await TaskManager.addTask(
       { type: "shell" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
-      "espressif.esp-idf-extension",
       flashExecution,
-      ["idfRelative", "idfAbsolute"]
-    );
-    this.flashTask = await vscode.tasks.executeTask(flashTask);
-    vscode.tasks.onDidEndTask(async (e) => {
-      if (e.execution.task.name === "ESP-IDF Flash") {
+      ["idfRelative", "idfAbsolute"],
+      () => {
         this.flashing(false);
         Logger.infoNotify("Flash Done ⚡️");
       }
-    });
+    );
   }
 
   public _flashExecution() {

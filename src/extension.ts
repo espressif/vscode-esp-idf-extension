@@ -62,6 +62,7 @@ import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
+import { TaskManager } from "./taskManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -793,7 +794,6 @@ export async function activate(context: vscode.ExtensionContext) {
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
             title: "ESP-IDF: Size",
-            // tslint:disable-next-line: max-line-length
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>,
@@ -985,6 +985,7 @@ const build = () => {
         });
         try {
           await buildTask.build();
+          TaskManager.runTasks(() => {});
         } catch (error) {
           if (error.message === "ALREADY_BUILDING") {
             return Logger.errorNotify("Already a build is running!", error);
@@ -1082,6 +1083,7 @@ const flash = () => {
           );
           const flashTask = new FlashTask(buildPath, idfPathDir, model);
           await flashTask.flash();
+          TaskManager.runTasks(() => {});
         } catch (error) {
           if (error.message === "ALREADY_FLASHING") {
             return Logger.errorNotify(
@@ -1119,7 +1121,7 @@ const flash = () => {
 
 const buildFlashAndMonitor = (runMonitor: boolean = true) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"
@@ -1137,10 +1139,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         monitorTerminal = undefined;
       }, 200);
     }
-    const buildManager = new BuildManager(
-      workspaceRoot.fsPath,
-      idfBuildChannel
-    );
+    const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
@@ -1175,19 +1174,11 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         cancelToken.onCancellationRequested(() => {
-          buildManager.cancel();
+          buildTask.cancel();
         });
-        idfBuildChannel.clear();
-        idfFlashChannel.clear();
         try {
           progress.report({ message: "Building project...", increment: 20 });
-          await buildManager.build();
-          const projDescPath = path.join(
-            workspaceRoot.fsPath,
-            "build",
-            "project_description.json"
-          );
-          updateIdfComponentsTree(projDescPath);
+          await buildTask.build();
           progress.report({
             message: "Flashing project into device...",
             increment: 60,
@@ -1197,17 +1188,17 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             port,
             baudRate
           );
-          const flashManager = new FlashManager(
-            idfPathDir,
-            buildPath,
-            model,
-            idfFlashChannel
-          );
-          await flashManager.flash();
-          if (runMonitor) {
-            progress.report({ message: "Launching monitor...", increment: 10 });
-            createMonitor();
-          }
+          const flashTask = new FlashTask(buildPath, idfPathDir, model);
+          await flashTask.flash();
+          TaskManager.runTasks(() => {
+            if (runMonitor) {
+              progress.report({
+                message: "Launching monitor...",
+                increment: 10,
+              });
+              createMonitor();
+            }
+          });
         } catch (error) {
           switch (error.message) {
             case "BUILD_TERMINATED":

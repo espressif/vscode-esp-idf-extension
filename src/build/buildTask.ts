@@ -39,7 +39,7 @@ export class BuildTask {
     this.curWorkspace = join(workspace, "build");
   }
 
-  private building(flag: boolean) {
+  public building(flag: boolean) {
     BuildTask.isBuilding = flag;
   }
 
@@ -91,7 +91,7 @@ export class BuildTask {
       ["-G", "Ninja", ".."],
       options
     );
-    /* await TaskManager.addTask(
+    await TaskManager.addTask(
       { type: "shell" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Compile",
@@ -116,37 +116,5 @@ export class BuildTask {
         Logger.infoNotify("Build Successfully");
       }
     );
-    TaskManager.runInSequence(); */
-    const compileTask = new vscode.Task(
-      { type: "shell" },
-      vscode.TaskScope.Workspace,
-      "ESP-IDF Compile",
-      "espressif.esp-idf-extension",
-      compileExecution,
-      ["idfRelative", "idfAbsolute"]
-    );
-    const buildExecution = this.getShellExecution(["--build", "."], options);
-    const buildTask = new vscode.Task(
-      { type: "shell" },
-      vscode.TaskScope.Workspace,
-      "ESP-IDF Build",
-      "espressif.esp-idf-extension",
-      buildExecution,
-      ["idfRelative", "idfAbsolute"]
-    );
-    this.compileTask = await vscode.tasks.executeTask(compileTask);
-    vscode.tasks.onDidEndTask(async (e) => {
-      if (e.execution.task.name === "ESP-IDF Compile") {
-        this.buildTask = await vscode.tasks.executeTask(buildTask);
-      } else if (e.execution.task.name === "ESP-IDF Build") {
-        this.building(false);
-        const projDescPath = join(
-          this.curWorkspace,
-          "project_description.json"
-        );
-        updateIdfComponentsTree(projDescPath);
-        Logger.infoNotify("Build Successfully");
-      }
-    });
   }
 }
