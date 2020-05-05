@@ -580,7 +580,7 @@
     "ts-loader": "^6.0.4",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.2.0",
+    "tslint-plugin-prettier": "^2.3.0",
     "tslint-webpack-plugin": "^2.1.0",
     "typescript": "^2.9.2",
     "typescript-tslint-plugin": "^0.3.1",
