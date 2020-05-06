@@ -72,7 +72,7 @@ export async function checkPythonRequirements(
   process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   await utils
     .execChildProcess(
-      `${pythonBin} ${reqFilePath} -r ${requirements}`,
+      `"${pythonBin}" "${reqFilePath}" -r "${requirements}"`,
       workingDir,
       OutputChannel.init()
     )
@@ -86,7 +86,7 @@ export async function checkPythonRequirements(
       });
       await utils
         .execChildProcess(
-          `${pythonBin} ${reqFilePath} -r ${debugAdapterRequirements}`,
+          `"${pythonBin}" "${reqFilePath}" -r "${debugAdapterRequirements}"`,
           workingDir,
           OutputChannel.init()
         )
@@ -123,6 +123,7 @@ export async function checkPythonRequirements(
 }
 
 export async function installPythonRequirements(
+  espIdfPath: string,
   workingDir: string,
   confTarget: ConfigurationTarget,
   selectedWorkspaceFolder: WorkspaceFolder
@@ -141,20 +142,12 @@ export async function installPythonRequirements(
     );
     return;
   }
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    selectedWorkspaceFolder
-  ) as string;
-  const idfToolsPath = idfConf.readParameter(
-    "idf.toolsPath",
-    selectedWorkspaceFolder
-  ) as string;
   const logTracker = new PyReqLog(sendPyReqLog);
   process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return await pythonManager
     .installPythonEnv(
       espIdfPath,
-      idfToolsPath,
+      workingDir,
       logTracker,
       pythonBinPath,
       OutputChannel.init()

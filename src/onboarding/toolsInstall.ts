@@ -31,7 +31,7 @@ import {
 } from "./updateViewMethods";
 
 export async function downloadToolsInIdfToolsPath(
-  workingDir: string,
+  espIdfPath: string,
   idfToolsManager: IdfToolsManager,
   installDir: string,
   confTarget: vscode.ConfigurationTarget,
@@ -96,7 +96,8 @@ export async function downloadToolsInIdfToolsPath(
         "Installing python virtualenv and ESP-IDF python requirements..."
       );
       const pyEnvResult = await installPythonRequirements(
-        workingDir,
+        espIdfPath,
+        installDir,
         confTarget,
         selectedWorkspaceFolder
       ).catch((reason) => {

@@ -42,7 +42,8 @@ export abstract class AbstractTracingToolManager {
     args?: string[],
     option?: any
   ) {
-    appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath();
+    option.env = option.env || modifiedEnv;
     return await spawn(command, args, option);
   }
 

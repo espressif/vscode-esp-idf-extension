@@ -12,7 +12,11 @@ jobs:
       - uses: actions/stale@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: "Issue is marked as stale since there are no activities."
-          stale-pr-message: "Pull request is marked as stale since there are no activities."
+          stale-issue-message: "This issue has been marked as stale since there are no activities for the last 15 days and this issue will be closed 5 days for today if there are still no further activities."
+          stale-pr-message: "Pull request has been marked as stale since there are no activities, this will be closed if there are no further activities in this for next 5 days"
           stale-issue-label: "stale"
+          exempt-issue-labels: "ongoing"
           stale-pr-label: "stale"
+          exempt-pr-labels: "ongoing"
+          days-before-stale: 15
+          days-before-close: 5
