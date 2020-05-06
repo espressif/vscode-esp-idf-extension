@@ -31,14 +31,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r esp_debug_adapter/requirements.txt
 
-      - name: Prettier Check
-        run: yarn prettier --check "**/*.*"
+      - name: Lint Check
+        run: yarn lint
 
       - name: Check Node Packages Vulnerabilities
         run: yarn audit
 
       - name: Package .vsix
-        run: yarn run package
+        run: yarn package
+
       - name: Upload .vsix File
         uses: actions/upload-artifact@v1
         with:
@@ -47,13 +48,14 @@ jobs:
 
       - name: xvfb
         run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
       - name: Extension Test
-        run: yarn run test --VERBOSE >> testing.results.log
+        run: yarn test --VERBOSE >> testing.results.log
         env:
           CODE_VERSION: "1.41.1"
           DISPLAY: ":99.0"
+
       - name: Upload testing.results.log
-        if: always()
         uses: actions/upload-artifact@v1
         with:
           name: testing.results.log

@@ -2,11 +2,11 @@
   "name": "esp-idf-extension",
   "preview": true,
   "displayName": "Espressif IDF",
-  "description": "Espressif IoT Development Framework",
-  "version": "0.2.0",
+  "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
-  "icon": "espressif_icon.png",
+  "icon": "media/espressif_icon.png",
   "galleryBanner": {
     "color": "#636363",
     "theme": "dark"
@@ -23,6 +23,18 @@
     "Snippets",
     "Other",
     "Debuggers"
+  ],
+  "keywords": [
+    "ESP-IDF",
+    "ESP",
+    "Espressif",
+    "ESP32",
+    "ESP32-S2",
+    "esp32",
+    "esp32s2",
+    "iot",
+    "wifi",
+    "soc"
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
@@ -520,10 +532,10 @@
   ],
   "scripts": {
     "vscode:prepublish": "gulp build && webpack --mode production",
-    "tslint": "tslint -c tslint.json -p .",
+    "lint": "prettier --check **/*.*",
     "debugPreTask": "webpack --mode development",
     "compile": "tsc -p ./",
-    "watch": "tsc -p ./ --watch & webpack --watch --mode development",
+    "watch": "webpack --watch --mode development",
     "test": "yarn run compile && node ./out/test/runTest.js",
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
@@ -568,7 +580,7 @@
     "ts-loader": "^6.0.4",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.2.0",
+    "tslint-plugin-prettier": "^2.3.0",
     "tslint-webpack-plugin": "^2.1.0",
     "typescript": "^2.9.2",
     "typescript-tslint-plugin": "^0.3.1",

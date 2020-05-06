@@ -31,7 +31,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 ## Coming Soon 🔜
 
 - Heap Tracing with complete GUI
-- VSCode Remote
+- Create new project wizard
 
 ## Quick Installation Guide
 
@@ -55,27 +55,26 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 - Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
 - Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies, using `yarn`
-- Compile typescript with `yarn run compile`
-- Bundle the webviews using `yarn run webpack`.
 - Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
+- Compile project with `yarn webpack` (optional for production)
 
 #### Build vsix locally
 
-- Build the Visual Studio Code extension setup with `yarn run build_vsix`
+- Build the Visual Studio Code extension setup with `yarn package`
 
 ## Uninstalling the plugin
 
 - In Visual Studio Code, go to the Extensions tab.
 - Click on the EspressifIDF extension lower right icon.
 - Click Uninstall.
-- Go to your `{VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder.
+- Go to your `${VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder.
 
 ## How to use
 
 - First set up your Visual Studio Code as explained in the former section.
 - Then
   - Either open Visual Studio Code and create a workspace folder.
-  - Run `code {YOUR_PROJECT_DIR}` from the command line.
+  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
 - Press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to configure the extension Please take a look at [ONBOARDING](./docs/ONBOARDING.md) for more detail.
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.

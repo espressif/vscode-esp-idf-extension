@@ -96,7 +96,7 @@ export class FlashManager {
     return new Promise((resolve, reject) => {
       this.flashing(true);
 
-      appendIdfAndToolsToPath();
+      const modifiedEnv = appendIdfAndToolsToPath();
       const flasherArgs = [
         this.flashScriptPath,
         "-p",
@@ -122,6 +122,7 @@ export class FlashManager {
       ) as string;
       this.server = spawn(pythonBinPath, flasherArgs, {
         cwd: this.buildDir,
+        env: modifiedEnv,
       });
 
       this.server.on("close", (code: number, signal: string) => {

@@ -68,16 +68,15 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isRunning()) {
         return;
       }
-      appendIdfAndToolsToPath();
       const workspace = vscode.workspace.workspaceFolders
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
-      if (!isBinInPath("openocd", workspace)) {
+      if (!isBinInPath("openocd", workspace, this.env)) {
         throw new Error(
           "Invalid OpenOCD bin path or access is denied for the user"
         );
       }
-      if (typeof process.env.OPENOCD_SCRIPTS === "undefined") {
+      if (typeof this.env.OPENOCD_SCRIPTS === "undefined") {
         throw new Error(
           "Invalid OpenOCD script path or access is denied for the user"
         );
@@ -196,7 +195,7 @@ export class DebugAdapterManager extends EventEmitter {
     this.port = 43474;
     this.logLevel = 0;
     this.target = idfConf.readParameter("idf.adapterTargetName");
-    this.env = process.env;
+    this.env = appendIdfAndToolsToPath();
   }
 
   private sendToOutputChannel(data: Buffer) {

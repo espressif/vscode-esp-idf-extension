@@ -231,6 +231,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkWatchDisposable);
 
+  vscode.window.onDidCloseTerminal((terminal: vscode.Terminal) => {
+    terminal.dispose();
+    setTimeout(() => {
+      monitorTerminal = undefined;
+    }, 200);
+  });
+
   registerIDFCommand("espIdf.createFiles", async () => {
     const option = await vscode.window.showQuickPick(
       utils.chooseTemplateDir(),
@@ -524,6 +531,24 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.getXtensaGdb", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+      try {
+        return await utils.findBinaryFullPath(
+          "xtensa-esp32-elf-gdb",
+          extraPaths
+        );
+      } catch (error) {
+        Logger.errorNotify(
+          "xtensa-esp32-elf-gdb is not found in idf.customExtraPaths",
+          error
+        );
+        return;
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], () => {
       utils.createVscodeFolder(workspaceRoot.fsPath);
@@ -611,13 +636,14 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           const idfPathDir = idfConf.readParameter("idf.espIdfPath");
           const idfPy = path.join(idfPathDir, "tools", "idf.py");
-          utils.appendIdfAndToolsToPath();
+          const modifiedEnv = utils.appendIdfAndToolsToPath();
           const pythonBinPath = idfConf.readParameter(
             "idf.pythonBinPath"
           ) as string;
           await utils
             .spawn(pythonBinPath, [idfPy, "set-target", selected.target], {
               cwd: workspaceRoot.fsPath,
+              env: modifiedEnv,
             })
             .then((result) => {
               Logger.info(result.toString());
@@ -1226,8 +1252,8 @@ function createMonitor(): any {
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     const port = idfConf.readParameter("idf.port");
     const idfPath = path.join(idfPathDir, "tools", "idf.py");
-    utils.appendIdfAndToolsToPath();
-    if (!utils.canAccessFile(pythonBinPath)) {
+    const modifiedEnv = utils.appendIdfAndToolsToPath();
+    if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)) {
       Logger.errorNotify(
         "Python binary path is not defined",
         new Error("idf.pythonBinPath is not defined")
@@ -1253,7 +1279,7 @@ function createMonitor(): any {
     if (typeof monitorTerminal === "undefined") {
       monitorTerminal = vscode.window.createTerminal({
         name: "ESP-IDF Monitor",
-        env: process.env,
+        env: modifiedEnv,
         cwd: workspaceRoot.fsPath,
       });
     }
@@ -1270,7 +1296,7 @@ function createIdfTerminal() {
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
-      cwd: workspaceRoot.fsPath,
+      cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
     });
     espIdfTerminal.show();
     const envSetCmd =
