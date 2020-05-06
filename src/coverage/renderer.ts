@@ -49,7 +49,10 @@ export function getCoverageOptions() {
 export class CoverageRenderer {
   private coveredDecoratorType: vscode.TextEditorDecorationType;
   private notCoveredDecoratorType: vscode.TextEditorDecorationType;
+  private countDecoratorTypes: vscode.TextEditorDecorationType[];
+  private marginDecoratorType: vscode.TextEditorDecorationType;
   private workspaceFolder: vscode.Uri;
+  private marginSize: string;
 
   constructor(workspaceFolder: vscode.Uri, options: CoverageOptions) {
     this.workspaceFolder = workspaceFolder;
@@ -64,7 +67,7 @@ export class CoverageRenderer {
           options.lightThemeCoveredBackgroundColor || "rgba(0,128,0,0.4)",
       },
       overviewRulerLane:
-        options.overviewRuleLane || vscode.OverviewRulerLane.Right,
+        options.overviewRuleLane || vscode.OverviewRulerLane.Left,
     });
     this.notCoveredDecoratorType = vscode.window.createTextEditorDecorationType(
       {
@@ -78,9 +81,17 @@ export class CoverageRenderer {
             options.lightThemeUncoveredBackgroundColor || "rgba(255,0,0,0.1)",
         },
         overviewRulerLane:
-          options.overviewRuleLane || vscode.OverviewRulerLane.Right,
+          options.overviewRuleLane || vscode.OverviewRulerLane.Left,
       }
     );
+    this.marginDecoratorType = vscode.window.createTextEditorDecorationType({
+      before: {
+        contentText: " ",
+        margin: "0 3em 0 0",
+      },
+      rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+    });
+    this.countDecoratorTypes = [];
   }
 
   private setDecoratorsForEditor(editorsWithCov: textEditorWithCoverage[]) {
@@ -93,6 +104,25 @@ export class CoverageRenderer {
         this.notCoveredDecoratorType,
         covEditor.uncoveredLines
       );
+      covEditor.editor.setDecorations(
+        this.marginDecoratorType,
+        covEditor.allLines
+      );
+      covEditor.countPerLines.forEach((countRangePerLine) => {
+        const decoratorType = vscode.window.createTextEditorDecorationType({
+          before: {
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            contentText: countRangePerLine.count.toString(),
+            margin: "0 3em 0 0",
+            textDecoration: `none`,
+          },
+          rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+        });
+        covEditor.editor.setDecorations(decoratorType, [
+          countRangePerLine.range,
+        ]);
+        this.countDecoratorTypes.push(decoratorType);
+      });
     }
   }
 
@@ -112,11 +142,18 @@ export class CoverageRenderer {
     for (const editor of editors) {
       editor.setDecorations(this.coveredDecoratorType, []);
       editor.setDecorations(this.notCoveredDecoratorType, []);
+      while (this.countDecoratorTypes.length > 0) {
+        const countDecorator = this.countDecoratorTypes.pop();
+        editor.setDecorations(countDecorator, []);
+        countDecorator.dispose();
+      }
+      editor.setDecorations(this.marginDecoratorType, []);
     }
   }
 
   public dispose() {
     this.coveredDecoratorType.dispose();
     this.notCoveredDecoratorType.dispose();
+    this.marginDecoratorType.dispose();
   }
 }

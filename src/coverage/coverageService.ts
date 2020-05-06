@@ -18,10 +18,17 @@ import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 
+export interface countRange {
+  range: vscode.Range;
+  count: Number;
+}
+
 export interface textEditorWithCoverage {
   coveredLines: vscode.Range[];
   uncoveredLines: vscode.Range[];
   editor: vscode.TextEditor;
+  countPerLines: countRange[];
+  allLines: vscode.Range[];
 }
 
 export async function buildJson(dirPath: string) {
@@ -80,16 +87,33 @@ export async function generateCoverageForEditors(
           editor,
           coveredLines: [],
           uncoveredLines: [],
+          countPerLines: [],
+          allLines: [],
         };
+
+        for (let i = 0; i < editor.document.lineCount; i++) {
+          coveredEditor.allLines.push(editor.document.lineAt(i).range);
+        }
+
         for (let covLine of gcovFile.lines) {
-          if (covLine && covLine.count > 0) {
+          if (covLine && !covLine["gcovr/noncode"]) {
             const lineRange = editor.document.lineAt(covLine.line_number - 1)
               .range;
+
+            const rangeToDelIndex = coveredEditor.allLines.findIndex((r) => {
+              return r.isEqual(lineRange);
+            });
+            coveredEditor.allLines.splice(rangeToDelIndex, 1);
+
             if (covLine.branches.length === 0) {
               coveredEditor.coveredLines.push(lineRange);
             } else {
               coveredEditor.uncoveredLines.push(lineRange);
             }
+            coveredEditor.countPerLines.push({
+              range: lineRange,
+              count: covLine.count,
+            });
           }
         }
         coveredEditors.push(coveredEditor);
