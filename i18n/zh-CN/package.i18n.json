@@ -37,6 +37,8 @@
   "param.showOnboardingOnInit": "显示 ESP-IDF 配置窗口",
   "param.coveredLightTheme": "ESP-IDF覆盖的光主题覆盖线的背景色",
   "param.coveredDarkTheme": "用于ESP-IDF覆盖的深色主题覆盖线的背景色",
+  "param.partialLightTheme": "ESP-IDF覆盖的光主题部分覆盖线的背景色.",
+  "param.partialDarkTheme": "ESP-IDF覆盖的暗主题部分覆盖线的背景色",
   "param.uncoveredLightTheme": "ESP-IDF覆盖的光主题中未覆盖线条的背景色",
   "param.uncoveredDarkTheme": "ESP-IDF覆盖的深色主题中未覆盖线条的背景色",
   "view.components.name": "项目组件",

@@ -25,6 +25,7 @@ export interface countRange {
 
 export interface textEditorWithCoverage {
   coveredLines: vscode.Range[];
+  partialLines: vscode.Range[];
   uncoveredLines: vscode.Range[];
   editor: vscode.TextEditor;
   countPerLines: countRange[];
@@ -34,7 +35,15 @@ export interface textEditorWithCoverage {
 export async function buildJson(dirPath: string) {
   const result = await _runCmd(
     "gcovr",
-    ["-r", ".", "--gcov-executable", "xtensa-esp32-elf-gcov", "--json"],
+    [
+      "--filter",
+      ".",
+      "--filter",
+      "/Users/brian/esp-idf/components/",
+      "--gcov-executable",
+      "xtensa-esp32-elf-gcov",
+      "--json",
+    ],
     dirPath
   );
   return JSON.parse(result);
@@ -43,7 +52,15 @@ export async function buildJson(dirPath: string) {
 export async function buildHtml(dirPath: string) {
   const result = await _runCmd(
     "gcovr",
-    ["-r", ".", "--gcov-executable", "xtensa-esp32-elf-gcov", "--html"],
+    [
+      "--filter",
+      ".",
+      "--filter",
+      "/Users/brian/esp-idf/components/",
+      "--gcov-executable",
+      "xtensa-esp32-elf-gcov",
+      "--html",
+    ],
     dirPath
   );
   return result;
@@ -82,10 +99,14 @@ export async function generateCoverageForEditors(
     );
 
     for (const gcovFile of gcovObj.files) {
-      if (gcovFile.file === gcovObjFilePath) {
+      if (
+        gcovFile.file === gcovObjFilePath ||
+        gcovFile.file === editor.document.fileName
+      ) {
         const coveredEditor: textEditorWithCoverage = {
           editor,
           coveredLines: [],
+          partialLines: [],
           uncoveredLines: [],
           countPerLines: [],
           allLines: [],
@@ -105,8 +126,10 @@ export async function generateCoverageForEditors(
             });
             coveredEditor.allLines.splice(rangeToDelIndex, 1);
 
-            if (covLine.branches.length === 0) {
+            if (covLine.count > 1) {
               coveredEditor.coveredLines.push(lineRange);
+            } else if (covLine.count === 1) {
+              coveredEditor.partialLines.push(lineRange);
             } else {
               coveredEditor.uncoveredLines.push(lineRange);
             }

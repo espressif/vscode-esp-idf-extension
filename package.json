@@ -326,6 +326,18 @@
             "description": "%param.coveredLightTheme%",
             "scope": "resource"
           },
+          "idf.partialDarkTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialDarkTheme%",
+            "scope": "resource"
+          },
+          "idf.partialLightTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialLightTheme%",
+            "scope": "resource"
+          },
           "idf.coveredDarkTheme": {
             "type": "string",
             "default": "rgba(0,128,0,0.1)",

@@ -38,6 +38,8 @@
   "param.showOnboardingOnInit": "Mostrar ventana de configuración ESP-IDF",
   "param.coveredLightTheme": "Color de fondo para lineas cubiertas en temas claros por ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Color de fondo para lineas cubiertas en temas oscuros por ESP-IDF Coverage.",
+  "param.partialLightTheme": "Color de fondo para lineas parcialmente cubiertas en temas claros por ESP-IDF Coverage.",
+  "param.partialDarkTheme": "Color de fondo para lineas parcialmente cubiertas en temas oscuros por ESP-IDF Coverage.",
   "param.uncoveredLightTheme": "Color de fondo para lineas no cubiertas en temas claros por ESP-IDF Coverage.",
   "param.uncoveredDarkTheme": "Color de fondo para lineas no cubiertas en temas oscuros por ESP-IDF Coverage.",
   "view.components.name": "Componentes de proyecto",

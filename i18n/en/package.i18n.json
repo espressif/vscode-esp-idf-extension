@@ -38,6 +38,8 @@
   "param.showOnboardingOnInit": "Show ESP-IDF Configuration window",
   "param.coveredLightTheme": "Background color for covered lines in Light theme for ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Background color for covered lines in Dark theme for ESP-IDF Coverage.",
+  "param.partialLightTheme": "Background color for partially covered lines in Light theme for ESP-IDF Coverage.",
+  "param.partialDarkTheme": "Background color for partially covered lines in Dark theme for ESP-IDF Coverage.",
   "param.uncoveredLightTheme": "Background color for uncovered lines in Light theme for ESP-IDF Coverage.",
   "param.uncoveredDarkTheme": "Background color for uncovered lines in Dark theme for ESP-IDF Coverage.",
   "view.components.name": "Project Components",

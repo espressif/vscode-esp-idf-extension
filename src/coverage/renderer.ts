@@ -22,6 +22,8 @@ import * as idfConf from "../idfConfiguration";
 export interface CoverageOptions {
   darkThemeCoveredBackgroundColor: string;
   lightThemeCoveredBackgroundColor: string;
+  darkThemePartialBackgroundColor: string;
+  lightThemePartialBackgroundColor: string;
   darkThemeUncoveredBackgroundColor: string;
   lightThemeUncoveredBackgroundColor: string;
   overviewRuleLane: vscode.OverviewRulerLane;
@@ -35,8 +37,14 @@ export function getCoverageOptions() {
     darkThemeUncoveredBackgroundColor: idfConf.readParameter(
       "idf.uncoveredDarkTheme"
     ),
+    darkThemePartialBackgroundColor: idfConf.readParameter(
+      "idf.partialDarkTheme"
+    ),
     lightThemeCoveredBackgroundColor: idfConf.readParameter(
       "idf.coveredLightTheme"
+    ),
+    lightThemePartialBackgroundColor: idfConf.readParameter(
+      "idf.partialLightTheme"
     ),
     lightThemeUncoveredBackgroundColor: idfConf.readParameter(
       "idf.uncoveredLightTheme"
@@ -48,11 +56,11 @@ export function getCoverageOptions() {
 
 export class CoverageRenderer {
   private coveredDecoratorType: vscode.TextEditorDecorationType;
+  private partialDecoratorType: vscode.TextEditorDecorationType;
   private notCoveredDecoratorType: vscode.TextEditorDecorationType;
   private countDecoratorTypes: vscode.TextEditorDecorationType[];
   private marginDecoratorType: vscode.TextEditorDecorationType;
   private workspaceFolder: vscode.Uri;
-  private marginSize: string;
 
   constructor(workspaceFolder: vscode.Uri, options: CoverageOptions) {
     this.workspaceFolder = workspaceFolder;
@@ -65,6 +73,19 @@ export class CoverageRenderer {
       light: {
         backgroundColor:
           options.lightThemeCoveredBackgroundColor || "rgba(0,128,0,0.4)",
+      },
+      overviewRulerLane:
+        options.overviewRuleLane || vscode.OverviewRulerLane.Left,
+    });
+    this.partialDecoratorType = vscode.window.createTextEditorDecorationType({
+      isWholeLine: true,
+      dark: {
+        backgroundColor:
+          options.darkThemePartialBackgroundColor || "rgba(250,218,94,0.1)",
+      },
+      light: {
+        backgroundColor:
+          options.lightThemePartialBackgroundColor || "rgba(250,218,94,0.1)",
       },
       overviewRulerLane:
         options.overviewRuleLane || vscode.OverviewRulerLane.Left,
@@ -99,6 +120,10 @@ export class CoverageRenderer {
       covEditor.editor.setDecorations(
         this.coveredDecoratorType,
         covEditor.coveredLines
+      );
+      covEditor.editor.setDecorations(
+        this.partialDecoratorType,
+        covEditor.partialLines
       );
       covEditor.editor.setDecorations(
         this.notCoveredDecoratorType,
@@ -142,6 +167,7 @@ export class CoverageRenderer {
     for (const editor of editors) {
       editor.setDecorations(this.coveredDecoratorType, []);
       editor.setDecorations(this.notCoveredDecoratorType, []);
+      editor.setDecorations(this.partialDecoratorType, []);
       while (this.countDecoratorTypes.length > 0) {
         const countDecorator = this.countDecoratorTypes.pop();
         editor.setDecorations(countDecorator, []);
@@ -153,6 +179,7 @@ export class CoverageRenderer {
 
   public dispose() {
     this.coveredDecoratorType.dispose();
+    this.partialDecoratorType.dispose();
     this.notCoveredDecoratorType.dispose();
     this.marginDecoratorType.dispose();
   }

@@ -106,6 +106,8 @@
     "param.showOnboardingOnInit",
     "param.coveredLightTheme",
     "param.coveredDarkTheme",
+    "param.partialLightTheme",
+    "param.partialDarkTheme",
     "param.uncoveredLightTheme",
     "param.uncoveredDarkTheme",
     "view.components.name",
