@@ -1302,6 +1302,15 @@ function createIdfTerminal() {
     const envSetCmd =
       process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
     espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
+    const setPythonEnvCmd =
+      process.platform === "win32" ? `set "Path=` : `export PATH="`;
+    espIdfTerminal.sendText(
+      `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
+        process.platform === "win32"
+          ? modifiedEnv.Path.replace(/"/g, "")
+          : modifiedEnv.PATH.replace(/"/g, "")
+      }"`
+    );
     const clearCmd = process.platform === "win32" ? "cls" : "clear";
     espIdfTerminal.sendText(clearCmd);
   });
