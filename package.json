@@ -64,8 +64,11 @@
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
+    "onCommand:esp.rainmaker.backend.connect",
+    "onCommand:esp.rainmaker.backend.sync",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
+    "onView:espRainmaker",
     "onView:idfComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
@@ -91,6 +94,10 @@
         {
           "id": "idfAppTraceArchive",
           "name": "App Trace Archives"
+        },
+        {
+          "id": "espRainmaker",
+          "name": "Rainmaker"
         }
       ],
       "explorer": [
@@ -110,6 +117,16 @@
           "command": "espIdf.apptrace.archive.refresh",
           "group": "navigation",
           "when": "view == idfAppTraceArchive"
+        },
+        {
+          "command": "esp.rainmaker.backend.connect",
+          "group": "navigation",
+          "when": "view == espRainmaker && !rainmaker_logged_in"
+        },
+        {
+          "command": "esp.rainmaker.backend.sync",
+          "group": "navigation",
+          "when": "view == espRainmaker"
         }
       ],
       "explorer/context": [
@@ -328,6 +345,18 @@
             ],
             "scope": "resource",
             "description": "%param.saveScope%"
+          },
+          "esp.rainmaker.api.server_url": {
+            "type": "string",
+            "default": "https://api.rainmaker.espressif.com",
+            "scope": "resource",
+            "description": "%param.rainmaker.api.server_url%"
+          },
+          "esp.rainmaker.api.version": {
+            "type": "string",
+            "default": "v1",
+            "scope": "resource",
+            "description": "%param.rainmaker.api.version%"
           }
         }
       }
@@ -428,6 +457,24 @@
       {
         "command": "espIdf.apptrace.customize",
         "title": "%espIdf.apptrace.customize.title%"
+      },
+      {
+        "command": "esp.rainmaker.backend.connect",
+        "title": "%esp.rainmaker.backend.connect.title%",
+        "category": "Rainmaker",
+        "icon": {
+          "dark": "media/plug_dark.svg",
+          "light": "media/plug_light.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.sync",
+        "title": "%esp.rainmaker.backend.sync.title%",
+        "category": "Rainmaker",
+        "icon": {
+          "dark": "media/refresh_dark.svg",
+          "light": "media/refresh_light.svg"
+        }
       }
     ],
     "breakpoints": [

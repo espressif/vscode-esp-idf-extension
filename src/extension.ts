@@ -56,6 +56,7 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { ESPRainMakerTreeDataProvider } from "./rainmaker";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -839,6 +840,12 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
+
+  const rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
+  vscode.window.registerTreeDataProvider(
+    "espRainmaker",
+    rainMakerTreeDataProvider
+  );
 
   context.subscriptions.push(
     appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer")
