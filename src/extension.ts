@@ -57,6 +57,8 @@ import {
   updateIdfComponentsTree,
 } from "./workspaceConfig";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
+import { RainmakerAPIClient } from "./rainmaker/client";
+import { ESP } from "./config";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -73,6 +75,9 @@ let debugAdapterManager: DebugAdapterManager;
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
+
+// ESP Rainmaker
+let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -830,6 +835,103 @@ export async function activate(context: vscode.ExtensionContext) {
   if (showOnboardingInit && typeof process.env.WEB_IDE === "undefined") {
     vscode.commands.executeCommand("onboarding.start");
   }
+
+  registerIDFCommand("esp.rainmaker.backend.connect", async () => {
+    //ask to select login provider
+    const selection = await vscode.window.showQuickPick(
+      [
+        {
+          label: "Rainmaker Login",
+          description: "(username and password)",
+          detail: "Use username and password from Rainmaker to login",
+          id: "login",
+        },
+        {
+          label: "OAuth Apps",
+          description: "(coming soon)",
+          detail: "Use OAuth App providers from Rainmaker to login",
+          id: "oauth",
+        },
+      ],
+      {
+        placeHolder:
+          "Select a login option to connect with ESP Rainmaker Cloud",
+        ignoreFocusOut: true,
+      }
+    );
+    if (!selection) {
+      return;
+    }
+    if (selection.id === "oauth") {
+      return;
+    }
+
+    const username = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      prompt: "Enter your Rainmaker Cloud Username",
+    });
+
+    const password = await vscode.window.showInputBox({
+      ignoreFocusOut: true,
+      prompt: "Enter your password (username & password will not be stored)",
+      password: true,
+    });
+
+    if (!username || !password) {
+      return Logger.infoNotify("Username and password mustn't be empty");
+    }
+
+    vscode.window.withProgress(
+      {
+        title: "Please wait checking with Rainmaker Cloud",
+        location: vscode.ProgressLocation.Notification,
+        cancellable: false,
+      },
+      async (progress, cancelToken) => {
+        try {
+          const loginResponse = await RainmakerAPIClient.login(
+            username,
+            password
+          );
+          if (loginResponse.status === "success") {
+            await context.globalState.update(
+              ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
+              loginResponse
+            );
+            vscode.commands.executeCommand(
+              "setContext",
+              ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
+              true
+            );
+            Logger.infoNotify("Rainmaker Cloud Linking Success!!");
+            rainMakerTreeDataProvider.refresh();
+            return true;
+          }
+
+          throw new Error(loginResponse.description);
+        } catch (error) {
+          return Logger.errorNotify(
+            "Failed to login with Rainmaker Cloud, double check your id and password",
+            error
+          );
+        }
+      }
+    );
+  });
+
+  registerIDFCommand("esp.rainmaker.backend.logout", async () => {
+    context.globalState.update(
+      ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
+      null
+    );
+    context.globalState.update(ESP.Rainmaker.USER_TOKEN_CACHE_KEY, null);
+    vscode.commands.executeCommand(
+      "setContext",
+      ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
+      false
+    );
+    rainMakerTreeDataProvider.refresh();
+  });
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
@@ -841,7 +943,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
-  const rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
+  rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider(context);
   vscode.window.registerTreeDataProvider(
     "espRainmaker",
     rainMakerTreeDataProvider

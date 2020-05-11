@@ -48,5 +48,8 @@
   "param.rainmaker.api.server_url": "Rainmaker API Server URL",
   "param.rainmaker.api.version": "Rainmaker API version",
   "esp.rainmaker.backend.sync.title": "Sync with Rainmaker Backend",
-  "esp.rainmaker.backend.connect.title": "Connect with Rainmaker Backend"
+  "esp.rainmaker.backend.connect.title": "Connect with Rainmaker Backend",
+  "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Cloud",
+  "esp.rainmaker.backend.add_node.title": "Add new node",
+  "esp.rainmaker.backend.remove_node.title": "Remove this node"
 }

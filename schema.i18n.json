@@ -117,6 +117,9 @@
     "param.rainmaker.api.server_url",
     "param.rainmaker.api.version",
     "esp.rainmaker.backend.sync.title",
-    "esp.rainmaker.backend.connect.title"
+    "esp.rainmaker.backend.connect.title",
+    "esp.rainmaker.backend.logout.title",
+    "esp.rainmaker.backend.add_node.title",
+    "esp.rainmaker.backend.remove_node.title"
   ]
 }

@@ -129,6 +129,20 @@
           "when": "view == espRainmaker"
         }
       ],
+      "view/item/context": [
+        {
+          "command": "esp.rainmaker.backend.logout",
+          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.account"
+        },
+        {
+          "command": "esp.rainmaker.backend.add_node",
+          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.account"
+        },
+        {
+          "command": "esp.rainmaker.backend.remove_node",
+          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.nodes"
+        }
+      ],
       "explorer/context": [
         {
           "when": "resourceFilename == sdkconfig",
@@ -475,6 +489,21 @@
           "dark": "media/refresh_dark.svg",
           "light": "media/refresh_light.svg"
         }
+      },
+      {
+        "command": "esp.rainmaker.backend.logout",
+        "title": "%esp.rainmaker.backend.logout.title%",
+        "category": "Rainmaker"
+      },
+      {
+        "command": "esp.rainmaker.backend.add_node",
+        "title": "%esp.rainmaker.backend.add_node.title%",
+        "category": "Rainmaker"
+      },
+      {
+        "command": "esp.rainmaker.backend.remove_node",
+        "title": "%esp.rainmaker.backend.remove_node.title%",
+        "category": "Rainmaker"
       }
     ],
     "breakpoints": [
@@ -647,6 +676,7 @@
   },
   "dependencies": {
     "ansi-to-html": "^0.6.11",
+    "axios": "^0.19.2",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.6.1",
