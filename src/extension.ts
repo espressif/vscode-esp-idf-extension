@@ -1306,9 +1306,7 @@ function createIdfTerminal() {
       process.platform === "win32" ? `set "Path=` : `export PATH="`;
     espIdfTerminal.sendText(
       `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
-        process.platform === "win32"
-          ? modifiedEnv.Path.replace(/"/g, "")
-          : modifiedEnv.PATH.replace(/"/g, "")
+        process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
       }"`
     );
     const clearCmd = process.platform === "win32" ? "cls" : "clear";
