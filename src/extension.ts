@@ -22,7 +22,6 @@ import {
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient";
-import { BuildManager } from "./build/build";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import {
   DebugAdapterManager,
@@ -42,7 +41,6 @@ import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
 import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
-import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
@@ -106,9 +104,6 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
-
-const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
-const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
 
 export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
@@ -985,7 +980,14 @@ const build = () => {
         });
         try {
           await buildTask.build();
-          TaskManager.runTasks(() => {});
+          await TaskManager.runTasks();
+          buildTask.building(false);
+          const projDescPath = path.join(
+            workspaceRoot.fsPath,
+            "project_description.json"
+          );
+          updateIdfComponentsTree(projDescPath);
+          Logger.infoNotify("Build Successfully");
         } catch (error) {
           if (error.message === "ALREADY_BUILDING") {
             return Logger.errorNotify("Already a build is running!", error);
@@ -1083,7 +1085,9 @@ const flash = () => {
           );
           const flashTask = new FlashTask(buildPath, idfPathDir, model);
           await flashTask.flash();
-          TaskManager.runTasks(() => {});
+          await TaskManager.runTasks();
+          flashTask.flashing(false);
+          Logger.infoNotify("Flash Done ⚡️");
         } catch (error) {
           if (error.message === "ALREADY_FLASHING") {
             return Logger.errorNotify(
@@ -1173,12 +1177,12 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        cancelToken.onCancellationRequested(() => {
-          buildTask.cancel();
-        });
         try {
           progress.report({ message: "Building project...", increment: 20 });
-          await buildTask.build();
+          await buildTask.build().then(() => {
+            buildTask.building(false);
+          });
+          await TaskManager.runTasks();
           progress.report({
             message: "Flashing project into device...",
             increment: 60,
@@ -1189,16 +1193,21 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             baudRate
           );
           const flashTask = new FlashTask(buildPath, idfPathDir, model);
-          await flashTask.flash();
-          TaskManager.runTasks(() => {
-            if (runMonitor) {
-              progress.report({
-                message: "Launching monitor...",
-                increment: 10,
-              });
-              createMonitor();
-            }
+          cancelToken.onCancellationRequested(() => {
+            buildTask.cancel();
+            flashTask.cancel();
           });
+          await flashTask.flash().then(() => {
+            flashTask.flashing(false);
+          });
+          await TaskManager.runTasks();
+          if (runMonitor) {
+            progress.report({
+              message: "Launching monitor...",
+              increment: 10,
+            });
+            createMonitor();
+          }
         } catch (error) {
           switch (error.message) {
             case "BUILD_TERMINATED":
@@ -1247,7 +1256,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
 
 function createMonitor(): any {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"

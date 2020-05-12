@@ -91,30 +91,20 @@ export class BuildTask {
       ["-G", "Ninja", ".."],
       options
     );
-    await TaskManager.addTask(
+    TaskManager.addTask(
       { type: "shell" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Compile",
       compileExecution,
-      ["idfRelative", "idfAbsolute"],
-      () => {}
+      ["idfRelative", "idfAbsolute"]
     );
     const buildExecution = this.getShellExecution(["--build", "."], options);
-    await TaskManager.addTask(
+    TaskManager.addTask(
       { type: "shell" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
-      ["idfRelative", "idfAbsolute"],
-      () => {
-        this.building(false);
-        const projDescPath = join(
-          this.curWorkspace,
-          "project_description.json"
-        );
-        updateIdfComponentsTree(projDescPath);
-        Logger.infoNotify("Build Successfully");
-      }
+      ["idfRelative", "idfAbsolute"]
     );
   }
 }

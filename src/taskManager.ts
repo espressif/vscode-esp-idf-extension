@@ -21,13 +21,12 @@ import * as vscode from "vscode";
 export class TaskManager {
   private static tasks: vscode.Task[] = [];
 
-  public static async addTask(
+  public static addTask(
     taskDefinition: vscode.TaskDefinition,
     scope: vscode.TaskScope,
     name: string,
     execution: vscode.ShellExecution,
-    problemMatchers: string | string[],
-    callback: (...args: any[]) => any
+    problemMatchers: string | string[]
   ) {
     const newTask: vscode.Task = new vscode.Task(
       taskDefinition,
@@ -38,44 +37,52 @@ export class TaskManager {
       problemMatchers
     );
     TaskManager.tasks.push(newTask);
-    vscode.tasks.onDidEndTask((e) => {
-      if (e.execution.task.name === newTask.name) {
-        callback();
-      }
+    return new Promise((resolve, reject) => {
+      vscode.tasks.onDidEndTask((e) => {
+        if (e.execution.task.name === newTask.name) {
+          resolve();
+        }
+      });
     });
   }
 
-  public static async runTasks(callback: (...args: any[]) => any) {
-    if (TaskManager.tasks && TaskManager.tasks.length > 1) {
-      let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
-      let lastTask = lastExecution.task;
-      for (let i = 1; i < TaskManager.tasks.length; i++) {
+  public static async runTasks() {
+    return new Promise(async (resolve, reject) => {
+      if (TaskManager.tasks && TaskManager.tasks.length > 1) {
+        let lastExecution = await vscode.tasks.executeTask(
+          TaskManager.tasks[0]
+        );
+        let lastTask = lastExecution.task;
+        for (let i = 1; i < TaskManager.tasks.length; i++) {
+          vscode.tasks.onDidEndTask(async (e) => {
+            if (e.execution.task.name === lastTask.name) {
+              if (
+                e.execution.task.name ===
+                TaskManager.tasks[TaskManager.tasks.length - 1].name
+              ) {
+                resolve();
+                TaskManager.tasks = [];
+              } else {
+                lastExecution = await vscode.tasks.executeTask(
+                  TaskManager.tasks[i]
+                );
+                lastTask = lastExecution.task;
+              }
+            }
+          });
+        }
+      } else if (TaskManager.tasks && TaskManager.tasks.length === 1) {
+        let lastExecution = await vscode.tasks.executeTask(
+          TaskManager.tasks[0]
+        );
+        let lastTask = lastExecution.task;
         vscode.tasks.onDidEndTask(async (e) => {
           if (e.execution.task.name === lastTask.name) {
-            if (
-              e.execution.task.name ===
-              TaskManager.tasks[TaskManager.tasks.length - 1].name
-            ) {
-              callback();
-              TaskManager.tasks = [];
-            } else {
-              lastExecution = await vscode.tasks.executeTask(
-                TaskManager.tasks[i]
-              );
-              lastTask = lastExecution.task;
-            }
+            resolve();
+            TaskManager.tasks = [];
           }
         });
       }
-    } else if (TaskManager.tasks && TaskManager.tasks.length === 1) {
-      let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
-      let lastTask = lastExecution.task;
-      vscode.tasks.onDidEndTask(async (e) => {
-        if (e.execution.task.name === lastTask.name) {
-          callback();
-          TaskManager.tasks = [];
-        }
-      });
-    }
+    });
   }
 }

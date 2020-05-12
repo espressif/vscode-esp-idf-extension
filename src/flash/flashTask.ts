@@ -77,16 +77,12 @@ export class FlashTask {
     }
     this.verifyArgs();
     const flashExecution = this._flashExecution();
-    await TaskManager.addTask(
+    TaskManager.addTask(
       { type: "shell" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
-      ["idfRelative", "idfAbsolute"],
-      () => {
-        this.flashing(false);
-        Logger.infoNotify("Flash Done ⚡️");
-      }
+      ["idfRelative", "idfAbsolute"]
     );
   }
 
