@@ -132,15 +132,15 @@
       "view/item/context": [
         {
           "command": "esp.rainmaker.backend.logout",
-          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.account"
+          "when": "view == espRainmaker && viewItem == account"
         },
         {
           "command": "esp.rainmaker.backend.add_node",
-          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.account"
+          "when": "view == espRainmaker && viewItem == account"
         },
         {
           "command": "esp.rainmaker.backend.remove_node",
-          "when": "view == espRainmaker && viewItem == esp.rainmaker.cloud.nodes"
+          "when": "view == espRainmaker && viewItem == node"
         }
       ],
       "explorer/context": [

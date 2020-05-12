@@ -15,13 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
+import { ESP } from "../../config";
+import { Logger } from "../../logger/logger";
 import {
   RainmakerLoginResponseModel,
   RainmakerNodeWithDetails,
-} from "./client_model";
-import { ESP } from "../config";
-import { Logger } from "../logger/logger";
+  RainmakerDeviceParams,
+} from "./model";
 
 export class RainmakerAPIClient {
   private accessToken: string;
@@ -81,14 +82,9 @@ export class RainmakerAPIClient {
 
   //nodes
   public async getAllUserAssociatedNodes(): Promise<RainmakerNodeWithDetails> {
-    const headers = {
-      Authorization: this.accessToken,
-    };
-    Object.assign(headers, RainmakerAPIClient.generateUserAgentHeader());
-
     const resp = await axios.get<RainmakerNodeWithDetails>(
       RainmakerAPIClient.generateURLFor("user/nodes?node_details=true"),
-      { headers }
+      { headers: this.getAuthHeader() }
     );
 
     if (resp.status === 200 && resp.data.nodes) {
@@ -100,5 +96,26 @@ export class RainmakerAPIClient {
 
   //nodes operations
   public updateNodeState() {}
-  public getNodeState() {}
+  public async getNodeParams(nodeID: string): Promise<RainmakerDeviceParams> {
+    const headers = {
+      Authorization: this.accessToken,
+    };
+    const resp = await axios.get<RainmakerDeviceParams>(
+      RainmakerAPIClient.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
+      { headers: this.getAuthHeader() }
+    );
+
+    if (resp.status === 200 && resp.data) {
+      return resp.data;
+    }
+    RainmakerAPIClient.throwUnknownError(resp);
+  }
+
+  private getAuthHeader(): any {
+    const headers = {
+      Authorization: this.accessToken,
+    };
+    Object.assign(headers, RainmakerAPIClient.generateUserAgentHeader());
+    return headers;
+  }
 }
