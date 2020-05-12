@@ -493,17 +493,17 @@
       {
         "command": "esp.rainmaker.backend.logout",
         "title": "%esp.rainmaker.backend.logout.title%",
-        "category": "Rainmaker"
+        "category": "rainmaker"
       },
       {
         "command": "esp.rainmaker.backend.add_node",
         "title": "%esp.rainmaker.backend.add_node.title%",
-        "category": "Rainmaker"
+        "category": "rainmaker"
       },
       {
         "command": "esp.rainmaker.backend.remove_node",
         "title": "%esp.rainmaker.backend.remove_node.title%",
-        "category": "Rainmaker"
+        "category": "rainmaker"
       }
     ],
     "breakpoints": [

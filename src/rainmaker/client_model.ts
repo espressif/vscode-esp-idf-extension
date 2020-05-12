@@ -34,11 +34,31 @@ export interface RainmakerNodeStatus {
   };
 }
 
+export enum RainmakerDeviceType {
+  Switch = "esp.device.switch",
+  LightBulb = "esp.device.lightbulb",
+  Fan = "esp.device.fan",
+  TemperatureSensor = "esp.device.temperature-sensor",
+}
+
+export enum RainmakerDeviceParamType {
+  Name = "esp.param.name",
+  Power = "esp.param.power",
+  Brightness = "esp.param.brightness",
+  ColorTemperature = "esp.param.cct",
+  Hue = "esp.param.hue",
+  Saturation = "esp.param.saturation",
+  Intensity = "esp.param.intensity",
+  Speed = "esp.param.speed",
+  Direction = "esp.param.direction",
+  Temperature = "esp.param.temperature",
+}
+
 export interface RainmakerDevice {
   name: string;
-  params: RainmakerNodeParam[];
+  params: RainmakerDeviceParamStructure[];
   primary: string;
-  type: string;
+  type: RainmakerDeviceType;
 }
 
 export interface RainmakerNodeConfig {
@@ -56,19 +76,25 @@ export interface RainmakerNodeConfig {
 
 export type RW = "read" | "write";
 
-export interface RainmakerNodeParam {
+export interface RainmakerDeviceParamStructure {
   name: string;
   data_type: string;
-  type: string;
+  type: RainmakerDeviceParamType;
   ui_type: string;
   properties: RW[];
+}
+
+export interface RainmakerDeviceParams {
+  [deviceName: string]: {
+    [paramName: string]: boolean | string | number;
+  };
 }
 
 export interface NodeDetails {
   id: string;
   status: RainmakerNodeStatus;
   config: RainmakerNodeConfig;
-  param: RainmakerNodeParam;
+  params: RainmakerDeviceParams;
 }
 
 export interface RainmakerNodeWithDetails {

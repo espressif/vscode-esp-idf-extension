@@ -30,6 +30,11 @@ import {
   RainmakerUserTokenModel,
   RainmakerNodeWithDetails,
   RainmakerNodeConfig,
+  RainmakerDevice,
+  RainmakerDeviceParamStructure,
+  RainmakerDeviceType,
+  RainmakerDeviceParamType,
+  RainmakerDeviceParams,
 } from "./client_model";
 import { Event } from "vscode-languageclient";
 import { RainmakerAPIClient } from "./client";
@@ -104,12 +109,10 @@ export class ESPRainMakerTreeDataProvider
         null
       );
       if (!nodes) {
-        try {
-          nodes = await this.fetchNodes();
-        } catch (error) {
-          Logger.warnNotify("Failed to fetch node details, try refreshing");
-          return;
-        }
+        nodes = await this.fetchNodes();
+      }
+      if (!nodes) {
+        return;
       }
       if (nodes.nodes.length === 0) {
         const noNodesAdded = new ESPRainmakerTreeDataItem(
@@ -123,14 +126,130 @@ export class ESPRainMakerTreeDataProvider
           children.push(this.generateTreeItemsForNodes(details.config));
         });
       }
+    } else if (parent.contextValue === "esp.rainmaker.cloud.nodes") {
+      // For each nodes get all devices
+      const nodeID = parent.id;
+      let nodes = this.context.globalState.get<RainmakerNodeWithDetails>(
+        ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
+        null
+      );
+      if (nodeID && nodes) {
+        const filteredDeviceDetails = nodes.node_details.filter(
+          (details) => details.id === nodeID
+        )[0];
+        filteredDeviceDetails.config.devices.forEach((device) => {
+          children.push(this.generateTreeItemsForDevices(device, nodeID));
+        });
+      }
+    } else if (parent.contextValue === "esp.rainmaker.cloud.nodes.devices") {
+      // For each devices get all params
+      const id = parent.id.split("::");
+      let nodes = this.context.globalState.get<RainmakerNodeWithDetails>(
+        ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
+        null
+      );
+      if (nodes && id.length > 0) {
+        const nodeID = id[0];
+        const deviceName = id[1];
+        const filteredDeviceDetails = nodes.node_details.filter(
+          (details) => details.id === nodeID
+        )[0];
+        const filteredDevice = filteredDeviceDetails.config.devices.filter(
+          (device) => device.name === deviceName
+        )[0];
+
+        const paramsValueForDevice =
+          filteredDeviceDetails.params[filteredDevice.name];
+
+        filteredDevice.params.forEach((param) => {
+          children.push(
+            this.generateTreeItemsForDeviceParams(
+              param,
+              paramsValueForDevice[param.name]
+            )
+          );
+        });
+      }
     }
 
     return children;
   }
   public async refresh() {
     this.initCache();
-    await this.refreshClientToken();
+    this.clearCacheFor(ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY);
     this._onDidChangeTreeData.fire();
+  }
+
+  public clearCacheFor(key: string) {
+    this.context.globalState.update(key, null);
+  }
+
+  private getIconPathForDeviceType(type: RainmakerDeviceType): ThemeIcon {
+    switch (type) {
+      case RainmakerDeviceType.Switch:
+        return new ThemeIcon("symbol-boolean");
+      case RainmakerDeviceType.LightBulb:
+        return new ThemeIcon("lightbulb");
+      case RainmakerDeviceType.Fan:
+        return new ThemeIcon("chrome-close");
+      case RainmakerDeviceType.TemperatureSensor:
+        return new ThemeIcon("radio-tower");
+      default:
+        return new ThemeIcon("symbol-event");
+    }
+  }
+
+  getIconPathForParamType(type: RainmakerDeviceParamType): ThemeIcon {
+    switch (type) {
+      case RainmakerDeviceParamType.Name:
+        return new ThemeIcon("case-sensitive");
+      case RainmakerDeviceParamType.Power:
+        return new ThemeIcon("plug");
+      case RainmakerDeviceParamType.Brightness:
+      case RainmakerDeviceParamType.ColorTemperature:
+      case RainmakerDeviceParamType.Hue:
+      case RainmakerDeviceParamType.Saturation:
+      case RainmakerDeviceParamType.Intensity:
+        return new ThemeIcon("color-mode");
+      case RainmakerDeviceParamType.Speed:
+        return new ThemeIcon("dashboard");
+      case RainmakerDeviceParamType.Direction:
+        return new ThemeIcon("arrow-both");
+      case RainmakerDeviceParamType.Temperature:
+        return new ThemeIcon("symbol-ruler");
+      default:
+        return new ThemeIcon("symbol-namespace");
+    }
+  }
+
+  private generateTreeItemsForDeviceParams(
+    param: RainmakerDeviceParamStructure,
+    value: string | number | boolean
+  ): ESPRainmakerTreeDataItem {
+    const paramItem = new ESPRainmakerTreeDataItem(
+      param.name,
+      TreeItemCollapsibleState.None
+    );
+    paramItem.iconPath = this.getIconPathForParamType(param.type);
+    paramItem.tooltip = param.type;
+    paramItem.description = value.toString();
+    paramItem.contextValue = "esp.rainmaker.cloud.nodes.devices.params";
+    // paramItem.id
+    return paramItem;
+  }
+  private generateTreeItemsForDevices(
+    dev: RainmakerDevice,
+    nodeId: string
+  ): ESPRainmakerTreeDataItem {
+    const device = new ESPRainmakerTreeDataItem(
+      dev.name,
+      TreeItemCollapsibleState.Collapsed
+    );
+    device.description = dev.primary;
+    device.iconPath = this.getIconPathForDeviceType(dev.type);
+    device.id = `${nodeId}::${dev.name}`;
+    device.contextValue = "esp.rainmaker.cloud.nodes.devices";
+    return device;
   }
 
   private generateTreeItemsForNodes(
@@ -143,34 +262,42 @@ export class ESPRainMakerTreeDataProvider
     nodeTreeItem.description = config.info.fw_version;
     nodeTreeItem.id = config.node_id;
     nodeTreeItem.contextValue = "esp.rainmaker.cloud.nodes";
-    nodeTreeItem.iconPath = new ThemeIcon("vm");
+    nodeTreeItem.iconPath = new ThemeIcon("circuit-board");
     return nodeTreeItem;
   }
 
   private async fetchNodes(): Promise<RainmakerNodeWithDetails> {
-    await this.refreshClientToken();
-    const nodes = await this.client.getAllUserAssociatedNodes();
+    if (!this.client) {
+      return;
+    }
+    try {
+      await this.refreshClientToken();
+      const nodes = await this.client.getAllUserAssociatedNodes();
 
-    this.context.globalState.update(
-      ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
-      nodes
-    );
-
-    return nodes;
+      this.context.globalState.update(
+        ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
+        nodes
+      );
+      return nodes;
+    } catch (error) {
+      Logger.warnNotify("Failed to fetch node details, try refreshing", error);
+    }
+    return null;
   }
 
   private async refreshClientToken() {
-    if (this.client) {
-      try {
-        const newAccessToken = await this.client.refreshAccessToken();
-        this.accessTokens.accesstoken = newAccessToken;
-        this.context.globalState.update(
-          ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
-          this.accessTokens
-        );
-      } catch (error) {
-        Logger.warnNotify("Failed to refresh access token");
-      }
+    if (!this.client) {
+      return;
+    }
+    try {
+      const newAccessToken = await this.client.refreshAccessToken();
+      this.accessTokens.accesstoken = newAccessToken;
+      this.context.globalState.update(
+        ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
+        this.accessTokens
+      );
+    } catch (error) {
+      Logger.warnNotify("Failed to refresh access token");
     }
   }
 

@@ -904,7 +904,7 @@ export async function activate(context: vscode.ExtensionContext) {
               true
             );
             Logger.infoNotify("Rainmaker Cloud Linking Success!!");
-            rainMakerTreeDataProvider.refresh();
+            await rainMakerTreeDataProvider.refresh();
             return true;
           }
 
@@ -919,17 +919,20 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("esp.rainmaker.backend.logout", async () => {
-    context.globalState.update(
-      ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
-      null
+  registerIDFCommand("esp.rainmaker.backend.logout", () => {
+    rainMakerTreeDataProvider.clearCacheFor(
+      ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY
     );
-    context.globalState.update(ESP.Rainmaker.USER_TOKEN_CACHE_KEY, null);
+    rainMakerTreeDataProvider.clearCacheFor(ESP.Rainmaker.USER_TOKEN_CACHE_KEY);
     vscode.commands.executeCommand(
       "setContext",
       ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
       false
     );
+    rainMakerTreeDataProvider.refresh();
+  });
+
+  registerIDFCommand("esp.rainmaker.backend.sync", async () => {
     rainMakerTreeDataProvider.refresh();
   });
 }
