@@ -29,7 +29,7 @@ import {
 export function LoginButtonItem(): RMakerItem {
   const loginButton = new RMakerItem(RMakerItemType.Account);
   loginButton.label = "Connect Rainmaker...";
-  loginButton.themeIcon = "account";
+  loginButton.themeIcon = "sign-in";
   loginButton.commandId = "esp.rainmaker.backend.connect";
   return loginButton;
 }

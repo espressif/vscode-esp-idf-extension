@@ -37,28 +37,7 @@ export class AppTraceTreeDataProvider
   public initStartAppTraceButton() {
     this.appTraceStartButton = new AppTracerItems("Start App Trace");
     this.appTraceStartButton.description = "";
-    this.appTraceStartButton.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_light.svg"
-      ),
-    };
+    this.appTraceStartButton.iconPath = new vscode.ThemeIcon("rocket");
     this.appTraceStartButton.command = {
       command: "espIdf.apptrace",
       title: "",
@@ -70,55 +49,13 @@ export class AppTraceTreeDataProvider
 
   public showStartButton() {
     this.appTraceStartButton.label = "Start App Trace";
-    this.appTraceStartButton.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_light.svg"
-      ),
-    };
+    this.appTraceStartButton.iconPath = new vscode.ThemeIcon("rocket");
     this.appTraceStartButton.description = "";
     this.refresh();
   }
   public showStopButton() {
     this.appTraceStartButton.label = "Stop App Trace";
-    this.appTraceStartButton.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "stop_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "stop_light.svg"
-      ),
-    };
+    this.appTraceStartButton.iconPath = new vscode.ThemeIcon("debug-stop");
     this.refresh();
   }
   public updateDescription(desc: string) {

@@ -460,8 +460,8 @@
         "command": "espIdf.apptrace.archive.refresh",
         "title": "%espIdf.apptrace.archive.refresh.title%",
         "icon": {
-          "dark": "media/refresh_dark.svg",
-          "light": "media/refresh_light.svg"
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
         }
       },
       {
@@ -477,8 +477,8 @@
         "title": "%esp.rainmaker.backend.connect.title%",
         "category": "Rainmaker",
         "icon": {
-          "dark": "media/plug_dark.svg",
-          "light": "media/plug_light.svg"
+          "dark": "media/dark/sign-in.svg",
+          "light": "media/light/sign-in.svg"
         }
       },
       {
@@ -486,8 +486,8 @@
         "title": "%esp.rainmaker.backend.sync.title%",
         "category": "Rainmaker",
         "icon": {
-          "dark": "media/refresh_dark.svg",
-          "light": "media/refresh_light.svg"
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
         }
       },
       {

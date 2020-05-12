@@ -59,6 +59,8 @@ import {
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
+import { PromptUserToLogin } from "./rainmaker/view/login";
+import { RMakerItem } from "./rainmaker/view/item";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -838,47 +840,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
     //ask to select login provider
-    const selection = await vscode.window.showQuickPick(
-      [
-        {
-          label: "Rainmaker Login",
-          description: "(username and password)",
-          detail: "Use username and password from Rainmaker to login",
-          id: "login",
-        },
-        {
-          label: "OAuth Apps",
-          description: "(coming soon)",
-          detail: "Use OAuth App providers from Rainmaker to login",
-          id: "oauth",
-        },
-      ],
-      {
-        placeHolder:
-          "Select a login option to connect with ESP Rainmaker Cloud",
-        ignoreFocusOut: true,
-      }
-    );
-    if (!selection) {
-      return;
-    }
-    if (selection.id === "oauth") {
-      return;
-    }
-
-    const username = await vscode.window.showInputBox({
-      ignoreFocusOut: true,
-      prompt: "Enter your Rainmaker Cloud Username",
-    });
-
-    const password = await vscode.window.showInputBox({
-      ignoreFocusOut: true,
-      prompt: "Enter your password (username & password will not be stored)",
-      password: true,
-    });
+    const { username, password } = await PromptUserToLogin();
 
     if (!username || !password) {
-      return Logger.infoNotify("Username and password mustn't be empty");
+      return;
     }
 
     vscode.window.withProgress(
@@ -935,6 +900,11 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("esp.rainmaker.backend.sync", async () => {
     rainMakerTreeDataProvider.refresh();
   });
+
+  registerIDFCommand(
+    "esp.rainmaker.backend.remove_node",
+    async (item: RMakerItem) => {}
+  );
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {

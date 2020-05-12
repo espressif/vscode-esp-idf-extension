@@ -76,28 +76,7 @@ export class AppTraceArchiveTreeDataProvider
             title: "Show Report",
             arguments: [appTraceArchiveNode],
           };
-          appTraceArchiveNode.iconPath = {
-            light: join(
-              __filename,
-              "..",
-              "..",
-              "..",
-              "..",
-              "..",
-              "media",
-              "log_light.svg"
-            ),
-            dark: join(
-              __filename,
-              "..",
-              "..",
-              "..",
-              "..",
-              "..",
-              "media",
-              "log_dark.svg"
-            ),
-          };
+          appTraceArchiveNode.iconPath = new vscode.ThemeIcon("file-binary");
           appTraceArchiveNode.description = this.sinceAgo(
             name[1].split(".trace")[0]
           );
