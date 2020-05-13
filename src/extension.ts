@@ -843,8 +843,16 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
+    if (RainmakerAPIClient.isLoggedIn()) {
+      return Logger.infoNotify("Already logged-in, please sign-out first");
+    }
+
     //ask to select login provider
-    const { username, password } = await PromptUserToLogin();
+    const accountDetails = await PromptUserToLogin();
+    if (!accountDetails) {
+      return;
+    }
+    const { username, password } = accountDetails;
 
     if (!username || !password) {
       return;
