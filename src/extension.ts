@@ -931,6 +931,9 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand(
     "esp.rainmaker.backend.update_node_param",
     async (item: RMakerItem) => {
+      if (!item) {
+        return;
+      }
       const idPayload = item.id.split("::");
       const params = item.getMeta<RainmakerDeviceParamStructure>();
 
