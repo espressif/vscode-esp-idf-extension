@@ -16,13 +16,7 @@
  * limitations under the License.
  */
 
-import {
-  TreeDataProvider,
-  ExtensionContext,
-  EventEmitter,
-  commands,
-  Event,
-} from "vscode";
+import { TreeDataProvider, EventEmitter, Event } from "vscode";
 import { RainmakerAPIClient } from "../client";
 import {
   LoggedInAccountItem,
@@ -32,11 +26,9 @@ import {
   DeviceItem,
   DeviceParamItem,
 } from "./item_generator";
-import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
 import { RMakerItem, RMakerItemType } from "./item";
 import {
-  RainmakerUserTokenModel,
   RainmakerNodeWithDetails,
   NodeDetails,
   RainmakerDevice,
