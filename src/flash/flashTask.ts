@@ -22,12 +22,10 @@ import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
-import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 
 export class FlashTask {
   public static isFlashing: boolean;
-  private flashTask: vscode.TaskExecution;
   private buildDir: string;
   private flashScriptPath: string;
   private model: FlashModel;
@@ -46,13 +44,6 @@ export class FlashTask {
 
   public flashing(flag: boolean) {
     FlashTask.isFlashing = flag;
-  }
-
-  public cancel() {
-    if (this.flashTask) {
-      this.flashTask.terminate();
-      throw new Error(`FLASH_TERMINATED`);
-    }
   }
 
   private verifyArgs() {

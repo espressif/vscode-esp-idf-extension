@@ -976,18 +976,23 @@ const build = () => {
         cancelToken: vscode.CancellationToken
       ) => {
         cancelToken.onCancellationRequested(() => {
-          buildTask.cancel();
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+          buildTask.building(false);
         });
         try {
           await buildTask.build();
           await TaskManager.runTasks();
-          buildTask.building(false);
-          const projDescPath = path.join(
-            workspaceRoot.fsPath,
-            "project_description.json"
-          );
-          updateIdfComponentsTree(projDescPath);
-          Logger.infoNotify("Build Successfully");
+          if (!cancelToken.isCancellationRequested) {
+            buildTask.building(false);
+            const projDescPath = path.join(
+              workspaceRoot.fsPath,
+              "project_description.json"
+            );
+            updateIdfComponentsTree(projDescPath);
+            Logger.infoNotify("Build Successfully");
+            TaskManager.disposeListeners();
+          }
         } catch (error) {
           if (error.message === "ALREADY_BUILDING") {
             return Logger.errorNotify("Already a build is running!", error);
@@ -1077,6 +1082,10 @@ const flash = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
+        cancelToken.onCancellationRequested(() => {
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+        });
         try {
           const model = await createFlashModel(
             flasherArgsJsonPath,
@@ -1084,10 +1093,16 @@ const flash = () => {
             baudRate
           );
           const flashTask = new FlashTask(buildPath, idfPathDir, model);
+          cancelToken.onCancellationRequested(() => {
+            flashTask.flashing(false);
+          });
           await flashTask.flash();
           await TaskManager.runTasks();
-          flashTask.flashing(false);
-          Logger.infoNotify("Flash Done ⚡️");
+          if (!cancelToken.isCancellationRequested) {
+            flashTask.flashing(false);
+            Logger.infoNotify("Flash Done ⚡️");
+          }
+          TaskManager.disposeListeners();
         } catch (error) {
           if (error.message === "ALREADY_FLASHING") {
             return Logger.errorNotify(
@@ -1177,6 +1192,11 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
+        cancelToken.onCancellationRequested(() => {
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+          buildTask.building(false);
+        });
         try {
           progress.report({ message: "Building project...", increment: 20 });
           await buildTask.build().then(() => {
@@ -1194,13 +1214,11 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
           );
           const flashTask = new FlashTask(buildPath, idfPathDir, model);
           cancelToken.onCancellationRequested(() => {
-            buildTask.cancel();
-            flashTask.cancel();
-          });
-          await flashTask.flash().then(() => {
             flashTask.flashing(false);
           });
+          await flashTask.flash();
           await TaskManager.runTasks();
+          flashTask.flashing(false);
           if (runMonitor) {
             progress.report({
               message: "Launching monitor...",
@@ -1208,6 +1226,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             });
             createMonitor();
           }
+          TaskManager.disposeListeners();
         } catch (error) {
           switch (error.message) {
             case "BUILD_TERMINATED":

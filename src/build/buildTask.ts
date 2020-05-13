@@ -22,17 +22,10 @@ import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { appendIdfAndToolsToPath } from "../utils";
-import {
-  getProjectName,
-  initSelectedWorkspace,
-  updateIdfComponentsTree,
-} from "../workspaceConfig";
 import { TaskManager } from "../taskManager";
 
 export class BuildTask {
   public static isBuilding: boolean;
-  private buildTask: vscode.TaskExecution;
-  private compileTask: vscode.TaskExecution;
   private curWorkspace: string;
 
   constructor(workspace: string) {
@@ -47,17 +40,6 @@ export class BuildTask {
     const shallSaveBeforeBuild = idfConf.readParameter("idf.saveBeforeBuild");
     if (shallSaveBeforeBuild) {
       await vscode.workspace.saveAll();
-    }
-  }
-
-  public cancel() {
-    if (this.buildTask) {
-      this.buildTask.terminate();
-      throw new Error(`BUILD_TERMINATED`);
-    }
-    if (this.compileTask) {
-      this.compileTask.terminate();
-      throw new Error(`BUILD_TERMINATED`);
     }
   }
 
