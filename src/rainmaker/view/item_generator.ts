@@ -27,7 +27,7 @@ import {
 } from "../client/model";
 
 export function LoginButtonItem(): RMakerItem {
-  const loginButton = new RMakerItem(RMakerItemType.Account);
+  const loginButton = new RMakerItem(RMakerItemType.Login);
   loginButton.label = "Connect Rainmaker...";
   loginButton.themeIcon = "sign-in";
   loginButton.commandId = "esp.rainmaker.backend.connect";
@@ -79,6 +79,7 @@ export function DeviceItem(
 }
 
 export function DeviceParamItem(
+  id: string,
   details: RainmakerDeviceParamStructure,
   value: string | number | boolean
 ): RMakerItem {
@@ -87,6 +88,8 @@ export function DeviceParamItem(
   param.tooltip = details.type;
   param.description = value.toString();
   param.themeIcon = getIconPathForParamType(details.type);
+  param.id = `${id}::${details.name}`;
+  param.meta = details;
   return param;
 }
 

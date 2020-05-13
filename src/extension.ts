@@ -61,6 +61,8 @@ import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
 import { PromptUserToLogin } from "./rainmaker/view/login";
 import { RMakerItem } from "./rainmaker/view/item";
+import { RainmakerStore } from "./rainmaker/store";
+import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -122,6 +124,8 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(name, callback)
     );
   };
+  // init rainmaker cache store
+  ESP.Rainmaker.store = RainmakerStore.init(context);
 
   // Create a status bar item with current workspace
   const status = vscode.window.createStatusBarItem(
@@ -852,28 +856,11 @@ export async function activate(context: vscode.ExtensionContext) {
         location: vscode.ProgressLocation.Notification,
         cancellable: false,
       },
-      async (progress, cancelToken) => {
+      async () => {
         try {
-          const loginResponse = await RainmakerAPIClient.login(
-            username,
-            password
-          );
-          if (loginResponse.status === "success") {
-            await context.globalState.update(
-              ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
-              loginResponse
-            );
-            vscode.commands.executeCommand(
-              "setContext",
-              ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
-              true
-            );
-            Logger.infoNotify("Rainmaker Cloud Linking Success!!");
-            await rainMakerTreeDataProvider.refresh();
-            return true;
-          }
-
-          throw new Error(loginResponse.description);
+          await RainmakerAPIClient.login(username, password);
+          await rainMakerTreeDataProvider.refresh();
+          Logger.infoNotify("Rainmaker Cloud Linking Success!!");
         } catch (error) {
           return Logger.errorNotify(
             "Failed to login with Rainmaker Cloud, double check your id and password",
@@ -884,16 +871,17 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("esp.rainmaker.backend.logout", () => {
-    rainMakerTreeDataProvider.clearCacheFor(
-      ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY
+  registerIDFCommand("esp.rainmaker.backend.logout", async () => {
+    const shallLogout = await vscode.window.showWarningMessage(
+      "Would you like to unlink your ESP Rainmaker cloud account?",
+      { modal: true },
+      { title: "Yes" },
+      { title: "Cancel", isCloseAffordance: true }
     );
-    rainMakerTreeDataProvider.clearCacheFor(ESP.Rainmaker.USER_TOKEN_CACHE_KEY);
-    vscode.commands.executeCommand(
-      "setContext",
-      ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
-      false
-    );
+    if (!shallLogout || shallLogout.title === "Cancel") {
+      return;
+    }
+    RainmakerAPIClient.logout();
     rainMakerTreeDataProvider.refresh();
   });
 
@@ -903,8 +891,122 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand(
     "esp.rainmaker.backend.remove_node",
-    async (item: RMakerItem) => {}
+    async (item: RMakerItem) => {
+      if (!item) {
+        return;
+      }
+      const shallDelete = await vscode.window.showWarningMessage(
+        "Would you like to delete this node from your ESP Rainmaker account?",
+        { modal: true },
+        { title: "Yes" },
+        { title: "Cancel", isCloseAffordance: true }
+      );
+      if (!shallDelete || shallDelete.title === "Cancel") {
+        return;
+      }
+      vscode.window.withProgress(
+        {
+          title: "Deleting node from your rainmaker account",
+          location: vscode.ProgressLocation.Notification,
+        },
+        async () => {
+          try {
+            await RainmakerAPIClient.deleteNode(item.id);
+            rainMakerTreeDataProvider.refresh();
+          } catch (error) {
+            Logger.errorNotify(
+              "Failed to delete node, maybe the node is already marked for delete, please try again after sometime",
+              error
+            );
+          }
+        }
+      );
+    }
   );
+  registerIDFCommand("esp.rainmaker.backend.add_node", async () => {
+    Logger.infoNotify(
+      "Coming Soon!! until then you can add nodes using mobile app"
+    );
+  });
+  registerIDFCommand(
+    "esp.rainmaker.backend.update_node_param",
+    async (item: RMakerItem) => {
+      const idPayload = item.id.split("::");
+      const params = item.getMeta<RainmakerDeviceParamStructure>();
+
+      if (params.properties.indexOf("write") === -1) {
+        return Logger.infoNotify("Readonly Property");
+      }
+
+      let newParamValue = await vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        placeHolder: "param value",
+        value: item.description.toString(),
+        prompt: "Enter the new param value",
+        validateInput: (value: string): string => {
+          return validateInputForRainmakerDeviceParam(value, params.data_type);
+        },
+      });
+
+      if (!newParamValue) {
+        return;
+      }
+
+      newParamValue = convertTo(params.data_type, newParamValue);
+
+      vscode.window.withProgress(
+        {
+          title: "Syncing params, please wait",
+          location: vscode.ProgressLocation.Notification,
+        },
+        async () => {
+          try {
+            const nodeID = idPayload[0];
+            const deviceName = idPayload[1];
+            await RainmakerAPIClient.updateNodeParam(
+              nodeID,
+              deviceName,
+              params.name,
+              newParamValue
+            );
+            await rainMakerTreeDataProvider.refresh();
+            Logger.infoNotify("Sent the param update request to cloud");
+          } catch (error) {
+            Logger.errorNotify(
+              "Failed to update the param, please try once more",
+              error
+            );
+          }
+        }
+      );
+    }
+  );
+}
+
+function validateInputForRainmakerDeviceParam(
+  value: string,
+  type: string
+): string {
+  if (type === "bool" && !value.match(/^(true|false)$/i)) {
+    return "Enter valid boolean value (true or false)";
+  }
+  if (type === "string" && value === "") {
+    return "Enter non empty string";
+  }
+  if (type === "int" && !value.match(/^[0-9]+$/)) {
+    return "Enter a valid integer";
+  }
+  return;
+}
+
+function convertTo(type: string, value: string): any {
+  if (type === "bool") {
+    return value === "true" ? true : false;
+  }
+  if (type === "int") {
+    return parseInt(value);
+  }
+  return value;
 }
 
 function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
@@ -916,7 +1018,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
-  rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider(context);
+  rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
   vscode.window.registerTreeDataProvider(
     "espRainmaker",
     rainMakerTreeDataProvider

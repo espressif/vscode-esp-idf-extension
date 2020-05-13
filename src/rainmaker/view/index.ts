@@ -50,13 +50,9 @@ export class ESPRainMakerTreeDataProvider
 
   readonly onDidChangeTreeData: Event<RMakerItem> = this._onDidChangeTreeData
     .event;
-  private context: ExtensionContext;
-  private accessTokens: RainmakerUserTokenModel | undefined;
-  private client: RainmakerAPIClient | undefined;
 
-  constructor(ctx: ExtensionContext) {
-    this.context = ctx;
-    this.initCache();
+  constructor() {
+    RainmakerAPIClient.isLoggedIn();
   }
 
   getTreeItem(item: RMakerItem): RMakerItem {
@@ -65,19 +61,13 @@ export class ESPRainMakerTreeDataProvider
 
   async getChildren(parent?: RMakerItem): Promise<RMakerItem[]> {
     if (!parent) {
-      if (this.accessTokens) {
+      if (RainmakerAPIClient.isLoggedIn()) {
         return [LoggedInAccountItem()];
       } else {
         return [LoginButtonItem()];
       }
     } else if (parent.type === RMakerItemType.Account) {
-      let nodes = this.context.globalState.get<RainmakerNodeWithDetails>(
-        ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
-        null
-      );
-      if (!nodes) {
-        nodes = await this.fetchNodes();
-      }
+      const nodes = await this.fetchNodes();
       if (!nodes) {
         return;
       }
@@ -95,80 +85,41 @@ export class ESPRainMakerTreeDataProvider
       let value = null;
       const device = parent.getMeta<RainmakerDevice>();
       try {
-        const resp = await this.client.getNodeParams(nodeId);
+        const resp = await RainmakerAPIClient.getNodeParams(nodeId);
         value = resp[device.name];
       } catch (error) {
         Logger.errorNotify("Failed to get params for device", error);
       }
       return device.params.map((param) =>
-        DeviceParamItem(param, value ? value[param.name] : "")
+        DeviceParamItem(parent.id, param, value ? value[param.name] : "")
       );
     }
   }
   public async refresh() {
-    this.initCache();
-    this.clearCacheFor(ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY);
+    await this.purgeClientCacheAndToken();
     this._onDidChangeTreeData.fire();
   }
 
-  public clearCacheFor(key: string) {
-    this.context.globalState.update(key, null);
-  }
-
   private async fetchNodes(): Promise<RainmakerNodeWithDetails> {
-    if (!this.client) {
-      return;
-    }
     try {
-      await this.refreshClientToken();
-      const nodes = await this.client.getAllUserAssociatedNodes();
-
-      this.context.globalState.update(
-        ESP.Rainmaker.USER_ASSOCIATED_NODES_CACHE_KEY,
-        nodes
-      );
-      return nodes;
+      return await RainmakerAPIClient.getAllUserAssociatedNodes();
     } catch (error) {
       Logger.warnNotify("Failed to fetch node details, try refreshing", error);
     }
-    return null;
+    return;
   }
 
-  private async refreshClientToken() {
-    if (!this.client) {
-      return;
-    }
+  private async purgeClientCacheAndToken() {
+    RainmakerAPIClient.clearNodesCache();
     try {
-      const newAccessToken = await this.client.refreshAccessToken();
-      this.accessTokens.accesstoken = newAccessToken;
-      this.context.globalState.update(
-        ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
-        this.accessTokens
-      );
+      if (RainmakerAPIClient.isLoggedIn()) {
+        await RainmakerAPIClient.refreshAccessToken();
+      }
     } catch (error) {
-      Logger.warnNotify("Failed to refresh access token");
-    }
-  }
-
-  private initCache() {
-    this.accessTokens = this.context.globalState.get<RainmakerUserTokenModel>(
-      ESP.Rainmaker.USER_TOKEN_CACHE_KEY,
-      undefined
-    );
-    let loggedInStatus = false;
-    if (this.accessTokens) {
-      loggedInStatus = true;
-      this.client = new RainmakerAPIClient(
-        this.accessTokens.accesstoken,
-        this.accessTokens.refreshtoken
+      Logger.warnNotify(
+        "Failed to refresh access token, try once again",
+        error
       );
-    } else {
-      this.client = null;
     }
-    commands.executeCommand(
-      "setContext",
-      ESP.Rainmaker.USER_ALREADY_LOGGED_IN_CACHE_KEY,
-      loggedInStatus
-    );
   }
 }

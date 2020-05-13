@@ -19,6 +19,7 @@ import { TreeItem, TreeItemCollapsibleState, ThemeIcon } from "vscode";
 
 export enum RMakerItemType {
   None,
+  Login = "login",
   Account = "account",
   Node = "node",
   Device = "device",

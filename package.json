@@ -132,15 +132,23 @@
       "view/item/context": [
         {
           "command": "esp.rainmaker.backend.logout",
-          "when": "view == espRainmaker && viewItem == account"
+          "when": "view == espRainmaker && viewItem == account",
+          "group": "inline"
         },
         {
           "command": "esp.rainmaker.backend.add_node",
-          "when": "view == espRainmaker && viewItem == account"
+          "when": "view == espRainmaker && viewItem == account",
+          "group": "inline"
         },
         {
           "command": "esp.rainmaker.backend.remove_node",
-          "when": "view == espRainmaker && viewItem == node"
+          "when": "view == espRainmaker && viewItem == node",
+          "group": "inline"
+        },
+        {
+          "command": "esp.rainmaker.backend.update_node_param",
+          "when": "view == espRainmaker && viewItem == param",
+          "group": "inline"
         }
       ],
       "explorer/context": [
@@ -362,15 +370,9 @@
           },
           "esp.rainmaker.api.server_url": {
             "type": "string",
-            "default": "https://api.rainmaker.espressif.com",
+            "default": "https://api.rainmaker.espressif.com/v1/",
             "scope": "resource",
             "description": "%param.rainmaker.api.server_url%"
-          },
-          "esp.rainmaker.api.version": {
-            "type": "string",
-            "default": "v1",
-            "scope": "resource",
-            "description": "%param.rainmaker.api.version%"
           }
         }
       }
@@ -475,7 +477,7 @@
       {
         "command": "esp.rainmaker.backend.connect",
         "title": "%esp.rainmaker.backend.connect.title%",
-        "category": "Rainmaker",
+        "category": "ESP:Rainmaker",
         "icon": {
           "dark": "media/dark/sign-in.svg",
           "light": "media/light/sign-in.svg"
@@ -484,7 +486,7 @@
       {
         "command": "esp.rainmaker.backend.sync",
         "title": "%esp.rainmaker.backend.sync.title%",
-        "category": "Rainmaker",
+        "category": "ESP:Rainmaker",
         "icon": {
           "dark": "media/dark/refresh.svg",
           "light": "media/light/refresh.svg"
@@ -493,17 +495,38 @@
       {
         "command": "esp.rainmaker.backend.logout",
         "title": "%esp.rainmaker.backend.logout.title%",
-        "category": "rainmaker"
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/sign-out.svg",
+          "light": "media/light/sign-out.svg"
+        }
       },
       {
         "command": "esp.rainmaker.backend.add_node",
         "title": "%esp.rainmaker.backend.add_node.title%",
-        "category": "rainmaker"
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/add.svg",
+          "light": "media/light/add.svg"
+        }
       },
       {
         "command": "esp.rainmaker.backend.remove_node",
         "title": "%esp.rainmaker.backend.remove_node.title%",
-        "category": "rainmaker"
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/trash.svg",
+          "light": "media/light/trash.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.update_node_param",
+        "title": "%esp.rainmaker.backend.update_node_param.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/edit.svg",
+          "light": "media/light/edit.svg"
+        }
       }
     ],
     "breakpoints": [

@@ -23,11 +23,18 @@ import {
   RainmakerNodeWithDetails,
   RainmakerDeviceParams,
 } from "./model";
+import { readParameter } from "../../idfConfiguration";
+import { commands } from "vscode";
+
+const USER_TOKEN_CACHE_KEY = "esp.rainmaker.login.tokens";
+const USER_ASSOCIATED_NODES_CACHE_KEY = "esp.rainmaker.login.nodes";
+const USER_ALREADY_LOGGED_IN_CACHE_KEY = "rainmaker_logged_in";
+
+export enum RainmakerAPIClientErrors {
+  LoginRequired = "Login is required",
+}
 
 export class RainmakerAPIClient {
-  private accessToken: string;
-  private refreshToken: string;
-
   public static async login(
     username: string,
     password: string
@@ -38,84 +45,170 @@ export class RainmakerAPIClient {
       { headers: this.generateUserAgentHeader() }
     );
 
-    if (resp.status === 200) {
+    if (resp.status === 200 && resp.data.status === "success") {
+      this.updateUserTokens(resp.data);
+      this.setUserLoggedInContext(true);
       return resp.data;
     }
-    RainmakerAPIClient.throwUnknownError(resp);
+    this.throwUnknownError(resp);
   }
+
+  public static logout() {
+    this.updateUserTokens(undefined);
+    this.updateNodeCache(undefined);
+    this.setUserLoggedInContext(false);
+  }
+
   public static isLoggedIn(): boolean {
-    return false;
+    const v = !!this.getUserTokens();
+    this.setUserLoggedInContext(v);
+    return v;
   }
 
-  private static generateURLFor(path: string): string {
-    return `https://api.rainmaker.espressif.com/v1/${path}`;
-  }
-
-  private static generateUserAgentHeader(): any {
-    return { "User-Agent": ESP.HTTP_USER_AGENT };
-  }
-
-  private static throwUnknownError(meta?: any) {
-    const UnknownError = new Error(
-      "Unknown Error while trying to login with rainmaker server"
-    );
-    Logger.error(UnknownError.message, UnknownError, { meta });
-  }
-
-  constructor(accessToken: string, refreshToken: string) {
-    this.accessToken = accessToken;
-    this.refreshToken = refreshToken;
-  }
-
-  public async refreshAccessToken(): Promise<string> {
+  public static async refreshAccessToken() {
+    if (!this.isLoggedIn()) {
+      throw new Error(RainmakerAPIClientErrors.LoginRequired);
+    }
+    const tokens = this.getUserTokens();
     const resp = await axios.post<RainmakerLoginResponseModel>(
-      RainmakerAPIClient.generateURLFor("login"),
-      { refreshtoken: this.refreshToken },
+      this.generateURLFor("login"),
+      { refreshtoken: tokens.refreshtoken },
       { headers: RainmakerAPIClient.generateUserAgentHeader() }
     );
     if (resp.status === 200 && resp.data.status === "success") {
-      this.accessToken = resp.data.accesstoken;
-      return resp.data.accesstoken;
+      return this.updateUserTokens(Object.assign(tokens, resp.data));
     }
-    RainmakerAPIClient.throwUnknownError(resp);
+    this.throwUnknownError(resp);
   }
 
-  //nodes
-  public async getAllUserAssociatedNodes(): Promise<RainmakerNodeWithDetails> {
+  public static async getAllUserAssociatedNodes(): Promise<
+    RainmakerNodeWithDetails
+  > {
+    const nodes = this.getNodesFromCache();
+    if (nodes) {
+      return nodes;
+    }
     const resp = await axios.get<RainmakerNodeWithDetails>(
-      RainmakerAPIClient.generateURLFor("user/nodes?node_details=true"),
+      this.generateURLFor("user/nodes?node_details=true"),
       { headers: this.getAuthHeader() }
     );
 
     if (resp.status === 200 && resp.data.nodes) {
+      this.updateNodeCache(resp.data);
       return resp.data;
     }
 
-    RainmakerAPIClient.throwUnknownError(resp);
+    this.throwUnknownError(resp);
   }
 
-  //nodes operations
-  public updateNodeState() {}
-  public async getNodeParams(nodeID: string): Promise<RainmakerDeviceParams> {
-    const headers = {
-      Authorization: this.accessToken,
-    };
+  public static clearNodesCache() {
+    this.updateNodeCache(undefined);
+  }
+
+  public static async deleteNode(node_id: string) {
+    await this.refreshAccessToken();
+    const resp = await axios.put(
+      this.generateURLFor("user/nodes/mapping"),
+      { node_id, operation: "remove" },
+      { headers: this.getAuthHeader() }
+    );
+    if (resp.status === 200 && resp.data) {
+      return resp.data;
+    }
+    this.throwUnknownError(resp);
+  }
+
+  public static async getNodeParams(
+    nodeID: string
+  ): Promise<RainmakerDeviceParams> {
     const resp = await axios.get<RainmakerDeviceParams>(
-      RainmakerAPIClient.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
+      this.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
       { headers: this.getAuthHeader() }
     );
 
     if (resp.status === 200 && resp.data) {
       return resp.data;
     }
-    RainmakerAPIClient.throwUnknownError(resp);
+    this.throwUnknownError(resp);
   }
 
-  private getAuthHeader(): any {
+  public static async updateNodeParam(
+    nodeID: string,
+    deviceName: string,
+    paramName: string,
+    value: any
+  ) {
+    const payload = {};
+    payload[deviceName] = {};
+    payload[deviceName][paramName] = value;
+
+    const resp = await axios.put(
+      this.generateURLFor(`user/nodes/params?nodeid=${nodeID}`),
+      payload,
+      { headers: this.getAuthHeader() }
+    );
+    if (resp.status === 200 && resp.data.status === "success") {
+      return resp.data;
+    }
+    this.throwUnknownError(resp);
+  }
+
+  private static getAuthHeader(): any {
+    if (!this.isLoggedIn()) {
+      throw new Error(RainmakerAPIClientErrors.LoginRequired);
+    }
+    const tokens = this.getUserTokens();
     const headers = {
-      Authorization: this.accessToken,
+      Authorization: tokens.accesstoken,
     };
     Object.assign(headers, RainmakerAPIClient.generateUserAgentHeader());
     return headers;
+  }
+
+  private static generateURLFor(path: string): string {
+    let apiServerURL = readParameter("esp.rainmaker.api.server_url") as string;
+    if (!apiServerURL) {
+      apiServerURL = "https://api.rainmaker.espressif.com/v1";
+    }
+    if (apiServerURL.endsWith("/")) {
+      apiServerURL = apiServerURL.substr(0, apiServerURL.length - 1);
+    }
+    return `${apiServerURL}/${path}`;
+  }
+  private static getUserTokens(): RainmakerLoginResponseModel {
+    return ESP.Rainmaker.store.get<RainmakerLoginResponseModel>(
+      USER_TOKEN_CACHE_KEY,
+      undefined
+    );
+  }
+  private static updateUserTokens(tokens: RainmakerLoginResponseModel) {
+    return ESP.Rainmaker.store.set(USER_TOKEN_CACHE_KEY, tokens);
+  }
+  private static getNodesFromCache(): RainmakerNodeWithDetails {
+    return ESP.Rainmaker.store.get<RainmakerNodeWithDetails>(
+      USER_ASSOCIATED_NODES_CACHE_KEY,
+      undefined
+    );
+  }
+  private static updateNodeCache(nodes: RainmakerNodeWithDetails) {
+    return ESP.Rainmaker.store.set(USER_ASSOCIATED_NODES_CACHE_KEY, nodes);
+  }
+
+  private static generateUserAgentHeader(): any {
+    return { "User-Agent": ESP.HTTP_USER_AGENT };
+  }
+  private static throwUnknownError(meta?: any) {
+    const UnknownError = new Error(
+      "Unknown Error while trying to login with rainmaker server"
+    );
+    Logger.error(UnknownError.message, UnknownError, { meta });
+    throw UnknownError;
+  }
+  private static setUserLoggedInContext(v: boolean) {
+    return commands.executeCommand<any>(
+      "setContext",
+      USER_ALREADY_LOGGED_IN_CACHE_KEY,
+      v
+    );
   }
 }

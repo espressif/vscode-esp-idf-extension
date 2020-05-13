@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
+import { RainmakerStore } from "./rainmaker/store";
+
 export namespace ESP {
   export const HTTP_USER_AGENT =
     "vscode.extensions.espressif.esp-idf.extension/1.0.0 axios-client";
   export namespace Rainmaker {
-    export const USER_ALREADY_LOGGED_IN_CACHE_KEY = "rainmaker_logged_in";
-    export const USER_TOKEN_CACHE_KEY = "esp.rainmaker.login.tokens";
-    export const USER_ASSOCIATED_NODES_CACHE_KEY = "esp.rainmaker.login.nodes";
+    export let store: RainmakerStore;
   }
 }

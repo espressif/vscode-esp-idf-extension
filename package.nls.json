@@ -46,10 +46,10 @@
   "param.saveBeforeBuildDescription": "Save all the edited files in the workspace before proceeding with the build, although if fail to save files it will build anyways",
   "param.saveScope": "Where to save configuration with ESP-IDF commands with number value as vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "Rainmaker API Server URL",
-  "param.rainmaker.api.version": "Rainmaker API version",
   "esp.rainmaker.backend.sync.title": "Sync with Rainmaker Backend",
   "esp.rainmaker.backend.connect.title": "Connect with Rainmaker Backend",
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Cloud",
   "esp.rainmaker.backend.add_node.title": "Add new node",
-  "esp.rainmaker.backend.remove_node.title": "Remove this node"
+  "esp.rainmaker.backend.remove_node.title": "Remove this node",
+  "esp.rainmaker.backend.update_node_param.title": "Update param for device"
 }
