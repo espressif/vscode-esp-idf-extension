@@ -45,11 +45,11 @@
   "trace.skip_size.description": "apptrace：设置 skip_size",
   "param.saveBeforeBuildDescription": "在继续进行构建之前，将所有编辑的文件保存在工作区中，尽管如果无法保存文件，无论如何都会进行构建",
   "param.saveScope": "使用编号为vscode.ConfigurationTarget的ESP-IDF命令将配置保存到何处. Global = 1, Workspace= 2, WorkspaceFolder=3",
-  "param.rainmaker.api.server_url": "Rainmaker API Server URL",
-  "esp.rainmaker.backend.sync.title": "Sync with Rainmaker Backend",
-  "esp.rainmaker.backend.connect.title": "Connect with Rainmaker Backend",
-  "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Cloud",
-  "esp.rainmaker.backend.add_node.title": "Add new node",
-  "esp.rainmaker.backend.remove_node.title": "Remove this node",
-  "esp.rainmaker.backend.update_node_param.title": "Update param for device"
+  "param.rainmaker.api.server_url": "ESP-Rainmaker服务器网址",
+  "esp.rainmaker.backend.sync.title": "与ESP-Rainmaker后端服务器同步",
+  "esp.rainmaker.backend.connect.title": "与ESP-Rainmaker后端服务器连接",
+  "esp.rainmaker.backend.logout.title": "ESP-Rainmaker云注销",
+  "esp.rainmaker.backend.add_node.title": "添加新节点",
+  "esp.rainmaker.backend.remove_node.title": "删除该节点",
+  "esp.rainmaker.backend.update_node_param.title": "更新设备的参数"
 }
