@@ -34,9 +34,6 @@ jobs:
       - name: Lint Check
         run: yarn lint
 
-      - name: Check Node Packages Vulnerabilities
-        run: yarn audit
-
       - name: Package .vsix
         run: yarn package
 
