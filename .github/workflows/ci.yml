@@ -57,6 +57,3 @@ jobs:
         with:
           name: testing.results.log
           path: testing.results.log
-      
-      - name: Check Node Packages Vulnerabilities
-        run: yarn audit

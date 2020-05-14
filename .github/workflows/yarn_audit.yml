@@ -1,0 +1,24 @@
+name: Security Audit Dependencies
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v1
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Check Node Packages Vulnerabilities
+        run: yarn audit
