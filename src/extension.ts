@@ -1297,6 +1297,7 @@ function createIdfTerminal() {
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
+      strictEnv: true,
     });
     espIdfTerminal.show();
     const envSetCmd =

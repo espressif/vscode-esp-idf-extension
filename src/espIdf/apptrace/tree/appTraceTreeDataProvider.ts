@@ -133,6 +133,6 @@ export class AppTraceTreeDataProvider
     return [this.appTraceStartButton];
   }
   public refresh() {
-    this.OnDidChangeTreeData.fire();
+    this.OnDidChangeTreeData.fire(null);
   }
 }
