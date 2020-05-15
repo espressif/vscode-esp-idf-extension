@@ -990,7 +990,6 @@ const build = () => {
               "project_description.json"
             );
             updateIdfComponentsTree(projDescPath);
-            Logger.infoNotify("Build Successfully");
             TaskManager.disposeListeners();
           }
         } catch (error) {
@@ -1100,7 +1099,6 @@ const flash = () => {
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {
             flashTask.flashing(false);
-            Logger.infoNotify("Flash Done ⚡️");
           }
           TaskManager.disposeListeners();
         } catch (error) {
