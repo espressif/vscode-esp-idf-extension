@@ -159,7 +159,20 @@ export class NewProjectPanel {
             });
           }
         case "requestInitValues":
-          this.loadInitialMetadata(newProjectArgs.metadata);
+          if (
+            newProjectArgs &&
+            newProjectArgs.metadata &&
+            newProjectArgs.metadata.idf &&
+            newProjectArgs.metadata.idf.length > 0 &&
+            newProjectArgs.metadata.venv &&
+            newProjectArgs.metadata.venv.length > 0 &&
+            newProjectArgs.metadata.tools &&
+            newProjectArgs.metadata.tools.length > 0
+          ) {
+            this.loadInitialMetadata(newProjectArgs.metadata);
+          } else {
+            Logger.infoNotify("No values available in metadata.json");
+          }
           break;
         default:
           break;
@@ -173,11 +186,19 @@ export class NewProjectPanel {
   }
 
   public async loadInitialMetadata(metadata: IMetadataFile) {
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-    const selectedIdf =
-      metadata.idf.find((idfVersion) => idfVersion.path === espIdfPath) ||
-      metadata.idf[0];
-    await this.loadToolsVenvForIdf(metadata, selectedIdf);
+    try {
+      const espIdfPath =
+        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+      if (typeof espIdfPath === "undefined") {
+        throw new Error("IDF_PATH is not defined");
+      }
+      const selectedIdf =
+        metadata.idf.find((idfVersion) => idfVersion.path === espIdfPath) ||
+        metadata.idf[0];
+      await this.loadToolsVenvForIdf(metadata, selectedIdf);
+    } catch (error) {
+      Logger.errorNotify("Error loading initial values in New Project", error);
+    }
   }
 
   public async loadToolsVenvForIdf(

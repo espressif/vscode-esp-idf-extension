@@ -500,6 +500,7 @@ export async function getEspIdfVersion(workingDir: string) {
     }
     return espVersion.substr(1);
   } catch (error) {
+    Logger.info(error);
     return "x.x";
   }
 }
@@ -684,9 +685,14 @@ export async function loadMetadata() {
   );
   const doesMetadataExist = await doesPathExists(metadataFile);
   if (doesMetadataExist) {
-    return (await readJson(metadataFile)) as IMetadataFile;
+    try {
+      const metadataObj: IMetadataFile = await readJson(metadataFile);
+      return metadataObj;
+    } catch (error) {
+      Logger.errorNotify(`Error reading ${metadataFile}`, error);
+    }
   } else {
-    Logger.info(`${metadataFile} doesn't exist.`);
+    Logger.infoNotify(`${metadataFile} doesn't exist.`);
     return;
   }
 }
