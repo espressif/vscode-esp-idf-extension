@@ -51,5 +51,6 @@
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Account",
   "esp.rainmaker.backend.add_node.title": "Add new node",
   "esp.rainmaker.backend.remove_node.title": "Remove this node",
-  "esp.rainmaker.backend.update_node_param.title": "Update param for device"
+  "esp.rainmaker.backend.update_node_param.title": "Update param for device",
+  "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL"
 }

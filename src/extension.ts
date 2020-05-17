@@ -63,6 +63,7 @@ import { PromptUserToLogin } from "./rainmaker/view/login";
 import { RMakerItem } from "./rainmaker/view/item";
 import { RainmakerStore } from "./rainmaker/store";
 import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
+import { RainmakerOAuthManager } from "./rainmaker/oauth";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -852,9 +853,17 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!accountDetails) {
       return;
     }
-    const { username, password } = accountDetails;
+    if (accountDetails.provider) {
+      const code = await RainmakerOAuthManager.getAuthorizationCode(
+        accountDetails.provider
+      );
+      if (!code) {
+        return;
+      }
+      return;
+    }
 
-    if (!username || !password) {
+    if (!accountDetails.username || !accountDetails.password) {
       return;
     }
 
@@ -866,7 +875,10 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       async () => {
         try {
-          await RainmakerAPIClient.login(username, password);
+          await RainmakerAPIClient.login(
+            accountDetails.username,
+            accountDetails.password
+          );
           await rainMakerTreeDataProvider.refresh();
           Logger.infoNotify("Rainmaker Cloud Linking Success!!");
         } catch (error) {
@@ -992,6 +1004,11 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
+  vscode.window.registerUriHandler({
+    handleUri: (uri: vscode.Uri) => {
+      Logger.info(`vscode:// URI invoke received, ${uri.toString()}`);
+    },
+  });
 }
 
 function validateInputForRainmakerDeviceParam(

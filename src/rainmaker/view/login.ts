@@ -17,6 +17,7 @@
  */
 
 import { window, QuickPickItem } from "vscode";
+import { RainmakerOAuthProvider } from "../oauth";
 
 export async function PromptUserToLogin(): Promise<LoginDetails> {
   const choice = await showLoginChoices([
@@ -28,16 +29,42 @@ export async function PromptUserToLogin(): Promise<LoginDetails> {
     },
     {
       label: "OAuth Apps",
-      description: "(coming soon)",
+      description: "(external url will be opened in default browser)",
       detail: "Use OAuth App providers from Rainmaker to login",
       type: LoginType.OAuth,
     },
   ]);
-
-  if (choice && choice.type === LoginType.Basic) {
-    return await showBasicLoginForm();
+  if (!choice) {
+    return;
   }
-  return;
+  if (choice.type === LoginType.Basic) {
+    return await showBasicLoginForm();
+  } else if (choice.type === LoginType.OAuth) {
+    const oAuthProviderChoice = await window.showQuickPick(
+      [
+        {
+          label: RainmakerOAuthProvider.Github,
+          type: RainmakerOAuthProvider.Github,
+        },
+        {
+          label: RainmakerOAuthProvider.Google,
+          type: RainmakerOAuthProvider.Google,
+        },
+        {
+          label: RainmakerOAuthProvider.SignInWithApple,
+          type: RainmakerOAuthProvider.SignInWithApple,
+        },
+      ],
+      {
+        placeHolder: "Select OAuth Provider for ESP Rainmaker Login",
+        ignoreFocusOut: true,
+      }
+    );
+    if (!oAuthProviderChoice) {
+      return;
+    }
+    return { provider: oAuthProviderChoice.type };
+  }
 }
 
 enum LoginType {
@@ -53,8 +80,9 @@ interface RainmakerLoginItem extends QuickPickItem {
 }
 
 interface LoginDetails {
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
+  provider?: RainmakerOAuthProvider;
 }
 
 async function showLoginChoices(

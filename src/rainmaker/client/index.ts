@@ -35,6 +35,33 @@ export enum RainmakerAPIClientErrors {
 }
 
 export class RainmakerAPIClient {
+  public static async exchangeCodeForTokens(
+    code: string
+  ): Promise<RainmakerLoginResponseModel> {
+    const resp = await axios.post(
+      ESP.Rainmaker.OAuth.AuthURL,
+      {
+        grant_type: ESP.Rainmaker.OAuth.GrantType,
+        client_id: ESP.Rainmaker.OAuth.ClientID,
+        redirect_uri: ESP.Rainmaker.OAuth.RedirectURL,
+        code,
+      },
+      { headers: this.generateUserAgentHeader() }
+    );
+    if (resp.status === 200 && resp.data.access_token) {
+      const token: RainmakerLoginResponseModel = {
+        idtoken: resp.data.id_token,
+        accesstoken: resp.data.access_token,
+        refreshtoken: resp.data.refresh_token,
+        status: "success",
+        description: "Login successful",
+      };
+      this.updateUserTokens(token);
+      this.setUserLoggedInContext(true);
+      return token;
+    }
+    return;
+  }
   public static async login(
     username: string,
     password: string

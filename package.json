@@ -373,6 +373,12 @@
             "default": "https://api.rainmaker.espressif.com/v1/",
             "scope": "resource",
             "description": "%param.rainmaker.api.server_url%"
+          },
+          "esp.rainmaker.oauth.url": {
+            "type": "string",
+            "default": "https://auth.rainmaker.espressif.com/oauth2/authorize",
+            "scope": "resource",
+            "description": "%param.esp.rainmaker.oauth.url%"
           }
         }
       }

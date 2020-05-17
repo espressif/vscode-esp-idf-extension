@@ -120,6 +120,7 @@
     "esp.rainmaker.backend.logout.title",
     "esp.rainmaker.backend.add_node.title",
     "esp.rainmaker.backend.remove_node.title",
-    "esp.rainmaker.backend.update_node_param.title"
+    "esp.rainmaker.backend.update_node_param.title",
+    "param.esp.rainmaker.oauth.url"
   ]
 }

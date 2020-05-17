@@ -51,5 +51,6 @@
   "esp.rainmaker.backend.logout.title": "ESP-Rainmaker云注销",
   "esp.rainmaker.backend.add_node.title": "添加新节点",
   "esp.rainmaker.backend.remove_node.title": "删除该节点",
-  "esp.rainmaker.backend.update_node_param.title": "更新设备的参数"
+  "esp.rainmaker.backend.update_node_param.title": "更新设备的参数",
+  "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth服务器网址"
 }
