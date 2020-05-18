@@ -540,11 +540,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+      const modifiedEnv = utils.appendIdfAndToolsToPath();
       try {
-        return await utils.findBinaryFullPath(
+        return await utils.isBinInPath(
           "xtensa-esp32-elf-gdb",
-          extraPaths
+          this.workspaceRoot.fsPath,
+          modifiedEnv
         );
       } catch (error) {
         Logger.errorNotify(

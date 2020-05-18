@@ -26,6 +26,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
+import { OutputChannel } from "./logger/outputChannel";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -649,16 +650,22 @@ export async function isBinInPath(
   return "";
 }
 
-export async function findBinaryFullPath(
-  binName: string,
-  pathsToVerify: string
+export async function startPythonReqsProcess(
+  pythonBinPath: string,
+  espIdfPath: string,
+  requirementsPath: string
 ) {
-  const locCmd = process.platform === "win32" ? "where" : "which";
-  const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-  return await execChildProcess(
-    `${locCmd} ${binName}`,
-    process.cwd(),
-    this.toolsManagerChannel,
-    { cwd: process.cwd(), env: { PATH: pathModified } }
+  const reqFilePath = path.join(
+    espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  const modifiedEnv = process.env;
+  modifiedEnv.IDF_PATH = espIdfPath || process.env.IDF_PATH;
+  return execChildProcess(
+    `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
+    extensionContext.extensionPath,
+    OutputChannel.init(),
+    { env: modifiedEnv }
   );
 }

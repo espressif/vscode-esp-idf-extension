@@ -108,8 +108,20 @@
         <h4>Verify ESP-IDF Tools</h4>
         <div v-if="!isToolsCheckCompleted">
           <p>
+            Add your python binary path (the python virtual environment).
+            Example: {{ winRoot }}{{ pathSep }}.espressif{{
+              pathSep
+            }}python_env{{ pathSep }}idf4.0_py3.8_env{{ pathSep
+            }}{{ winRoot !== "" ? "bin" : "Scripts" }}{{ pathSep }}python<span
+              v-if="winRoot !== ''"
+              >.exe</span
+            >
+          </p>
+          <input type="text" class="text-size" v-model="pyBinPath" />
+          <p>
             Please specify the directories containing executable binaries for
-            required ESP-IDF Tools: <span class="bold"> |</span>
+            required ESP-IDF Tools: <br />
+            <span class="bold"> |</span>
             <span
               v-for="toolVersion in requiredToolsVersions"
               :key="toolVersion.id"
@@ -118,20 +130,30 @@
               {{ toolVersion.id }} |
             </span>
           </p>
+          <p>Make sure to also include CMake and Ninja-build.</p>
           <p>Separate each path using ({{ pathDelimiter }}).</p>
           <p>
             Example: If executable path is {{ winRoot
-            }}{{ pathSep }}openocd-esp32{{ pathSep }}bin{{ pathSep }}openocd
+            }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathSep }}openocd
             <span v-if="winRoot !== ''">.exe</span> then use {{ winRoot
             }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathDelimiter
             }}{{ winRoot }}{{ pathSep }}anotherToolFolder{{ pathSep }}bin
           </p>
           <p>
-            Inserted directories will be saved as an extension configuration
-            setting (idf.customExtraPaths) and will not modify your PATH.
+            Please provide absolute paths. Using $HOME or %HOME% is not
+            supported.
           </p>
           <input type="text" class="text-size" v-model="exportedPaths" />
-          <h4>Custom environment variables to be defined</h4>
+          <h4>Custom environment variables to be defined.</h4>
+          <p>
+            Replace any ${TOOL_PATH} with absolute path for each custom
+            variable. <br />
+            For example:
+            <strong>${TOOL_PATH}/openocd-esp32/share/openocd/scripts</strong>
+            should be replaced as {{ winRoot }}{{ pathSep }}openocd-esp32{{
+              pathSep
+            }}share{{ pathSep }}openocd{{ pathSep }}
+          </p>
           <div id="env-vars-to-set" v-for="(value, key) in envVars" :key="key">
             <div class="env-var">
               <p>{{ key }}</p>
@@ -210,6 +232,7 @@ export default class ToolsSetup extends Vue {
   @State("showIdfToolsChecks") private storeShowIdfToolsChecks;
   @State("toolsCheckResults") private storeToolsCheckResults;
   @State("pathDelimiter") private storePathDelimiter;
+  @State("pyBinPath") private storePyBinPath;
   @State("requiredToolsVersions") private storeRequiredToolsVersions;
   @State("isInstallationCompleted") private storeIsInstallationCompleted;
   @State("isPyInstallCompleted") private storeisPyInstallCompleted: string;
@@ -219,6 +242,7 @@ export default class ToolsSetup extends Vue {
   @Mutation private setCustomExtraPaths;
   @Mutation private setEnvVars;
   @Mutation private setIdfToolsPath;
+  @Mutation private setPythonBinPath;
   @Mutation private setPySetupFinish;
   @Mutation private setShowIdfToolsChecks;
   @Mutation private setToolSetupMode;
@@ -264,6 +288,12 @@ export default class ToolsSetup extends Vue {
   }
   get pathDelimiter() {
     return this.storePathDelimiter;
+  }
+  get pyBinPath() {
+    return this.storePyBinPath;
+  }
+  set pyBinPath(newPath) {
+    this.setPythonBinPath(newPath);
   }
   get pyLog() {
     return this.storePyLog;

@@ -27,7 +27,6 @@
   "param.baudRate": "Device Baud rate",
   "param.port": "Path of selected device port",
   "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python Scripts",
-  "param.pythonSystemBinPath": "System level Python binary path to append in PATH",
   "param.espIdfPath": "Path to locate ESP-IDF framework (IDF_PATH)",
   "param.toolsPath": "Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)",
   "param.exportPaths": "Paths to be appended to PATH",

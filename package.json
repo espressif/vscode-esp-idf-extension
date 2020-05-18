@@ -215,18 +215,6 @@
             "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
-          "idf.pythonSystemBinPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
-          "idf.pythonSystemBinPathWin": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
           "idf.baudRate": {
             "type": "string",
             "default": "115200",
