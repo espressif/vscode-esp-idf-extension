@@ -61,8 +61,12 @@ export class ExamplesPlanel {
         ],
       }
     );
-
-    this.panel.webview.html = createExamplesHtml(extensionPath);
+    const scriptPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "examples-bundle.js")
+      )
+    );
+    this.panel.webview.html = createExamplesHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 

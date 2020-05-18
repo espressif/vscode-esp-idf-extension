@@ -96,8 +96,12 @@ export class OnBoardingPanel {
         ],
       }
     );
-
-    this.panel.webview.html = createOnboardingHtml(extensionPath);
+    const scriptPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
+      )
+    );
+    this.panel.webview.html = createOnboardingHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
