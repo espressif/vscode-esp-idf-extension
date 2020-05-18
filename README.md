@@ -249,7 +249,7 @@ When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide s
 
 ## ESP Rainmaker Support
 
-We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](https://github.com/espressif/esp-idf/blob/master/docs/ESP_RAINMAKER.md) for more info
+We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](/docs/ESP_RAINMAKER.md) for more info
 
 ## Forum
 
