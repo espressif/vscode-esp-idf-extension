@@ -188,11 +188,6 @@ export class OnBoardingPanel {
             message.custom_vars &&
             message.py_bin_path
           ) {
-            if (message.py_bin_path === "") {
-              vscode.window.showInformationMessage(
-                "Please input a valid  virtual env Python executable"
-              );
-            }
             this.idfToolsManager
               .checkToolsVersion(message.custom_paths)
               .then((dictTools) => {
@@ -225,6 +220,12 @@ export class OnBoardingPanel {
                   message.py_bin_path
                 );
               });
+          } else {
+            if (message.py_bin_path === "") {
+              vscode.window.showInformationMessage(
+                "Please fill all required inputs"
+              );
+            }
           }
           break;
         case "getRequiredToolsInfo":
