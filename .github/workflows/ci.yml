@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -57,6 +57,3 @@ jobs:
         with:
           name: testing.results.log
           path: testing.results.log
-      
-      - name: Check Node Packages Vulnerabilities
-        run: yarn audit

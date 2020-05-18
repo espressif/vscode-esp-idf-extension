@@ -38,25 +38,14 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 
   public refresh(projectDescriptionPath: string): void {
     this.projectDescriptionJsonPath = projectDescriptionPath;
-    this.OnDidChangeTreeData.fire();
+    this.OnDidChangeTreeData.fire(null);
   }
 
   public getTreeItem(element: IdfComponent): TreeItem {
-    /* return {
-            resourceUri: element.uri,
-            collapsibleState: element.isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : void 0,
-            command: element.isDirectory ? void 0 : {
-                command: 'extension.openComponent',
-                arguments: [element.uri],
-                title: 'Open IDF component'
-            }
-        }; */
     return element;
   }
 
   public getChildren(element?: IdfComponent): Thenable<IdfComponent[]> {
-    // let components: IdfComponent[] = utils.readDirSync(element.uri);
-
     return new Promise((resolve) => {
       if (element) {
         resolve(utils.readComponentsDirs(element.uri.fsPath));
