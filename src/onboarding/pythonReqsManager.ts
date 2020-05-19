@@ -55,7 +55,6 @@ export async function checkPythonRequirements(
     idfToolsPath,
     pythonBinPath
   );
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   await utils
     .startPythonReqsProcess(pythonBin, espIdfPath, requirements)
     .then(async (pyReqLog) => {
@@ -116,7 +115,6 @@ export async function installPythonRequirements(
     return;
   }
   const logTracker = new PyReqLog(sendPyReqLog);
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return await pythonManager
     .installPythonEnv(
       espIdfPath,
