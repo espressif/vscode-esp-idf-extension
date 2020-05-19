@@ -17,6 +17,7 @@ import * as vscode from "vscode";
 import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
+import * as idfConf from "../idfConfiguration";
 
 export interface countRange {
   range: vscode.Range;
@@ -33,13 +34,16 @@ export interface textEditorWithCoverage {
 }
 
 export async function buildJson(dirPath: string) {
+  const idfPathDir =
+    idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+  const componentsDir = join(idfPathDir, "components");
   const result = await _runCmd(
     "gcovr",
     [
       "--filter",
       ".",
       "--filter",
-      "/Users/brian/esp-idf/components/",
+      componentsDir,
       "--gcov-executable",
       "xtensa-esp32-elf-gcov",
       "--json",
@@ -50,13 +54,16 @@ export async function buildJson(dirPath: string) {
 }
 
 export async function buildHtml(dirPath: string) {
+  const idfPathDir =
+    idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+  const componentsDir = join(idfPathDir, "components");
   const result = await _runCmd(
     "gcovr",
     [
       "--filter",
       ".",
       "--filter",
-      "/Users/brian/esp-idf/components/",
+      componentsDir,
       "--gcov-executable",
       "xtensa-esp32-elf-gcov",
       "--html",
