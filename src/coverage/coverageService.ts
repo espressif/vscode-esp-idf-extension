@@ -14,7 +14,7 @@
 
 import { basename, join } from "path";
 import * as vscode from "vscode";
-import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
+import { appendIdfAndToolsToPath, spawn } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
@@ -75,17 +75,14 @@ export async function buildHtml(dirPath: string) {
 
 function _runCmd(cmd: string, args: string[], dirPath: string) {
   const modifiedEnv = appendIdfAndToolsToPath();
-  return execChildProcess(
-    `${cmd} ${args.join(" ")}`,
-    dirPath,
-    OutputChannel.init(),
-    { env: modifiedEnv, cwd: dirPath }
-  ).catch((e) => {
-    const msg = e.message ? e.message : e;
-    Logger.error("Error on gcov cmd.\n" + msg, e);
-    OutputChannel.appendLine("Error building gcov cmd.\n" + msg);
-    return "";
-  });
+  return spawn(cmd, args, { env: modifiedEnv, cwd: dirPath })
+    .then((resultBuffer) => resultBuffer.toString())
+    .catch((e) => {
+      const msg = e.message ? e.message : e;
+      Logger.error("Error on gcov cmd.\n" + msg, e);
+      OutputChannel.appendLine("Error building gcov cmd.\n" + msg);
+      return "";
+    });
 }
 
 export async function generateCoverageForEditors(
