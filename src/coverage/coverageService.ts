@@ -19,6 +19,10 @@ import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
 
+const COVERED_FACTOR = 0.9;
+const PARTIAL_FACTOR = 0.75;
+const MIN_LINE_COUNT = 1;
+
 export interface countRange {
   range: vscode.Range;
   count: Number;
@@ -114,17 +118,27 @@ export async function generateCoverageForEditors(
         gcovFile.file === editor.document.fileName
       ) {
         const coveredEditor: textEditorWithCoverage = {
-          editor,
+          allLines: [],
+          countPerLines: [],
           coveredLines: [],
+          editor,
           partialLines: [],
           uncoveredLines: [],
-          countPerLines: [],
-          allLines: [],
         };
 
         for (let i = 0; i < editor.document.lineCount; i++) {
           coveredEditor.allLines.push(editor.document.lineAt(i).range);
         }
+
+        const maxLineCount =
+          gcovFile.lines.reduce((prev, curr) => {
+            return prev < curr.count ? curr.count : prev;
+          }, 0) || MIN_LINE_COUNT;
+
+        const coveredLineCount =
+          Math.round(maxLineCount * COVERED_FACTOR) || MIN_LINE_COUNT;
+        const partialLineCount =
+          Math.floor(maxLineCount * PARTIAL_FACTOR) || MIN_LINE_COUNT;
 
         for (let covLine of gcovFile.lines) {
           if (covLine && !covLine["gcovr/noncode"]) {
@@ -136,9 +150,12 @@ export async function generateCoverageForEditors(
             });
             coveredEditor.allLines.splice(rangeToDelIndex, 1);
 
-            if (covLine.count > 1) {
+            if (covLine.count >= coveredLineCount) {
               coveredEditor.coveredLines.push(lineRange);
-            } else if (covLine.count === 1) {
+            } else if (
+              partialLineCount <= covLine.count &&
+              covLine.count < coveredLineCount
+            ) {
               coveredEditor.partialLines.push(lineRange);
             } else {
               coveredEditor.uncoveredLines.push(lineRange);
