@@ -1327,11 +1327,19 @@ function createIdfTerminal() {
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
+      strictEnv: true,
     });
     espIdfTerminal.show();
     const envSetCmd =
       process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
     espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
+    const setPythonEnvCmd =
+      process.platform === "win32" ? `set "Path=` : `export PATH="`;
+    espIdfTerminal.sendText(
+      `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
+        process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
+      }"`
+    );
     const clearCmd = process.platform === "win32" ? "cls" : "clear";
     espIdfTerminal.sendText(clearCmd);
   });

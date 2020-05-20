@@ -57,7 +57,7 @@ export class AppTraceArchiveTreeDataProvider
     return this.appTraceArchives;
   }
   public refresh() {
-    this.OnDidChangeTreeData.fire();
+    this.OnDidChangeTreeData.fire(null);
   }
 
   public populateArchiveTree() {

@@ -557,12 +557,6 @@ export function appendIdfAndToolsToPath() {
   const modifiedEnv: NodeJS.ProcessEnv = {};
   Object.assign(modifiedEnv, process.env);
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-  const originalPath =
-    process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH;
-  if (originalPath && !originalPath.includes(extraPaths)) {
-    modifiedEnv.PATH = extraPaths + path.delimiter + originalPath;
-    modifiedEnv.Path = extraPaths + path.delimiter + originalPath;
-  }
 
   const customVarsString = idfConf.readParameter(
     "idf.customExtraVars"
@@ -582,10 +576,6 @@ export function appendIdfAndToolsToPath() {
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
   modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
-  modifiedEnv.PATH =
-    path.join(modifiedEnv.IDF_PATH, "tools") +
-    path.delimiter +
-    modifiedEnv.PATH;
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
@@ -602,7 +592,27 @@ export function appendIdfAndToolsToPath() {
     "components",
     "partition_table"
   )}`;
-  modifiedEnv.PATH = `"${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv.PATH}"`;
+
+  let pathNameInEnv: string;
+  if (process.platform === "win32") {
+    pathNameInEnv = "Path";
+  } else {
+    pathNameInEnv = "PATH";
+  }
+  modifiedEnv[pathNameInEnv] =
+    path.join(modifiedEnv.IDF_PATH, "tools") +
+    path.delimiter +
+    modifiedEnv[pathNameInEnv];
+  if (
+    modifiedEnv[pathNameInEnv] &&
+    !modifiedEnv[pathNameInEnv].includes(extraPaths)
+  ) {
+    modifiedEnv[pathNameInEnv] =
+      extraPaths + path.delimiter + modifiedEnv[pathNameInEnv];
+  }
+  modifiedEnv[
+    pathNameInEnv
+  ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
   const idfTarget = idfConf.readParameter("idf.adapterTargetName");
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
