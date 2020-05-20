@@ -173,15 +173,20 @@ export async function generateCoverageForEditors(
   return coveredEditors;
 }
 
+let gcovHtmlPanel: vscode.WebviewPanel;
 export async function previewReport(dirPath: string) {
   try {
+    if (gcovHtmlPanel) {
+      return;
+    }
     const reportHtml = await buildHtml(dirPath);
-    const previewPanel = vscode.window.createWebviewPanel(
+    gcovHtmlPanel = vscode.window.createWebviewPanel(
       "gcoveragePreview",
       "Coverage report",
       vscode.ViewColumn.One
     );
-    previewPanel.webview.html = reportHtml;
+    gcovHtmlPanel.webview.html = reportHtml;
+    gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {
     const msg = e.message ? e.message : e;
     Logger.error("Error building gcov html.\n" + msg, e);
