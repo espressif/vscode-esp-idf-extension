@@ -31,9 +31,9 @@ export abstract class XtensaTools {
   }
 
   protected async call(args: string[]): Promise<Buffer> {
-    appendIdfAndToolsToPath();
+    const env = appendIdfAndToolsToPath();
     try {
-      return await spawn(this.toolName, args);
+      return await spawn(this.toolName, args, { env });
     } catch (error) {
       Logger.errorNotify(
         `Make sure ${this.toolName} is set in the Path with proper permission`,
