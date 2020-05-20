@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { basename, join } from "path";
+import { sep, join } from "path";
 import * as vscode from "vscode";
 import { appendIdfAndToolsToPath, spawn } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
@@ -25,12 +25,12 @@ export interface countRange {
 }
 
 export interface textEditorWithCoverage {
+  allLines: vscode.Range[];
+  countPerLines: countRange[];
   coveredLines: vscode.Range[];
+  editor: vscode.TextEditor;
   partialLines: vscode.Range[];
   uncoveredLines: vscode.Range[];
-  editor: vscode.TextEditor;
-  countPerLines: countRange[];
-  allLines: vscode.Range[];
 }
 
 export async function buildJson(dirPath: string) {
@@ -78,7 +78,7 @@ function _runCmd(cmd: string, args: string[], dirPath: string) {
   return spawn(cmd, args, { env: modifiedEnv, cwd: dirPath })
     .then((resultBuffer) => resultBuffer.toString())
     .catch((e) => {
-      const msg = e.message ? e.message : e;
+      const msg = e.error ? e.error.message : e;
       Logger.error("Error on gcov cmd.\n" + msg, e);
       OutputChannel.appendLine("Error building gcov cmd.\n" + msg);
       return "";
@@ -92,15 +92,21 @@ export async function generateCoverageForEditors(
   const gcovObj = await buildJson(dirPath);
   const coveredEditors: textEditorWithCoverage[] = [];
   for (let editor of editors) {
-    const filename = basename(editor.document.fileName);
-    const gcovObjFilePath = join(
-      "build",
-      "esp-idf",
-      "main",
-      "CMakeFiles",
-      "__idf_main.dir",
-      filename
-    );
+    let gcovObjFilePath = "";
+    if (editor.document.fileName.indexOf(dirPath) > -1) {
+      const fileParts = editor.document.fileName
+        .replace(dirPath + sep, "")
+        .split(sep);
+      const fileName = fileParts.pop();
+      gcovObjFilePath = join(
+        "build",
+        "esp-idf",
+        fileParts[fileParts.length - 1],
+        "CMakeFiles",
+        `__idf_${fileParts[fileParts.length - 1]}.dir`,
+        fileName
+      );
+    }
 
     for (const gcovFile of gcovObj.files) {
       if (

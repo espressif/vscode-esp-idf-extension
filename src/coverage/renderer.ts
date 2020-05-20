@@ -55,11 +55,14 @@ export function getCoverageOptions() {
 }
 
 export class CoverageRenderer {
-  private coveredDecoratorType: vscode.TextEditorDecorationType;
-  private partialDecoratorType: vscode.TextEditorDecorationType;
-  private notCoveredDecoratorType: vscode.TextEditorDecorationType;
+  private cache: textEditorWithCoverage[];
   private countDecoratorTypes: vscode.TextEditorDecorationType[];
+  private coverageWatcher: vscode.FileSystemWatcher;
+  private coveredDecoratorType: vscode.TextEditorDecorationType;
+  private editorEventListener: vscode.Disposable;
   private marginDecoratorType: vscode.TextEditorDecorationType;
+  private notCoveredDecoratorType: vscode.TextEditorDecorationType;
+  private partialDecoratorType: vscode.TextEditorDecorationType;
   private workspaceFolder: vscode.Uri;
 
   constructor(workspaceFolder: vscode.Uri, options: CoverageOptions) {
@@ -113,6 +116,7 @@ export class CoverageRenderer {
       rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
     });
     this.countDecoratorTypes = [];
+    this.cache = [];
   }
 
   private setDecoratorsForEditor(editorsWithCov: textEditorWithCoverage[]) {
@@ -153,13 +157,56 @@ export class CoverageRenderer {
 
   public async renderCoverage() {
     const editors = vscode.window.visibleTextEditors;
-    if (editors && editors.length > 0) {
+    if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
         editors,
         this.workspaceFolder.fsPath
       );
       this.setDecoratorsForEditor(editorsWithCoverage);
+      this.cache = editorsWithCoverage;
+      this.listenToEditorEvent();
+      this.listenToCovChanges();
     }
+  }
+
+  private async editorEventHandler(textEditors: vscode.TextEditor[]) {
+    const editorsWithNoCoverage: vscode.TextEditor[] = [];
+    const editorsInCache: textEditorWithCoverage[] = [];
+    for (const textEditor of textEditors) {
+      const editorInCache = this.cache.find(
+        (editorWithCov) =>
+          editorWithCov.editor.document.uri.fsPath ===
+          textEditor.document.uri.fsPath
+      );
+      if (editorInCache) {
+        editorInCache.editor = textEditor;
+        editorsInCache.push(editorInCache);
+      } else {
+        editorsWithNoCoverage.push(textEditor);
+      }
+    }
+    this.setDecoratorsForEditor(editorsInCache);
+    const editorsWithCoverage = await generateCoverageForEditors(
+      editorsWithNoCoverage,
+      this.workspaceFolder.fsPath
+    );
+    this.cache.push(...editorsWithCoverage);
+    this.setDecoratorsForEditor(editorsWithCoverage);
+  }
+
+  private listenToEditorEvent() {
+    this.editorEventListener = vscode.window.onDidChangeVisibleTextEditors(
+      this.editorEventHandler.bind(this)
+    );
+  }
+
+  private listenToCovChanges() {
+    this.coverageWatcher = vscode.workspace.createFileSystemWatcher(
+      `**/*.{gcda,gcno}`
+    );
+    this.coverageWatcher.onDidChange(this.renderCoverage.bind(this));
+    this.coverageWatcher.onDidCreate(this.renderCoverage.bind(this));
+    this.coverageWatcher.onDidDelete(this.renderCoverage.bind(this));
   }
 
   public removeCoverage() {
@@ -175,12 +222,17 @@ export class CoverageRenderer {
       }
       editor.setDecorations(this.marginDecoratorType, []);
     }
+    this.cache = [];
+    this.coverageWatcher.dispose();
+    this.editorEventListener.dispose();
   }
 
   public dispose() {
+    this.coverageWatcher.dispose();
     this.coveredDecoratorType.dispose();
-    this.partialDecoratorType.dispose();
-    this.notCoveredDecoratorType.dispose();
+    this.editorEventListener.dispose();
     this.marginDecoratorType.dispose();
+    this.notCoveredDecoratorType.dispose();
+    this.partialDecoratorType.dispose();
   }
 }
