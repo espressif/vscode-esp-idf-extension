@@ -11,7 +11,7 @@ static int __attribute__ ((noinline)) summ(int a, int b)
 }
 
 static void fibonacci_calc_once(void)
-/* calculation of 3 fibonacci sequences: f0, f1 abd f2
+/* calculation of 3 Fibonacci sequences: f0, f1 and f2
  * f(n) = f(n-1) + f(n-2) -> f(n) : 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...*/
 {
 
@@ -39,7 +39,7 @@ static void fibonacci_calc_once(void)
 }
 
 static void fibonacci_calc(void)
-/* calculation of 3 fibonacci sequences: f0, f1 abd f2
+/* calculation of 3 Fibonacci sequences: f0, f1 and f2
  * f(n) = f(n-1) + f(n-2) -> f(n) : 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...*/
 {
 
@@ -65,6 +65,7 @@ static void fibonacci_calc(void)
         f2_n = f2_nm1 + f2_nm2;
         f2_nm2 = f2_nm1; // n shift// calculating f2_n
         f2_nm1 = f2_n;
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
