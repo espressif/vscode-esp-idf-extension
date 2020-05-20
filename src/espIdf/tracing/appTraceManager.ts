@@ -22,11 +22,14 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists, sleep } from "../../utils";
+import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./tree/appTraceTreeDataProvider";
+import {
+  AppTraceButtonType,
+  AppTraceTreeDataProvider,
+} from "./tree/appTraceTreeDataProvider";
 
 export interface IAppTraceManagerConfig {
   host: string;
@@ -132,15 +135,17 @@ export class AppTraceManager extends EventEmitter {
 
   public async start() {
     try {
-      if (await this.promptUserToLaunchOpenOCDServer()) {
-        this.treeDataProvider.showStopButton();
-        this.treeDataProvider.updateDescription("");
+      if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
+        this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
+        this.treeDataProvider.updateDescription(
+          AppTraceButtonType.AppTraceButton,
+          ""
+        );
         // tslint:disable-next-line: max-line-length
         const workspace = vscode.workspace.workspaceFolders
           ? vscode.workspace.workspaceFolders[0].uri
           : undefined;
         const workspacePath = workspace ? workspace.fsPath : "";
-        // const fileName = `file://${join(workspacePath, "trace")}/trace_${new Date().getTime()}.trace`;
         const fileName = vscode.Uri.file(
           join(workspacePath, "trace", `trace_${new Date().getTime()}.trace`)
         );
@@ -151,7 +156,7 @@ export class AppTraceManager extends EventEmitter {
         const skipSize = idfConf.readParameter("trace.skip_size");
         const startTrackingHandler = this.sendCommandToTCLSession(
           [
-            "esp32",
+            "esp",
             "apptrace",
             "start",
             fileName,
@@ -166,8 +171,13 @@ export class AppTraceManager extends EventEmitter {
           tracingStatusHandler.stop();
           startTrackingHandler.stop();
 
-          this.treeDataProvider.showStartButton();
-          this.treeDataProvider.updateDescription("[Stopped]");
+          this.treeDataProvider.showStartButton(
+            AppTraceButtonType.AppTraceButton
+          );
+          this.treeDataProvider.updateDescription(
+            AppTraceButtonType.AppTraceButton,
+            "[Stopped]"
+          );
           this.archiveDataProvider.populateArchiveTree();
         });
       }
@@ -177,42 +187,32 @@ export class AppTraceManager extends EventEmitter {
   }
 
   public async stop() {
-    if (await this.promptUserToLaunchOpenOCDServer()) {
+    if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
       const stopHandler = this.sendCommandToTCLSession("esp32 apptrace stop");
       stopHandler.on("response", (resp: Buffer) => {
         const respStr = resp.toString();
         if (respStr.includes("Tracing is not running!")) {
-          this.treeDataProvider.updateDescription("[NotRunning]");
+          this.treeDataProvider.updateDescription(
+            AppTraceButtonType.AppTraceButton,
+            "[NotRunning]"
+          );
         } else if (respStr.includes("Disconnect targets")) {
-          this.treeDataProvider.updateDescription("[Disconnected]");
+          this.treeDataProvider.updateDescription(
+            AppTraceButtonType.AppTraceButton,
+            "[Disconnected]"
+          );
         }
         stopHandler.stop();
-        this.treeDataProvider.showStartButton();
       });
     } else {
-      this.treeDataProvider.showStartButton();
-      this.treeDataProvider.updateDescription("[Terminated]");
-    }
-  }
-
-  private async promptUserToLaunchOpenOCDServer(): Promise<boolean> {
-    const tclClient = new TCLClient(this.tclConnectionParams);
-    if (!(await tclClient.isOpenOCDServerRunning())) {
-      const resp = await vscode.window.showInformationMessage(
-        "OpenOCD is not running, do you want to launch it?",
-        { modal: true },
-        { title: "Yes" },
-        { title: "Cancel", isCloseAffordance: true }
+      this.treeDataProvider.updateDescription(
+        AppTraceButtonType.AppTraceButton,
+        "[Terminated]"
       );
-      if (resp && resp.title === "Yes") {
-        await OpenOCDManager.init().start();
-        await sleep(1000);
-        return true;
-      }
-      return false;
     }
-    return true;
+    this.treeDataProvider.showStartButton(AppTraceButtonType.AppTraceButton);
+    this.archiveDataProvider.refresh();
   }
 
   private sendCommandToTCLSession(command: string): TCLClient {
@@ -243,10 +243,14 @@ export class AppTraceManager extends EventEmitter {
               (parseInt(progressArr[0], 10) / parseInt(progressArr[1], 10)) *
               100;
             this.treeDataProvider.updateDescription(
+              AppTraceButtonType.AppTraceButton,
               `${Math.round(progressPercentage)}%`
             );
           } catch (error) {
-            this.treeDataProvider.updateDescription(`Tracing...`);
+            this.treeDataProvider.updateDescription(
+              AppTraceButtonType.AppTraceButton,
+              `Tracing...`
+            );
           }
         }
       }

@@ -25,6 +25,7 @@ import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { getProjectName } from "./workspaceConfig";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -393,6 +394,36 @@ export function dirExistPromise(dirPath) {
 export function isStringNotEmpty(str: string) {
   // Check if there is at least 1 alphanumeric character in the string.
   return !!str.trim();
+}
+
+export async function getElfFilePath(
+  workspaceURI: vscode.Uri
+): Promise<string> {
+  let projectName = "";
+  if (!workspaceURI) {
+    throw new Error("No Workspace open");
+  }
+
+  try {
+    projectName = await getProjectName(workspaceURI.fsPath);
+  } catch (error) {
+    Logger.errorNotify(
+      "Failed to read project name while fetching elf file",
+      error
+    );
+    return;
+  }
+
+  const buildDir = path.join(workspaceURI.fsPath, "build");
+  if (!canAccessFile(buildDir, fs.constants.R_OK)) {
+    throw new Error("Build is required once to generate the ELF File");
+  }
+
+  const elfFilePath = path.join(buildDir, `${projectName}.elf`);
+  if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
+    throw new Error(`Failed to access .elf file at ${elfFilePath}`);
+  }
+  return elfFilePath;
 }
 
 export function checkIsProjectCmakeLists(dir: string) {

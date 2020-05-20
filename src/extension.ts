@@ -24,10 +24,6 @@ import {
 } from "vscode-languageclient";
 import { BuildManager } from "./build/build";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
-import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
-import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
-import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import {
   DebugAdapterManager,
   IDebugAdapterConfig,
@@ -40,9 +36,15 @@ import {
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
+import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
+import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
+import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
+import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
+import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
+import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -72,6 +74,7 @@ let debugAdapterManager: DebugAdapterManager;
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
+let heapTraceManager: HeapTraceManager;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -132,6 +135,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
   appTraceManager = new AppTraceManager(
+    appTraceTreeDataProvider,
+    appTraceArchiveTreeDataProvider
+  );
+  heapTraceManager = new HeapTraceManager(
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
@@ -605,8 +612,16 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window
         .showQuickPick(
           [
-            { description: "ESP32", label: "ESP32", target: "esp32" },
-            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
+            {
+              description: "ESP32",
+              label: "ESP32",
+              target: "esp32",
+            },
+            {
+              description: "ESP32 S2 (Beta)",
+              label: "ESP32S2BETA",
+              target: "esp32s2beta",
+            },
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
@@ -676,8 +691,7 @@ export async function activate(context: vscode.ExtensionContext) {
             title: "ESP-IDF: Configure extension",
           },
           async (
-            progress: vscode.Progress<{ message: string; increment: number }>,
-            cancelToken: vscode.CancellationToken
+            progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
               const onboardingArgs = await getOnboardingInitialValues(
@@ -782,10 +796,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
+      if (appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)) {
         await appTraceManager.start();
       } else {
         await appTraceManager.stop();
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.heaptrace", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      if (appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)) {
+        await heapTraceManager.start();
+      } else {
+        await heapTraceManager.stop();
       }
     });
   });
@@ -813,7 +837,13 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     PreCheck.perform([openFolderCheck], () => {
       AppTracePanel.createOrShow(context, {
-        trace: { fileName: trace.fileName, filePath: trace.filePath },
+        trace: {
+          fileName: trace.fileName,
+          filePath: trace.filePath,
+          type: trace.type,
+          workspacePath: workspaceRoot.fsPath,
+          idfPath: idfConf.readParameter("idf.espIdfPath"),
+        },
       });
     });
   });
