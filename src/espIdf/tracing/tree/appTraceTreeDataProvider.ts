@@ -113,7 +113,7 @@ export class AppTraceTreeDataProvider
     return [this.appTraceButton, this.heapTraceButton];
   }
   public refresh() {
-    this.OnDidChangeTreeData.fire();
+    this.OnDidChangeTreeData.fire(null);
   }
   private initAppTraceButton() {
     this.appTraceButton = new AppTracerItems("Start App Trace");
