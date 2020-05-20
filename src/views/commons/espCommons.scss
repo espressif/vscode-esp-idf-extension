@@ -82,3 +82,9 @@ button > span.icon > i:hover {
 .input:focus {
   border-color: var(--vscode-inputOption-activeBorder);
 }
+.is-hidden {
+  opacity: 0;
+}
+div.plotly-notifier {
+  visibility: hidden;
+}

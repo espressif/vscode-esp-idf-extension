@@ -112,7 +112,7 @@ export class IDFSizePanel {
       this._extensionPath,
       "dist",
       "views",
-      "espSize.html"
+      "size.html"
     );
     if (!fs.existsSync(htmlFilePath)) {
       return this.notFoundStaticHtml();
