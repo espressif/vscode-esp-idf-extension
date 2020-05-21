@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/stale@v1
+      - uses: actions/stale@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: "This issue has been marked as stale since there are no activities for the last 15 days and this issue will be closed 5 days for today if there are still no further activities."
