@@ -73,8 +73,12 @@ export class MenuConfigPanel {
         ],
       }
     );
-
-    this.panel.webview.html = this.createMenuconfigHtml(extensionPath);
+    const scriptPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
+      )
+    );
+    this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
 
@@ -225,11 +229,7 @@ export class MenuConfigPanel {
     });
   }
 
-  private createMenuconfigHtml(extensionPath: string): string {
-    const vuePath = vscode.Uri.file(
-      path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
-    ).with({ scheme: "vscode-resource" });
-
+  private createMenuconfigHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -240,7 +240,7 @@ export class MenuConfigPanel {
             <body>
                 <div id="menuconfig"></div>
             </body>
-            <script src="${vuePath}"></script>
+            <script src="${scriptPath}"></script>
         </html>`;
   }
 }

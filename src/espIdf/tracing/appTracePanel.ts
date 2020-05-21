@@ -293,9 +293,9 @@ export class AppTracePanel {
       return this.notFoundStaticHtml();
     }
     let html = fs.readFileSync(htmlFilePath).toString();
-    const fileUrl = vscode.Uri.file(htmlFilePath).with({
-      scheme: "vscode-resource",
-    });
+    const fileUrl = this._panel.webview.asWebviewUri(
+      vscode.Uri.file(htmlFilePath)
+    );
     if (/(<head(\s.*)?>)/.test(html)) {
       html = html.replace(
         /(<head(\s.*)?>)/,
