@@ -1300,11 +1300,20 @@ function createIdfTerminal() {
       strictEnv: true,
     });
     espIdfTerminal.show();
+    const shellExecutable = path.basename(vscode.env.shell);
+    let winShellCmd = {
+      "cmd.exe": `set "VARIABLE=`,
+      "powershell.exe": `$Env:VARIABLE = "`,
+    };
     const envSetCmd =
-      process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_PATH")
+        : `export IDF_PATH="`;
     espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
     const setPythonEnvCmd =
-      process.platform === "win32" ? `set "Path=` : `export PATH="`;
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "Path")
+        : `export PATH="`;
     espIdfTerminal.sendText(
       `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
         process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
