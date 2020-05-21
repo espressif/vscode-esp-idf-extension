@@ -14,6 +14,7 @@
 
 import * as vscode from "vscode";
 import {
+  buildJson,
   generateCoverageForEditors,
   textEditorWithCoverage,
 } from "./coverageService";
@@ -64,6 +65,7 @@ export class CoverageRenderer {
   private notCoveredDecoratorType: vscode.TextEditorDecorationType;
   private partialDecoratorType: vscode.TextEditorDecorationType;
   private workspaceFolder: vscode.Uri;
+  private gcovObj;
 
   constructor(workspaceFolder: vscode.Uri, options: CoverageOptions) {
     this.workspaceFolder = workspaceFolder;
@@ -157,10 +159,12 @@ export class CoverageRenderer {
 
   public async renderCoverage() {
     const editors = vscode.window.visibleTextEditors;
+    this.gcovObj = await buildJson(this.workspaceFolder.fsPath);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
+        this.workspaceFolder.fsPath,
         editors,
-        this.workspaceFolder.fsPath
+        this.gcovObj
       );
       this.setDecoratorsForEditor(editorsWithCoverage);
       this.cache = editorsWithCoverage;
@@ -187,8 +191,9 @@ export class CoverageRenderer {
     }
     this.setDecoratorsForEditor(editorsInCache);
     const editorsWithCoverage = await generateCoverageForEditors(
+      this.workspaceFolder.fsPath,
       editorsWithNoCoverage,
-      this.workspaceFolder.fsPath
+      this.gcovObj
     );
     this.cache.push(...editorsWithCoverage);
     this.setDecoratorsForEditor(editorsWithCoverage);
