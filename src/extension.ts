@@ -612,16 +612,8 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window
         .showQuickPick(
           [
-            {
-              description: "ESP32",
-              label: "ESP32",
-              target: "esp32",
-            },
-            {
-              description: "ESP32 S2 (Beta)",
-              label: "ESP32S2BETA",
-              target: "esp32s2beta",
-            },
+            { description: "ESP32", label: "ESP32", target: "esp32" },
+            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
