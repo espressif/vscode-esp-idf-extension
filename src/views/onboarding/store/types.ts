@@ -59,6 +59,7 @@ export interface IState {
   isPyInstallCompleted: boolean;
   isToolsCheckCompleted: boolean;
   pathDelimiter: string;
+  pyBinPath: string;
   pyLog: string;
   pyVersionList: string[];
   requiredToolsVersions: IToolStatus[];

@@ -27,7 +27,6 @@
   "param.baudRate": "Tasa de baudios del dispositivo",
   "param.port": "Ruta del puerto serial del dispositivo ESP-IDF",
   "param.pythonBinPath": "Ruta absoluta del ejecutable Python para ESP-IDF",
-  "param.pythonSystemBinPath": "Ruta del ejecutable nivel sistema para agregar al PATH",
   "param.toolsPath": "Ruta de las herramientas de ESP-IDF (IDF_TOOLS_PATH)",
   "param.exportPaths": "Rutas para agregar a PATH",
   "param.exportVars": "Variables para agregar a variables de sistema",
