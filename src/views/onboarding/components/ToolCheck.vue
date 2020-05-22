@@ -39,9 +39,4 @@ export default class ToolCheck extends Vue {
   margin-left: 5%;
   white-space: pre-line;
 }
-.check-icon {
-  fill: var(--vscode-editor-foreground);
-  padding-top: 5%;
-  font-size: large;
-}
 </style>

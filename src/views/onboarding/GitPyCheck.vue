@@ -43,7 +43,7 @@
     <router-link
       v-on:click.native="savePyBin"
       to="/download"
-      class="check-button"
+      class="onboarding-button"
       >Configure ESP-IDF</router-link
     >
   </div>
@@ -101,62 +101,5 @@ export default class GitPyCheck extends Vue {
   padding-top: 10%;
   text-align: center;
   color: var(--vscode-editor-foreground);
-}
-.text-size {
-  width: 90%;
-}
-.arrow {
-  position: relative;
-  display: inline-block;
-  vertical-align: middle;
-  color: var(--vscode-editor-foreground);
-  box-sizing: border-box;
-}
-.arrow:before {
-  content: "";
-  box-sizing: border-box;
-}
-.arrow:hover {
-  color: var(--vscode-button-background);
-}
-
-.check-button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  text-decoration: none;
-  margin-top: 2%;
-  transition: opacity 0.5s ease 1s;
-  border: none;
-  cursor: pointer;
-  padding: 0.5% 0.5%;
-}
-.check-button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
-}
-
-.go-back {
-  width: 20px;
-  height: 20px;
-  border-width: 4px 4px 0 0;
-  border-style: solid;
-  margin: 10px;
-  cursor: pointer;
-}
-.go-back:before {
-  right: 0;
-  top: -3px;
-  position: absolute;
-  height: 4px;
-  box-shadow: inset 0 0 0 32px;
-  -webkit-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  width: 23px;
-  -webkit-transform-origin: right top;
-  transform-origin: right top;
-}
-.right {
-  -webkit-transform: rotate(-135deg);
-  transform: rotate(-135deg);
 }
 </style>

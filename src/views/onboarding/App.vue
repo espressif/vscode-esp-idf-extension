@@ -59,7 +59,7 @@
           <router-link
             v-on:click.native="initSetup"
             to="/gitpycheck"
-            class="enter-button"
+            class="onboarding-button"
             >START</router-link
           >
         </div>
@@ -134,13 +134,103 @@ export default class App extends Vue {
 }
 </script>
 
-<style scoped>
+<style>
 #app {
   max-width: 900px;
   margin: 1% auto 1% auto;
   padding-top: 3%;
   text-align: center;
   cursor: default;
+}
+.arrow {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  color: var(--vscode-editor-foreground);
+  box-sizing: border-box;
+}
+.arrow:before {
+  content: "";
+  box-sizing: border-box;
+}
+.arrow:hover {
+  color: var(--vscode-button-background);
+}
+.check-icon {
+  fill: var(--vscode-editor-foreground);
+  padding-top: 5%;
+  font-size: large;
+}
+.go-back {
+  width: 20px;
+  height: 20px;
+  border-width: 4px 4px 0 0;
+  border-style: solid;
+  margin: 10px;
+  cursor: pointer;
+}
+.go-back:before {
+  right: 0;
+  top: -3px;
+  position: absolute;
+  height: 4px;
+  box-shadow: inset 0 0 0 32px;
+  -webkit-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  width: 23px;
+  -webkit-transform-origin: right top;
+  transform-origin: right top;
+}
+.onboarding-button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  text-decoration: none;
+  transition: opacity 0.5s ease 1s;
+  border: none;
+  cursor: pointer;
+  padding: 0.5%;
+  margin: 2%;
+  vertical-align: super;
+}
+
+.onboarding-button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
+}
+
+.open-icon {
+  fill: var(--vscode-editor-foreground);
+  font-size: large;
+  margin-left: 1%;
+  cursor: pointer;
+}
+.open-icon:hover {
+  fill: var(--vscode-button-hoverBackground);
+}
+
+.progressBar {
+  border-radius: 10px;
+  padding: 2px;
+  overflow: hidden;
+}
+.progressBar p {
+  margin: 0%;
+  padding-top: 2%;
+}
+
+.progressBar div {
+  background-color: var(--vscode-button-background);
+  height: 10px;
+  width: 0%;
+  border-radius: 7px;
+  width: 45%;
+}
+.right {
+  -webkit-transform: rotate(-135deg);
+  transform: rotate(-135deg);
+}
+.text-size {
+  width: 60%;
 }
 .welcome-section {
   font-family: "Open Sans", Arial, sans-serif;
@@ -168,21 +258,6 @@ export default class App extends Vue {
 
 .welcome-section .content-wrap .fly-in-text li::last-child(n) {
   margin-right: 0;
-}
-
-.welcome-section .content-wrap .enter-button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  text-decoration: none;
-  transition: opacity 0.5s ease 1s;
-  border: none;
-  cursor: pointer;
-  padding: 0% 0.5%;
-}
-
-.welcome-section .content-wrap .enter-button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
 }
 
 @media (min-width: 800px) {

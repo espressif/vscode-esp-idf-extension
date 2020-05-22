@@ -70,24 +70,6 @@ export default class ToolDownload extends Vue {
   margin-top: 3%;
 }
 
-.progressBar {
-  border-radius: 10px;
-  padding: 2px;
-  overflow: hidden;
-}
-.progressBar p {
-  margin: 0%;
-  padding-top: 2%;
-}
-
-.progressBar div {
-  background-color: var(--vscode-button-background);
-  height: 10px;
-  width: 0%;
-  border-radius: 7px;
-  width: 45%;
-}
-
 .progressText {
   float: left;
   width: 50%;

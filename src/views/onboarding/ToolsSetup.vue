@@ -280,7 +280,7 @@ export default class ToolsSetup extends Vue {
 }
 </script>
 
-<style scoped>
+<style>
 #tools-setup {
   max-width: 900px;
   margin: auto;
@@ -305,67 +305,12 @@ export default class ToolsSetup extends Vue {
   background-color: var(--vscode-button-hoverBackground);
   box-shadow: 1px 0 5px var(--vscode-editor-foreground);
 }
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-.open-icon {
-  fill: var(--vscode-editor-foreground);
-  font-size: large;
-  margin-left: 1%;
-  cursor: pointer;
-}
-.open-icon:hover {
-  fill: var(--vscode-button-hoverBackground);
-}
+
 .margin-icon {
   margin-left: 5%;
 }
 
 .bold {
   font-weight: bold;
-}
-
-.arrow {
-  position: relative;
-  display: inline-block;
-  vertical-align: middle;
-  color: var(--vscode-editor-foreground);
-  box-sizing: border-box;
-}
-.arrow:before {
-  content: "";
-  box-sizing: border-box;
-}
-.arrow:hover {
-  color: var(--vscode-button-background);
-}
-.go-back {
-  width: 20px;
-  height: 20px;
-  border-width: 4px 4px 0 0;
-  border-style: solid;
-  margin: 10px;
-  cursor: pointer;
-}
-.go-back:before {
-  right: 0;
-  top: -3px;
-  position: absolute;
-  height: 4px;
-  box-shadow: inset 0 0 0 32px;
-  -webkit-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  width: 23px;
-  -webkit-transform-origin: right top;
-  transform-origin: right top;
-}
-.right {
-  -webkit-transform: rotate(-135deg);
-  transform: rotate(-135deg);
 }
 </style>
