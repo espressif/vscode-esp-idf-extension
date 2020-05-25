@@ -18,12 +18,8 @@
 
 import { readParameter } from "../../idfConfiguration";
 import { ESP } from "../../config";
-import { createServer } from "http";
 import { env, Uri } from "vscode";
 import { Logger } from "../../logger/logger";
-
-const SEC = 1000;
-const MIN = 60 * SEC;
 
 export enum RainmakerOAuthProvider {
   Google = "Google",
@@ -32,13 +28,9 @@ export enum RainmakerOAuthProvider {
 }
 
 export class RainmakerOAuthManager {
-  public static async getAuthorizationCode(
-    provider: RainmakerOAuthProvider
-  ): Promise<string> {
+  public static openExternalOAuthURL(provider: RainmakerOAuthProvider) {
     const oAuthURL = readParameter("esp.rainmaker.oauth.url");
     let url: URL;
-    let port: number;
-    let code: string;
 
     try {
       url = new URL(oAuthURL);
@@ -48,42 +40,12 @@ export class RainmakerOAuthManager {
       throw err;
     }
 
-    const server = createServer();
-    server.listen(undefined);
-    const timer = setTimeout(() => {
-      server.close();
-    }, 10 * MIN);
-    server.once("listening", () => (port = server.address().port));
-    server.once("request", (req, resp) => {
-      resp.end(
-        "You can now close the browser and return to vscode for further actions"
-      );
-      server.close();
-      const isMatch = req.url.match(/^\/\?code=([0-9a-fA-F\-]+)$/);
-      if (isMatch && isMatch[1]) {
-        code = isMatch[1];
-      } else {
-        const err = new Error("Invalid format for request");
-        Logger.errorNotify(err.message, err);
-      }
-    });
-    server.once("error", (err) => {
-      server.close();
-      Logger.errorNotify("OAuth Server Crashed", err);
-    });
-    server.once("close", () => clearTimeout(timer));
-
     const params = new URLSearchParams(this.getDefaultURLParams());
     params.set("identity_provider", provider);
-    params.set("state", `port:${port}`);
+    params.set("state", `uri:vscode://espressif.esp-idf-extension/rainmaker`);
     url.search = params.toString();
 
-    const canOpen = await env.openExternal(Uri.parse(url.toString()));
-    if (!canOpen) {
-      return;
-    }
-
-    return;
+    env.openExternal(Uri.parse(url.toString()));
   }
 
   private static getDefaultURLParams(): URLSearchParams {

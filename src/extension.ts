@@ -876,13 +876,9 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!accountDetails) {
       return;
     }
+
     if (accountDetails.provider) {
-      const code = await RainmakerOAuthManager.getAuthorizationCode(
-        accountDetails.provider
-      );
-      if (!code) {
-        return;
-      }
+      RainmakerOAuthManager.openExternalOAuthURL(accountDetails.provider);
       return;
     }
 
