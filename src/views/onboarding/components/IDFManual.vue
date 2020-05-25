@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "Vue";
+import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 
