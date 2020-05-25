@@ -24,10 +24,6 @@ import {
 } from "vscode-languageclient";
 import { BuildManager } from "./build/build";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
-import { AppTraceManager } from "./espIdf/apptrace/appTraceManager";
-import { AppTracePanel } from "./espIdf/apptrace/appTracePanel";
-import { AppTraceArchiveTreeDataProvider } from "./espIdf/apptrace/tree/appTraceArchiveTreeDataProvider";
-import { AppTraceTreeDataProvider } from "./espIdf/apptrace/tree/appTraceTreeDataProvider";
 import {
   DebugAdapterManager,
   IDebugAdapterConfig,
@@ -40,9 +36,15 @@ import {
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
+import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
+import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
+import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
+import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
+import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
+import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -80,6 +82,7 @@ let debugAdapterManager: DebugAdapterManager;
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
+let heapTraceManager: HeapTraceManager;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
@@ -145,6 +148,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
   appTraceManager = new AppTraceManager(
+    appTraceTreeDataProvider,
+    appTraceArchiveTreeDataProvider
+  );
+  heapTraceManager = new HeapTraceManager(
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
@@ -546,11 +553,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+      const modifiedEnv = utils.appendIdfAndToolsToPath();
       try {
-        return await utils.findBinaryFullPath(
+        return await utils.isBinInPath(
           "xtensa-esp32-elf-gdb",
-          extraPaths
+          this.workspaceRoot.fsPath,
+          modifiedEnv
         );
       } catch (error) {
         Logger.errorNotify(
@@ -689,8 +697,7 @@ export async function activate(context: vscode.ExtensionContext) {
             title: "ESP-IDF: Configure extension",
           },
           async (
-            progress: vscode.Progress<{ message: string; increment: number }>,
-            cancelToken: vscode.CancellationToken
+            progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
               const onboardingArgs = await getOnboardingInitialValues(
@@ -795,10 +802,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.appTraceStartButton.label.match(/start/gi)) {
+      if (appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)) {
         await appTraceManager.start();
       } else {
         await appTraceManager.stop();
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.heaptrace", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      if (appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)) {
+        await heapTraceManager.start();
+      } else {
+        await heapTraceManager.stop();
       }
     });
   });
@@ -826,7 +843,13 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     PreCheck.perform([openFolderCheck], () => {
       AppTracePanel.createOrShow(context, {
-        trace: { fileName: trace.fileName, filePath: trace.filePath },
+        trace: {
+          fileName: trace.fileName,
+          filePath: trace.filePath,
+          type: trace.type,
+          workspacePath: workspaceRoot.fsPath,
+          idfPath: idfConf.readParameter("idf.espIdfPath"),
+        },
       });
     });
   });
@@ -1509,11 +1532,28 @@ function createIdfTerminal() {
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
+      strictEnv: true,
     });
     espIdfTerminal.show();
+    const shellExecutable = path.basename(vscode.env.shell);
+    let winShellCmd = {
+      "cmd.exe": `set "VARIABLE=`,
+      "powershell.exe": `$Env:VARIABLE = "`,
+    };
     const envSetCmd =
-      process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_PATH")
+        : `export IDF_PATH="`;
     espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
+    const setPythonEnvCmd =
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "Path")
+        : `export PATH="`;
+    espIdfTerminal.sendText(
+      `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
+        process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
+      }"`
+    );
     const clearCmd = process.platform === "win32" ? "cls" : "clear";
     espIdfTerminal.sendText(clearCmd);
   });

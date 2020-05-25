@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as path from "path";
-import * as vscode from "vscode";
+import { Uri } from "vscode";
 
-export function createExamplesHtml(extensionPath: string): string {
-  const vuePath = vscode.Uri.file(
-    path.join(extensionPath, "dist", "views", "examples-bundle.js")
-  ).with({ scheme: "vscode-resource" });
-
+export function createExamplesHtml(scriptPath: Uri): string {
   return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -30,6 +25,6 @@ export function createExamplesHtml(extensionPath: string): string {
         <body>
             <div id="examples"></div>
         </body>
-        <script src="${vuePath}"></script>
+        <script src="${scriptPath}"></script>
     </html>`;
 }

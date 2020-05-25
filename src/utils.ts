@@ -25,6 +25,8 @@ import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { getProjectName } from "./workspaceConfig";
+import { OutputChannel } from "./logger/outputChannel";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -395,6 +397,36 @@ export function isStringNotEmpty(str: string) {
   return !!str.trim();
 }
 
+export async function getElfFilePath(
+  workspaceURI: vscode.Uri
+): Promise<string> {
+  let projectName = "";
+  if (!workspaceURI) {
+    throw new Error("No Workspace open");
+  }
+
+  try {
+    projectName = await getProjectName(workspaceURI.fsPath);
+  } catch (error) {
+    Logger.errorNotify(
+      "Failed to read project name while fetching elf file",
+      error
+    );
+    return;
+  }
+
+  const buildDir = path.join(workspaceURI.fsPath, "build");
+  if (!canAccessFile(buildDir, fs.constants.R_OK)) {
+    throw new Error("Build is required once to generate the ELF File");
+  }
+
+  const elfFilePath = path.join(buildDir, `${projectName}.elf`);
+  if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
+    throw new Error(`Failed to access .elf file at ${elfFilePath}`);
+  }
+  return elfFilePath;
+}
+
 export function checkIsProjectCmakeLists(dir: string) {
   // Check if folder contain CMakeLists.txt with project(name) call.
   const cmakeListFile = path.join(dir, "CMakeLists.txt");
@@ -526,12 +558,6 @@ export function appendIdfAndToolsToPath() {
   const modifiedEnv: NodeJS.ProcessEnv = {};
   Object.assign(modifiedEnv, process.env);
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-  const originalPath =
-    process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH;
-  if (originalPath && !originalPath.includes(extraPaths)) {
-    modifiedEnv.PATH = extraPaths + path.delimiter + originalPath;
-    modifiedEnv.Path = extraPaths + path.delimiter + originalPath;
-  }
 
   const customVarsString = idfConf.readParameter(
     "idf.customExtraVars"
@@ -551,10 +577,14 @@ export function appendIdfAndToolsToPath() {
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
   modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
-  modifiedEnv.PATH =
-    path.join(modifiedEnv.IDF_PATH, "tools") +
-    path.delimiter +
-    modifiedEnv.PATH;
+
+  modifiedEnv.PYTHON =
+    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
+
+  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
+    path.dirname(modifiedEnv.PYTHON)
+  );
+
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
@@ -571,17 +601,33 @@ export function appendIdfAndToolsToPath() {
     "components",
     "partition_table"
   )}`;
-  modifiedEnv.PATH = `"${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv.PATH}"`;
+
+  let pathNameInEnv: string;
+  if (process.platform === "win32") {
+    pathNameInEnv = "Path";
+  } else {
+    pathNameInEnv = "PATH";
+  }
+  modifiedEnv[pathNameInEnv] =
+    modifiedEnv.IDF_PYTHON_ENV_PATH +
+    path.delimiter +
+    path.join(modifiedEnv.IDF_PATH, "tools") +
+    path.delimiter +
+    modifiedEnv[pathNameInEnv];
+
+  if (
+    modifiedEnv[pathNameInEnv] &&
+    !modifiedEnv[pathNameInEnv].includes(extraPaths)
+  ) {
+    modifiedEnv[pathNameInEnv] =
+      extraPaths + path.delimiter + modifiedEnv[pathNameInEnv];
+  }
+  modifiedEnv[
+    pathNameInEnv
+  ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
   const idfTarget = idfConf.readParameter("idf.adapterTargetName");
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
-
-  modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
-
-  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
-    path.dirname(modifiedEnv.PYTHON)
-  );
 
   return modifiedEnv;
 }
@@ -608,16 +654,21 @@ export async function isBinInPath(
   return "";
 }
 
-export async function findBinaryFullPath(
-  binName: string,
-  pathsToVerify: string
+export async function startPythonReqsProcess(
+  pythonBinPath: string,
+  espIdfPath: string,
+  requirementsPath: string
 ) {
-  const locCmd = process.platform === "win32" ? "where" : "which";
-  const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-  return await execChildProcess(
-    `${locCmd} ${binName}`,
-    process.cwd(),
-    this.toolsManagerChannel,
-    { cwd: process.cwd(), env: { PATH: pathModified } }
+  const reqFilePath = path.join(
+    espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  const modifiedEnv = appendIdfAndToolsToPath();
+  return execChildProcess(
+    `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
+    extensionContext.extensionPath,
+    OutputChannel.init(),
+    { env: modifiedEnv }
   );
 }

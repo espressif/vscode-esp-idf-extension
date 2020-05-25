@@ -66,7 +66,12 @@ export default class Menuconfig extends Vue {
 
   get items() {
     if (this.searchString !== "") {
-      return filterItems(this.storeItems, this.searchString.toLowerCase());
+      let searchStrMatch = /^(?:CONFIG_)?(.+)/.exec(this.searchString);
+      let searchMatch =
+        searchStrMatch && searchStrMatch.length > 1
+          ? searchStrMatch[1].toLowerCase()
+          : this.searchString.toLowerCase();
+      return filterItems(this.storeItems, searchMatch);
     }
     return this.storeItems;
   }

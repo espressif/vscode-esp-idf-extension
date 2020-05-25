@@ -20,9 +20,15 @@ import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
+enum TraceType {
+  AppTrace = 0,
+  HeapTrace = 1,
+}
+
 class AppTraceArchiveItems extends vscode.TreeItem {
   public fileName: string;
   public filePath: string;
+  public type: TraceType;
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -51,7 +57,7 @@ export class AppTraceArchiveTreeDataProvider
     return this.appTraceArchives;
   }
   public refresh() {
-    this.OnDidChangeTreeData.fire();
+    this.OnDidChangeTreeData.fire(null);
   }
 
   public populateArchiveTree() {
@@ -61,30 +67,86 @@ export class AppTraceArchiveTreeDataProvider
       : "";
     const traceFolder = join(workspace, "trace");
     if (existsSync(traceFolder)) {
-      let i = 1;
-      readdirSync(traceFolder)
+      const traceLists = readdirSync(traceFolder);
+      let appTraceCounter = 1;
+      const appTraceArchives = [];
+      traceLists
         .filter((trace) => trace.endsWith(".trace"))
         .forEach((trace) => {
-          const name = trace.split("_");
-          const appTraceArchiveNode = new AppTraceArchiveItems(
-            `Trace Log #${i++}`
+          const label = `Trace Log #${appTraceCounter++}`;
+          const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
+            label,
+            trace,
+            traceFolder,
+            TraceType.AppTrace
           );
-          appTraceArchiveNode.fileName = trace;
-          appTraceArchiveNode.filePath = join(traceFolder, trace);
-          appTraceArchiveNode.command = {
-            command: "espIdf.apptrace.archive.showReport",
-            title: "Show Report",
-            arguments: [appTraceArchiveNode],
-          };
-          appTraceArchiveNode.iconPath = new vscode.ThemeIcon("file-binary");
-          appTraceArchiveNode.description = this.sinceAgo(
-            name[1].split(".trace")[0]
-          );
-          this.appTraceArchives.push(appTraceArchiveNode);
+          appTraceArchives.push(appTraceArchiveNode);
         });
+
+      appTraceArchives.reverse();
+      this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
+      appTraceArchives.splice(0, appTraceArchives.length);
+      appTraceCounter = 1;
+
+      traceLists
+        .filter((trace) => trace.endsWith(".svdat"))
+        .forEach((trace) => {
+          const label = `Heap Trace #${appTraceCounter++}`;
+          const appTraceArchiveNode = this.constructAppTraceArchiveItemNode(
+            label,
+            trace,
+            traceFolder,
+            TraceType.HeapTrace
+          );
+          appTraceArchives.push(appTraceArchiveNode);
+        });
+
+      appTraceArchives.reverse();
+      this.appTraceArchives = this.appTraceArchives.concat(appTraceArchives);
+      appTraceArchives.splice(0, appTraceArchives.length);
     }
-    this.appTraceArchives = this.appTraceArchives.reverse();
     this.refresh();
+  }
+  private constructAppTraceArchiveItemNode(
+    label: string,
+    fileName: string,
+    traceFolder: string,
+    type: TraceType
+  ): AppTraceArchiveItems {
+    const name = fileName.split("_");
+    const appTraceArchiveNode = new AppTraceArchiveItems(label);
+    appTraceArchiveNode.fileName = label;
+    appTraceArchiveNode.filePath = join(traceFolder, fileName);
+    appTraceArchiveNode.type = type;
+    appTraceArchiveNode.command = {
+      command: "espIdf.apptrace.archive.showReport",
+      title: "Show Report",
+      arguments: [appTraceArchiveNode],
+    };
+    appTraceArchiveNode.iconPath = {
+      light: join(
+        __filename,
+        "..",
+        "..",
+        "..",
+        "..",
+        "..",
+        "media",
+        "log_light.svg"
+      ),
+      dark: join(
+        __filename,
+        "..",
+        "..",
+        "..",
+        "..",
+        "..",
+        "media",
+        "log_dark.svg"
+      ),
+    };
+    appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
+    return appTraceArchiveNode;
   }
   private sinceAgo(epoch: string): string {
     // tslint:disable-next-line: radix

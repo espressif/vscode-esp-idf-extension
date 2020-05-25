@@ -73,6 +73,11 @@ export const mutations: MutationTree<IState> = {
     newState.selectedPythonVersion = pyVersionList[0];
     Object.assign(state, newState);
   },
+  setPythonBinPath(state, pythonBinPath: string) {
+    const newState = state;
+    newState.pyBinPath = pythonBinPath;
+    Object.assign(state, newState);
+  },
   setPyLog(state, pyLog: string) {
     const newState = state;
     newState.pyLog = pyLog;

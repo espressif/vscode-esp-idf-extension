@@ -224,10 +224,17 @@ window.addEventListener("message", (event) => {
       if (message.confTarget) {
         store.commit("updateConfTarget", message.confTarget);
       }
+      break;
     case "loadWorkspaceFolders":
       if (message.folders) {
         store.commit("setWorkspaceFolders", message.folders);
       }
+      break;
+    case "load_python_bin_path":
+      if (message.pythonBinPath) {
+        store.commit("setPythonBinPath", message.pythonBinPath);
+      }
+      break;
     default:
       break;
   }

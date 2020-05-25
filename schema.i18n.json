@@ -95,7 +95,6 @@
     "param.baudRate",
     "param.port",
     "param.pythonBinPath",
-    "param.pythonSystemBinPath",
     "param.espIdfPath",
     "param.toolsPath",
     "param.exportPaths",

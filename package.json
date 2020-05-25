@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -56,6 +56,7 @@
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.apptrace",
+    "onCommand:espIdf.heaptrace",
     "onCommand:espIdf.openOCDCommand",
     "onCommand:espIdf.apptrace.archive.refresh",
     "onCommand:espIdf.apptrace.archive.showReport",
@@ -253,18 +254,6 @@
             "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
-          "idf.pythonSystemBinPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
-          "idf.pythonSystemBinPathWin": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
           "idf.baudRate": {
             "type": "string",
             "default": "115200",
@@ -459,6 +448,10 @@
       {
         "command": "espIdf.apptrace",
         "title": "%espIdf.apptrace.title%"
+      },
+      {
+        "command": "espIdf.heaptrace",
+        "title": "%espIdf.heaptrace.title%"
       },
       {
         "command": "espIdf.openOCDCommand",

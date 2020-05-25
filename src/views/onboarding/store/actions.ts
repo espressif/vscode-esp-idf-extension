@@ -40,7 +40,9 @@ export const actions: ActionTree<IState, any> = {
   checkManualExportPaths(context) {
     vscode.postMessage({
       command: "checkIdfToolsForPaths",
-      new_value: context.state.customExtraPaths,
+      custom_paths: context.state.customExtraPaths,
+      custom_vars: context.state.envVars,
+      py_bin_path: context.state.pyBinPath,
     });
   },
   getExamplesList() {

@@ -26,7 +26,6 @@
   "param.baudRate": "设备波特率",
   "param.port": "选中的烧录端口路径",
   "param.pythonBinPath": "项目构建使用的 Python 解释器的绝对路径",
-  "param.pythonSystemBinPath": "添加到系统 PATH 环境变量的 Python 路径",
   "param.toolsPath": "IDF_TOOLS_PATH 的路径",
   "param.exportPaths": "导出到系统 PATH 环境变量的路径",
   "param.exportVars": "导出到系统中的环境变量",

@@ -46,70 +46,31 @@
         >
           Go to next step
         </button>
-        <div
+        <ToolDownload
+          :tool="toolVersion"
           v-for="toolVersion in requiredToolsVersions"
           :key="toolVersion.id"
-          class="pkg-progress"
-        >
-          <div class="progressText">
-            <span>Tool: </span> {{ toolVersion.id }} <br />
-            <font-awesome-icon
-              icon="arrow-circle-down"
-              class="check-icon margin-icon"
-              v-if="toolVersion.hasFailed"
-              v-on:click.once="downloadTools"
-            ></font-awesome-icon>
-            <span>Version: </span> {{ toolVersion.expected }} <br />
-            <span v-if="toolVersion.progress === '100.00%'">
-              <span>Checksum : </span>
-              {{ toolVersion.hashResult ? "OK" : "Invalid" }}
-            </span>
-            <span v-if="toolVersion.hasFailed">Download again</span>
-          </div>
-          <div class="progressBar">
-            <p v-if="toolVersion.progress !== '100.00%'">
-              <span>Download Status: </span> {{ toolVersion.progress }}
-              {{ toolVersion.progressDetail }}
-            </p>
-            <div
-              v-bind:style="{ width: toolVersion.progress }"
-              v-if="toolVersion.progress !== '100.00%'"
-            ></div>
-            <p
-              v-if="
-                toolVersion.progress === '100.00%' && !isInstallationCompleted
-              "
-            >
-              <span>Extracting {{ toolVersion.id }}...</span>
-            </p>
-            <p
-              v-if="
-                toolVersion.progress === '100.00%' && isInstallationCompleted
-              "
-            >
-              <span>Installed in </span>
-              {{
-                idfTools +
-                pathSep +
-                "tools" +
-                pathSep +
-                toolVersion.id +
-                pathSep +
-                toolVersion.expected +
-                pathSep +
-                toolVersion.id
-              }}
-            </p>
-          </div>
-        </div>
+        />
       </div>
       <div id="tools-manual-setup" v-if="selected === 'manual'" key="manual">
         <i class="arrow go-back right" v-on:click="reset"></i>
         <h4>Verify ESP-IDF Tools</h4>
         <div v-if="!isToolsCheckCompleted">
           <p>
+            Add your python binary path (the python virtual environment).
+            Example: {{ winRoot }}{{ pathSep }}.espressif{{
+              pathSep
+            }}python_env{{ pathSep }}idf4.0_py3.8_env{{ pathSep
+            }}{{ winRoot !== "" ? "bin" : "Scripts" }}{{ pathSep }}python<span
+              v-if="winRoot !== ''"
+              >.exe</span
+            >
+          </p>
+          <input type="text" class="text-size" v-model="pyBinPath" />
+          <p>
             Please specify the directories containing executable binaries for
-            required ESP-IDF Tools: <span class="bold"> |</span>
+            required ESP-IDF Tools: <br />
+            <span class="bold"> |</span>
             <span
               v-for="toolVersion in requiredToolsVersions"
               :key="toolVersion.id"
@@ -118,20 +79,30 @@
               {{ toolVersion.id }} |
             </span>
           </p>
+          <p>Make sure to also include CMake and Ninja-build.</p>
           <p>Separate each path using ({{ pathDelimiter }}).</p>
           <p>
             Example: If executable path is {{ winRoot
-            }}{{ pathSep }}openocd-esp32{{ pathSep }}bin{{ pathSep }}openocd
+            }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathSep }}openocd
             <span v-if="winRoot !== ''">.exe</span> then use {{ winRoot
             }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathDelimiter
             }}{{ winRoot }}{{ pathSep }}anotherToolFolder{{ pathSep }}bin
           </p>
           <p>
-            Inserted directories will be saved as an extension configuration
-            setting (idf.customExtraPaths) and will not modify your PATH.
+            Please provide absolute paths. Using $HOME or %HOME% is not
+            supported.
           </p>
           <input type="text" class="text-size" v-model="exportedPaths" />
-          <h4>Custom environment variables to be defined</h4>
+          <h4>Custom environment variables to be defined.</h4>
+          <p>
+            Replace any ${TOOL_PATH} with absolute path for each custom
+            variable. <br />
+            For example:
+            <strong>${TOOL_PATH}/openocd-esp32/share/openocd/scripts</strong>
+            should be replaced as {{ winRoot }}{{ pathSep }}openocd-esp32{{
+              pathSep
+            }}share{{ pathSep }}openocd{{ pathSep }}
+          </p>
           <div id="env-vars-to-set" v-for="(value, key) in envVars" :key="key">
             <div class="env-var">
               <p>{{ key }}</p>
@@ -141,27 +112,11 @@
         </div>
 
         <div id="tools-check-results" v-if="showIdfToolsChecks">
-          <div
-            class="tool-check-result"
+          <ToolCheck
+            :tool="toolCheck"
             v-for="toolCheck in toolsCheckResults"
             :key="toolCheck.id"
-          >
-            <div class="result-description">
-              <p>{{ toolCheck.id }} has been found ?</p>
-              <p class="result-description-small">
-                Expected {{ toolCheck.expected }}
-              </p>
-              <p class="result-description-small">
-                Found {{ toolCheck.actual }}
-              </p>
-            </div>
-            <font-awesome-icon
-              icon="check"
-              v-if="toolCheck.doesToolExist"
-              class="check-icon"
-            />
-            <font-awesome-icon icon="times" v-else class="check-icon" />
-          </div>
+          />
           <h4>Verify Python packages requirements</h4>
           <pre id="python-log">{{ pyLog }}</pre>
           <br />
@@ -199,8 +154,15 @@
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import ToolDownload from "./components/ToolDownload.vue";
+import ToolCheck from "./components/ToolCheck.vue";
 
-@Component
+@Component({
+  components: {
+    ToolDownload,
+    ToolCheck,
+  },
+})
 export default class ToolsSetup extends Vue {
   public folderIcon = "folder";
   @State("idfToolsPath") private storeIdfToolsPath;
@@ -210,6 +172,7 @@ export default class ToolsSetup extends Vue {
   @State("showIdfToolsChecks") private storeShowIdfToolsChecks;
   @State("toolsCheckResults") private storeToolsCheckResults;
   @State("pathDelimiter") private storePathDelimiter;
+  @State("pyBinPath") private storePyBinPath;
   @State("requiredToolsVersions") private storeRequiredToolsVersions;
   @State("isInstallationCompleted") private storeIsInstallationCompleted;
   @State("isPyInstallCompleted") private storeisPyInstallCompleted: string;
@@ -219,6 +182,7 @@ export default class ToolsSetup extends Vue {
   @Mutation private setCustomExtraPaths;
   @Mutation private setEnvVars;
   @Mutation private setIdfToolsPath;
+  @Mutation private setPythonBinPath;
   @Mutation private setPySetupFinish;
   @Mutation private setShowIdfToolsChecks;
   @Mutation private setToolSetupMode;
@@ -264,6 +228,12 @@ export default class ToolsSetup extends Vue {
   }
   get pathDelimiter() {
     return this.storePathDelimiter;
+  }
+  get pyBinPath() {
+    return this.storePyBinPath;
+  }
+  set pyBinPath(newPath) {
+    this.setPythonBinPath(newPath);
   }
   get pyLog() {
     return this.storePyLog;
@@ -343,11 +313,6 @@ export default class ToolsSetup extends Vue {
 .fade-leave-to {
   opacity: 0;
 }
-.check-icon {
-  fill: var(--vscode-editor-foreground);
-  padding-top: 5%;
-  font-size: large;
-}
 .open-icon {
   fill: var(--vscode-editor-foreground);
   font-size: large;
@@ -360,51 +325,11 @@ export default class ToolsSetup extends Vue {
 .margin-icon {
   margin-left: 5%;
 }
-.tool-check-result {
-  display: inline-flex;
-  border: 1px solid;
-  margin: 1%;
-  padding: 0% 2%;
-}
-.tool-check-result .result-description {
-  width: 20em;
-}
 
 .bold {
   font-weight: bold;
 }
 
-.result-description-small {
-  margin-left: 5%;
-  white-space: pre-line;
-}
-
-.pkg-progress {
-  margin-top: 3%;
-}
-
-.progressBar {
-  border-radius: 10px;
-  padding: 2px;
-  overflow: hidden;
-}
-.progressBar p {
-  margin: 0%;
-  padding-top: 2%;
-}
-
-.progressBar div {
-  background-color: var(--vscode-button-background);
-  height: 10px;
-  width: 0%;
-  border-radius: 7px;
-  width: 45%;
-}
-
-.progressText {
-  float: left;
-  width: 50%;
-}
 .arrow {
   position: relative;
   display: inline-block;
