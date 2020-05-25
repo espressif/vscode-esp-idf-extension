@@ -44,7 +44,6 @@ import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeData
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
-import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -58,6 +57,7 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { Telemetry } from "./telemetry";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -105,6 +105,7 @@ const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
 const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
 
 export async function activate(context: vscode.ExtensionContext) {
+  Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   Logger.init(context);
   debugAdapterManager = DebugAdapterManager.init(context);
@@ -113,8 +114,15 @@ export async function activate(context: vscode.ExtensionContext) {
     name: string,
     callback: (...args: any[]) => any
   ): number => {
+    const telemetryCallback = (...args: any[]) => {
+      const startTime = Date.now();
+      Logger.info(`Command::${name}::Executed`);
+      callback.apply(this, args);
+      const timeSpent = Date.now() - startTime;
+      Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+    };
     return context.subscriptions.push(
-      vscode.commands.registerCommand(name, callback)
+      vscode.commands.registerCommand(name, telemetryCallback)
     );
   };
 
@@ -1346,6 +1354,7 @@ function createIdfTerminal() {
 }
 
 export function deactivate() {
+  Telemetry.dispose();
   if (monitorTerminal) {
     monitorTerminal.dispose();
   }

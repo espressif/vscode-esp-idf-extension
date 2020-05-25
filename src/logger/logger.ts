@@ -19,6 +19,7 @@
 import * as vscode from "vscode";
 import * as winston from "winston";
 import UserNotificationManagerTransport from "../userNotificationManager/userNotificationManager";
+import { Telemetry } from "../telemetry";
 
 export class Logger {
   public static init(context: vscode.ExtensionContext): Logger {
@@ -62,6 +63,10 @@ export class Logger {
 
   public static error(message: string, error: Error, metadata?: any) {
     Logger.checkInitialized();
+    Telemetry.sendException(error, {
+      errorMessage: message,
+      capturedBy: "Logger",
+    });
     winston.log("error", message, {
       ...metadata,
       message: error.message,

@@ -329,6 +329,12 @@
             ],
             "scope": "resource",
             "description": "%param.saveScope%"
+          },
+          "idf.telemetry": {
+            "title": "Enable Telemetry",
+            "type": "boolean",
+            "default": true,
+            "description": "Send anonymous telemetry and crash report back to the extension (change to the settings will require restart for immediate effect)"
           }
         }
       }
@@ -617,6 +623,7 @@
     "vscode-debugadapter": "^1.33.0",
     "vscode-debugadapter-testsupport": "^1.34.0",
     "vscode-debugprotocol": "^1.33.0",
+    "vscode-extension-telemetry": "^0.1.6",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vscode-nls": "^4.0.0",
@@ -629,5 +636,10 @@
   },
   "alias": {
     "vue": "./node_modules/vue/dist/vue.esm.js"
+  },
+  "azure": {
+    "insight": {
+      "key": "912cbb4e-e606-4c4f-9a00-1731acb15117"
+    }
   }
 }
