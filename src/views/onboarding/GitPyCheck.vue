@@ -94,12 +94,4 @@ export default class GitPyCheck extends Vue {
 }
 </script>
 
-<style>
-#git-py-check {
-  max-width: 900px;
-  margin: auto;
-  padding-top: 10%;
-  text-align: center;
-  color: var(--vscode-editor-foreground);
-}
-</style>
+<style></style>

@@ -106,12 +106,4 @@ export default class Download extends Vue {
 }
 </script>
 
-<style>
-#download-window {
-  max-width: 900px;
-  margin: auto;
-  padding-top: 10%;
-  text-align: center;
-  color: var(--vscode-editor-foreground);
-}
-</style>
+<style></style>
