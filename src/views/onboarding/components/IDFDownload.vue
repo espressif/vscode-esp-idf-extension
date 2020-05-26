@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="idf-download-step">
     <i
       v-on:click="setSelectedIdfDownloadState('empty')"
       class="arrow go-back right"
@@ -82,4 +82,10 @@ export default class IDFDownload extends Vue {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.idf-download-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+</style>

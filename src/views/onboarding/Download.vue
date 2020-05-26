@@ -62,14 +62,12 @@ import IDFManual from "./components/IDFManual.vue";
 export default class Download extends Vue {
   public msge: string = "Configure ESP-IDF";
   public folderIcon = "folder";
-  @State("downloadedIdfZipPath") private storeDownloadedIdfZipPath: string;
   @State("idfDownloadPath") private storeIdfDownloadPath: string;
   @State("idfVersionList") private storeIdfVersionList: IEspIdfLink[];
   @State("selectedIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
   @State("idfDownloadState") private storeIdfDownloadState: string;
   @Mutation private setIdfDownloadPath;
   @Mutation private setSelectedIdfVersion;
-  @Mutation private setDownloadedZipPath;
   @Action private downloadEspIdf;
   @Action("openEspIdfFolder") private openFolder;
 
