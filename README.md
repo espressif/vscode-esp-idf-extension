@@ -35,7 +35,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 - Support Rainmaker
 - Support GDB Stub
 - Support Core Dump
-- Support code coverage inside text editor
+- Support code coverage inside text editor & `gcovr` HTML report integration
 
 ## Quick Installation Guide
 
