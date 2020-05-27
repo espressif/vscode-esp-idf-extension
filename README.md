@@ -30,8 +30,12 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 ## Coming Soon 🔜
 
-- Heap Tracing with complete GUI
 - Create new project wizard
+- Add System View UI
+- Support Rainmaker
+- Support GDB Stub
+- Support Core Dump
+- Support code coverage inside text editor & `gcovr` HTML report integration
 
 ## Quick Installation Guide
 
@@ -241,6 +245,12 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [ONBOARDING](./docs/ONBOARDING.md).
 
 When you start debug, an OpenOCD process starts in the background. OpenOCD Output log window is created in Visual Studio Code lower panel. To configure your project's launch.json to debug, please review [DEBUGGING](./docs/DEBUGGING.md).
+
+## Log & Heap Tracing
+
+We support [log](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html) and [heap tracing](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/heap_debug.html) out of the box, which enables users to perform log/heap tracing with just few button clicks and present the results of tracing data with UI.
+
+You can follow [this](./docs/HEAP_TRACING.md) quick step-by-step guide for heap tracing.
 
 ## Kconfig files editor
 

@@ -123,28 +123,11 @@ export class AppTraceArchiveTreeDataProvider
       title: "Show Report",
       arguments: [appTraceArchiveNode],
     };
-    appTraceArchiveNode.iconPath = {
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "log_light.svg"
-      ),
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "log_dark.svg"
-      ),
-    };
+    if (appTraceArchiveNode.type === TraceType.HeapTrace) {
+      appTraceArchiveNode.iconPath = new vscode.ThemeIcon("pulse");
+    } else {
+      appTraceArchiveNode.iconPath = new vscode.ThemeIcon("archive");
+    }
     appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
     return appTraceArchiveNode;
   }

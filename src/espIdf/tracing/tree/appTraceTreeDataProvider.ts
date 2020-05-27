@@ -48,56 +48,14 @@ export class AppTraceTreeDataProvider
   public showStartButton(buttonType: AppTraceButtonType) {
     const button: AppTracerItems = this.getButtonInstance(buttonType);
     button.label = this.getLabelForButton(buttonType, "Start");
-    button.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_light.svg"
-      ),
-    };
+    button.iconPath = new vscode.ThemeIcon("run-all");
     button.description = "";
     this.refresh();
   }
   public showStopButton(buttonType: AppTraceButtonType) {
     const button: AppTracerItems = this.getButtonInstance(buttonType);
     button.label = this.getLabelForButton(buttonType, "Stop");
-    button.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "stop_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "stop_light.svg"
-      ),
-    };
+    button.iconPath = new vscode.ThemeIcon("debug-stop");
     this.refresh();
   }
   public updateDescription(buttonType: AppTraceButtonType, desc: string) {
@@ -118,55 +76,13 @@ export class AppTraceTreeDataProvider
   private initAppTraceButton() {
     this.appTraceButton = new AppTracerItems("Start App Trace");
     this.appTraceButton.description = "";
-    this.appTraceButton.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_light.svg"
-      ),
-    };
+    this.appTraceButton.iconPath = new vscode.ThemeIcon("run-all");
     this.appTraceButton.command = { command: "espIdf.apptrace", title: "" };
   }
   private initHeapTraceButton() {
     this.heapTraceButton = new AppTracerItems("Start Heap Trace");
     this.heapTraceButton.description = "";
-    this.heapTraceButton.iconPath = {
-      dark: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_dark.svg"
-      ),
-      light: join(
-        __filename,
-        "..",
-        "..",
-        "..",
-        "..",
-        "..",
-        "media",
-        "play_light.svg"
-      ),
-    };
+    this.heapTraceButton.iconPath = new vscode.ThemeIcon("debug-stop");
     this.heapTraceButton.command = { command: "espIdf.heaptrace", title: "" };
   }
   private getButtonInstance(buttonType: AppTraceButtonType): AppTracerItems {
