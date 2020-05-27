@@ -1,12 +1,18 @@
 <template>
-  <transition name="fade" mode="out-in">
-    <div id="previous-window">
-      <router-link
-        to="/"
-        class="arrow go-back right"
-        @click.native="setPySetupFinish(false)"
-      ></router-link>
-      <h4>Use previous configuration settings</h4>
+  <div id="previous-window">
+    <router-link
+      to="/"
+      class="arrow go-back right"
+      @click.native="reset"
+    ></router-link>
+    <h4>Use previous configuration settings</h4>
+    <div v-if="previousIsValid">
+      <p>All tools are correct.</p>
+      <button v-on:click="saveSettings" class="check-button">
+        Save settings
+      </button>
+    </div>
+    <div v-else>
       <label for="idf-version-select">Select ESP-IDF version:</label>
       <br />
       <br />
@@ -37,59 +43,31 @@
         </select>
         <br /><br />
         <div v-if="toolsInMetadata && toolsInMetadata.length > 0">
-          <div
+          <PreviousTool
             v-for="tool in toolsInMetadata"
             :key="tool.id"
-            class="toolsMetadata"
-          >
-            <label :for="tool.id"
-              >Tool: {{ tool.name }} Version: {{ tool.version }}</label
-            >
-            <br /><br />
-            <input
-              type="text"
-              v-model="tool.path"
-              :id="tool.id"
-              @change="setPreviousIsValid(false)"
-              @keydown="setPreviousIsValid(false)"
-            />
-            <br /><br />
-            <div v-for="(item, key) in tool.env" :key="key">
-              <label :for="key">Environment variable {{ key }}:</label>
-              <br /><br />
-              <input
-                type="text"
-                v-model="tool.env[key]"
-                :id="key"
-                @change="setPreviousIsValid(false)"
-                @keydown="setPreviousIsValid(false)"
-              />
-              <br /><br />
-            </div>
-          </div>
+            :tool="tool"
+          />
           <button v-on:click="checkAreValid" class="check-button">
             Check tools are valid
-          </button>
-          <p v-if="previousIsValid">All tools are correct.</p>
-          <button
-            v-if="previousIsValid"
-            v-on:click="saveSettings"
-            class="check-button"
-          >
-            Save settings
           </button>
         </div>
       </div>
     </div>
-  </transition>
+  </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IPath, ITool } from "../../ITool";
+import PreviousTool from "./components/PreviousTool.vue";
 
-@Component
+@Component({
+  components: {
+    PreviousTool,
+  },
+})
 export default class UsePrevious extends Vue {
   @State("idfVersionsMetadata") private storeIdfVersionsMetadata: IPath[];
   @State("selectedIdfMetadata") private storeSelectedIdfMetadata: IPath;
@@ -142,6 +120,11 @@ export default class UsePrevious extends Vue {
 
   public changeSelectedIdfPath(e) {
     this.getPyVenvIdfTools();
+    this.setPreviousIsValid(false);
+  }
+
+  public reset() {
+    this.setPySetupFinish(false);
     this.setPreviousIsValid(false);
   }
 }
