@@ -38,14 +38,7 @@ export async function getToolsInMetadataForIdfPath(
   idfPath: string,
   toolsList: ITool[]
 ) {
-  const platformInfo = await PlatformInformation.GetPlatformInformation();
-  const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
-  const toolsJson = await utils.readJson(toolsJsonPath);
-  const toolsManager = new IdfToolsManager(
-    toolsJson,
-    platformInfo,
-    OutputChannel.init()
-  );
+  const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
   const packages = await toolsManager.getPackageList();
   const toolsMetadata = packages.map((pkg) => {
     const versionToUse = toolsManager.getVersionToUse(pkg);

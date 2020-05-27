@@ -1,7 +1,11 @@
 <template>
   <transition name="fade" mode="out-in">
     <div id="previous-window">
-      <router-link to="/" class="arrow go-back right"></router-link>
+      <router-link
+        to="/"
+        class="arrow go-back right"
+        @click.native="setPySetupFinish(false)"
+      ></router-link>
       <h4>Use previous configuration settings</h4>
       <label for="idf-version-select">Select ESP-IDF version:</label>
       <br />
@@ -100,6 +104,7 @@ export default class UsePrevious extends Vue {
   @Mutation private setPreviousIsValid;
   @Mutation private setSelectedEspIdfVersionMetadata;
   @Mutation private setSelectedVenvVersionMetadata;
+  @Mutation private setPySetupFinish;
 
   get idfVersionsMetadata() {
     return this.storeIdfVersionsMetadata;

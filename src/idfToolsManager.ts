@@ -18,15 +18,25 @@ import * as vscode from "vscode";
 import { IFileInfo, IPackage } from "./IPackage";
 import { ITool } from "./ITool";
 import { Logger } from "./logger/logger";
+import { OutputChannel } from "./logger/outputChannel";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
 
 export class IdfToolsManager {
-  // toolsJson is expected to be a Javascript Object parsed from tools metadata json
-  private static toolsManagerChannel: vscode.OutputChannel;
-  private allPackages: IPackage[];
+  public static async createIdfToolsManager(idfPath: string) {
+    const platformInfo = await PlatformInformation.GetPlatformInformation();
+    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+    const toolsObj = await utils.readJson(toolsJsonPath);
+    const idfToolsManager = new IdfToolsManager(
+      toolsObj,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return idfToolsManager;
+  }
 
+  private allPackages: IPackage[];
   constructor(
     private toolsJson: any,
     private platformInfo: PlatformInformation,

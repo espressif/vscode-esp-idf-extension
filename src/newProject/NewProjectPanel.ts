@@ -146,17 +146,23 @@ export class NewProjectPanel {
           break;
         case "getIdfVersion":
           if (message.idf_path) {
-            utils.getEspIdfVersion(message.idf_path.path).then((idfVersion) => {
-              this.panel.webview.postMessage({
-                command: "load_current_idf_version",
-                idfVersion,
-                idfPath: message.idf_path,
+            utils
+              .getEspIdfVersion(message.idf_path.path)
+              .then((idfVersion) => {
+                this.panel.webview.postMessage({
+                  command: "load_current_idf_version",
+                  idfVersion,
+                  idfPath: message.idf_path,
+                });
+                this.loadToolsVenvForIdf(
+                  newProjectArgs.metadata,
+                  message.idf_path
+                );
+              })
+              .catch((reason) => {
+                OutputChannel.appendLine(reason);
+                Logger.info(reason);
               });
-              this.loadToolsVenvForIdf(
-                newProjectArgs.metadata,
-                message.idf_path
-              );
-            });
           }
         case "requestInitValues":
           if (
@@ -169,7 +175,12 @@ export class NewProjectPanel {
             newProjectArgs.metadata.tools &&
             newProjectArgs.metadata.tools.length > 0
           ) {
-            this.loadInitialMetadata(newProjectArgs.metadata);
+            this.loadInitialMetadata(newProjectArgs.metadata).catch(
+              (reason) => {
+                OutputChannel.appendLine(reason);
+                Logger.info(reason);
+              }
+            );
           } else {
             Logger.infoNotify("No values available in metadata.json");
           }

@@ -902,6 +902,9 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           const newProjectArgs = await getNewProjectArgs(progress);
+          if (!newProjectArgs || !newProjectArgs.metadata) {
+            throw new Error("Could not find extension metadata.json");
+          }
           NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
         }
       );
