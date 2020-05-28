@@ -980,15 +980,26 @@ export async function activate(context: vscode.ExtensionContext) {
         return Logger.infoNotify("Readonly Property");
       }
 
-      let newParamValue = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        placeHolder: "param value",
-        value: item.description.toString(),
-        prompt: "Enter the new param value",
-        validateInput: (value: string): string => {
-          return validateInputForRainmakerDeviceParam(value, params.data_type);
-        },
-      });
+      let newParamValue;
+      if (params.data_type === "bool") {
+        newParamValue = await vscode.window.showQuickPick(["true", "false"], {
+          ignoreFocusOut: true,
+          placeHolder: "Select a new param value",
+        });
+      } else {
+        newParamValue = await vscode.window.showInputBox({
+          ignoreFocusOut: true,
+          placeHolder: "param value",
+          value: item.description.toString(),
+          prompt: "Enter the new param value",
+          validateInput: (value: string): string => {
+            return validateInputForRainmakerDeviceParam(
+              value,
+              params.data_type
+            );
+          },
+        });
+      }
 
       if (!newParamValue) {
         return;
@@ -1014,10 +1025,11 @@ export async function activate(context: vscode.ExtensionContext) {
             await rainMakerTreeDataProvider.refresh();
             Logger.infoNotify("Sent the param update request to cloud");
           } catch (error) {
-            Logger.errorNotify(
-              "Failed to update the param, please try once more",
-              error
-            );
+            let errorMsg = "Failed to update the param, please try once more";
+            if (error.response) {
+              errorMsg = `Failed to update param because, ${error.response.data.description}`;
+            }
+            Logger.errorNotify(errorMsg, error);
           }
         }
       );
