@@ -13,9 +13,6 @@
 // limitations under the License.
 
 import { IdfToolsManager } from "./idfToolsManager";
-import { PlatformInformation } from "./PlatformInformation";
-import * as utils from "./utils";
-import { OutputChannel } from "./logger/outputChannel";
 
 export interface IPath {
   id: string; // uuid package
