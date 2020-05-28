@@ -67,9 +67,9 @@ export class SystemViewPanel {
       this.disposable
     );
     this.initWebView();
-    setImmediate(() => {
+    setTimeout(() => {
       this.sendCommandToWebview("initialLoad", this.traceData);
-    });
+    }, 800);
   }
   private onMessage(message: any) {}
   private sendCommandToWebview(command: string, value: any) {
@@ -97,7 +97,7 @@ export class SystemViewPanel {
   </head>
 
   <body>
-    <div>
+    <div class="table-container">
       <table class="table is-fullwidth is-hoverable is-striped">
         <thead>
           <tr>

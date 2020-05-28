@@ -1,4 +1,9 @@
-@import "../commons/espCommons.scss";
+@import "~bulma/bulma";
+
+html,
+body {
+  min-height: 100vh;
+}
 
 #plot {
   box-sizing: border-box;
@@ -12,6 +17,12 @@ thead {
 tbody {
   font-size: 12px;
   height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.table-container {
+  max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
 }
