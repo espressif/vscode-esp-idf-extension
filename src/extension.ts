@@ -1046,9 +1046,6 @@ function validateInputForRainmakerDeviceParam(
   value: string,
   type: string
 ): string {
-  if (type === "bool" && !value.match(/^(true|false)$/i)) {
-    return "Enter valid boolean value (true or false)";
-  }
   if (type === "string" && value === "") {
     return "Enter non empty string";
   }
