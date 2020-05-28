@@ -20,12 +20,12 @@ import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 
-enum TraceType {
+export enum TraceType {
   AppTrace = 0,
   HeapTrace = 1,
 }
 
-class AppTraceArchiveItems extends vscode.TreeItem {
+export class AppTraceArchiveItems extends vscode.TreeItem {
   public fileName: string;
   public filePath: string;
   public type: TraceType;

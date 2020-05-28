@@ -39,7 +39,11 @@ import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
-import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
+import {
+  AppTraceArchiveTreeDataProvider,
+  AppTraceArchiveItems,
+  TraceType,
+} from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { FlashManager } from "./flash/flash";
@@ -820,26 +824,63 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
-    if (!trace) {
-      Logger.errorNotify(
-        "Cannot call this command directly, click on any Trace to view its report!",
-        new Error("INVALID_COMMAND")
-      );
-      return;
-    }
-    PreCheck.perform([openFolderCheck], () => {
-      AppTracePanel.createOrShow(context, {
-        trace: {
-          fileName: trace.fileName,
-          filePath: trace.filePath,
-          type: trace.type,
-          workspacePath: workspaceRoot.fsPath,
-          idfPath: idfConf.readParameter("idf.espIdfPath"),
-        },
+  registerIDFCommand(
+    "espIdf.apptrace.archive.showReport",
+    (trace: AppTraceArchiveItems) => {
+      if (!trace) {
+        Logger.errorNotify(
+          "Cannot call this command directly, click on any Trace to view its report!",
+          new Error("INVALID_COMMAND")
+        );
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        if (trace.type === TraceType.HeapTrace) {
+          enum TracingViewType {
+            HeapTracingPlot,
+            SystemViewTracing,
+          }
+          //show option to render system trace view or heap trace
+          const placeHolder =
+            "Do you want to view Heap Trace plot or System View Trace";
+          const choice = await vscode.window.showQuickPick(
+            [
+              {
+                type: TracingViewType.SystemViewTracing,
+                label: "$(symbol-keyword) System View Tracing",
+                detail:
+                  "Show System View Tracing Plot (will open a webview window)",
+              },
+              {
+                type: TracingViewType.HeapTracingPlot,
+                label: "$(graph) Heap Tracing",
+                detail: "Open Old Heap/App Trace Panel",
+              },
+            ],
+            {
+              placeHolder,
+              ignoreFocusOut: true,
+            }
+          );
+          if (!choice) {
+            return;
+          }
+          if (choice.type === TracingViewType.SystemViewTracing) {
+            return;
+          }
+        }
+        AppTracePanel.createOrShow(context, {
+          trace: {
+            fileName: trace.fileName,
+            filePath: trace.filePath,
+            type: trace.type,
+            workspacePath: workspaceRoot.fsPath,
+            idfPath: idfConf.readParameter("idf.espIdfPath"),
+          },
+        });
       });
-    });
-  });
+    }
+  );
 
   registerIDFCommand("espIdf.apptrace.customize", () => {
     PreCheck.perform([openFolderCheck], async () => {
