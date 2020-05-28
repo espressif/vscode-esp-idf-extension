@@ -52,6 +52,11 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/vue-fontawesome/-/vue-fontawesome-0.1.9.tgz#d3af6d4e50f337327de90447fe35fa1e117a2fbe"
   integrity sha512-h/emhmZz+DfB2zOGLWawNwXq82UYhn9waTfUjLLmeaIqtnIyNt6kYlpQT/vzJjLZRDRvY2IEJAh1di5qKpKVpA==
 
+"@interactjs/types@1.9.18", "@interactjs/types@^1.9.18":
+  version "1.9.18"
+  resolved "https://registry.yarnpkg.com/@interactjs/types/-/types-1.9.18.tgz#7fd9f8328ad0902eee206d56f472de885f884598"
+  integrity sha512-BkdtzzeCWOP2RT2NBv8dyHFFxXTYWs1CAlg7YF+PyGD65YS2lVb2i3EY1/svHCt9q2GYU853CrBTLDITdiIIZw==
+
 "@types/events@*":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz#2862f3f58a9a7f7c3e78d79f130dd4d71c25c2a7"
@@ -2920,6 +2925,13 @@ ini@^1.3.4, ini@^1.3.5:
   resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
   integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
 
+interactjs@^1.9.18:
+  version "1.9.18"
+  resolved "https://registry.yarnpkg.com/interactjs/-/interactjs-1.9.18.tgz#62aa3a41bc152de6433715d770560371335a0a11"
+  integrity sha512-w6vxMYbrvMn2LsCVNJ/s0NQMTQAsG+nn0ncZ8M7YimCtlgD0XmPrwHrfokv59alXOQ9LLlJox2+OXyJdQObYzw==
+  dependencies:
+    "@interactjs/types" "1.9.18"
+
 interpret@1.2.0, interpret@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.2.0.tgz#d5061a6224be58e8083985f5014d844359576296"
@@ -4570,10 +4582,10 @@ please-upgrade-node@^3.1.1:
   dependencies:
     semver-compare "^1.0.0"
 
-plotly.js-dist@^1.49.3:
-  version "1.52.3"
-  resolved "https://registry.yarnpkg.com/plotly.js-dist/-/plotly.js-dist-1.52.3.tgz#4c16c6da6adab6cdba169087b5005bdddbf10834"
-  integrity sha512-kpuNwveRk6M/5cCW1ZgJTbMLD0bRZhJlLK0cUHVkTsP/PWKCVJqO3QiiqrypFGE/xEhWfHCY+YKAKjMmEbo4Gw==
+plotly.js-dist@^1.54.1:
+  version "1.54.1"
+  resolved "https://registry.yarnpkg.com/plotly.js-dist/-/plotly.js-dist-1.54.1.tgz#9c7437296e73aeb553d2301dfe83bc8c29f13625"
+  integrity sha512-LiNouwrD6GhQZKhWJ/namIVBWs0kjPY9JX6TbxAFfuQqS6hSgBUhltFATiQ6i9GkWVGpgDpMEMGZerGF7i9HbA==
 
 plugin-error@^1.0.1:
   version "1.0.1"

@@ -1,0 +1,17 @@
+@import "../commons/espCommons.scss";
+
+#plot {
+  box-sizing: border-box;
+  touch-action: none;
+}
+
+thead {
+  font-size: 12.6px;
+}
+
+tbody {
+  font-size: 12px;
+  height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

@@ -62,6 +62,7 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -866,7 +867,10 @@ export async function activate(context: vscode.ExtensionContext) {
             return;
           }
           if (choice.type === TracingViewType.SystemViewTracing) {
-            return;
+            return SystemViewResultParser.parseWithProgress(
+              trace,
+              context.extensionPath
+            );
           }
         }
         AppTracePanel.createOrShow(context, {
