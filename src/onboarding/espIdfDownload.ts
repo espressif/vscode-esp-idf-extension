@@ -13,16 +13,13 @@
 // limitations under the License.
 
 import { spawn } from "child_process";
-import * as fs from "fs";
 import { move, readFile } from "fs-extra";
-import { EOL, tmpdir } from "os";
+import { tmpdir } from "os";
 import * as path from "path";
 import { ConfigurationTarget, WorkspaceFolder } from "vscode";
-import { v4 as uuidv4 } from "uuid";
 import { DownloadManager } from "../downloadManager";
 import * as idfConf from "../idfConfiguration";
 import { InstallManager } from "../installManager";
-import { IMetadataFile, IPath } from "../ITool";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
@@ -32,6 +29,7 @@ import {
   sendDownloadEspIdfDetail,
   sendDownloadEspIdfPercentage,
 } from "./updateViewMethods";
+import { MetadataJson } from "../Metadata";
 
 export interface IEspIdfLink {
   filename: string;
@@ -151,7 +149,7 @@ export async function downloadInstallIdfVersion(
         confTarget,
         selectedWorkspaceFolder
       );
-      await saveIdfPathInMetadataFile(expectedDirectory);
+      await MetadataJson.addEspIdfPath(expectedDirectory);
     }
   } catch (error) {
     OutputChannel.appendLine(error);
@@ -345,33 +343,4 @@ export async function getEspIdfVersions(extensionPath: string) {
   } as IEspIdfLink;
   versionList.push(manualVersion);
   return versionList;
-}
-
-export async function saveIdfPathInMetadataFile(idfPath: string) {
-  const metadataFile = path.join(
-    utils.extensionContext.extensionPath,
-    "metadata.json"
-  );
-  const idfMetadata: IPath = {
-    id: uuidv4(),
-    path: idfPath,
-  } as IPath;
-  const doesFileExists = await utils.doesPathExists(metadataFile);
-  if (doesFileExists) {
-    const metadata = await utils.readJson(metadataFile);
-    if (metadata.idf) {
-      const existingPath = metadata.idf.filter(
-        (idfMeta) => idfMeta.path === idfMetadata.path
-      );
-      if (typeof existingPath === "undefined" || existingPath.length === 0) {
-        metadata.idf.push(idfMetadata);
-      }
-    } else {
-      metadata.idf = [idfMetadata];
-    }
-    await utils.writeJson(metadataFile, metadata);
-  } else {
-    const metadata: IMetadataFile = { idf: [idfMetadata] } as IMetadataFile;
-    await utils.writeJson(metadataFile, metadata);
-  }
 }

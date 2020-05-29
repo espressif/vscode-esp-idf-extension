@@ -25,12 +25,6 @@ export interface ITool extends IPath {
   env: {};
 }
 
-export interface IMetadataFile {
-  idf: IPath[];
-  tools: ITool[];
-  venv: IPath[];
-}
-
 export async function getToolsInMetadataForIdfPath(
   idfPath: string,
   toolsList: ITool[]

@@ -20,12 +20,8 @@ import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { getExamplesList, IExample } from "../examples/Examples";
-import {
-  IMetadataFile,
-  getToolsInMetadataForIdfPath,
-  IPath,
-  ITool,
-} from "../ITool";
+import { getToolsInMetadataForIdfPath, IPath, ITool } from "../ITool";
+import { IMetadataFile } from "../Metadata";
 import * as utils from "../utils";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";

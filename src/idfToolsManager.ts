@@ -22,6 +22,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
+import { MetadataJson } from "./Metadata";
 
 export class IdfToolsManager {
   public static async createIdfToolsManager(idfPath: string) {
@@ -281,7 +282,7 @@ export class IdfToolsManager {
       return toolMetadata;
     });
 
-    await utils.writeToMetadataFile(toolsMetadata);
+    await MetadataJson.addIdfToolsToMetadata(toolsMetadata);
     return toolsMetadata
       .reduce((prev, curr) => {
         return `${prev}${path.delimiter}${curr.path}`;
@@ -326,7 +327,7 @@ export class IdfToolsManager {
       });
 
       const toolsInfo = await Promise.all(promises);
-      await utils.writeToMetadataFile(toolsInfo);
+      await MetadataJson.addIdfToolsToMetadata(toolsInfo);
     } catch (error) {
       this.toolsManagerChannel.appendLine(error);
       Logger.error(error, error);

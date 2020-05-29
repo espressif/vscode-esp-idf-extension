@@ -17,21 +17,17 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { IdfToolsManager } from "../idfToolsManager";
-import { IMetadataFile, IPath, getToolsInMetadataForIdfPath } from "../ITool";
+import { IPath, getToolsInMetadataForIdfPath } from "../ITool";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
-import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
 import { createOnboardingHtml } from "./createOnboardingHtml";
-import {
-  downloadInstallIdfVersion,
-  IEspIdfLink,
-  saveIdfPathInMetadataFile,
-} from "./espIdfDownload";
+import { downloadInstallIdfVersion, IEspIdfLink } from "./espIdfDownload";
 import { IOnboardingArgs } from "./onboardingInit";
 import { checkPythonRequirements } from "./pythonReqsManager";
 import { downloadToolsInIdfToolsPath } from "./toolsInstall";
+import { IMetadataFile, MetadataJson } from "../Metadata";
 
 const locDic = new LocDictionary("OnBoardingPanel");
 
@@ -190,9 +186,9 @@ export class OnBoardingPanel {
               this.selectedWorkspaceFolder
             );
             this.updateIdfToolsManager(message.idf_path);
-            saveIdfPathInMetadataFile(message.idf_path)
+            MetadataJson.addEspIdfPath(message.idf_path)
               .then(async () => {
-                await utils.loadMetadata().then((metadataJson) => {
+                await MetadataJson.read().then((metadataJson) => {
                   onboardingArgs.metadataJson = metadataJson;
                   this.updatePreviousIdfFromMetadata(
                     message.idf_path,
@@ -253,7 +249,7 @@ export class OnBoardingPanel {
                   message.py_bin_path
                 ).then(async () => {
                   const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-                  await utils.loadMetadata().then((metadataJson) => {
+                  await MetadataJson.read().then((metadataJson) => {
                     onboardingArgs.metadataJson = metadataJson;
                     this.loadMetadataForIdfPath(espIdfPath, metadataJson);
                   });
@@ -335,7 +331,7 @@ export class OnBoardingPanel {
                   this.pythonSystemBinPath
                 ).then(async () => {
                   const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-                  await utils.loadMetadata().then((metadataJson) => {
+                  await MetadataJson.read().then((metadataJson) => {
                     onboardingArgs.metadataJson = metadataJson;
                     this.loadMetadataForIdfPath(espIdfPath, metadataJson);
                   });
@@ -560,10 +556,10 @@ export class OnBoardingPanel {
               this.selectedWorkspaceFolder
             )
               .then(async () => {
-                await saveIdfPathInMetadataFile(
+                await MetadataJson.addEspIdfPath(
                   path.join(message.idfPath, "esp-idf")
                 );
-                const metadataJson = await utils.loadMetadata();
+                const metadataJson = await MetadataJson.read();
                 onboardingArgs.metadataJson = metadataJson;
                 this.updatePreviousIdfFromMetadata(
                   path.join(message.idfPath, "esp-idf"),

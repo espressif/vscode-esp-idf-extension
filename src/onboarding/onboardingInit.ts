@@ -14,7 +14,7 @@
 
 import { Progress } from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
-import { IMetadataFile } from "../ITool";
+import { IMetadataFile, MetadataJson } from "../Metadata";
 import { OutputChannel } from "../logger/outputChannel";
 import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
@@ -55,7 +55,7 @@ export async function getOnboardingInitialValues(
   const pythonVersions = await getPythonList(extensionPath);
   const gitVersion = await utils.checkGitExists(extensionPath);
   progress.report({ increment: 5, message: "Reading metadata file..." });
-  const metadataJson = await utils.loadMetadata();
+  const metadataJson = await MetadataJson.read();
   progress.report({ increment: 15, message: "Preparing onboarding view..." });
   const expectedEnvVars = await idfToolsManager.getListOfReqEnvVars();
   return {

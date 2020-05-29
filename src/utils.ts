@@ -24,13 +24,11 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { IdfToolsManager } from "./idfToolsManager";
-import { IMetadataFile, ITool } from "./ITool";
+import { ITool } from "./ITool";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
-import { saveIdfPathInMetadataFile } from "./onboarding/espIdfDownload";
-import { savePythonEnvInMetadataFile } from "./onboarding/pythonReqsManager";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -679,31 +677,6 @@ export async function isBinInPath(
   return "";
 }
 
-export async function loadMetadata() {
-  const metadataFile = path.join(
-    extensionContext.extensionPath,
-    "metadata.json"
-  );
-  const doesMetadataExist = await doesPathExists(metadataFile);
-  if (doesMetadataExist) {
-    const metadataObj: IMetadataFile = await readJson(metadataFile);
-    return metadataObj;
-  } else {
-    const result = await vscode.window.showInformationMessage(
-      "The metadata file doesn't exist. Create from current configuration?",
-      "Yes",
-      "No"
-    );
-    if (!result || result === "No") {
-      Logger.infoNotify(`${metadataFile} doesn't exist.`);
-      return;
-    }
-    await initializeMetadataFromCurrentSettings();
-    const metadataObj: IMetadataFile = await readJson(metadataFile);
-    return metadataObj;
-  }
-}
-
 export async function startPythonReqsProcess(
   pythonBinPath: string,
   espIdfPath: string,
@@ -721,33 +694,6 @@ export async function startPythonReqsProcess(
     OutputChannel.init(),
     { env: modifiedEnv }
   );
-}
-
-export async function writeToMetadataFile(toolsInfo: ITool[]) {
-  const metadataFile = path.join(
-    extensionContext.extensionPath,
-    "metadata.json"
-  );
-  const doesFileExists = await doesPathExists(metadataFile);
-  let metadata: IMetadataFile;
-  if (doesFileExists) {
-    metadata = await readJson(metadataFile);
-    if (metadata.tools) {
-      for (const tool of toolsInfo) {
-        const existingPath = metadata.tools.filter(
-          (toolMeta) => toolMeta.path === tool.path
-        );
-        if (typeof existingPath === "undefined" || existingPath.length === 0) {
-          metadata.tools.push(tool);
-        }
-      }
-    } else {
-      metadata.tools = toolsInfo;
-    }
-  } else {
-    metadata = { tools: toolsInfo } as IMetadataFile;
-  }
-  await writeJson(metadataFile, metadata);
 }
 
 export async function validateToolsFromMetadata(
@@ -795,16 +741,4 @@ export async function validateCurrentExtraPaths() {
     }
     return false;
   }
-}
-
-export async function initializeMetadataFromCurrentSettings() {
-  const pyBinPath = idfConf.readParameter("idf.pythonBinPath");
-  const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    idfPathDir
-  );
-  const toolsDir = path.join(idfConf.readParameter("idf.toolsPath"), "tools");
-  await saveIdfPathInMetadataFile(idfPathDir);
-  await idfToolsManager.generateToolsExtraPaths(toolsDir);
-  await savePythonEnvInMetadataFile(pyBinPath);
 }
