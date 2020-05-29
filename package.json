@@ -541,7 +541,6 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.6",
-    "@interactjs/types": "^1.9.18",
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",

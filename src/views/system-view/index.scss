@@ -1,3 +1,17 @@
+$table-color: var(--vscode-editor-foreground);
+$table-head-cell-color: var(--vscode-editor-foreground);
+
+$table-cell-border: var(--vscode-sideBarSectionHeader-border);
+
+$table-head-background-color: var(--vscode-notifications-background);
+$table-background-color: var(--vscode-editor-background);
+$table-striped-row-even-background-color: var(--vscode-sideBar-background);
+
+$table-row-hover-background-color: var(--vscode-sideBar-dropBackground);
+$table-striped-row-even-hover-background-color: var(
+  --vscode-sideBar-dropBackground
+);
+
 @import "~bulma/bulma";
 
 html,
@@ -11,18 +25,16 @@ body {
 }
 
 thead {
-  font-size: 12.6px;
+  font-size: var(--vscode-font-size);
 }
 
 tbody {
-  font-size: 12px;
-  height: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  font-size: var(--vscode-editor-font-size);
 }
 
 .table-container {
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
+  margin-bottom: 0;
 }

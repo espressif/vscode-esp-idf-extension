@@ -6,15 +6,16 @@ import {
 } from "../../espIdf/tracing/system-view/model";
 
 export const layout = {
+  height: 200,
   margin: {
     t: 30,
     b: 30,
     r: 20,
   },
-  // paper_bgcolor: "red",
-  // plot_bgcolor: "#000000",
+  paper_bgcolor: undefined,
+  plot_bgcolor: undefined,
   font: {
-    // color: "#ffffff",
+    color: undefined,
     size: 8,
   },
   hovermode: "closest",
@@ -53,6 +54,14 @@ export const layout = {
     subplots: [["xy"], ["xy2"]],
   },
 };
+
+export function setLayoutFromCSS(style: CSSStyleDeclaration) {
+  const bgColor = style.getPropertyValue("--vscode-editor-background");
+  const fontColor = style.getPropertyValue("--vscode-editor-foreground");
+  layout.paper_bgcolor = bgColor;
+  layout.plot_bgcolor = bgColor;
+  layout.font.color = fontColor;
+}
 
 export function drawPlot(mcore: any) {
   const IGNORE_RENDER_SYS_STREAM_ID_LIST = new Set(
@@ -193,7 +202,7 @@ function calculateAndInjectDataPoints(
       data.type = "scattergl";
       data.mode = "lines";
       data.opacity = 1;
-      data.line = { width: 20 };
+      data.line = { width: 10 };
       data.name = evt.in_irq === true ? `IRQ: ${evt.ctx_name}` : evt.ctx_name;
       if (evt.core_id === 1) {
         data.yaxis = "y2";

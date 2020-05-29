@@ -89,31 +89,35 @@ export class SystemViewPanel {
     );
     this.panel.webview.html = `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>System View Trace</title>
-    <link rel="stylesheet" href="${cssPath}">
-  </head>
 
-  <body>
-    <div class="table-container">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System View Trace</title>
+  <link rel="stylesheet" href="${cssPath}">
+</head>
+
+<body>
+  <br/>
+  <div class="container">
+    <p>Events Table</p>
+    <div class="table-container" style="margin-bottom: 0em">
       <table class="table is-fullwidth is-hoverable is-striped">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Timestamp</th>
-            <th>Core ID</th>
-            <th>Context</th>
-            <th>Description</th>
+            <th>ID</th><th>Timestamp</th><th>Core ID</th><th>Context</th><th>Description</th>
           </tr>
         </thead>
         <tbody id="event_table_data"></tbody>
       </table>
     </div>
+    <br/>
+    <p>Timeline</p>
     <div id="plot"></div>
-    <script src="${scriptPath}"></script>
-  </body>
+  </div>
+  <script src="${scriptPath}"></script>
+</body>
+
 </html>`;
   }
 }
