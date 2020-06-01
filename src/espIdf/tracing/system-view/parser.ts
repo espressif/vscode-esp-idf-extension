@@ -48,6 +48,6 @@ export class SystemViewResultParser {
   }
   private static async parseSVDATToJSON(filePath: string): Promise<any> {
     //TODO - Add actual impl
-    return {};
+    return readJsonSync(`/Users/soumesh/Downloads/trace_mcore.json`);
   }
 }
