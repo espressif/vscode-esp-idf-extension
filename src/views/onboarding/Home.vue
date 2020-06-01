@@ -24,10 +24,7 @@
       <ConfigurationTarget />
       <div v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0">
         <br />
-        <router-link
-          to="/previous"
-          class="enter-button"
-        >
+        <router-link to="/previous" class="onboarding-button">
           Use previous settings
         </router-link>
       </div>

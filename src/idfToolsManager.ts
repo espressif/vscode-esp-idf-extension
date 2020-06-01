@@ -312,10 +312,7 @@ export class IdfToolsManager {
           { PATH: pathModified }
         );
         const ending = `${path.sep}${pkg.version_cmd[0]}`;
-        const toolDirPath = toolPath.slice(
-          0,
-          toolPath.length - ending.length - 1
-        );
+        const toolDirPath = toolPath.slice(0, toolPath.length - ending.length);
         const toolInfo = {
           id: uuidv4(),
           name: pkg.name,
