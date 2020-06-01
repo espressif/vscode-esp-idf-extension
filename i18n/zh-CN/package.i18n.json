@@ -18,6 +18,7 @@
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF：选择工作文件夹",
   "espIdf.size.title": "ESP-IDF：分析二进制文件的大小",
   "espIdf.apptrace.title": "ESP-IDF：跟踪应用程序",
+  "espIdf.heaptrace.title": "ESP-IDF: 堆跟踪",
   "espIdf.openOCDCommand.title": "ESP-IDF：OpenOCD 管理器",
   "espIdf.genCoverage.title": "ESP-IDF: 添加编辑器覆盖范围",
   "espIdf.removeCoverage.title": "ESP-IDF: 删除编辑器覆盖范围",
