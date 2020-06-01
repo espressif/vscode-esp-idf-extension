@@ -1036,8 +1036,26 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
   vscode.window.registerUriHandler({
-    handleUri: (uri: vscode.Uri) => {
-      Logger.info(`vscode:// URI invoke received, ${uri.toString()}`);
+    handleUri: async (uri: vscode.Uri) => {
+      const query = uri.query.split("=");
+      if (uri.path === "/rainmaker" && query[0] === "code") {
+        const code = query[1] || "";
+        try {
+          await RainmakerAPIClient.exchangeCodeForTokens(code);
+          await rainMakerTreeDataProvider.refresh();
+          Logger.infoNotify(
+            "Rainmaker Cloud is connected successfully (via OAuth)!!"
+          );
+        } catch (error) {
+          return Logger.errorNotify(
+            "Failed to sign-in with Rainmaker (via OAuth)",
+            error,
+            { meta: JSON.stringify(error) }
+          );
+        }
+        return;
+      }
+      Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
 }
