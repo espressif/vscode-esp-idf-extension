@@ -29,13 +29,14 @@ export interface IMetadataFile {
 }
 
 export class MetadataJson {
-  private static metadataFile = join(
-    extensionContext.extensionPath,
-    "metadata.json"
-  );
+  public static getMetadataFilePath() {
+    return join(extensionContext.extensionPath, "metadata.json");
+  }
+
   public static async read(): Promise<IMetadataFile> {
     try {
-      const doesMetadataExist = await doesPathExists(this.metadataFile);
+      const metadataFile = this.getMetadataFilePath();
+      const doesMetadataExist = await doesPathExists(metadataFile);
       if (!doesMetadataExist) {
         const result = await vscode.window.showInformationMessage(
           "The metadata file doesn't exist. Create from current configuration?",
@@ -43,24 +44,25 @@ export class MetadataJson {
           "No"
         );
         if (!result || result === "No") {
-          Logger.infoNotify(`${this.metadataFile} doesn't exist.`);
+          Logger.infoNotify(`${metadataFile} doesn't exist.`);
           return;
         }
         await this.initializeMetadataFromCurrentSettings();
       }
-      const json = await readJson(this.metadataFile);
-      return JSON.parse(json) as IMetadataFile;
+      const json = await readJson(metadataFile);
+      const metaObj = json as IMetadataFile;
+      return metaObj;
     } catch (error) {
-      Logger.error(`Error reading ${this.metadataFile}`, error);
+      Logger.error(`Error reading metadata.json`, error);
     }
   }
 
   public static write(value: IMetadataFile) {
     try {
-      const jsonString = JSON.stringify(value);
-      return writeJson(this.metadataFile, jsonString);
+      const metadataFile = this.getMetadataFilePath();
+      return writeJson(metadataFile, value);
     } catch (error) {
-      Logger.error(`Error writing ${this.metadataFile}`, error);
+      Logger.error(`Error writing metadata.json`, error);
     }
   }
 
