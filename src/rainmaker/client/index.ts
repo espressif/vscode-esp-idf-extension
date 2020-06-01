@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import axios from "axios";
+import { stringify } from "querystring";
 import { ESP } from "../../config";
 import { Logger } from "../../logger/logger";
 import {
@@ -40,12 +41,12 @@ export class RainmakerAPIClient {
   ): Promise<RainmakerLoginResponseModel> {
     const resp = await axios.post(
       ESP.Rainmaker.OAuth.AuthURL,
-      {
+      stringify({
         grant_type: ESP.Rainmaker.OAuth.GrantType,
         client_id: ESP.Rainmaker.OAuth.ClientID,
         redirect_uri: ESP.Rainmaker.OAuth.RedirectURL,
         code,
-      },
+      }),
       { headers: this.generateUserAgentHeader() }
     );
     if (resp.status === 200 && resp.data.access_token) {
