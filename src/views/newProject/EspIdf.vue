@@ -43,7 +43,7 @@
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { State, Action, Mutation } from "vuex-class";
-import { IMetadataFile, IPath, ITool } from "../../ITool";
+import { IPath, ITool } from "../../ITool";
 
 @Component
 export default class Espidf extends Vue {
