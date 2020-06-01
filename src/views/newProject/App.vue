@@ -25,6 +25,9 @@ export default class App extends Vue {
   padding-top: 3%;
   text-align: center;
   cursor: default;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -68,6 +71,15 @@ export default class App extends Vue {
   -webkit-transform-origin: right top;
   transform-origin: right top;
 }
+.group {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: 1em;
+}
+.group label {
+  margin: 0.5em;
+}
 .right {
   -webkit-transform: rotate(-135deg);
   transform: rotate(-135deg);
@@ -80,8 +92,11 @@ export default class App extends Vue {
   transition: opacity 0.5s ease 1s;
   border: none;
   cursor: pointer;
-  padding: 1%;
-  margin: 1vh;
+  width: -webkit-fill-available;
+  width: 15em;
+  padding: 0.5em;
+  margin: 1em;
+  vertical-align: super;
 }
 
 .button:hover {

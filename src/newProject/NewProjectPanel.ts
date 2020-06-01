@@ -95,14 +95,18 @@ export class NewProjectPanel {
             message.idf &&
             message.template &&
             message.tools &&
-            message.venv
+            message.venv &&
+            message.idfTarget &&
+            message.openOcdCfgs
           ) {
             this.createProject(
               message.components,
               message.idf,
               message.template,
               message.tools,
-              message.venv
+              message.venv,
+              message.idfTarget,
+              message.openOcdCfgs
             );
           }
           break;
@@ -203,7 +207,21 @@ export class NewProjectPanel {
         metadata.idf.find((idfVersion) => idfVersion.path === espIdfPath) ||
         metadata.idf[0];
       await this.loadToolsVenvForIdf(metadata, selectedIdf);
+
+      const openOcdConfigFilesList = idfConf.readParameter(
+        "idf.openOcdConfigs"
+      );
+      this.panel.webview.postMessage({
+        command: "load_openocd_config_files",
+        openOcdConfigFilesList,
+      });
+      const idfTarget = idfConf.readParameter("idf.adapterTargetName");
+      this.panel.webview.postMessage({
+        command: "load_adapter_target",
+        idfTarget,
+      });
     } catch (error) {
+      OutputChannel.appendLine(error);
       Logger.errorNotify("Error loading initial values in New Project", error);
     }
   }
@@ -292,8 +310,17 @@ export class NewProjectPanel {
     idf: IPath,
     template: IExample,
     tools: ITool[],
-    venv: IPath
+    venv: IPath,
+    idfTarget: string,
+    openOcdConfigs: string[]
   ) {
+    const projectName = await vscode.window.showInputBox({
+      placeHolder: "Enter project name",
+    });
+    if (!projectName) {
+      vscode.window.showInformationMessage("No name selected");
+      return;
+    }
     const selectedFolder = await vscode.window.showOpenDialog({
       canSelectFolders: true,
       canSelectFiles: false,
@@ -302,13 +329,6 @@ export class NewProjectPanel {
     });
     if (!selectedFolder) {
       vscode.window.showInformationMessage("No folder selected");
-      return;
-    }
-    const projectName = await vscode.window.showInputBox({
-      placeHolder: "Enter project name",
-    });
-    if (!projectName) {
-      vscode.window.showInformationMessage("No name selected");
       return;
     }
     const newProjectPath = join(selectedFolder[0].fsPath, projectName);
@@ -342,6 +362,8 @@ export class NewProjectPanel {
     settingsJson["idf.customExtraPaths"] = extraPaths;
     settingsJson["idf.customExtraVars"] = JSON.stringify(extraVars);
     settingsJson["idf.toolsPath"] = toolsDir;
+    settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
+    settingsJson["idf.adapterTargetName"] = idfTarget;
 
     await utils.writeJson(settingsJsonPath, settingsJson);
 

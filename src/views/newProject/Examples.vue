@@ -2,14 +2,12 @@
   <div id="examples-window">
     <div class="group">
       <label for="idf-category">Select category:</label>
-      <br />
       <select v-model="selectedTemplateCategory" id="idf-category">
         <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
       </select>
     </div>
     <div class="group">
       <label for="example-template">Select template:</label>
-      <br />
       <select v-model="selectedTemplate" id="example-template">
         <option
           v-for="template in templates"
@@ -21,12 +19,12 @@
     </div>
     <div class="group">
       <router-link
-        to="/components"
+        to="/target-settings"
         class="button"
         v-on:click.native="setNullTemplate"
         >No template</router-link
       >
-      <router-link to="/components" class="button"
+      <router-link to="/target-settings" class="button"
         >Use selected template</router-link
       >
     </div>
@@ -88,11 +86,4 @@ export default class Examples extends Vue {
 }
 </script>
 
-<style scoped>
-.group {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  margin: 2vh;
-}
-</style>
+<style></style>

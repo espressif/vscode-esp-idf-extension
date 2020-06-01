@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Vue from "vue";
 import { ActionTree, MutationTree, StoreOptions } from "vuex";
 import { IPath, ITool } from "../../../ITool";
 import { IExample } from "../../../examples/Examples";
@@ -25,8 +24,10 @@ export interface State {
   idfPathVersion: string;
   idfVersions: IPath[];
   isValid: boolean;
+  openOcdCfgs: string;
   pyVenvList: IPath[];
   selectedIdfVersion: IPath;
+  selectedIdfTarget: string;
   selectedVenv: IPath;
   selectedTemplateCategory: string;
   selectedTemplate: IExample;
@@ -48,9 +49,11 @@ export const projectState: State = {
   idfPathVersion: "",
   idfVersions: [],
   isValid: false,
+  openOcdCfgs: "",
   pyVenvList: [],
   selectedVenv: { id: "", path: "" },
   selectedIdfVersion: { id: "", path: "" },
+  selectedIdfTarget: "esp32",
   selectedTemplate: { name: "", category: "", path: "" },
   selectedTemplateCategory: "",
   templates: [{ name: "", category: "", path: "" }],
@@ -63,6 +66,8 @@ export const actions: ActionTree<State, any> = {
       command: "createProject",
       components: context.state.components,
       idf: context.state.selectedIdfVersion,
+      idfTarget: context.state.selectedIdfTarget,
+      openOcdCfgs: context.state.openOcdCfgs,
       template: context.state.selectedTemplate,
       tools: context.state.toolsInMetadata,
       venv: context.state.selectedVenv,
@@ -124,6 +129,16 @@ export const mutations: MutationTree<State> = {
   setIdfVersions(state, idfVersions: IPath[]) {
     const newState = state;
     newState.idfVersions = idfVersions;
+    state = { ...newState };
+  },
+  setIdfTarget(state, idfTarget: string) {
+    const newState = state;
+    newState.selectedIdfTarget = idfTarget;
+    state = { ...newState };
+  },
+  setOpenOcdCfgs(state, openOcdConfigFilesList) {
+    const newState = state;
+    newState.openOcdCfgs = openOcdConfigFilesList;
     state = { ...newState };
   },
   setPyEnvList(state, pyVenvList: IPath[]) {

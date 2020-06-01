@@ -21,7 +21,9 @@ import Components from "./Components.vue";
 import Espidf from "./EspIdf.vue";
 import Examples from "./Examples.vue";
 import IdfComponent from "./components/idfComponent.vue";
+import TargetConf from "./TargetConf.vue";
 import Tool from "./components/tool.vue";
+
 import { store } from "./store";
 import {
   faArrowLeft,
@@ -37,6 +39,7 @@ const routes = [
   { path: "/", component: Espidf },
   { path: "/examples", component: Examples },
   { path: "/components", component: Components },
+  { path: "/target-settings", component: TargetConf },
 ];
 
 export const router = new VueRouter({
@@ -77,9 +80,9 @@ window.addEventListener("message", (event) => {
         store.commit("setIsValid", message.allIsValid);
       }
       break;
-    case "load_examples":
-      if (message.examples) {
-        store.commit("setTemplates", message.examples);
+    case "load_adapter_target":
+      if (message.idfTarget) {
+        store.commit("setIdfTarget", message.idfTarget);
       }
       break;
     case "load_current_idf_version":
@@ -90,12 +93,22 @@ window.addEventListener("message", (event) => {
         store.commit("setSelectedIdf", message.idfPath);
       }
       break;
+    case "load_examples":
+      if (message.examples) {
+        store.commit("setTemplates", message.examples);
+      }
+      break;
     case "load_idf_versions":
       if (message.idfVersions) {
         store.commit("setIdfVersions", message.idfVersions);
       }
       if (message.selectedIdf) {
         store.commit("setSelectedIdf", message.selectedIdf);
+      }
+      break;
+    case "load_openocd_config_files":
+      if (message.openOcdConfigFilesList) {
+        store.commit("setOpenOcdCfgs", message.openOcdConfigFilesList);
       }
       break;
     case "load_py_venvs":
