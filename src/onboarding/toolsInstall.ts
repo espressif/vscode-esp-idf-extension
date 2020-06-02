@@ -29,6 +29,7 @@ import {
   sendDownloadFailed,
   sendDownloadPercentage,
 } from "./updateViewMethods";
+import { MetadataJson } from "../Metadata";
 
 export async function downloadToolsInIdfToolsPath(
   espIdfPath: string,
@@ -95,9 +96,15 @@ export async function downloadToolsInIdfToolsPath(
         selectedWorkspaceFolder,
         systemPythonPath
       );
-      let exportPaths = await idfToolsManager.generateToolsExtraPaths(
+      let toolsMetadata = await idfToolsManager.generateToolsExtraPaths(
         path.join(installDir, "tools")
       );
+      await MetadataJson.addIdfToolsToMetadata(toolsMetadata);
+      let exportPaths = toolsMetadata
+        .reduce((prev, curr) => {
+          return `${prev}${path.delimiter}${curr.path}`;
+        }, "")
+        .substr(1);
       const pythonBinPath =
         pyEnvResult ||
         (idfConf.readParameter(

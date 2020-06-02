@@ -22,7 +22,6 @@ import { OutputChannel } from "./logger/outputChannel";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
-import { MetadataJson } from "./Metadata";
 
 export class IdfToolsManager {
   public static async createIdfToolsManager(idfPath: string) {
@@ -259,7 +258,7 @@ export class IdfToolsManager {
 
   public async generateToolsExtraPaths(toolsDir: string) {
     const pkgs = await this.getPackageList();
-    const toolsMetadata = pkgs.map((pkg) => {
+    return pkgs.map((pkg) => {
       const versionToUse = this.getVersionToUse(pkg);
       let toolPath: string;
       const basePath = path.join(toolsDir, pkg.name, versionToUse);
@@ -281,54 +280,39 @@ export class IdfToolsManager {
       } as ITool;
       return toolMetadata;
     });
-
-    await MetadataJson.addIdfToolsToMetadata(toolsMetadata);
-    return toolsMetadata
-      .reduce((prev, curr) => {
-        return `${prev}${path.delimiter}${curr.path}`;
-      }, "")
-      .substr(1);
   }
 
   public async writeMetadataFromExtraPaths(
     pathsToVerify: string,
-    extraVars: {},
-    toolsVersion
+    extraVars: {}
   ) {
-    try {
-      const pkgs = await this.getPackageList();
-      const promises = pkgs.map(async (pkg) => {
-        const updatedVars = {};
-        for (const k of Object.keys(pkg.export_vars)) {
-          if (Object.prototype.hasOwnProperty.call(extraVars, k)) {
-            updatedVars[k] = extraVars[k];
-          }
+    const pkgs = await this.getPackageList();
+    const toolsVersion = await this.checkToolsVersion(pathsToVerify);
+    const promises = pkgs.map(async (pkg) => {
+      const updatedVars = {};
+      for (const k of Object.keys(pkg.export_vars)) {
+        if (Object.prototype.hasOwnProperty.call(extraVars, k)) {
+          updatedVars[k] = extraVars[k];
         }
-        const toolVersion = toolsVersion.filter((t) => t.id === pkg.name);
-        const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-        const toolPath = await utils.isBinInPath(
-          pkg.version_cmd[0],
-          process.cwd(),
-          { PATH: pathModified }
-        );
-        const ending = `${path.sep}${pkg.version_cmd[0]}`;
-        const toolDirPath = toolPath.slice(0, toolPath.length - ending.length);
-        const toolInfo = {
-          id: uuidv4(),
-          name: pkg.name,
-          path: toolDirPath,
-          version: toolVersion[0].actual,
-          env: updatedVars,
-        } as ITool;
-        return toolInfo;
-      });
-
-      const toolsInfo = await Promise.all(promises);
-      await MetadataJson.addIdfToolsToMetadata(toolsInfo);
-    } catch (error) {
-      this.toolsManagerChannel.appendLine(error);
-      Logger.error(error, error);
-      return "Error";
-    }
+      }
+      const toolVersion = toolsVersion.filter((t) => t.id === pkg.name);
+      const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
+      const toolPath = await utils.isBinInPath(
+        pkg.version_cmd[0],
+        process.cwd(),
+        { PATH: pathModified }
+      );
+      const ending = `${path.sep}${pkg.version_cmd[0]}`;
+      const toolDirPath = toolPath.slice(0, toolPath.length - ending.length);
+      const toolInfo = {
+        id: uuidv4(),
+        name: pkg.name,
+        path: toolDirPath,
+        version: toolVersion[0].actual,
+        env: updatedVars,
+      } as ITool;
+      return toolInfo;
+    });
+    return await Promise.all(promises);
   }
 }

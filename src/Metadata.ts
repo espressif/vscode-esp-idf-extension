@@ -34,99 +34,59 @@ export class MetadataJson {
   }
 
   public static async read(): Promise<IMetadataFile> {
-    try {
-      const metadataFile = this.getMetadataFilePath();
-      const doesMetadataExist = await doesPathExists(metadataFile);
-      if (!doesMetadataExist) {
-        const result = await vscode.window.showInformationMessage(
-          "The metadata file doesn't exist. Create from current configuration?",
-          "Yes",
-          "No"
-        );
-        if (!result || result === "No") {
-          Logger.infoNotify(`${metadataFile} doesn't exist.`);
-          return;
-        }
-        await this.initializeMetadataFromCurrentSettings();
+    const metadataFile = this.getMetadataFilePath();
+    const doesMetadataExist = await doesPathExists(metadataFile);
+    if (!doesMetadataExist) {
+      const result = await vscode.window.showInformationMessage(
+        "The metadata file doesn't exist. Create from current configuration?",
+        "Yes",
+        "No"
+      );
+      if (!result || result === "No") {
+        throw new Error("Can't find metadata.json.");
       }
-      const json = await readJson(metadataFile);
-      const metaObj = json as IMetadataFile;
-      return metaObj;
-    } catch (error) {
-      Logger.error(`Error reading metadata.json`, error);
+      await this.initializeMetadataFromCurrentSettings();
     }
+    return (await readJson(metadataFile)) as IMetadataFile;
   }
 
-  public static write(value: IMetadataFile) {
+  public static async write(metaObj: IMetadataFile) {
     try {
       const metadataFile = this.getMetadataFilePath();
-      return writeJson(metadataFile, value);
+      return await writeJson(metadataFile, metaObj);
     } catch (error) {
       Logger.error(`Error writing metadata.json`, error);
     }
   }
 
   private static async initializeMetadataFromCurrentSettings() {
-    const pyBinPath = idfConf.readParameter("idf.pythonBinPath");
+    const pyBinPathDir = idfConf.readParameter("idf.pythonBinPath");
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       idfPathDir
     );
     const toolsDir = join(idfConf.readParameter("idf.toolsPath"), "tools");
-    await this.addEspIdfPath(idfPathDir);
-    await idfToolsManager.generateToolsExtraPaths(toolsDir);
-    await this.addPythonVenvPath(pyBinPath);
-  }
-
-  public static async addEspIdfPath(idfPath: string) {
-    let metadata: IMetadataFile = await this.read();
-    const idfMetadata: IPath = {
+    const idfPath: IPath = {
       id: uuidv4(),
-      path: idfPath,
+      path: idfPathDir,
     } as IPath;
-    if (!metadata) {
-      metadata = { idf: [idfMetadata] } as IMetadataFile;
-    } else if (!metadata.idf) {
-      metadata.idf = [idfMetadata];
-    } else {
-      const existingPath = metadata.idf.filter(
-        (idfMeta) => idfMeta.path === idfMetadata.path
-      );
-      if (typeof existingPath === "undefined" || existingPath.length === 0) {
-        metadata.idf.push(idfMetadata);
-      }
-    }
-    await this.write(metadata);
-  }
-
-  public static async addPythonVenvPath(pythonEnvBinPath: string) {
-    const pythonEnvMetadata: IPath = {
+    const pyBinPath: IPath = {
       id: uuidv4(),
-      path: pythonEnvBinPath,
+      path: pyBinPathDir,
     } as IPath;
-    let metadata: IMetadataFile = await this.read();
-    if (!metadata) {
-      metadata = {
-        venv: [pythonEnvMetadata],
-      } as IMetadataFile;
-    } else if (!metadata.venv) {
-      metadata.venv = [pythonEnvMetadata];
-    } else {
-      const existingPath = metadata.venv.filter(
-        (venvMeta) => venvMeta.path === pythonEnvMetadata.path
-      );
-      if (typeof existingPath === "undefined" || existingPath.length === 0) {
-        metadata.venv.push(pythonEnvMetadata);
-      }
-    }
-    await this.write(metadata);
+
+    const toolsMeta = await idfToolsManager.generateToolsExtraPaths(toolsDir);
+    const metadataObj: IMetadataFile = {
+      idf: [idfPath],
+      tools: toolsMeta,
+      venv: [pyBinPath],
+    };
+    await this.write(metadataObj);
   }
 
   public static async addIdfToolsToMetadata(toolsInfo: ITool[]) {
-    let metadata: IMetadataFile = await this.read();
-    if (!metadata) {
-      metadata = { tools: toolsInfo } as IMetadataFile;
-    } else if (!metadata.tools) {
+    let metadata: IMetadataFile = (await this.read()) || ({} as IMetadataFile);
+    if (!metadata.tools) {
       metadata.tools = toolsInfo;
     } else {
       for (const tool of toolsInfo) {
@@ -136,6 +96,33 @@ export class MetadataJson {
         if (typeof existingPath === "undefined" || existingPath.length === 0) {
           metadata.tools.push(tool);
         }
+      }
+    }
+    await this.write(metadata);
+  }
+
+  public static async addEspIdfPath(idfPath: string) {
+    await this.addPathToMetadata("idf", idfPath);
+  }
+
+  public static async addPythonVenvPath(pythonEnvBinPath: string) {
+    await this.addPathToMetadata("venv", pythonEnvBinPath);
+  }
+
+  public static async addPathToMetadata(prop: string, pathStr: string) {
+    let metadata: IMetadataFile = (await this.read()) || ({} as IMetadataFile);
+    const pathToAdd: IPath = {
+      id: uuidv4(),
+      path: pathStr,
+    } as IPath;
+    if (!Object.prototype.hasOwnProperty.call(metadata, prop)) {
+      metadata[prop] = [pathToAdd];
+    } else {
+      const existingPath = metadata[prop].filter(
+        (elem: IPath) => elem.path === pathStr
+      );
+      if (typeof existingPath === "undefined" || existingPath.length === 0) {
+        metadata[prop].push(pathToAdd);
       }
     }
     await this.write(metadata);

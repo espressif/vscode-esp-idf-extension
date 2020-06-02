@@ -20,6 +20,7 @@ import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
 import { getEspIdfVersions, IEspIdfLink } from "./espIdfDownload";
 import { getPythonList } from "./pythonReqsManager";
+import { Logger } from "../logger/logger";
 
 export interface IOnboardingArgs {
   expectedEnvVars: {};
@@ -55,7 +56,12 @@ export async function getOnboardingInitialValues(
   const pythonVersions = await getPythonList(extensionPath);
   const gitVersion = await utils.checkGitExists(extensionPath);
   progress.report({ increment: 5, message: "Reading metadata file..." });
-  const metadataJson = await MetadataJson.read();
+  let metadataJson;
+  try {
+    metadataJson = await MetadataJson.read();
+  } catch (error) {
+    Logger.info("No metadata.json launching onboarding.");
+  }
   progress.report({ increment: 15, message: "Preparing onboarding view..." });
   const expectedEnvVars = await idfToolsManager.getListOfReqEnvVars();
   return {

@@ -886,66 +886,59 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("newProject.start", () => {
-    try {
-      if (NewProjectPanel.isCreatedAndHidden()) {
-        NewProjectPanel.createOrShow(context.extensionPath);
+    if (NewProjectPanel.isCreatedAndHidden()) {
+      NewProjectPanel.createOrShow(context.extensionPath);
+      return;
+    }
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: New Project Wizard",
+      },
+      async (
+        progress: vscode.Progress<{ increment: number; message: string }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const newProjectArgs = await getNewProjectArgs(progress);
+          if (!newProjectArgs || !newProjectArgs.metadata) {
+            throw new Error("Could not find extension metadata.json");
+          }
+          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
+        } catch (error) {
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
+  });
+
+  registerIDFCommand("onboarding.start", () => {
+    PreCheck.perform([webIdeCheck], () => {
+      if (OnBoardingPanel.isCreatedAndHidden()) {
+        OnBoardingPanel.createOrShow(context.extensionPath);
         return;
       }
       vscode.window.withProgress(
         {
           cancellable: false,
           location: vscode.ProgressLocation.Notification,
-          title: "ESP-IDF: New Project Wizard",
+          title: "ESP-IDF: Configure extension",
         },
         async (
-          progress: vscode.Progress<{ increment: number; message: string }>,
-          cancelToken: vscode.CancellationToken
+          progress: vscode.Progress<{ message: string; increment: number }>
         ) => {
-          const newProjectArgs = await getNewProjectArgs(progress);
-          if (!newProjectArgs || !newProjectArgs.metadata) {
-            throw new Error("Could not find extension metadata.json");
+          try {
+            const onboardingArgs = await getOnboardingInitialValues(
+              context.extensionPath,
+              progress
+            );
+            OnBoardingPanel.createOrShow(context.extensionPath, onboardingArgs);
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
           }
-          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
         }
       );
-    } catch (error) {
-      Logger.errorNotify(error.message, error);
-    }
-  });
-
-  registerIDFCommand("onboarding.start", () => {
-    PreCheck.perform([webIdeCheck], () => {
-      try {
-        if (OnBoardingPanel.isCreatedAndHidden()) {
-          OnBoardingPanel.createOrShow(context.extensionPath);
-          return;
-        }
-        vscode.window.withProgress(
-          {
-            cancellable: false,
-            location: vscode.ProgressLocation.Notification,
-            title: "ESP-IDF: Configure extension",
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>
-          ) => {
-            try {
-              const onboardingArgs = await getOnboardingInitialValues(
-                context.extensionPath,
-                progress
-              );
-              OnBoardingPanel.createOrShow(
-                context.extensionPath,
-                onboardingArgs
-              );
-            } catch (error) {
-              Logger.errorNotify(error.message, error);
-            }
-          }
-        );
-      } catch (error) {
-        Logger.errorNotify(error.message, error);
-      }
     });
   });
 

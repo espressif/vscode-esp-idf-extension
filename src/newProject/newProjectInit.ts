@@ -14,7 +14,6 @@
 
 import { Progress } from "vscode";
 import { IMetadataFile, MetadataJson } from "../Metadata";
-import * as utils from "../utils";
 import { IdfComponent } from "../idfComponent";
 
 export interface INewProjectArgs {

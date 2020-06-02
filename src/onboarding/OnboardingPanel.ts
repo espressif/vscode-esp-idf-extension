@@ -225,11 +225,14 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 }
-                this.idfToolsManager.writeMetadataFromExtraPaths(
-                  message.custom_paths,
-                  message.custom_vars,
-                  dictTools
-                );
+                this.idfToolsManager
+                  .writeMetadataFromExtraPaths(
+                    message.custom_paths,
+                    message.custom_vars
+                  )
+                  .then((toolsInfo) =>
+                    MetadataJson.addIdfToolsToMetadata(toolsInfo)
+                  );
                 this.panel.webview.postMessage({
                   command: "respond_check_idf_tools_path",
                   dictToolsExist: dictTools,
@@ -249,7 +252,7 @@ export class OnBoardingPanel {
                   message.py_bin_path
                 ).then(async () => {
                   const espIdfPath = idfConf.readParameter("idf.espIdfPath");
-                  await MetadataJson.read().then((metadataJson) => {
+                  MetadataJson.read().then((metadataJson) => {
                     onboardingArgs.metadataJson = metadataJson;
                     this.loadMetadataForIdfPath(espIdfPath, metadataJson);
                   });
