@@ -98,14 +98,26 @@ export class SystemViewPanel {
 </head>
 
 <body>
-  <br/>
-  <div class="container">
+  <section class="hero is-fullheight" id="loading">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          System View Tracing
+        </h1>
+        <h2 class="subtitle">
+          Please wait preparing your views, tables and timelines.
+        </h2>
+      </div>
+    </div>
+  </section>
+  <div class="container" id="content">
+    <br/>
     <p>Events Table</p>
     <div class="table-container" style="margin-bottom: 0em">
       <table class="table is-fullwidth is-hoverable is-striped">
         <thead>
           <tr>
-            <th>ID</th><th>Timestamp</th><th>Core ID</th><th>Context</th><th>Description</th>
+            <th>ID</th><th>Timestamp</th><th>Core ID</th><th>Context</th><th>Events</th><th>Description</th>
           </tr>
         </thead>
         <tbody id="event_table_data"></tbody>
