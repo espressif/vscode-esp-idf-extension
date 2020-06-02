@@ -292,17 +292,17 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
-            resolve(stderr);
-          }
-          if (stderr.indexOf("DEPRECATION") !== -1) {
-            resolve(stdout.concat(stderr));
-          }
-          if (stderr.indexOf("WARNING") !== -1) {
-            resolve(stdout.concat(stderr));
-          }
-          if (stderr.indexOf("Cache entry deserialization failed") !== -1) {
-            resolve(stdout.concat(stderr));
+          const ignoredMessages = [
+            "Licensed under GNU GPL v2",
+            "DEPRECATION",
+            "WARNING",
+            "Cache entry deserialization failed",
+            `Ignoring pywin32: markers 'platform_system == "Windows"' don't match your environment`,
+          ];
+          for (const msg of ignoredMessages) {
+            if (stderr.indexOf(msg) !== -1) {
+              resolve(stdout.concat(stderr));
+            }
           }
           if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
             resolve(stdout.concat(stderr));

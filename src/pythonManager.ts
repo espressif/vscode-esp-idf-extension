@@ -128,6 +128,17 @@ export async function installPythonEnv(
     channel.appendLine(createVirtualEnvResult + "\n");
   }
   pyTracker.Log = installPyPkgsMsg;
+  // Install wheel and other required packages
+  const systemReqs = await utils.execChildProcess(
+    `"${virtualEnvPython}" -m pip install wheel`,
+    pyEnvPath,
+    channel
+  );
+  pyTracker.Log = systemReqs;
+  pyTracker.Log = "\n";
+  if (channel) {
+    channel.appendLine(systemReqs + "\n");
+  }
   // ESP-IDF Python Requirements
   const espIdfReqInstallResult = await utils.execChildProcess(
     `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
