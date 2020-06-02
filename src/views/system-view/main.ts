@@ -2,54 +2,32 @@ import "./index.scss";
 import { fillEventTable } from "./table";
 import { drawPlot, layout, setLayoutFromCSS } from "./plot";
 import * as Plotly from "plotly.js-dist";
-const interact = require("interactjs");
+import { eventNameMap, resize } from "./util";
 
 const event_table = document.getElementById("event_table_data");
 const plot = document.getElementById("plot");
-
-function resize(el: HTMLElement) {
-  interact(el).resizable({
-    edges: { left: false, right: false, bottom: true, top: true },
-    listeners: {
-      move(event) {
-        var target = event.target;
-        var x = 0;
-        var y = 0;
-
-        // update the element's style
-        target.style.width = event.rect.width + "px";
-        target.style.height = event.rect.height + "px";
-
-        Plotly.relayout(el, { height: event.rect.height });
-
-        // translate when resizing from top or left edges
-        x += event.deltaRect.left;
-        y += event.deltaRect.top;
-
-        target.style.webkitTransform = target.style.transform =
-          "translate(" + x + "px," + y + "px)";
-      },
-    },
-  });
-}
+const loading = document.getElementById("loading");
+const content = document.getElementById("content");
+content.style.display = "none";
 
 window.addEventListener("message", (evt: MessageEvent) => {
   const message: { command: string; value: any } = evt.data;
   switch (message.command) {
     case "initialLoad":
       setImmediate(() => {
-        const frag = fillEventTable(message.value);
+        resize(plot);
+        const eventNameLookupTable = eventNameMap(message.value.streams);
+        const frag = fillEventTable(message.value, eventNameLookupTable);
         event_table.appendChild(frag);
-      });
-      setImmediate(() => {
         setLayoutFromCSS(window.getComputedStyle(document.documentElement));
         const plotData = drawPlot(message.value);
+        loading.style.display = "none";
+        content.style.display = "block";
         Plotly.newPlot(plot, plotData, layout, {
           displaylogo: false,
           scrollZoom: true,
           responsive: true,
         });
-        resize(plot);
       });
       break;
     default:
