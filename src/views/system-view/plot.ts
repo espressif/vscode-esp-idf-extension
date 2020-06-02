@@ -27,7 +27,7 @@ export const layout = {
     showspikes: true,
     spikemode: "across",
     spikedash: "solid",
-    spikecolor: "#000000",
+    spikecolor: undefined,
     spikethickness: 0.5,
   },
   yaxis: {
@@ -60,6 +60,7 @@ export function setLayoutFromCSS(style: CSSStyleDeclaration) {
   const fontColor = style.getPropertyValue("--vscode-editor-foreground");
   layout.paper_bgcolor = bgColor;
   layout.plot_bgcolor = bgColor;
+  layout.xaxis.spikecolor = fontColor;
   layout.font.color = fontColor;
 }
 
