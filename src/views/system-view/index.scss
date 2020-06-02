@@ -19,6 +19,14 @@ body {
   min-height: 100vh;
 }
 
+.title {
+  color: var(--vscode-editor-foreground);
+}
+
+.subtitle {
+  color: var(--vscode-sideBarSectionHeader-border);
+}
+
 #plot {
   box-sizing: border-box;
   touch-action: none;
@@ -30,6 +38,9 @@ thead {
 
 tbody {
   font-size: var(--vscode-editor-font-size);
+  tr {
+    cursor: pointer;
+  }
 }
 
 .table-container {
