@@ -1003,6 +1003,7 @@ const build = () => {
             "Something went wrong while trying to build the project",
             error
           );
+          buildTask.building(false);
         }
       }
     );
@@ -1070,6 +1071,7 @@ const flash = () => {
       );
     }
     const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+    let flashTask: FlashTask;
 
     vscode.window.withProgress(
       {
@@ -1091,7 +1093,7 @@ const flash = () => {
             port,
             baudRate
           );
-          const flashTask = new FlashTask(buildPath, idfPathDir, model);
+          flashTask = new FlashTask(buildPath, idfPathDir, model);
           cancelToken.onCancellationRequested(() => {
             flashTask.flashing(false);
           });
@@ -1130,6 +1132,9 @@ const flash = () => {
             "Failed to flash because of some unusual error",
             error
           );
+          if (flashTask) {
+            flashTask.flashing(false);
+          }
         }
       }
     );
@@ -1179,6 +1184,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       );
     }
     const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+    let flashTask: FlashTask;
 
     await vscode.window.withProgress(
       {
@@ -1210,7 +1216,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             port,
             baudRate
           );
-          const flashTask = new FlashTask(buildPath, idfPathDir, model);
+          flashTask = new FlashTask(buildPath, idfPathDir, model);
           cancelToken.onCancellationRequested(() => {
             flashTask.flashing(false);
           });
@@ -1265,6 +1271,10 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             "Something went wrong while trying to build the project",
             error
           );
+          buildTask.building(false);
+          if (flashTask) {
+            flashTask.flashing(false);
+          }
         }
       }
     );

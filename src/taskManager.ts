@@ -52,6 +52,7 @@ export class TaskManager {
     for (const disposable of TaskManager.disposables) {
       disposable.dispose();
     }
+    TaskManager.disposables = [];
   }
 
   public static cancelTasks() {
@@ -74,11 +75,20 @@ export class TaskManager {
         );
         let lastTask = lastExecution.task;
         for (let i = 1; i < TaskManager.tasks.length; i++) {
-          const taskDisposable = vscode.tasks.onDidEndTask(async (e) => {
+          const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
             if (
               TaskManager.tasks.length > 0 &&
               e.execution.task.name === lastTask.name
             ) {
+              if (e.exitCode !== 0) {
+                this.cancelTasks();
+                this.disposeListeners();
+                return reject(
+                  new Error(
+                    `Task ${lastTask.name} exited with code ${e.exitCode}`
+                  )
+                );
+              }
               if (
                 e.execution.task.name ===
                 TaskManager.tasks[TaskManager.tasks.length - 1].name
@@ -101,8 +111,17 @@ export class TaskManager {
           TaskManager.tasks[0]
         );
         let lastTask = lastExecution.task;
-        const taskDisposable = vscode.tasks.onDidEndTask(async (e) => {
+        const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
           if (e.execution.task.name === lastTask.name) {
+            if (e.exitCode !== 0) {
+              this.cancelTasks();
+              this.disposeListeners();
+              return reject(
+                new Error(
+                  `Task ${lastTask.name} exited with code ${e.exitCode}`
+                )
+              );
+            }
             TaskManager.tasks = [];
             return resolve();
           }
