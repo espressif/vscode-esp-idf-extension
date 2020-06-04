@@ -21,7 +21,7 @@ If you installed ESP-IDF and ESP-IDF Tools following [ESP-IDF Get Started](https
 {
     ...,
     "idf.espIdfPath": "path/to/esp-idf",
-    "idf.customExtraVars": "UPDATED_PATH",
+    "idf.customExtraPaths": "UPDATED_PATH",
     "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"OPENOCD_FOLDER/share/openocd/scripts\"}",
     "idf.pythonBinPath": "PYTHON_INTERPRETER",
     "idf.port": "DEVICE_PORT",
