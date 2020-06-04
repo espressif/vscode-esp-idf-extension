@@ -69,6 +69,7 @@ import { previewReport } from "./coverage/coverageService";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
+import { addArduinoAsComponent } from "./espIdf/arduino/addArduinoComponent";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -273,7 +274,7 @@ export async function activate(context: vscode.ExtensionContext) {
       utils.chooseTemplateDir(),
       { placeHolder: "Select a template to use" }
     );
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       if (option) {
         utils.createSkeleton(workspaceRoot.fsPath, option.target);
         const defaultFoldersMsg = locDic.localize(
@@ -281,6 +282,13 @@ export async function activate(context: vscode.ExtensionContext) {
           "Default folders were generated."
         );
         Logger.infoNotify(defaultFoldersMsg);
+        if (option.label === "arduino-as-component") {
+          try {
+            await addArduinoAsComponent(workspaceRoot.fsPath);
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
       }
     });
   });
