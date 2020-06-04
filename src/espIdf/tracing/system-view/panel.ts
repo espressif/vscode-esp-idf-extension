@@ -126,6 +126,18 @@ export class SystemViewPanel {
     <br/>
     <p>Timeline</p>
     <div id="plot"></div>
+    <br/>
+    <p>Contexts Info</p>
+    <div class="table-container" style="margin-bottom: 0em">
+      <table class="table is-fullwidth is-hoverable is-striped">
+        <thead>
+          <tr>
+            <th>Core#</th><th>Name</th><th>Activations</th><th>Total Run Time(ms)</th><th>Time Interrupted(ms)</th><th>CPU Load</th><th>Last Run Time(ms)</th>
+          </tr>
+        </thead>
+        <tbody id="context_info_table"></tbody>
+      </table>
+    </div>
   </div>
   <script src="${scriptPath}"></script>
 </body>

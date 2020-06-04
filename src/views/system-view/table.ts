@@ -1,18 +1,19 @@
 import * as Plotly from "plotly.js-dist";
 import { events } from "../../espIdf/tracing/system-view/model";
 
-const WINDOW_SIZE = 4;
+const WINDOW_SIZE = 2;
+
+export function createTDWithData(data: string): HTMLTableDataCellElement {
+  const td = document.createElement("td");
+  td.innerText = data;
+  return td;
+}
 
 function generateEventTableTR(
   event: events,
   index: number,
   eventLookupTable: Map<number, string>
 ): HTMLTableRowElement {
-  function createTDWithData(data: string): HTMLTableDataCellElement {
-    const td = document.createElement("td");
-    td.innerText = data;
-    return td;
-  }
   const tr = document.createElement("tr");
 
   tr.appendChild(createTDWithData(index.toString()));
