@@ -41,7 +41,7 @@ export class Telemetry {
       Telemetry.enabled =
         isEnabled && process.env["VSCODE_EXTENSION_MODE"] !== "development";
     } catch (error) {
-      Logger.error(`Failed to load TelemetryReporter`, error);
+      Logger.telemetryError(`Failed to load TelemetryReporter`, error);
     }
   }
   public static dispose() {
@@ -64,7 +64,9 @@ export class Telemetry {
           properties,
           measurements
         );
-      } catch (error) {}
+      } catch (error) {
+        Logger.telemetryError("Failed to sendEvent", error);
+      }
     }
   }
 
@@ -84,7 +86,9 @@ export class Telemetry {
           properties,
           measurements
         );
-      } catch (error) {}
+      } catch (error) {
+        Logger.telemetryError("Failed to sendException", error);
+      }
     }
   }
 }

@@ -74,6 +74,15 @@ export class Logger {
     });
   }
 
+  public static telemetryError(message: string, error: Error, metadata?: any) {
+    Logger.checkInitialized();
+    winston.log("error", message, {
+      errorMessage: `[Telemetry]: ${message}`,
+      stack: error.stack,
+      metadata,
+    });
+  }
+
   private static instance: Logger;
 
   private static checkInitialized() {
