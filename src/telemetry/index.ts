@@ -18,9 +18,10 @@
 
 import TelemetryReporter from "vscode-extension-telemetry";
 import { extensions } from "vscode";
+import { Logger } from "../logger/logger";
 
 export class Telemetry {
-  private static reporter: TelemetryReporter;
+  private static reporter?: TelemetryReporter;
   private static instance: Telemetry;
   private static enabled: boolean;
   public static init(isEnabled: boolean) {
@@ -35,11 +36,16 @@ export class Telemetry {
     const version = extension.packageJSON.version;
     const key = extension.packageJSON.azure.insight.key;
 
-    Telemetry.reporter = new TelemetryReporter(extensionID, version, key);
-    Telemetry.enabled = isEnabled;
+    try {
+      Telemetry.reporter = new TelemetryReporter(extensionID, version, key);
+      Telemetry.enabled =
+        isEnabled && process.env["VSCODE_EXTENSION_MODE"] !== "development";
+    } catch (error) {
+      Logger.error(`Failed to load TelemetryReporter`, error);
+    }
   }
   public static dispose() {
-    this.reporter.dispose();
+    this.reporter?.dispose();
   }
 
   public static sendEvent(
@@ -52,7 +58,13 @@ export class Telemetry {
     }
   ) {
     if (this.enabled) {
-      return this.reporter.sendTelemetryEvent(name, properties, measurements);
+      try {
+        return this.reporter?.sendTelemetryEvent(
+          name,
+          properties,
+          measurements
+        );
+      } catch (error) {}
     }
   }
 
@@ -66,11 +78,13 @@ export class Telemetry {
     }
   ) {
     if (this.enabled) {
-      return this.reporter.sendTelemetryException(
-        error,
-        properties,
-        measurements
-      );
+      try {
+        return this.reporter?.sendTelemetryException(
+          error,
+          properties,
+          measurements
+        );
+      } catch (error) {}
     }
   }
 }

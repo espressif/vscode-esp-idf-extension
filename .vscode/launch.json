@@ -12,7 +12,10 @@
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "preLaunchTask": "npm: debugPreTask"
+      "preLaunchTask": "npm: debugPreTask",
+      "env": {
+        "VSCODE_EXTENSION_MODE": "development"
+      }
     },
     {
       "name": "Extension Tests",
@@ -24,7 +27,10 @@
         "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
-      "preLaunchTask": "npm: compile"
+      "preLaunchTask": "npm: compile",
+      "env": {
+        "VSCODE_EXTENSION_MODE": "development"
+      }
     }
   ]
 }

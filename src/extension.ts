@@ -105,9 +105,10 @@ const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
 const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Always load Logger first
+  Logger.init(context);
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
-  Logger.init(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
