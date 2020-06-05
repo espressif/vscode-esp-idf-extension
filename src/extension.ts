@@ -58,10 +58,13 @@ import {
   updateIdfComponentsTree,
 } from "./workspaceConfig";
 import { Telemetry } from "./telemetry";
+import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
+import { previewReport } from "./coverage/coverageService";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
 const LOCALHOST_DEF_PORT = 43474;
+let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
 const statusBarItems: vscode.StatusBarItem[] = [];
@@ -160,6 +163,8 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.workspaceFolders.length > 0
   ) {
     workspaceRoot = initSelectedWorkspace(status);
+    const coverageOptions = getCoverageOptions();
+    covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
   // Add delete or update new sources in CMakeLists.txt of same folder
   const newSrcWatcher = vscode.workspace.createFileSystemWatcher(
@@ -210,11 +215,15 @@ export async function activate(context: vscode.ExtensionContext) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(status);
+          const coverageOptions = getCoverageOptions();
+          covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
         }
       }
       if (typeof workspaceRoot === undefined) {
         workspaceRoot = initSelectedWorkspace(status);
+        const coverageOptions = getCoverageOptions();
+        covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
       const debugAdapterConfig = {
         currentWorkspace: workspaceRoot,
@@ -541,6 +550,24 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
 
+  registerIDFCommand("espIdf.genCoverage", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await covRenderer.renderCoverage();
+    });
+  });
+
+  registerIDFCommand("espIdf.removeCoverage", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await covRenderer.removeCoverage();
+    });
+  });
+
+  registerIDFCommand("espIdf.getCoverageReport", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await previewReport(workspaceRoot.fsPath);
+    });
+  });
+
   registerIDFCommand("espIdf.getProjectName", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       return await getProjectName(workspaceRoot.fsPath);
@@ -549,11 +576,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+      const modifiedEnv = utils.appendIdfAndToolsToPath();
       try {
-        return await utils.findBinaryFullPath(
+        return await utils.isBinInPath(
           "xtensa-esp32-elf-gdb",
-          extraPaths
+          this.workspaceRoot.fsPath,
+          modifiedEnv
         );
       } catch (error) {
         Logger.errorNotify(
@@ -621,16 +649,8 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window
         .showQuickPick(
           [
-            {
-              description: "ESP32",
-              label: "ESP32",
-              target: "esp32",
-            },
-            {
-              description: "ESP32 S2 (Beta)",
-              label: "ESP32S2BETA",
-              target: "esp32s2beta",
-            },
+            { description: "ESP32", label: "ESP32", target: "esp32" },
+            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
           ],
           { placeHolder: enterDeviceTargetMsg }
         )
@@ -1339,11 +1359,20 @@ function createIdfTerminal() {
       strictEnv: true,
     });
     espIdfTerminal.show();
+    const shellExecutable = path.basename(vscode.env.shell);
+    let winShellCmd = {
+      "cmd.exe": `set "VARIABLE=`,
+      "powershell.exe": `$Env:VARIABLE = "`,
+    };
     const envSetCmd =
-      process.platform === "win32" ? `set "IDF_PATH=` : `export IDF_PATH="`;
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_PATH")
+        : `export IDF_PATH="`;
     espIdfTerminal.sendText(`${envSetCmd}${modifiedEnv.IDF_PATH}"`);
     const setPythonEnvCmd =
-      process.platform === "win32" ? `set "Path=` : `export PATH="`;
+      process.platform === "win32"
+        ? winShellCmd[shellExecutable].replace("VARIABLE", "Path")
+        : `export PATH="`;
     espIdfTerminal.sendText(
       `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
         process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
@@ -1369,6 +1398,7 @@ export function deactivate() {
   for (const statusItem of statusBarItems) {
     statusItem.dispose();
   }
+  covRenderer.dispose();
 }
 
 class IdfDebugConfigurationProvider

@@ -27,11 +27,12 @@ import VueRouter from "vue-router";
 import App from "./App.vue";
 import Download from "./Download.vue";
 import GitPyCheck from "./GitPyCheck.vue";
-import { store } from "./store";
+import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
+import { store } from "./store";
 
 const routes = [
-  { path: "/", component: App },
+  { path: "/", component: Home },
   { path: "/download", component: Download },
   { path: "/toolsetup", component: ToolSetup },
   { path: "/gitpycheck", component: GitPyCheck },
@@ -224,10 +225,17 @@ window.addEventListener("message", (event) => {
       if (message.confTarget) {
         store.commit("updateConfTarget", message.confTarget);
       }
+      break;
     case "loadWorkspaceFolders":
       if (message.folders) {
         store.commit("setWorkspaceFolders", message.folders);
       }
+      break;
+    case "load_python_bin_path":
+      if (message.pythonBinPath) {
+        store.commit("setPythonBinPath", message.pythonBinPath);
+      }
+      break;
     default:
       break;
   }

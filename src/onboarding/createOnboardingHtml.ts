@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as path from "path";
-import * as vscode from "vscode";
+import { Uri } from "vscode";
 
-export function createOnboardingHtml(extensionPath: string): string {
-  const vuePath = vscode.Uri.file(
-    path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
-  ).with({ scheme: "vscode-resource" });
-
+export function createOnboardingHtml(scriptPath: Uri): string {
   return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -30,6 +25,6 @@ export function createOnboardingHtml(extensionPath: string): string {
         <body>
             <div id="app"></div>
         </body>
-        <script src="${vuePath}"></script>
+        <script src="${scriptPath}"></script>
     </html>`;
 }

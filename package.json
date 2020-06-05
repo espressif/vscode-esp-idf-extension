@@ -63,6 +63,8 @@
     "onCommand:espIdf.apptrace.customize",
     "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
+    "onCommand:espIdf.genCoverage",
+    "onCommand:espIdf.removeCoverage",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onView:idfAppTracer",
@@ -215,18 +217,6 @@
             "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
-          "idf.pythonSystemBinPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
-          "idf.pythonSystemBinPathWin": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonSystemBinPath%",
-            "scope": "resource"
-          },
           "idf.baudRate": {
             "type": "string",
             "default": "115200",
@@ -335,6 +325,42 @@
             "type": "boolean",
             "default": true,
             "description": "Send anonymous telemetry and crash report back to the extension (change to the settings will require restart for immediate effect)"
+          },
+          "idf.coveredLightTheme": {
+            "type": "string",
+            "default": "rgba(0,128,0,0.1)",
+            "description": "%param.coveredLightTheme%",
+            "scope": "resource"
+          },
+          "idf.partialDarkTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialDarkTheme%",
+            "scope": "resource"
+          },
+          "idf.partialLightTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialLightTheme%",
+            "scope": "resource"
+          },
+          "idf.coveredDarkTheme": {
+            "type": "string",
+            "default": "rgba(0,128,0,0.1)",
+            "description": "%param.coveredDarkTheme%",
+            "scope": "resource"
+          },
+          "idf.uncoveredLightTheme": {
+            "type": "string",
+            "default": "rgba(255,0,0,0.1)",
+            "description": "%param.uncoveredLightTheme%",
+            "scope": "resource"
+          },
+          "idf.uncoveredDarkTheme": {
+            "type": "string",
+            "default": "rgba(255,0,0,0.1)",
+            "description": "%param.uncoveredDarkTheme%",
+            "scope": "resource"
           }
         }
       }
@@ -439,6 +465,18 @@
       {
         "command": "espIdf.apptrace.customize",
         "title": "%espIdf.apptrace.customize.title%"
+      },
+      {
+        "command": "espIdf.genCoverage",
+        "title": "%espIdf.genCoverage.title%"
+      },
+      {
+        "command": "espIdf.removeCoverage",
+        "title": "%espIdf.removeCoverage.title%"
+      },
+      {
+        "command": "espIdf.getCoverageReport",
+        "title": "%espIdf.getCoverageReport.title%"
       }
     ],
     "breakpoints": [

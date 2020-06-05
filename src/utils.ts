@@ -26,6 +26,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
+import { OutputChannel } from "./logger/outputChannel";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -576,6 +577,14 @@ export function appendIdfAndToolsToPath() {
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
   modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
+
+  modifiedEnv.PYTHON =
+    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
+
+  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
+    path.dirname(modifiedEnv.PYTHON)
+  );
+
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
@@ -600,9 +609,12 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv = "PATH";
   }
   modifiedEnv[pathNameInEnv] =
+    modifiedEnv.IDF_PYTHON_ENV_PATH +
+    path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +
     modifiedEnv[pathNameInEnv];
+
   if (
     modifiedEnv[pathNameInEnv] &&
     !modifiedEnv[pathNameInEnv].includes(extraPaths)
@@ -616,13 +628,6 @@ export function appendIdfAndToolsToPath() {
 
   const idfTarget = idfConf.readParameter("idf.adapterTargetName");
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
-
-  modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
-
-  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
-    path.dirname(modifiedEnv.PYTHON)
-  );
 
   return modifiedEnv;
 }
@@ -649,16 +654,21 @@ export async function isBinInPath(
   return "";
 }
 
-export async function findBinaryFullPath(
-  binName: string,
-  pathsToVerify: string
+export async function startPythonReqsProcess(
+  pythonBinPath: string,
+  espIdfPath: string,
+  requirementsPath: string
 ) {
-  const locCmd = process.platform === "win32" ? "where" : "which";
-  const pathModified = pathsToVerify + path.delimiter + process.env.PATH;
-  return await execChildProcess(
-    `${locCmd} ${binName}`,
-    process.cwd(),
-    this.toolsManagerChannel,
-    { cwd: process.cwd(), env: { PATH: pathModified } }
+  const reqFilePath = path.join(
+    espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  const modifiedEnv = appendIdfAndToolsToPath();
+  return execChildProcess(
+    `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
+    extensionContext.extensionPath,
+    OutputChannel.init(),
+    { env: modifiedEnv }
   );
 }

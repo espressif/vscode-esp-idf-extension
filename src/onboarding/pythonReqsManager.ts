@@ -25,18 +25,9 @@ import { PyReqLog } from "./PyReqLog";
 
 export async function checkPythonRequirements(
   workingDir: string,
-  selectedWorkspaceFolder: WorkspaceFolder
+  selectedWorkspaceFolder: WorkspaceFolder,
+  pythonBinPath: string
 ) {
-  const pythonSystemBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath",
-    selectedWorkspaceFolder
-  ) as string;
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonBinPath",
-    selectedWorkspaceFolder
-  ) as string;
-  process.env.PATH =
-    path.dirname(pythonSystemBinPath) + path.delimiter + process.env.PATH;
   const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
   if (!canCheck) {
     OnBoardingPanel.postMessage({
@@ -53,11 +44,6 @@ export async function checkPythonRequirements(
     "idf.toolsPath",
     selectedWorkspaceFolder
   ) as string;
-  const reqFilePath = path.join(
-    espIdfPath,
-    "tools",
-    "check_python_dependencies.py"
-  );
   const requirements = path.join(espIdfPath, "requirements.txt");
   const debugAdapterRequirements = path.join(
     utils.extensionContext.extensionPath,
@@ -69,15 +55,10 @@ export async function checkPythonRequirements(
     idfToolsPath,
     pythonBinPath
   );
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   await utils
-    .execChildProcess(
-      `"${pythonBin}" "${reqFilePath}" -r "${requirements}"`,
-      workingDir,
-      OutputChannel.init()
-    )
+    .startPythonReqsProcess(pythonBin, espIdfPath, requirements)
     .then(async (pyReqLog) => {
-      const resultLog = `Checking ESP-IDF Python requirements using ${pythonBin}\n${pyReqLog}`;
+      const resultLog = `Checking ESP-IDF Python requirements using ${pythonBinPath}\n${pyReqLog}`;
       OutputChannel.appendLine(resultLog);
       Logger.info(resultLog);
       OnBoardingPanel.postMessage({
@@ -85,12 +66,8 @@ export async function checkPythonRequirements(
         py_req_log: resultLog,
       });
       await utils
-        .execChildProcess(
-          `"${pythonBin}" "${reqFilePath}" -r "${debugAdapterRequirements}"`,
-          workingDir,
-          OutputChannel.init()
-        )
-        .then((adapterReqLog) => {
+        .startPythonReqsProcess(pythonBin, espIdfPath, debugAdapterRequirements)
+        .then(async (adapterReqLog) => {
           const adapterResultLog = `Checking Debug Adapter requirements using ${pythonBin}\n${adapterReqLog}`;
           OutputChannel.appendLine(adapterResultLog);
           Logger.info(adapterResultLog);
@@ -126,15 +103,10 @@ export async function installPythonRequirements(
   espIdfPath: string,
   workingDir: string,
   confTarget: ConfigurationTarget,
-  selectedWorkspaceFolder: WorkspaceFolder
+  selectedWorkspaceFolder: WorkspaceFolder,
+  systemPythonPath: string
 ) {
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonSystemBinPath",
-    selectedWorkspaceFolder
-  ) as string;
-  process.env.PATH =
-    path.dirname(pythonBinPath) + path.delimiter + process.env.PATH;
-  const canCheck = await checkPythonPipExists(pythonBinPath, workingDir);
+  const canCheck = await checkPythonPipExists(systemPythonPath, workingDir);
   if (!canCheck) {
     sendPyReqLog("Python or pip have not been found in your environment.");
     OutputChannel.appendLine(
@@ -143,13 +115,12 @@ export async function installPythonRequirements(
     return;
   }
   const logTracker = new PyReqLog(sendPyReqLog);
-  process.env.IDF_PATH = espIdfPath || process.env.IDF_PATH;
   return await pythonManager
     .installPythonEnv(
       espIdfPath,
       workingDir,
       logTracker,
-      pythonBinPath,
+      systemPythonPath,
       OutputChannel.init()
     )
     .then(async (virtualEnvPythonBin) => {
@@ -163,6 +134,10 @@ export async function installPythonRequirements(
         OutputChannel.appendLine("Python requirements has been installed.");
         if (logTracker.Log.indexOf("Exception") < 0) {
           OnBoardingPanel.postMessage({ command: "set_py_setup_finish" });
+          OnBoardingPanel.postMessage({
+            command: "load_python_bin_path",
+            pythonBinPath: virtualEnvPythonBin,
+          });
         }
         return virtualEnvPythonBin;
       } else {

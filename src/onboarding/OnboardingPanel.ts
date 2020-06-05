@@ -72,6 +72,7 @@ export class OnBoardingPanel {
   private confTarget: vscode.ConfigurationTarget =
     vscode.ConfigurationTarget.Global;
   private selectedWorkspaceFolder: vscode.WorkspaceFolder;
+  private pythonSystemBinPath: string;
 
   private constructor(
     extensionPath: string,
@@ -80,6 +81,7 @@ export class OnBoardingPanel {
   ) {
     this.extensionPath = extensionPath;
     this.idfToolsManager = onboardingArgs.idfToolsManager;
+    this.pythonSystemBinPath = onboardingArgs.pythonVersions[0];
     const onBoardingPanelTitle = locDic.localize(
       "onboarding.panelName",
       "IDF Onboarding"
@@ -96,8 +98,12 @@ export class OnBoardingPanel {
         ],
       }
     );
-
-    this.panel.webview.html = createOnboardingHtml(extensionPath);
+    const scriptPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
+      )
+    );
+    this.panel.webview.html = createOnboardingHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
@@ -181,9 +187,13 @@ export class OnBoardingPanel {
           }
           break;
         case "checkIdfToolsForPaths":
-          if (message.new_value) {
+          if (
+            message.custom_paths &&
+            message.custom_vars &&
+            message.py_bin_path
+          ) {
             this.idfToolsManager
-              .checkToolsVersion(message.new_value)
+              .checkToolsVersion(message.custom_paths)
               .then((dictTools) => {
                 const pkgsNotFound = dictTools.filter(
                   (p) => p.doesToolExist === false
@@ -203,16 +213,23 @@ export class OnBoardingPanel {
                 if (toolsNotFound.length === 0) {
                   idfConf.writeParameter(
                     "idf.customExtraPaths",
-                    message.new_value,
+                    message.custom_paths,
                     this.confTarget,
                     this.selectedWorkspaceFolder
                   );
                 }
                 checkPythonRequirements(
                   this.extensionPath,
-                  this.selectedWorkspaceFolder
+                  this.selectedWorkspaceFolder,
+                  message.py_bin_path
                 );
               });
+          } else {
+            if (message.py_bin_path === "") {
+              vscode.window.showInformationMessage(
+                "Please fill all required inputs"
+              );
+            }
           }
           break;
         case "getRequiredToolsInfo":
@@ -263,7 +280,8 @@ export class OnBoardingPanel {
                   this.idfToolsManager,
                   message.tools_path,
                   this.confTarget,
-                  this.selectedWorkspaceFolder
+                  this.selectedWorkspaceFolder,
+                  this.pythonSystemBinPath
                 ).catch((reason) => {
                   OutputChannel.appendLine(reason);
                   Logger.info(reason);
@@ -353,15 +371,10 @@ export class OnBoardingPanel {
           break;
         case "savePythonBinary":
           if (message.selectedPyBin) {
-            Logger.info(
-              `Saving ${message.selectedPyBin} as Python binary in idf.pythonBinPath`
-            );
-            idfConf.writeParameter(
-              "idf.pythonSystemBinPath",
-              message.selectedPyBin,
-              this.confTarget,
-              this.selectedWorkspaceFolder
-            );
+            const msg = `Saving ${message.selectedPyBin} to create python virtual environment.`;
+            Logger.info(msg);
+            OutputChannel.appendLine(msg);
+            this.pythonSystemBinPath = message.selectedPyBin;
           }
           break;
         case "saveShowOnboarding":
@@ -432,6 +445,13 @@ export class OnBoardingPanel {
     this.panel.webview.postMessage({
       command: "load_idf_download_path",
       idf_path: idfDownloadPath,
+    });
+
+    // Initial Python Path
+    const pyBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    this.panel.webview.postMessage({
+      command: "load_python_bin_path",
+      pythonBinPath: pyBinPath,
     });
 
     // Show onboarding on extension activate
