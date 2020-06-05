@@ -11,8 +11,9 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - [GUI Menuconfig tool](#ESP-IDF-GUI-Menuconfig-tool) within the extension with enabled search.
 - Easily Build, Flash and Monitor your code for the ESP-32 chip.
 - Syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and ESP-IDF Kconfig style syntax validation if enabled.
-- Localization (English, Chinese, Spanish)of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
+- Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
+- [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
 
 ## Demo
 
@@ -35,7 +36,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 - Support Rainmaker
 - Support GDB Stub
 - Support Core Dump
-- Support code coverage inside text editor & `gcovr` HTML report integration
 
 ## Quick Installation Guide
 
@@ -100,6 +100,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Configure ESP-IDF extension                     |                                        |                                           |
 | Create ESP-IDF project                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Add vscode configuration folder                 |                                        |                                           |
+| Add Arduino ESP32 as ESP-IDF Component          |                                        |                                           |
 | Configure Paths                                 |                                        |                                           |
 | Set Espressif device target                     |                                        |                                           |
 | Device configuration                            |                                        |                                           |
@@ -110,12 +111,15 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Flash your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Monitor your device                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
 | Build, Flash and start a monitor on your device | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Show ESP-IDF Examples Projects                  |                                        |                                           |
 | Add Editor coverage                             |                                        |                                           |
 | Remove Editor coverage                          |                                        |                                           |
 | Get HTML Coverage Report for project            |                                        |                                           |
+
+The **Add Arduino ESP32 as ESP-IDF Component** command will just add [Arduino ESP32](https://github.com/espressif/arduino-esp32) at your current folder with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
 
 ## ESP-IDF Configure extension
 
@@ -124,23 +128,23 @@ Initial configuration is done easily by executing **ESP-IDF: Configure ESP-IDF e
 This windows helps you setup key Visual Studio Code configurations for this extension to perform included features correctly. This is how the extension uses them:
 
 1. `idf.pythonBinPath` is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
-2. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within visual studio code **(not modifying your system environment)** before executing any of our extension commands such as openocd or cmake (build your current project) else extension commands will try to use what is already in your system PATH. In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip download and manually enter all required ESP-IDF Tools as explain in [ONBOARDING](./docs/ONBOARDING.md) which will be saved in `idf.customExtraPaths`.
-3. `idf.customExtraVars` stores any custom environment variable we use such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. We add these variables to visual studio code process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside visual studio code.**
+2. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as `openocd` or `cmake` (i.e. build your current project) else extension commands will try to use what is already in your system PATH. In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [ONBOARDING](./docs/ONBOARDING.md) which will be saved in `idf.customExtraPaths`.
+3. `idf.customExtraVars` stores any custom environment variable we use such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. We add these variables to visual studio code process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
 4. `idf.adapterTargetName` is used to select the chipset (esp32, esp32 s2, etc.) on which to run our extension commands.
 5. `idf.openOcdConfigs` is used to store an array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]).
-6. `idf.espIdfPath` is used to store ESP-IDF directory path within our extension. We override visual studio code process IDF_PATH if this value is available. **This doesn't modify your system environment outside visual studio code.**
+6. `idf.espIdfPath` is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
 
-Note: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We do override the current Visual Studio Code process environment variables which might collide with other extension you might have installed. Please review the content of `idf.customExtraPaths` and `idf.customExtraVars` in case you have issues with other extensions.
+**Note**: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We do override the current Visual Studio Code process environment variables which might collide with other extension you might have installed. Please review the content of `idf.customExtraPaths` and `idf.customExtraVars` in case you have issues with other extensions.
 
 ## ESP IDF Settings
 
 This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu (F1 -> Preferences: Open Settings (UI)).
 
-### IDF Specific Settings
+### ESP-IDF Specific Settings
 
-These are project IDF Project specific settings
+These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
-| Setting                    | Description                                                                   |
+| Setting ID                 | Description                                                                   |
 | -------------------------- | ----------------------------------------------------------------------------- |
 | `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                                   |
 | `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
@@ -188,7 +192,7 @@ These settings are specific to the Log Tracing
 
 Environment (env) variables and other ESP-IDF settings (config) current values strings can be used in other ESP-IDF setting as `${env:VARNAME}` and `${config:ESPIDFSETTING}`, respectively.
 
-Example : `idf.espIdfPath` = `"${env:HOME}/esp/esp-idf"` would be translated to `"~/esp/esp-idf"`.
+Example : If you want to use `"~/esp/esp-idf"` you can set the value of `idf.espIdfPath` to `"${env:HOME}/esp/esp-idf"`.
 
 ## Available Tasks in tasks.json
 

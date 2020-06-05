@@ -143,10 +143,10 @@ export function updateStatus(
   }
 }
 
-export function createVscodeFolder(curWorkspaceFsPath: string) {
+export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-  copy(vscodeTemplateFolder, settingsDir);
+  await copy(vscodeTemplateFolder, settingsDir);
 }
 
 export function chooseTemplateDir() {
@@ -169,19 +169,20 @@ export function getDirectories(dirPath) {
   });
 }
 
-export function createSkeleton(
+export async function createSkeleton(
   curWorkspacePath: string,
   chosenTemplateDir: string
 ) {
   const templateDirToUse = path.join(templateDir, chosenTemplateDir);
-  copyFromSrcProject(templateDirToUse, curWorkspacePath);
+  await copyFromSrcProject(templateDirToUse, curWorkspacePath);
 }
 
-export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
-  createVscodeFolder(destinationDir);
-  copy(srcDirPath, destinationDir).catch((err) => {
-    Logger.errorNotify(err, err);
-  });
+export async function copyFromSrcProject(
+  srcDirPath: string,
+  destinationDir: string
+) {
+  await createVscodeFolder(destinationDir);
+  await copy(srcDirPath, destinationDir);
 }
 
 export function delConfigFile(workspaceRoot: vscode.Uri) {

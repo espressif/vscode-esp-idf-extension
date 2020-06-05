@@ -86,17 +86,21 @@ export class ExamplesPlanel {
                     selectedFolder[0].fsPath,
                     message.name
                   );
-                  ensureDir(resultFolder).then(() => {
-                    utils.copyFromSrcProject(
-                      message.project_path,
-                      resultFolder
-                    );
-                    const projectPath = vscode.Uri.file(resultFolder);
-                    vscode.commands.executeCommand(
-                      "vscode.openFolder",
-                      projectPath
-                    );
-                  });
+                  ensureDir(resultFolder)
+                    .then(() => {
+                      utils.copyFromSrcProject(
+                        message.project_path,
+                        resultFolder
+                      );
+                      const projectPath = vscode.Uri.file(resultFolder);
+                      vscode.commands.executeCommand(
+                        "vscode.openFolder",
+                        projectPath
+                      );
+                    })
+                    .catch((err) => {
+                      Logger.errorNotify("Error copying ESP-IDF example", err);
+                    });
                 } else {
                   vscode.window.showInformationMessage("No folder selected");
                 }
