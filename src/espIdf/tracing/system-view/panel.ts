@@ -114,7 +114,7 @@ export class SystemViewPanel {
     <br/>
     <p>Events Table</p>
     <div class="table-container" style="margin-bottom: 0em">
-      <table class="table is-fullwidth is-hoverable is-striped">
+      <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
             <th>ID</th><th>Timestamp</th><th>Core ID</th><th>Context</th><th>Events</th><th>Description</th>
@@ -129,7 +129,7 @@ export class SystemViewPanel {
     <br/>
     <p>Contexts Info</p>
     <div class="table-container" style="margin-bottom: 0em">
-      <table class="table is-fullwidth is-hoverable is-striped">
+      <table class="table is-fullwidth is-hoverable">
         <thead>
           <tr>
             <th>Core#</th><th>Name</th><th>Activations</th><th>Total Run Time(ms)</th><th>Time Interrupted(ms)</th><th>CPU Load</th><th>Last Run Time(ms)</th>
