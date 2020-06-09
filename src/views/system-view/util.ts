@@ -11,7 +11,8 @@ export function eventNameMap(streams: Object): Map<number, string> {
   return m;
 }
 
-export function resize(el: HTMLElement) {
+export function resize(e: string) {
+  const el = document.getElementById(e);
   interact(el).resizable({
     edges: { left: false, right: false, bottom: true, top: true },
     listeners: {

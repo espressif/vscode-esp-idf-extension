@@ -1,33 +1,26 @@
-import * as Plotly from "plotly.js-dist";
 import { events } from "../../espIdf/tracing/system-view/model";
 
 const WINDOW_SIZE = 2;
-
-export function createTDWithData(data: string): HTMLTableDataCellElement {
-  const td = document.createElement("td");
-  td.innerText = data;
-  return td;
-}
 
 function generateEventTableTR(
   event: events,
   index: number,
   eventLookupTable: Map<number, string>
-): HTMLTableRowElement {
-  const tr = document.createElement("tr");
+): Array<string> {
+  const tr = [];
 
-  tr.appendChild(createTDWithData(index.toString()));
-  tr.appendChild(createTDWithData(event.ts.toString()));
-  tr.appendChild(createTDWithData(event.core_id.toString()));
-  tr.appendChild(createTDWithData(event.ctx_name.toString()));
-  tr.appendChild(
-    createTDWithData(eventLookupTable.get(event.id) || event.id.toString())
+  tr.push(
+    index,
+    event.ts,
+    event.core_id,
+    event.ctx_name,
+    eventLookupTable.get(event.id) || event.id
   );
 
   if (event.params && event.params.desc) {
-    tr.appendChild(createTDWithData(event.params.desc));
+    tr.push(event.params.desc);
   } else {
-    tr.appendChild(createTDWithData(""));
+    tr.push("");
   }
 
   return tr;
@@ -36,8 +29,8 @@ function generateEventTableTR(
 export function fillEventTable(
   mcore: any,
   eventLookupTable: Map<number, string>
-): DocumentFragment {
-  const holder = document.createDocumentFragment();
+): Array<Array<string>> {
+  const holder = [];
   const len = mcore.events.length;
   for (let i = 0; i < len; i++) {
     const event: events = mcore.events[i];
@@ -45,18 +38,7 @@ export function fillEventTable(
     const tr = generateEventTableTR(event, i, eventLookupTable);
     const st = i - WINDOW_SIZE < 0 ? 0 : i - WINDOW_SIZE;
     const end = i + WINDOW_SIZE > len - 1 ? len - 1 : i + WINDOW_SIZE;
-    tr.addEventListener(
-      "click",
-      trClickHandler(mcore.events[st].ts, mcore.events[end].ts, tr)
-    );
-
-    holder.appendChild(tr);
+    holder.push({ tr, st: mcore.events[st].ts, end: mcore.events[end].ts });
   }
   return holder;
-}
-
-function trClickHandler(start: number, end: number, tr: HTMLElement) {
-  return () => {
-    Plotly.relayout("plot", { "xaxis.range": [start, end] });
-  };
 }

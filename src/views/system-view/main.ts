@@ -1,40 +1,55 @@
-import "./index.scss";
+// Copyright 2019 Espressif Systems (Shanghai) CO LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Vue from "vue";
+import App from "./App.vue";
+import { store } from "./store";
+
+new Vue({
+  el: "#app",
+  components: { App },
+  store,
+  template: "<App />",
+});
+
 import { fillEventTable } from "./table";
-import { drawPlot, layout, setLayoutFromCSS } from "./plot";
-import * as Plotly from "plotly.js-dist";
+import { drawPlot } from "./plot";
 import { eventNameMap, resize } from "./util";
 import { fillStatsTable } from "./stats";
-
-const event_table = document.getElementById("event_table_data");
-const plot = document.getElementById("plot");
-const loading = document.getElementById("loading");
-const content = document.getElementById("content");
-const statsTableBody = document.getElementById("context_info_table");
-content.style.display = "none";
 
 window.addEventListener("message", (evt: MessageEvent) => {
   const message: { command: string; value: any } = evt.data;
   switch (message.command) {
     case "initialLoad":
       setImmediate(() => {
-        resize(plot);
+        store.commit("setSVDATJSON", message.value);
         const eventNameLookupTable = eventNameMap(message.value.streams);
+
         const frag = fillEventTable(message.value, eventNameLookupTable);
-        event_table.appendChild(frag);
-        setLayoutFromCSS(window.getComputedStyle(document.documentElement));
+        store.commit("setEventsTable", frag);
+
         const plotData = drawPlot(message.value);
-        fillStatsTable(plotData, statsTableBody);
-        loading.style.display = "none";
-        content.style.display = "block";
-        Plotly.newPlot(plot, plotData, layout, {
-          displaylogo: false,
-          scrollZoom: true,
-          responsive: true,
-        });
+        store.commit("setPlotData", plotData);
+
+        const stats = fillStatsTable(plotData);
+        store.commit("setContextInfoTable", stats);
+
+        store.commit("setLoading", false);
       });
       break;
     default:
-      console.warn(`Message not understood, ${message}`);
+      // console.warn(`Message not understood, ${message}`);
       break;
   }
 });

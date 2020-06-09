@@ -5,65 +5,6 @@ import {
   IGNORE_RENDER_SYS_STREAM_LIST,
 } from "../../espIdf/tracing/system-view/model";
 
-export const layout = {
-  height: 200,
-  margin: {
-    t: 30,
-    b: 30,
-    r: 20,
-  },
-  paper_bgcolor: undefined,
-  plot_bgcolor: undefined,
-  font: {
-    color: undefined,
-    size: 8,
-  },
-  hovermode: "closest",
-  showlegend: false,
-  dragmode: "pan",
-  xaxis: {
-    range: [0, 0.01],
-    // rangeslider: { range: [range.xmin, range.xmax] },
-    showspikes: true,
-    spikemode: "across",
-    spikedash: "solid",
-    spikecolor: undefined,
-    spikethickness: 0.5,
-  },
-  yaxis: {
-    title: "Core 0",
-    domain: [0.5, 1],
-    fixedrange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-  },
-  yaxis2: {
-    title: "Core 1",
-    domain: [0, 0.49],
-    fixedrange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-  },
-  spikedistance: 200,
-  hoverdistance: 10,
-  grid: {
-    rows: 2,
-    columns: 1,
-    subplots: [["xy"], ["xy2"]],
-  },
-};
-
-export function setLayoutFromCSS(style: CSSStyleDeclaration) {
-  const bgColor = style.getPropertyValue("--vscode-editor-background");
-  const fontColor = style.getPropertyValue("--vscode-editor-foreground");
-  layout.paper_bgcolor = bgColor;
-  layout.plot_bgcolor = bgColor;
-  layout.xaxis.spikecolor = fontColor;
-  layout.font.color = fontColor;
-}
-
 export function drawPlot(mcore: any) {
   const IGNORE_RENDER_SYS_STREAM_ID_LIST = new Set(
     IGNORE_RENDER_SYS_STREAM_LIST.map((name) => mcore.streams.system[name])
@@ -78,7 +19,7 @@ export function drawPlot(mcore: any) {
     mcore.streams.system["SYS_OVERFLOW"]
   );
 
-  layout.xaxis.range = [range.xmin, 0.01];
+  // layout.xaxis.range = [range.xmin, 0.01];
 
   const plotData = populatePlotData(lookupTable);
 

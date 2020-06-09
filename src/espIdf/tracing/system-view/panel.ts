@@ -88,60 +88,16 @@ export class SystemViewPanel {
       Uri.file(join(this.extensionPath, "dist", "views", "sysView.bundle.css"))
     );
     this.panel.webview.html = `<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>System View Trace</title>
-  <link rel="stylesheet" href="${cssPath}">
-</head>
-
-<body>
-  <section class="hero is-fullheight" id="loading">
-    <div class="hero-body">
-      <div class="container">
-        <h1 class="title">
-          System View Tracing
-        </h1>
-        <h2 class="subtitle">
-          Please wait preparing your views, tables and timelines.
-        </h2>
-      </div>
-    </div>
-  </section>
-  <div class="container" id="content">
-    <br/>
-    <p>Events Table</p>
-    <div class="table-container" style="margin-bottom: 0em">
-      <table class="table is-fullwidth is-hoverable">
-        <thead>
-          <tr>
-            <th>ID</th><th>Timestamp</th><th>Core ID</th><th>Context</th><th>Events</th><th>Description</th>
-          </tr>
-        </thead>
-        <tbody id="event_table_data"></tbody>
-      </table>
-    </div>
-    <br/>
-    <p>Timeline</p>
-    <div id="plot"></div>
-    <br/>
-    <p>Contexts Info</p>
-    <div class="table-container" style="margin-bottom: 0em">
-      <table class="table is-fullwidth is-hoverable">
-        <thead>
-          <tr>
-            <th>Core#</th><th>Name</th><th>Activations</th><th>Total Run Time(ms)</th><th>Time Interrupted(ms)</th><th>CPU Load</th><th>Last Run Time(ms)</th>
-          </tr>
-        </thead>
-        <tbody id="context_info_table"></tbody>
-      </table>
-    </div>
-  </div>
-  <script src="${scriptPath}"></script>
-</body>
-
-</html>`;
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>System View Trace</title>
+    </head>
+    <body>
+      <section id="app"></section>
+      <script src="${scriptPath}"></script>
+    </body>
+    </html>`;
   }
 }

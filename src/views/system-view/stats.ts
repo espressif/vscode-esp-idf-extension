@@ -1,5 +1,3 @@
-import { createTDWithData } from "./table";
-
 function getActivationsStats(points) {
   let activations = points.length / 2;
   if (!!(points.length & 1)) {
@@ -42,30 +40,8 @@ function getTotalTracingTimePerCore(plotData): { [core_id: number]: number } {
   return { 0: core0TotalTracingTime, 1: core1TotalTracingTime };
 }
 
-function fillTableRow(
-  el: HTMLElement,
-  coreId: string,
-  name: string,
-  activations: string,
-  totalRunTime: string,
-  timeInterrupted: string,
-  cpuLoad: string,
-  lastRunTime: string
-) {
-  const tr = document.createElement("tr");
-
-  tr.appendChild(createTDWithData(coreId));
-  tr.appendChild(createTDWithData(name));
-  tr.appendChild(createTDWithData(activations));
-  tr.appendChild(createTDWithData(totalRunTime));
-  tr.appendChild(createTDWithData(timeInterrupted));
-  tr.appendChild(createTDWithData(cpuLoad));
-  tr.appendChild(createTDWithData(lastRunTime));
-
-  el.appendChild(tr);
-}
-
-export function fillStatsTable(plotData, el: HTMLElement) {
+export function fillStatsTable(plotData): string[][] {
+  const rows = [];
   const totalTracingTime = getTotalTracingTimePerCore(plotData);
   plotData.forEach((data) => {
     if (data && data.name && data.name !== "context-switch") {
@@ -94,16 +70,16 @@ export function fillStatsTable(plotData, el: HTMLElement) {
       cpuLoad = parseFloat(cpuLoad).toFixed(2);
       cpuLoad = `${cpuLoad} %`;
 
-      fillTableRow(
-        el,
+      rows.push([
         data.yaxis === "y2" ? "1" : "0",
         data.name,
         `${activations}`,
         parseFloat(`${totalRunTime}`).toFixed(4),
         parseFloat(`${timeInterrupted}`).toFixed(4),
         `${cpuLoad}`,
-        parseFloat(`${lastRunTime}`).toFixed(4)
-      );
+        parseFloat(`${lastRunTime}`).toFixed(4),
+      ]);
     }
   });
+  return rows;
 }
