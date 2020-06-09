@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getEspIdfVersion } from "../../utils";
+import { checkGitExists, getEspIdfVersion } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
 import * as idfConf from "../../idfConfiguration";
 import * as treeKill from "tree-kill";
@@ -43,6 +43,10 @@ export class ArduinoComponentInstaller {
   }
 
   public async cloneArduinoInComponentsFolder(branchToUse: string) {
+    const gitVersion = await checkGitExists(this.projectDir);
+    if (!gitVersion || gitVersion === "Not found") {
+      return;
+    }
     const componentsDir = join(this.projectDir, "components");
     await ensureDir(componentsDir);
     return new Promise((resolve, reject) => {
@@ -71,7 +75,7 @@ export class ArduinoComponentInstaller {
           OutputChannel.appendLine(
             `Arduino ESP32 cloning has exit with ${code}`
           );
-          reject(`Arduino ESP32 cloning has exit with ${code}`);
+          reject(new Error(`Arduino ESP32 cloning has exit with ${code}`));
         }
         resolve();
       });
@@ -91,14 +95,7 @@ export class ArduinoComponentInstaller {
     return results[idfVersion] || undefined;
   }
 
-  public async addArduinoAsComponent(
-    progress: Progress<{
-      message: string;
-      increment: number;
-    }>,
-    espIdfPath?: string
-  ) {
-    progress.report({ increment: 10, message: "Checking ESP-IDF version..." });
+  public async addArduinoAsComponent(espIdfPath?: string) {
     const branchToUse = await this.checkIdfVersion(espIdfPath);
     if (!branchToUse) {
       Logger.infoNotify(
@@ -106,17 +103,7 @@ export class ArduinoComponentInstaller {
       );
       return;
     }
-
-    progress.report({
-      increment: 10,
-      message: "Checking Components folder exists...",
-    });
     await ensureDir(this.projectDir);
-
-    progress.report({
-      increment: 10,
-      message: "Cloning Arduino ESP32 as component...",
-    });
     await this.cloneArduinoInComponentsFolder(branchToUse);
   }
 }

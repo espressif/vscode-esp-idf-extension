@@ -277,7 +277,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
-            title: "ESP-IDF:",
+            title: "Creating ESP-IDF Project...",
           },
           async (
             progress: vscode.Progress<{
@@ -338,7 +338,7 @@ export async function activate(context: vscode.ExtensionContext) {
               cancelToken.onCancellationRequested(() => {
                 arduinoComponentManager.cancel();
               });
-              await arduinoComponentManager.addArduinoAsComponent(progress);
+              await arduinoComponentManager.addArduinoAsComponent();
             }
             const projectPath = vscode.Uri.file(resultFolder);
             vscode.commands.executeCommand(
@@ -365,7 +365,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "ESP-IDF:",
+          title: "Arduino ESP32 as ESP-IDF Component",
         },
         async (
           progress: vscode.Progress<{
@@ -374,13 +374,17 @@ export async function activate(context: vscode.ExtensionContext) {
           }>,
           cancelToken: vscode.CancellationToken
         ) => {
-          const arduinoComponentManager = new ArduinoComponentInstaller(
-            workspaceRoot.fsPath
-          );
-          cancelToken.onCancellationRequested(() => {
-            arduinoComponentManager.cancel();
-          });
-          await arduinoComponentManager.addArduinoAsComponent(progress);
+          try {
+            const arduinoComponentManager = new ArduinoComponentInstaller(
+              workspaceRoot.fsPath
+            );
+            cancelToken.onCancellationRequested(() => {
+              arduinoComponentManager.cancel();
+            });
+            await arduinoComponentManager.addArduinoAsComponent();
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
         }
       );
     });
