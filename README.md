@@ -30,8 +30,12 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 ## Coming Soon 🔜
 
-- Heap Tracing with complete GUI
 - Create new project wizard
+- Add System View UI
+- Support Rainmaker
+- Support GDB Stub
+- Support Core Dump
+- Support code coverage inside text editor & `gcovr` HTML report integration
 
 ## Quick Installation Guide
 
@@ -93,11 +97,11 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 
 | Command Description                             | Keyboard Shortcuts (Mac)               | Keyboard Shortcuts (Windows/ Linux)       |
 | ----------------------------------------------- | -------------------------------------- | ----------------------------------------- |
-| Configure ESP-IDF extension                     |
+| Configure ESP-IDF extension                     |                                        |                                           |
 | Create ESP-IDF project                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
-| Add vscode configuration folder                 |
+| Add vscode configuration folder                 |                                        |                                           |
 | Configure Paths                                 |                                        |                                           |
-| Set Espressif device target                     |
+| Set Espressif device target                     |                                        |                                           |
 | Device configuration                            |                                        |                                           |
 | Launch gui configuration tool                   |                                        |                                           |
 | Set default sdkconfig file in project           |                                        |                                           |
@@ -108,7 +112,10 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Build, Flash and start a monitor on your device | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
-| Show ESP-IDF Examples Projects                  |
+| Show ESP-IDF Examples Projects                  |                                        |                                           |
+| Add Editor coverage                             |                                        |                                           |
+| Remove Editor coverage                          |                                        |                                           |
+| Get HTML Coverage Report for project            |                                        |                                           |
 
 ## ESP-IDF Configure extension
 
@@ -133,18 +140,24 @@ This extension contributes the following settings that can be later updated in s
 
 These are project IDF Project specific settings
 
-| Setting                    | Description                                                         |
-| -------------------------- | ------------------------------------------------------------------- |
-| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                         |
-| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                       |
-| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts  |
-| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                      |
-| `idf.customExtraVars`      | Variables to be added to system environment variables               |
-| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                           |
-| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation           |
-| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                |
-| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
-| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)          |
+| Setting                    | Description                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                                |
+| `idf.customExtraVars`      | Variables to be added to system environment variables                         |
+| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                                     |
+| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation                     |
+| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                          |
+| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder           |
+| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)                    |
+| `idf.coveredLightTheme`    | Background color for covered lines in light theme for gcov coverage           |
+| `idf.coveredDarkTheme`     | Background color for covered lines in dark theme for gcov coverage            |
+| `idf.partialLightTheme`    | Background color for partially covered lines in light theme for gcov coverage |
+| `idf.partialDarkTheme`     | Background color for partially covered lines in dark theme for gcov coverage  |
+| `idf.uncoveredLightTheme`  | Background color for uncovered lines in light theme for gcov coverage         |
+| `idf.uncoveredDarkTheme`   | Background color for uncovered lines in dark theme for gcov coverage          |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
@@ -236,11 +249,21 @@ If you want to open a project with multiple subprojects in Visual Studio Code, c
 
 **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
 
+## Code Coverage
+
+We provide editor code coverage highlight and HTML reports for ESP-IDF projects, if coverage files are generated on a ESP-IDF project's build directory. For more info please take a look at [Code Coverage](./docs/COVERAGE.md).
+
 ## Debugging
 
 Click <kbd>F5</kbd> to start debugging. For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [ONBOARDING](./docs/ONBOARDING.md).
 
 When you start debug, an OpenOCD process starts in the background. OpenOCD Output log window is created in Visual Studio Code lower panel. To configure your project's launch.json to debug, please review [DEBUGGING](./docs/DEBUGGING.md).
+
+## Log & Heap Tracing
+
+We support [log](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html) and [heap tracing](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/heap_debug.html) out of the box, which enables users to perform log/heap tracing with just few button clicks and present the results of tracing data with UI.
+
+You can follow [this](./docs/HEAP_TRACING.md) quick step-by-step guide for heap tracing.
 
 ## Kconfig files editor
 
