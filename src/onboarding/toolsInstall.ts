@@ -46,7 +46,7 @@ export async function downloadToolsInIdfToolsPath(
   }
   const downloadManager = new DownloadManager(installDir);
   const installManager = new InstallManager(installDir);
-  return vscode.window.withProgress(
+  await vscode.window.withProgress(
     {
       cancellable: false,
       location: vscode.ProgressLocation.Notification,
@@ -70,23 +70,15 @@ export async function downloadToolsInIdfToolsPath(
         });
       OutputChannel.appendLine("");
       Logger.info("");
-      await downloadManager
-        .downloadPackages(idfToolsManager, progress, packagesProgress)
-        .catch((reason) => {
-          OutputChannel.appendLine(reason);
-          Logger.info(reason);
-        });
+      await downloadManager.downloadPackages(
+        idfToolsManager,
+        progress,
+        packagesProgress
+      );
       OutputChannel.appendLine("");
       Logger.info("");
-      await installManager
-        .installPackages(idfToolsManager, progress)
-        .then(() => {
-          OnBoardingPanel.postMessage({ command: "set_tools_setup_finish" });
-        })
-        .catch((reason) => {
-          OutputChannel.appendLine(reason);
-          Logger.info(reason);
-        });
+      await installManager.installPackages(idfToolsManager, progress);
+      OnBoardingPanel.postMessage({ command: "set_tools_setup_finish" });
       progress.report({
         message: `Installing python virtualenv and ESP-IDF python requirements...`,
       });
@@ -102,10 +94,7 @@ export async function downloadToolsInIdfToolsPath(
         confTarget,
         selectedWorkspaceFolder,
         systemPythonPath
-      ).catch((reason) => {
-        OutputChannel.appendLine(reason);
-        Logger.info(reason);
-      });
+      );
       let exportPaths = await idfToolsManager.exportPaths(
         path.join(installDir, "tools")
       );
