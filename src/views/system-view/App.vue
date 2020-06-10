@@ -11,9 +11,10 @@
       >
         <template v-slot:th>
           <th>ID</th>
+          <th>Timestamp</th>
           <th>Core ID</th>
           <th>Context</th>
-          <th>Events</th>
+          <th>Event</th>
           <th>Description</th>
         </template>
         <template v-slot:tr>
@@ -31,6 +32,12 @@
       <br />
       <Plot v-show="settings.TimelineVisible" />
       <br />
+      <select v-model="CoreFilter" class="is-pulled-right">
+        <option disabled value="">Please select which core</option>
+        <option value="">Both Core</option>
+        <option value="0">Core# 0</option>
+        <option value="1">Core# 1</option>
+      </select>
       <t
         name="Context Info Table"
         v-if="settings.ContextInfoTableVisible"
@@ -46,7 +53,7 @@
           <th>Last Run Time(ms)</th>
         </template>
         <template v-slot:tr>
-          <tr v-for="(tr, i) in contextInfoTable" :key="i">
+          <tr v-for="(tr, i) in filteredContextInfoTable" :key="i">
             <td v-for="(d, j) in tr" :key="j">
               {{ d }}
             </td>
@@ -76,8 +83,17 @@ export default class App extends Vue {
   @State("eventsTable") private eventsTable;
   @State("settings") private settings: SystemViewUISettings;
 
+  CoreFilter = "";
+
   onEventsTableTRClicked(st: number, en: number) {
     Plotly.relayout("plot", { "xaxis.range": [st, en] });
+  }
+
+  public get filteredContextInfoTable() {
+    if (this.CoreFilter !== "") {
+      return this.contextInfoTable.filter((row) => row[0] === this.CoreFilter);
+    }
+    return this.contextInfoTable;
   }
 }
 </script>
@@ -86,5 +102,10 @@ export default class App extends Vue {
 html,
 body {
   height: 100vh;
+}
+select {
+  background-color: var(--vscode-dropdown-background);
+  border-color: var(--vscode-dropdown-border);
+  color: var(--vscode-editor-foreground);
 }
 </style>

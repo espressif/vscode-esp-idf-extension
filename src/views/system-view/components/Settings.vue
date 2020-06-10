@@ -28,40 +28,47 @@
             </label>
           </div>
         </div>
-        <div class="field">
-          <span>Timeline Height</span>
-          <p class="control">
-            <span class="select">
-              <select
-                v-model="settings.TimelineHeight"
-                @change="timeLineHeightChanged"
+        <div class="columns">
+          <div class="column">
+            <select
+              v-model="settings.TimelineHeight"
+              @change="timeLineHeightChanged"
+            >
+              <option disabled>Select Timeline Panel Height (in px)</option>
+              <option value="200">200</option>
+              <option value="300">300</option>
+              <option value="400">400</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+          <div class="column">
+            <select
+              v-model="settings.TimelineBarWidth"
+              @change="timeLineBarWidthChanged"
+            >
+              <option disabled
+                >Select Timeline Events Bar Height (in px)</option
               >
-                <option selected>200</option>
-                <option>300</option>
-                <option>400</option>
-                <option>500</option>
-              </select>
-            </span>
-          </p>
-
-          <span>Timeline Bar Height</span>
-          <p class="control">
-            <span class="select">
-              <select
-                v-model="settings.TimelineBarWidth"
-                @change="timeLineBarWidthChanged"
-              >
-                <option selected>10</option>
-                <option>12</option>
-                <option>14</option>
-                <option>15</option>
-                <option>17</option>
-                <option>20</option>
-              </select>
-            </span>
-          </p>
+              <option value="10">10</option>
+              <option value="12">12</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="17">17</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+          <div class="column">
+            <select
+              v-model="settings.TimelineContextSwitchLineColor"
+              @change="timelineContextSwitchLineColorChanged"
+            >
+              <option disabled>Select Context Switch Line Color</option>
+              <option value="#555555">Gray (default)</option>
+              <option value="#ffffff">Light</option>
+              <option value="#000000">Dark</option>
+            </select>
+          </div>
         </div>
-        <!-- <button @click="save">Save</button> -->
       </div>
     </div>
   </div>
@@ -73,11 +80,11 @@ button {
   border-color: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
 }
-
 .modal-content {
-  background-color: var(--vscode-editor-foreground);
-  color: var(--vscode-editor-background);
-  padding: 1em;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  padding: 1.2em;
+  font-size: var(--vscode-font-size);
 }
 </style>
 
@@ -98,10 +105,6 @@ export default class Settings extends Vue {
   dismiss() {
     this.active = false;
   }
-  save() {
-    //set setting in store
-    this.dismiss();
-  }
   timeLineHeightChanged() {
     Plotly.relayout("plot", { height: this.settings.TimelineHeight });
   }
@@ -115,6 +118,19 @@ export default class Settings extends Vue {
     Plotly.restyle(
       "plot",
       { "line.width": this.settings.TimelineBarWidth },
+      indices
+    );
+  }
+  timelineContextSwitchLineColorChanged() {
+    const indices = [];
+    this.plotData.forEach((d, i) => {
+      if (d.name === "context-switch") {
+        indices.push(i);
+      }
+    });
+    Plotly.restyle(
+      "plot",
+      { "line.color": this.settings.TimelineContextSwitchLineColor },
       indices
     );
   }

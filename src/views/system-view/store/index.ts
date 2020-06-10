@@ -62,7 +62,7 @@ export const state: IState = {
     EventsTableVisible: true,
 
     TimelineBarWidth: 10,
-    TimelineContextSwitchLineColor: "#ffffff",
+    TimelineContextSwitchLineColor: "#555555",
     TimelineHeight: 200,
     TimelineVisible: true,
   },
