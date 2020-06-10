@@ -84,9 +84,6 @@ export class SystemViewPanel {
     const scriptPath = this.panel.webview.asWebviewUri(
       Uri.file(join(this.extensionPath, "dist", "views", "sysView-bundle.js"))
     );
-    const cssPath = this.panel.webview.asWebviewUri(
-      Uri.file(join(this.extensionPath, "dist", "views", "sysView.bundle.css"))
-    );
     this.panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
     <head>
