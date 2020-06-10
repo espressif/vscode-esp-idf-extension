@@ -122,6 +122,14 @@
     "trace.wait4halt.description",
     "trace.skip_size.description",
     "param.saveBeforeBuildDescription",
-    "param.saveScope"
+    "param.saveScope",
+    "param.rainmaker.api.server_url",
+    "esp.rainmaker.backend.sync.title",
+    "esp.rainmaker.backend.connect.title",
+    "esp.rainmaker.backend.logout.title",
+    "esp.rainmaker.backend.add_node.title",
+    "esp.rainmaker.backend.remove_node.title",
+    "esp.rainmaker.backend.update_node_param.title",
+    "param.esp.rainmaker.oauth.url"
   ]
 }

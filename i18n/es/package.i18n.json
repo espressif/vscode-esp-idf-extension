@@ -53,5 +53,13 @@
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos",
-  "param.saveScope": "Dónde se almacena las configuraciones para comandos ESP-IDF usando enum vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3"
+  "param.saveScope": "Dónde se almacena las configuraciones para comandos ESP-IDF usando enum vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
+  "param.rainmaker.api.server_url": "URL del servidor ESP-Rainmaker API",
+  "esp.rainmaker.backend.sync.title": "Sincronizar con el servidor ESP-Rainmaker",
+  "esp.rainmaker.backend.connect.title": "Conéctese con el servidor ESP-Rainmaker",
+  "esp.rainmaker.backend.logout.title": "Desvincular cuenta ESP-Rainmaker",
+  "esp.rainmaker.backend.add_node.title": "Agregar nuevo nodo",
+  "esp.rainmaker.backend.remove_node.title": "Eliminar este nodo",
+  "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
+  "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth"
 }

@@ -67,8 +67,11 @@
     "onCommand:espIdf.removeCoverage",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
+    "onCommand:esp.rainmaker.backend.connect",
+    "onCommand:esp.rainmaker.backend.sync",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
+    "onView:espRainmaker",
     "onView:idfComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
@@ -94,6 +97,10 @@
         {
           "id": "idfAppTraceArchive",
           "name": "App Trace Archives"
+        },
+        {
+          "id": "espRainmaker",
+          "name": "Rainmaker"
         }
       ],
       "explorer": [
@@ -113,6 +120,38 @@
           "command": "espIdf.apptrace.archive.refresh",
           "group": "navigation",
           "when": "view == idfAppTraceArchive"
+        },
+        {
+          "command": "esp.rainmaker.backend.connect",
+          "group": "navigation",
+          "when": "view == espRainmaker && !rainmaker_logged_in"
+        },
+        {
+          "command": "esp.rainmaker.backend.sync",
+          "group": "navigation",
+          "when": "view == espRainmaker"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "esp.rainmaker.backend.logout",
+          "when": "view == espRainmaker && viewItem == account",
+          "group": "inline"
+        },
+        {
+          "command": "esp.rainmaker.backend.add_node",
+          "when": "view == espRainmaker && viewItem == account",
+          "group": "inline"
+        },
+        {
+          "command": "esp.rainmaker.backend.remove_node",
+          "when": "view == espRainmaker && viewItem == node",
+          "group": "inline"
+        },
+        {
+          "command": "esp.rainmaker.backend.update_node_param",
+          "when": "view == espRainmaker && viewItem == param",
+          "group": "inline"
         }
       ],
       "explorer/context": [
@@ -320,6 +359,18 @@
             "scope": "resource",
             "description": "%param.saveScope%"
           },
+          "esp.rainmaker.api.server_url": {
+            "type": "string",
+            "default": "https://api.rainmaker.espressif.com/v1/",
+            "scope": "resource",
+            "description": "%param.rainmaker.api.server_url%"
+          },
+          "esp.rainmaker.oauth.url": {
+            "type": "string",
+            "default": "https://auth.rainmaker.espressif.com/oauth2/authorize",
+            "scope": "resource",
+            "description": "%param.esp.rainmaker.oauth.url%"
+          },
           "idf.coveredLightTheme": {
             "type": "string",
             "default": "rgba(0,128,0,0.1)",
@@ -448,8 +499,8 @@
         "command": "espIdf.apptrace.archive.refresh",
         "title": "%espIdf.apptrace.archive.refresh.title%",
         "icon": {
-          "dark": "media/refresh_dark.svg",
-          "light": "media/refresh_light.svg"
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
         }
       },
       {
@@ -459,6 +510,60 @@
       {
         "command": "espIdf.apptrace.customize",
         "title": "%espIdf.apptrace.customize.title%"
+      },
+      {
+        "command": "esp.rainmaker.backend.connect",
+        "title": "%esp.rainmaker.backend.connect.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/sign-in.svg",
+          "light": "media/light/sign-in.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.sync",
+        "title": "%esp.rainmaker.backend.sync.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.logout",
+        "title": "%esp.rainmaker.backend.logout.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/sign-out.svg",
+          "light": "media/light/sign-out.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.add_node",
+        "title": "%esp.rainmaker.backend.add_node.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/add.svg",
+          "light": "media/light/add.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.remove_node",
+        "title": "%esp.rainmaker.backend.remove_node.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/trash.svg",
+          "light": "media/light/trash.svg"
+        }
+      },
+      {
+        "command": "esp.rainmaker.backend.update_node_param",
+        "title": "%esp.rainmaker.backend.update_node_param.title%",
+        "category": "ESP:Rainmaker",
+        "icon": {
+          "dark": "media/dark/edit.svg",
+          "light": "media/light/edit.svg"
+        }
       },
       {
         "command": "espIdf.genCoverage",
@@ -643,6 +748,7 @@
   },
   "dependencies": {
     "ansi-to-html": "^0.6.11",
+    "axios": "^0.19.2",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.6.1",
