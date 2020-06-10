@@ -34,8 +34,10 @@
               v-model="settings.TimelineHeight"
               @change="timeLineHeightChanged"
             >
-              <option disabled>Select Timeline Panel Height (in px)</option>
-              <option value="200">200</option>
+              <option disabled value="200"
+                >Select Timeline Panel Height (in px)</option
+              >
+              <option value="200">200 (default)</option>
               <option value="300">300</option>
               <option value="400">400</option>
               <option value="500">500</option>
@@ -46,10 +48,10 @@
               v-model="settings.TimelineBarWidth"
               @change="timeLineBarWidthChanged"
             >
-              <option disabled
-                >Select Timeline Events Bar Height (in px)</option
+              <option disabled value="10"
+                >Select Timeline Bar Height (in px)</option
               >
-              <option value="10">10</option>
+              <option value="10">10 (default)</option>
               <option value="12">12</option>
               <option value="14">14</option>
               <option value="15">15</option>
@@ -62,7 +64,9 @@
               v-model="settings.TimelineContextSwitchLineColor"
               @change="timelineContextSwitchLineColorChanged"
             >
-              <option disabled>Select Context Switch Line Color</option>
+              <option disabled value="#555555"
+                >Select Context Switch Line Color</option
+              >
               <option value="#555555">Gray (default)</option>
               <option value="#ffffff">Light</option>
               <option value="#000000">Dark</option>

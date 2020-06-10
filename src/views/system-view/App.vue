@@ -32,34 +32,32 @@
       <br />
       <Plot v-show="settings.TimelineVisible" />
       <br />
-      <select v-model="CoreFilter" class="is-pulled-right">
-        <option disabled value="">Please select which core</option>
-        <option value="">Both Core</option>
-        <option value="0">Core# 0</option>
-        <option value="1">Core# 1</option>
-      </select>
-      <t
-        name="Context Info Table"
-        v-if="settings.ContextInfoTableVisible"
-        :height="settings.ContextInfoTableHeight"
-      >
-        <template v-slot:th>
-          <th>Core#</th>
-          <th>Name</th>
-          <th>Activations</th>
-          <th>Total Run Time(ms)</th>
-          <th>Time Interrupted(ms)</th>
-          <th>CPU Load</th>
-          <th>Last Run Time(ms)</th>
-        </template>
-        <template v-slot:tr>
-          <tr v-for="(tr, i) in filteredContextInfoTable" :key="i">
-            <td v-for="(d, j) in tr" :key="j">
-              {{ d }}
-            </td>
-          </tr>
-        </template>
-      </t>
+      <template v-if="settings.ContextInfoTableVisible">
+        <select v-model="CoreFilter" class="is-pulled-right">
+          <option disabled value="">Please select which core</option>
+          <option value="">Both Core</option>
+          <option value="0">Core# 0</option>
+          <option value="1">Core# 1</option>
+        </select>
+        <t name="Context Info Table" :height="settings.ContextInfoTableHeight">
+          <template v-slot:th>
+            <th>Core#</th>
+            <th>Name</th>
+            <th>Activations</th>
+            <th>Total Run Time(ms)</th>
+            <th>Time Interrupted(ms)</th>
+            <th>CPU Load</th>
+            <th>Last Run Time(ms)</th>
+          </template>
+          <template v-slot:tr>
+            <tr v-for="(tr, i) in filteredContextInfoTable" :key="i">
+              <td v-for="(d, j) in tr" :key="j">
+                {{ d }}
+              </td>
+            </tr>
+          </template>
+        </t>
+      </template>
     </div>
   </div>
 </template>
