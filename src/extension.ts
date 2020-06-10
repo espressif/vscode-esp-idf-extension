@@ -63,10 +63,13 @@ import {
   updateIdfComponentsTree,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
+import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
+import { previewReport } from "./coverage/coverageService";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
 const LOCALHOST_DEF_PORT = 43474;
+let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
 const statusBarItems: vscode.StatusBarItem[] = [];
@@ -156,6 +159,8 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.workspaceFolders.length > 0
   ) {
     workspaceRoot = initSelectedWorkspace(status);
+    const coverageOptions = getCoverageOptions();
+    covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
   // Add delete or update new sources in CMakeLists.txt of same folder
   const newSrcWatcher = vscode.workspace.createFileSystemWatcher(
@@ -206,11 +211,15 @@ export async function activate(context: vscode.ExtensionContext) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(status);
+          const coverageOptions = getCoverageOptions();
+          covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
         }
       }
       if (typeof workspaceRoot === undefined) {
         workspaceRoot = initSelectedWorkspace(status);
+        const coverageOptions = getCoverageOptions();
+        covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
       const debugAdapterConfig = {
         currentWorkspace: workspaceRoot,
@@ -535,6 +544,24 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       return new vscode.DebugAdapterServer(portToUse);
     },
+  });
+
+  registerIDFCommand("espIdf.genCoverage", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await covRenderer.renderCoverage();
+    });
+  });
+
+  registerIDFCommand("espIdf.removeCoverage", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await covRenderer.removeCoverage();
+    });
+  });
+
+  registerIDFCommand("espIdf.getCoverageReport", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      await previewReport(workspaceRoot.fsPath);
+    });
   });
 
   registerIDFCommand("espIdf.getProjectName", () => {
@@ -1406,6 +1433,7 @@ export function deactivate() {
   for (const statusItem of statusBarItems) {
     statusItem.dispose();
   }
+  covRenderer.dispose();
 }
 
 class IdfDebugConfigurationProvider

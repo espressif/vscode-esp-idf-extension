@@ -63,6 +63,8 @@
     "onCommand:espIdf.apptrace.customize",
     "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
+    "onCommand:espIdf.genCoverage",
+    "onCommand:espIdf.removeCoverage",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onView:idfAppTracer",
@@ -317,6 +319,42 @@
             ],
             "scope": "resource",
             "description": "%param.saveScope%"
+          },
+          "idf.coveredLightTheme": {
+            "type": "string",
+            "default": "rgba(0,128,0,0.1)",
+            "description": "%param.coveredLightTheme%",
+            "scope": "resource"
+          },
+          "idf.partialDarkTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialDarkTheme%",
+            "scope": "resource"
+          },
+          "idf.partialLightTheme": {
+            "type": "string",
+            "default": "rgba(250,218,94,0.1)",
+            "description": "%param.partialLightTheme%",
+            "scope": "resource"
+          },
+          "idf.coveredDarkTheme": {
+            "type": "string",
+            "default": "rgba(0,128,0,0.1)",
+            "description": "%param.coveredDarkTheme%",
+            "scope": "resource"
+          },
+          "idf.uncoveredLightTheme": {
+            "type": "string",
+            "default": "rgba(255,0,0,0.1)",
+            "description": "%param.uncoveredLightTheme%",
+            "scope": "resource"
+          },
+          "idf.uncoveredDarkTheme": {
+            "type": "string",
+            "default": "rgba(255,0,0,0.1)",
+            "description": "%param.uncoveredDarkTheme%",
+            "scope": "resource"
           }
         }
       }
@@ -421,6 +459,18 @@
       {
         "command": "espIdf.apptrace.customize",
         "title": "%espIdf.apptrace.customize.title%"
+      },
+      {
+        "command": "espIdf.genCoverage",
+        "title": "%espIdf.genCoverage.title%"
+      },
+      {
+        "command": "espIdf.removeCoverage",
+        "title": "%espIdf.removeCoverage.title%"
+      },
+      {
+        "command": "espIdf.getCoverageReport",
+        "title": "%espIdf.getCoverageReport.title%"
       }
     ],
     "breakpoints": [

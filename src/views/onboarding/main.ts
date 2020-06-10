@@ -27,11 +27,12 @@ import VueRouter from "vue-router";
 import App from "./App.vue";
 import Download from "./Download.vue";
 import GitPyCheck from "./GitPyCheck.vue";
-import { store } from "./store";
+import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
+import { store } from "./store";
 
 const routes = [
-  { path: "/", component: App },
+  { path: "/", component: Home },
   { path: "/download", component: Download },
   { path: "/toolsetup", component: ToolSetup },
   { path: "/gitpycheck", component: GitPyCheck },
