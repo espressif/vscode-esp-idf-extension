@@ -21,6 +21,7 @@ import { window, ProgressLocation } from "vscode";
 import { Logger } from "../../../logger/logger";
 import { SystemViewPanel } from "./panel";
 import { readJsonSync } from "fs-extra";
+import { SysviewTraceProc } from "../tools/sysviewTraceProc";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
@@ -47,7 +48,15 @@ export class SystemViewResultParser {
     );
   }
   private static async parseSVDATToJSON(filePath: string): Promise<any> {
-    //TODO - Add actual impl
-    return readJsonSync(`/Users/soumesh/Downloads/trace_mcore.json`);
+    try {
+      const sysView = new SysviewTraceProc(undefined, filePath);
+      const resp = await sysView.parse();
+      return JSON.parse(resp.toString());
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to parse JSON from SVDAT file, make sure you've the proper version of sysviewtrace_proc.py installed and it supports JSON format output with (-j) flag",
+        error
+      );
+    }
   }
 }
