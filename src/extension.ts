@@ -44,7 +44,6 @@ import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeData
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
-import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";

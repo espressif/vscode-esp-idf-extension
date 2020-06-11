@@ -183,9 +183,11 @@ export class DebugAdapterManager extends EventEmitter {
   }
 
   private configureWithDefaultValues(extensionPath: string) {
-    this.currentWorkspace = vscode.workspace.workspaceFolders
-      ? vscode.workspace.workspaceFolders[0].uri
-      : undefined;
+    this.currentWorkspace =
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders.length > 0
+        ? vscode.workspace.workspaceFolders[0].uri
+        : undefined;
     this.projectName = "";
     this.debugAdapterPath = path.join(
       extensionPath,
