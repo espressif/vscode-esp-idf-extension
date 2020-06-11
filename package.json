@@ -66,6 +66,7 @@
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.removeCoverage",
+    "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
@@ -184,6 +185,13 @@
           "command": "esp.rainmaker.backend.update_node_param",
           "when": "view == espRainmaker && viewItem == param",
           "group": "inline"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "espIdf.searchInEspIdfDocs",
+          "group": "navigation",
+          "when": "editorHasSelection"
         }
       ],
       "explorer/context": [
@@ -634,7 +642,11 @@
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
-        "title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode"
+        "title": "%espIdf.launchWSServerAndMonitor.title%"
+      },
+      {
+        "command": "espIdf.searchInEspIdfDocs",
+        "title": "%espIdf.searchInEspIdfDocs.title%"
       }
     ],
     "breakpoints": [

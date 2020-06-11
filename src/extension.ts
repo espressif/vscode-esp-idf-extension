@@ -689,6 +689,47 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
+    const docsVersions = [
+      "v4.0.1",
+      "v4.0",
+      "v3.3.2",
+      "v3.3.1",
+      "v3.3",
+      "v3.2.3",
+      "v3.2.2",
+      "v3.1.7",
+      "v3.1.6",
+      "v3.1.5",
+      "v3.0.9",
+    ];
+    const idfPath =
+      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+    let idfVersion = "v" + (await utils.getEspIdfVersion(idfPath));
+    if (docsVersions.indexOf(idfVersion) === -1) {
+      const idfTarget =
+        idfConf.readParameter("idf.adapterTargetName") || "esp32";
+      idfVersion = `latest/${idfTarget}`;
+    }
+    const currentEditor = vscode.window.activeTextEditor;
+    if (currentEditor) {
+      let selection = currentEditor.document.getText(currentEditor.selection);
+      if (!selection) {
+        const range = currentEditor.document.getWordRangeAtPosition(
+          currentEditor.selection.active
+        );
+        selection = currentEditor.document.getText(range);
+      }
+      vscode.env.openExternal(
+        vscode.Uri.parse(
+          `https://docs.espressif.com/projects/esp-idf/en/${idfVersion}/search.html?q=${encodeURIComponent(
+            selection
+          )}`
+        )
+      );
+    }
+  });
+
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
