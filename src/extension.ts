@@ -46,7 +46,6 @@ import {
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { createFlashModel } from "./flash/flashModelBuilder";
-import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -61,6 +60,7 @@ import {
   updateIdfComponentsTree,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
+import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
@@ -122,16 +122,25 @@ const webIdeCheck = [
 ] as utils.PreCheckInput;
 
 export async function activate(context: vscode.ExtensionContext) {
-  utils.setExtensionContext(context);
+  // Always load Logger first
   Logger.init(context);
+  Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
+  utils.setExtensionContext(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
     name: string,
     callback: (...args: any[]) => any
   ): number => {
+    const telemetryCallback = (...args: any[]) => {
+      const startTime = Date.now();
+      Logger.info(`Command::${name}::Executed`);
+      callback.apply(this, args);
+      const timeSpent = Date.now() - startTime;
+      Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+    };
     return context.subscriptions.push(
-      vscode.commands.registerCommand(name, callback)
+      vscode.commands.registerCommand(name, telemetryCallback)
     );
   };
   // init rainmaker cache store
@@ -1655,6 +1664,7 @@ function createIdfTerminal() {
 }
 
 export function deactivate() {
+  Telemetry.dispose();
   if (monitorTerminal) {
     monitorTerminal.dispose();
   }
