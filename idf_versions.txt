@@ -1,4 +1,4 @@
-v4.0
+v4.0.1
 v3.3.2
 release/v4.0
 release/v3.3

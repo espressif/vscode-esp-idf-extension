@@ -247,6 +247,11 @@
         "command": "espIdf.size",
         "key": "ctrl+e s",
         "mac": "cmd+e s"
+      },
+      {
+        "command": "espIdf.searchInEspIdfDocs",
+        "key": "ctrl+e d",
+        "mac": "cmd+e d"
       }
     ],
     "configuration": [
