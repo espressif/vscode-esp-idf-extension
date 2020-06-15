@@ -68,6 +68,8 @@ import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
 import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
+import { WSServer } from "./espIdf/communications/ws";
+import { IDFMonitor, MonitorType } from "./espIdf/monitor";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -117,6 +119,9 @@ const webIdeCheck = [
 
 const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
 const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
+const coreDumpMonitor = vscode.window.createOutputChannel(
+  "ESP-IDF Core Dump Monitor"
+);
 
 export async function activate(context: vscode.ExtensionContext) {
   utils.setExtensionContext(context);
@@ -993,6 +998,47 @@ export async function activate(context: vscode.ExtensionContext) {
     Logger.infoNotify(
       "Coming Soon!! until then you can add nodes using mobile app"
     );
+    coreDumpMonitor.clear();
+    const port = idfConf.readParameter("idf.port") as string;
+    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const monitor = new IDFMonitor(
+      { port, baudRate, pythonBinPath, idfMonitorToolPath, elfFilePath },
+      2023
+    );
+    monitor
+      .on("data", (data: Buffer) => {
+        coreDumpMonitor.append(data.toString());
+      })
+      .on("error", (err) => {
+        //
+      });
+    const ws = new WSServer(2023);
+    ws.start();
+    ws.on("started", () => {
+      monitor.start(MonitorType.CoreDump);
+    })
+      .on("core-dump-detected", () => {
+        //
+      })
+      .on("gdb-stub-detected", () => {
+        //
+      })
+      .on("close", (resp) => {
+        monitor.close();
+        ws.close();
+      })
+      .on("error", (err) => {
+        monitor.close();
+        ws.close();
+      });
   });
   registerIDFCommand(
     "esp.rainmaker.backend.update_node_param",
