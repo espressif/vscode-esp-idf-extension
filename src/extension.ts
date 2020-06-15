@@ -632,15 +632,19 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         vscode.window.withProgress(
           {
-            cancellable: false,
+            cancellable: true,
             location: vscode.ProgressLocation.Notification,
             title: "ESP-IDF: Menuconfig",
           },
           async (
-            progress: vscode.Progress<{ message: string; increment: number }>
+            progress: vscode.Progress<{ message: string; increment: number }>,
+            cancelToken: vscode.CancellationToken
           ) => {
             try {
               ConfserverProcess.registerProgress(progress);
+              cancelToken.onCancellationRequested(() => {
+                ConfserverProcess.dispose();
+              });
               await ConfserverProcess.init(
                 workspaceRoot,
                 context.extensionPath
