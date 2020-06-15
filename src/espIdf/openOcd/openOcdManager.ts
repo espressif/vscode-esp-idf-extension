@@ -21,7 +21,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, isBinInPath } from "../../utils";
+import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
@@ -127,7 +127,7 @@ export class OpenOCDManager extends EventEmitter {
       return;
     }
     const modifiedEnv = appendIdfAndToolsToPath();
-    const workspace = vscode.workspace.workspaceFolders
+    const workspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : "";
     if (!isBinInPath("openocd", workspace, modifiedEnv)) {
