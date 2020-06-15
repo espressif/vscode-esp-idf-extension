@@ -22,7 +22,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
-import { getElfFilePath } from "../../utils";
+import { getElfFilePath, PreCheck } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
@@ -174,7 +174,7 @@ export class AppTracePanel {
   }
   private async readElf(): Promise<string[][]> {
     const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = vscode.workspace.workspaceFolders
+    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     const elfFile = await getElfFilePath(workspaceRoot);
@@ -216,7 +216,7 @@ export class AppTracePanel {
   }
   private resolveAddresses({ addresses }) {
     const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = vscode.workspace.workspaceFolders
+    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     if (addresses) {
@@ -250,7 +250,7 @@ export class AppTracePanel {
   }
   private async parseTraceLogData(): Promise<string> {
     const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = vscode.workspace.workspaceFolders
+    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     const logTraceProc = new LogTraceProc(
@@ -263,7 +263,7 @@ export class AppTracePanel {
   }
   private async parseHeapTraceData(): Promise<any> {
     const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = vscode.workspace.workspaceFolders
+    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     const sysviewTraceProc = new SysviewTraceProc(

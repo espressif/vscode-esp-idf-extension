@@ -23,7 +23,7 @@ import { mkdirSync } from "fs";
 import { join } from "path";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists, getElfFilePath } from "../../utils";
+import { fileExists, getElfFilePath, PreCheck } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient } from "../openOcd/tcl/tclClient";
 import { Nm } from "./tools/xtensa/nm";
@@ -64,7 +64,7 @@ export class HeapTraceManager extends EventEmitter {
         commandChain.clear();
         this.heapTraceChannel.clear();
         this.showStopButton();
-        const workspace = vscode.workspace.workspaceFolders
+        const workspace = PreCheck.isWorkspaceFolderOpen()
           ? vscode.workspace.workspaceFolders[0].uri.fsPath
           : "";
         if (!fileExists(join(workspace, "trace"))) {
@@ -268,7 +268,7 @@ export class HeapTraceManager extends EventEmitter {
 
   private async getAddressFor(symbols: string[]): Promise<any> {
     const emptyURI: vscode.Uri = undefined;
-    const workspaceRoot = vscode.workspace.workspaceFolders
+    const workspaceRoot = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : emptyURI;
     const elfFile = await getElfFilePath(workspaceRoot);
