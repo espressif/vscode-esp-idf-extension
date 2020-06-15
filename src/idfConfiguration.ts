@@ -15,6 +15,7 @@
 import * as vscode from "vscode";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
+import { PreCheck } from "./utils";
 
 const locDic = new LocDictionary(__filename);
 
@@ -144,11 +145,11 @@ export function updateConfParameter(
           }
           const target = readParameter("idf.saveScope");
           if (
-            typeof vscode.workspace.workspaceFolders === "undefined" &&
+            !PreCheck.isWorkspaceFolderOpen() &&
             target !== vscode.ConfigurationTarget.Global
           ) {
             Logger.infoNotify("Open a workspace or folder first.");
-            reject(newValue);
+            return reject(newValue);
           }
           await writeParameter(confParamName, valueToWrite, target);
           const updateMessage = locDic.localize(
@@ -156,9 +157,9 @@ export function updateConfParameter(
             " has been updated"
           );
           Logger.infoNotify(label + updateMessage);
-          resolve(newValue);
+          return resolve(newValue);
         } else {
-          reject(newValue);
+          return reject(newValue);
         }
       });
     });
@@ -202,8 +203,7 @@ export function resolveVariables(configPath: string) {
       return pathInEnv;
     }
     if (match.indexOf("workspaceFolder") > 0) {
-      return vscode.workspace.workspaceFolders &&
-        vscode.workspace.workspaceFolders.length > 0
+      return PreCheck.isWorkspaceFolderOpen()
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
     }
