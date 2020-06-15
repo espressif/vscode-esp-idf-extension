@@ -169,10 +169,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
 
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(status);
     const coverageOptions = getCoverageOptions();
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -219,10 +216,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
   vscode.workspace.onDidChangeWorkspaceFolders((e) => {
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    ) {
+    if (PreCheck.isWorkspaceFolderOpen()) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(status);
