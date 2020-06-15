@@ -28,14 +28,12 @@ There are a few dependencies which needs to be downloaded and installed before y
 - ESP-IDF [CMake Version](https://docs.espressif.com/projects/esp-idf/en/latest/get-started-cmake/index.html) (> 4.x Recommended).
 - [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites)
 
-## Coming Soon 🔜
+## Coming Soon
 
 - Create new project wizard
 - Add System View UI
-- Support Rainmaker
 - Support GDB Stub
 - Support Core Dump
-- Support code coverage inside text editor & `gcovr` HTML report integration
 
 ## Quick Installation Guide
 
