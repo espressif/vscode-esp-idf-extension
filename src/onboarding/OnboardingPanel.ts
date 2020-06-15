@@ -122,7 +122,7 @@ export class OnBoardingPanel {
               break;
             case vscode.ConfigurationTarget.Workspace:
               this.confTarget = vscode.ConfigurationTarget.Workspace;
-              if (vscode.workspace.workspaceFolders) {
+              if (utils.PreCheck.isWorkspaceFolderOpen()) {
                 this.confTarget = vscode.ConfigurationTarget.Workspace;
               } else {
                 this.panel.webview.postMessage({
@@ -136,7 +136,7 @@ export class OnBoardingPanel {
               break;
             case vscode.ConfigurationTarget.WorkspaceFolder:
               this.confTarget = vscode.ConfigurationTarget.Workspace;
-              if (vscode.workspace.workspaceFolders) {
+              if (utils.PreCheck.isWorkspaceFolderOpen()) {
                 this.confTarget = vscode.ConfigurationTarget.WorkspaceFolder;
                 this.selectedWorkspaceFolder = vscode.workspace.workspaceFolders.find(
                   (f) => f.uri.fsPath === message.workspaceFolder
@@ -417,7 +417,7 @@ export class OnBoardingPanel {
   private sendInitialValues(onboardingArgs: IOnboardingArgs) {
     // Send workspace folders
     let selected;
-    if (vscode.workspace.workspaceFolders) {
+    if (utils.PreCheck.isWorkspaceFolderOpen()) {
       const folders = vscode.workspace.workspaceFolders.map(
         (f) => f.uri.fsPath
       );

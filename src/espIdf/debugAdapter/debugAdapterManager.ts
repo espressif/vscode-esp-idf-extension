@@ -22,7 +22,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, isBinInPath } from "../../utils";
+import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
 export interface IDebugAdapterConfig {
@@ -68,7 +68,7 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isRunning()) {
         return;
       }
-      const workspace = vscode.workspace.workspaceFolders
+      const workspace = PreCheck.isWorkspaceFolderOpen()
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
       if (!isBinInPath("openocd", workspace, this.env)) {
@@ -183,7 +183,7 @@ export class DebugAdapterManager extends EventEmitter {
   }
 
   private configureWithDefaultValues(extensionPath: string) {
-    this.currentWorkspace = vscode.workspace.workspaceFolders
+    this.currentWorkspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
     this.projectName = "";
