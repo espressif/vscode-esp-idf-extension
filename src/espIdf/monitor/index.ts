@@ -17,14 +17,8 @@
  */
 
 import { EventEmitter } from "events";
-import { ChildProcess, spawn, exec } from "child_process";
 import { appendIdfAndToolsToPath } from "../../utils";
-import { MonitorError } from "./errors";
-
-export declare interface IDFMonitor {
-  on(event: "data", listener: (data: Buffer) => void): this;
-  on(event: "error", listener: (error: Error) => void): this;
-}
+import { window, Terminal } from "vscode";
 
 export interface MonitorConfig {
   pythonBinPath: string;
@@ -32,62 +26,44 @@ export interface MonitorConfig {
   port: string;
   baudRate: string;
   elfFilePath: string;
+  wsPort?: number;
 }
 
 export enum MonitorType {
+  Default,
   CoreDump = "core-dump",
   GDBStub = "gdb-stub",
 }
 
-export class IDFMonitor extends EventEmitter {
-  private server: ChildProcess;
+export class IDFMonitor {
   private config: MonitorConfig;
-  private wsPort: number;
-  constructor(config: MonitorConfig, wsPort: number) {
-    super();
+  private type: MonitorType;
+  private terminal: Terminal;
+  constructor(config: MonitorConfig) {
     this.config = config;
-    this.wsPort = wsPort;
   }
-
   start(type: MonitorType) {
-    const self = this;
+    this.type = type;
     const env = appendIdfAndToolsToPath();
-    const cmd = [
+    this.terminal = window.createTerminal({
+      name: `ESP-IDF Monitor (${type})`,
+      env,
+    });
+    this.terminal.show();
+    this.terminal.dispose = this.dispose.bind(this);
+    const args = [
       this.config.pythonBinPath,
       this.config.idfMonitorToolPath,
       "-p",
       this.config.port,
       "-b",
       this.config.baudRate,
-      this.config.elfFilePath,
-    ].join(" ");
-    this.server = exec(
-      cmd,
-      { env, shell: "/bin/bash" },
-      (err, stdout, stderr) => {
-        console.log(stderr);
-        console.log(stdout);
-        console.log(err);
-      }
-    );
-    // this.server.stdout.on("data", (data) => {
-    //   self.emit("data", data);
-    // });
-    // this.server.stderr.on("data", (data) => {
-    //   self.emit("data", data);
-    //   console.log(data.toString());
-    // });
-    // this.server.on("exit", (code, signal) => {
-    //   if (code !== 0) {
-    //     this.emit(
-    //       "error",
-    //       new MonitorError("idf_monitor.py exited with non zero code" + code)
-    //     );
-    //   }
-    // });
+    ];
+    if (type !== MonitorType.Default && this.config.wsPort) {
+      args.push("--ws", `ws://localhost:${this.config.wsPort}/${type}`);
+    }
+    args.push(this.config.elfFilePath);
+    this.terminal.sendText(args.join(" "));
   }
-
-  close() {
-    this.server.kill("SIGKILL");
-  }
+  dispose() {}
 }

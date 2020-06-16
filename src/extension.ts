@@ -1016,17 +1016,14 @@ export async function activate(context: vscode.ExtensionContext) {
       "build",
       (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
     );
-    const monitor = new IDFMonitor(
-      { port, baudRate, pythonBinPath, idfMonitorToolPath, elfFilePath },
-      2023
-    );
-    monitor
-      .on("data", (data: Buffer) => {
-        coreDumpMonitor.append(data.toString());
-      })
-      .on("error", (err) => {
-        //
-      });
+    const monitor = new IDFMonitor({
+      port,
+      baudRate,
+      pythonBinPath,
+      idfMonitorToolPath,
+      elfFilePath,
+      wsPort: 2023,
+    });
     const ws = new WSServer(2023);
     ws.start();
     ws.on("started", () => {
@@ -1039,11 +1036,9 @@ export async function activate(context: vscode.ExtensionContext) {
         //
       })
       .on("close", (resp) => {
-        monitor.close();
         ws.close();
       })
       .on("error", (err) => {
-        monitor.close();
         ws.close();
       });
   });
