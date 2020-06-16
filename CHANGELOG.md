@@ -2,6 +2,29 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## 0.3.0
+
+### Heap Tracing, Code Coverage Support, Rainmaker Support and bug fixes
+
+- Add Heap Tracing [support](https://github.com/espressif/vscode-esp-idf-extension#log--heap-tracing) inside vscode for ESP32 and ESP32-S2 chips
+- Show [code-coverage](https://github.com/espressif/vscode-esp-idf-extension#code-coverage) inside the vscode editor for your ESP-IDF projects
+- Add ESP Rainmaker IoT cloud [support](https://github.com/espressif/vscode-esp-idf-extension#esp-rainmaker-support) inside vscode, this will enable you to control your ESP32 and ESP32-S2 devices from vscode
+- Use `webview.asWebviewUri(...)` API for making extension web browser compatible
+- Add [support](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/TELEMETRY.md) for telemetry
+- Fix some typos in template project
+- Fix Poweshell export env support
+- Improve onboarding docs
+- Fix some typos in Documentation
+- Fix workspace folder error for no opened workspaces
+
+## 0.2.2
+
+### Add problem matcher support for build and Minor Bug Fixes
+
+- Add support for Problem Matcher in vscode to show line number errors for build which will make navigation to the error easier
+- Update some CI issues
+- Fixed build related errors
+
 ## 0.2.1
 
 ### Minor bug fixes and performance enhancements
