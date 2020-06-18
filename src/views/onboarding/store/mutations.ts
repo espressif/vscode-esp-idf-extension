@@ -78,6 +78,11 @@ export const mutations: MutationTree<IState> = {
     newState.pyBinPath = pythonBinPath;
     Object.assign(state, newState);
   },
+  setPythonSysIsValid(state, isValid: boolean) {
+    const newState = state;
+    newState.pythonSysPathIsValid = isValid;
+    Object.assign(state, newState);
+  },
   setPyLog(state, pyLog: string) {
     const newState = state;
     newState.pyLog = pyLog;
