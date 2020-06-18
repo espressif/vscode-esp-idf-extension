@@ -236,6 +236,9 @@ window.addEventListener("message", (event) => {
         store.commit("setPythonBinPath", message.pythonBinPath);
       }
       break;
+    case "set_py_sys_path_is_valid":
+      store.commit("setPythonSysIsValid", true);
+      break;
     default:
       break;
   }

@@ -298,6 +298,7 @@ export function execChildProcess(
             "WARNING",
             "Cache entry deserialization failed",
             `Ignoring pywin32: markers 'platform_system == "Windows"' don't match your environment`,
+            `Ignoring None: markers 'sys_platform == "win32"' don't match your environment`,
           ];
           for (const msg of ignoredMessages) {
             if (stderr.indexOf(msg) !== -1) {

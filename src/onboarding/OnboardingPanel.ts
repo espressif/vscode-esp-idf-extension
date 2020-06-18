@@ -218,6 +218,15 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 }
+                if (!utils.canAccessFile(message.py_bin_path)) {
+                  const notAccessMsg = `${message.py_bin_path} is not accesible.`;
+                  vscode.window.showErrorMessage(notAccessMsg);
+                  this.panel.webview.postMessage({
+                    command: "response_py_req_check",
+                    py_req_log: notAccessMsg,
+                  });
+                  return;
+                }
                 checkPythonRequirements(
                   this.extensionPath,
                   this.selectedWorkspaceFolder,
@@ -253,6 +262,12 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 } else {
+                  if (message.tools_path.indexOf("~") > -1) {
+                    vscode.window.showInformationMessage(
+                      "Given path can't contain ~, please use absolute path."
+                    );
+                    return;
+                  }
                   const selected = await vscode.window.showErrorMessage(
                     "Specified Directory doesn't exists. Create?",
                     { modal: true },
@@ -371,10 +386,17 @@ export class OnBoardingPanel {
           break;
         case "savePythonBinary":
           if (message.selectedPyBin) {
+            if (!utils.fileExists(message.selectedPyBin)) {
+              vscode.window.showInformationMessage("Python path doesn't exist");
+              return;
+            }
             const msg = `Saving ${message.selectedPyBin} to create python virtual environment.`;
             Logger.info(msg);
             OutputChannel.appendLine(msg);
             this.pythonSystemBinPath = message.selectedPyBin;
+            this.panel.webview.postMessage({
+              command: "set_py_sys_path_is_valid",
+            });
           }
           break;
         case "saveShowOnboarding":
