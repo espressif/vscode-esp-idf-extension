@@ -40,6 +40,7 @@ export const onboardState: IState = {
   pyBinPath: "",
   pyLog: "",
   pyVersionList: [],
+  pythonSysPathIsValid: false,
   requiredToolsVersions: [],
   selectedConfTarget: CONF_TARGET_GLOBAL,
   selectedIdfVersion: undefined,
