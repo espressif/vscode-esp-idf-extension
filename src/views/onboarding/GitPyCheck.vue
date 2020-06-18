@@ -1,6 +1,10 @@
 <template>
   <div id="git-py-check">
-    <router-link to="/" class="arrow go-back right"></router-link>
+    <router-link
+      to="/"
+      class="arrow go-back right"
+      @click.native="setPythonSysIsValid(false)"
+    ></router-link>
     <h4>Select Git and Python version to use</h4>
     <label>Git version: {{ gitVersion }}</label>
     <p v-if="gitVersion === 'Not found'">
@@ -9,7 +13,11 @@
     </p>
     <br /><br />
     <label for="python-version-select">Python version:</label>
-    <select v-model="selectedPythonVersion" id="python-version-select">
+    <select
+      v-model="selectedPythonVersion"
+      id="python-version-select"
+      @change="setPythonSysIsValid(false)"
+    >
       <option v-for="ver in pyVersionList" :key="ver" :value="ver">
         {{ ver }}
       </option>
@@ -41,11 +49,18 @@
     <br />
     <br />
     <router-link
-      v-on:click.native="savePyBin"
+      v-if="pythonPathIsValid"
       to="/download"
       class="onboarding-button"
       >Configure ESP-IDF</router-link
     >
+    <button
+      v-if="!pythonPathIsValid"
+      v-on:click="savePyBin"
+      class="onboarding-button"
+    >
+      Check Python path exists
+    </button>
   </div>
 </template>
 
@@ -58,8 +73,10 @@ import { Action, Mutation, State } from "vuex-class";
 export default class GitPyCheck extends Vue {
   @State("gitVersion") private storeGitVersionList;
   @State("pyVersionList") private storePythonVersionList;
+  @State("pythonSysPathIsValid") private pythonPathIsValid;
   @State("selectedPythonVersion") private storeSelectedPythonVersion;
   @Mutation private setSelectedPythonVersion;
+  @Mutation private setPythonSysIsValid;
   private manualPythonPath;
   @Action private savePythonToUse;
 

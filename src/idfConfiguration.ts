@@ -135,7 +135,7 @@ export function updateConfParameter(
     .showInputBox({ placeHolder: confParamDescription, value: currentValue })
     .then((newValue) => {
       return new Promise(async (resolve, reject) => {
-        if (newValue) {
+        if (newValue && newValue.indexOf("~") !== -1) {
           const typeOfConfig = checkTypeOfConfiguration(confParamName);
           let valueToWrite;
           if (typeOfConfig === "array") {
