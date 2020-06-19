@@ -4,7 +4,7 @@
     <h4>ESP-IDF Tools</h4>
     <p>Define ESP-IDF tools install directory.</p>
     <div class="tools-input">
-      <input type="text" class="text-size" v-model="idfTools" />
+      <input type="text" class="input" v-model="idfTools" />
       <font-awesome-icon
         :icon="folderIcon"
         class="open-icon"
@@ -14,12 +14,12 @@
       />
     </div>
     <div class="tools-input">
-      <button v-on:click.once="downloadTools" class="onboarding-button">
+      <button v-on:click.once="downloadTools" class="button">
         Download
       </button>
       <button
         v-on:click="selectToolsSetup('manual')"
-        class="onboarding-button"
+        class="button"
         v-if="isInstallationCompleted && isPyInstallCompleted"
       >
         Go to next step

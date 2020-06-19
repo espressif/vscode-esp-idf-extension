@@ -17,6 +17,7 @@
       v-model="selectedPythonVersion"
       id="python-version-select"
       @change="setPythonSysIsValid(false)"
+      class="select"
     >
       <option v-for="ver in pyVersionList" :key="ver" :value="ver">
         {{ ver }}
@@ -41,7 +42,7 @@
       <br />
       <input
         type="text"
-        class="text-size"
+        class="input"
         v-model="manualPythonPath"
         placeholder="Enter your absolute python binary path here"
       />
@@ -51,13 +52,13 @@
     <router-link
       v-if="pythonPathIsValid"
       to="/download"
-      class="onboarding-button"
+      class="button"
       >Configure ESP-IDF</router-link
     >
     <button
       v-if="!pythonPathIsValid"
       v-on:click="savePyBin"
-      class="onboarding-button"
+      class="button"
     >
       Check Python path exists
     </button>

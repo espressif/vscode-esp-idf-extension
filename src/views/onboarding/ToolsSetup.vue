@@ -5,18 +5,10 @@
       <h4>
         Do you want to download the ESP-IDF tools or use existing directories?
       </h4>
-      <button
-        class="onboarding-button"
-        href="#"
-        v-on:click="selectToolsSetup('auto')"
-      >
+      <button class="button" href="#" v-on:click="selectToolsSetup('auto')">
         Download ESP-IDF Tools
       </button>
-      <button
-        class="onboarding-button"
-        href="#"
-        v-on:click="selectToolsSetup('manual')"
-      >
+      <button class="button" href="#" v-on:click="selectToolsSetup('manual')">
         Skip ESP-IDF Tools download
       </button>
     </div>
@@ -40,7 +32,7 @@
         ESP-IDF Tools have been configured for this extension of Visual Studio
         Code.
       </h2>
-      <button class="onboarding-button" href="#" v-on:click="getExamplesList">
+      <button class="button" href="#" v-on:click="getExamplesList">
         View ESP-IDF project examples!
       </button>
     </div>

@@ -4,7 +4,7 @@
     <br /><br />
     <input
       type="text"
-      class="text-size"
+      class="input"
       v-model="idfPath"
       @input="launchCheckPath"
     />
@@ -16,7 +16,7 @@
       v-on:click="openFolder"
     />
     <br />
-    <button v-on:click="launchCheckPath" class="onboarding-button">
+    <button v-on:click="launchCheckPath" class="button">
       Click here to check if is valid
     </button>
     <div v-if="showIdfPathCheck">
@@ -35,7 +35,7 @@
       <div v-if="doesIdfPathExist">
         <router-link
           to="/toolsetup"
-          class="onboarding-button"
+          class="button"
           v-on:click.native="saveIdfPath"
           >Go to ESP-IDF Tools setup</router-link
         >

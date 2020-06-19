@@ -7,7 +7,7 @@
       }}idf4.0_py3.8_env{{ pathSep }}{{ winRoot !== "" ? "bin" : "Scripts"
       }}{{ pathSep }}python<span v-if="winRoot !== ''">.exe</span>
     </p>
-    <input type="text" class="text-size" v-model="pyBinPath" />
+    <input type="text" class="input" v-model="pyBinPath" />
     <p>
       Please specify the directories containing executable binaries for required
       ESP-IDF Tools: <br />
@@ -32,7 +32,7 @@
     <p>
       Please provide absolute paths. Using $HOME or %HOME% is not supported.
     </p>
-    <input type="text" class="text-size" v-model="exportedPaths" />
+    <input type="text" class="input" v-model="exportedPaths" />
     <h4>Custom environment variables to be defined.</h4>
     <p>
       Replace any ${TOOL_PATH} with absolute path for each custom variable.
@@ -46,7 +46,7 @@
     <div id="env-vars-to-set" v-for="(value, key) in envVars" :key="key">
       <div class="env-var">
         <p>{{ key }}</p>
-        <input type="text" class="text-size" v-model="envVars[key]" />
+        <input type="text" class="input" v-model="envVars[key]" />
       </div>
     </div>
   </div>

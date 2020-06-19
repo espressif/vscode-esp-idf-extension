@@ -21,10 +21,7 @@
     <div v-if="isIDFZipExtracted">
       <p>ESP-IDF has been installed in {{ resultingIdfPath }}</p>
       <br />
-      <router-link
-        to="/toolsetup"
-        class="onboarding-button"
-        v-on:click.native="reset"
+      <router-link to="/toolsetup" class="button" v-on:click.native="reset"
         >Go to ESP-IDF Tools setup</router-link
       >
     </div>

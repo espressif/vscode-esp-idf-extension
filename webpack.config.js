@@ -89,7 +89,9 @@ const webViewConfig = {
       {
         test: /\.scss$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          {
+            loader: "vue-style-loader",
+          },
           {
             loader: "css-loader",
           },

@@ -16,12 +16,12 @@
     </div>
     <button
       v-on:click="selectToolsSetup('complete')"
-      class="onboarding-button"
+      class="button"
       v-if="isToolsCheckCompleted && isPyInstallCompleted"
     >
       Go to next step.
     </button>
-    <button v-on:click="checkIdfToolsExists" class="onboarding-button" v-else>
+    <button v-on:click="checkIdfToolsExists" class="button" v-else>
       Click here to check tools exists.
     </button>
   </div>

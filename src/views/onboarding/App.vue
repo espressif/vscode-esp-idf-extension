@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="container">
     <transition name="fade" mode="out-in">
       <router-view></router-view>
     </transition>
@@ -21,14 +21,9 @@ export default class App extends Vue {
 }
 </script>
 
-<style>
-#app {
-  max-width: 900px;
-  margin: 1% auto 1% auto;
-  padding-top: 3%;
-  text-align: center;
-  cursor: default;
-}
+<style lang="scss">
+@import "../commons/espCommons.scss";
+
 .arrow {
   position: relative;
   display: inline-block;
@@ -67,22 +62,6 @@ export default class App extends Vue {
   width: 23px;
   -webkit-transform-origin: right top;
   transform-origin: right top;
-}
-.onboarding-button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  text-decoration: none;
-  transition: opacity 0.5s ease 1s;
-  border: none;
-  cursor: pointer;
-  padding: 0.5%;
-  margin: 2%;
-  vertical-align: super;
-}
-
-.onboarding-button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
 }
 
 .open-icon {

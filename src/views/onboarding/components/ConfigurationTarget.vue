@@ -10,21 +10,21 @@
     </label>
     <br />
     <br />
-    <select v-model="selectedConfTarget">
+    <select v-model="selectedConfTarget" class="select">
       <option value="1">User settings</option>
       <option value="2">Workspace settings</option>
       <option value="3">Workspace folder settings</option>
     </select>
     <br /><br />
     <div v-if="selectedConfTarget === '3'">
-      <select v-model="selectedWorkspaceFolder">
+      <select v-model="selectedWorkspaceFolder" class="select">
         <option v-for="ws in workspaceFolders" :value="ws" :key="ws">
           {{ ws }}
         </option>
       </select>
       <br /><br />
     </div>
-    <router-link to="/gitpycheck" class="onboarding-button">START</router-link>
+    <router-link to="/gitpycheck" class="button">START</router-link>
   </div>
 </template>
 

@@ -11,7 +11,7 @@
         <label for="idf-version-select">Select ESP-IDF version:</label>
         <br />
         <br />
-        <select v-model="selectedIdfVersion">
+        <select v-model="selectedIdfVersion" class="select">
           <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
             {{ ver.name }}
           </option>
@@ -26,7 +26,7 @@
             directory will be {{ resultingIdfPath }})</label
           >
           <br /><br />
-          <input type="text" class="text-size" v-model="idfDownloadPath" />
+          <input type="text" class="input" v-model="idfDownloadPath" />
           <font-awesome-icon
             :icon="folderIcon"
             class="open-icon"
@@ -35,7 +35,7 @@
             v-on:click="openFolder"
           />
           <br />
-          <button v-on:click="downloadEspIdf" class="onboarding-button">
+          <button v-on:click="downloadEspIdf" class="button">
             Click here to download
           </button>
         </div>
