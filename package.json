@@ -75,7 +75,8 @@
     "onView:idfComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
-    "workspaceContains:**/CMakeLists.txt"
+    "workspaceContains:**/CMakeLists.txt",
+    "espIdf.launchWSServerAndMonitor"
   ],
   "main": "./dist/extension",
   "contributes": {
@@ -613,6 +614,10 @@
       {
         "command": "espIdf.getCoverageReport",
         "title": "%espIdf.getCoverageReport.title%"
+      },
+      {
+        "command": "espIdf.launchWSServerAndMonitor",
+        "title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode"
       }
     ],
     "breakpoints": [

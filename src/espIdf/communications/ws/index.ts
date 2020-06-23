@@ -18,6 +18,7 @@
 
 import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
+import { Logger } from "../../../logger/logger";
 
 export declare interface WSServer {
   on(event: "started", listener: (ws: WebSocket) => void): this;
@@ -58,12 +59,30 @@ export class WSServer extends EventEmitter {
           .on("close", (code, reason) => this.emit("close", { code, reason }))
           .on("error", (err) => this.emit("error", err))
           .on("message", (data) => {
-            //parse message and emit
+            try {
+              data = data.toString();
+              const jsonResp = JSON.parse(data);
+              if (jsonResp.event && jsonResp.event === "coredump") {
+                //{'event': 'coredump', 'file': '/tmp/xy', 'prog': 'build/elf_file'}
+                this.emit("core-dump-detected", jsonResp);
+              } else if (jsonResp.event === "gdb_stub") {
+                //{'event': 'gdb_stub', 'port': '/dev/ttyUSB1', 'prog': 'build/elf_file'}
+                this.emit("gdb-stub-detected", jsonResp);
+              } else {
+                this.emit("unknown-message", data);
+              }
+            } catch (error) {
+              Logger.errorNotify(
+                `Failed to parse the websocket message`,
+                error
+              );
+              this.emit("unknown-message", data, error);
+            }
           });
       });
   }
   close() {
-    this._client.send("some data");
+    this._client.send({ event: "debug_finished" });
     this._wsServer.close();
   }
 }

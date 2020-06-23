@@ -118,12 +118,6 @@ const webIdeCheck = [
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
 
-const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
-const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
-const coreDumpMonitor = vscode.window.createOutputChannel(
-  "ESP-IDF Core Dump Monitor"
-);
-
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
   Logger.init(context);
@@ -1005,42 +999,6 @@ export async function activate(context: vscode.ExtensionContext) {
     Logger.infoNotify(
       "Coming Soon!! until then you can add nodes using mobile app"
     );
-    coreDumpMonitor.clear();
-    const port = idfConf.readParameter("idf.port") as string;
-    const baudRate = idfConf.readParameter("idf.baudRate") as string;
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
-    const elfFilePath = path.join(
-      workspaceRoot.fsPath,
-      "build",
-      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
-    );
-    const monitor = new IDFMonitor({
-      port,
-      baudRate,
-      pythonBinPath,
-      idfMonitorToolPath,
-      elfFilePath,
-      wsPort: 2023,
-    });
-    const ws = new WSServer(2023);
-    ws.start();
-    ws.on("started", () => {
-      monitor.start(MonitorType.CoreDump);
-    })
-      .on("core-dump-detected", () => {
-        //
-      })
-      .on("gdb-stub-detected", () => {
-        //
-      })
-      .on("close", (resp) => {
-        ws.close();
-      })
-      .on("error", (err) => {
-        ws.close();
-      });
   });
   registerIDFCommand(
     "esp.rainmaker.backend.update_node_param",
@@ -1109,6 +1067,48 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       );
     }
+  );
+  registerIDFCommand(
+    "espIdf.launchWSServerAndMonitor",
+    PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
+      const port = idfConf.readParameter("idf.port") as string;
+      const baudRate = idfConf.readParameter("idf.baudRate") as string;
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
+      const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+      const elfFilePath = path.join(
+        workspaceRoot.fsPath,
+        "build",
+        (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+      );
+      const monitor = new IDFMonitor({
+        port,
+        baudRate,
+        pythonBinPath,
+        idfMonitorToolPath,
+        elfFilePath,
+        wsPort: 2023,
+      });
+      const ws = new WSServer(2023);
+      ws.start();
+      ws.on("started", () => {
+        monitor.start();
+      })
+        .on("core-dump-detected", () => {
+          //
+        })
+        .on("gdb-stub-detected", () => {
+          //
+        })
+        .on("close", (resp) => {
+          ws.close();
+        })
+        .on("error", (err) => {
+          ws.close();
+        });
+    })
   );
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {

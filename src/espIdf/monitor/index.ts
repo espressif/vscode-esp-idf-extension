@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { EventEmitter } from "events";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { window, Terminal } from "vscode";
 
@@ -26,27 +25,24 @@ export interface MonitorConfig {
   port: string;
   baudRate: string;
   elfFilePath: string;
-  wsPort?: number;
+  wsPort: number;
 }
 
 export enum MonitorType {
-  Default,
   CoreDump = "core-dump",
   GDBStub = "gdb-stub",
 }
 
 export class IDFMonitor {
   private config: MonitorConfig;
-  private type: MonitorType;
   private terminal: Terminal;
   constructor(config: MonitorConfig) {
     this.config = config;
   }
-  start(type: MonitorType) {
-    this.type = type;
+  start() {
     const env = appendIdfAndToolsToPath();
     this.terminal = window.createTerminal({
-      name: `ESP-IDF Monitor (${type})`,
+      name: `ESP-IDF Monitor (--ws enabled)`,
       env,
     });
     this.terminal.show();
@@ -58,10 +54,9 @@ export class IDFMonitor {
       this.config.port,
       "-b",
       this.config.baudRate,
+      "--ws",
+      `ws://localhost:${this.config.wsPort}`,
     ];
-    if (type !== MonitorType.Default && this.config.wsPort) {
-      args.push("--ws", `ws://localhost:${this.config.wsPort}/${type}`);
-    }
     args.push(this.config.elfFilePath);
     this.terminal.sendText(args.join(" "));
   }
