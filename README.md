@@ -263,6 +263,10 @@ We support [log](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api
 
 You can follow [this](./docs/HEAP_TRACING.md) quick step-by-step guide for heap tracing.
 
+## System View Tracing Viewer
+
+We have provide a [system view tracing viewer](./docs/SYS_VIEW_TRACING_VIEWER.md) inside the vscode extension which will enable you to view the traces along with other relevant details.
+
 ## Kconfig files editor
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide syntax highlighting. If `idf.useIDFKconfigStyle` is enabled, we also provide ESP-IDF Kconfig style syntax validation such as indent validation and not closing blocks found (Example: menu-endmenu). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
