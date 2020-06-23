@@ -196,6 +196,11 @@ export class DebugAdapterManager extends EventEmitter {
     this.logLevel = 0;
     this.target = idfConf.readParameter("idf.adapterTargetName");
     this.env = appendIdfAndToolsToPath();
+    this.env.PYTHONPATH = path.join(
+      extensionPath,
+      "esp_debug_adapter",
+      "debug_adapter"
+    );
   }
 
   private sendToOutputChannel(data: Buffer) {

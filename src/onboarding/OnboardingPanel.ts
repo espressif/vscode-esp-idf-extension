@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir } from "fs-extra";
+import { ensureDir, constants } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -218,7 +218,7 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 }
-                if (!utils.canAccessFile(message.py_bin_path)) {
+                if (!utils.canAccessFile(message.py_bin_path, constants.R_OK)) {
                   const notAccessMsg = `${message.py_bin_path} is not accesible.`;
                   vscode.window.showErrorMessage(notAccessMsg);
                   this.panel.webview.postMessage({
