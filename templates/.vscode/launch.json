@@ -8,9 +8,6 @@
             "type": "espidf",
             "name": "Launch",
             "request": "launch",
-            "env": {
-                    "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
-                },
         }
     ]
 }
