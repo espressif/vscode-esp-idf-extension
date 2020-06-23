@@ -77,7 +77,7 @@ import { TaskManager } from "./taskManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-const LOCALHOST_DEF_PORT = 43474;
+const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
@@ -536,13 +536,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
-      const portToUse = session.configuration.debugPort
-        ? session.configuration.debugPort
-        : LOCALHOST_DEF_PORT;
-      const launchMode =
-        session.configuration.mode !== undefined
-          ? session.configuration.launchDebugAdapter
-          : "auto";
+      const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
+      const launchMode = session.configuration.mode || "auto";
       if (launchMode === "auto" && !openOCDManager.isRunning()) {
         isOpenOCDLaunchedByDebug = true;
         await openOCDManager.start();

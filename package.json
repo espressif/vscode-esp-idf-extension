@@ -645,7 +645,7 @@
                 "default": 2
               },
               "mode": {
-                "type": "enum",
+                "type": "string",
                 "description": "ESP-IDF debug session mode",
                 "default": "auto",
                 "enum": [
