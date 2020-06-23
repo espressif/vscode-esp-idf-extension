@@ -28,11 +28,6 @@ export interface MonitorConfig {
   wsPort: number;
 }
 
-export enum MonitorType {
-  CoreDump = "core-dump",
-  GDBStub = "gdb-stub",
-}
-
 export class IDFMonitor {
   private config: MonitorConfig;
   private terminal: Terminal;

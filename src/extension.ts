@@ -67,7 +67,7 @@ import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
 import { WSServer } from "./espIdf/communications/ws";
-import { IDFMonitor, MonitorType } from "./espIdf/monitor";
+import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
