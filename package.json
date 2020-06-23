@@ -710,6 +710,17 @@
         "language": "kconfig",
         "path": "./snippets/kconfig.code-snippets"
       }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "esp-idf",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Command to be executed"
+          }
+        }
+      }
     ]
   },
   "extensionDependencies": [
