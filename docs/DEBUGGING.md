@@ -1,5 +1,7 @@
 # Use our ESP-IDF Debug Adapter
 
+Default values launch.json for ESP-IDF Debug Adapter:
+
 ```
 {
   "version": "0.2.0",
@@ -7,10 +9,7 @@
     {
       "type": "espidf",
       "name": "Launch",
-      "request": "launch",
-      "env": {
-        "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
-      },
+      "request": "launch"
     }
   ]
 }
@@ -19,9 +18,30 @@
 Configuration settings of the ESP-IDF Debug Adapter for launch.json are:
 
 - `debugPort`: Port for ESP-IDF Debug Adapter. Default: 43474.
-- `logLevel`: Specify log level for Debug Adapter. Default: 2.
-- `mode`: Can be either `auto`, to start the debug adapter server within the extension or `manual`, to connect to existing debug adapter session.
+- `logLevel`: Debug Adapter Debug level (0-4), 5 - for a full OOCD log. Default: 2.
+- `mode`: Can be either `auto`, to start the debug adapter and openOCD server within the extension or `manual`, to connect to existing debug adapter and openOCD session.
 - `env`: Environment variables to apply to the ESP-IDF Debug Adapter.
+
+Custom launch.json for ESP-IDF Debug Adapter:
+
+```
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "espidf",
+      "name": "Launch",
+      "request": "launch",
+      "debugPort": 9998,
+      "logLevel": 2,
+      "mode": "manual",
+      "env": {
+        "CUSTOM_ENV_VAR": "SOME_VALUE"
+      }
+    }
+  ]
+}
+```
 
 # Use Microsoft C/C++ extension to debug
 

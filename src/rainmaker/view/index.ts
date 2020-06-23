@@ -89,7 +89,7 @@ export class ESPRainMakerTreeDataProvider
   }
   public async refresh() {
     await this.purgeClientCacheAndToken();
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(null);
   }
 
   private async fetchNodes(): Promise<RainmakerNodeWithDetails> {
