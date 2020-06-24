@@ -38,6 +38,7 @@
   ],
   "activationEvents": [
     "onCommand:espIdf.createFiles",
+    "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
@@ -213,6 +214,11 @@
         "command": "espIdf.monitorDevice",
         "key": "ctrl+e m",
         "mac": "cmd+e m"
+      },
+      {
+        "command": "espIdf.createIdfTerminal",
+        "key": "ctrl+e t",
+        "mac": "cmd+e t"
       },
       {
         "command": "espIdf.selectPort",
@@ -451,6 +457,10 @@
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%"
+      },
+      {
+        "command": "espIdf.addArduinoAsComponentToCurFolder",
+        "title": "%espIdf.addArduinoAsComponentToCurFolder.title%"
       },
       {
         "command": "espIdf.createVsCodeFolder",

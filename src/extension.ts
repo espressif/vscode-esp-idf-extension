@@ -69,6 +69,8 @@ import { previewReport } from "./coverage/coverageService";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
+import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { pathExists } from "fs-extra";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -269,19 +271,122 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createFiles", async () => {
-    const option = await vscode.window.showQuickPick(
-      utils.chooseTemplateDir(),
-      { placeHolder: "Select a template to use" }
-    );
-    PreCheck.perform([openFolderCheck], () => {
-      if (option) {
-        utils.createSkeleton(workspaceRoot.fsPath, option.target);
-        const defaultFoldersMsg = locDic.localize(
-          "extension.defaultFoldersGeneratedMessage",
-          "Default folders were generated."
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        vscode.window.withProgress(
+          {
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "Creating ESP-IDF Project...",
+          },
+          async (
+            progress: vscode.Progress<{
+              message: string;
+              increment: number;
+            }>,
+            cancelToken: vscode.CancellationToken
+          ) => {
+            const projectDirOption = await vscode.window.showQuickPick(
+              [
+                {
+                  label: `Use current folder (${workspaceRoot.fsPath})`,
+                  target: "current",
+                },
+                { label: "Choose a container directory...", target: "another" },
+              ],
+              { placeHolder: "Select a directory to use" }
+            );
+            if (!projectDirOption) {
+              return;
+            }
+            let projectDirToUse: string;
+            if (projectDirOption.target === "another") {
+              const newFolder = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+              });
+              if (!newFolder) {
+                return;
+              }
+              projectDirToUse = newFolder[0].fsPath;
+            } else {
+              projectDirToUse = workspaceRoot.fsPath;
+            }
+
+            const selectedTemplate = await vscode.window.showQuickPick(
+              utils.chooseTemplateDir(),
+              { placeHolder: "Select a template to use" }
+            );
+            if (!selectedTemplate) {
+              return;
+            }
+            const resultFolder = path.join(
+              projectDirToUse,
+              selectedTemplate.target
+            );
+            const doesProjectExists = await pathExists(resultFolder);
+            if (doesProjectExists) {
+              Logger.infoNotify(`${resultFolder} already exists.`);
+              return;
+            }
+            await utils.createSkeleton(resultFolder, selectedTemplate.target);
+            if (selectedTemplate.label === "arduino-as-component") {
+              const arduinoComponentManager = new ArduinoComponentInstaller(
+                resultFolder
+              );
+              cancelToken.onCancellationRequested(() => {
+                arduinoComponentManager.cancel();
+              });
+              await arduinoComponentManager.addArduinoAsComponent();
+            }
+            const projectPath = vscode.Uri.file(resultFolder);
+            vscode.commands.executeCommand(
+              "vscode.openFolder",
+              projectPath,
+              true
+            );
+            const defaultFoldersMsg = locDic.localize(
+              "extension.defaultFoldersGeneratedMessage",
+              "Template folders has been generated."
+            );
+            Logger.infoNotify(defaultFoldersMsg);
+          }
         );
-        Logger.infoNotify(defaultFoldersMsg);
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.addArduinoAsComponentToCurFolder", () => {
+    PreCheck.perform([openFolderCheck], () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Arduino ESP32 as ESP-IDF Component",
+        },
+        async (
+          progress: vscode.Progress<{
+            message: string;
+            increment: number;
+          }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const arduinoComponentManager = new ArduinoComponentInstaller(
+              workspaceRoot.fsPath
+            );
+            cancelToken.onCancellationRequested(() => {
+              arduinoComponentManager.cancel();
+            });
+            await arduinoComponentManager.addArduinoAsComponent();
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
@@ -594,8 +699,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      utils.createVscodeFolder(workspaceRoot.fsPath);
+    PreCheck.perform([openFolderCheck], async () => {
+      await utils.createVscodeFolder(workspaceRoot.fsPath);
       Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
     });
   });
