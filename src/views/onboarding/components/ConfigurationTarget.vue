@@ -1,31 +1,55 @@
 <template>
-  <div>
-    <input id="showOnboarding" v-model="showOnboardingOnInit" type="checkbox" />
-    <label for="showOnboarding">
-      Show Onboarding on Visual Studio Code start.
-    </label>
-    <br /><br />
-    <label for="configurationTarget">
-      Where to save configuration settings ?
-    </label>
-    <br />
-    <br />
-    <select v-model="selectedConfTarget" class="select">
-      <option value="1">User settings</option>
-      <option value="2">Workspace settings</option>
-      <option value="3">Workspace folder settings</option>
-    </select>
-    <br /><br />
-    <div v-if="selectedConfTarget === '3'">
-      <select v-model="selectedWorkspaceFolder" class="select">
-        <option v-for="ws in workspaceFolders" :value="ws" :key="ws">
-          {{ ws }}
-        </option>
-      </select>
-      <br /><br />
+  <section class="section">
+    <div class="container">
+      <div class="field has-addons has-addons-centered">
+        <div class="control">
+          <label for="showOnboarding" class="checkbox">
+            <input
+              id="showOnboarding"
+              v-model="showOnboardingOnInit"
+              type="checkbox"
+            />
+            Show Onboarding on Visual Studio Code start.
+          </label>
+        </div>
+      </div>
+      <div class="field has-addons has-addons-centered">
+        <label for="configurationTarget" class="label">
+          Where to save configuration settings ?
+        </label>
+        <div class="control">
+          <select
+            v-model="selectedConfTarget"
+            class="select is-fullwidth"
+            id="configurationTarget"
+          >
+            <option value="1">User settings</option>
+            <option value="2">Workspace settings</option>
+            <option value="3">Workspace folder settings</option>
+          </select>
+        </div>
+      </div>
+      <div v-if="selectedConfTarget === '3'" class="field">
+        <label for="workspaceFolder" class="label">Workspace folder</label>
+        <div class="control">
+          <select
+            v-model="selectedWorkspaceFolder"
+            class="select is-fullwidth"
+            id="workspaceFolder"
+          >
+            <option v-for="ws in workspaceFolders" :value="ws" :key="ws">
+              {{ ws }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="field has-addons has-addons-centered">
+        <div class="control">
+          <router-link to="/gitpycheck" class="button">START</router-link>
+        </div>
+      </div>
     </div>
-    <router-link to="/gitpycheck" class="button">START</router-link>
-  </div>
+  </section>
 </template>
 
 <script lang="ts">

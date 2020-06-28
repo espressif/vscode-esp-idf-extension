@@ -24,6 +24,10 @@ export default class App extends Vue {
 <style lang="scss">
 @import "../commons/espCommons.scss";
 
+#app {
+  text-align: center;
+}
+
 .arrow {
   position: relative;
   display: inline-block;
