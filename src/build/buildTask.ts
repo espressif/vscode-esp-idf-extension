@@ -74,7 +74,7 @@ export class BuildTask {
       options
     );
     TaskManager.addTask(
-      { type: "shell" },
+      { type: "esp-idf", command: compileExecution.commandLine },
       vscode.TaskScope.Workspace,
       "ESP-IDF Compile",
       compileExecution,
@@ -82,7 +82,7 @@ export class BuildTask {
     );
     const buildExecution = this.getShellExecution(["--build", "."], options);
     TaskManager.addTask(
-      { type: "shell" },
+      { type: "esp-idf", command: buildExecution.commandLine },
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,

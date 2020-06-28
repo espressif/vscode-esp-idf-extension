@@ -18,6 +18,10 @@
 
 import * as vscode from "vscode";
 
+export interface IdfTaskDefinition extends vscode.TaskDefinition {
+  command?: string;
+}
+
 export class TaskManager {
   private static tasks: vscode.Task[] = [];
   private static disposables: vscode.Disposable[] = [];

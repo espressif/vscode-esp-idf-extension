@@ -69,7 +69,7 @@ export class FlashTask {
     this.verifyArgs();
     const flashExecution = this._flashExecution();
     TaskManager.addTask(
-      { type: "shell" },
+      { type: "esp-idf", command: flashExecution.commandLine },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
