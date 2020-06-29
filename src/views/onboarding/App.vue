@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="container">
+  <div id="app">
     <transition name="fade" mode="out-in">
       <router-view></router-view>
     </transition>
@@ -26,6 +26,12 @@ export default class App extends Vue {
 
 #app {
   text-align: center;
+}
+
+.centerize {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .arrow {
@@ -69,13 +75,12 @@ export default class App extends Vue {
 }
 
 .open-icon {
-  fill: var(--vscode-editor-foreground);
-  font-size: large;
-  margin-left: 1%;
+  color: var(--vscode-button-background);
+  margin: 0.5em 0 0 0.5em;
   cursor: pointer;
 }
 .open-icon:hover {
-  fill: var(--vscode-button-hoverBackground);
+  color: var(--vscode-button-hoverBackground);
 }
 
 .progressBar {

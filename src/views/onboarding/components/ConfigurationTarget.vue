@@ -1,6 +1,6 @@
 <template>
   <section class="section">
-    <div class="container">
+    <div class="container centerize">
       <div class="field has-addons has-addons-centered">
         <div class="control">
           <label for="showOnboarding" class="checkbox">
@@ -13,14 +13,14 @@
           </label>
         </div>
       </div>
-      <div class="field has-addons has-addons-centered">
+      <div class="field">
         <label for="configurationTarget" class="label">
           Where to save configuration settings ?
         </label>
-        <div class="control">
+        <div class="control centerize">
           <select
             v-model="selectedConfTarget"
-            class="select is-fullwidth"
+            class="select"
             id="configurationTarget"
           >
             <option value="1">User settings</option>
@@ -43,7 +43,7 @@
           </select>
         </div>
       </div>
-      <div class="field has-addons has-addons-centered">
+      <div class="field">
         <div class="control">
           <router-link to="/gitpycheck" class="button">START</router-link>
         </div>

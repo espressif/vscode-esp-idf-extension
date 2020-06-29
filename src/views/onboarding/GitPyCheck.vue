@@ -1,19 +1,18 @@
 <template>
   <section id="git-py-check" class="section">
-    <div class="container">
+    <div class="container centerize">
       <router-link
         to="/"
         class="arrow go-back right"
         @click.native="setPythonSysIsValid(false)"
       ></router-link>
-      <h4 class="title">Select Git and Python version to use</h4>
-      <label>Git version: {{ gitVersion }}</label>
+      <h4 class="title">Select Python version to use</h4>
+      <label class="label">Git version: {{ gitVersion }}</label>
       <p v-if="gitVersion === 'Not found'">
         Please install <a href="https://git-scm.com/downloads">Git</a> and
         reload this window.
       </p>
-      <br /><br />
-      <div class="field has-addons has-addons-centered">
+      <div class="field">
         <label for="python-version-select" class="label"
           >Python version:
         </label>
