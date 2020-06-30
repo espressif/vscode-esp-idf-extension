@@ -20,10 +20,28 @@ import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
 import { Logger } from "../../../logger/logger";
 
+interface GDBStubResponse {
+  event: "gdb_stub";
+  port: string;
+  prog: string;
+}
+
+interface CoreDumpResponse {
+  event: "coredump";
+  file: string;
+  prog: string;
+}
+
 export declare interface WSServer {
   on(event: "started", listener: (ws: WebSocket) => void): this;
-  on(event: "gdb-stub-detected", listener: () => void): this;
-  on(event: "core-dump-detected", listener: () => void): this;
+  on(
+    event: "gdb-stub-detected",
+    listener: (resp: GDBStubResponse) => void
+  ): this;
+  on(
+    event: "core-dump-detected",
+    listener: (resp: CoreDumpResponse) => void
+  ): this;
   on(event: "unknown-message", listener: () => void): this;
   on(event: "error", listener: (error: Error) => void): this;
   on(
@@ -37,7 +55,7 @@ export declare interface WSServer {
 export class WSServer extends EventEmitter {
   private _port: number;
   private _wsServer: Server;
-  private _client: WebSocket;
+  private _client?: WebSocket;
   private _host: string;
   constructor(port: number) {
     super();
@@ -81,8 +99,10 @@ export class WSServer extends EventEmitter {
           });
       });
   }
+  done() {
+    this._client?.send(JSON.stringify({ event: "debug_finished" }));
+  }
   close() {
-    this._client.send({ event: "debug_finished" });
     this._wsServer.close();
   }
 }

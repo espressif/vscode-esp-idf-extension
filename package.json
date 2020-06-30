@@ -75,8 +75,7 @@
     "onView:idfComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
-    "workspaceContains:**/CMakeLists.txt",
-    "espIdf.launchWSServerAndMonitor"
+    "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
   "contributes": {
@@ -444,6 +443,14 @@
             "default": "rgba(255,0,0,0.1)",
             "description": "%param.uncoveredDarkTheme%",
             "scope": "resource"
+          },
+          "idf.wssPort": {
+            "type": "number",
+            "default": 49203,
+            "description": "%idf.wssPort.description%",
+            "scope": "resource",
+            "minimum": 49152,
+            "maximum": 65535
           }
         }
       }

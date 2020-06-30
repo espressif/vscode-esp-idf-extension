@@ -100,6 +100,9 @@ let kconfigLangClient: LanguageClient;
 let monitorTerminal: vscode.Terminal;
 const locDic = new LocDictionary(__filename);
 
+// Websocket Server
+let wsServer: WSServer;
+
 // Precheck methods and their messages
 const openFolderMsg = locDic.localize(
   "extension.openFolderFirst",
@@ -1063,48 +1066,55 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
-  registerIDFCommand(
-    "espIdf.launchWSServerAndMonitor",
-    PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
-      const port = idfConf.readParameter("idf.port") as string;
-      const baudRate = idfConf.readParameter("idf.baudRate") as string;
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath"
-      ) as string;
-      const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
-      const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
-      const elfFilePath = path.join(
-        workspaceRoot.fsPath,
-        "build",
-        (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
-      );
-      const monitor = new IDFMonitor({
-        port,
-        baudRate,
-        pythonBinPath,
-        idfMonitorToolPath,
-        elfFilePath,
-        wsPort: 2023,
-      });
-      const ws = new WSServer(2023);
-      ws.start();
-      ws.on("started", () => {
+  registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
+    const port = idfConf.readParameter("idf.port") as string;
+    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const wsPort = idfConf.readParameter("idf.wssPort");
+    const monitor = new IDFMonitor({
+      port,
+      baudRate,
+      pythonBinPath,
+      idfMonitorToolPath,
+      elfFilePath,
+      wsPort,
+    });
+    if (wsServer) {
+      wsServer.close();
+    }
+    wsServer = new WSServer(wsPort);
+    wsServer.start();
+    wsServer
+      .on("started", () => {
         monitor.start();
       })
-        .on("core-dump-detected", () => {
-          //
-        })
-        .on("gdb-stub-detected", () => {
-          //
-        })
-        .on("close", (resp) => {
-          ws.close();
-        })
-        .on("error", (err) => {
-          ws.close();
-        });
-    })
-  );
+      .on("core-dump-detected", (resp) => {
+        // perform core-dump related stuff here
+        //once done call .done() to notify the monitor process
+        wsServer.done();
+      })
+      .on("gdb-stub-detected", (resp) => {
+        //
+      })
+      .on("close", (resp) => {
+        wsServer.close();
+      })
+      .on("error", (err) => {
+        let message = err.message;
+        if (err && err.message.includes("EADDRINUSE")) {
+          message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
+        }
+        Logger.errorNotify(message, err);
+        wsServer.close();
+      });
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");

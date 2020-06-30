@@ -61,5 +61,6 @@
   "esp.rainmaker.backend.add_node.title": "Agregar nuevo nodo",
   "esp.rainmaker.backend.remove_node.title": "Eliminar este nodo",
   "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
-  "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth"
+  "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
+  "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub"
 }
