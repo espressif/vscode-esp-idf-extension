@@ -2,15 +2,25 @@
   <div id="tools-setup">
     <div id="tools-init" v-if="selected === 'empty'">
       <router-link to="/" class="arrow go-back right"></router-link>
-      <h4>
-        Do you want to download the ESP-IDF tools or use existing directories?
+      <h4 class="title">
+        ESP-IDF Tools Configuration
       </h4>
-      <button class="button" href="#" v-on:click="selectToolsSetup('auto')">
-        Download ESP-IDF Tools
-      </button>
-      <button class="button" href="#" v-on:click="selectToolsSetup('manual')">
-        Skip ESP-IDF Tools download
-      </button>
+      <div class="field is-grouped is-grouped-centered">
+        <div class="control">
+          <button class="button" href="#" v-on:click="selectToolsSetup('auto')">
+            Download ESP-IDF Tools
+          </button>
+        </div>
+        <div class="control">
+          <button
+            class="button"
+            href="#"
+            v-on:click="selectToolsSetup('manual')"
+          >
+            Skip ESP-IDF Tools download
+          </button>
+        </div>
+      </div>
     </div>
     <ToolsDownloadStep
       v-if="selected === 'auto'"
@@ -27,14 +37,17 @@
       id="tools-complete-setup"
       v-if="selected === 'complete'"
       key="complete"
+      class="section centerize"
     >
-      <h2>
+      <h2 class="subtitle">
         ESP-IDF Tools have been configured for this extension of Visual Studio
         Code.
       </h2>
-      <button class="button" href="#" v-on:click="getExamplesList">
-        View ESP-IDF project examples!
-      </button>
+      <div class="control">
+        <button class="button" href="#" v-on:click="getExamplesList">
+          View ESP-IDF project examples!
+        </button>
+      </div>
     </div>
   </div>
 </template>

@@ -26,6 +26,7 @@ export default class App extends Vue {
 
 #app {
   text-align: center;
+  padding: 1em;
 }
 
 .centerize {
@@ -41,18 +42,22 @@ export default class App extends Vue {
   color: var(--vscode-editor-foreground);
   box-sizing: border-box;
 }
+
 .arrow:before {
   content: "";
   box-sizing: border-box;
 }
+
 .arrow:hover {
   color: var(--vscode-button-background);
 }
+
 .check-icon {
   fill: var(--vscode-editor-foreground);
   padding-top: 5%;
   font-size: large;
 }
+
 .go-back {
   width: 20px;
   height: 20px;
@@ -61,6 +66,7 @@ export default class App extends Vue {
   margin: 10px;
   cursor: pointer;
 }
+
 .go-back:before {
   right: 0;
   top: -3px;
@@ -78,40 +84,32 @@ export default class App extends Vue {
   color: var(--vscode-button-background);
   margin: 0.5em 0 0 0.5em;
   cursor: pointer;
+  font-size: larger;
 }
 .open-icon:hover {
   color: var(--vscode-button-hoverBackground);
-}
-
-.progressBar {
-  border-radius: 10px;
-  padding: 2px;
-  overflow: hidden;
-  width: 40%;
-}
-.progressBar p {
-  margin: 0%;
-  padding-top: 2%;
 }
 
 .progressBar div {
   background-color: var(--vscode-button-background);
   height: 10px;
   width: 0%;
-  border-radius: 7px;
-  width: 45%;
 }
+
 .right {
   -webkit-transform: rotate(-135deg);
   transform: rotate(-135deg);
 }
+
 .text-size {
   width: 60%;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 1s;
 }
+
 .fade-enter,
 .fade-leave-to {
   opacity: 0;

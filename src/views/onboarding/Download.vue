@@ -22,13 +22,13 @@
       <IDFManual
         v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
       />
-      <div v-else class="field">
+      <div v-else class="field text-size">
         <label class="label"
           >Select directory to download and install ESP-IDF. <br />(Result
           directory will be {{ resultingIdfPath }})</label
         >
         <div class="field has-addons has-addons-centered">
-          <div class="control">
+          <div class="control is-expanded">
             <input type="text" class="input" v-model="idfDownloadPath" />
           </div>
           <p class="control">

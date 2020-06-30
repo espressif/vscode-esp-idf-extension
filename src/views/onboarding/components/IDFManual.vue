@@ -1,8 +1,8 @@
 <template>
-  <div class="field centerize">
+  <div class="field centerize text-size">
     <label class="label">Enter ESP-IDF directory</label>
-    <div class="field has-addons">
-      <div class="control">
+    <div class="field is-grouped text-size">
+      <div class="control is-expanded">
         <input
           type="text"
           class="input"
