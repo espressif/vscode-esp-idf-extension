@@ -66,6 +66,7 @@ button > span.icon > i:hover {
   border-color: var(--vscode-button-foreground);
 }
 
+.select,
 .input {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-border);
@@ -74,9 +75,12 @@ button > span.icon > i:hover {
 .input::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
+.select:hover,
 .input:hover {
   border-color: var(--vscode-inputOption-activeBorder);
 }
+.select:active,
+.select:focus,
 .input:active,
 .input:focus {
   border-color: var(--vscode-inputOption-activeBorder);
