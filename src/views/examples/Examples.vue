@@ -20,7 +20,7 @@
     </div>
 
     <div id="example-content" class="content">
-      <div v-if="hasExampleDetail" class="notification has-text-centered">
+      <div v-if="hasExampleDetail" class="has-text-centered">
         <button
           v-if="selectedExample.name !== ''"
           v-on:click="openExample(selectedExample)"
@@ -121,6 +121,7 @@ export default class Examples extends Vue {
 #examples-window {
   color: var(--vscode-editor-foreground);
   height: 100%;
+  padding: 0.5em;
 }
 ul.examples > li > p:hover {
   color: var(--vscode-button-background);

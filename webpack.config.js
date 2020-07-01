@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TSLintPlugin = require("tslint-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
@@ -143,9 +142,6 @@ const webViewConfig = {
     },
   },
   plugins: [
-    new MiniCssExtractPlugin({
-      filename: "[name].bundle.css",
-    }),
     new TSLintPlugin({
       files: ["./*.ts"],
     }),
