@@ -14,7 +14,7 @@
 
 import { IPath, ITool } from "./ITool";
 import { readJson, writeJson } from "./utils";
-import { join } from "path";
+import { dirname, join } from "path";
 import { doesPathExists, extensionContext } from "./utils";
 import { Logger } from "./logger/logger";
 import * as idfConf from "./idfConfiguration";
@@ -30,7 +30,7 @@ export interface IMetadataFile {
 
 export class MetadataJson {
   public static getMetadataFilePath() {
-    return join(extensionContext.extensionPath, "metadata.json");
+    return join(dirname(extensionContext.extensionPath), "metadata.json");
   }
 
   public static async read(): Promise<IMetadataFile> {
