@@ -17,12 +17,16 @@
       @click="openComponentFolder"
     />
     <br />
+    <br />
     <idfComponent
       v-for="idfComp in components"
       :comp.sync="idfComp"
       :key="idfComp.name"
     />
-    <button class="button" @click="createProject">Create project</button>
+    <br />
+    <router-link to="/project-location" class="button"
+      >Choose project directory</router-link
+    >
   </div>
 </template>
 
@@ -35,7 +39,6 @@ import { IComponent } from "../../espIdf/idfComponent/IdfComponent";
 @Component
 export default class Components extends Vue {
   public folderIcon = "folder";
-  @Action private createProject;
   @Action private openComponentFolder;
   @Mutation private addComponent;
   @State("components") private storeComponents: IComponent[];
@@ -55,12 +58,14 @@ export default class Components extends Vue {
   }
 
   private addToComponentList() {
-    const component: IComponent = {
-      name: this.storeCurrentComponentPath,
-      path: this.storeCurrentComponentPath,
-    };
-    this.addComponent(component);
-    this.setCurrentComponentPath("");
+    if (this.storeCurrentComponentPath.trim() != "") {
+      const component: IComponent = {
+        name: this.storeCurrentComponentPath,
+        path: this.storeCurrentComponentPath,
+      };
+      this.addComponent(component);
+      this.setCurrentComponentPath("");
+    }
   }
 }
 </script>

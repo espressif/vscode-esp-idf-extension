@@ -21,6 +21,7 @@ import Components from "./Components.vue";
 import Espidf from "./EspIdf.vue";
 import Examples from "./Examples.vue";
 import IdfComponent from "./components/idfComponent.vue";
+import ProjectLocation from "./ProjectLocation.vue";
 import TargetConf from "./TargetConf.vue";
 import Tool from "./components/tool.vue";
 
@@ -40,6 +41,7 @@ const routes = [
   { path: "/examples", component: Examples },
   { path: "/components", component: Components },
   { path: "/target-settings", component: TargetConf },
+  { path: "/project-location", component: ProjectLocation },
 ];
 
 export const router = new VueRouter({
@@ -122,6 +124,11 @@ window.addEventListener("message", (event) => {
     case "load_tools_list":
       if (message.tools) {
         store.commit("setToolsList", message.tools);
+      }
+      break;
+    case "set_project_directory":
+      if (message.projectDirectory) {
+        store.commit("setProjectDirectory", message.projectDirectory);
       }
       break;
     default:

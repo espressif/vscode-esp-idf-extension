@@ -93,20 +93,24 @@ export class NewProjectPanel {
           if (
             message.components &&
             message.idf &&
-            message.template &&
-            message.tools &&
-            message.venv &&
             message.idfTarget &&
-            message.openOcdCfgs
+            message.openOcdCfgs &&
+            message.projectDirectory &&
+            message.projectName &&
+            message.tools &&
+            message.template &&
+            message.venv
           ) {
             this.createProject(
               message.components,
               message.idf,
+              message.idfTarget,
+              message.openOcdCfgs,
+              message.projectDirectory,
+              message.projectName,
               message.template,
               message.tools,
-              message.venv,
-              message.idfTarget,
-              message.openOcdCfgs
+              message.venv
             );
           }
           break;
@@ -164,6 +168,24 @@ export class NewProjectPanel {
                 Logger.info(reason);
               });
           }
+          break;
+        case "openProjectDirectory":
+          vscode.window
+            .showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              canSelectMany: false,
+              openLabel: "Choose container directory",
+            })
+            .then((selectedFolder) => {
+              if (selectedFolder) {
+                this.panel.webview.postMessage({
+                  command: "set_project_directory",
+                  projectDirectory: selectedFolder[0].fsPath,
+                });
+              }
+            });
+          break;
         case "requestInitValues":
           if (
             newProjectArgs &&
@@ -308,30 +330,20 @@ export class NewProjectPanel {
   public async createProject(
     components: IComponent[],
     idf: IPath,
+    idfTarget: string,
+    openOcdConfigs: string[],
+    projectDirectory: string,
+    projectName: string,
     template: IExample,
     tools: ITool[],
-    venv: IPath,
-    idfTarget: string,
-    openOcdConfigs: string[]
+    venv: IPath
   ) {
-    const projectName = await vscode.window.showInputBox({
-      placeHolder: "Enter project name",
-    });
-    if (!projectName) {
-      vscode.window.showInformationMessage("No name selected");
+    const projectDirExists = await utils.dirExistPromise(projectDirectory);
+    if (!projectDirExists) {
+      vscode.window.showInformationMessage("Project directory doesn't exists.");
       return;
     }
-    const selectedFolder = await vscode.window.showOpenDialog({
-      canSelectFolders: true,
-      canSelectFiles: false,
-      canSelectMany: false,
-      openLabel: "Choose container directory",
-    });
-    if (!selectedFolder) {
-      vscode.window.showInformationMessage("No folder selected");
-      return;
-    }
-    const newProjectPath = join(selectedFolder[0].fsPath, projectName);
+    const newProjectPath = join(projectDirectory, projectName);
     await ensureDir(newProjectPath, { mode: 0o775 });
     if (template && template.path !== "") {
       await utils.copyFromSrcProject(template.path, newProjectPath);

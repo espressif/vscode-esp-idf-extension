@@ -25,6 +25,8 @@ export interface State {
   idfVersions: IPath[];
   isValid: boolean;
   openOcdCfgs: string;
+  projectName: string;
+  projectDirectory: string;
   pyVenvList: IPath[];
   selectedIdfVersion: IPath;
   selectedIdfTarget: string;
@@ -50,6 +52,8 @@ export const projectState: State = {
   idfVersions: [],
   isValid: false,
   openOcdCfgs: "",
+  projectName: "",
+  projectDirectory: "",
   pyVenvList: [],
   selectedVenv: { id: "", path: "" },
   selectedIdfVersion: { id: "", path: "" },
@@ -68,6 +72,8 @@ export const actions: ActionTree<State, any> = {
       idf: context.state.selectedIdfVersion,
       idfTarget: context.state.selectedIdfTarget,
       openOcdCfgs: context.state.openOcdCfgs,
+      projectDirectory: context.state.projectDirectory,
+      projectName: context.state.projectName,
       template: context.state.selectedTemplate,
       tools: context.state.toolsInMetadata,
       venv: context.state.selectedVenv,
@@ -96,6 +102,11 @@ export const actions: ActionTree<State, any> = {
   openComponentFolder() {
     vscode.postMessage({
       command: "loadComponent",
+    });
+  },
+  openProjectDirectory() {
+    vscode.postMessage({
+      command: "openProjectDirectory",
     });
   },
   requestInitValues() {
@@ -139,6 +150,16 @@ export const mutations: MutationTree<State> = {
   setOpenOcdCfgs(state, openOcdConfigFilesList) {
     const newState = state;
     newState.openOcdCfgs = openOcdConfigFilesList;
+    state = { ...newState };
+  },
+  setProjectDirectory(state, projectDirectoryPath) {
+    const newState = state;
+    newState.projectDirectory = projectDirectoryPath;
+    state = { ...newState };
+  },
+  setProjectName(state, projectName: string) {
+    const newState = state;
+    newState.projectName = projectName;
     state = { ...newState };
   },
   setPyEnvList(state, pyVenvList: IPath[]) {

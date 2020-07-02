@@ -11,7 +11,7 @@
       <select v-model="selectedTemplate" id="example-template">
         <option
           v-for="template in templates"
-          :key="template.name"
+          :key="template.path"
           :value="template"
           >{{ template.name }}</option
         >
