@@ -52,7 +52,7 @@ export const projectState: State = {
   idfVersions: [],
   isValid: false,
   openOcdCfgs: "",
-  projectName: "",
+  projectName: "my-esp-idf-project",
   projectDirectory: "",
   pyVenvList: [],
   selectedVenv: { id: "", path: "" },

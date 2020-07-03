@@ -1,40 +1,45 @@
 <template>
   <div id="espidf">
-    <div v-if="idfVersions && idfVersions.length > 0">
+    <p class="title">Configure ESP-IDF and ESP-IDF Tools</p>
+    <div v-if="idfVersions && idfVersions.length > 0" class="field">
       <label for="idf-version">Select ESP-IDF version:</label>
-      <br />
-      <br />
-      <select v-model="selectedIdfVersion" id="idf-version">
-        <option v-for="ver in idfVersions" :key="ver.id" :value="ver">{{
-          ver.path
-        }}</option>
-      </select>
-      <br />
-      <p>Selected ESP-IDF Path version: {{ idfPathVersion }}</p>
-      <br />
+      <div class="control">
+        <select
+          v-model="selectedIdfVersion"
+          id="idf-version"
+          class="select is-fullwidth"
+        >
+          <option v-for="ver in idfVersions" :key="ver.id" :value="ver">{{
+            ver.path
+          }}</option>
+        </select>
+      </div>
+      <p class="highlight">
+        Selected ESP-IDF Path version: {{ idfPathVersion }}
+      </p>
     </div>
-    <div v-if="pyVenvList && pyVenvList.length > 0">
+    <div v-if="pyVenvList && pyVenvList.length > 0" class="field">
       <label for="idf-version">Select Python virtual environment:</label>
-      <br />
-      <br />
-      <select v-model="selectedVenv">
-        <option v-for="venv in pyVenvList" :key="venv.id" :value="venv">{{
-          venv.path
-        }}</option>
-      </select>
-      <br />
-      <br />
+      <div class="control">
+        <select v-model="selectedVenv" class="select is-fullwidth">
+          <option v-for="venv in pyVenvList" :key="venv.id" :value="venv">{{
+            venv.path
+          }}</option>
+        </select>
+      </div>
     </div>
-    <div v-if="toolsInMetadata && toolsInMetadata.length > 0">
+    <div v-if="toolsInMetadata && toolsInMetadata.length > 0" class="field">
       <tool v-for="tool in toolsInMetadata" :tool.sync="tool" :key="tool.id" />
-      <br />
-      <br />
-      <router-link to="/examples" class="button" v-if="isValid"
-        >Choose template</router-link
-      >
-      <button v-else v-on:click="checkToolsAreValid" class="button">
-        Check settings
-      </button>
+      <div class="field is-grouped is-grouped-centered">
+        <div class="control">
+          <router-link to="/examples" class="button" v-if="isValid"
+            >Choose template</router-link
+          >
+          <button v-else v-on:click="checkToolsAreValid" class="button">
+            Check settings
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -98,4 +103,8 @@ export default class Espidf extends Vue {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#espidf {
+  width: 50%;
+}
+</style>

@@ -1,11 +1,13 @@
 <template>
-  <div class="idfComponent">
+  <div class="field is-grouped is-grouped-centered">
     <label :for="comp.name" v-text="comp.path" />
-    <font-awesome-icon
-      icon="times"
-      class="fa-icon"
-      @click="removeComponent(comp)"
-    />
+    <div class="control icon">
+      <font-awesome-icon
+        icon="times"
+        class="fa-icon"
+        @click="removeComponent(comp)"
+      />
+    </div>
   </div>
 </template>
 
@@ -22,11 +24,4 @@ export default class IdfComponent extends Vue {
 }
 </script>
 
-<style scoped>
-.idfComponent {
-  margin: 1vh;
-}
-.fa-icon {
-  margin-left: 1vh;
-}
-</style>
+<style></style>

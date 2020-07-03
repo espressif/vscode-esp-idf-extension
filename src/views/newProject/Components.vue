@@ -1,32 +1,48 @@
 <template>
   <div id="components">
-    <label>Enter ESP-IDF Component directory</label>
-    <br />
-    <br />
-    <input type="text" class="text-size" v-model="currentComponentPath" />
-    <font-awesome-icon
-      icon="plus-square"
-      class="fa-icon"
-      @click="addToComponentList"
-    />
-    <font-awesome-icon
-      :icon="folderIcon"
-      class="fa-icon"
-      @mouseover="folderIcon = 'folder-open'"
-      @mouseout="folderIcon = 'folder'"
-      @click="openComponentFolder"
-    />
-    <br />
-    <br />
+    <p class="title">Components for your ESP-IDF project</p>
+    <div class="field">
+      <label class="label">Add your ESP-IDF Component directory</label>
+      <div class="field is-grouped" style="align-items: center;">
+        <div class="control is-expanded">
+          <input
+            type="text"
+            class="input"
+            v-model="currentComponentPath"
+            @keyup.enter="addToComponentList"
+          />
+        </div>
+        <div class="control">
+          <font-awesome-icon
+            icon="plus-square"
+            class="fa-icon"
+            @click="addToComponentList"
+          />
+        </div>
+        <div class="control">
+          <font-awesome-icon
+            :icon="folderIcon"
+            class="fa-icon"
+            @mouseover="folderIcon = 'folder-open'"
+            @mouseout="folderIcon = 'folder'"
+            @click="openComponentFolder"
+          />
+        </div>
+      </div>
+    </div>
     <idfComponent
       v-for="idfComp in components"
       :comp.sync="idfComp"
       :key="idfComp.name"
     />
     <br />
-    <router-link to="/project-location" class="button"
-      >Choose project directory</router-link
-    >
+    <div class="field is-grouped is-grouped-centered">
+      <div class="control">
+        <router-link to="/project-location" class="button"
+          >Choose project directory</router-link
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -70,20 +86,8 @@ export default class Components extends Vue {
 }
 </script>
 
-<style scoped>
-.fa-icon {
-  color: var(--vscode-editor-foreground);
-  position: inherit;
-  width: 15px;
-  height: 15px;
-  margin-left: 5px;
-  top: 50%;
-  cursor: default;
-}
-.fa-icon:hover {
-  background: var(--vscode-button-hoverBackground);
-}
-.text-size {
-  width: 60%;
+<style>
+#components {
+  width: 50%;
 }
 </style>

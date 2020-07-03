@@ -1,11 +1,12 @@
 <template>
   <div class="target-conf">
-    <p>
-      Please add OpenOCD Configuration files separated by comma like
-      "interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg".
+    <p class="title">IDF_TARGET and OpenOCD Configuration files</p>
+    <p class="notification">
+      Please add OpenOCD cfg separated by comma like
+      <span>interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg</span>.
     </p>
-    <div class="group">
-      <label for="openocd-cfgs">
+    <div class="field">
+      <label for="openocd-cfgs" class="label">
         OpenOCD Configuration files (Relative paths to OPENOCD_SCRIPTS)</label
       >
       <textarea
@@ -14,20 +15,30 @@
         cols="20"
         rows="4"
         v-model="openOcdCfgs"
+        class="input textarea is-small"
       ></textarea>
     </div>
-    <div class="group">
-      <label for="idf-target">Choose ESP-IDF Target</label>
-      <select name="idf-target" id="idf-target" v-model="selectedIdfTarget">
-        <option value="esp32">ESP-32</option>
-        <option value="esp32">ESP-32 S2</option>
-      </select>
+    <div class="field centerize">
+      <label for="idf-target" class="label">Choose ESP-IDF Target</label>
+      <div class="control">
+        <select
+          name="idf-target"
+          id="idf-target"
+          v-model="selectedIdfTarget"
+          class="select"
+        >
+          <option value="esp32">ESP-32</option>
+          <option value="esp32">ESP-32 S2</option>
+        </select>
+      </div>
     </div>
     <br />
-    <div class="group">
-      <router-link to="/components" class="button"
-        >Go to components</router-link
-      >
+    <div class="field centerize">
+      <div class="control">
+        <router-link to="/components" class="button"
+          >Go to components</router-link
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -62,12 +73,6 @@ export default class TargetConf extends Vue {
 
 <style scoped>
 .target-conf {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.target-conf textarea {
-  width: -webkit-fill-available;
-  width: 100%;
+  width: 50%;
 }
 </style>
