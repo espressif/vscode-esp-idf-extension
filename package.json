@@ -449,6 +449,14 @@
             "default": "rgba(255,0,0,0.1)",
             "description": "%param.uncoveredDarkTheme%",
             "scope": "resource"
+          },
+          "idf.wssPort": {
+            "type": "number",
+            "default": 49203,
+            "description": "%idf.wssPort.description%",
+            "scope": "resource",
+            "minimum": 49152,
+            "maximum": 65535
           }
         }
       }
@@ -623,6 +631,10 @@
       {
         "command": "espIdf.getCoverageReport",
         "title": "%espIdf.getCoverageReport.title%"
+      },
+      {
+        "command": "espIdf.launchWSServerAndMonitor",
+        "title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode"
       }
     ],
     "breakpoints": [
@@ -762,6 +774,7 @@
     "@types/node": "^7.10.9",
     "@types/tmp": "0.0.33",
     "@types/vscode": "^1.30.0",
+    "@types/ws": "^7.2.5",
     "@types/yauzl": "^2.9.1",
     "@vue/component-compiler-utils": "^3.0.0",
     "bulma": "^0.7.5",
@@ -829,6 +842,7 @@
     "vue-the-mask": "^0.11.1",
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
+    "ws": "^7.3.0",
     "yauzl": "^2.10.0"
   },
   "alias": {

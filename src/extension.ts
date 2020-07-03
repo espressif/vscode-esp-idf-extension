@@ -71,6 +71,8 @@ import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
 import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
+import { WSServer } from "./espIdf/communications/ws";
+import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
@@ -104,6 +106,9 @@ let kconfigLangClient: LanguageClient;
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
 const locDic = new LocDictionary(__filename);
+
+// Websocket Server
+let wsServer: WSServer;
 
 // Precheck methods and their messages
 const openFolderMsg = locDic.localize(
@@ -1211,6 +1216,55 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
+  registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
+    const port = idfConf.readParameter("idf.port") as string;
+    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const wsPort = idfConf.readParameter("idf.wssPort");
+    const monitor = new IDFMonitor({
+      port,
+      baudRate,
+      pythonBinPath,
+      idfMonitorToolPath,
+      elfFilePath,
+      wsPort,
+    });
+    if (wsServer) {
+      wsServer.close();
+    }
+    wsServer = new WSServer(wsPort);
+    wsServer.start();
+    wsServer
+      .on("started", () => {
+        monitor.start();
+      })
+      .on("core-dump-detected", (resp) => {
+        // perform core-dump related stuff here
+        //once done call .done() to notify the monitor process
+        wsServer.done();
+      })
+      .on("gdb-stub-detected", (resp) => {
+        //
+      })
+      .on("close", (resp) => {
+        wsServer.close();
+      })
+      .on("error", (err) => {
+        let message = err.message;
+        if (err && err.message.includes("EADDRINUSE")) {
+          message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
+        }
+        Logger.errorNotify(message, err);
+        wsServer.close();
+      });
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");

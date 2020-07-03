@@ -130,6 +130,7 @@
     "esp.rainmaker.backend.add_node.title",
     "esp.rainmaker.backend.remove_node.title",
     "esp.rainmaker.backend.update_node_param.title",
-    "param.esp.rainmaker.oauth.url"
+    "param.esp.rainmaker.oauth.url",
+    "idf.wssPort.description"
   ]
 }
