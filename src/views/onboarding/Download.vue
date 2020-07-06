@@ -8,9 +8,7 @@
       ></router-link>
       <h4 class="title">{{ msge }}</h4>
       <div class="field">
-        <label for="idf-version-select" class="label"
-          >Select ESP-IDF version:</label
-        >
+        <label for="idf-version-select">Select ESP-IDF version:</label>
         <div class="control">
           <select v-model="selectedIdfVersion" class="select">
             <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
@@ -23,7 +21,7 @@
         v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
       />
       <div v-else class="field text-size">
-        <label class="label"
+        <label
           >Select directory to download and install ESP-IDF. <br />(Result
           directory will be {{ resultingIdfPath }})</label
         >

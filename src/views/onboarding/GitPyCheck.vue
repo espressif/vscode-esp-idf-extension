@@ -7,15 +7,13 @@
         @click.native="setPythonSysIsValid(false)"
       ></router-link>
       <h4 class="title">Select Python version to use</h4>
-      <label class="label">Git version: {{ gitVersion }}</label>
+      <label>Git version: {{ gitVersion }}</label>
       <p v-if="gitVersion === 'Not found'">
         Please install <a href="https://git-scm.com/downloads">Git</a> and
         reload this window.
       </p>
       <div class="field">
-        <label for="python-version-select" class="label"
-          >Python version:
-        </label>
+        <label for="python-version-select">Python version: </label>
         <div class="control">
           <select
             v-model="selectedPythonVersion"
@@ -37,7 +35,7 @@
         v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
         class="field"
       >
-        <label class="label"
+        <label
           >Enter absolute python binary path to use. Example:
           {{ winRoot }}/Users/name/python<span v-if="winRoot !== ''"
             >.exe</span

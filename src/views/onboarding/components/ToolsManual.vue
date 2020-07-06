@@ -1,5 +1,5 @@
 <template>
-  <div class="content is-small">
+  <div class="is-small">
     <div class="field">
       <label>
         Add your ESP-IDF virtual environment python executable absolute path.
@@ -49,10 +49,11 @@
       Replace any ${TOOL_PATH} with absolute path for each custom variable.
       <br />
       For example:
-      <strong>${TOOL_PATH}/openocd-esp32/share/openocd/scripts</strong>
-      should be replaced as {{ winRoot }}{{ pathSep }}openocd-esp32{{
-        pathSep
-      }}share{{ pathSep }}openocd{{ pathSep }}
+      <span class="bold">${TOOL_PATH}/openocd-esp32/share/openocd/scripts</span>
+      should be replaced as {{ winRoot
+      }}{{
+        pathSep + ".espressif" + pathSep + "tools" + pathSep
+      }}openocd-esp32{{ pathSep }}share{{ pathSep }}openocd{{ pathSep }}
     </p>
     <div id="env-vars-to-set" v-for="(value, key) in envVars" :key="key">
       <div class="env-var">

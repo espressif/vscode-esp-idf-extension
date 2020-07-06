@@ -61,6 +61,9 @@ export default class SearchBar extends Vue {
 </script>
 
 <style scoped>
+#topbar {
+  padding-top: 0.5em;
+}
 .wide {
   width: 40%;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div id="tools-manual-setup content">
+  <div id="tools-manual-setup">
     <i class="arrow go-back right" v-on:click="reset"></i>
     <h4 class="subtitle">Verify ESP-IDF Tools</h4>
     <ToolsManual v-if="!isToolsCheckCompleted" />
@@ -81,5 +81,9 @@ export default class ToolsSkipStep extends Vue {
 <style>
 #python-log {
   white-space: pre-line;
+}
+#tools-manual-setup {
+  margin: auto;
+  width: 80%;
 }
 </style>

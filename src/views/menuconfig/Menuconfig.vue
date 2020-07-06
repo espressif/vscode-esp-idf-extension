@@ -149,4 +149,7 @@ span {
   padding: 3px;
   display: inline-flex;
 }
+.content ul li {
+  list-style-type: disc;
+}
 </style>

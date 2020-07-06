@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="field">
-        <label for="configurationTarget" class="label">
+        <label for="configurationTarget">
           Where to save configuration settings ?
         </label>
         <div class="control centerize">
@@ -30,7 +30,7 @@
         </div>
       </div>
       <div v-if="selectedConfTarget === '3'" class="field">
-        <label for="workspaceFolder" class="label">Workspace folder</label>
+        <label for="workspaceFolder">Workspace folder</label>
         <div class="control">
           <select
             v-model="selectedWorkspaceFolder"
@@ -97,3 +97,5 @@ export default class ConfigurationTarget extends Vue {
   }
 }
 </script>
+
+<style lang="scss"></style>

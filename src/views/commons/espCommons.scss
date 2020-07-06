@@ -19,6 +19,12 @@ p.subtitle {
   color: var(--vscode-foreground);
 }
 
+.title,
+.subtitle,
+.label {
+  color: var(--vscode-foreground);
+}
+
 .notification {
   color: var(--vscode-foreground);
   background-color: var(--vscode-notifications-background);

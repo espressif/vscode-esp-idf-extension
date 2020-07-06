@@ -27,6 +27,7 @@ export default class App extends Vue {
 #app {
   text-align: center;
   padding: 1em;
+  color: var(--vscode-foreground);
 }
 
 .centerize {
@@ -102,7 +103,7 @@ export default class App extends Vue {
 }
 
 .text-size {
-  width: 60%;
+  width: 80%;
 }
 
 .fade-enter-active,

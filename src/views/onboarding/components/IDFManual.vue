@@ -1,6 +1,6 @@
 <template>
   <div class="field centerize text-size">
-    <label class="label">Enter ESP-IDF directory</label>
+    <label>Enter ESP-IDF directory</label>
     <div class="field is-grouped text-size">
       <div class="control is-expanded">
         <input
