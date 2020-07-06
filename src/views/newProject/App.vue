@@ -28,6 +28,7 @@ export default class App extends Vue {
   align-items: center;
   flex-direction: column;
   margin: auto;
+  color: var(--vscode-foreground);
 }
 .fade-enter-active,
 .fade-leave-active {

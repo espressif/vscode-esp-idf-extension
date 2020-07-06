@@ -383,15 +383,32 @@ export class NewProjectPanel {
       const componentsPath = join(newProjectPath, "components");
       await ensureDir(componentsPath, { mode: 0o775 });
       for (const comp of components) {
-        const compPath = join(componentsPath, comp.name);
-        await ensureDir(compPath, { mode: 0o775 });
-        await copy(comp.path, compPath);
+        const doesComponentExists = await utils.dirExistPromise(comp.path);
+        if (doesComponentExists) {
+          const compPath = join(componentsPath, comp.name);
+          await ensureDir(compPath, { mode: 0o775 });
+          await copy(comp.path, compPath);
+        } else {
+          const msg = `Component ${comp.name} path: ${comp.path} doesn't exist. Ignoring in new project...`;
+          Logger.info(msg);
+          OutputChannel.appendLine(msg);
+        }
       }
     }
 
-    vscode.commands.executeCommand(
-      "vscode.openFolder",
-      vscode.Uri.file(newProjectPath)
+    const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
+    const openProjectChoice = await vscode.window.showInformationMessage(
+      projectCreatedMsg,
+      "Yes",
+      "No"
     );
+
+    if (openProjectChoice && openProjectChoice === "Yes") {
+      vscode.commands.executeCommand(
+        "vscode.openFolder",
+        vscode.Uri.file(newProjectPath),
+        true
+      );
+    }
   }
 }
