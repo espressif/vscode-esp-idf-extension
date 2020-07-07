@@ -71,6 +71,7 @@ import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
+import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1095,10 +1096,41 @@ export async function activate(context: vscode.ExtensionContext) {
       .on("started", () => {
         monitor.start();
       })
-      .on("core-dump-detected", (resp) => {
-        // perform core-dump related stuff here
-        //once done call .done() to notify the monitor process
-        wsServer.done();
+      .on("core-dump-detected", async (resp) => {
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title:
+              "Core-dump detected, please wait while we parse the data received",
+          },
+          async (progress) => {
+            const espCoredumpPy = new ESPCoreDumpPyTool(idfPath);
+            const projectName = await getProjectName(workspaceRoot.fsPath);
+            if (
+              (await espCoredumpPy.generateCoreELFFile({
+                coreElfFilePath: `/Users/soumesh/Downloads/test/${projectName}.coredump.elf`,
+                coreInfoFilePath: resp.file,
+                infoCoreFileFormat: InfoCoreFileFormat.Base64,
+                progELFFilePath: resp.prog,
+                pythonBinPath,
+              })) === true
+            ) {
+              progress.report({
+                message:
+                  "Successfully created ELF file from the info received (espcoredump.py)",
+              });
+              //TODO - Launch debugger
+              wsServer.done();
+            } else {
+              progress.report({
+                message:
+                  "Failed to generate the ELF file from the info received",
+              });
+            }
+            monitor.dispose();
+          }
+        );
       })
       .on("gdb-stub-detected", (resp) => {
         //

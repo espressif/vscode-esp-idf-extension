@@ -55,5 +55,7 @@ export class IDFMonitor {
     args.push(this.config.elfFilePath);
     this.terminal.sendText(args.join(" "));
   }
-  dispose() {}
+  async dispose() {
+    process.kill(await this.terminal.processId);
+  }
 }
