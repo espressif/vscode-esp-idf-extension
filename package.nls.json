@@ -63,5 +63,6 @@
   "esp.rainmaker.backend.remove_node.title": "Remove this node",
   "esp.rainmaker.backend.update_node_param.title": "Update param for device",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
-  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub"
+  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub",
+  "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode"
 }
