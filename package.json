@@ -735,6 +735,27 @@
                 "type": "object",
                 "description": "Environments variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
                 "default": null
+              },
+              "setupCommands": {
+                "type": "array",
+                "description": "%esp_idf.setupCommands.description%",
+                "items": {
+                  "type": "object",
+                  "default": {},
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "description": "%esp_idf.debuggers.text.description%",
+                      "default": ""
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "%esp_idf.debuggers.description.description%",
+                      "default": ""
+                    }
+                  }
+                },
+                "default": []
               }
             }
           }

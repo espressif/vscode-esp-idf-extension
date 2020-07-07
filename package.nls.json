@@ -69,5 +69,8 @@
   "esp.rainmaker.backend.remove_node.title": "Remove this node",
   "esp.rainmaker.backend.update_node_param.title": "Update param for device",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
-  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub"
+  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub",
+  "esp_idf.setupCommands.description": "One or more xtensa-esp32-elf-gdb commands to execute in order to setup the underlying debugger. Example: \"setupCommands\": [ { \"text\": \"target remote /dev/ttyUSB0\", \"description\": \"Connect GDB to ESP on serial port/dev/ttyUSB0\" }].",
+  "esp_idf.debuggers.text.description": "The command to execute",
+  "esp_idf.debuggers.description.description": "Optional command description"
 }

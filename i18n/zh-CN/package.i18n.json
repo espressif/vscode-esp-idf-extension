@@ -69,5 +69,8 @@
   "esp.rainmaker.backend.remove_node.title": "删除该节点",
   "esp.rainmaker.backend.update_node_param.title": "更新设备的参数",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth服务器网址",
-  "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口"
+  "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口",
+  "esp_idf.setupCommands.description": "要执行的一个或多个xtensa-esp32-elf-gdb命令，以便设置底层调试器。例子: \"setupCommands\": [ { \"text\": \"target remote /dev/ttyUSB0\", \"description\": \"Connect GDB to ESP on serial port/dev/ttyUSB0\" }].",
+  "esp_idf.debuggers.text.description": "要执行的命令",
+  "esp_idf.debuggers.description.description": "可选命令说明"
 }

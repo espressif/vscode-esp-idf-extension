@@ -25,13 +25,20 @@ import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
+export interface ISetupCmd {
+  text: string;
+  description: string;
+}
+
 export interface IDebugAdapterConfig {
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
+  elfFile?: string;
   env?: NodeJS.ProcessEnv;
   logLevel?: number;
-  projectName?: string;
+  isPostMortemDebugMode: boolean;
   target?: string;
+  setupCommands?: ISetupCmd[];
 }
 
 export class DebugAdapterManager extends EventEmitter {
@@ -43,16 +50,18 @@ export class DebugAdapterManager extends EventEmitter {
   }
   private static instance: DebugAdapterManager;
 
-  private port: number;
-  private logLevel: number;
-  private target: string;
-  private env;
-  private projectName: string;
-  private debugAdapterPath: string;
   private adapter: ChildProcess;
   private chan: Buffer;
-  private displayChan: vscode.OutputChannel;
   private currentWorkspace: vscode.Uri;
+  private debugAdapterPath: string;
+  private displayChan: vscode.OutputChannel;
+  private elfFile: string;
+  private env;
+  private logLevel: number;
+  private port: number;
+  private isPostMortemDebugMode: boolean;
+  private setupCommands: ISetupCmd[];
+  private target: string;
 
   private constructor(context: vscode.ExtensionContext) {
     super();
@@ -81,34 +90,34 @@ export class DebugAdapterManager extends EventEmitter {
           "Invalid OpenOCD script path or access is denied for the user"
         );
       }
-      this.projectName = await getProjectName(this.currentWorkspace.fsPath);
-      const elfPath =
-        path.join(this.currentWorkspace.fsPath, "build", this.projectName) +
-        ".elf";
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
       ) as string;
-      this.adapter = spawn(
-        pythonBinPath,
-        [
-          this.debugAdapterPath,
-          "-d",
-          this.logLevel.toString(),
-          "-e",
-          elfPath,
-          "-l",
-          logFile,
-          "-om",
-          "connect_to_instance",
-          "-p",
-          this.port.toString(),
-          "-dn",
-          this.target,
-        ],
-        { env: this.env }
-      );
+      const adapterArgs = [
+        this.debugAdapterPath,
+        "-d",
+        this.logLevel.toString(),
+        "-e",
+        this.elfFile,
+        "-l",
+        logFile,
+        "-p",
+        this.port.toString(),
+        "-dn",
+        this.target,
+      ];
+      this.isPostMortemDebugMode
+        ? adapterArgs.push("-om", "without_oocd")
+        : adapterArgs.push("-om", "connect_to_instance");
+      if (this.isPostMortemDebugMode) {
+        adapterArgs.push("--postmortem"); // MODIFY for actual esp_dap_adapter argument
+      }
+      for (const setupCmd of this.setupCommands) {
+        adapterArgs.push("--setup-cmd", setupCmd.text); // MODIFY for actual esp_dap_adapter argument
+      }
+      this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
       this.adapter.stderr.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
@@ -149,6 +158,8 @@ export class DebugAdapterManager extends EventEmitter {
 
   public stop() {
     if (this.adapter && !this.adapter.killed) {
+      this.isPostMortemDebugMode = false;
+      this.setupCommands = [];
       this.adapter.kill("SIGKILL");
       this.adapter = undefined;
       this.displayChan.appendLine("[Stopped] : ESP-IDF Debug Adapter");
@@ -162,6 +173,9 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.debugAdapterPort) {
       this.port = config.debugAdapterPort;
     }
+    if (config.elfFile) {
+      this.elfFile = config.elfFile;
+    }
     if (config.env) {
       for (const envVar of Object.keys(config.env)) {
         this.env[envVar] = config.env[envVar];
@@ -170,11 +184,14 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.logLevel) {
       this.logLevel = config.logLevel;
     }
-    if (config.projectName) {
-      this.projectName = config.projectName;
+    if (typeof config.isPostMortemDebugMode !== "undefined") {
+      this.isPostMortemDebugMode = config.isPostMortemDebugMode;
     }
     if (config.target) {
       this.target = config.target;
+    }
+    if (config.setupCommands && config.setupCommands.length > 0) {
+      this.setupCommands = config.setupCommands;
     }
   }
 
@@ -182,25 +199,32 @@ export class DebugAdapterManager extends EventEmitter {
     return this.adapter && !this.adapter.killed;
   }
 
-  private configureWithDefaultValues(extensionPath: string) {
+  private async configureWithDefaultValues(extensionPath: string) {
     this.currentWorkspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
-    this.projectName = "";
+    const projectName = await getProjectName(this.currentWorkspace.fsPath);
     this.debugAdapterPath = path.join(
       extensionPath,
       "esp_debug_adapter",
       "debug_adapter_main.py"
     );
+    this.isPostMortemDebugMode = false;
     this.port = 43474;
     this.logLevel = 0;
     this.target = idfConf.readParameter("idf.adapterTargetName");
+    this.elfFile = `${path.join(
+      this.currentWorkspace.fsPath,
+      "build",
+      projectName
+    )}.elf`;
     this.env = appendIdfAndToolsToPath();
     this.env.PYTHONPATH = path.join(
       extensionPath,
       "esp_debug_adapter",
       "debug_adapter"
     );
+    this.setupCommands = [];
   }
 
   private sendToOutputChannel(data: Buffer) {

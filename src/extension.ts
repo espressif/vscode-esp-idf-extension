@@ -26,6 +26,7 @@ import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import {
   DebugAdapterManager,
   IDebugAdapterConfig,
+  ISetupCmd,
 } from "./espIdf/debugAdapter/debugAdapterManager";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import {
@@ -230,7 +231,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
-  vscode.workspace.onDidChangeWorkspaceFolders((e) => {
+  vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
     if (PreCheck.isWorkspaceFolderOpen()) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
@@ -245,8 +246,15 @@ export async function activate(context: vscode.ExtensionContext) {
         const coverageOptions = getCoverageOptions();
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
+      const projectName = await getProjectName(workspaceRoot.fsPath);
+      const projectElfFile = `${path.join(
+        workspaceRoot.fsPath,
+        "build",
+        projectName
+      )}.elf`;
       const debugAdapterConfig = {
         currentWorkspace: workspaceRoot,
+        elfFile: projectElfFile,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
@@ -428,7 +436,7 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       vscode.window
         .showWorkspaceFolderPick({ placeHolder: selectCurrentFolderMsg })
-        .then((option) => {
+        .then(async (option) => {
           if (typeof option === "undefined") {
             const noFolderMsg = locDic.localize(
               "extension.noFolderMessage",
@@ -450,8 +458,15 @@ export async function activate(context: vscode.ExtensionContext) {
               tooltip: option.uri.fsPath,
             };
             utils.updateStatus(status, workspaceFolderInfo);
+            const projectName = await getProjectName(workspaceRoot.fsPath);
+            const projectElfFile = `${path.join(
+              workspaceRoot.fsPath,
+              "build",
+              projectName
+            )}.elf`;
             const debugAdapterConfig = {
               currentWorkspace: workspaceRoot,
+              elfFile: projectElfFile,
             } as IDebugAdapterConfig;
             debugAdapterManager.configureAdapter(debugAdapterConfig);
             ConfserverProcess.dispose();
@@ -675,6 +690,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const debugAdapterConfig = {
           debugAdapterPort: portToUse,
           env: session.configuration.env,
+          isPostMortemDebugMode: false,
           logLevel: session.configuration.logLevel,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
@@ -1373,10 +1389,29 @@ export async function activate(context: vscode.ExtensionContext) {
       .on("core-dump-detected", (resp) => {
         // perform core-dump related stuff here
         //once done call .done() to notify the monitor process
+        const projectElfFile = "my-custom.elf";
+        const debugAdapterConfig = {
+          elfFile: projectElfFile,
+          isPostMortemDebugMode: false,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        debugAdapterManager.start();
         wsServer.done();
       })
       .on("gdb-stub-detected", (resp) => {
         //
+        const port = idfConf.readParameter("idf.port");
+        const setupCmd = {
+          text: `target remote ${port}`,
+          description: "Start GDB on serial port",
+        } as ISetupCmd;
+        const debugAdapterConfig = {
+          setupCommands: [setupCmd],
+          isPostMortemDebugMode: true,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        debugAdapterManager.start();
+        wsServer.done();
       })
       .on("close", (resp) => {
         wsServer.close();
