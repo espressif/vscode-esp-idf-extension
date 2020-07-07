@@ -38,7 +38,11 @@ import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
-import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
+import {
+  AppTraceArchiveTreeDataProvider,
+  AppTraceArchiveItems,
+  TraceType,
+} from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import { createFlashModel } from "./flash/flashModelBuilder";
@@ -55,6 +59,7 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
 import { RainmakerAPIClient } from "./rainmaker/client";
@@ -72,6 +77,8 @@ import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
+import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { pathExists } from "fs-extra";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -275,19 +282,122 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createFiles", async () => {
-    const option = await vscode.window.showQuickPick(
-      utils.chooseTemplateDir(),
-      { placeHolder: "Select a template to use" }
-    );
-    PreCheck.perform([openFolderCheck], () => {
-      if (option) {
-        utils.createSkeleton(workspaceRoot.fsPath, option.target);
-        const defaultFoldersMsg = locDic.localize(
-          "extension.defaultFoldersGeneratedMessage",
-          "Default folders were generated."
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        vscode.window.withProgress(
+          {
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "Creating ESP-IDF Project...",
+          },
+          async (
+            progress: vscode.Progress<{
+              message: string;
+              increment: number;
+            }>,
+            cancelToken: vscode.CancellationToken
+          ) => {
+            const projectDirOption = await vscode.window.showQuickPick(
+              [
+                {
+                  label: `Use current folder (${workspaceRoot.fsPath})`,
+                  target: "current",
+                },
+                { label: "Choose a container directory...", target: "another" },
+              ],
+              { placeHolder: "Select a directory to use" }
+            );
+            if (!projectDirOption) {
+              return;
+            }
+            let projectDirToUse: string;
+            if (projectDirOption.target === "another") {
+              const newFolder = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+              });
+              if (!newFolder) {
+                return;
+              }
+              projectDirToUse = newFolder[0].fsPath;
+            } else {
+              projectDirToUse = workspaceRoot.fsPath;
+            }
+
+            const selectedTemplate = await vscode.window.showQuickPick(
+              utils.chooseTemplateDir(),
+              { placeHolder: "Select a template to use" }
+            );
+            if (!selectedTemplate) {
+              return;
+            }
+            const resultFolder = path.join(
+              projectDirToUse,
+              selectedTemplate.target
+            );
+            const doesProjectExists = await pathExists(resultFolder);
+            if (doesProjectExists) {
+              Logger.infoNotify(`${resultFolder} already exists.`);
+              return;
+            }
+            await utils.createSkeleton(resultFolder, selectedTemplate.target);
+            if (selectedTemplate.label === "arduino-as-component") {
+              const arduinoComponentManager = new ArduinoComponentInstaller(
+                resultFolder
+              );
+              cancelToken.onCancellationRequested(() => {
+                arduinoComponentManager.cancel();
+              });
+              await arduinoComponentManager.addArduinoAsComponent();
+            }
+            const projectPath = vscode.Uri.file(resultFolder);
+            vscode.commands.executeCommand(
+              "vscode.openFolder",
+              projectPath,
+              true
+            );
+            const defaultFoldersMsg = locDic.localize(
+              "extension.defaultFoldersGeneratedMessage",
+              "Template folders has been generated."
+            );
+            Logger.infoNotify(defaultFoldersMsg);
+          }
         );
-        Logger.infoNotify(defaultFoldersMsg);
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.addArduinoAsComponentToCurFolder", () => {
+    PreCheck.perform([openFolderCheck], () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Arduino ESP32 as ESP-IDF Component",
+        },
+        async (
+          progress: vscode.Progress<{
+            message: string;
+            increment: number;
+          }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const arduinoComponentManager = new ArduinoComponentInstaller(
+              workspaceRoot.fsPath
+            );
+            cancelToken.onCancellationRequested(() => {
+              arduinoComponentManager.cancel();
+            });
+            await arduinoComponentManager.addArduinoAsComponent();
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
@@ -600,8 +710,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      utils.createVscodeFolder(workspaceRoot.fsPath);
+    PreCheck.perform([openFolderCheck], async () => {
+      await utils.createVscodeFolder(workspaceRoot.fsPath);
       Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
     });
   });
@@ -865,26 +975,66 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
-    if (!trace) {
-      Logger.errorNotify(
-        "Cannot call this command directly, click on any Trace to view its report!",
-        new Error("INVALID_COMMAND")
-      );
-      return;
-    }
-    PreCheck.perform([openFolderCheck], () => {
-      AppTracePanel.createOrShow(context, {
-        trace: {
-          fileName: trace.fileName,
-          filePath: trace.filePath,
-          type: trace.type,
-          workspacePath: workspaceRoot.fsPath,
-          idfPath: idfConf.readParameter("idf.espIdfPath"),
-        },
+  registerIDFCommand(
+    "espIdf.apptrace.archive.showReport",
+    (trace: AppTraceArchiveItems) => {
+      if (!trace) {
+        Logger.errorNotify(
+          "Cannot call this command directly, click on any Trace to view its report!",
+          new Error("INVALID_COMMAND")
+        );
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        if (trace.type === TraceType.HeapTrace) {
+          enum TracingViewType {
+            HeapTracingPlot,
+            SystemViewTracing,
+          }
+          //show option to render system trace view or heap trace
+          const placeHolder =
+            "Do you want to view Heap Trace plot or System View Trace";
+          const choice = await vscode.window.showQuickPick(
+            [
+              {
+                type: TracingViewType.SystemViewTracing,
+                label: "$(symbol-keyword) System View Tracing",
+                detail:
+                  "Show System View Tracing Plot (will open a webview window)",
+              },
+              {
+                type: TracingViewType.HeapTracingPlot,
+                label: "$(graph) Heap Tracing",
+                detail: "Open Old Heap/App Trace Panel",
+              },
+            ],
+            {
+              placeHolder,
+              ignoreFocusOut: true,
+            }
+          );
+          if (!choice) {
+            return;
+          }
+          if (choice.type === TracingViewType.SystemViewTracing) {
+            return SystemViewResultParser.parseWithProgress(
+              trace,
+              context.extensionPath
+            );
+          }
+        }
+        AppTracePanel.createOrShow(context, {
+          trace: {
+            fileName: trace.fileName,
+            filePath: trace.filePath,
+            type: trace.type,
+            workspacePath: workspaceRoot.fsPath,
+            idfPath: idfConf.readParameter("idf.espIdfPath"),
+          },
+        });
       });
-    });
-  });
+    }
+  );
 
   registerIDFCommand("espIdf.apptrace.customize", () => {
     PreCheck.perform([openFolderCheck], async () => {

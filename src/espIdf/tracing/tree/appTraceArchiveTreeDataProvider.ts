@@ -21,12 +21,12 @@ import { join } from "path";
 import * as vscode from "vscode";
 import { PreCheck } from "../../../utils";
 
-enum TraceType {
+export enum TraceType {
   AppTrace = 0,
   HeapTrace = 1,
 }
 
-class AppTraceArchiveItems extends vscode.TreeItem {
+export class AppTraceArchiveItems extends vscode.TreeItem {
   public fileName: string;
   public filePath: string;
   public type: TraceType;

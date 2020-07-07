@@ -78,6 +78,7 @@ const webViewConfig = {
       "menuconfig",
       "main.ts"
     ),
+    sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
