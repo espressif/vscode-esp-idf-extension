@@ -25,11 +25,6 @@ import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
-export interface ISetupCmd {
-  text: string;
-  description: string;
-}
-
 export interface IDebugAdapterConfig {
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
@@ -38,7 +33,7 @@ export interface IDebugAdapterConfig {
   logLevel?: number;
   isPostMortemDebugMode: boolean;
   target?: string;
-  setupCommands?: ISetupCmd[];
+  initGdbCommands?: string[];
 }
 
 export class DebugAdapterManager extends EventEmitter {
@@ -60,7 +55,7 @@ export class DebugAdapterManager extends EventEmitter {
   private logLevel: number;
   private port: number;
   private isPostMortemDebugMode: boolean;
-  private setupCommands: ISetupCmd[];
+  private initGdbCommands: string[];
   private target: string;
 
   private constructor(context: vscode.ExtensionContext) {
@@ -112,10 +107,10 @@ export class DebugAdapterManager extends EventEmitter {
         ? adapterArgs.push("-om", "without_oocd")
         : adapterArgs.push("-om", "connect_to_instance");
       if (this.isPostMortemDebugMode) {
-        adapterArgs.push("--postmortem"); // MODIFY for actual esp_dap_adapter argument
+        adapterArgs.push("--postmortem");
       }
-      for (const setupCmd of this.setupCommands) {
-        adapterArgs.push("--setup-cmd", setupCmd.text); // MODIFY for actual esp_dap_adapter argument
+      for (const setupCmd of this.initGdbCommands) {
+        adapterArgs.push("--gdbinit", setupCmd);
       }
       this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
@@ -159,7 +154,7 @@ export class DebugAdapterManager extends EventEmitter {
   public stop() {
     if (this.adapter && !this.adapter.killed) {
       this.isPostMortemDebugMode = false;
-      this.setupCommands = [];
+      this.initGdbCommands = [];
       this.adapter.kill("SIGKILL");
       this.adapter = undefined;
       this.displayChan.appendLine("[Stopped] : ESP-IDF Debug Adapter");
@@ -190,8 +185,8 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
-    if (config.setupCommands && config.setupCommands.length > 0) {
-      this.setupCommands = config.setupCommands;
+    if (config.initGdbCommands && config.initGdbCommands.length > 0) {
+      this.initGdbCommands = config.initGdbCommands;
     }
   }
 
@@ -224,7 +219,7 @@ export class DebugAdapterManager extends EventEmitter {
       "esp_debug_adapter",
       "debug_adapter"
     );
-    this.setupCommands = [];
+    this.initGdbCommands = [];
   }
 
   private sendToOutputChannel(data: Buffer) {

@@ -26,7 +26,6 @@ import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import {
   DebugAdapterManager,
   IDebugAdapterConfig,
-  ISetupCmd,
 } from "./espIdf/debugAdapter/debugAdapterManager";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import {
@@ -1399,14 +1398,10 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.done();
       })
       .on("gdb-stub-detected", (resp) => {
-        //
         const port = idfConf.readParameter("idf.port");
-        const setupCmd = {
-          text: `target remote ${port}`,
-          description: "Start GDB on serial port",
-        } as ISetupCmd;
+        const setupCmd = [`target remote ${port}`];
         const debugAdapterConfig = {
-          setupCommands: [setupCmd],
+          initGdbCommands: setupCmd,
           isPostMortemDebugMode: true,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);

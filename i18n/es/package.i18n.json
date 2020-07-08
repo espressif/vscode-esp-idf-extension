@@ -70,7 +70,6 @@
   "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
-  "esp_idf.setupCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"setupCommands\": [ { \"text\": \"target remote /dev/ttyUSB0\", \"description\": \"Conectar GDB al ESP en el puerto serial /dev/ttyUSB0\" }].",
-  "esp_idf.debuggers.text.description": "Comando a ejecutar",
-  "esp_idf.debuggers.description.description": "Descripcion del comando a ejecutar"
+  "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
+  "esp_idf.debuggers.text.description": "Comando a ejecutar"
 }
