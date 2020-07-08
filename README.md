@@ -14,6 +14,7 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
 - [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
+- Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands).
 
 ## Demo
 
@@ -117,6 +118,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Add Editor coverage                             |                                        |                                           |
 | Remove Editor coverage                          |                                        |                                           |
 | Get HTML Coverage Report for project            |                                        |                                           |
+| Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will just add [Arduino ESP32](https://github.com/espressif/arduino-esp32) at your current folder with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
 

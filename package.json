@@ -66,6 +66,7 @@
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.removeCoverage",
+    "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:onboarding.start",
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
@@ -186,6 +187,13 @@
           "group": "inline"
         }
       ],
+      "editor/context": [
+        {
+          "command": "espIdf.searchInEspIdfDocs",
+          "group": "navigation",
+          "when": "editorHasSelection"
+        }
+      ],
       "explorer/context": [
         {
           "when": "resourceFilename == sdkconfig",
@@ -239,6 +247,11 @@
         "command": "espIdf.size",
         "key": "ctrl+e s",
         "mac": "cmd+e s"
+      },
+      {
+        "command": "espIdf.searchInEspIdfDocs",
+        "key": "ctrl+e d",
+        "mac": "cmd+e d"
       }
     ],
     "configuration": [
@@ -634,7 +647,11 @@
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
-        "title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode"
+        "title": "%espIdf.launchWSServerAndMonitor.title%"
+      },
+      {
+        "command": "espIdf.searchInEspIdfDocs",
+        "title": "%espIdf.searchInEspIdfDocs.title%"
       }
     ],
     "breakpoints": [
