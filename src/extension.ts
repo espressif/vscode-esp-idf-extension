@@ -1270,15 +1270,25 @@ export async function activate(context: vscode.ExtensionContext) {
                 message:
                   "Successfully created ELF file from the info received (espcoredump.py)",
               });
-              //TODO - Launch debugger
+              try {
+                await vscode.debug.startDebugging(undefined, {
+                  name: "Core Dump Debug",
+                  type: "espidf",
+                  request: "launch",
+                });
+              } catch (error) {
+                Logger.errorNotify(
+                  "Failed to launch debugger for postmortem",
+                  error
+                );
+              }
               wsServer.done();
+              monitor.dispose();
             } else {
-              progress.report({
-                message:
-                  "Failed to generate the ELF file from the info received",
-              });
+              Logger.warnNotify(
+                "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+              );
             }
-            monitor.dispose();
           }
         );
       })

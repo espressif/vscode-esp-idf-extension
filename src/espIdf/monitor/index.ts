@@ -56,6 +56,8 @@ export class IDFMonitor {
     this.terminal.sendText(args.join(" "));
   }
   async dispose() {
-    process.kill(await this.terminal.processId);
+    try {
+      process.kill(await this.terminal.processId);
+    } catch (error) {}
   }
 }
