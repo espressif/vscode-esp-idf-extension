@@ -78,6 +78,7 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
+import { getEspAdf } from "./espAdf/espAdfDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -399,6 +400,8 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     });
   });
+
+  registerIDFCommand("espIdf.getEspAdf", getEspAdf);
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck], SerialPort.shared().promptUserToSelect);

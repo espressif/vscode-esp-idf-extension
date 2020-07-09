@@ -146,9 +146,27 @@ export class ExamplesPlanel {
     this.panel.dispose();
   }
 
-  private obtainExamplesList() {
+  private async obtainExamplesList() {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const examplesPath = path.join(espIdfPath, "examples");
+    const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
+    const examplesFolder = await vscode.window.showQuickPick(
+      [
+        {
+          label: `Use current ESP-IDF (${espIdfPath})`,
+          target: espIdfPath,
+        },
+        {
+          label: `Use current ESP-ADF (${espIdfPath})`,
+          target: espAdfPath,
+        },
+      ],
+      { placeHolder: "Select framework to use" }
+    );
+    if (!examplesFolder) {
+      Logger.infoNotify("No framework selected to load examples from");
+      return;
+    }
+    const examplesPath = path.join(examplesFolder.target, "examples");
     const examplesCategories = utils.getDirectories(examplesPath);
     const examplesListPaths = utils.getSubProjects(examplesPath);
     const exampleListInfo = examplesListPaths.map((examplePath) => {
