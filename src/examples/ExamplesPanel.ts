@@ -20,6 +20,7 @@ import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
+import marked from "marked";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -49,6 +50,8 @@ export class ExamplesPlanel {
       "examples.panelName",
       "ESP-IDF Examples"
     );
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
       onBoardingPanelTitle,
@@ -58,6 +61,8 @@ export class ExamplesPlanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+          vscode.Uri.file(espIdfPath),
+          vscode.Uri.file(espAdfPath),
         ],
       }
     );
@@ -117,9 +122,13 @@ export class ExamplesPlanel {
             );
             readFile(pathToUse.fsPath).then(
               (content) => {
+                const contentStr = this.resolveImgPath(
+                  content.toString(),
+                  message.path
+                );
                 this.panel.webview.postMessage({
                   command: "set_example_detail",
-                  example_detail: content.toString(),
+                  example_detail: contentStr,
                 });
               },
               (err) => {
@@ -146,6 +155,47 @@ export class ExamplesPlanel {
     this.panel.dispose();
   }
 
+  private resolveImgPath(content: string, examplePath: string) {
+    marked.setOptions({
+      baseUrl: null,
+      breaks: true,
+      gfm: true,
+      pedantic: false,
+      renderer: new marked.Renderer(),
+      sanitize: true,
+      smartLists: true,
+      smartypants: false,
+    });
+    let contentStr = marked(content);
+    const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
+    const matches = contentStr.match(srcLinkRegex);
+    for (let m of matches) {
+      const unresolvedPath = m
+        .replace('src="', "")
+        .replace('src ="', "")
+        .replace('"', "");
+      const absPath = `src="vscode-resource:${path.resolve(
+        examplePath,
+        unresolvedPath
+      )}"`;
+      contentStr = contentStr.replace(m, absPath);
+    }
+    const srcEncodedRegex = /&lt;img src=&quot;(.+?)&quot;&gt;/g;
+    const nextMatches = contentStr.match(srcEncodedRegex);
+    for (const m of nextMatches) {
+      const unresolvedPath = m
+        .replace("&lt;img src=&quot;", "")
+        .replace("&lt;img src= &quot;", "")
+        .replace(/&quot;/g, '"');
+      const absPath = `<img src="vscode-resource:${path.resolve(
+        examplePath,
+        unresolvedPath
+      )}" >`;
+      contentStr = contentStr.replace(m, absPath);
+    }
+    return contentStr;
+  }
+
   private async obtainExamplesList() {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
@@ -156,7 +206,7 @@ export class ExamplesPlanel {
           target: espIdfPath,
         },
         {
-          label: `Use current ESP-ADF (${espIdfPath})`,
+          label: `Use current ESP-ADF (${espAdfPath})`,
           target: espAdfPath,
         },
       ],

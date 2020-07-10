@@ -44,9 +44,6 @@ import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IExample } from "./store";
 
-// tslint:disable-next-line:no-var-requires
-const marked = require("marked");
-
 @Component
 export default class Examples extends Vue {
   @State("examplesPaths") private storeExamplesPath;
@@ -66,17 +63,7 @@ export default class Examples extends Vue {
     return this.storeExamplesPath;
   }
   get exampleDetail() {
-    marked.setOptions({
-      renderer: new marked.Renderer(),
-      gfm: true,
-      tables: true,
-      breaks: true,
-      pedantic: false,
-      sanitize: true,
-      smartLists: true,
-      smartypants: false,
-    });
-    return marked(this.storeExampleDetail);
+    return this.storeExampleDetail;
   }
   get groups() {
     return this.groupBy(this.storeExamplesPath, "category");

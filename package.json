@@ -852,6 +852,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@types/marked": "^1.1.0",
     "ansi-to-html": "^0.6.11",
     "axios": "^0.19.2",
     "del": "^4.1.1",
