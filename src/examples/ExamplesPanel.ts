@@ -15,7 +15,6 @@
 import { ensureDir, readFile } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
@@ -27,7 +26,10 @@ const locDic = new LocDictionary("ExamplesPanel");
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
 
-  public static createOrShow(extensionPath: string) {
+  public static createOrShow(
+    extensionPath: string,
+    targetFrameworkFolder: string
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -36,7 +38,8 @@ export class ExamplesPlanel {
     } else {
       ExamplesPlanel.currentPanel = new ExamplesPlanel(
         extensionPath,
-        column || vscode.ViewColumn.One
+        column || vscode.ViewColumn.One,
+        targetFrameworkFolder
       );
     }
   }
@@ -45,13 +48,15 @@ export class ExamplesPlanel {
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
 
-  private constructor(extensionPath: string, column: vscode.ViewColumn) {
+  private constructor(
+    extensionPath: string,
+    column: vscode.ViewColumn,
+    targetFrameworkFolder: string
+  ) {
     const onBoardingPanelTitle = locDic.localize(
       "examples.panelName",
       "ESP-IDF Examples"
     );
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
       onBoardingPanelTitle,
@@ -61,8 +66,7 @@ export class ExamplesPlanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, "dist", "views")),
-          vscode.Uri.file(espIdfPath),
-          vscode.Uri.file(espAdfPath),
+          vscode.Uri.file(targetFrameworkFolder),
         ],
       }
     );
@@ -113,7 +117,7 @@ export class ExamplesPlanel {
           }
           break;
         case "getExamplesList":
-          this.obtainExamplesList();
+          this.obtainExamplesList(targetFrameworkFolder);
           break;
         case "getExampleDetail":
           if (message.path) {
@@ -196,27 +200,8 @@ export class ExamplesPlanel {
     return contentStr;
   }
 
-  private async obtainExamplesList() {
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
-    const examplesFolder = await vscode.window.showQuickPick(
-      [
-        {
-          label: `Use current ESP-IDF (${espIdfPath})`,
-          target: espIdfPath,
-        },
-        {
-          label: `Use current ESP-ADF (${espAdfPath})`,
-          target: espAdfPath,
-        },
-      ],
-      { placeHolder: "Select framework to use" }
-    );
-    if (!examplesFolder) {
-      Logger.infoNotify("No framework selected to load examples from");
-      return;
-    }
-    const examplesPath = path.join(examplesFolder.target, "examples");
+  private async obtainExamplesList(targetFrameworkFolder: string) {
+    const examplesPath = path.join(targetFrameworkFolder, "examples");
     const examplesCategories = utils.getDirectories(examplesPath);
     const examplesListPaths = utils.getSubProjects(examplesPath);
     const exampleListInfo = examplesListPaths.map((examplePath) => {

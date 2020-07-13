@@ -907,7 +907,55 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("examples.start", () => {
     try {
-      ExamplesPlanel.createOrShow(context.extensionPath);
+      vscode.window.withProgress(
+        {
+          cancellable: false,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Loading examples",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>
+        ) => {
+          try {
+            const espIdfPath = idfConf.readParameter(
+              "idf.espIdfPath"
+            ) as string;
+            const espAdfPath = idfConf.readParameter(
+              "idf.espAdfPath"
+            ) as string;
+            const examplesFolder = await vscode.window.showQuickPick(
+              [
+                {
+                  label: `Use current ESP-IDF (${espIdfPath})`,
+                  target: espIdfPath,
+                },
+                {
+                  label: `Use current ESP-ADF (${espAdfPath})`,
+                  target: espAdfPath,
+                },
+              ],
+              { placeHolder: "Select framework to use" }
+            );
+            if (!examplesFolder) {
+              Logger.infoNotify("No framework selected to load examples.");
+              return;
+            }
+            const doesFolderExist = await utils.dirExistPromise(
+              examplesFolder.target
+            );
+            if (!doesFolderExist) {
+              Logger.infoNotify(`${examplesFolder.target} doesn't exist.`);
+              return;
+            }
+            ExamplesPlanel.createOrShow(
+              context.extensionPath,
+              examplesFolder.target
+            );
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     } catch (error) {
       Logger.errorNotify(error.message, error);
     }
