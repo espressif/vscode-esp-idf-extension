@@ -1257,9 +1257,14 @@ export async function activate(context: vscode.ExtensionContext) {
           async (progress) => {
             const espCoredumpPy = new ESPCoreDumpPyTool(idfPath);
             const projectName = await getProjectName(workspaceRoot.fsPath);
+            const coreElfFilePath = path.join(
+              workspaceRoot.fsPath,
+              "build",
+              `${projectName}.coredump.elf`
+            );
             if (
               (await espCoredumpPy.generateCoreELFFile({
-                coreElfFilePath: `/Users/soumesh/Downloads/test/${projectName}.coredump.elf`,
+                coreElfFilePath,
                 coreInfoFilePath: resp.file,
                 infoCoreFileFormat: InfoCoreFileFormat.Base64,
                 progELFFilePath: resp.prog,
