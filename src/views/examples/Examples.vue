@@ -5,7 +5,7 @@
         <li v-for="(exampleGroup, groupName) in groups" :key="groupName">
           <p class="category" v-text="groupName" />
           <ul class="examples">
-            <li v-for="item in exampleGroup" :key="item">
+            <li v-for="item in exampleGroup" :key="item.path">
               <p
                 @click="toggleExampleDetail(item)"
                 v-text="item.name"

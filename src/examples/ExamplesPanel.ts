@@ -178,22 +178,20 @@ export class ExamplesPlanel {
         .replace('src="', "")
         .replace('src ="', "")
         .replace('"', "");
-      const absPath = `src="vscode-resource:${path.resolve(
-        examplePath,
-        unresolvedPath
+      const absPath = `src="${this.panel.webview.asWebviewUri(
+        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
       )}"`;
       contentStr = contentStr.replace(m, absPath);
     }
-    const srcEncodedRegex = /&lt;img src=&quot;(.+?)&quot;&gt;/g;
+    const srcEncodedRegex = /&lt;img src=&quot;(.+?)&quot;\s?&gt;/g;
     const nextMatches = contentStr.match(srcEncodedRegex);
     for (const m of nextMatches) {
       const unresolvedPath = m
         .replace("&lt;img src=&quot;", "")
         .replace("&lt;img src= &quot;", "")
         .replace(/&quot;/g, '"');
-      const absPath = `<img src="vscode-resource:${path.resolve(
-        examplePath,
-        unresolvedPath
+      const absPath = `<img src="${this.panel.webview.asWebviewUri(
+        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
       )}" >`;
       contentStr = contentStr.replace(m, absPath);
     }
