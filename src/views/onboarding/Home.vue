@@ -22,9 +22,11 @@
         required in environment PATH.
       </p>
       <ConfigurationTarget />
-      <div v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0">
-        <br />
-        <router-link to="/previous" class="onboarding-button">
+      <div
+        v-if="idfVersionsMetadata && idfVersionsMetadata.length > 0"
+        style="margin-top: 1em;"
+      >
+        <router-link to="/previous" class="button">
           Use previous settings
         </router-link>
       </div>

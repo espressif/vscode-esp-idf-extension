@@ -5,52 +5,71 @@
       class="arrow go-back right"
       @click.native="reset"
     ></router-link>
-    <h4>Use previous configuration settings</h4>
-    <div v-if="previousIsValid">
-      <p>All tools are correct.</p>
-      <button v-on:click="saveSettings" class="onboarding-button">
-        Save settings
-      </button>
+    <h4 class="title">Use previous configuration settings</h4>
+    <div v-if="previousIsValid" class="centerize">
+      <p class="label">All tools are correct.</p>
+      <div class="control">
+        <button v-on:click="saveSettings" class="button">
+          Save settings
+        </button>
+      </div>
     </div>
-    <div v-else>
-      <label for="idf-version-select">Select ESP-IDF version:</label>
-      <br />
-      <br />
-      <select
-        v-model="selectedIdfMetadata"
-        id="idf-version-select"
-        @change="changeSelectedIdfPath"
-      >
-        <option v-for="ver in idfVersionsMetadata" :key="ver.id" :value="ver">
-          {{ ver.path }}
-        </option>
-      </select>
-      <p>Selected ESP-IDF Path version: {{ previousIdfVersion }}</p>
-      <div v-if="venvVersionsMetadata && venvVersionsMetadata.length > 0">
-        <label for="python-version-select">Python version:</label>
-        <br /><br />
-        <select
-          v-model="selectedVenvMetadata"
-          @change="setPreviousIsValid(false)"
-        >
-          <option
-            v-for="env in venvVersionsMetadata"
-            :key="env.id"
-            :value="env"
+    <div v-else class="container">
+      <div class="field centerize">
+        <label for="idf-version-select">Select ESP-IDF version:</label>
+        <div class="control">
+          <select
+            v-model="selectedIdfMetadata"
+            id="idf-version-select"
+            @change="changeSelectedIdfPath"
+            class="select"
           >
-            {{ env.path }}
-          </option>
-        </select>
-        <br /><br />
-        <div v-if="toolsInMetadata && toolsInMetadata.length > 0">
+            <option
+              v-for="ver in idfVersionsMetadata"
+              :key="ver.id"
+              :value="ver"
+            >
+              {{ ver.path }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <p class="label">
+        Selected ESP-IDF Path version: {{ previousIdfVersion }}
+      </p>
+      <div v-if="venvVersionsMetadata && venvVersionsMetadata.length > 0">
+        <div class="field centerize">
+          <label for="python-version-select">Python version:</label>
+          <div class="control">
+            <select
+              v-model="selectedVenvMetadata"
+              @change="setPreviousIsValid(false)"
+              class="select"
+            >
+              <option
+                v-for="env in venvVersionsMetadata"
+                :key="env.id"
+                :value="env"
+              >
+                {{ env.path }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div
+          v-if="toolsInMetadata && toolsInMetadata.length > 0"
+          class="toolsMeta"
+        >
           <PreviousTool
             v-for="tool in toolsInMetadata"
             :key="tool.id"
             :tool="tool"
           />
-          <button v-on:click="checkAreValid" class="onboarding-button">
-            Check tools are valid
-          </button>
+          <div class="section">
+            <button v-on:click="checkAreValid" class="button">
+              Check tools are valid
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -130,8 +149,4 @@ export default class UsePrevious extends Vue {
 }
 </script>
 
-<style scoped>
-select {
-  width: 100%;
-}
-</style>
+<style scoped></style>

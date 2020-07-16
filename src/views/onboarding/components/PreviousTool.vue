@@ -1,28 +1,34 @@
 <template>
   <div class="toolsMetadata">
-    <label :for="tool.id"
-      >Tool: {{ tool.name }} Version: {{ tool.version }}</label
-    >
-    <br /><br />
-    <input
-      type="text"
-      v-model="tool.path"
-      :id="tool.id"
-      @change="setPreviousIsValid(false)"
-      @keydown="setPreviousIsValid(false)"
-    />
-    <br /><br />
+    <div class="field">
+      <label :for="tool.id"
+        >Tool: {{ tool.name }} Version: {{ tool.version }}</label
+      >
+      <div class="control">
+        <input
+          type="text"
+          class="input is-small"
+          v-model="tool.path"
+          :id="tool.id"
+          @change="setPreviousIsValid(false)"
+          @keydown="setPreviousIsValid(false)"
+        />
+      </div>
+    </div>
     <div v-for="(item, key) in tool.env" :key="key">
-      <label :for="key">Environment variable {{ key }}:</label>
-      <br /><br />
-      <input
-        type="text"
-        v-model="tool.env[key]"
-        :id="key"
-        @change="setPreviousIsValid(false)"
-        @keydown="setPreviousIsValid(false)"
-      />
-      <br /><br />
+      <div class="field">
+        <label :for="key">Environment variable {{ key }}:</label>
+        <div class="control">
+          <input
+            type="text"
+            class="input is-small"
+            v-model="tool.env[key]"
+            :id="key"
+            @change="setPreviousIsValid(false)"
+            @keydown="setPreviousIsValid(false)"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
