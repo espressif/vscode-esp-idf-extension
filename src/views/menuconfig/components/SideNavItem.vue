@@ -63,7 +63,7 @@ export default class SideNavItem extends Vue {
       secNew.offsetTop +
       configList.clientTop -
       topbar.getBoundingClientRect().bottom;
-    configList.scrollTo({ left: 0, top: endPosition, behavior: "auto" });
+    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
   }
 }
 </script>
@@ -86,14 +86,13 @@ ul > li.selectedSection > p {
 }
 .submenu {
   overflow: hidden;
+  padding-left: 20px;
 }
 .menu-line {
   display: flex;
   align-items: center;
 }
 .menu-line p {
-  margin-left: 5%;
-  margin-top: 0%;
-  margin-bottom: 0.5%;
+  margin-left: 0.5em;
 }
 </style>

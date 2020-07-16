@@ -1,52 +1,68 @@
 <template>
-  <div>
+  <div class="is-small">
+    <div class="field">
+      <label>
+        Add your ESP-IDF virtual environment python executable absolute path.
+        Example:
+        {{ winRoot }}{{ pathSep }}.espressif{{ pathSep }}python_env{{
+          pathSep
+        }}idf4.0_py3.8_env{{ pathSep }}{{ winRoot !== "" ? "bin" : "Scripts"
+        }}{{ pathSep }}python<span v-if="winRoot !== ''">.exe</span>
+      </label>
+      <div class="control">
+        <input type="text" class="input is-small" v-model="pyBinPath" />
+      </div>
+    </div>
     <p>
-      Add your python binary path (the python virtual environment). Example:
-      {{ winRoot }}{{ pathSep }}.espressif{{ pathSep }}python_env{{
-        pathSep
-      }}idf4.0_py3.8_env{{ pathSep }}{{ winRoot !== "" ? "bin" : "Scripts"
-      }}{{ pathSep }}python<span v-if="winRoot !== ''">.exe</span>
+      Please provide absolute paths separated by ({{ pathDelimiter }}). Using ~,
+      $HOME or %HOME% is not supported.<br />Example: If executable path is
+      {{ winRoot }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathSep }}openocd
+      <span v-if="winRoot !== ''">.exe</span> then use {{ winRoot
+      }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathDelimiter }}{{ winRoot
+      }}{{ pathSep }}anotherToolFolder{{ pathSep }}bin
     </p>
-    <input type="text" class="text-size" v-model="pyBinPath" />
-    <p>
-      Please specify the directories containing executable binaries for required
-      ESP-IDF Tools: <br />
-      <span class="bold"> |</span>
-      <span
-        v-for="toolVersion in requiredToolsVersions"
-        :key="toolVersion.id"
-        class="bold"
-      >
-        {{ toolVersion.id }} |
-      </span>
-    </p>
-    <p>Make sure to also include CMake and Ninja-build.</p>
-    <p>Separate each path using ({{ pathDelimiter }}).</p>
-    <p>
-      Example: If executable path is {{ winRoot }}{{ pathSep }}myToolFolder{{
-        pathSep
-      }}bin{{ pathSep }}openocd <span v-if="winRoot !== ''">.exe</span> then use
-      {{ winRoot }}{{ pathSep }}myToolFolder{{ pathSep }}bin{{ pathDelimiter
-      }}{{ winRoot }}{{ pathSep }}anotherToolFolder{{ pathSep }}bin
-    </p>
-    <p>
-      Please provide absolute paths. Using $HOME or %HOME% is not supported.
-    </p>
-    <input type="text" class="text-size" v-model="exportedPaths" />
-    <h4>Custom environment variables to be defined.</h4>
+    <div class="field">
+      <label for="exportPaths" class="label is-small">
+        Please specify the directories containing executable binaries for
+        required ESP-IDF Tools (Make sure to also include CMake and
+        Ninja-build): <br />
+        <span class="bold"> |</span>
+        <span
+          v-for="toolVersion in requiredToolsVersions"
+          :key="toolVersion.id"
+          class="bold"
+        >
+          {{ toolVersion.id }} |
+        </span>
+      </label>
+      <div class="control">
+        <textarea
+          class="input textarea is-small"
+          v-model="exportedPaths"
+          id="exportPaths"
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
+    <h4 class="subtitle">Custom environment variables to be defined.</h4>
     <p>
       Replace any ${TOOL_PATH} with absolute path for each custom variable.
       <br />
       For example:
-      <strong>${TOOL_PATH}/openocd-esp32/share/openocd/scripts</strong>
-      should be replaced as {{ winRoot }}{{ pathSep }}openocd-esp32{{
-        pathSep
-      }}share{{ pathSep }}openocd{{ pathSep }}
+      <span class="bold">${TOOL_PATH}/openocd-esp32/share/openocd/scripts</span>
+      should be replaced as {{ winRoot
+      }}{{
+        pathSep + ".espressif" + pathSep + "tools" + pathSep
+      }}openocd-esp32{{ pathSep }}share{{ pathSep }}openocd{{ pathSep }}
     </p>
     <div id="env-vars-to-set" v-for="(value, key) in envVars" :key="key">
       <div class="env-var">
         <p>{{ key }}</p>
-        <input type="text" class="text-size" v-model="envVars[key]" />
+        <div class="field">
+          <div class="control">
+            <input type="text" class="input is-small" v-model="envVars[key]" />
+          </div>
+        </div>
       </div>
     </div>
   </div>

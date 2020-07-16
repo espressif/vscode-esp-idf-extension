@@ -1,24 +1,30 @@
 <template>
-  <div id="topbar">
-    <form>
+  <div id="topbar" class="field is-grouped is-grouped-centered">
+    <div class="control wide">
       <input
         v-model="search"
         type="search"
         name="search"
         placeholder="Search parameter"
         autocomplete="off"
-        class="form-control"
+        class="input"
       />
-    </form>
-    <button class="button-vscode" @click="saveConfChanges">
-      {{ save }}
-    </button>
-    <button class="button-vscode" @click="resetConf">
-      {{ cancel }}
-    </button>
-    <button class="button-vscode" @click="setDefaultConf">
-      {{ reset }}
-    </button>
+    </div>
+    <div class="control">
+      <button class="button" @click="saveConfChanges">
+        {{ save }}
+      </button>
+    </div>
+    <div class="control">
+      <button class="button" @click="resetConf">
+        {{ cancel }}
+      </button>
+    </div>
+    <div class="control">
+      <button class="button" @click="setDefaultConf">
+        {{ reset }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -56,40 +62,9 @@ export default class SearchBar extends Vue {
 
 <style scoped>
 #topbar {
-  background-color: var(--vscode-editor-background);
-  display: flex;
-  align-self: center;
+  padding-top: 0.5em;
 }
-form {
-  display: flex;
-  align-self: center;
-}
-.form-control {
-  color: var(--vscode-settings-textInputForeground);
-  background-color: var(--vscode-settings-textInputBackground);
-  border: 0px;
-  outline: 0.5px solid var(--vscode-settings-textInputBorder);
-  padding-left: 1%;
-}
-input[type="search"].form-control {
-  width: 60vh;
-  height: 3vh;
-}
-form {
-  display: inline-block;
-}
-.button-vscode {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  font-weight: bold;
-  border: 0px;
-  border-radius: 1%;
-  margin: 1%;
-  width: 15vh;
-  height: 3vh;
-  align-self: center;
-}
-.button-vscode:hover {
-  background: var(--vscode-button-hoverBackground);
+.wide {
+  width: 40%;
 }
 </style>

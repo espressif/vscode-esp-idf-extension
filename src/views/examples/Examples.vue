@@ -1,16 +1,16 @@
 <template>
   <div id="examples-window">
-    <div id="sidenav">
+    <div id="sidenav" class="content">
       <ul>
         <li v-for="(exampleGroup, groupName) in groups" :key="groupName">
           <p class="category" v-text="groupName" />
           <ul class="examples">
-            <li v-for="item in exampleGroup" :key="item">
+            <li v-for="item in exampleGroup" :key="item.path">
               <p
                 @click="toggleExampleDetail(item)"
                 v-text="item.name"
                 :class="{
-                  selectedItem: storeSelectedExample.name === item.name,
+                  selectedItem: storeSelectedExample.path === item.path,
                 }"
               />
             </li>
@@ -19,12 +19,12 @@
       </ul>
     </div>
 
-    <div id="example-content">
-      <div v-if="hasExampleDetail">
+    <div id="example-content" class="content">
+      <div v-if="hasExampleDetail" class="has-text-centered">
         <button
           v-if="selectedExample.name !== ''"
           v-on:click="openExample(selectedExample)"
-          class="check-button"
+          class="button"
         >
           Create project using example {{ selectedExample.name }}
         </button>
@@ -83,7 +83,7 @@ export default class Examples extends Vue {
   }
 
   public toggleExampleDetail(example: IExample) {
-    if (example.name !== this.storeSelectedExample.name) {
+    if (example.path !== this.storeSelectedExample.path) {
       this.setSelectedExample(example);
       this.getExampleDetail({ pathToOpen: example.path });
     } else {
@@ -115,56 +115,29 @@ export default class Examples extends Vue {
 }
 </script>
 
-<style scoped>
+<style lang="scss">
+@import "../commons/espCommons.scss";
+
 #examples-window {
-  max-width: 900px;
   color: var(--vscode-editor-foreground);
-  padding-bottom: 2%;
-  cursor: default;
-  display: flex;
-  flex-direction: row;
   height: 100%;
+  padding: 0.5em;
 }
 ul.examples > li > p:hover {
   color: var(--vscode-button-background);
   cursor: pointer;
 }
 #example-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 1%;
-}
-.check-button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border: none;
-}
-.check-button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
+  margin-left: 30%;
 }
 #exampleDetail {
-  max-width: 70vh;
-  margin: 2vh;
-  align-items: center;
-  flex: 2 0 50vh;
+  margin: 1em;
 }
 #sidenav {
-  margin-top: 2vh;
-  max-height: 80vh;
-  max-width: 50vh;
+  height: 90%;
+  width: 30%;
   overflow-y: scroll;
-  text-align: -webkit-left;
-  flex: 1 0 30vh;
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
+  position: fixed;
 }
 ul > li {
   list-style-type: none;
