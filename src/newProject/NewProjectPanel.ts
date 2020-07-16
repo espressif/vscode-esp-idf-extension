@@ -338,77 +338,120 @@ export class NewProjectPanel {
     tools: ITool[],
     venv: IPath
   ) {
-    const projectDirExists = await utils.dirExistPromise(projectDirectory);
-    if (!projectDirExists) {
-      vscode.window.showInformationMessage("Project directory doesn't exists.");
-      return;
-    }
-    const newProjectPath = join(projectDirectory, projectName);
-    await ensureDir(newProjectPath, { mode: 0o775 });
-    if (template && template.path !== "") {
-      await utils.copyFromSrcProject(template.path, newProjectPath);
-    } else {
-      const boilerplatePath = join(
-        this.extensionPath,
-        "templates",
-        "boilerplate"
-      );
-      await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
-    }
-    const settingsJsonPath = join(newProjectPath, ".vscode", "settings.json");
-    const settingsJson = await utils.readJson(settingsJsonPath);
-    settingsJson["idf.espIdfPath"] = idf.path;
-    settingsJson["idf.pythonBinPath"] = venv.path;
-    const extraPaths = tools
-      .reduce((prev, curr) => {
-        return `${prev}${delimiter}${curr.path}`;
-      }, "")
-      .substr(1);
-    const extraVars = {};
-    for (const tool of tools) {
-      Object.keys(tool.env).forEach((envVar) => {
-        extraVars[envVar] = tool.env[envVar];
-      });
-    }
-    const toolsDir = venv.path.substr(0, venv.path.indexOf("python_env") - 1);
-    settingsJson["idf.customExtraPaths"] = extraPaths;
-    settingsJson["idf.customExtraVars"] = JSON.stringify(extraVars);
-    settingsJson["idf.toolsPath"] = toolsDir;
-    settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
-    settingsJson["idf.adapterTargetName"] = idfTarget;
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "Creating new ESP-IDF Project...",
+      },
+      async () => {
+        try {
+          const projectDirExists = await utils.dirExistPromise(
+            projectDirectory
+          );
+          if (!projectDirExists) {
+            vscode.window.showInformationMessage(
+              "Project directory doesn't exists."
+            );
+            return;
+          }
+          const newProjectPath = join(projectDirectory, projectName);
+          const projectNameExists = await utils.dirExistPromise(newProjectPath);
+          if (projectNameExists) {
+            const overwriteProject = await vscode.window.showInformationMessage(
+              `${newProjectPath} already exists. Overwrite content?`,
+              "Yes",
+              "No"
+            );
+            if (
+              typeof overwriteProject === "undefined" ||
+              overwriteProject === "No"
+            ) {
+              return;
+            }
+          }
+          await ensureDir(newProjectPath, { mode: 0o775 });
+          if (template && template.path !== "") {
+            await utils.copyFromSrcProject(template.path, newProjectPath);
+          } else {
+            const boilerplatePath = join(
+              this.extensionPath,
+              "templates",
+              "boilerplate"
+            );
+            await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
+          }
+          const settingsJsonPath = join(
+            newProjectPath,
+            ".vscode",
+            "settings.json"
+          );
+          const settingsJson = await utils.readJson(settingsJsonPath);
+          settingsJson["idf.espIdfPath"] = idf.path;
+          settingsJson["idf.pythonBinPath"] = venv.path;
+          const extraPaths = tools
+            .reduce((prev, curr) => {
+              return `${prev}${delimiter}${curr.path}`;
+            }, "")
+            .substr(1);
+          const extraVars = {};
+          for (const tool of tools) {
+            Object.keys(tool.env).forEach((envVar) => {
+              extraVars[envVar] = tool.env[envVar];
+            });
+          }
+          const toolsDir = venv.path.substr(
+            0,
+            venv.path.indexOf("python_env") - 1
+          );
+          settingsJson["idf.customExtraPaths"] = extraPaths;
+          settingsJson["idf.customExtraVars"] = JSON.stringify(extraVars);
+          settingsJson["idf.toolsPath"] = toolsDir;
+          settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
+          settingsJson["idf.adapterTargetName"] = idfTarget;
 
-    await utils.writeJson(settingsJsonPath, settingsJson);
+          await utils.writeJson(settingsJsonPath, settingsJson);
 
-    if (components && components.length > 0) {
-      const componentsPath = join(newProjectPath, "components");
-      await ensureDir(componentsPath, { mode: 0o775 });
-      for (const comp of components) {
-        const doesComponentExists = await utils.dirExistPromise(comp.path);
-        if (doesComponentExists) {
-          const compPath = join(componentsPath, comp.name);
-          await ensureDir(compPath, { mode: 0o775 });
-          await copy(comp.path, compPath);
-        } else {
-          const msg = `Component ${comp.name} path: ${comp.path} doesn't exist. Ignoring in new project...`;
-          Logger.info(msg);
-          OutputChannel.appendLine(msg);
+          if (components && components.length > 0) {
+            const componentsPath = join(newProjectPath, "components");
+            await ensureDir(componentsPath, { mode: 0o775 });
+            for (const comp of components) {
+              const doesComponentExists = await utils.dirExistPromise(
+                comp.path
+              );
+              if (doesComponentExists) {
+                const compPath = join(componentsPath, comp.name);
+                await ensureDir(compPath, { mode: 0o775 });
+                await copy(comp.path, compPath);
+              } else {
+                const msg = `Component ${comp.name} path: ${comp.path} doesn't exist. Ignoring in new project...`;
+                Logger.info(msg);
+                OutputChannel.appendLine(msg);
+              }
+            }
+          }
+
+          const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
+          const openProjectChoice = await vscode.window.showInformationMessage(
+            projectCreatedMsg,
+            "Yes",
+            "No"
+          );
+
+          if (openProjectChoice && openProjectChoice === "Yes") {
+            vscode.commands.executeCommand(
+              "vscode.openFolder",
+              vscode.Uri.file(newProjectPath),
+              true
+            );
+          }
+        } catch (error) {
+          Logger.errorNotify(
+            "Error while creating new ESP-IDF project.",
+            error
+          );
         }
       }
-    }
-
-    const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
-    const openProjectChoice = await vscode.window.showInformationMessage(
-      projectCreatedMsg,
-      "Yes",
-      "No"
     );
-
-    if (openProjectChoice && openProjectChoice === "Yes") {
-      vscode.commands.executeCommand(
-        "vscode.openFolder",
-        vscode.Uri.file(newProjectPath),
-        true
-      );
-    }
   }
 }
