@@ -173,27 +173,30 @@ export class ExamplesPlanel {
     let contentStr = marked(content);
     const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
     const matches = contentStr.match(srcLinkRegex);
-    for (let m of matches) {
-      const unresolvedPath = m
-        .replace('src="', "")
-        .replace('src ="', "")
-        .replace('"', "");
-      const absPath = `src="${this.panel.webview.asWebviewUri(
-        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
-      )}"`;
-      contentStr = contentStr.replace(m, absPath);
+    if (matches && matches.length > 0) {
+      for (let m of matches) {
+        const unresolvedPath = m
+          .replace('src="', "")
+          .replace('src ="', "")
+          .replace('"', "");
+        const absPath = `src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
+        )}"`;
+        contentStr = contentStr.replace(m, absPath);
+      }
     }
-    const srcEncodedRegex = /&lt;img src=&quot;(.+?)&quot;\s?&gt;/g;
+    const srcEncodedRegex = /&lt;img src=&quot;(.*?)&quot;\s?&gt;/g;
     const nextMatches = contentStr.match(srcEncodedRegex);
-    for (const m of nextMatches) {
-      const unresolvedPath = m
-        .replace("&lt;img src=&quot;", "")
-        .replace("&lt;img src= &quot;", "")
-        .replace(/&quot;/g, '"');
-      const absPath = `<img src="${this.panel.webview.asWebviewUri(
-        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
-      )}" >`;
-      contentStr = contentStr.replace(m, absPath);
+    if (nextMatches && nextMatches.length > 0) {
+      for (let m of nextMatches) {
+        const pathToResolve = m.match(/(?:src=&quot;)(.*?)(?:&quot;)/);
+        const height = m.match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+        const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+        const absPath = `<img src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
+        )}" height="${height[1]}" alt="${altText[1]}" >`;
+        contentStr = contentStr.replace(m, absPath);
+      }
     }
     return contentStr;
   }
