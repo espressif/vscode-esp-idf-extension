@@ -689,6 +689,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const debugAdapterConfig = {
           debugAdapterPort: portToUse,
           env: session.configuration.env,
+          initGdbCommands: session.configuration.initGdbCommands || [],
           isPostMortemDebugMode: false,
           logLevel: session.configuration.logLevel,
         } as IDebugAdapterConfig;

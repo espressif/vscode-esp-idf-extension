@@ -24,6 +24,8 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
+import { EOL, tmpdir } from "os";
+import { outputFile } from "fs-extra";
 
 export interface IDebugAdapterConfig {
   currentWorkspace?: vscode.Uri;
@@ -109,8 +111,9 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("--postmortem");
       }
-      for (const setupCmd of this.initGdbCommands) {
-        adapterArgs.push("--gdbinit", setupCmd);
+      const resultGdbInitFile = await this.makeGdbinitFile();
+      if (resultGdbInitFile) {
+        adapterArgs.push("--gdbinit", resultGdbInitFile);
       }
       this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
@@ -185,7 +188,7 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
-    if (config.initGdbCommands && config.initGdbCommands.length > 0) {
+    if (config.initGdbCommands) {
       this.initGdbCommands = config.initGdbCommands;
     }
   }
@@ -224,5 +227,28 @@ export class DebugAdapterManager extends EventEmitter {
 
   private sendToOutputChannel(data: Buffer) {
     this.chan = Buffer.concat([this.chan, data]);
+  }
+
+  private async makeGdbinitFile() {
+    try {
+      if (this.initGdbCommands && this.initGdbCommands.length > 0) {
+        let result = "";
+        for (const initCmd of this.initGdbCommands) {
+          result = result + initCmd + EOL;
+        }
+        const lastValue = result.lastIndexOf(EOL);
+        result = result.substring(0, lastValue);
+
+        const resultGdbInitPath = path.join(
+          tmpdir(),
+          "vscode-ext-esp-idf-da-generated.gdbinit"
+        );
+        await outputFile(resultGdbInitPath, result);
+        return resultGdbInitPath;
+      }
+    } catch (error) {
+      Logger.errorNotify("Error creating gdbinit file", error);
+    }
+    return;
   }
 }
