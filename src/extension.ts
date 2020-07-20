@@ -685,6 +685,12 @@ export async function activate(context: vscode.ExtensionContext) {
         isOpenOCDLaunchedByDebug = true;
         await openOCDManager.start();
       }
+      if (
+        session.name === "Core Dump Debug" ||
+        session.name === "GDB Stub Debug"
+      ) {
+        await debugAdapterManager.start();
+      }
       if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
         const debugAdapterConfig = {
           debugAdapterPort: portToUse,
@@ -1386,19 +1392,23 @@ export async function activate(context: vscode.ExtensionContext) {
       .on("started", () => {
         monitor.start();
       })
-      .on("core-dump-detected", (resp) => {
+      .on("core-dump-detected", async (resp) => {
         // perform core-dump related stuff here
         //once done call .done() to notify the monitor process
-        const projectElfFile = "my-custom.elf";
+        const coreDumpFile = "my-core-dump.elf";
         const debugAdapterConfig = {
-          elfFile: projectElfFile,
+          coreDumpFile: coreDumpFile,
           isPostMortemDebugMode: false,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
-        debugAdapterManager.start();
+        await vscode.debug.startDebugging(undefined, {
+          name: "Core Dump Debug",
+          type: "espidf",
+          request: "launch",
+        });
         wsServer.done();
       })
-      .on("gdb-stub-detected", (resp) => {
+      .on("gdb-stub-detected", async (resp) => {
         const port = idfConf.readParameter("idf.port");
         const setupCmd = [`target remote ${port}`];
         const debugAdapterConfig = {
@@ -1406,7 +1416,11 @@ export async function activate(context: vscode.ExtensionContext) {
           isPostMortemDebugMode: true,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
-        debugAdapterManager.start();
+        await vscode.debug.startDebugging(undefined, {
+          name: "GDB Stub Debug",
+          type: "espidf",
+          request: "launch",
+        });
         wsServer.done();
       })
       .on("close", (resp) => {

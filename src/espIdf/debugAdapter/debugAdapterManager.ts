@@ -28,6 +28,7 @@ import { EOL, tmpdir } from "os";
 import { outputFile } from "fs-extra";
 
 export interface IDebugAdapterConfig {
+  coreDumpFile: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
   elfFile?: string;
@@ -49,6 +50,7 @@ export class DebugAdapterManager extends EventEmitter {
 
   private adapter: ChildProcess;
   private chan: Buffer;
+  private coreDumpFile: string;
   private currentWorkspace: vscode.Uri;
   private debugAdapterPath: string;
   private displayChan: vscode.OutputChannel;
@@ -109,11 +111,14 @@ export class DebugAdapterManager extends EventEmitter {
         ? adapterArgs.push("-om", "without_oocd")
         : adapterArgs.push("-om", "connect_to_instance");
       if (this.isPostMortemDebugMode) {
-        adapterArgs.push("--postmortem");
+        adapterArgs.push("-pm");
+      }
+      if (this.coreDumpFile) {
+        adapterArgs.push("-c", this.coreDumpFile);
       }
       const resultGdbInitFile = await this.makeGdbinitFile();
       if (resultGdbInitFile) {
-        adapterArgs.push("--gdbinit", resultGdbInitFile);
+        adapterArgs.push("-x", resultGdbInitFile);
       }
       this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
@@ -165,6 +170,9 @@ export class DebugAdapterManager extends EventEmitter {
   }
 
   public configureAdapter(config: IDebugAdapterConfig) {
+    if (config.coreDumpFile) {
+      this.coreDumpFile = config.coreDumpFile;
+    }
     if (config.currentWorkspace) {
       this.currentWorkspace = config.currentWorkspace;
     }
