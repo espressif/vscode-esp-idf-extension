@@ -142,9 +142,10 @@ export async function activate(context: vscode.ExtensionContext) {
     const telemetryCallback = (...args: any[]) => {
       const startTime = Date.now();
       Logger.info(`Command::${name}::Executed`);
-      callback.apply(this, args);
+      const cbResult = callback.apply(this, args);
       const timeSpent = Date.now() - startTime;
       Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+      return cbResult;
     };
     return context.subscriptions.push(
       vscode.commands.registerCommand(name, telemetryCallback)
