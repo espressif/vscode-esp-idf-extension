@@ -139,7 +139,7 @@ export async function activate(context: vscode.ExtensionContext) {
     name: string,
     callback: (...args: any[]) => any
   ): number => {
-    const telemetryCallback = (...args: any[]) => {
+    const telemetryCallback = (...args: any[]): any => {
       const startTime = Date.now();
       Logger.info(`Command::${name}::Executed`);
       const cbResult = callback.apply(this, args);
