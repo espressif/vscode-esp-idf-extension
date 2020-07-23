@@ -33,7 +33,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 ## Coming Soon
 
 - Create new project wizard
-- Add System View UI
 - Support GDB Stub
 - Support Core Dump
 
