@@ -203,6 +203,9 @@ export class ConfserverProcess {
       ConfserverProcess.instance.confServerChannel = null;
       ConfserverProcess.instance = null;
     }
+    if (MenuConfigPanel.currentPanel) {
+      MenuConfigPanel.currentPanel.dispose();
+    }
   }
 
   private static instance: ConfserverProcess;

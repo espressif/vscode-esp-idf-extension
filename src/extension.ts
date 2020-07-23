@@ -248,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
-    ConfserverProcess.resetSavedByUI();
+    ConfserverProcess.dispose();
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
@@ -448,6 +448,9 @@ export async function activate(context: vscode.ExtensionContext) {
               currentWorkspace: workspaceRoot,
             } as IDebugAdapterConfig;
             debugAdapterManager.configureAdapter(debugAdapterConfig);
+            ConfserverProcess.dispose();
+            const coverageOptions = getCoverageOptions();
+            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           }
         });
     });
