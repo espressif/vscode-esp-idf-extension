@@ -248,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
-    ConfserverProcess.resetSavedByUI();
+    ConfserverProcess.dispose();
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
@@ -262,17 +262,26 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
     "**/sdkconfig",
-    true,
     false,
-    true
+    false,
+    false
   );
-  const sdkWatchDisposable = sdkconfigWatcher.onDidChange(async () => {
+  const updateGuiValues = (e: vscode.Uri) => {
     if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
       ConfserverProcess.loadGuiConfigValues();
     }
     ConfserverProcess.resetSavedByUI();
-  });
+  };
+  const sdkCreateWatchDisposable = sdkconfigWatcher.onDidCreate(
+    updateGuiValues
+  );
+  context.subscriptions.push(sdkCreateWatchDisposable);
+  const sdkWatchDisposable = sdkconfigWatcher.onDidChange(updateGuiValues);
   context.subscriptions.push(sdkWatchDisposable);
+  const sdkDeleteWatchDisposable = sdkconfigWatcher.onDidDelete(async () => {
+    ConfserverProcess.dispose();
+  });
+  context.subscriptions.push(sdkDeleteWatchDisposable);
 
   vscode.window.onDidCloseTerminal((terminal: vscode.Terminal) => {
     terminal.dispose();
@@ -439,6 +448,9 @@ export async function activate(context: vscode.ExtensionContext) {
               currentWorkspace: workspaceRoot,
             } as IDebugAdapterConfig;
             debugAdapterManager.configureAdapter(debugAdapterConfig);
+            ConfserverProcess.dispose();
+            const coverageOptions = getCoverageOptions();
+            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           }
         });
     });
@@ -802,68 +814,78 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.setTarget", () => {
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const enterDeviceTargetMsg = locDic.localize(
         "extension.enterDeviceTargetMessage",
         "Enter device target name"
       );
-      vscode.window
-        .showQuickPick(
-          [
-            { description: "ESP32", label: "ESP32", target: "esp32" },
-            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
-          ],
-          { placeHolder: enterDeviceTargetMsg }
-        )
-        .then(async (selected) => {
-          if (typeof selected === "undefined") {
-            return;
-          }
-          const configurationTarget = idfConf.readParameter("idf.saveScope");
-          await idfConf.writeParameter(
-            "idf.adapterTargetName",
-            selected.target,
-            configurationTarget
-          );
-          if (selected.target === "esp32") {
-            await idfConf.writeParameter(
-              "idf.openOcdConfigs",
-              ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
-              configurationTarget
-            );
-          }
-          if (selected.target === "esp32s2") {
-            await idfConf.writeParameter(
-              "idf.openOcdConfigs",
-              ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
-              configurationTarget
-            );
-          }
-          const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-          const idfPy = path.join(idfPathDir, "tools", "idf.py");
-          const modifiedEnv = utils.appendIdfAndToolsToPath();
-          const pythonBinPath = idfConf.readParameter(
-            "idf.pythonBinPath"
-          ) as string;
-          await utils
-            .spawn(pythonBinPath, [idfPy, "set-target", selected.target], {
-              cwd: workspaceRoot.fsPath,
-              env: modifiedEnv,
-            })
-            .then((result) => {
-              Logger.info(result.toString());
-              OutputChannel.append(result.toString());
-            })
-            .catch((err) => {
-              if (err.message && err.message.indexOf("are satisfied") > -1) {
-                Logger.info(err.message.toString());
-                OutputChannel.append(err.message.toString());
-              } else {
-                Logger.errorNotify(err, err);
-                OutputChannel.append(err);
+      const selectedTarget = await vscode.window.showQuickPick(
+        [
+          { description: "ESP32", label: "ESP32", target: "esp32" },
+          { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
+        ],
+        { placeHolder: enterDeviceTargetMsg }
+      );
+      if (!selectedTarget) {
+        return;
+      }
+      const configurationTarget = idfConf.readParameter("idf.saveScope");
+      await idfConf.writeParameter(
+        "idf.adapterTargetName",
+        selectedTarget.target,
+        configurationTarget
+      );
+      if (selectedTarget.target === "esp32") {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
+          configurationTarget
+        );
+      }
+      if (selectedTarget.target === "esp32s2") {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
+          configurationTarget
+        );
+      }
+      await vscode.window.withProgress(
+        {
+          cancellable: false,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Setting device target...",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>
+        ) => {
+          try {
+            const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+            const idfPy = path.join(idfPathDir, "tools", "idf.py");
+            const modifiedEnv = utils.appendIdfAndToolsToPath();
+            const pythonBinPath = idfConf.readParameter(
+              "idf.pythonBinPath"
+            ) as string;
+            const setTargetResult = await utils.spawn(
+              pythonBinPath,
+              [idfPy, "set-target", selectedTarget.target],
+              {
+                cwd: workspaceRoot.fsPath,
+                env: modifiedEnv,
               }
-            });
-        });
+            );
+            Logger.info(setTargetResult.toString());
+            OutputChannel.append(setTargetResult.toString());
+          } catch (err) {
+            if (err.message && err.message.indexOf("are satisfied") > -1) {
+              Logger.info(err.message.toString());
+              OutputChannel.append(err.message.toString());
+            } else {
+              Logger.errorNotify(err, err);
+              OutputChannel.append(err);
+            }
+          }
+        }
+      );
     });
   });
 
