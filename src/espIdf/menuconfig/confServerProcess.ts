@@ -102,8 +102,21 @@ export class ConfserverProcess {
         newValueRequest = `{"version": 2, "set": { "${updatedValue.value}": true }}\n`;
         break;
       case menuType.string:
-      case menuType.hex:
         newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${updatedValue.value}" }}\n`;
+        break;
+      case menuType.hex:
+        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": "${
+          updatedValue.value || "0"
+        }" }}\n`;
+        break;
+      case menuType.int:
+        if (updatedValue.value === "") {
+          updatedValue.value =
+            updatedValue.range && updatedValue.range.length > 0
+              ? updatedValue.range[0]
+              : 0;
+        }
+        newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
         break;
       default:
         newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
