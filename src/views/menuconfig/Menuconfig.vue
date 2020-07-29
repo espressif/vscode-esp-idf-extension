@@ -1,15 +1,15 @@
 <template>
-  <div class="window">
+  <div>
     <search-bar />
-    <div id="main">
-      <div class="sidenav">
+    <div id="main" class="columns">
+      <div class="sidenav column is-narrow">
         <ul>
           <sidenav-el v-for="menu in menuItems" :key="menu.id" :menu="menu" />
         </ul>
       </div>
 
       <div
-        class="config-list"
+        class="config-list column"
         v-scroll:throttle="{ fn: onScroll, throttle: 100 }"
       >
         <config-el
@@ -108,21 +108,13 @@ export default class Menuconfig extends Vue {
 }
 </script>
 
-<style>
-.loadingWindow,
-.errorWindow,
-.window {
-  max-width: 90%;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+<style lang="scss">
+@import "../commons/espCommons.scss";
+
 #main {
   display: flex;
   height: 90vh;
   margin: auto;
-  overflow: auto;
 }
 p {
   color: var(--vscode-editor-foreground);
@@ -130,6 +122,7 @@ p {
 .config-list {
   overflow: auto;
   margin-left: 1%;
+  color: var(--vscode-foreground);
 }
 .sidenav {
   overflow: auto;

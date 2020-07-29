@@ -21,14 +21,21 @@ export default class App extends Vue {
 }
 </script>
 
-<style>
+<style lang="scss">
+@import "../commons/espCommons.scss";
+
 #app {
-  max-width: 900px;
-  margin: 1% auto 1% auto;
-  padding-top: 3%;
   text-align: center;
-  cursor: default;
+  padding: 1em;
+  color: var(--vscode-foreground);
 }
+
+.centerize {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
 .arrow {
   position: relative;
   display: inline-block;
@@ -36,18 +43,22 @@ export default class App extends Vue {
   color: var(--vscode-editor-foreground);
   box-sizing: border-box;
 }
+
 .arrow:before {
   content: "";
   box-sizing: border-box;
 }
+
 .arrow:hover {
   color: var(--vscode-button-background);
 }
+
 .check-icon {
   fill: var(--vscode-editor-foreground);
   padding-top: 5%;
   font-size: large;
 }
+
 .go-back {
   width: 20px;
   height: 20px;
@@ -56,6 +67,7 @@ export default class App extends Vue {
   margin: 10px;
   cursor: pointer;
 }
+
 .go-back:before {
   right: 0;
   top: -3px;
@@ -68,62 +80,37 @@ export default class App extends Vue {
   -webkit-transform-origin: right top;
   transform-origin: right top;
 }
-.onboarding-button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  text-decoration: none;
-  transition: opacity 0.5s ease 1s;
-  border: none;
-  cursor: pointer;
-  padding: 0.5%;
-  margin: 2%;
-  vertical-align: super;
-}
-
-.onboarding-button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-  box-shadow: 1px 0 5px var(--vscode-editor-foreground);
-}
 
 .open-icon {
-  fill: var(--vscode-editor-foreground);
-  font-size: large;
-  margin-left: 1%;
+  color: var(--vscode-button-background);
+  margin: 0.5em 0 0 0.5em;
   cursor: pointer;
+  font-size: larger;
 }
 .open-icon:hover {
-  fill: var(--vscode-button-hoverBackground);
-}
-
-.progressBar {
-  border-radius: 10px;
-  padding: 2px;
-  overflow: hidden;
-  width: 40%;
-}
-.progressBar p {
-  margin: 0%;
-  padding-top: 2%;
+  color: var(--vscode-button-hoverBackground);
 }
 
 .progressBar div {
   background-color: var(--vscode-button-background);
   height: 10px;
   width: 0%;
-  border-radius: 7px;
-  width: 45%;
 }
+
 .right {
   -webkit-transform: rotate(-135deg);
   transform: rotate(-135deg);
 }
+
 .text-size {
-  width: 60%;
+  width: 80%;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 1s;
 }
+
 .fade-enter,
 .fade-leave-to {
   opacity: 0;

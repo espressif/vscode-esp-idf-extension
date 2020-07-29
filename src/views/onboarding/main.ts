@@ -30,6 +30,7 @@ import GitPyCheck from "./GitPyCheck.vue";
 import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
 import { store } from "./store";
+import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },

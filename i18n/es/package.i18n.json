@@ -24,6 +24,8 @@
   "espIdf.genCoverage.title": "ESP-IDF: Agregar cobertura al editor",
   "espIdf.removeCoverage.title": "ESP-IDF: Remover cobertura al editor",
   "espIdf.getCoverageReport.title": "ESP-IDF: Ver reporte HTML de cobertura para este proyecto",
+  "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Buscar en la documentación...",
+  "espIdf.launchWSServerAndMonitor.title" : "ESP-IDF: Ejecutar IDF Monitor en modo CoreDump / GDB-Stub",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

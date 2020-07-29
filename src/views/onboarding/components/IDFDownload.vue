@@ -1,5 +1,5 @@
 <template>
-  <div class="idf-download-step">
+  <div class="field centerize">
     <i
       v-on:click="setSelectedIdfDownloadState('empty')"
       class="arrow go-back right"
@@ -12,21 +12,24 @@
       </p>
       <div v-bind:style="{ width: idfDownloadStatus.progress }"></div>
     </div>
-    <div v-if="downloadedPath !== '' && downloadedPath !== 'master'">
+    <div
+      v-if="downloadedPath !== '' && downloadedPath !== 'master'"
+      class="control"
+    >
       <p v-if="downloadedPath !== 'master'">
         ESP-IDF zip file has been downloaded in {{ downloadedPath }}
       </p>
       <p v-if="!isIDFZipExtracted">Extracting {{ downloadedPath }} ...</p>
     </div>
-    <div v-if="isIDFZipExtracted">
-      <p>ESP-IDF has been installed in {{ resultingIdfPath }}</p>
-      <br />
-      <router-link
-        to="/toolsetup"
-        class="onboarding-button"
-        v-on:click.native="reset"
-        >Go to ESP-IDF Tools setup</router-link
-      >
+    <div v-if="isIDFZipExtracted" class="field centerize">
+      <div class="control">
+        <p>ESP-IDF has been installed in {{ resultingIdfPath }}</p>
+      </div>
+      <div class="control">
+        <router-link to="/toolsetup" class="button" v-on:click.native="reset"
+          >Go to ESP-IDF Tools setup</router-link
+        >
+      </div>
     </div>
   </div>
 </template>
