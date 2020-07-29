@@ -647,7 +647,7 @@
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
         "title": "%espIdf.launchWSServerAndMonitor.title%"
       },
       {
