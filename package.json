@@ -745,6 +745,11 @@
                   "default": ""
                 },
                 "default": []
+              },
+              "gdbinitFile": {
+                "type": "string",
+                "description": "%esp_idf.gdbinitFile.description%",
+                "default": ""
               }
             }
           }

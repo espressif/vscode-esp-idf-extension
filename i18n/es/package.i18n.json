@@ -71,5 +71,6 @@
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
+  "esp_idf.gdbinitFile.description": "ruta del archivo gdbinit para el ESP-IDF Debug Adapter",
   "esp_idf.debuggers.text.description": "Comando a ejecutar"
 }

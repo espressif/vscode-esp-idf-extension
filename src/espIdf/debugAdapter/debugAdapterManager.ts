@@ -22,13 +22,17 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
-import { getProjectName } from "../../workspaceConfig";
-import { EOL, tmpdir } from "os";
-import { outputFile } from "fs-extra";
+import {
+  appendIdfAndToolsToPath,
+  canAccessFile,
+  isBinInPath,
+  PreCheck,
+} from "../../utils";
+import { EOL } from "os";
+import { outputFile, constants } from "fs-extra";
 
 export interface IDebugAdapterConfig {
-  coreDumpFile: string;
+  coreDumpFile?: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
   elfFile?: string;
@@ -37,6 +41,7 @@ export interface IDebugAdapterConfig {
   isPostMortemDebugMode: boolean;
   target?: string;
   initGdbCommands?: string[];
+  gdbinitFilePath?: string;
 }
 
 export class DebugAdapterManager extends EventEmitter {
@@ -60,6 +65,7 @@ export class DebugAdapterManager extends EventEmitter {
   private port: number;
   private isPostMortemDebugMode: boolean;
   private initGdbCommands: string[];
+  private gdbinitFilePath: string;
   private target: string;
 
   private constructor(context: vscode.ExtensionContext) {
@@ -80,14 +86,19 @@ export class DebugAdapterManager extends EventEmitter {
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : "";
       if (!isBinInPath("openocd", workspace, this.env)) {
-        throw new Error(
-          "Invalid OpenOCD bin path or access is denied for the user"
+        return reject(
+          new Error("Invalid OpenOCD bin path or access is denied for the user")
         );
       }
-      if (typeof this.env.OPENOCD_SCRIPTS === "undefined") {
-        throw new Error(
-          "Invalid OpenOCD script path or access is denied for the user"
+      if (this.env && typeof this.env.OPENOCD_SCRIPTS === "undefined") {
+        return reject(
+          new Error(
+            "Invalid OpenOCD script path or access is denied for the user"
+          )
         );
+      }
+      if (!canAccessFile(this.elfFile, constants.R_OK)) {
+        return reject(new Error(`${this.elfFile} doesn't exist. Build first.`));
       }
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
@@ -116,7 +127,9 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.coreDumpFile) {
         adapterArgs.push("-c", this.coreDumpFile);
       }
-      const resultGdbInitFile = await this.makeGdbinitFile();
+      const resultGdbInitFile = this.gdbinitFilePath
+        ? this.gdbinitFilePath
+        : await this.makeGdbinitFile();
       if (resultGdbInitFile) {
         adapterArgs.push("-x", resultGdbInitFile);
       }
@@ -135,14 +148,14 @@ export class DebugAdapterManager extends EventEmitter {
         this.displayChan.append(data.toString());
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
-          resolve(true);
+          return resolve(true);
         }
       });
 
       this.adapter.on("error", (error) => {
         this.emit("error", error, this.chan);
         this.stop();
-        reject();
+        return reject(error);
       });
 
       this.adapter.on("close", (code: number, signal: string) => {
@@ -199,6 +212,9 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.initGdbCommands) {
       this.initGdbCommands = config.initGdbCommands;
     }
+    if (config.gdbinitFilePath) {
+      this.gdbinitFilePath = config.gdbinitFilePath;
+    }
   }
 
   public isRunning(): boolean {
@@ -209,7 +225,6 @@ export class DebugAdapterManager extends EventEmitter {
     this.currentWorkspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
       : undefined;
-    const projectName = await getProjectName(this.currentWorkspace.fsPath);
     this.debugAdapterPath = path.join(
       extensionPath,
       "esp_debug_adapter",
@@ -219,11 +234,6 @@ export class DebugAdapterManager extends EventEmitter {
     this.port = 43474;
     this.logLevel = 0;
     this.target = idfConf.readParameter("idf.adapterTargetName");
-    this.elfFile = `${path.join(
-      this.currentWorkspace.fsPath,
-      "build",
-      projectName
-    )}.elf`;
     this.env = appendIdfAndToolsToPath();
     this.env.PYTHONPATH = path.join(
       extensionPath,
@@ -231,6 +241,11 @@ export class DebugAdapterManager extends EventEmitter {
       "debug_adapter"
     );
     this.initGdbCommands = [];
+    this.elfFile = `${path.join(
+      this.currentWorkspace.fsPath,
+      "build",
+      "project-name"
+    )}.elf`;
   }
 
   private sendToOutputChannel(data: Buffer) {
@@ -248,8 +263,8 @@ export class DebugAdapterManager extends EventEmitter {
         result = result.substring(0, lastValue);
 
         const resultGdbInitPath = path.join(
-          tmpdir(),
-          "vscode-ext-esp-idf-da-generated.gdbinit"
+          this.currentWorkspace.fsPath,
+          "esp-idf-vscode-generated.gdb"
         );
         await outputFile(resultGdbInitPath, result);
         return resultGdbInitPath;

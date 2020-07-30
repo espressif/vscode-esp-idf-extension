@@ -77,7 +77,7 @@ import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
-import { pathExists } from "fs-extra";
+import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 
@@ -679,30 +679,43 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
-      const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
-      const launchMode = session.configuration.mode || "auto";
-      if (launchMode === "auto" && !openOCDManager.isRunning()) {
-        isOpenOCDLaunchedByDebug = true;
-        await openOCDManager.start();
+      try {
+        const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
+        const launchMode = session.configuration.mode || "auto";
+        if (launchMode === "auto" && !openOCDManager.isRunning()) {
+          isOpenOCDLaunchedByDebug = true;
+          await openOCDManager.start();
+        }
+        if (
+          session.name === "Core Dump Debug" ||
+          session.name === "GDB Stub Debug"
+        ) {
+          await debugAdapterManager.start();
+        }
+        if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
+          const elfFilePath = path.join(
+            workspaceRoot.fsPath,
+            "build",
+            (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+          );
+          const debugAdapterConfig = {
+            debugAdapterPort: portToUse,
+            elfFile: elfFilePath,
+            env: session.configuration.env,
+            gdbinitFilePath: session.configuration.gdbinitFile,
+            initGdbCommands: session.configuration.initGdbCommands || [],
+            isPostMortemDebugMode: false,
+            logLevel: session.configuration.logLevel,
+          } as IDebugAdapterConfig;
+          debugAdapterManager.configureAdapter(debugAdapterConfig);
+          await debugAdapterManager.start();
+        }
+        return new vscode.DebugAdapterServer(portToUse);
+      } catch (error) {
+        const errMsg = error.message || "Error starting ESP-IDF Debug Adapter";
+        Logger.errorNotify(errMsg, error);
+        return;
       }
-      if (
-        session.name === "Core Dump Debug" ||
-        session.name === "GDB Stub Debug"
-      ) {
-        await debugAdapterManager.start();
-      }
-      if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
-        const debugAdapterConfig = {
-          debugAdapterPort: portToUse,
-          env: session.configuration.env,
-          initGdbCommands: session.configuration.initGdbCommands || [],
-          isPostMortemDebugMode: false,
-          logLevel: session.configuration.logLevel,
-        } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
-        await debugAdapterManager.start();
-      }
-      return new vscode.DebugAdapterServer(portToUse);
     },
   });
 
@@ -1649,7 +1662,7 @@ const flash = () => {
 
     const buildPath = path.join(workspaceRoot.fsPath, "build");
 
-    if (!utils.canAccessFile(buildPath)) {
+    if (!utils.canAccessFile(buildPath, constants.R_OK)) {
       return Logger.errorNotify(
         `Build is required before Flashing, ${buildPath} can't be accessed`,
         new Error("BUILD_PATH_ACCESS_ERROR")
