@@ -1319,7 +1319,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "Core-dump detected, please wait while we parse the data received",
           },
           async (progress) => {
-            const espCoredumpPy = new ESPCoreDumpPyTool(idfPath);
+            const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
             const projectName = await getProjectName(workspaceRoot.fsPath);
             const coreElfFilePath = path.join(
               workspaceRoot.fsPath,
@@ -1327,7 +1327,7 @@ export async function activate(context: vscode.ExtensionContext) {
               `${projectName}.coredump.elf`
             );
             if (
-              (await espCoredumpPy.generateCoreELFFile({
+              (await espCoreDumpPyTool.generateCoreELFFile({
                 coreElfFilePath,
                 coreInfoFilePath: resp.file,
                 infoCoreFileFormat: InfoCoreFileFormat.Base64,
@@ -1344,6 +1344,16 @@ export async function activate(context: vscode.ExtensionContext) {
                   name: "Core Dump Debug",
                   type: "espidf",
                   request: "launch",
+                  sessionID: "core-dump.debug.session.ws",
+                });
+                vscode.debug.onDidTerminateDebugSession((session) => {
+                  if (
+                    session.configuration.sessionID ===
+                    "core-dump.debug.session.ws"
+                  ) {
+                    monitor.dispose();
+                    wsServer.close();
+                  }
                 });
               } catch (error) {
                 Logger.errorNotify(
@@ -1351,8 +1361,6 @@ export async function activate(context: vscode.ExtensionContext) {
                   error
                 );
               }
-              wsServer.done();
-              monitor.dispose();
             } else {
               Logger.warnNotify(
                 "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
