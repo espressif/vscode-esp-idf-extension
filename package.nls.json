@@ -25,7 +25,7 @@
   "espIdf.removeCoverage.title": "ESP-IDF: Remove Editor coverage",
   "espIdf.getCoverageReport.title": "ESP-IDF: Get HTML Coverage Report for project",
   "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Search in documentation...",
-  "espIdf.launchWSServerAndMonitor.title" : "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
+  "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
@@ -65,5 +65,6 @@
   "esp.rainmaker.backend.remove_node.title": "Remove this node",
   "esp.rainmaker.backend.update_node_param.title": "Update param for device",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
-  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub"
+  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub",
+  "esp.efuse.summary.title": "Get eFuse Summary"
 }
