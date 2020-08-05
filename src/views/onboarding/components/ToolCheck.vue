@@ -1,16 +1,18 @@
 <template>
   <div class="tool-check-result" :key="tool.id">
     <div class="result-description">
-      <p>{{ tool.id }} has been found ?</p>
+      <p class="subtitle">{{ tool.id }}</p>
       <p class="result-description-small">Expected {{ tool.expected }}</p>
       <p class="result-description-small">Found {{ tool.actual }}</p>
     </div>
-    <font-awesome-icon
-      icon="check"
-      v-if="tool.doesToolExist"
-      class="check-icon"
-    />
-    <font-awesome-icon icon="times" v-else class="check-icon" />
+    <div class="control is-small centered-icon">
+      <font-awesome-icon
+        icon="check"
+        v-if="tool.doesToolExist"
+        class="check-icon"
+      />
+      <font-awesome-icon icon="times" v-else class="check-icon" />
+    </div>
   </div>
 </template>
 
@@ -38,5 +40,11 @@ export default class ToolCheck extends Vue {
 .result-description-small {
   margin-left: 5%;
   white-space: pre-line;
+}
+
+.centered-icon {
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
 }
 </style>

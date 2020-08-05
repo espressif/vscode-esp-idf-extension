@@ -1,29 +1,33 @@
 <template>
   <div id="tools-manual-setup">
     <i class="arrow go-back right" v-on:click="reset"></i>
-    <h4>Verify ESP-IDF Tools</h4>
+    <h4 class="subtitle">Verify ESP-IDF Tools</h4>
     <ToolsManual v-if="!isToolsCheckCompleted" />
 
-    <div id="tools-check-results" v-if="showIdfToolsChecks">
+    <div id="tools-check-results field" v-if="showIdfToolsChecks">
       <ToolCheck
         :tool="toolCheck"
         v-for="toolCheck in toolsCheckResults"
         :key="toolCheck.id"
       />
-      <h4>Verify Python packages requirements</h4>
-      <pre id="python-log">{{ pyLog }}</pre>
-      <br />
+      <h4 class="subtitle">Verify Python packages requirements</h4>
+      <p id="python-log" class="notification">{{ pyLog }}</p>
     </div>
-    <button
-      v-on:click="selectToolsSetup('complete')"
-      class="onboarding-button"
-      v-if="isToolsCheckCompleted && isPyInstallCompleted"
-    >
-      Go to next step.
-    </button>
-    <button v-on:click="checkIdfToolsExists" class="onboarding-button" v-else>
-      Click here to check tools exists.
-    </button>
+    <br />
+    <div class="field centerize">
+      <div class="control">
+        <button
+          v-on:click="selectToolsSetup('complete')"
+          class="button"
+          v-if="isToolsCheckCompleted && isPyInstallCompleted"
+        >
+          Go to next step.
+        </button>
+        <button v-on:click="checkIdfToolsExists" class="button" v-else>
+          Click here to check tools exists.
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -74,4 +78,12 @@ export default class ToolsSkipStep extends Vue {
 }
 </script>
 
-<style></style>
+<style>
+#python-log {
+  white-space: pre-line;
+}
+#tools-manual-setup {
+  margin: auto;
+  width: 80%;
+}
+</style>

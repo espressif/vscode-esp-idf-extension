@@ -69,16 +69,20 @@ export default class ToolDownload extends Vue {
 .pkg-progress {
   margin-top: 1%;
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   flex-direction: row;
-  width: 100%;
+  width: 50%;
   align-items: center;
   align-self: center;
 }
 
 .progressText {
-  width: 30%;
+  width: 45%;
   display: flex;
   flex-direction: column;
+}
+
+.progressBar {
+  width: 50%;
 }
 </style>

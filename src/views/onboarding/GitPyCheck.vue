@@ -1,52 +1,71 @@
 <template>
-  <div id="git-py-check">
-    <router-link to="/" class="arrow go-back right"></router-link>
-    <h4>Select Git and Python version to use</h4>
-    <label>Git version: {{ gitVersion }}</label>
-    <p v-if="gitVersion === 'Not found'">
-      Please install <a href="https://git-scm.com/downloads">Git</a> and reload
-      this window.
-    </p>
-    <br /><br />
-    <label for="python-version-select">Python version:</label>
-    <select v-model="selectedPythonVersion" id="python-version-select">
-      <option v-for="ver in pyVersionList" :key="ver" :value="ver">
-        {{ ver }}
-      </option>
-    </select>
-    <p v-if="pyVersionList && pyVersionList[0] === 'Not found'">
-      Please install <a href="https://www.python.org/downloads">Python</a> and
-      reload this window.
-    </p>
-    <div
-      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
-    >
-      <br />
-      <br />
-      <label
-        >Enter absolute python binary path to use. Example:
-        {{ winRoot }}/Users/name/python<span v-if="winRoot !== ''"
-          >.exe</span
-        ></label
+  <section id="git-py-check" class="section">
+    <div class="container centerize">
+      <router-link
+        to="/"
+        class="arrow go-back right"
+        @click.native="setPythonSysIsValid(false)"
+      ></router-link>
+      <h4 class="title">Select Python version to use</h4>
+      <label>Git version: {{ gitVersion }}</label>
+      <p v-if="gitVersion === 'Not found'">
+        Please install <a href="https://git-scm.com/downloads">Git</a> and
+        reload this window.
+      </p>
+      <div class="field">
+        <label for="python-version-select">Python version: </label>
+        <div class="control">
+          <select
+            v-model="selectedPythonVersion"
+            id="python-version-select"
+            @change="setPythonSysIsValid(false)"
+            class="select"
+          >
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
+              {{ ver }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <p v-if="pyVersionList && pyVersionList[0] === 'Not found'">
+        Please install <a href="https://www.python.org/downloads">Python</a> and
+        reload this window.
+      </p>
+      <div
+        v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
+        class="field"
       >
-      <br />
-      <br />
-      <input
-        type="text"
-        class="text-size"
-        v-model="manualPythonPath"
-        placeholder="Enter your absolute python binary path here"
-      />
+        <label
+          >Enter absolute python binary path to use. Example:
+          {{ winRoot }}/Users/name/python<span v-if="winRoot !== ''"
+            >.exe</span
+          ></label
+        >
+        <div class="control">
+          <input
+            type="text"
+            class="input"
+            v-model="manualPythonPath"
+            placeholder="Enter your absolute python binary path here"
+          />
+        </div>
+      </div>
+      <div class="field is-grouped is-grouped-centered">
+        <div class="control">
+          <router-link v-if="pythonPathIsValid" to="/download" class="button"
+            >Configure ESP-IDF</router-link
+          >
+          <button
+            v-if="!pythonPathIsValid"
+            v-on:click="savePyBin"
+            class="button"
+          >
+            Check Python path exists
+          </button>
+        </div>
+      </div>
     </div>
-    <br />
-    <br />
-    <router-link
-      v-on:click.native="savePyBin"
-      to="/download"
-      class="onboarding-button"
-      >Configure ESP-IDF</router-link
-    >
-  </div>
+  </section>
 </template>
 
 <script lang="ts">
@@ -58,9 +77,11 @@ import { Action, Mutation, State } from "vuex-class";
 export default class GitPyCheck extends Vue {
   @State("gitVersion") private storeGitVersionList;
   @State("pyVersionList") private storePythonVersionList;
+  @State("pythonSysPathIsValid") private pythonPathIsValid;
   @State("selectedPythonVersion") private storeSelectedPythonVersion;
   @Mutation private setSelectedPythonVersion;
-  private manualPythonPath;
+  @Mutation private setPythonSysIsValid;
+  private manualPythonPath = "";
   @Action private savePythonToUse;
 
   get gitVersion() {

@@ -19,9 +19,15 @@ p.subtitle {
   color: var(--vscode-foreground);
 }
 
+.title,
+.subtitle,
+.label {
+  color: var(--vscode-foreground);
+}
+
 .notification {
   color: var(--vscode-foreground);
-  background-color: var(--vscode-sideBarSectionHeader-background);
+  background-color: var(--vscode-notifications-background);
 }
 .notification:not(:last-child) {
   margin-bottom: 0.8em;
@@ -30,7 +36,7 @@ p.subtitle {
 .table,
 .table thead td {
   color: var(--vscode-foreground);
-  background-color: var(--vscode-sideBarSectionHeader-background);
+  background-color: var(--vscode-notifications-background);
 }
 .table td,
 .table th {
@@ -64,9 +70,9 @@ button > span.icon > i:hover {
 .button:focus,
 .button.is-focused {
   border-color: var(--vscode-button-foreground);
-  color: var(--vscode-button-foreground);
 }
 
+.select,
 .input {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-border);
@@ -75,9 +81,12 @@ button > span.icon > i:hover {
 .input::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
+.select:hover,
 .input:hover {
   border-color: var(--vscode-inputOption-activeBorder);
 }
+.select:active,
+.select:focus,
 .input:active,
 .input:focus {
   border-color: var(--vscode-inputOption-activeBorder);

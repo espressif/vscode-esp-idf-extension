@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir } from "fs-extra";
+import { ensureDir, constants } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -122,7 +122,7 @@ export class OnBoardingPanel {
               break;
             case vscode.ConfigurationTarget.Workspace:
               this.confTarget = vscode.ConfigurationTarget.Workspace;
-              if (vscode.workspace.workspaceFolders) {
+              if (utils.PreCheck.isWorkspaceFolderOpen()) {
                 this.confTarget = vscode.ConfigurationTarget.Workspace;
               } else {
                 this.panel.webview.postMessage({
@@ -136,7 +136,7 @@ export class OnBoardingPanel {
               break;
             case vscode.ConfigurationTarget.WorkspaceFolder:
               this.confTarget = vscode.ConfigurationTarget.Workspace;
-              if (vscode.workspace.workspaceFolders) {
+              if (utils.PreCheck.isWorkspaceFolderOpen()) {
                 this.confTarget = vscode.ConfigurationTarget.WorkspaceFolder;
                 this.selectedWorkspaceFolder = vscode.workspace.workspaceFolders.find(
                   (f) => f.uri.fsPath === message.workspaceFolder
@@ -218,6 +218,15 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 }
+                if (!utils.canAccessFile(message.py_bin_path, constants.R_OK)) {
+                  const notAccessMsg = `${message.py_bin_path} is not accesible.`;
+                  vscode.window.showErrorMessage(notAccessMsg);
+                  this.panel.webview.postMessage({
+                    command: "response_py_req_check",
+                    py_req_log: notAccessMsg,
+                  });
+                  return;
+                }
                 checkPythonRequirements(
                   this.extensionPath,
                   this.selectedWorkspaceFolder,
@@ -253,6 +262,12 @@ export class OnBoardingPanel {
                     this.selectedWorkspaceFolder
                   );
                 } else {
+                  if (message.tools_path.indexOf("~") > -1) {
+                    vscode.window.showInformationMessage(
+                      "Given path can't contain ~, please use absolute path."
+                    );
+                    return;
+                  }
                   const selected = await vscode.window.showErrorMessage(
                     "Specified Directory doesn't exists. Create?",
                     { modal: true },
@@ -371,10 +386,17 @@ export class OnBoardingPanel {
           break;
         case "savePythonBinary":
           if (message.selectedPyBin) {
+            if (!utils.fileExists(message.selectedPyBin)) {
+              vscode.window.showInformationMessage("Python path doesn't exist");
+              return;
+            }
             const msg = `Saving ${message.selectedPyBin} to create python virtual environment.`;
             Logger.info(msg);
             OutputChannel.appendLine(msg);
             this.pythonSystemBinPath = message.selectedPyBin;
+            this.panel.webview.postMessage({
+              command: "set_py_sys_path_is_valid",
+            });
           }
           break;
         case "saveShowOnboarding":
@@ -417,7 +439,7 @@ export class OnBoardingPanel {
   private sendInitialValues(onboardingArgs: IOnboardingArgs) {
     // Send workspace folders
     let selected;
-    if (vscode.workspace.workspaceFolders) {
+    if (utils.PreCheck.isWorkspaceFolderOpen()) {
       const folders = vscode.workspace.workspaceFolders.map(
         (f) => f.uri.fsPath
       );

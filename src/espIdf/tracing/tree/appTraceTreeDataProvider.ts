@@ -82,7 +82,7 @@ export class AppTraceTreeDataProvider
   private initHeapTraceButton() {
     this.heapTraceButton = new AppTracerItems("Start Heap Trace");
     this.heapTraceButton.description = "";
-    this.heapTraceButton.iconPath = new vscode.ThemeIcon("debug-stop");
+    this.heapTraceButton.iconPath = new vscode.ThemeIcon("run-all");
     this.heapTraceButton.command = { command: "espIdf.heaptrace", title: "" };
   }
   private getButtonInstance(buttonType: AppTraceButtonType): AppTracerItems {

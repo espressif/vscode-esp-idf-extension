@@ -22,7 +22,6 @@ import {
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient";
-import { BuildManager } from "./build/build";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import {
   DebugAdapterManager,
@@ -39,12 +38,14 @@ import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
 import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
-import { AppTraceArchiveTreeDataProvider } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
+import {
+  AppTraceArchiveTreeDataProvider,
+  AppTraceArchiveItems,
+  TraceType,
+} from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
-import { FlashManager } from "./flash/flash";
 import { createFlashModel } from "./flash/flashModelBuilder";
-import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -58,6 +59,8 @@ import {
   initSelectedWorkspace,
   updateIdfComponentsTree,
 } from "./workspaceConfig";
+import { SystemViewResultParser } from "./espIdf/tracing/system-view";
+import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
@@ -68,10 +71,17 @@ import { RainmakerDeviceParamStructure } from "./rainmaker/client/model";
 import { RainmakerOAuthManager } from "./rainmaker/oauth";
 import { CoverageRenderer, getCoverageOptions } from "./coverage/renderer";
 import { previewReport } from "./coverage/coverageService";
+import { WSServer } from "./espIdf/communications/ws";
+import { IDFMonitor } from "./espIdf/monitor";
+import { BuildTask } from "./build/buildTask";
+import { FlashTask } from "./flash/flashTask";
+import { TaskManager } from "./taskManager";
+import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { pathExists } from "fs-extra";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
-const LOCALHOST_DEF_PORT = 43474;
+const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
@@ -97,6 +107,9 @@ let kconfigLangClient: LanguageClient;
 let monitorTerminal: vscode.Terminal;
 const locDic = new LocDictionary(__filename);
 
+// Websocket Server
+let wsServer: WSServer;
+
 // Precheck methods and their messages
 const openFolderMsg = locDic.localize(
   "extension.openFolderFirst",
@@ -115,20 +128,27 @@ const webIdeCheck = [
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
 
-const idfBuildChannel = vscode.window.createOutputChannel("ESP-IDF Build");
-const idfFlashChannel = vscode.window.createOutputChannel("ESP-IDF Flash");
-
 export async function activate(context: vscode.ExtensionContext) {
-  utils.setExtensionContext(context);
+  // Always load Logger first
   Logger.init(context);
+  Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
+  utils.setExtensionContext(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
     name: string,
     callback: (...args: any[]) => any
   ): number => {
+    const telemetryCallback = (...args: any[]): any => {
+      const startTime = Date.now();
+      Logger.info(`Command::${name}::Executed`);
+      const cbResult = callback.apply(this, args);
+      const timeSpent = Date.now() - startTime;
+      Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
+      return cbResult;
+    };
     return context.subscriptions.push(
-      vscode.commands.registerCommand(name, callback)
+      vscode.commands.registerCommand(name, telemetryCallback)
     );
   };
   // init rainmaker cache store
@@ -162,10 +182,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
 
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(status);
     const coverageOptions = getCoverageOptions();
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -212,10 +229,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
   vscode.workspace.onDidChangeWorkspaceFolders((e) => {
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    ) {
+    if (PreCheck.isWorkspaceFolderOpen()) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(status);
@@ -234,7 +248,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
-    ConfserverProcess.resetSavedByUI();
+    ConfserverProcess.dispose();
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
@@ -248,17 +262,26 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
     "**/sdkconfig",
-    true,
     false,
-    true
+    false,
+    false
   );
-  const sdkWatchDisposable = sdkconfigWatcher.onDidChange(async () => {
+  const updateGuiValues = (e: vscode.Uri) => {
     if (ConfserverProcess.exists() && !ConfserverProcess.isSavedByUI()) {
       ConfserverProcess.loadGuiConfigValues();
     }
     ConfserverProcess.resetSavedByUI();
-  });
+  };
+  const sdkCreateWatchDisposable = sdkconfigWatcher.onDidCreate(
+    updateGuiValues
+  );
+  context.subscriptions.push(sdkCreateWatchDisposable);
+  const sdkWatchDisposable = sdkconfigWatcher.onDidChange(updateGuiValues);
   context.subscriptions.push(sdkWatchDisposable);
+  const sdkDeleteWatchDisposable = sdkconfigWatcher.onDidDelete(async () => {
+    ConfserverProcess.dispose();
+  });
+  context.subscriptions.push(sdkDeleteWatchDisposable);
 
   vscode.window.onDidCloseTerminal((terminal: vscode.Terminal) => {
     terminal.dispose();
@@ -268,19 +291,122 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createFiles", async () => {
-    const option = await vscode.window.showQuickPick(
-      utils.chooseTemplateDir(),
-      { placeHolder: "Select a template to use" }
-    );
-    PreCheck.perform([openFolderCheck], () => {
-      if (option) {
-        utils.createSkeleton(workspaceRoot.fsPath, option.target);
-        const defaultFoldersMsg = locDic.localize(
-          "extension.defaultFoldersGeneratedMessage",
-          "Default folders were generated."
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        vscode.window.withProgress(
+          {
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "Creating ESP-IDF Project...",
+          },
+          async (
+            progress: vscode.Progress<{
+              message: string;
+              increment: number;
+            }>,
+            cancelToken: vscode.CancellationToken
+          ) => {
+            const projectDirOption = await vscode.window.showQuickPick(
+              [
+                {
+                  label: `Use current folder (${workspaceRoot.fsPath})`,
+                  target: "current",
+                },
+                { label: "Choose a container directory...", target: "another" },
+              ],
+              { placeHolder: "Select a directory to use" }
+            );
+            if (!projectDirOption) {
+              return;
+            }
+            let projectDirToUse: string;
+            if (projectDirOption.target === "another") {
+              const newFolder = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+              });
+              if (!newFolder) {
+                return;
+              }
+              projectDirToUse = newFolder[0].fsPath;
+            } else {
+              projectDirToUse = workspaceRoot.fsPath;
+            }
+
+            const selectedTemplate = await vscode.window.showQuickPick(
+              utils.chooseTemplateDir(),
+              { placeHolder: "Select a template to use" }
+            );
+            if (!selectedTemplate) {
+              return;
+            }
+            const resultFolder = path.join(
+              projectDirToUse,
+              selectedTemplate.target
+            );
+            const doesProjectExists = await pathExists(resultFolder);
+            if (doesProjectExists) {
+              Logger.infoNotify(`${resultFolder} already exists.`);
+              return;
+            }
+            await utils.createSkeleton(resultFolder, selectedTemplate.target);
+            if (selectedTemplate.label === "arduino-as-component") {
+              const arduinoComponentManager = new ArduinoComponentInstaller(
+                resultFolder
+              );
+              cancelToken.onCancellationRequested(() => {
+                arduinoComponentManager.cancel();
+              });
+              await arduinoComponentManager.addArduinoAsComponent();
+            }
+            const projectPath = vscode.Uri.file(resultFolder);
+            vscode.commands.executeCommand(
+              "vscode.openFolder",
+              projectPath,
+              true
+            );
+            const defaultFoldersMsg = locDic.localize(
+              "extension.defaultFoldersGeneratedMessage",
+              "Template folders has been generated."
+            );
+            Logger.infoNotify(defaultFoldersMsg);
+          }
         );
-        Logger.infoNotify(defaultFoldersMsg);
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.addArduinoAsComponentToCurFolder", () => {
+    PreCheck.perform([openFolderCheck], () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Arduino ESP32 as ESP-IDF Component",
+        },
+        async (
+          progress: vscode.Progress<{
+            message: string;
+            increment: number;
+          }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const arduinoComponentManager = new ArduinoComponentInstaller(
+              workspaceRoot.fsPath
+            );
+            cancelToken.onCancellationRequested(() => {
+              arduinoComponentManager.cancel();
+            });
+            await arduinoComponentManager.addArduinoAsComponent();
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
@@ -322,6 +448,9 @@ export async function activate(context: vscode.ExtensionContext) {
               currentWorkspace: workspaceRoot,
             } as IDebugAdapterConfig;
             debugAdapterManager.configureAdapter(debugAdapterConfig);
+            ConfserverProcess.dispose();
+            const coverageOptions = getCoverageOptions();
+            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           }
         });
     });
@@ -530,13 +659,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
-      const portToUse = session.configuration.debugPort
-        ? session.configuration.debugPort
-        : LOCALHOST_DEF_PORT;
-      const launchMode =
-        session.configuration.mode !== undefined
-          ? session.configuration.launchDebugAdapter
-          : "auto";
+      const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
+      const launchMode = session.configuration.mode || "auto";
       if (launchMode === "auto" && !openOCDManager.isRunning()) {
         isOpenOCDLaunchedByDebug = true;
         await openOCDManager.start();
@@ -578,6 +702,47 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
+    const docsVersions = [
+      "v4.0.1",
+      "v4.0",
+      "v3.3.2",
+      "v3.3.1",
+      "v3.3",
+      "v3.2.3",
+      "v3.2.2",
+      "v3.1.7",
+      "v3.1.6",
+      "v3.1.5",
+      "v3.0.9",
+    ];
+    const idfPath =
+      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+    let idfVersion = "v" + (await utils.getEspIdfVersion(idfPath));
+    if (docsVersions.indexOf(idfVersion) === -1) {
+      const idfTarget =
+        idfConf.readParameter("idf.adapterTargetName") || "esp32";
+      idfVersion = `latest/${idfTarget}`;
+    }
+    const currentEditor = vscode.window.activeTextEditor;
+    if (currentEditor) {
+      let selection = currentEditor.document.getText(currentEditor.selection);
+      if (!selection) {
+        const range = currentEditor.document.getWordRangeAtPosition(
+          currentEditor.selection.active
+        );
+        selection = currentEditor.document.getText(range);
+      }
+      vscode.env.openExternal(
+        vscode.Uri.parse(
+          `https://docs.espressif.com/projects/esp-idf/en/${idfVersion}/search.html?q=${encodeURIComponent(
+            selection
+          )}`
+        )
+      );
+    }
+  });
+
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
@@ -598,8 +763,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
-      utils.createVscodeFolder(workspaceRoot.fsPath);
+    PreCheck.perform([openFolderCheck], async () => {
+      await utils.createVscodeFolder(workspaceRoot.fsPath);
       Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
     });
   });
@@ -620,15 +785,19 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         vscode.window.withProgress(
           {
-            cancellable: false,
+            cancellable: true,
             location: vscode.ProgressLocation.Notification,
             title: "ESP-IDF: Menuconfig",
           },
           async (
-            progress: vscode.Progress<{ message: string; increment: number }>
+            progress: vscode.Progress<{ message: string; increment: number }>,
+            cancelToken: vscode.CancellationToken
           ) => {
             try {
               ConfserverProcess.registerProgress(progress);
+              cancelToken.onCancellationRequested(() => {
+                ConfserverProcess.dispose();
+              });
               await ConfserverProcess.init(
                 workspaceRoot,
                 context.extensionPath
@@ -645,68 +814,78 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.setTarget", () => {
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const enterDeviceTargetMsg = locDic.localize(
         "extension.enterDeviceTargetMessage",
         "Enter device target name"
       );
-      vscode.window
-        .showQuickPick(
-          [
-            { description: "ESP32", label: "ESP32", target: "esp32" },
-            { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
-          ],
-          { placeHolder: enterDeviceTargetMsg }
-        )
-        .then(async (selected) => {
-          if (typeof selected === "undefined") {
-            return;
-          }
-          const configurationTarget = idfConf.readParameter("idf.saveScope");
-          await idfConf.writeParameter(
-            "idf.adapterTargetName",
-            selected.target,
-            configurationTarget
-          );
-          if (selected.target === "esp32") {
-            await idfConf.writeParameter(
-              "idf.openOcdConfigs",
-              ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
-              configurationTarget
-            );
-          }
-          if (selected.target === "esp32s2") {
-            await idfConf.writeParameter(
-              "idf.openOcdConfigs",
-              ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
-              configurationTarget
-            );
-          }
-          const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-          const idfPy = path.join(idfPathDir, "tools", "idf.py");
-          const modifiedEnv = utils.appendIdfAndToolsToPath();
-          const pythonBinPath = idfConf.readParameter(
-            "idf.pythonBinPath"
-          ) as string;
-          await utils
-            .spawn(pythonBinPath, [idfPy, "set-target", selected.target], {
-              cwd: workspaceRoot.fsPath,
-              env: modifiedEnv,
-            })
-            .then((result) => {
-              Logger.info(result.toString());
-              OutputChannel.append(result.toString());
-            })
-            .catch((err) => {
-              if (err.message && err.message.indexOf("are satisfied") > -1) {
-                Logger.info(err.message.toString());
-                OutputChannel.append(err.message.toString());
-              } else {
-                Logger.errorNotify(err, err);
-                OutputChannel.append(err);
+      const selectedTarget = await vscode.window.showQuickPick(
+        [
+          { description: "ESP32", label: "ESP32", target: "esp32" },
+          { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
+        ],
+        { placeHolder: enterDeviceTargetMsg }
+      );
+      if (!selectedTarget) {
+        return;
+      }
+      const configurationTarget = idfConf.readParameter("idf.saveScope");
+      await idfConf.writeParameter(
+        "idf.adapterTargetName",
+        selectedTarget.target,
+        configurationTarget
+      );
+      if (selectedTarget.target === "esp32") {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
+          configurationTarget
+        );
+      }
+      if (selectedTarget.target === "esp32s2") {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
+          configurationTarget
+        );
+      }
+      await vscode.window.withProgress(
+        {
+          cancellable: false,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Setting device target...",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>
+        ) => {
+          try {
+            const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+            const idfPy = path.join(idfPathDir, "tools", "idf.py");
+            const modifiedEnv = utils.appendIdfAndToolsToPath();
+            const pythonBinPath = idfConf.readParameter(
+              "idf.pythonBinPath"
+            ) as string;
+            const setTargetResult = await utils.spawn(
+              pythonBinPath,
+              [idfPy, "set-target", selectedTarget.target],
+              {
+                cwd: workspaceRoot.fsPath,
+                env: modifiedEnv,
               }
-            });
-        });
+            );
+            Logger.info(setTargetResult.toString());
+            OutputChannel.append(setTargetResult.toString());
+          } catch (err) {
+            if (err.message && err.message.indexOf("are satisfied") > -1) {
+              Logger.info(err.message.toString());
+              OutputChannel.append(err.message.toString());
+            } else {
+              Logger.errorNotify(err, err);
+              OutputChannel.append(err);
+            }
+          }
+        }
+      );
     });
   });
 
@@ -804,7 +983,6 @@ export async function activate(context: vscode.ExtensionContext) {
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
             title: "ESP-IDF: Size",
-            // tslint:disable-next-line: max-line-length
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>,
@@ -860,26 +1038,66 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.apptrace.archive.showReport", (trace) => {
-    if (!trace) {
-      Logger.errorNotify(
-        "Cannot call this command directly, click on any Trace to view its report!",
-        new Error("INVALID_COMMAND")
-      );
-      return;
-    }
-    PreCheck.perform([openFolderCheck], () => {
-      AppTracePanel.createOrShow(context, {
-        trace: {
-          fileName: trace.fileName,
-          filePath: trace.filePath,
-          type: trace.type,
-          workspacePath: workspaceRoot.fsPath,
-          idfPath: idfConf.readParameter("idf.espIdfPath"),
-        },
+  registerIDFCommand(
+    "espIdf.apptrace.archive.showReport",
+    (trace: AppTraceArchiveItems) => {
+      if (!trace) {
+        Logger.errorNotify(
+          "Cannot call this command directly, click on any Trace to view its report!",
+          new Error("INVALID_COMMAND")
+        );
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        if (trace.type === TraceType.HeapTrace) {
+          enum TracingViewType {
+            HeapTracingPlot,
+            SystemViewTracing,
+          }
+          //show option to render system trace view or heap trace
+          const placeHolder =
+            "Do you want to view Heap Trace plot or System View Trace";
+          const choice = await vscode.window.showQuickPick(
+            [
+              {
+                type: TracingViewType.SystemViewTracing,
+                label: "$(symbol-keyword) System View Tracing",
+                detail:
+                  "Show System View Tracing Plot (will open a webview window)",
+              },
+              {
+                type: TracingViewType.HeapTracingPlot,
+                label: "$(graph) Heap Tracing",
+                detail: "Open Old Heap/App Trace Panel",
+              },
+            ],
+            {
+              placeHolder,
+              ignoreFocusOut: true,
+            }
+          );
+          if (!choice) {
+            return;
+          }
+          if (choice.type === TracingViewType.SystemViewTracing) {
+            return SystemViewResultParser.parseWithProgress(
+              trace,
+              context.extensionPath
+            );
+          }
+        }
+        AppTracePanel.createOrShow(context, {
+          trace: {
+            fileName: trace.fileName,
+            filePath: trace.filePath,
+            type: trace.type,
+            workspacePath: workspaceRoot.fsPath,
+            idfPath: idfConf.readParameter("idf.espIdfPath"),
+          },
+        });
       });
-    });
-  });
+    }
+  );
 
   registerIDFCommand("espIdf.apptrace.customize", () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -1062,6 +1280,55 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
+  registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
+    const port = idfConf.readParameter("idf.port") as string;
+    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const wsPort = idfConf.readParameter("idf.wssPort");
+    const monitor = new IDFMonitor({
+      port,
+      baudRate,
+      pythonBinPath,
+      idfMonitorToolPath,
+      elfFilePath,
+      wsPort,
+    });
+    if (wsServer) {
+      wsServer.close();
+    }
+    wsServer = new WSServer(wsPort);
+    wsServer.start();
+    wsServer
+      .on("started", () => {
+        monitor.start();
+      })
+      .on("core-dump-detected", (resp) => {
+        // perform core-dump related stuff here
+        //once done call .done() to notify the monitor process
+        wsServer.done();
+      })
+      .on("gdb-stub-detected", (resp) => {
+        //
+      })
+      .on("close", (resp) => {
+        wsServer.close();
+      })
+      .on("error", (err) => {
+        let message = err.message;
+        if (err && err.message.includes("EADDRINUSE")) {
+          message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
+        }
+        Logger.errorNotify(message, err);
+        wsServer.close();
+      });
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
@@ -1191,11 +1458,8 @@ function createStatusBarItem(
 
 const build = () => {
   PreCheck.perform([openFolderCheck], () => {
-    const buildManager = new BuildManager(
-      workspaceRoot.fsPath,
-      idfBuildChannel
-    );
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    const buildTask = new BuildTask(workspaceRoot.fsPath);
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"
@@ -1217,42 +1481,35 @@ const build = () => {
         cancelToken: vscode.CancellationToken
       ) => {
         cancelToken.onCancellationRequested(() => {
-          buildManager.cancel();
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+          buildTask.building(false);
         });
-        idfBuildChannel.clear();
         try {
-          await buildManager.build();
-          const projDescPath = path.join(
-            workspaceRoot.fsPath,
-            "build",
-            "project_description.json"
-          );
-          updateIdfComponentsTree(projDescPath);
-          Logger.infoNotify("Build Successfully");
-        } catch (error) {
-          if (error.message === "BUILD_TERMINATED") {
-            return Logger.warnNotify(`Build is Terminated`);
+          await buildTask.build();
+          await TaskManager.runTasks();
+          if (!cancelToken.isCancellationRequested) {
+            buildTask.building(false);
+            const projDescPath = path.join(
+              workspaceRoot.fsPath,
+              "project_description.json"
+            );
+            updateIdfComponentsTree(projDescPath);
+            Logger.infoNotify("Build Successfully");
+            TaskManager.disposeListeners();
           }
+        } catch (error) {
           if (error.message === "ALREADY_BUILDING") {
             return Logger.errorNotify("Already a build is running!", error);
           }
-          if (error.message === "BUILD_TOOL_NOT_ACCESSIBLE") {
-            return Logger.errorNotify(
-              "IDF Path or IDF Tools path is invalid or not accessible",
-              error
-            );
+          if (error.message === "BUILD_TERMINATED") {
+            return Logger.warnNotify(`Build is Terminated`);
           }
-          if (error.code === "ENOENT") {
-            return Logger.errorNotify(
-              `Make sure you have the build tools installed and set in $PATH`,
-              error
-            );
-          }
-          idfBuildChannel.show();
           Logger.errorNotify(
             "Something went wrong while trying to build the project",
             error
           );
+          buildTask.building(false);
         }
       }
     );
@@ -1260,7 +1517,7 @@ const build = () => {
 };
 const flash = () => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"
@@ -1320,6 +1577,7 @@ const flash = () => {
       );
     }
     const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+    let flashTask: FlashTask;
 
     vscode.window.withProgress(
       {
@@ -1331,21 +1589,27 @@ const flash = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        idfFlashChannel.clear();
+        cancelToken.onCancellationRequested(() => {
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+        });
         try {
           const model = await createFlashModel(
             flasherArgsJsonPath,
             port,
             baudRate
           );
-          const flashManager = new FlashManager(
-            idfPathDir,
-            buildPath,
-            model,
-            idfFlashChannel
-          );
-          await flashManager.flash();
-          Logger.infoNotify("Flash Done ⚡️");
+          flashTask = new FlashTask(buildPath, idfPathDir, model);
+          cancelToken.onCancellationRequested(() => {
+            flashTask.flashing(false);
+          });
+          await flashTask.flash();
+          await TaskManager.runTasks();
+          if (!cancelToken.isCancellationRequested) {
+            flashTask.flashing(false);
+            Logger.infoNotify("Flash Done ⚡️");
+          }
+          TaskManager.disposeListeners();
         } catch (error) {
           if (error.message === "ALREADY_FLASHING") {
             return Logger.errorNotify(
@@ -1371,19 +1635,22 @@ const flash = () => {
               error
             );
           }
-          idfFlashChannel.show();
           Logger.errorNotify(
             "Failed to flash because of some unusual error",
             error
           );
+          if (flashTask) {
+            flashTask.flashing(false);
+          }
         }
       }
     );
   });
 };
+
 const buildFlashAndMonitor = (runMonitor: boolean = true) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"
@@ -1401,10 +1668,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         monitorTerminal = undefined;
       }, 200);
     }
-    const buildManager = new BuildManager(
-      workspaceRoot.fsPath,
-      idfBuildChannel
-    );
+    const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
@@ -1427,6 +1691,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       );
     }
     const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
+    let flashTask: FlashTask;
 
     await vscode.window.withProgress(
       {
@@ -1439,19 +1704,16 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         cancelToken.onCancellationRequested(() => {
-          buildManager.cancel();
+          TaskManager.cancelTasks();
+          TaskManager.disposeListeners();
+          buildTask.building(false);
         });
-        idfBuildChannel.clear();
-        idfFlashChannel.clear();
         try {
           progress.report({ message: "Building project...", increment: 20 });
-          await buildManager.build();
-          const projDescPath = path.join(
-            workspaceRoot.fsPath,
-            "build",
-            "project_description.json"
-          );
-          updateIdfComponentsTree(projDescPath);
+          await buildTask.build().then(() => {
+            buildTask.building(false);
+          });
+          await TaskManager.runTasks();
           progress.report({
             message: "Flashing project into device...",
             increment: 60,
@@ -1461,17 +1723,21 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             port,
             baudRate
           );
-          const flashManager = new FlashManager(
-            idfPathDir,
-            buildPath,
-            model,
-            idfFlashChannel
-          );
-          await flashManager.flash();
+          flashTask = new FlashTask(buildPath, idfPathDir, model);
+          cancelToken.onCancellationRequested(() => {
+            flashTask.flashing(false);
+          });
+          await flashTask.flash();
+          await TaskManager.runTasks();
+          flashTask.flashing(false);
           if (runMonitor) {
-            progress.report({ message: "Launching monitor...", increment: 10 });
+            progress.report({
+              message: "Launching monitor...",
+              increment: 10,
+            });
             createMonitor();
           }
+          TaskManager.disposeListeners();
         } catch (error) {
           switch (error.message) {
             case "BUILD_TERMINATED":
@@ -1512,6 +1778,10 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
             "Something went wrong while trying to build the project",
             error
           );
+          buildTask.building(false);
+          if (flashTask) {
+            flashTask.flashing(false);
+          }
         }
       }
     );
@@ -1520,7 +1790,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
 
 function createMonitor(): any {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildManager.isBuilding || FlashManager.isFlashing) {
+    if (BuildTask.isBuilding || FlashTask.isFlashing) {
       const waitProcessIsFinishedMsg = locDic.localize(
         "extension.waitProcessIsFinishedMessage",
         "Wait for ESP-IDF build or flash to finish"
@@ -1610,6 +1880,7 @@ function createIdfTerminal() {
 }
 
 export function deactivate() {
+  Telemetry.dispose();
   if (monitorTerminal) {
     monitorTerminal.dispose();
   }

@@ -113,6 +113,11 @@ export class IdfToolsManager {
         ) > -1
       );
     });
+    if (!versions || versions.length === 0) {
+      throw new Error(
+        `${pkg.name} doesn't have a compatible version for ${this.platformInfo.platformToUse}`
+      );
+    }
     const linkInfo =
       versions.length > 0
         ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
@@ -131,6 +136,11 @@ export class IdfToolsManager {
         ) > -1
       );
     });
+    if (!versions || versions.length === 0) {
+      throw new Error(
+        `${pkg.name} doesn't have a compatible version for ${this.platformInfo.platformToUse}`
+      );
+    }
     return versions.length > 0 ? versions[0].name : undefined;
   }
 

@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TSLintPlugin = require("tslint-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
@@ -78,6 +77,7 @@ const webViewConfig = {
       "menuconfig",
       "main.ts"
     ),
+    sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
@@ -88,7 +88,9 @@ const webViewConfig = {
       {
         test: /\.scss$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          {
+            loader: "vue-style-loader",
+          },
           {
             loader: "css-loader",
           },
@@ -140,9 +142,6 @@ const webViewConfig = {
     },
   },
   plugins: [
-    new MiniCssExtractPlugin({
-      filename: "[name].bundle.css",
-    }),
     new TSLintPlugin({
       files: ["./*.ts"],
     }),

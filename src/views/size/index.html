@@ -100,6 +100,14 @@
                 </div>
                 <div class="level-item has-text-centered">
                   <div>
+                    <p class="heading is-size-7-mobile">Total</p>
+                    <p class="title is-size-5-mobile">
+                      {{convertToKB(overviewData.total_size)}}KB
+                    </p>
+                  </div>
+                </div>
+                <div class="level-item has-text-centered">
+                  <div>
                     <p class="heading is-size-7-mobile">Flash Code</p>
                     <p class="title is-size-5-mobile">
                       {{convertToKB(overviewData.flash_code)}}KB
@@ -135,14 +143,15 @@
                     v-bind:class="progressBarColorClass(overviewData.used_dram_ratio)"
                     v-bind:title="Math.round(overviewData.used_dram_ratio*100)+'%'"
                     v-bind:value="overviewData.used_dram"
-                    v-bind:max="overviewData.available_dram"
+                    v-bind:max="overviewData.used_dram + overviewData.available_dram"
                   ></progress>
                 </div>
                 <div
                   class="column is-3-mobile is-2-tablet is-2-desktop is-size-7-tablet is-size-7-mobile"
                 >
                   {{convertToKB(overviewData.used_dram)}}KB /
-                  {{convertToKB(overviewData.available_dram)}}KB
+                  {{convertToKB(overviewData.used_dram +
+                  overviewData.available_dram)}}KB
                 </div>
               </div>
             </div>
@@ -162,14 +171,15 @@
                     v-bind:class="progressBarColorClass(overviewData.used_iram_ratio)"
                     v-bind:title="Math.round(overviewData.used_iram_ratio*100)+'%'"
                     v-bind:value="overviewData.used_iram"
-                    v-bind:max="overviewData.available_iram"
+                    v-bind:max="overviewData.used_iram + overviewData.available_iram"
                   ></progress>
                 </div>
                 <div
                   class="column is-3-mobile is-2-tablet is-2-desktop is-size-7-tablet is-size-7-mobile"
                 >
                   {{convertToKB(overviewData.used_iram)}}KB /
-                  {{convertToKB(overviewData.available_iram)}}KB
+                  {{convertToKB(overviewData.used_iram +
+                  overviewData.available_iram)}}KB
                 </div>
               </div>
             </div>

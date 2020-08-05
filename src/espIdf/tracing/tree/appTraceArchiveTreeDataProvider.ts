@@ -19,13 +19,14 @@
 import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
+import { PreCheck } from "../../../utils";
 
-enum TraceType {
+export enum TraceType {
   AppTrace = 0,
   HeapTrace = 1,
 }
 
-class AppTraceArchiveItems extends vscode.TreeItem {
+export class AppTraceArchiveItems extends vscode.TreeItem {
   public fileName: string;
   public filePath: string;
   public type: TraceType;
@@ -62,7 +63,7 @@ export class AppTraceArchiveTreeDataProvider
 
   public populateArchiveTree() {
     this.appTraceArchives = Array<AppTraceArchiveItems>(0);
-    const workspace = vscode.workspace.workspaceFolders
+    const workspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : "";
     const traceFolder = join(workspace, "trace");

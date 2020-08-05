@@ -143,10 +143,10 @@ export function updateStatus(
   }
 }
 
-export function createVscodeFolder(curWorkspaceFsPath: string) {
+export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-  copy(vscodeTemplateFolder, settingsDir);
+  await copy(vscodeTemplateFolder, settingsDir);
 }
 
 export function chooseTemplateDir() {
@@ -169,19 +169,20 @@ export function getDirectories(dirPath) {
   });
 }
 
-export function createSkeleton(
+export async function createSkeleton(
   curWorkspacePath: string,
   chosenTemplateDir: string
 ) {
   const templateDirToUse = path.join(templateDir, chosenTemplateDir);
-  copyFromSrcProject(templateDirToUse, curWorkspacePath);
+  await copyFromSrcProject(templateDirToUse, curWorkspacePath);
 }
 
-export function copyFromSrcProject(srcDirPath: string, destinationDir: string) {
-  createVscodeFolder(destinationDir);
-  copy(srcDirPath, destinationDir).catch((err) => {
-    Logger.errorNotify(err, err);
-  });
+export async function copyFromSrcProject(
+  srcDirPath: string,
+  destinationDir: string
+) {
+  await createVscodeFolder(destinationDir);
+  await copy(srcDirPath, destinationDir);
 }
 
 export function delConfigFile(workspaceRoot: vscode.Uri) {
@@ -292,17 +293,18 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
-            resolve(stderr);
-          }
-          if (stderr.indexOf("DEPRECATION") !== -1) {
-            resolve(stdout.concat(stderr));
-          }
-          if (stderr.indexOf("WARNING") !== -1) {
-            resolve(stdout.concat(stderr));
-          }
-          if (stderr.indexOf("Cache entry deserialization failed") !== -1) {
-            resolve(stdout.concat(stderr));
+          const ignoredMessages = [
+            "Licensed under GNU GPL v2",
+            "DEPRECATION",
+            "WARNING",
+            "Cache entry deserialization failed",
+            `Ignoring pywin32: markers 'platform_system == "Windows"' don't match your environment`,
+            `Ignoring None: markers 'sys_platform == "win32"' don't match your environment`,
+          ];
+          for (const msg of ignoredMessages) {
+            if (stderr.indexOf(msg) !== -1) {
+              resolve(stdout.concat(stderr));
+            }
           }
           if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
             resolve(stdout.concat(stderr));

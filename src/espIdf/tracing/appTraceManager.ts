@@ -22,7 +22,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists } from "../../utils";
+import { fileExists, PreCheck } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -142,7 +142,7 @@ export class AppTraceManager extends EventEmitter {
           ""
         );
         // tslint:disable-next-line: max-line-length
-        const workspace = vscode.workspace.workspaceFolders
+        const workspace = PreCheck.isWorkspaceFolderOpen()
           ? vscode.workspace.workspaceFolders[0].uri
           : undefined;
         const workspacePath = workspace ? workspace.fsPath : "";
@@ -216,7 +216,7 @@ export class AppTraceManager extends EventEmitter {
   }
 
   private sendCommandToTCLSession(command: string): TCLClient {
-    const workspace = vscode.workspace.workspaceFolders
+    const workspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : "";
     if (!fileExists(join(workspace, "trace"))) {

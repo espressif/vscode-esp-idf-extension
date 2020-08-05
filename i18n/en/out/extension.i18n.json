@@ -1,5 +1,5 @@
 {
-  "extension.defaultFoldersGeneratedMessage": "Default folders were generated.",
+  "extension.defaultFoldersGeneratedMessage": "Template folders were generated.",
   "extension.openFolderFirst": "Open a folder first.",
   "espIdf.pickAWorkspaceFolder.text": "Select your current folder",
   "extension.noFolderMessage": "No workspace selected.",

@@ -1,5 +1,6 @@
 {
   "espIdf.createFiles.title": "ESP-IDF: Create project",
+  "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Add Arduino ESP32 as ESP-IDF Component",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Open ESP-IDF Terminal",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Add vscode configuration folder",
   "espIdf.setPath.title": "ESP-IDF: Configure Paths",
@@ -23,6 +24,8 @@
   "espIdf.genCoverage.title": "ESP-IDF: Add Editor coverage",
   "espIdf.removeCoverage.title": "ESP-IDF: Remove Editor coverage",
   "espIdf.getCoverageReport.title": "ESP-IDF: Get HTML Coverage Report for project",
+  "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Search in documentation...",
+  "espIdf.launchWSServerAndMonitor.title" : "ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
@@ -61,5 +64,6 @@
   "esp.rainmaker.backend.add_node.title": "Add new node",
   "esp.rainmaker.backend.remove_node.title": "Remove this node",
   "esp.rainmaker.backend.update_node_param.title": "Update param for device",
-  "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL"
+  "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
+  "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub"
 }

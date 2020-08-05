@@ -1,47 +1,57 @@
 <template>
-  <div id="download-window">
-    <transition name="fade" mode="out-in">
-      <div v-if="selected === 'empty'">
-        <router-link
-          to="/"
-          class="arrow go-back right"
-          v-on:click.native="updateChecksView(false)"
-        ></router-link>
-        <h4>{{ msge }}</h4>
+  <div id="download-window" class="section">
+    <div v-if="selected === 'empty'" class="container centerize">
+      <router-link
+        to="/"
+        class="arrow go-back right"
+        v-on:click.native="updateChecksView(false)"
+      ></router-link>
+      <h4 class="title">{{ msge }}</h4>
+      <div class="field">
         <label for="idf-version-select">Select ESP-IDF version:</label>
-        <br />
-        <br />
-        <select v-model="selectedIdfVersion">
-          <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
-            {{ ver.name }}
-          </option>
-        </select>
-        <br /><br />
-        <IDFManual
-          v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
-        />
-        <div v-else>
-          <label
-            >Select directory to download and install ESP-IDF. <br />(Result
-            directory will be {{ resultingIdfPath }})</label
-          >
-          <br /><br />
-          <input type="text" class="text-size" v-model="idfDownloadPath" />
-          <font-awesome-icon
-            :icon="folderIcon"
-            class="open-icon"
-            @mouseover="folderIcon = 'folder-open'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openFolder"
-          />
-          <br />
-          <button v-on:click="downloadEspIdf" class="onboarding-button">
-            Click here to download
-          </button>
+        <div class="control">
+          <select v-model="selectedIdfVersion" class="select">
+            <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
+              {{ ver.name }}
+            </option>
+          </select>
         </div>
       </div>
-      <IDFDownload v-if="selected === 'download'" />
-    </transition>
+      <IDFManual
+        v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
+      />
+      <div v-else class="field text-size">
+        <label
+          >Select directory to download and install ESP-IDF. <br />(Result
+          directory will be {{ resultingIdfPath }})</label
+        >
+        <div class="field has-addons has-addons-centered">
+          <div class="control is-expanded">
+            <input type="text" class="input" v-model="idfDownloadPath" />
+          </div>
+          <p class="control">
+            <a class="button is-static"> {{ pathSep }}esp-idf </a>
+          </p>
+          <div class="control">
+            <font-awesome-icon
+              :icon="folderIcon"
+              class="open-icon"
+              @mouseover="folderIcon = 'folder-open'"
+              @mouseout="folderIcon = 'folder'"
+              v-on:click="openFolder"
+            />
+          </div>
+        </div>
+        <div class="field centerize">
+          <div class="control">
+            <button v-on:click="downloadEspIdf" class="button">
+              Click here to download
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <IDFDownload v-if="selected === 'download'" />
   </div>
 </template>
 
@@ -85,9 +95,13 @@ export default class Download extends Vue {
     return this.storeIdfVersionList;
   }
 
+  get pathSep() {
+    return navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+  }
+
   get resultingIdfPath() {
-    const pathSep = navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
-    return this.idfDownloadPath + pathSep + "esp-idf";
+    const sepPath = navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+    return this.idfDownloadPath + sepPath + "esp-idf";
   }
 
   get selectedIdfVersion() {

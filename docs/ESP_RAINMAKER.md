@@ -10,12 +10,14 @@ You need to have a ESP32-S2 board and ESP Rainmaker Account, if you don't have t
 
 - Click on Espressif Logo on vscode (left)
 - Inside ESP Rainmaker Section, click `Connect Account`
-- You need to select user id and password based login (_OAuth coming soon_)
+- You need to select user id and password based login or you can use OAuth for accessing your account as well (_currently we support **Google, Apple & Github** as our OAuth Provider_)
 - Once login is successful you can view your devices and nodes associated with the account
+
+> For OAuth you will be asked to provide permission to vscode to open url and you also need to provide permission to the broswer to open vscode back once the OAuth flow is done.
 
 ## Update device params
 
-- Click on the edit pencil button next to param name inside a device
+- Click on the edit button next to param name inside a device
 - A popup will appear with current value filled in
 - Update that value to desired value, and press enter
 
@@ -24,5 +26,4 @@ You need to have a ESP32-S2 board and ESP Rainmaker Account, if you don't have t
 ## Upcoming features
 
 - Auto provisioning of chip and connect with Rainmaker Backend from vscode itself
-- Add OAuth based login support
 - OTA update mechanism from vscode

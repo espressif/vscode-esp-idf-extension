@@ -30,6 +30,7 @@ import GitPyCheck from "./GitPyCheck.vue";
 import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
 import { store } from "./store";
+import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },
@@ -235,6 +236,9 @@ window.addEventListener("message", (event) => {
       if (message.pythonBinPath) {
         store.commit("setPythonBinPath", message.pythonBinPath);
       }
+      break;
+    case "set_py_sys_path_is_valid":
+      store.commit("setPythonSysIsValid", true);
       break;
     default:
       break;

@@ -62,6 +62,7 @@ export interface IState {
   pyBinPath: string;
   pyLog: string;
   pyVersionList: string[];
+  pythonSysPathIsValid: boolean;
   requiredToolsVersions: IToolStatus[];
   selectedConfTarget: number;
   selectedIdfVersion: IEspIdfLink;
