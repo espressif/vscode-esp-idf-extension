@@ -803,6 +803,7 @@
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
+    "@types/marked": "^1.1.0",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
     "@types/node": "^7.10.9",
@@ -852,7 +853,6 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@types/marked": "^1.1.0",
     "ansi-to-html": "^0.6.11",
     "axios": "^0.19.2",
     "del": "^4.1.1",
