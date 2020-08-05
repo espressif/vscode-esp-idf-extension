@@ -682,7 +682,12 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
         const launchMode = session.configuration.mode || "auto";
-        if (launchMode === "auto" && !openOCDManager.isRunning()) {
+        if (
+          launchMode === "auto" &&
+          !openOCDManager.isRunning() &&
+          session.name !== "Core Dump Debug" &&
+          session.name !== "GDB Stub Debug"
+        ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
         }
@@ -698,6 +703,14 @@ export async function activate(context: vscode.ExtensionContext) {
             "build",
             (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
           );
+          const elfFileExists = await pathExists(elfFilePath);
+          if (!elfFileExists) {
+            const elfErr = new Error(
+              `${elfFilePath} doesn't exist. Build this project first.`
+            );
+            Logger.errorNotify(elfErr.message, elfErr);
+            return;
+          }
           const debugAdapterConfig = {
             debugAdapterPort: portToUse,
             elfFile: elfFilePath,
@@ -1422,11 +1435,11 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.done();
       })
       .on("gdb-stub-detected", async (resp) => {
-        const port = idfConf.readParameter("idf.port");
-        const setupCmd = [`target remote ${port}`];
+        const setupCmd = [`target remote ${resp.port}`];
         const debugAdapterConfig = {
           initGdbCommands: setupCmd,
           isPostMortemDebugMode: true,
+          elfFile: resp.prog,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
         await vscode.debug.startDebugging(undefined, {

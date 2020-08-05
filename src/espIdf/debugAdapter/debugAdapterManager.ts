@@ -118,9 +118,6 @@ export class DebugAdapterManager extends EventEmitter {
         "-dn",
         this.target,
       ];
-      this.isPostMortemDebugMode
-        ? adapterArgs.push("-om", "without_oocd")
-        : adapterArgs.push("-om", "connect_to_instance");
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");
       }
