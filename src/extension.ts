@@ -698,22 +698,9 @@ export async function activate(context: vscode.ExtensionContext) {
           await debugAdapterManager.start();
         }
         if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
-          const elfFilePath = path.join(
-            workspaceRoot.fsPath,
-            "build",
-            (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
-          );
-          const elfFileExists = await pathExists(elfFilePath);
-          if (!elfFileExists) {
-            const elfErr = new Error(
-              `${elfFilePath} doesn't exist. Build this project first.`
-            );
-            Logger.errorNotify(elfErr.message, elfErr);
-            return;
-          }
           const debugAdapterConfig = {
             debugAdapterPort: portToUse,
-            elfFile: elfFilePath,
+            elfFile: session.configuration.elfFilePath,
             env: session.configuration.env,
             gdbinitFilePath: session.configuration.gdbinitFile,
             initGdbCommands: session.configuration.initGdbCommands || [],
@@ -2031,11 +2018,33 @@ export function deactivate() {
 
 class IdfDebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
-  public resolveDebugConfiguration(
+  public async resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.DebugConfiguration> {
+  ): Promise<vscode.DebugConfiguration> {
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const elfFileExists = await pathExists(elfFilePath);
+    if (!elfFileExists) {
+      const elfErr = new Error(
+        `${elfFilePath} doesn't exist. Build this project first.`
+      );
+      Logger.errorNotify(elfErr.message, elfErr);
+      const startBuild = await vscode.window.showInformationMessage(
+        elfErr.message,
+        "Yes",
+        "No"
+      );
+      if (startBuild === "Yes") {
+        buildFlashAndMonitor(false);
+      }
+      return;
+    }
+    config.elfFilePath = elfFilePath;
     return config;
   }
 }
