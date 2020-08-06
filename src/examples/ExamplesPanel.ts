@@ -194,7 +194,11 @@ export class ExamplesPlanel {
         const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
         const absPath = `<img src="${this.panel.webview.asWebviewUri(
           vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
-        )}" height="${height[1]}" alt="${altText[1]}" >`;
+        )}" ${
+          height && height.length > 0 ? 'height="' + height[1] + '"' : ""
+        } alt="${
+          altText && altText.length > 0 ? '"alt=' + altText[1] + '"' : ""
+        } >`;
         contentStr = contentStr.replace(m, absPath);
       }
     }

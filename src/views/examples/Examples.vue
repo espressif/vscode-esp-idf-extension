@@ -10,7 +10,7 @@
                 @click="toggleExampleDetail(item)"
                 v-text="item.name"
                 :class="{
-                  selectedItem: storeSelectedExample.name === item.name,
+                  selectedItem: storeSelectedExample.path === item.path,
                 }"
               />
             </li>
@@ -55,6 +55,7 @@ export default class Examples extends Vue {
   @Action private getExampleDetail;
   @Mutation private showExampleDetail;
   @Mutation private setSelectedExample;
+  @Mutation private setExampleDetail;
 
   get selectedExample() {
     return this.storeSelectedExample;
@@ -70,8 +71,9 @@ export default class Examples extends Vue {
   }
 
   public toggleExampleDetail(example: IExample) {
-    if (example.name !== this.storeSelectedExample.name) {
+    if (example.path !== this.storeSelectedExample.path) {
       this.setSelectedExample(example);
+      this.setExampleDetail("No README.md available for this project.");
       this.getExampleDetail({ pathToOpen: example.path });
     } else {
       this.showExampleDetail();

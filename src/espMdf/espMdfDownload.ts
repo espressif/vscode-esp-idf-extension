@@ -13,13 +13,13 @@
 // limitations under the License.
 import { AbstractCloning } from "../common/abstractCloning";
 
-export class AdfCloning extends AbstractCloning {
+export class MdfCloning extends AbstractCloning {
   constructor() {
-    super("https://github.com/espressif/esp-adf.git", "ESP-ADF", "master");
+    super("https://github.com/espressif/esp-mdf.git", "ESP-MDF", "master");
   }
 }
 
-export async function getEspAdf() {
-  const adfInstaller = new AdfCloning();
-  await adfInstaller.getRepository("idf.espAdfPath");
+export async function getEspMdf() {
+  const adfInstaller = new MdfCloning();
+  await adfInstaller.getRepository("idf.espMdfPath");
 }

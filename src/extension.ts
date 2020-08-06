@@ -79,6 +79,7 @@ import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
+import { getEspMdf } from "./espMdf/espMdfDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -402,6 +403,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.getEspAdf", getEspAdf);
+
+  registerIDFCommand("espIdf.getEspMdf", getEspMdf);
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck], SerialPort.shared().promptUserToSelect);
@@ -923,6 +926,9 @@ export async function activate(context: vscode.ExtensionContext) {
             const espAdfPath = idfConf.readParameter(
               "idf.espAdfPath"
             ) as string;
+            const espMdfPath = idfConf.readParameter(
+              "idf.espMdfPath"
+            ) as string;
             const examplesFolder = await vscode.window.showQuickPick(
               [
                 {
@@ -932,6 +938,10 @@ export async function activate(context: vscode.ExtensionContext) {
                 {
                   label: `Use current ESP-ADF (${espAdfPath})`,
                   target: espAdfPath,
+                },
+                {
+                  label: `Use current ESP-MDF (${espMdfPath})`,
+                  target: espMdfPath,
                 },
               ],
               { placeHolder: "Select framework to use" }

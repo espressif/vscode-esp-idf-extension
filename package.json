@@ -72,6 +72,7 @@
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
+    "onCommand:espIdf.getEspMdf",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -271,6 +272,12 @@
             "description": "%param.espAdfPath%",
             "scope": "resource"
           },
+          "idf.espMdfPath": {
+            "type": "string",
+            "default": "${env:MDF_PATH}",
+            "description": "%param.espMdfPath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:HOME}/.espressif",
@@ -280,13 +287,19 @@
           "idf.espIdfPathWin": {
             "type": "string",
             "default": "${env:IDF_PATH}",
-            "description": "%param.espAdfPath%",
+            "description": "%param.espIdfPath%",
             "scope": "resource"
           },
           "idf.espAdfPathWin": {
             "type": "string",
             "default": "${env:ADF_PATH}",
-            "description": "%param.espIdfPath%",
+            "description": "%param.espAdfPath%",
+            "scope": "resource"
+          },
+          "idf.espMdfPathWin": {
+            "type": "string",
+            "default": "${env:MDF_PATH}",
+            "description": "%param.espMdfPath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
@@ -669,6 +682,10 @@
       {
         "command": "espIdf.getEspAdf",
         "title": "%espIdf.getEspAdf.title%"
+      },
+      {
+        "command": "espIdf.getEspMdf",
+        "title": "%espIdf.getEspMdf.title%"
       }
     ],
     "breakpoints": [
