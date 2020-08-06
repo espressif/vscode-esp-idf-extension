@@ -665,7 +665,7 @@
       {
         "command": "esp.efuse.summary",
         "title": "%esp.efuse.summary.title%",
-        "category": "ESP:eFuse",
+        "category": "ESP-IDF: eFuse",
         "icon": {
           "dark": "media/dark/refresh.svg",
           "light": "media/light/refresh.svg"
