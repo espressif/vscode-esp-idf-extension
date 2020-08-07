@@ -685,8 +685,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.name !== "Core Dump Debug" &&
-          session.name !== "GDB Stub Debug"
+          session.name !== "Core Dump Debug"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
@@ -1411,7 +1410,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const coreDumpFile = "my-core-dump.elf";
         const debugAdapterConfig = {
           coreDumpFile: coreDumpFile,
-          isPostMortemDebugMode: false,
+          isPostMortemDebugMode: true,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
         await vscode.debug.startDebugging(undefined, {

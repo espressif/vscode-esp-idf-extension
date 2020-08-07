@@ -123,6 +123,7 @@ export class DebugAdapterManager extends EventEmitter {
       }
       if (this.coreDumpFile) {
         adapterArgs.push("-c", this.coreDumpFile);
+        adapterArgs.push("-om", "without_oocd");
       }
       const resultGdbInitFile = this.gdbinitFilePath
         ? this.gdbinitFilePath
