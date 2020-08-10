@@ -1393,12 +1393,11 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer")
-  );
-  context.subscriptions.push(
+    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
-    )
+    ),
+    rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
   );
 }
 
