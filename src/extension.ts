@@ -78,6 +78,8 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
+import { ESPEFuseTreeDataProvider } from "./efuse/view";
+import { ESPEFuseManager } from "./efuse";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -99,6 +101,9 @@ let heapTraceManager: HeapTraceManager;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// ESP eFuse Explorer
+let eFuseExplorer: ESPEFuseTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -1329,6 +1334,27 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
+  registerIDFCommand("esp.efuse.summary", async () => {
+    vscode.window.withProgress(
+      {
+        title: "Getting eFuse Summary for your chip",
+        location: vscode.ProgressLocation.Notification,
+      },
+      async () => {
+        try {
+          const eFuse = new ESPEFuseManager();
+          const resp = await eFuse.summary();
+          eFuseExplorer.load(resp);
+          eFuseExplorer.refresh();
+        } catch (error) {
+          Logger.errorNotify(
+            "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
+            error
+          );
+        }
+      }
+    );
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
@@ -1387,10 +1413,8 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
   rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
-  vscode.window.registerTreeDataProvider(
-    "espRainmaker",
-    rainMakerTreeDataProvider
-  );
+
+  eFuseExplorer = new ESPEFuseTreeDataProvider();
 
   context.subscriptions.push(
     appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
@@ -1398,6 +1422,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
       "idfAppTraceArchive"
     ),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
+    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer")
   );
 }
 
