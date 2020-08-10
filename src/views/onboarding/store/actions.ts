@@ -87,6 +87,15 @@ export const actions: ActionTree<IState, any> = {
       selectedPyBin: pyBinPath,
     });
   },
+  startIdfInstall(context, manualPyPath: string) {
+    vscode.postMessage({
+      command: "autoInstallEspIdf",
+      idfPath: context.state.idfPath,
+      pythonVersion: context.state.selectedPythonVersion,
+      pyPath: manualPyPath,
+      selectedIdfVersion: context.state.selectedIdfVersion,
+    });
+  },
   updateShowOnboardingOnInit(context, value) {
     vscode.postMessage({
       command: "saveShowOnboarding",

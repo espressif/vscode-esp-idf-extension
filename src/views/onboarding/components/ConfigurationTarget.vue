@@ -48,6 +48,11 @@
           <router-link to="/gitpycheck" class="button">START</router-link>
         </div>
       </div>
+      <div class="field">
+        <div class="control">
+          <router-link to="/auto" class="button">Auto</router-link>
+        </div>
+      </div>
     </div>
   </section>
 </template>

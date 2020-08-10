@@ -415,6 +415,15 @@ export class OnBoardingPanel {
         case "requestInitValues":
           this.sendInitialValues(onboardingArgs);
           break;
+        case "autoInstallEspIdf":
+          if (message.idfPath) {
+            console.log(message);
+            const pyPathToUse =
+              message.pythonVersion === "Provide python executable path"
+                ? message.pyPath
+                : message.pythonVersion;
+          }
+          break;
         default:
           break;
       }
@@ -424,6 +433,31 @@ export class OnBoardingPanel {
   public dispose() {
     OnBoardingPanel.currentPanel = undefined;
     this.panel.dispose();
+  }
+
+  private async autoInstall(
+    selectedIdfVersion: IEspIdfLink,
+    pyPath: string,
+    espIdfPath: string
+  ) {
+    // Do some magic
+    let idfPath: string;
+    if (selectedIdfVersion.filename === "manual") {
+      idfPath = espIdfPath;
+    } else {
+      const idfContainerPath =
+        process.platform === "win32"
+          ? process.env.USERPROFILE
+          : process.env.HOME;
+      await downloadInstallIdfVersion(
+        selectedIdfVersion,
+        idfPath,
+        this.confTarget,
+        this.selectedWorkspaceFolder
+      );
+      idfPath = path.join(idfContainerPath, "esp-idf");
+    }
+    await this.updateIdfToolsManager(idfPath);
   }
 
   private async updateIdfToolsManager(newIdfPath: string) {

@@ -29,14 +29,16 @@ import Download from "./Download.vue";
 import GitPyCheck from "./GitPyCheck.vue";
 import Home from "./Home.vue";
 import ToolSetup from "./ToolsSetup.vue";
+import Auto from "./components/Auto.vue";
 import { store } from "./store";
 import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },
+  { path: "/auto", component: Auto },
   { path: "/download", component: Download },
-  { path: "/toolsetup", component: ToolSetup },
   { path: "/gitpycheck", component: GitPyCheck },
+  { path: "/toolsetup", component: ToolSetup },
 ];
 
 Vue.use(VueRouter);
