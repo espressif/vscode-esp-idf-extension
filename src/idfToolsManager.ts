@@ -18,19 +18,37 @@ import { IFileInfo, IPackage } from "./IPackage";
 import { PackageError } from "./packageError";
 import { PlatformInformation } from "./PlatformInformation";
 import * as utils from "./utils";
+import { Logger } from "./logger/logger";
+import { OutputChannel } from "./logger/outputChannel";
+import { readJSON } from "fs-extra";
+
+export interface IToolInfo {
+  actual: string;
+  doesToolExist: boolean;
+  expected: string;
+  id: string;
+}
 
 export class IdfToolsManager {
-  // toolsJson is expected to be a Javascript Object parsed from tools metadata json
-  private static toolsManagerChannel: vscode.OutputChannel;
+  public static async createIdfToolsManager(idfPath: string) {
+    const platformInfo = await PlatformInformation.GetPlatformInformation();
+    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+    const toolsObj = await readJSON(toolsJsonPath);
+    const idfToolsManager = new IdfToolsManager(
+      toolsObj,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return idfToolsManager;
+  }
+
   private allPackages: IPackage[];
 
   constructor(
     private toolsJson: any,
     private platformInfo: PlatformInformation,
-    private channel: vscode.OutputChannel
-  ) {
-    IdfToolsManager.toolsManagerChannel = channel;
-  }
+    private toolsManagerChannel: vscode.OutputChannel
+  ) {}
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
@@ -86,20 +104,16 @@ export class IdfToolsManager {
     });
   }
 
-  public verifyPackages(pathsToVerify: string, onReqPkgs?: string[]): {} {
-    return this.getPackageList(onReqPkgs).then(async (packages) => {
-      const promiseArr = {};
-      const names = packages.map((pkg) => pkg.name);
-      const promises = packages.map((pkg) =>
-        this.checkBinariesVersion(pkg, pathsToVerify)
-      );
-      return Promise.all(promises).then((versionExistsArr) => {
-        names.forEach(
-          (pkgName, index) => (promiseArr[pkgName] = versionExistsArr[index])
-        );
-        return promiseArr;
-      });
-    });
+  public async verifyPackages(pathsToVerify: string, onReqPkgs?: string[]) {
+    const pkgs = await this.getPackageList(onReqPkgs);
+    const promiseArr = {};
+    const names = pkgs.map((pkg) => pkg.name);
+    const promises = pkgs.map((p) =>
+      this.checkBinariesVersion(p, pathsToVerify)
+    );
+    const versionExistsArr = await Promise.all(promises);
+    names.forEach((pkgName, i) => (promiseArr[pkgName] = versionExistsArr[i]));
+    return promiseArr;
   }
 
   public obtainUrlInfoForPlatform(pkg: IPackage): IFileInfo {
@@ -145,37 +159,49 @@ export class IdfToolsManager {
   }
 
   public async checkBinariesVersion(pkg: IPackage, pathsToVerify: string) {
+    let modifiedPath = process.env.PATH;
     if (process.env.PATH.indexOf(pathsToVerify) === -1) {
-      process.env.PATH = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
+      modifiedPath = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
     }
     const versionCmd = pkg.version_cmd.join(" ");
-    return utils
-      .execChildProcess(
+    const modifiedEnv = Object.assign({}, process.env);
+    modifiedEnv.PATH = modifiedPath;
+    try {
+      const binVersionResponse = await utils.execChildProcess(
         versionCmd,
         process.cwd(),
-        IdfToolsManager.toolsManagerChannel
-      )
-      .then((resp) => {
-        const regexResult = resp.match(pkg.version_regex);
-        if (regexResult.length > 0) {
-          if (pkg.version_regex_replace) {
-            let replaceRegexResult = pkg.version_regex_replace;
-            for (let i = 0; i < regexResult.length; i++) {
-              replaceRegexResult = replaceRegexResult.replace(
-                "\\" + i,
-                regexResult[i]
-              );
-            }
-            return replaceRegexResult;
-          }
-          return regexResult[1];
+        this.toolsManagerChannel,
+        {
+          env: modifiedEnv,
+          maxBuffer: 500 * 1024,
+          cwd: process.cwd(),
         }
-        return "No match";
-      })
-      .catch((reason) => {
-        IdfToolsManager.toolsManagerChannel.appendLine(reason);
-        return "Error";
-      });
+      );
+      const regexResult = binVersionResponse
+        .toString()
+        .match(pkg.version_regex);
+      if (regexResult.length > 0) {
+        if (pkg.version_regex_replace) {
+          let replaceRegexResult = pkg.version_regex_replace;
+          for (let i = 0; i < regexResult.length; i++) {
+            replaceRegexResult = replaceRegexResult.replace(
+              "\\" + i,
+              regexResult[i]
+            );
+          }
+          return replaceRegexResult;
+        }
+        return regexResult[1];
+      }
+      return "No match";
+    } catch (error) {
+      const errMsg = error.message
+        ? error.message
+        : `Error checking ${pkg.name} version`;
+      this.toolsManagerChannel.appendLine(errMsg);
+      Logger.error(errMsg, error);
+      return errMsg;
+    }
   }
 
   public async exportPaths(basePath: string, onReqPkgs?: string[]) {
@@ -255,7 +281,7 @@ export class IdfToolsManager {
     });
   }
 
-  public async checkToolsVersion(pathToVerify: string) {
+  public async checkToolsVersion(pathToVerify: string): Promise<IToolInfo[]> {
     const versions = await this.verifyPackages(pathToVerify);
     const pkgs = await this.getPackageList().then((packages) => {
       return packages.map((pkg) => {
@@ -267,7 +293,7 @@ export class IdfToolsManager {
           doesToolExist: isToolVersionCorrect,
           expected: expectedVersions.join(" or \n"),
           id: pkg.name,
-        };
+        } as IToolInfo;
       });
     });
     return pkgs;

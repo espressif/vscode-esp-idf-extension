@@ -80,6 +80,8 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { SetupPanel } from "./setup/SetupPanel";
+import { getSetupInitialValues } from "./setup/setupInit";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -910,7 +912,31 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("onboarding.start", () => {
     PreCheck.perform([webIdeCheck], () => {
       try {
-        if (OnBoardingPanel.isCreatedAndHidden()) {
+        if (SetupPanel.isCreatedAndHidden()) {
+          SetupPanel.createOrShow(context.extensionPath);
+          return;
+        }
+        vscode.window.withProgress(
+          {
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: "ESP-IDF: Configure extension",
+          },
+          async (
+            progress: vscode.Progress<{ message: string; increment: number }>
+          ) => {
+            try {
+              const setupArgs = await getSetupInitialValues(
+                context.extensionPath,
+                progress
+              );
+              SetupPanel.createOrShow(context.extensionPath, setupArgs);
+            } catch (error) {
+              Logger.errorNotify(error.message, error);
+            }
+          }
+        );
+        /* if (OnBoardingPanel.isCreatedAndHidden()) {
           OnBoardingPanel.createOrShow(context.extensionPath);
           return;
         }
@@ -936,7 +962,7 @@ export async function activate(context: vscode.ExtensionContext) {
               Logger.errorNotify(error.message, error);
             }
           }
-        );
+        ); */
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }

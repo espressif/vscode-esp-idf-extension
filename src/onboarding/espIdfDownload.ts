@@ -42,7 +42,7 @@ export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
   destPath: string,
   confTarget: ConfigurationTarget,
-  selectedWorkspaceFolder: WorkspaceFolder
+  selectedWorkspaceFolder?: WorkspaceFolder
 ) {
   const downloadedZipPath = path.join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
