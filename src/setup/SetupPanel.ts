@@ -15,10 +15,15 @@
 import { LocDictionary } from "../localizationDictionary";
 import { ISetupInitArgs } from "./setupInit";
 import { IEspIdfLink } from "../views/setup/types";
-import { downloadInstallIdfVersion } from "../onboarding/espIdfDownload";
+import { downloadInstallIdfVersion } from "./espIdfDownload";
 import * as idfConf from "../idfConfiguration";
 import path from "path";
 import vscode from "vscode";
+import * as utils from "../utils";
+import { downloadEspIdfTools } from "./toolInstall";
+import { PlatformInformation } from "../PlatformInformation";
+import { IdfToolsManager } from "../idfToolsManager";
+import { OutputChannel } from "../logger/outputChannel";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -47,6 +52,12 @@ export class SetupPanel {
     return (
       SetupPanel.currentPanel && SetupPanel.currentPanel.panel.visible === false
     );
+  }
+
+  public static postMessage(content: any) {
+    if (SetupPanel.currentPanel) {
+      SetupPanel.currentPanel.panel.webview.postMessage(content);
+    }
   }
 
   private static readonly viewType = "setupPanel";
@@ -133,22 +144,53 @@ export class SetupPanel {
     pyPath: string,
     espIdfPath: string
   ) {
-    // Do some magic
-    let idfPath: string;
-    if (selectedIdfVersion.filename === "manual") {
-      idfPath = espIdfPath;
-    } else {
-      const idfContainerPath =
-        process.platform === "win32"
-          ? process.env.USERPROFILE
-          : process.env.HOME;
-      await downloadInstallIdfVersion(
-        selectedIdfVersion,
-        idfPath,
-        this.confTarget
-      );
-      idfPath = path.join(idfContainerPath, "esp-idf");
-    }
+    await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment?: number }>
+      ) => {
+        const idfContainerPath =
+          process.platform === "win32"
+            ? process.env.USERPROFILE
+            : process.env.HOME;
+        let idfPath: string;
+        if (selectedIdfVersion.filename === "manual") {
+          idfPath = espIdfPath;
+        } else {
+          idfPath = await downloadInstallIdfVersion(
+            selectedIdfVersion,
+            idfContainerPath
+          );
+        }
+        const idfVersion = await utils.getEspIdfVersion(idfPath);
+        const toolsPath = path.join(idfContainerPath, ".espressif");
+        const idfToolsManager = await this.createIdfToolsManager(idfPath);
+        const exportedPaths = await downloadEspIdfTools(
+          toolsPath,
+          idfToolsManager,
+          progress
+        );
+        const exportVars = await idfToolsManager.exportVars(
+          path.join(toolsPath, "tools")
+        );
+      }
+    );
+  }
+
+  private async createIdfToolsManager(newIdfPath: string) {
+    const platformInfo = await PlatformInformation.GetPlatformInformation();
+    const toolsJsonPath = await utils.getToolsJsonPath(newIdfPath);
+    const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
+    const idfToolsManager = new IdfToolsManager(
+      toolsJson,
+      platformInfo,
+      OutputChannel.init()
+    );
+    return idfToolsManager;
   }
 
   private saveSettings(
