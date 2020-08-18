@@ -27,13 +27,9 @@ import {
 } from "./webviewMsgMethods";
 import { move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
-
-export interface IEspIdfLink {
-  filename: string;
-  name: string;
-  url: string;
-  mirror: string;
-}
+import { IEspIdfLink } from "./espIdfVersionList";
+import { CancellationToken } from "vscode";
+import { Disposable } from "vscode-languageclient";
 
 export class EspIdfCloning extends AbstractCloning {
   constructor(branchName: string) {
@@ -43,7 +39,8 @@ export class EspIdfCloning extends AbstractCloning {
 
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
-  destPath: string
+  destPath: string,
+  cancelToken?: CancellationToken
 ) {
   try {
     const downloadedZipPath = path.join(destPath, idfVersion.filename);
@@ -85,7 +82,14 @@ export async function downloadInstallIdfVersion(
       OutputChannel.appendLine(downloadByCloneMsg);
       Logger.info(downloadByCloneMsg);
       const espIdfCloning = new EspIdfCloning(idfVersion.filename);
+      let cancelDisposable: Disposable;
+      if (cancelToken) {
+        cancelDisposable = cancelToken.onCancellationRequested(() => {
+          espIdfCloning.cancel();
+        });
+      }
       await espIdfCloning.downloadByCloning(destPath, pkgProgress);
+      cancelDisposable.dispose();
     } else {
       await downloadManager.downloadWithRetries(
         idfVersion.url,

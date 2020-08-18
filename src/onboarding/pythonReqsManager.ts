@@ -21,7 +21,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import * as pythonManager from "../pythonManager";
 import * as utils from "../utils";
 import { OnBoardingPanel } from "./OnboardingPanel";
-import { PyReqLog } from "./PyReqLog";
+import { PyReqLog } from "../PyReqLog";
 
 export async function checkPythonRequirements(
   workingDir: string,

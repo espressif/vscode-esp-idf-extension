@@ -134,7 +134,8 @@ export class DownloadManager {
   public async downloadWithRetries(
     urlToUse: string,
     destPath: string,
-    pkgProgress: PackageProgress
+    pkgProgress: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ) {
     let success: boolean = false;
     let retryCount: number = 2;
@@ -172,7 +173,8 @@ export class DownloadManager {
     urlString: string,
     delay: number,
     destinationPath: string,
-    pkgProgress?: PackageProgress
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ): Promise<http.IncomingMessage> {
     const parsedUrl: url.Url = url.parse(urlString);
     const proxyStrictSSL: any = vscode.workspace
@@ -327,6 +329,10 @@ export class DownloadManager {
           }
         };
         const req = https.request(options, handleResponse);
+
+        cancelToken.onCancellationRequested(() => {
+          req.abort();
+        });
 
         req.on("error", (error) => {
           return reject(

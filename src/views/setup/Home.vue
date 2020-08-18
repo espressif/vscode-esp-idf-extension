@@ -20,7 +20,7 @@
       <div class="field install-btn">
         <div class="control">
           <button v-on:click.once="useDefaultSettings" class="button">
-            Install
+            Use existing ESP-IDF and ESP-IDF
           </button>
         </div>
       </div>
@@ -75,6 +75,6 @@ export default class Home extends Vue {
 }
 
 .install-btn {
-  margin: 0.25em;
+  margin: 0.5em;
 }
 </style>

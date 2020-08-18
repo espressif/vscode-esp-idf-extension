@@ -1,17 +1,15 @@
 <template>
-  <div>
+  <div id="select-py-version">
     <div class="field centerize">
       <label for="python-version-select">Python version:</label>
       <div class="control">
-        <select
-          v-model="selectedPythonVersion"
-          id="python-version-select"
-          class="select"
-        >
-          <option v-for="ver in pyVersionList" :key="ver" :value="ver">
-            {{ ver }}
-          </option>
-        </select>
+        <div class="select">
+          <select v-model="selectedPythonVersion" id="python-version-select">
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
+              ver
+            }}</option>
+          </select>
+        </div>
       </div>
     </div>
     <p v-if="pyVersionList && pyVersionList[0] === 'Not found'">
@@ -67,3 +65,10 @@ export default class SelectPyVersion extends Vue {
   }
 }
 </script>
+
+<style scoped>
+#select-py-version {
+  width: 80%;
+  margin: 0.25em;
+}
+</style>

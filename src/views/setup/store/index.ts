@@ -69,9 +69,12 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
-  installEspIdf() {
+  installEspIdf(context) {
     vscode.postMessage({
       command: "installEspIdf",
+      selectedEspIdfVersion: context.state.selectedEspIdfVersion,
+      selectedPyPath: context.state.selectedSysPython,
+      manualEspIdfPath: context.state.espIdf,
     });
   },
   method(context) {
@@ -106,6 +109,9 @@ export const mutations: MutationTree<IState> = {
   setEspIdfVersionList(state, espIdfVersionList: IEspIdfLink[]) {
     const newState = state;
     newState.espIdfVersionList = espIdfVersionList;
+    if (espIdfVersionList && espIdfVersionList.length > 0) {
+      newState.selectedEspIdfVersion = espIdfVersionList[0];
+    }
     Object.assign(state, newState);
   },
   setGitVersion(state, gitVersion) {
@@ -126,6 +132,9 @@ export const mutations: MutationTree<IState> = {
   setPyVersionsList(state, pyVersionsList: string[]) {
     const newState = state;
     newState.pyVersionsList = pyVersionsList;
+    if (pyVersionsList && pyVersionsList.length > 0) {
+      newState.selectedSysPython = pyVersionsList[0];
+    }
     Object.assign(state, newState);
   },
   setSelectedEspIdfVersion(state, selectedEspIdfVersion: IEspIdfLink) {

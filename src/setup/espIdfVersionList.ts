@@ -11,14 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { IEspIdfLink } from "./espIdfDownload";
 import { DownloadManager } from "../downloadManager";
 import path from "path";
 import { EOL, tmpdir } from "os";
 import { Logger } from "../logger/logger";
 import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
+
+export interface IEspIdfLink {
+  filename: string;
+  name: string;
+  url: string;
+  mirror: string;
+}
+
+export async function getEspIdfVersions(extensionPath: string) {
+  const downloadManager = new DownloadManager(extensionPath);
+  const versionList = await downloadEspIdfVersionList(
+    downloadManager,
+    extensionPath
+  );
+  const manualVersion = {
+    name: "Find ESP-IDF in your system",
+    filename: "manual",
+  } as IEspIdfLink;
+  versionList.push(manualVersion);
+  return versionList;
+}
 
 export async function downloadEspIdfVersionList(
   downloadManager: DownloadManager,

@@ -80,7 +80,12 @@ button > span.icon > i:hover {
   border-color: var(--vscode-button-foreground);
 }
 
-.select,
+.select select {
+  background-color: var(--vscode-input-background) !important;
+  border-color: var(--vscode-input-border) !important;
+  color: var(--vscode-input-foreground) !important;
+}
+
 .input {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-border);

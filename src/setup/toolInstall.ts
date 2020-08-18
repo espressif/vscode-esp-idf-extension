@@ -25,7 +25,6 @@ import {
   sendPkgDownloadFailed,
 } from "./webviewMsgMethods";
 import { Progress } from "vscode";
-import path from "path";
 
 export async function downloadEspIdfTools(
   installDir: string,
@@ -62,8 +61,4 @@ export async function downloadEspIdfTools(
   await installManager.installPackages(idfToolsManager, progress);
   OutputChannel.appendLine("");
   Logger.info("");
-  const exportVars = await idfToolsManager.exportVars(
-    path.join(installDir, "tools")
-  );
-  return exportVars;
 }

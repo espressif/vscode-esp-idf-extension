@@ -1,13 +1,15 @@
 <template>
-  <div>
+  <div id="select-esp-idf-version">
     <div class="field centerize">
       <label for="idf-version-select">Select ESP-IDF version:</label>
       <div class="control">
-        <select v-model="selectedIdfVersion" class="select">
-          <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">{{
-            ver.name
-          }}</option>
-        </select>
+        <div class="select">
+          <select v-model="selectedIdfVersion">
+            <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
+              {{ ver.name }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
     <div
@@ -15,8 +17,8 @@
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
     >
       <label>Enter ESP-IDF directory</label>
-      <div class="field is-grouped text-size">
-        <div class="control is-expanded">
+      <div class="field expanded">
+        <div class="control expanded">
           <input type="text" class="input" v-model="espIdf" />
         </div>
         <div class="control">
@@ -67,3 +69,16 @@ export default class SelectEspIdf extends Vue {
   }
 }
 </script>
+
+<style scoped>
+#select-esp-idf-version {
+  width: 100%;
+  margin: 0.25em;
+}
+.expanded {
+  width: 70%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+</style>

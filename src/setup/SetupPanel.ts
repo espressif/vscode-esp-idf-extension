@@ -24,6 +24,8 @@ import { downloadEspIdfTools } from "./toolInstall";
 import { PlatformInformation } from "../PlatformInformation";
 import { IdfToolsManager } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
+import { Logger } from "../logger/logger";
+import { installPyReqs } from "./installPyReqs";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -103,7 +105,17 @@ export class SetupPanel {
       console.log(message);
       switch (message.command) {
         case "installEspIdf":
-          // One click install IDF
+          if (
+            message.selectedEspIdfVersion &&
+            message.selectedPyPath &&
+            message.manualEspIdfPath
+          ) {
+            this.autoInstall(
+              message.selectedEspIdfVersion,
+              message.selectedPyPath,
+              message.manualEspIdfPath
+            );
+          }
           break;
         case "requestInitialValues":
           this.panel.webview.postMessage({
@@ -151,32 +163,46 @@ export class SetupPanel {
         title: "ESP-IDF",
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>
+        progress: vscode.Progress<{ message: string; increment?: number }>,
+        cancelToken: vscode.CancellationToken
       ) => {
-        const idfContainerPath =
-          process.platform === "win32"
-            ? process.env.USERPROFILE
-            : process.env.HOME;
-        let idfPath: string;
-        if (selectedIdfVersion.filename === "manual") {
-          idfPath = espIdfPath;
-        } else {
-          idfPath = await downloadInstallIdfVersion(
-            selectedIdfVersion,
-            idfContainerPath
+        try {
+          const idfContainerPath =
+            process.platform === "win32"
+              ? process.env.USERPROFILE
+              : process.env.HOME;
+          let idfPath: string;
+          if (selectedIdfVersion.filename === "manual") {
+            idfPath = espIdfPath;
+          } else {
+            idfPath = await downloadInstallIdfVersion(
+              selectedIdfVersion,
+              idfContainerPath
+            );
+          }
+          const idfVersion = await utils.getEspIdfVersion(idfPath);
+          const toolsPath = path.join(idfContainerPath, ".espressif");
+          const idfToolsManager = await this.createIdfToolsManager(idfPath);
+          await downloadEspIdfTools(toolsPath, idfToolsManager, progress);
+          const exportPaths = await idfToolsManager.exportPaths(
+            path.join(toolsPath, "tools")
           );
+          const exportVars = await idfToolsManager.exportVars(
+            path.join(toolsPath, "tools")
+          );
+          const virtualEnvPath = await installPyReqs(
+            espIdfPath,
+            toolsPath,
+            pyPath
+          );
+          this.saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
+        } catch (error) {
+          const errMsg = error.message
+            ? error.message
+            : "Error during auto install";
+          OutputChannel.appendLine(errMsg);
+          Logger.errorNotify(errMsg, error);
         }
-        const idfVersion = await utils.getEspIdfVersion(idfPath);
-        const toolsPath = path.join(idfContainerPath, ".espressif");
-        const idfToolsManager = await this.createIdfToolsManager(idfPath);
-        const exportedPaths = await downloadEspIdfTools(
-          toolsPath,
-          idfToolsManager,
-          progress
-        );
-        const exportVars = await idfToolsManager.exportVars(
-          path.join(toolsPath, "tools")
-        );
       }
     );
   }
