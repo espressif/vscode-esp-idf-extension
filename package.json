@@ -315,6 +315,7 @@
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
+              "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
