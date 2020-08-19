@@ -5,9 +5,9 @@
       <div class="control">
         <div class="select">
           <select v-model="selectedPythonVersion" id="python-version-select">
-            <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
-              ver
-            }}</option>
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
+              {{ ver }}
+            </option>
           </select>
         </div>
       </div>
@@ -19,20 +19,31 @@
     </p>
     <div
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
-      class="field"
+      class="field centerize"
     >
       <label>
         Enter absolute python binary path to use. Example:
         {{ winRoot }}/Users/name/python
         <span v-if="winRoot !== ''">.exe</span>
       </label>
-      <div class="control">
-        <input
-          type="text"
-          class="input"
-          v-model="manualPythonPath"
-          placeholder="Enter your absolute python binary path here"
-        />
+      <div class="field expanded">
+        <div class="control expanded">
+          <input
+            type="text"
+            class="input"
+            v-model="manualPythonPath"
+            placeholder="Enter your absolute python binary path here"
+          />
+        </div>
+        <div class="control">
+          <font-awesome-icon
+            :icon="folderIcon"
+            class="open-icon"
+            @mouseover="folderIcon = 'folder-open'"
+            @mouseout="folderIcon = 'folder'"
+            v-on:click="openPythonPath"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -40,12 +51,15 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { Mutation, State } from "vuex-class";
+import { Action, Mutation, State } from "vuex-class";
 
 @Component
 export default class SelectPyVersion extends Vue {
-  private manualPythonPath: string = "";
+  private folderIcon = "folder";
+  @Action private openPythonPath;
   @Mutation setSelectedSysPython;
+  @Mutation setManualPyPath;
+  @State("manualSysPython") storeManualSysPython: string;
   @State("pyVersionsList") storePyVersionsList: string[];
   @State("selectedSysPython") storeSelectedPythonVersion: string;
 
@@ -62,6 +76,13 @@ export default class SelectPyVersion extends Vue {
   }
   set selectedPythonVersion(newValue: string) {
     this.setSelectedSysPython(newValue);
+  }
+
+  get manualPythonPath() {
+    return this.storeManualSysPython;
+  }
+  set manualPythonPath(newValue: string) {
+    this.setManualPyPath(newValue);
   }
 }
 </script>

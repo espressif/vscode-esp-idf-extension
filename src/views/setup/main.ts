@@ -85,6 +85,15 @@ window.addEventListener("message", (event) => {
         store.commit("setToolsResult", msg.toolsResults);
       }
       break;
+    case "updateEspIdfFolder":
+      if (msg.selectedFolder) {
+        store.commit("setEspIdfPath", msg.selectedFolder);
+      }
+      break;
+    case "updatePythonPath":
+      if (msg.selectedPyPath) {
+        store.commit("setManualPyPath", msg.selectedPyPath);
+      }
     default:
       break;
   }

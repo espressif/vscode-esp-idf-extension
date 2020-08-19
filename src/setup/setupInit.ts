@@ -22,6 +22,7 @@ import { getPythonList } from "./installPyReqs";
 import { readJSON, pathExists } from "fs-extra";
 import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
+import { Logger } from "../logger/logger";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
@@ -43,28 +44,31 @@ export async function getSetupInitialValues(
   progress.report({ increment: 20, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const gitVersion = await utils.checkGitExists(extensionPath);
-  progress.report({
-    increment: 10,
-    message: "Checking for previous install...",
-  });
-
-  // Get initial paths
-  const prevInstall = await checkPreviousInstall(pythonVersions);
-  progress.report({ increment: 20, message: "Preparing setup view..." });
-
   const setupInitArgs = {
     espIdfVersionsList,
     gitVersion,
     pythonVersions,
   } as ISetupInitArgs;
-  if (prevInstall) {
-    setupInitArgs.espIdfPath = prevInstall.espIdfPath;
-    setupInitArgs.exportedPaths = prevInstall.exportedToolsPaths;
-    setupInitArgs.exportedVars = prevInstall.exportedVars;
-    setupInitArgs.toolsResults = prevInstall.toolsInfo;
-    setupInitArgs.pyBinPath = prevInstall.pyVenvPath;
+  try {
+    progress.report({
+      increment: 10,
+      message: "Checking for previous install...",
+    });
+
+    // Get initial paths
+    const prevInstall = await checkPreviousInstall(pythonVersions);
+    progress.report({ increment: 20, message: "Preparing setup view..." });
+    if (prevInstall) {
+      setupInitArgs.espIdfPath = prevInstall.espIdfPath;
+      setupInitArgs.exportedPaths = prevInstall.exportedToolsPaths;
+      setupInitArgs.exportedVars = prevInstall.exportedVars;
+      setupInitArgs.toolsResults = prevInstall.toolsInfo;
+      setupInitArgs.pyBinPath = prevInstall.pyVenvPath;
+    }
+    console.log(setupInitArgs);
+  } catch (error) {
+    Logger.error(error.message, error);
   }
-  console.log(setupInitArgs);
   return setupInitArgs;
 }
 

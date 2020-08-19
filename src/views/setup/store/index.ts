@@ -30,6 +30,7 @@ export interface IState {
   isEspIdfValid: boolean;
   isInstalled: boolean;
   isVirtualEnvPyPathValid: boolean;
+  manualSysPython: string;
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
   selectedSysPython: string;
@@ -47,6 +48,7 @@ export const setupState: IState = {
   isEspIdfValid: false,
   isInstalled: false,
   isVirtualEnvPyPathValid: false,
+  manualSysPython: "",
   pyVersionsList: [],
   selectedEspIdfVersion: {
     filename: "",
@@ -70,10 +72,15 @@ try {
 
 export const actions: ActionTree<IState, any> = {
   installEspIdf(context) {
+    console.log(context.state.selectedSysPython);
+    const pyPath =
+      context.state.selectedSysPython === "Provide python executable path"
+        ? context.state.manualSysPython
+        : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdf",
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
-      selectedPyPath: context.state.selectedSysPython,
+      selectedPyPath: pyPath,
       manualEspIdfPath: context.state.espIdf,
     });
   },
@@ -86,6 +93,11 @@ export const actions: ActionTree<IState, any> = {
   openEspIdfFolder() {
     vscode.postMessage({
       command: "openEspIdfFolder",
+    });
+  },
+  openPythonPath() {
+    vscode.postMessage({
+      command: "openPythonPath",
     });
   },
   requestInitialValues() {
@@ -122,6 +134,11 @@ export const mutations: MutationTree<IState> = {
   setIsInstalled(state, isInstalled: boolean) {
     const newState = state;
     newState.isInstalled = isInstalled;
+    Object.assign(state, newState);
+  },
+  setManualPyPath(state, manualPyPath) {
+    const newState = state;
+    newState.manualSysPython = manualPyPath;
     Object.assign(state, newState);
   },
   setPyBinPath(state, pyBinPath) {

@@ -74,6 +74,13 @@ export default class Home extends Vue {
   flex-direction: column;
 }
 
+.expanded {
+  width: 70%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
 .install-btn {
   margin: 0.5em;
 }

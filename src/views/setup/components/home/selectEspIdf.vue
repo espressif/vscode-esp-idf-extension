@@ -75,10 +75,4 @@ export default class SelectEspIdf extends Vue {
   width: 100%;
   margin: 0.25em;
 }
-.expanded {
-  width: 70%;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-}
 </style>

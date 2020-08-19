@@ -92,45 +92,59 @@ export async function installPythonEnv(
     channel.appendLine(creatEnvMsg);
   }
 
+  let envModule: string;
   try {
-    const checkVirtualEnv = await utils.execChildProcess(
-      `${pyPathWithoutSpaces} -c "import virtualenv"`,
-      idfToolsDir,
-      channel
-    );
+    const pythonVersion = (
+      await utils.execChildProcess(
+        `"${pythonBinPath}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
+        espDir
+      )
+    ).replace(/(\n|\r|\r\n)/gm, "");
+    envModule =
+      pythonVersion.localeCompare("3.3") !== -1 ? "venv" : "virtualenv";
+    if (envModule.indexOf("virtualenv") !== -1) {
+      const checkVirtualEnv = await utils.execChildProcess(
+        `${pyPathWithoutSpaces} -c "import virtualenv"`,
+        idfToolsDir,
+        channel
+      );
+    }
   } catch (error) {
     if (error && error.message.indexOf("ModuleNotFoundError") !== -1) {
-      execProcessWithLog(
-        `${pyPathWithoutSpaces} -m pip install --user virtualenv`,
+      await execProcessWithLog(
+        `"${pyPathWithoutSpaces}" -m pip install --user virtualenv`,
         idfToolsDir,
         pyTracker,
         channel
       );
     }
   }
-  execProcessWithLog(
-    `${pyPathWithoutSpaces} -m virtualenv "${pyEnvPath}"`,
+  await execProcessWithLog(
+    `${pyPathWithoutSpaces} -m ${envModule} ${pyEnvPath}`,
     idfToolsDir,
     pyTracker,
     channel
   );
   pyTracker.Log = installPyPkgsMsg;
-  execProcessWithLog(
-    `${virtualEnvPython} -m pip install wheel`,
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install wheel`,
     idfToolsDir,
     pyTracker,
     channel
   );
 
-  execProcessWithLog(
-    `${virtualEnvPython} -m pip install -r ${requirements}`,
+  const modifiedEnv = Object.assign({}, process.env);
+  modifiedEnv.IDF_PATH = espDir;
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
     idfToolsDir,
     pyTracker,
-    channel
+    channel,
+    { env: modifiedEnv }
   );
   pyTracker.Log = installDAPyPkgsMsg;
-  execProcessWithLog(
-    `${virtualEnvPython} -m pip install -r ${debugAdapterRequirements}`,
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel
@@ -142,9 +156,15 @@ export async function execProcessWithLog(
   cmd: string,
   workDir: string,
   pyTracker: PyReqLog,
-  channel?: OutputChannel
+  channel?: OutputChannel,
+  opts?: { env: NodeJS.ProcessEnv }
 ) {
-  const processResult = await utils.execChildProcess(cmd, workDir, channel);
+  const processResult = await utils.execChildProcess(
+    cmd,
+    workDir,
+    channel,
+    opts
+  );
   pyTracker.Log = processResult + "\n";
   if (channel) {
     channel.appendLine(processResult + "\n");

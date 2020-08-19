@@ -70,12 +70,10 @@ export class SetupPanel {
     vscode.ConfigurationTarget.Global;
 
   constructor(
-    extensionPath: string,
+    private extensionPath: string,
     column: vscode.ViewColumn,
     setupArgs: ISetupInitArgs
   ) {
-    this.extesionPath = extensionPath;
-
     const setupPanelTitle = locDic.localize(
       "setupPanel.panelName",
       "ESP-IDF Setup"
@@ -89,19 +87,21 @@ export class SetupPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+          vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
         ],
       }
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(extensionPath, "dist", "views", "setup-bundle.js")
+        path.join(this.extensionPath, "dist", "views", "setup-bundle.js")
       )
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
-    this.panel.webview.onDidReceiveMessage((message) => {
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
+
+    this.panel.webview.onDidReceiveMessage(async (message) => {
       console.log(message);
       switch (message.command) {
         case "installEspIdf":
@@ -117,13 +117,27 @@ export class SetupPanel {
             );
           }
           break;
+        case "openEspIdfFolder":
+          const selectedFolder = await this.openFolder();
+          this.panel.webview.postMessage({
+            command: "updateEspIdfFolder",
+            selectedFolder,
+          });
+          break;
+        case "openPythonPath":
+          const selectedPyPath = await this.openFile();
+          this.panel.webview.postMessage({
+            command: "updatePythonPath",
+            selectedPyPath,
+          });
+          break;
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
             idfVersions: setupArgs.espIdfVersionsList,
             pyVersionList: setupArgs.pythonVersions,
             gitVersion: setupArgs.gitVersion,
-            espIdf: setupArgs.espIdfPath,
+            espIdf: setupArgs.espIdfPath || espIdfPath,
             pyBinPath: setupArgs.pyBinPath,
             toolsResults: setupArgs.toolsResults,
           });
@@ -158,13 +172,11 @@ export class SetupPanel {
   ) {
     await vscode.window.withProgress(
       {
-        cancellable: true,
         location: vscode.ProgressLocation.Notification,
         title: "ESP-IDF",
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>,
-        cancelToken: vscode.CancellationToken
+        progress: vscode.Progress<{ message: string; increment?: number }>
       ) => {
         try {
           const idfContainerPath =
@@ -195,7 +207,12 @@ export class SetupPanel {
             toolsPath,
             pyPath
           );
-          this.saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
+          await this.saveSettings(
+            idfPath,
+            virtualEnvPath,
+            exportPaths,
+            exportVars
+          );
         } catch (error) {
           const errMsg = error.message
             ? error.message
@@ -219,24 +236,55 @@ export class SetupPanel {
     return idfToolsManager;
   }
 
-  private saveSettings(
+  private async openFolder() {
+    const selectedFolder = await vscode.window.showOpenDialog({
+      canSelectFolders: true,
+      canSelectFiles: false,
+      canSelectMany: false,
+    });
+    if (selectedFolder && selectedFolder.length > 0) {
+      return selectedFolder[0].fsPath;
+    } else {
+      vscode.window.showInformationMessage("No folder selected");
+    }
+  }
+
+  private async openFile() {
+    const selectedFolder = await vscode.window.showOpenDialog({
+      canSelectFolders: false,
+      canSelectFiles: true,
+      canSelectMany: false,
+    });
+    if (selectedFolder && selectedFolder.length > 0) {
+      return selectedFolder[0].fsPath;
+    } else {
+      vscode.window.showInformationMessage("No folder selected");
+    }
+  }
+
+  private async saveSettings(
     espIdfPath: string,
     pythonBinPath: string,
     exportedPaths: string,
     exportedVars: string
   ) {
-    idfConf.writeParameter("idf.espIdfPath", espIdfPath, this.confTarget);
-    idfConf.writeParameter("idf.pythonBinPath", pythonBinPath, this.confTarget);
-    idfConf.writeParameter(
+    await idfConf.writeParameter("idf.espIdfPath", espIdfPath, this.confTarget);
+    await idfConf.writeParameter(
+      "idf.pythonBinPath",
+      pythonBinPath,
+      this.confTarget
+    );
+    await idfConf.writeParameter(
       "idf.customExtraPaths",
       exportedPaths,
       this.confTarget
     );
-    idfConf.writeParameter(
+    await idfConf.writeParameter(
       "idf.customExtraVars",
       exportedVars,
       this.confTarget
     );
+    vscode.window.showInformationMessage("ESP-IDF has been configured");
   }
 
   private createSetupHtml(scriptPath: vscode.Uri): string {
