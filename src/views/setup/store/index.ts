@@ -27,6 +27,7 @@ export interface IState {
   exportedToolsPaths: string;
   exportedVars: string;
   gitVersion: string;
+  hasPrerequisites: boolean;
   isEspIdfValid: boolean;
   isInstalled: boolean;
   isVirtualEnvPyPathValid: boolean;
@@ -45,6 +46,7 @@ export const setupState: IState = {
   exportedToolsPaths: "",
   exportedVars: "",
   gitVersion: "",
+  hasPrerequisites: false,
   isEspIdfValid: false,
   isInstalled: false,
   isVirtualEnvPyPathValid: false,
@@ -129,6 +131,11 @@ export const mutations: MutationTree<IState> = {
   setGitVersion(state, gitVersion) {
     const newState = state;
     newState.gitVersion = gitVersion;
+    Object.assign(state, newState);
+  },
+  setHasPrerequisites(state, hasRequisites: boolean) {
+    const newState = state;
+    newState.hasPrerequisites = hasRequisites;
     Object.assign(state, newState);
   },
   setIsInstalled(state, isInstalled: boolean) {

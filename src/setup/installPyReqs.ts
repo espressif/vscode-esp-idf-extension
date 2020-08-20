@@ -17,12 +17,17 @@ import * as pythonManager from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import { OutputChannel } from "../logger/outputChannel";
 import { PyReqLog } from "../PyReqLog";
+import { Progress } from "vscode";
 
 export async function installPyReqs(
   espIdfPath: string,
   workingDir: string,
-  sysPyBinPath: string
+  sysPyBinPath: string,
+  progress: Progress<{ message: string; increment?: number }>
 ) {
+  progress.report({
+    message: `Checking Python and pip exists...`,
+  });
   const canCheck = await checkPythonPipExists(sysPyBinPath, workingDir);
   if (!canCheck) {
     const msg = "Python or pip have not been found in your environment.";
@@ -31,6 +36,9 @@ export async function installPyReqs(
     return;
   }
   const logTracker = new PyReqLog(sendPyReqLog);
+  progress.report({
+    message: `Installing python virtualenv and ESP-IDF python requirements...`,
+  });
   const virtualEnvPyBin = await pythonManager.installPythonEnv(
     espIdfPath,
     workingDir,

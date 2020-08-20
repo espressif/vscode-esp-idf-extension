@@ -1,26 +1,35 @@
 <template>
   <div id="home">
-    <div class="centerize" v-if="!isInstalled">
-      <div class="field">
-        <label>Git version: {{ gitVersion }}</label>
-      </div>
-
-      <selectEspIdf></selectEspIdf>
-
-      <selectPyVersion></selectPyVersion>
-
+    <h1 class="title">ESPRESSIF</h1>
+    <div class="centerize" v-if="!hasPrerequisites">
+      <p>
+        Before using this extension,
+        <a href="https://git-scm.com/downloads">Git</a>
+        and
+        <a href="https://www.python.org/downloads">Python</a> are required.
+        <br />Please read
+        <a
+          href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites"
+          >ESP-IDF Prerequisites.</a
+        >
+      </p>
+      <p v-if="isNotWinPlatform">
+        <a href="https://cmake.org/download/">CMake</a> and
+        <a href="https://github.com/ninja-build/ninja/releases">Ninja</a> are
+        required in environment PATH.
+      </p>
+    </div>
+    <div class="centerize" v-if="hasPrerequisites && !isInstalled">
       <div class="field install-btn">
         <div class="control">
-          <button v-on:click.once="installEspIdf" class="button">
-            Install
-          </button>
+          <router-link to="/autoinstall" class="button">Install</router-link>
         </div>
       </div>
 
       <div class="field install-btn">
         <div class="control">
           <button v-on:click.once="useDefaultSettings" class="button">
-            Use existing ESP-IDF and ESP-IDF
+            Use existing ESP-IDF setup
           </button>
         </div>
       </div>
@@ -36,25 +45,20 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import selectEspIdf from "./components/home/selectEspIdf.vue";
-import selectPyVersion from "./components/home/selectPyVersion.vue";
 
-@Component({
-  components: {
-    selectEspIdf,
-    selectPyVersion,
-  },
-})
+@Component
 export default class Home extends Vue {
-  private msg = "Hello";
   @Action requestInitialValues;
   @Action useDefaultSettings;
-  @Action installEspIdf;
-  @State("gitVersion") private storeGitVersion: string;
+  @State("hasPrerequisites") private storeHasPrerequisites: boolean;
   @State("isInstalled") private storeIsInstalled: boolean;
 
-  get gitVersion() {
-    return this.storeGitVersion;
+  get hasPrerequisites() {
+    return this.storeHasPrerequisites;
+  }
+
+  get isNotWinPlatform() {
+    return navigator.platform.indexOf("Win") < 0;
   }
 
   get isInstalled() {

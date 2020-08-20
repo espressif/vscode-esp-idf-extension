@@ -65,7 +65,6 @@ export class SetupPanel {
   private static readonly viewType = "setupPanel";
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
-  private extesionPath: string;
   private confTarget: vscode.ConfigurationTarget =
     vscode.ConfigurationTarget.Global;
 
@@ -110,11 +109,15 @@ export class SetupPanel {
             message.selectedPyPath &&
             message.manualEspIdfPath
           ) {
-            this.autoInstall(
+            await this.autoInstall(
               message.selectedEspIdfVersion,
               message.selectedPyPath,
               message.manualEspIdfPath
             );
+            this.panel.webview.postMessage({
+              command: "setIsInstalled",
+              isInstalled: true,
+            });
           }
           break;
         case "openEspIdfFolder":
@@ -134,11 +137,12 @@ export class SetupPanel {
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
-            idfVersions: setupArgs.espIdfVersionsList,
-            pyVersionList: setupArgs.pythonVersions,
-            gitVersion: setupArgs.gitVersion,
             espIdf: setupArgs.espIdfPath || espIdfPath,
+            gitVersion: setupArgs.gitVersion,
+            hasPrerequisites: setupArgs.hasPrerequisites,
+            idfVersions: setupArgs.espIdfVersionsList,
             pyBinPath: setupArgs.pyBinPath,
+            pyVersionList: setupArgs.pythonVersions,
             toolsResults: setupArgs.toolsResults,
           });
           break;
@@ -149,12 +153,16 @@ export class SetupPanel {
             setupArgs.exportedPaths &&
             setupArgs.exportedVars
           ) {
-            this.saveSettings(
+            await this.saveSettings(
               setupArgs.espIdfPath,
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
               setupArgs.exportedVars
             );
+            this.panel.webview.postMessage({
+              command: "setIsInstalled",
+              isInstalled: true,
+            });
           }
           break;
         default:
@@ -205,7 +213,8 @@ export class SetupPanel {
           const virtualEnvPath = await installPyReqs(
             espIdfPath,
             toolsPath,
-            pyPath
+            pyPath,
+            progress
           );
           await this.saveSettings(
             idfPath,

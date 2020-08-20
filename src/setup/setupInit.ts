@@ -30,6 +30,7 @@ export interface ISetupInitArgs {
   exportedVars: string;
   espIdfVersionsList: IEspIdfLink[];
   gitVersion: string;
+  hasPrerequisites: boolean;
   pythonVersions: string[];
   toolsResults: IToolInfo[];
   pyBinPath: string;
@@ -44,10 +45,30 @@ export async function getSetupInitialValues(
   progress.report({ increment: 20, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const gitVersion = await utils.checkGitExists(extensionPath);
+
+  let hasPrerequisites = false;
+  if (process.platform !== "win32") {
+    const canAccessCMake = await utils.isBinInPath(
+      "cmake",
+      extensionPath,
+      process.env
+    );
+    const canAccessNinja = await utils.isBinInPath(
+      "ninja",
+      extensionPath,
+      process.env
+    );
+    hasPrerequisites =
+      gitVersion !== "" && canAccessCMake !== "" && canAccessNinja !== "";
+  } else {
+    hasPrerequisites = gitVersion !== "";
+  }
+
   const setupInitArgs = {
     espIdfVersionsList,
     gitVersion,
     pythonVersions,
+    hasPrerequisites,
   } as ISetupInitArgs;
   try {
     progress.report({
