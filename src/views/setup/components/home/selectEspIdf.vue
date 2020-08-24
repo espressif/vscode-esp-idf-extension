@@ -5,9 +5,12 @@
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfVersion">
-            <option v-for="ver in idfVersionList" :key="ver.name" :value="ver">
-              {{ ver.name }}
-            </option>
+            <option
+              v-for="ver in idfVersionList"
+              :key="ver.name"
+              :value="ver"
+              >{{ ver.name }}</option
+            >
           </select>
         </div>
       </div>
@@ -22,13 +25,14 @@
           <input type="text" class="input" v-model="espIdf" />
         </div>
         <div class="control">
-          <font-awesome-icon
-            :icon="folderIcon"
-            class="open-icon"
-            @mouseover="folderIcon = 'folder-open'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openEspIdfFolder"
-          />
+          <div class="icon">
+            <i
+              :class="folderIcon"
+              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
+              @mouseout="folderIcon = 'codicon codicon-folder'"
+              v-on:click="openEspIdfFolder"
+            ></i>
+          </div>
         </div>
       </div>
     </div>
@@ -42,7 +46,7 @@ import { State, Action, Mutation } from "vuex-class";
 
 @Component
 export default class SelectEspIdf extends Vue {
-  private folderIcon = "folder";
+  private folderIcon = "codicon codicon-folder";
   @Action private openEspIdfFolder;
   @Mutation setEspIdfPath;
   @Mutation setSelectedEspIdfVersion;

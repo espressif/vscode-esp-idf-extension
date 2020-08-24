@@ -6291,6 +6291,11 @@ vsce@^1.52.0:
     yauzl "^2.3.1"
     yazl "^2.2.2"
 
+vscode-codicons@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/vscode-codicons/-/vscode-codicons-0.0.7.tgz#86113f001e8abf630759500ea65c9708739c76b2"
+  integrity sha512-xqYypi4Ihth3bZgoE6961FYJBrmFErC+YouSC5Tn0pHqv0QSrP0PK++EIVNBi0I9Ted1OetZ3aWlNUWq1QaMBA==
+
 vscode-debugadapter-testsupport@^1.34.0:
   version "1.41.0"
   resolved "https://registry.yarnpkg.com/vscode-debugadapter-testsupport/-/vscode-debugadapter-testsupport-1.41.0.tgz#db2b6c743ef07b1f57828168bdc5f7a5e50ae21a"

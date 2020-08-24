@@ -87,6 +87,14 @@ export class SetupPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
+          vscode.Uri.file(
+            path.join(
+              this.extensionPath,
+              "node_modules",
+              "vscode-codicons",
+              "dist"
+            )
+          ),
         ],
       }
     );
@@ -96,7 +104,18 @@ export class SetupPanel {
         path.join(this.extensionPath, "dist", "views", "setup-bundle.js")
       )
     );
-    this.panel.webview.html = this.createSetupHtml(scriptPath);
+    const codiconsUri = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(
+          this.extensionPath,
+          "node_modules",
+          "vscode-codicons",
+          "dist",
+          "codicon.css"
+        )
+      )
+    );
+    this.panel.webview.html = this.createSetupHtml(scriptPath, codiconsUri);
 
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
 
@@ -296,18 +315,22 @@ export class SetupPanel {
     vscode.window.showInformationMessage("ESP-IDF has been configured");
   }
 
-  private createSetupHtml(scriptPath: vscode.Uri): string {
+  private createSetupHtml(
+    scriptPath: vscode.Uri,
+    codiconsUri: vscode.Uri
+  ): string {
     return `<!DOCTYPE html>
       <html lang="en">
-      <head>
+        <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>ESP-IDF Setup</title>
-          </head>
-          <body>
-              <div id="app"></div>
-          </body>
-          <script src="${scriptPath}"></script>
+          <link href="${codiconsUri}" rel="stylesheet" />
+        </head>
+        <body>
+          <div id="app"></div>
+        </body>
+        <script src="${scriptPath}"></script>
       </html>`;
   }
 

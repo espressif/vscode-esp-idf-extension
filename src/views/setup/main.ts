@@ -11,17 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faArrowCircleDown,
-  faArrowLeft,
-  faCheck,
-  faFolder,
-  faFolderOpen,
-  faTimes,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import VueRouter from "vue-router";
 import { store } from "./store";
@@ -44,16 +33,6 @@ const router = new VueRouter({
   routes,
   base: __dirname,
 });
-
-library.add(
-  faArrowLeft,
-  faArrowCircleDown,
-  faCheck,
-  faFolder,
-  faFolderOpen,
-  faTimes
-);
-Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 const app = new Vue({
   el: "#app",

@@ -36,13 +36,14 @@
           />
         </div>
         <div class="control">
-          <font-awesome-icon
-            :icon="folderIcon"
-            class="open-icon"
-            @mouseover="folderIcon = 'folder-open'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openPythonPath"
-          />
+          <div class="icon">
+            <i
+              :class="folderIcon"
+              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
+              @mouseout="folderIcon = 'codicon codicon-folder'"
+              v-on:click="openPythonPath"
+            ></i>
+          </div>
         </div>
       </div>
     </div>
@@ -55,7 +56,7 @@ import { Action, Mutation, State } from "vuex-class";
 
 @Component
 export default class SelectPyVersion extends Vue {
-  private folderIcon = "folder";
+  private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
   @Mutation setSelectedSysPython;
   @Mutation setManualPyPath;

@@ -31,14 +31,4 @@ export default class App extends Vue {}
 .fade-leave-to {
   opacity: 0;
 }
-
-.open-icon {
-  color: var(--vscode-button-background);
-  margin: 0.5em 0 0 0.5em;
-  cursor: pointer;
-  font-size: larger;
-}
-.open-icon:hover {
-  color: var(--vscode-button-hoverBackground);
-}
 </style>

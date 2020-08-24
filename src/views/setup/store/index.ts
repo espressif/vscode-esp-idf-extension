@@ -35,6 +35,7 @@ export interface IState {
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
   selectedSysPython: string;
+  toolsFolder: string;
   toolsResults: IToolInfo[];
   virtualEnvPyPath: string;
 }
@@ -59,6 +60,7 @@ export const setupState: IState = {
     url: "",
   },
   selectedSysPython: "",
+  toolsFolder: "",
   toolsResults: [],
   virtualEnvPyPath: "",
 };
@@ -169,6 +171,11 @@ export const mutations: MutationTree<IState> = {
   setSelectedSysPython(state, selectedSysPython: string) {
     const newState = state;
     newState.selectedSysPython = selectedSysPython;
+    Object.assign(state, newState);
+  },
+  setToolsFolder(state, toolsFolder: string) {
+    const newState = state;
+    newState.toolsFolder = toolsFolder;
     Object.assign(state, newState);
   },
   setToolsResult(state, toolsResults: IToolInfo[]) {
