@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { Progress } from "vscode";
-import { IdfToolsManager, IToolInfo } from "../idfToolsManager";
+import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
@@ -32,7 +32,7 @@ export interface ISetupInitArgs {
   gitVersion: string;
   hasPrerequisites: boolean;
   pythonVersions: string[];
-  toolsResults: IToolInfo[];
+  toolsResults: IEspIdfTool[];
   pyBinPath: string;
 }
 

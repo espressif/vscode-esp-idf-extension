@@ -15,27 +15,12 @@
         </div>
       </div>
     </div>
-    <div
-      class="field centerize text-size"
+    <folderOpen
+      propLabel="Enter ESP-IDF directory"
+      :propModel.sync="espIdf"
+      :openMethod="openEspIdfFolder"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
-    >
-      <label>Enter ESP-IDF directory</label>
-      <div class="field expanded">
-        <div class="control expanded">
-          <input type="text" class="input" v-model="espIdf" />
-        </div>
-        <div class="control">
-          <div class="icon">
-            <i
-              :class="folderIcon"
-              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-              @mouseout="folderIcon = 'codicon codicon-folder'"
-              v-on:click="openEspIdfFolder"
-            ></i>
-          </div>
-        </div>
-      </div>
-    </div>
+    />
   </div>
 </template>
 
@@ -43,8 +28,13 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { IEspIdfLink } from "../../types";
 import { State, Action, Mutation } from "vuex-class";
+import folderOpen from "../common/folderOpen.vue";
 
-@Component
+@Component({
+  components: {
+    folderOpen,
+  },
+})
 export default class SelectEspIdf extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openEspIdfFolder;

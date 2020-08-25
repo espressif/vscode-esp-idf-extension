@@ -5,9 +5,9 @@
       <div class="control">
         <div class="select">
           <select v-model="selectedPythonVersion" id="python-version-select">
-            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
-              {{ ver }}
-            </option>
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
+              ver
+            }}</option>
           </select>
         </div>
       </div>
@@ -17,44 +17,26 @@
       <a href="https://www.python.org/downloads">Python</a> and reload this
       window.
     </p>
-    <div
+
+    <folderOpen
+      :propLabel="inputLabel"
+      :propModel.sync="manualPythonPath"
+      :openMethod="openPythonPath"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
-      class="field centerize"
-    >
-      <label>
-        Enter absolute python binary path to use. Example:
-        {{ winRoot }}/Users/name/python
-        <span v-if="winRoot !== ''">.exe</span>
-      </label>
-      <div class="field expanded">
-        <div class="control expanded">
-          <input
-            type="text"
-            class="input"
-            v-model="manualPythonPath"
-            placeholder="Enter your absolute python binary path here"
-          />
-        </div>
-        <div class="control">
-          <div class="icon">
-            <i
-              :class="folderIcon"
-              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-              @mouseout="folderIcon = 'codicon codicon-folder'"
-              v-on:click="openPythonPath"
-            ></i>
-          </div>
-        </div>
-      </div>
-    </div>
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import folderOpen from "../common/folderOpen.vue";
 
-@Component
+@Component({
+  components: {
+    folderOpen,
+  },
+})
 export default class SelectPyVersion extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
@@ -66,6 +48,12 @@ export default class SelectPyVersion extends Vue {
 
   get winRoot() {
     return navigator.platform.indexOf("Win") !== -1 ? "C:" : "";
+  }
+
+  get inputLabel() {
+    return `Enter absolute python binary path to use. Example: ${
+      this.winRoot
+    }/Users/name/python${this.winRoot ? ".exe" : ""}`;
   }
 
   get pyVersionList() {

@@ -20,7 +20,9 @@
 
       <div class="field install-btn">
         <div class="control">
-          <button class="button">Customize setup</button>
+          <router-link to="/custom" class="button" @click="loadToolsInfo"
+            >Customize setup</router-link
+          >
         </div>
       </div>
     </div>
@@ -45,7 +47,9 @@ import selectPyVersion from "./components/home/selectPyVersion.vue";
   },
 })
 export default class Install extends Vue {
+  private isInstalling = false;
   @Action installEspIdf;
+  @Action customInstallEspIdf;
   @State("gitVersion") private storeGitVersion: string;
   @State("isInstalled") private storeIsInstalled: boolean;
 
@@ -55,6 +59,11 @@ export default class Install extends Vue {
 
   get isInstalled() {
     return this.storeIsInstalled;
+  }
+
+  loadToolsInfo() {
+    this.isInstalling = true;
+    this.customInstallEspIdf();
   }
 }
 </script>

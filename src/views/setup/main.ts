@@ -20,11 +20,14 @@ import App from "./App.vue";
 import Home from "./Home.vue";
 // @ts-ignore
 import Install from "./Install.vue";
+// @ts-ignore
+import Custom from "./Custom.vue";
 import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },
   { path: "/autoinstall", component: Install },
+  { path: "/custom", component: Custom },
 ];
 
 Vue.use(VueRouter);
@@ -77,14 +80,31 @@ window.addEventListener("message", (event) => {
         store.commit("setEspIdfPath", msg.selectedFolder);
       }
       break;
+    case "updateEspIdfToolsFolder":
+      if (msg.selectedToolsFolder) {
+        store.commit("setToolsFolder", msg.selectedToolsFolder);
+      }
+      break;
     case "updatePythonPath":
       if (msg.selectedPyPath) {
         store.commit("setManualPyPath", msg.selectedPyPath);
       }
+      break;
+    case "updatePythonVenvPath":
+      if (msg.selectedPyVenvPath) {
+        store.commit("setManualVenvPyPath", msg.selectedPyVenvPath);
+      }
+      break;
     case "setIsInstalled":
       if (msg.isInstalled) {
         store.commit("setIsInstalled", msg.isInstalled);
       }
+      break;
+    case "setRequiredToolsInfo":
+      if (msg.toolsInfo) {
+        store.commit("setToolsResult", msg.toolsInfo);
+      }
+      break;
     default:
       break;
   }

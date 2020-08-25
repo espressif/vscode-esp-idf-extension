@@ -14,7 +14,7 @@
 
 import { LocDictionary } from "../localizationDictionary";
 import { ISetupInitArgs } from "./setupInit";
-import { IEspIdfLink } from "../views/setup/types";
+import { IEspIdfLink, IEspIdfTool } from "../views/setup/types";
 import { downloadInstallIdfVersion } from "./espIdfDownload";
 import * as idfConf from "../idfConfiguration";
 import path from "path";
@@ -139,11 +139,31 @@ export class SetupPanel {
             });
           }
           break;
+        case "installEspIdfOnly":
+          if (
+            message.selectedEspIdfVersion &&
+            message.selectedPyPath &&
+            message.manualEspIdfPath
+          ) {
+            await this.autoInstall(
+              message.selectedEspIdfVersion,
+              message.selectedPyPath,
+              message.manualEspIdfPath
+            );
+          }
+          break;
         case "openEspIdfFolder":
           const selectedFolder = await this.openFolder();
           this.panel.webview.postMessage({
             command: "updateEspIdfFolder",
             selectedFolder,
+          });
+          break;
+        case "openEspIdfToolsFolder":
+          const selectedToolsFolder = await this.openFolder();
+          this.panel.webview.postMessage({
+            command: "updateEspIdfToolsFolder",
+            selectedToolsFolder,
           });
           break;
         case "openPythonPath":
@@ -152,6 +172,14 @@ export class SetupPanel {
             command: "updatePythonPath",
             selectedPyPath,
           });
+          break;
+        case "openPyVenvPath":
+          const selectedPyVenvPath = await this.openFile();
+          this.panel.webview.postMessage({
+            command: "updatePythonVenvPath",
+            selectedPyVenvPath,
+          });
+          break;
           break;
         case "requestInitialValues":
           this.panel.webview.postMessage({
@@ -190,6 +218,44 @@ export class SetupPanel {
     });
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+  }
+
+  private async installEspIdf(
+    selectedIdfVersion: IEspIdfLink,
+    espIdfPath: string
+  ) {
+    let idfPath: string;
+    if (selectedIdfVersion.filename === "manual") {
+      idfPath = espIdfPath;
+    } else {
+      let idfContainerPath =
+        process.platform === "win32"
+          ? process.env.USERPROFILE
+          : process.env.HOME;
+      const option = await vscode.window.showQuickPick(
+        [
+          {
+            label: `Use default (${idfContainerPath})`,
+            target: "current",
+          },
+          { label: "Choose a container directory...", target: "another" },
+        ],
+        { placeHolder: "Select a directory to download ESP-IDF" }
+      );
+      if (option && option.target === "another") {
+        idfContainerPath = (await this.openFolder()) || idfContainerPath;
+      }
+      idfPath = await downloadInstallIdfVersion(
+        selectedIdfVersion,
+        idfContainerPath
+      );
+    }
+    const toolsManager = await this.createIdfToolsManager(idfPath);
+    const requiredTools = await toolsManager.getRequiredToolsInfo();
+    this.panel.webview.postMessage({
+      command: "setRequiredToolsInfo",
+      toolsInfo: requiredTools,
+    });
   }
 
   private async autoInstall(

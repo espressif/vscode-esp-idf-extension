@@ -18,3 +18,18 @@ export interface IEspIdfLink {
   mirror: string;
   url: string;
 }
+
+export interface IEspIdfTool {
+  actual: string;
+  description: string;
+  doesToolExist: boolean;
+  env: {};
+  expected: string;
+  hashResult: boolean;
+  hasFailed: boolean;
+  id: string;
+  name: string;
+  path: string;
+  progress: string;
+  progressDetail: string;
+}

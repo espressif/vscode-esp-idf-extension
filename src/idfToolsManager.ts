@@ -22,11 +22,19 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { readJSON } from "fs-extra";
 
-export interface IToolInfo {
+export interface IEspIdfTool {
   actual: string;
+  description: string;
   doesToolExist: boolean;
+  env: {};
   expected: string;
+  hashResult: boolean;
+  hasFailed: boolean;
   id: string;
+  name: string;
+  path: string;
+  progress: string;
+  progressDetail: string;
 }
 
 export class IdfToolsManager {
@@ -271,17 +279,24 @@ export class IdfToolsManager {
         });
         const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
         return {
+          actual: "",
+          description: pkg.description,
+          doesToolExist: false,
+          env: pkg.export_vars,
           expected: expectedVersions.join(","),
           hashResult: false,
-          id: pkg.name,
-          progress: "0.00%",
           hasFailed: false,
-        };
+          id: pkg.name,
+          name: pkg.name,
+          path: "",
+          progress: "0.00%",
+          progressDetail: "",
+        } as IEspIdfTool;
       });
     });
   }
 
-  public async checkToolsVersion(pathToVerify: string): Promise<IToolInfo[]> {
+  public async checkToolsVersion(pathToVerify: string): Promise<IEspIdfTool[]> {
     const versions = await this.verifyPackages(pathToVerify);
     const pkgs = await this.getPackageList().then((packages) => {
       return packages.map((pkg) => {
@@ -290,10 +305,18 @@ export class IdfToolsManager {
           expectedVersions.indexOf(versions[pkg.name]) > -1;
         return {
           actual: versions[pkg.name],
+          description: pkg.description,
           doesToolExist: isToolVersionCorrect,
+          env: pkg.export_vars,
           expected: expectedVersions.join(" or \n"),
+          hashResult: false,
+          hasFailed: false,
           id: pkg.name,
-        } as IToolInfo;
+          name: pkg.name,
+          path: "",
+          progress: "0.00%",
+          progressDetail: "",
+        } as IEspIdfTool;
       });
     });
     return pkgs;

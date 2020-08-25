@@ -15,10 +15,7 @@
 import Vue from "vue";
 import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 import Vuex from "vuex";
-import { IEspIdfLink } from "../types";
-import { IToolInfo } from "../../../idfToolsManager";
-
-const CONF_TARGET_GLOBAL = 1;
+import { IEspIdfLink, IEspIdfTool } from "../types";
 
 export interface IState {
   areToolsValid: boolean;
@@ -32,11 +29,12 @@ export interface IState {
   isInstalled: boolean;
   isVirtualEnvPyPathValid: boolean;
   manualSysPython: string;
+  manualVEnvPython: string;
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
   selectedSysPython: string;
   toolsFolder: string;
-  toolsResults: IToolInfo[];
+  toolsResults: IEspIdfTool[];
   virtualEnvPyPath: string;
 }
 
@@ -52,6 +50,7 @@ export const setupState: IState = {
   isInstalled: false,
   isVirtualEnvPyPathValid: false,
   manualSysPython: "",
+  manualVEnvPython: "",
   pyVersionsList: [],
   selectedEspIdfVersion: {
     filename: "",
@@ -75,8 +74,19 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
+  customInstallEspIdf(context) {
+    const pyPath =
+      context.state.selectedSysPython === "Provide python executable path"
+        ? context.state.manualSysPython
+        : context.state.selectedSysPython;
+    vscode.postMessage({
+      command: "installEspIdfOnly",
+      selectedEspIdfVersion: context.state.selectedEspIdfVersion,
+      selectedPyPath: pyPath,
+      manualEspIdfPath: context.state.espIdf,
+    });
+  },
   installEspIdf(context) {
-    console.log(context.state.selectedSysPython);
     const pyPath =
       context.state.selectedSysPython === "Provide python executable path"
         ? context.state.manualSysPython
@@ -99,9 +109,19 @@ export const actions: ActionTree<IState, any> = {
       command: "openEspIdfFolder",
     });
   },
+  openEspIdfToolsFolder() {
+    vscode.postMessage({
+      command: "openEspIdfToolsFolder",
+    });
+  },
   openPythonPath() {
     vscode.postMessage({
       command: "openPythonPath",
+    });
+  },
+  openPyVenvPath() {
+    vscode.postMessage({
+      command: "openPyVenvPath",
     });
   },
   requestInitialValues() {
@@ -150,6 +170,11 @@ export const mutations: MutationTree<IState> = {
     newState.manualSysPython = manualPyPath;
     Object.assign(state, newState);
   },
+  setManualVenvPyPath(state, manualVenvPyPath) {
+    const newState = state;
+    newState.manualVEnvPython = manualVenvPyPath;
+    Object.assign(state, newState);
+  },
   setPyBinPath(state, pyBinPath) {
     const newState = state;
     newState.virtualEnvPyPath = pyBinPath;
@@ -178,7 +203,7 @@ export const mutations: MutationTree<IState> = {
     newState.toolsFolder = toolsFolder;
     Object.assign(state, newState);
   },
-  setToolsResult(state, toolsResults: IToolInfo[]) {
+  setToolsResult(state, toolsResults: IEspIdfTool[]) {
     const newState = state;
     newState.toolsResults = toolsResults;
     Object.assign(state, newState);
