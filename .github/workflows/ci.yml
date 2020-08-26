@@ -48,9 +48,7 @@ jobs:
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
         with:
-          run: yarn test --VERBOSE 2>&1 >> testing.results.log
-        env:
-          CODE_VERSION: "1.41.1"
+          run: yarn test
 
       - name: Upload testing.results.log
         uses: actions/upload-artifact@v1

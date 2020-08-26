@@ -821,7 +821,7 @@
     "debugPreTask": "webpack --mode development",
     "compile": "tsc -p ./",
     "watch": "webpack --watch --mode development",
-    "test": "yarn run compile && node ./out/test/runTest.js",
+    "test": "tsc -p ./ && node ./out/test/runTest.js --VERBOSE 2>&1 >> testing.results.log",
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
