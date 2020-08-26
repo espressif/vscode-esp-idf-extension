@@ -140,6 +140,7 @@
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
     "esp_idf.initGdbCommands.description",
-    "esp_idf.debuggers.text.description"
+    "esp_idf.debuggers.text.description",
+    "esp_idf.gdbinitFile.description"
   ]
 }

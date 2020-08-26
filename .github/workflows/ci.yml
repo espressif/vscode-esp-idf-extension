@@ -45,12 +45,14 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
 
+      - name: xvfb
+        run: /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
       - name: Extension Test
-        uses: GabrielBB/xvfb-action@v1.2
-        with:
-          run: yarn test --VERBOSE | tee testing.results.log
+        run: yarn test --VERBOSE 2>&1 | tee testing.results.log
         env:
           CODE_VERSION: "1.41.1"
+          DISPLAY: ":99.0"
 
       - name: Upload testing.results.log
         uses: actions/upload-artifact@v1
