@@ -22,13 +22,10 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 
 ## Prerequisites
 
-There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension.
+There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension. All the other dependencies like ESP-IDF or toolchain will be taken care by the [onboarding](./docs/ONBOARDING.md) process.
 
 - [Python 3.5](https://www.python.org/download/releases/3.5/)+
-- [Git](https://www.python.org/downloads)
-- [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for Linux/MacOS users. For Windows users, it is part of the onboarding configuration tools intall.
-- ESP-IDF [CMake Version](https://docs.espressif.com/projects/esp-idf/en/latest/get-started-cmake/index.html) (> 4.x Recommended).
-- [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites)
+- [Git](https://git-scm.com/downloads)
 
 ## Coming Soon
 
