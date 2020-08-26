@@ -239,11 +239,14 @@ export class DebugAdapterManager extends EventEmitter {
       "debug_adapter"
     );
     this.initGdbCommands = [];
-    this.elfFile = `${path.join(
-      this.currentWorkspace.fsPath,
-      "build",
-      "project-name"
-    )}.elf`;
+    this.elfFile = "";
+    if (this.currentWorkspace) {
+      this.elfFile = `${path.join(
+        this.currentWorkspace.fsPath,
+        "build",
+        "project-name"
+      )}.elf`;
+    }
   }
 
   private sendToOutputChannel(data: Buffer) {
