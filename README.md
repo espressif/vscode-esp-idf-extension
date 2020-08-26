@@ -26,6 +26,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 - [Python 3.5](https://www.python.org/download/releases/3.5/)+
 - [Git](https://git-scm.com/downloads)
+- [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for __Linux or MacOS users__. For Windows users, it is part of the onboarding configuration tools intall.
 
 ## Coming Soon
 
