@@ -85,14 +85,4 @@ export default class ToolDownloadInfo extends Vue {
   display: flex;
   flex-direction: column;
 }
-
-.progressBar {
-  width: 50%;
-}
-
-.progressBar div {
-  background-color: var(--vscode-button-background);
-  height: 10px;
-  width: 0%;
-}
 </style>

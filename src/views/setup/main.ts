@@ -75,6 +75,11 @@ window.addEventListener("message", (event) => {
         store.commit("setHasPrerequisites", msg.hasPrerequisites);
       }
       break;
+    case "goToCustomPage":
+      if (msg.page) {
+        app.$router.push("/custom");
+      }
+      break;
     case "updateEspIdfFolder":
       if (msg.selectedFolder) {
         store.commit("setEspIdfPath", msg.selectedFolder);
@@ -95,9 +100,19 @@ window.addEventListener("message", (event) => {
         store.commit("setManualVenvPyPath", msg.selectedPyVenvPath);
       }
       break;
+    case "updateIdfDownloadStatusPercentage":
+      if (msg.percentage) {
+        store.commit("setIdfDownloadStatusPercentage", msg.percentage);
+      }
+      break;
+    case "updateIdfDownloadStatusDetail":
+      if (msg.detail) {
+        store.commit("setIdfDownloadStatusDetail", msg.detail);
+      }
+      break;
     case "setIsInstalled":
       if (msg.isInstalled) {
-        store.commit("setIsInstalled", msg.isInstalled);
+        store.commit("setIsIdfInstalled", msg.isInstalled);
       }
       break;
     case "setRequiredToolsInfo":

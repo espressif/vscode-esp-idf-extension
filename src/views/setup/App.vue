@@ -31,4 +31,14 @@ export default class App extends Vue {}
 .fade-leave-to {
   opacity: 0;
 }
+
+.progressBar {
+  width: 50%;
+}
+
+.progressBar div {
+  background-color: var(--vscode-button-background);
+  height: 10px;
+  width: 0%;
+}
 </style>

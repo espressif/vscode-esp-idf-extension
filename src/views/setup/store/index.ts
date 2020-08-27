@@ -15,7 +15,7 @@
 import Vue from "vue";
 import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 import Vuex from "vuex";
-import { IEspIdfLink, IEspIdfTool } from "../types";
+import { IEspIdfLink, IEspIdfTool, IDownload } from "../types";
 
 export interface IState {
   areToolsValid: boolean;
@@ -25,8 +25,10 @@ export interface IState {
   exportedVars: string;
   gitVersion: string;
   hasPrerequisites: boolean;
+  idfDownloadStatus: IDownload;
   isEspIdfValid: boolean;
-  isInstalled: boolean;
+  isIdfInstalling: boolean;
+  isIdfInstalled: boolean;
   isVirtualEnvPyPathValid: boolean;
   manualSysPython: string;
   manualVEnvPython: string;
@@ -46,8 +48,14 @@ export const setupState: IState = {
   exportedVars: "",
   gitVersion: "",
   hasPrerequisites: false,
+  idfDownloadStatus: {
+    id: "",
+    progress: "",
+    progressDetail: "",
+  },
   isEspIdfValid: false,
-  isInstalled: false,
+  isIdfInstalling: false,
+  isIdfInstalled: false,
   isVirtualEnvPyPathValid: false,
   manualSysPython: "",
   manualVEnvPython: "",
@@ -96,12 +104,6 @@ export const actions: ActionTree<IState, any> = {
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
       manualEspIdfPath: context.state.espIdf,
-    });
-  },
-  method(context) {
-    vscode.postMessage({
-      command: "command",
-      value: context.state.espIdf,
     });
   },
   openEspIdfFolder() {
@@ -160,9 +162,24 @@ export const mutations: MutationTree<IState> = {
     newState.hasPrerequisites = hasRequisites;
     Object.assign(state, newState);
   },
-  setIsInstalled(state, isInstalled: boolean) {
+  setIdfDownloadStatusPercentage(state, progress: string) {
     const newState = state;
-    newState.isInstalled = isInstalled;
+    newState.idfDownloadStatus.progress = progress;
+    Object.assign(state, newState);
+  },
+  setIdfDownloadStatusDetail(state, progressDetail: string) {
+    const newState = state;
+    newState.idfDownloadStatus.progressDetail = progressDetail;
+    Object.assign(state, newState);
+  },
+  setIsIdfInstalled(state, isInstalled: boolean) {
+    const newState = state;
+    newState.isIdfInstalled = isInstalled;
+    Object.assign(state, newState);
+  },
+  setIsIdfInstalling(state, isInstalled: boolean) {
+    const newState = state;
+    newState.isIdfInstalling = isInstalled;
     Object.assign(state, newState);
   },
   setManualPyPath(state, manualPyPath) {
@@ -191,6 +208,7 @@ export const mutations: MutationTree<IState> = {
   setSelectedEspIdfVersion(state, selectedEspIdfVersion: IEspIdfLink) {
     const newState = state;
     newState.selectedEspIdfVersion = selectedEspIdfVersion;
+    newState.idfDownloadStatus.id = selectedEspIdfVersion.name;
     Object.assign(state, newState);
   },
   setSelectedSysPython(state, selectedSysPython: string) {

@@ -1,7 +1,8 @@
 <template>
   <div id="install">
     <h1 class="title">ESPRESSIF</h1>
-    <div class="centerize" v-if="!isInstalled">
+    <IdfDownload v-if="isInstalling" />
+    <div class="centerize" v-if="!isInstalled && !isInstalling">
       <div class="field">
         <label>Git version: {{ gitVersion }}</label>
       </div>
@@ -12,17 +13,13 @@
 
       <div class="field install-btn">
         <div class="control">
-          <button v-on:click.once="installEspIdf" class="button">
-            Install
-          </button>
+          <button @click.once="autoInstall" class="button">Install</button>
         </div>
       </div>
 
       <div class="field install-btn">
         <div class="control">
-          <router-link to="/custom" class="button" @click="loadToolsInfo"
-            >Customize setup</router-link
-          >
+          <button class="button" @click="loadToolsInfo">Customize setup</button>
         </div>
       </div>
     </div>
@@ -39,30 +36,48 @@ import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import selectEspIdf from "./components/home/selectEspIdf.vue";
 import selectPyVersion from "./components/home/selectPyVersion.vue";
+import IdfDownload from "./components/install/IdfDownload.vue";
+import { IEspIdfLink } from "./types";
 
 @Component({
   components: {
+    IdfDownload,
     selectEspIdf,
     selectPyVersion,
   },
 })
 export default class Install extends Vue {
-  private isInstalling = false;
   @Action installEspIdf;
   @Action customInstallEspIdf;
+  @Mutation setIsIdfInstalling;
   @State("gitVersion") private storeGitVersion: string;
-  @State("isInstalled") private storeIsInstalled: boolean;
+  @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
+  @State("isIdfInstalled") private storeIsInstalled: boolean;
+  @State("isIdfInstalling") private storeIsInstalling: boolean;
 
   get gitVersion() {
     return this.storeGitVersion;
+  }
+
+  get isInstalling() {
+    return this.storeIsInstalling;
   }
 
   get isInstalled() {
     return this.storeIsInstalled;
   }
 
+  autoInstall() {
+    if (this.storeSelectedIdfVersion.filename !== "manual") {
+      this.setIsIdfInstalling(true);
+    }
+    this.installEspIdf();
+  }
+
   loadToolsInfo() {
-    this.isInstalling = true;
+    if (this.storeSelectedIdfVersion.filename !== "manual") {
+      this.setIsIdfInstalling(true);
+    }
     this.customInstallEspIdf();
   }
 }

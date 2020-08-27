@@ -19,7 +19,13 @@ export interface IEspIdfLink {
   url: string;
 }
 
-export interface IEspIdfTool {
+export interface IDownload {
+  id: string;
+  progress: string;
+  progressDetail: string;
+}
+
+export interface IEspIdfTool extends IDownload {
   actual: string;
   description: string;
   doesToolExist: boolean;
@@ -27,9 +33,6 @@ export interface IEspIdfTool {
   expected: string;
   hashResult: boolean;
   hasFailed: boolean;
-  id: string;
   name: string;
   path: string;
-  progress: string;
-  progressDetail: string;
 }

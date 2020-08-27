@@ -145,11 +145,14 @@ export class SetupPanel {
             message.selectedPyPath &&
             message.manualEspIdfPath
           ) {
-            await this.autoInstall(
+            await this.installEspIdf(
               message.selectedEspIdfVersion,
-              message.selectedPyPath,
               message.manualEspIdfPath
             );
+            this.panel.webview.postMessage({
+              command: "goToCustomPage",
+              page: true,
+            });
           }
           break;
         case "openEspIdfFolder":
@@ -179,7 +182,6 @@ export class SetupPanel {
             command: "updatePythonVenvPath",
             selectedPyVenvPath,
           });
-          break;
           break;
         case "requestInitialValues":
           this.panel.webview.postMessage({
