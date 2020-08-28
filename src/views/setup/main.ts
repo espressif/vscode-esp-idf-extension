@@ -104,10 +104,16 @@ window.addEventListener("message", (event) => {
       if (msg.percentage) {
         store.commit("setIdfDownloadStatusPercentage", msg.percentage);
       }
+      if (msg.id) {
+        store.commit("setIdfDownloadStatusId", msg.id);
+      }
       break;
     case "updateIdfDownloadStatusDetail":
       if (msg.detail) {
         store.commit("setIdfDownloadStatusDetail", msg.detail);
+      }
+      if (msg.id) {
+        store.commit("setIdfDownloadStatusId", msg.id);
       }
       break;
     case "setIsInstalled":

@@ -5,9 +5,9 @@
       <div class="control">
         <div class="select">
           <select v-model="selectedPythonVersion" id="python-version-select">
-            <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
-              ver
-            }}</option>
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
+              {{ ver }}
+            </option>
           </select>
         </div>
       </div>
@@ -22,6 +22,13 @@
       :propLabel="inputLabel"
       :propModel.sync="manualPythonPath"
       :openMethod="openPythonPath"
+      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 2]"
+    />
+
+    <folderOpen
+      :propLabel="inputVenvLabel"
+      :propModel.sync="manualVEnvPython"
+      :openMethod="openPyVenvPath"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
     />
   </div>
@@ -40,9 +47,12 @@ import folderOpen from "../common/folderOpen.vue";
 export default class SelectPyVersion extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
+  @Action openPyVenvPath;
   @Mutation setSelectedSysPython;
   @Mutation setManualPyPath;
+  @Mutation setManualVenvPyPath;
   @State("manualSysPython") storeManualSysPython: string;
+  @State("manualVEnvPython") private storeManualVEnvPython: string;
   @State("pyVersionsList") storePyVersionsList: string[];
   @State("selectedSysPython") storeSelectedPythonVersion: string;
 
@@ -54,6 +64,11 @@ export default class SelectPyVersion extends Vue {
     return `Enter absolute python binary path to use. Example: ${
       this.winRoot
     }/Users/name/python${this.winRoot ? ".exe" : ""}`;
+  }
+
+  get inputVenvLabel() {
+    const pyDir = this.winRoot ? "Scripts/python.exe" : "bin/python";
+    return `Enter Python virtual environment directory. Example: ${this.winRoot}/Users/name/.espressif/python_env/idf4.0_py3.7_env/${pyDir}`;
   }
 
   get pyVersionList() {
@@ -72,6 +87,13 @@ export default class SelectPyVersion extends Vue {
   }
   set manualPythonPath(newValue: string) {
     this.setManualPyPath(newValue);
+  }
+
+  get manualVEnvPython() {
+    return this.storeManualVEnvPython;
+  }
+  set manualVEnvPython(newValue: string) {
+    this.setManualVenvPyPath(newValue);
   }
 }
 </script>

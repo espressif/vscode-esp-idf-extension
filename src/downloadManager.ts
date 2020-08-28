@@ -85,56 +85,58 @@ export class DownloadManager {
   public async downloadPackageWithRetries(
     pkg: IPackage,
     urlInfoToUse: IFileInfo,
-    pkgProgress?: PackageProgress
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ): Promise<void> {
     const fileName = utils.fileNameFromUrl(urlInfoToUse.url);
     const destPath = this.getToolPackagesPath(["dist"]);
     const absolutePath: string = this.getToolPackagesPath(["dist", fileName]);
-
-    await pathExists(absolutePath).then(async (pkgExists) => {
-      if (pkgExists) {
-        await utils
-          .validateFileSizeAndChecksum(
-            absolutePath,
-            urlInfoToUse.sha256,
-            urlInfoToUse.size
-          )
-          .then(async (checksumEqual) => {
-            if (checksumEqual) {
-              pkgProgress.FileMatchChecksum = checksumEqual;
-              this.appendChannel(
-                `Found ${pkg.name} in ${this.installPath + path.sep}dist`
-              );
-              pkgProgress.Progress = `100.00%`;
-              pkgProgress.ProgressDetail = `(${(
-                urlInfoToUse.size / 1024
-              ).toFixed(2)} /
-                                ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
-              return;
-            } else {
-              await del(absolutePath);
-              await this.downloadWithRetries(
-                urlInfoToUse.url,
-                destPath,
-                pkgProgress
-              );
-            }
-          });
-      } else {
-        await this.downloadWithRetries(urlInfoToUse.url, destPath, pkgProgress);
-      }
-      pkgProgress.FileMatchChecksum = await utils.validateFileSizeAndChecksum(
+    const pkgExists = await pathExists(absolutePath);
+    if (pkgExists) {
+      const checksumEqual = await utils.validateFileSizeAndChecksum(
         absolutePath,
         urlInfoToUse.sha256,
         urlInfoToUse.size
       );
-    });
+      if (checksumEqual) {
+        pkgProgress.FileMatchChecksum = checksumEqual;
+        this.appendChannel(
+          `Found ${pkg.name} in ${this.installPath + path.sep}dist`
+        );
+        pkgProgress.Progress = `100.00%`;
+        pkgProgress.ProgressDetail = `(${(urlInfoToUse.size / 1024).toFixed(
+          2
+        )} / ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
+        return;
+      } else {
+        await del(absolutePath);
+        await this.downloadWithRetries(
+          urlInfoToUse.url,
+          destPath,
+          pkgProgress,
+          cancelToken
+        );
+      }
+    } else {
+      await this.downloadWithRetries(
+        urlInfoToUse.url,
+        destPath,
+        pkgProgress,
+        cancelToken
+      );
+    }
+    pkgProgress.FileMatchChecksum = await utils.validateFileSizeAndChecksum(
+      absolutePath,
+      urlInfoToUse.sha256,
+      urlInfoToUse.size
+    );
   }
 
   public async downloadWithRetries(
     urlToUse: string,
     destPath: string,
-    pkgProgress: PackageProgress
+    pkgProgress: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ) {
     let success: boolean = false;
     let retryCount: number = 2;
@@ -145,13 +147,17 @@ export class DownloadManager {
           urlToUse,
           retryCount,
           destPath,
-          pkgProgress
+          pkgProgress,
+          cancelToken
         ).catch((pkgError: PackageError) => {
-          throw pkgError.message;
+          throw pkgError;
         });
         success = true;
       } catch (error) {
         retryCount += 1;
+        if (cancelToken && cancelToken.isCancellationRequested) {
+          throw error;
+        }
         if (retryCount > MAX_RETRIES) {
           this.appendChannel("Failed to download " + urlToUse);
           throw error;
@@ -172,7 +178,8 @@ export class DownloadManager {
     urlString: string,
     delay: number,
     destinationPath: string,
-    pkgProgress?: PackageProgress
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ): Promise<http.IncomingMessage> {
     const parsedUrl: url.Url = url.parse(urlString);
     const proxyStrictSSL: any = vscode.workspace
@@ -188,6 +195,11 @@ export class DownloadManager {
     };
 
     return new Promise<http.IncomingMessage>((resolve, reject) => {
+      if (cancelToken && cancelToken.isCancellationRequested) {
+        return reject(
+          new PackageError("Download cancelled by user", "downloadFile")
+        );
+      }
       let secondsDelay: number = Math.pow(2, delay);
       if (secondsDelay === 1) {
         secondsDelay = 0;
@@ -338,6 +350,14 @@ export class DownloadManager {
             )
           );
         });
+        if (cancelToken) {
+          cancelToken.onCancellationRequested(() => {
+            req.abort();
+            return reject(
+              new PackageError("Download cancelled by user", "downloadFile")
+            );
+          });
+        }
         req.end();
       }, secondsDelay * 1000);
     });

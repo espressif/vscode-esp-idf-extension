@@ -85,6 +85,7 @@ export function sendPyReqLog(log: string) {
 
 export async function getPythonList(workingDir: string) {
   const pyVersionList = await pythonManager.getPythonBinList(workingDir);
-  pyVersionList.push("Provide python executable path");
+  pyVersionList.push("Provide python system executable path");
+  pyVersionList.push("Provide python virtual environment executable path");
   return pyVersionList;
 }

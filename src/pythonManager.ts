@@ -49,12 +49,8 @@ export async function installPythonEnv(
     channel
   );
   if (isInsideVirtualEnv.replace(EOL, "") === "True") {
-    const ignoreVirtualEnvPythonMsg = `Please use system wide Python executable.`;
-    Logger.infoNotify(ignoreVirtualEnvPythonMsg);
-    if (channel) {
-      channel.appendLine(ignoreVirtualEnvPythonMsg);
-    }
-    return;
+    await installReqs(espDir, pythonBinPath, idfToolsDir, pyTracker, channel);
+    return pythonBinPath;
   }
 
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
@@ -65,20 +61,8 @@ export async function installPythonEnv(
   const virtualEnvPython = path
     .join(pyEnvPath, ...pyDir)
     .replace(/(\s+)/g, "\\$1");
-  const requirements = path
-    .join(espDir, "requirements.txt")
-    .replace(/(\s+)/g, "\\$1");
-  const debugAdapterRequirements = path
-    .join(
-      utils.extensionContext.extensionPath,
-      "esp_debug_adapter",
-      "requirements.txt"
-    )
-    .replace(/(\s+)/g, "\\$1");
 
   const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
-  const installPyPkgsMsg = `Installing ESP-IDF python packages in ${pyEnvPath} ...\n`;
-  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${pyEnvPath} ...\n`;
 
   if (
     pythonBinPath.indexOf(virtualEnvPython) < 0 &&
@@ -125,14 +109,41 @@ export async function installPythonEnv(
     pyTracker,
     channel
   );
-  pyTracker.Log = installPyPkgsMsg;
+  await installReqs(espDir, virtualEnvPython, idfToolsDir, pyTracker, channel);
+  return virtualEnvPython;
+}
+
+export async function installReqs(
+  espDir: string,
+  virtualEnvPython: string,
+  idfToolsDir: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel
+) {
+  const installPyPkgsMsg = `Installing ESP-IDF python packages in ${virtualEnvPython} ...\n`;
+  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
+  if (pyTracker) {
+    pyTracker.Log = installPyPkgsMsg;
+  }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install wheel`,
     idfToolsDir,
     pyTracker,
     channel
   );
-
+  const requirements = path
+    .join(espDir, "requirements.txt")
+    .replace(/(\s+)/g, "\\$1");
+  const debugAdapterRequirements = path
+    .join(
+      utils.extensionContext.extensionPath,
+      "esp_debug_adapter",
+      "requirements.txt"
+    )
+    .replace(/(\s+)/g, "\\$1");
+  const extensionRequirements = path
+    .join(utils.extensionContext.extensionPath, "requirements.txt")
+    .replace(/(\s+)/g, "\\$1");
   const modifiedEnv = Object.assign({}, process.env);
   modifiedEnv.IDF_PATH = espDir;
   await execProcessWithLog(
@@ -142,20 +153,27 @@ export async function installPythonEnv(
     channel,
     { env: modifiedEnv }
   );
-  pyTracker.Log = installDAPyPkgsMsg;
+  if (pyTracker) {
+    pyTracker.Log = installDAPyPkgsMsg;
+  }
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
+    idfToolsDir,
+    pyTracker,
+    channel
+  );
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel
   );
-  return virtualEnvPython;
 }
 
 export async function execProcessWithLog(
   cmd: string,
   workDir: string,
-  pyTracker: PyReqLog,
+  pyTracker?: PyReqLog,
   channel?: OutputChannel,
   opts?: { env: NodeJS.ProcessEnv }
 ) {
@@ -165,7 +183,9 @@ export async function execProcessWithLog(
     channel,
     opts
   );
-  pyTracker.Log = processResult + "\n";
+  if (pyTracker) {
+    pyTracker.Log = processResult + "\n";
+  }
   if (channel) {
     channel.appendLine(processResult + "\n");
   }

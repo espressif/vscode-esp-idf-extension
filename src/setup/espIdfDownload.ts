@@ -28,7 +28,7 @@ import {
 import { move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
 import { IEspIdfLink } from "./espIdfVersionList";
-import { CancellationToken } from "vscode";
+import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
 
 export class EspIdfCloning extends AbstractCloning {
@@ -40,76 +40,80 @@ export class EspIdfCloning extends AbstractCloning {
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
   destPath: string,
+  progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
-  try {
-    const downloadedZipPath = path.join(destPath, idfVersion.filename);
-    const extractedDirectory = downloadedZipPath.replace(".zip", "");
-    const expectedDirectory = path.join(destPath, "esp-idf");
+  const downloadedZipPath = path.join(destPath, idfVersion.filename);
+  const extractedDirectory = downloadedZipPath.replace(".zip", "");
+  const expectedDirectory = path.join(destPath, "esp-idf");
 
-    const containerFolderExists = await utils.dirExistPromise(destPath);
-    if (!containerFolderExists) {
-      Logger.infoNotify(
-        `${destPath} doesn't exists. Select an existing directory.`
-      );
-      return;
-    }
-    const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
-    if (!expectedDirExists) {
-      OutputChannel.appendLine(
-        `${expectedDirectory} already exists. Delete it or use another location`
-      );
-      Logger.infoNotify(
-        `${expectedDirectory} already exists. Delete it or use another location`
-      );
-      return;
-    }
-    const downloadManager = new DownloadManager(destPath);
-    const installManager = new InstallManager(destPath);
-    const pkgProgress = new PackageProgress(
-      idfVersion.name,
-      sendEspIdfDownloadProgress,
-      null,
-      sendEspIdfDownloadDetail,
-      null
-    );
-
-    if (
-      idfVersion.filename === "master" ||
-      idfVersion.filename.startsWith("release")
-    ) {
-      const downloadByCloneMsg = `Downloading ESP-IDF ${idfVersion.filename} using git clone...\n`;
-      OutputChannel.appendLine(downloadByCloneMsg);
-      Logger.info(downloadByCloneMsg);
-      const espIdfCloning = new EspIdfCloning(idfVersion.filename);
-      let cancelDisposable: Disposable;
-      if (cancelToken) {
-        cancelDisposable = cancelToken.onCancellationRequested(() => {
-          espIdfCloning.cancel();
-        });
-      }
-      await espIdfCloning.downloadByCloning(destPath, pkgProgress);
-      cancelDisposable.dispose();
-    } else {
-      await downloadManager.downloadWithRetries(
-        idfVersion.url,
-        destPath,
-        pkgProgress
-      );
-      const downloadedMsg = `Downloaded ${idfVersion.name}.\n`;
-      OutputChannel.appendLine(downloadedMsg);
-      Logger.info(downloadedMsg);
-      sendDownloadedZip(downloadedZipPath);
-      await installManager.installZipFile(downloadedZipPath, destPath);
-      const extractedMsg = `Extracted ${downloadedZipPath} in ${destPath}.\n`;
-      OutputChannel.appendLine(extractedMsg);
-      Logger.info(extractedMsg);
-      await move(extractedDirectory, expectedDirectory);
-      sendExtractedZip(expectedDirectory);
-    }
-    return expectedDirectory;
-  } catch (error) {
-    OutputChannel.appendLine(error);
-    Logger.infoNotify(error);
+  const containerFolderExists = await utils.dirExistPromise(destPath);
+  if (!containerFolderExists) {
+    const containerNotFoundMsg = `${destPath} doesn't exists. Select an existing directory.`;
+    Logger.infoNotify(containerNotFoundMsg);
+    throw new Error(containerNotFoundMsg);
   }
+  const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
+  if (!expectedDirExists) {
+    // Replace to true after end of testing
+    const espExistsMsg = `${expectedDirectory} already exists. Delete it or use another location`;
+    OutputChannel.appendLine(espExistsMsg);
+    Logger.infoNotify(espExistsMsg);
+    throw new Error(espExistsMsg);
+  }
+  const downloadManager = new DownloadManager(destPath);
+  const installManager = new InstallManager(destPath);
+  const pkgProgress = new PackageProgress(
+    idfVersion.name,
+    sendEspIdfDownloadProgress,
+    null,
+    sendEspIdfDownloadDetail,
+    null
+  );
+  pkgProgress.Progress = `0.00%`;
+
+  if (
+    idfVersion.filename === "master" ||
+    idfVersion.filename.startsWith("release")
+  ) {
+    const downloadByCloneMsg = `Downloading ESP-IDF ${idfVersion.filename} using git clone...\n`;
+    OutputChannel.appendLine(downloadByCloneMsg);
+    Logger.info(downloadByCloneMsg);
+    if (progress) {
+      progress.report({ message: downloadByCloneMsg });
+    }
+    const espIdfCloning = new EspIdfCloning(idfVersion.filename);
+    let cancelDisposable: Disposable;
+    if (cancelToken) {
+      cancelDisposable = cancelToken.onCancellationRequested(() => {
+        espIdfCloning.cancel();
+      });
+    }
+    await espIdfCloning.downloadByCloning(destPath, pkgProgress);
+    cancelDisposable.dispose();
+  } else {
+    const downloadByHttpMsg = `Downloading ESP-IDF ${idfVersion.name}...`;
+    OutputChannel.appendLine(downloadByHttpMsg);
+    Logger.info(downloadByHttpMsg);
+    if (progress) {
+      progress.report({ message: downloadByHttpMsg });
+    }
+    await downloadManager.downloadWithRetries(
+      idfVersion.url,
+      destPath,
+      pkgProgress,
+      cancelToken
+    );
+    const downloadedMsg = `Downloaded ${idfVersion.name}.\n`;
+    OutputChannel.appendLine(downloadedMsg);
+    Logger.info(downloadedMsg);
+    sendDownloadedZip(downloadedZipPath);
+    await installManager.installZipFile(downloadedZipPath, destPath);
+    const extractedMsg = `Extracted ${downloadedZipPath} in ${destPath}.\n`;
+    OutputChannel.appendLine(extractedMsg);
+    Logger.info(extractedMsg);
+    await move(extractedDirectory, expectedDirectory);
+    sendExtractedZip(expectedDirectory);
+  }
+  return expectedDirectory;
 }

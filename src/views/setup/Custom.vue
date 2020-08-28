@@ -31,30 +31,6 @@
       <div class="centerize" v-if="selectedIdfTools === 'toolsExisting'">
         <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
       </div>
-
-      <div class="field centerize">
-        <label for="idf-version-select"
-          >Create or use existing python virtual environment:</label
-        >
-        <div class="control">
-          <div class="select">
-            <select v-model="selectedPyEnv">
-              <option value="pyenvCreate"
-                >Create python virtual environment</option
-              >
-              <option value="pyenvUse"
-                >Use existing python virtual environment</option
-              >
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <folderOpen
-        propLabel="Enter Python virtual environment directory"
-        :propModel.sync="manualVEnvPython"
-        :openMethod="openPyVenvPath"
-      />
     </div>
   </div>
 </template>
@@ -81,12 +57,8 @@ import { IEspIdfLink } from "./types";
 export default class CustomSetup extends Vue {
   private useExistingPyEnv: boolean = false;
   private selectedIdfTools = "toolsDownload";
-  private selectedPyEnv = "pyEnvCreate";
   @Action openEspIdfToolsFolder;
-  @Action openPyVenvPath;
   @Mutation setToolsFolder;
-  @Mutation setManualVenvPyPath;
-  @State("manualVEnvPython") private storeManualVEnvPython: string;
   @State("toolsFolder") private storeToolsFolder: string;
   @State("toolsResults") private storeToolsResults: IEspIdfLink[];
 
@@ -95,13 +67,6 @@ export default class CustomSetup extends Vue {
   }
   set toolsFolder(newValue: string) {
     this.setToolsFolder(newValue);
-  }
-
-  get manualVEnvPython() {
-    return this.storeManualVEnvPython;
-  }
-  set manualVEnvPython(newValue: string) {
-    this.setManualVenvPyPath(newValue);
   }
 
   get toolsResults() {

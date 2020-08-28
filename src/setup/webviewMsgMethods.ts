@@ -14,17 +14,22 @@
 
 import { SetupPanel } from "./SetupPanel";
 
-export function sendEspIdfDownloadProgress(updatedPercentage: string) {
+export function sendEspIdfDownloadProgress(
+  id: string,
+  updatedPercentage: string
+) {
   SetupPanel.postMessage({
     command: "updateIdfDownloadStatusPercentage",
+    id,
     percentage: updatedPercentage,
   });
 }
 
-export function sendEspIdfDownloadDetail(updatedDetail: string) {
+export function sendEspIdfDownloadDetail(id: string, updatedDetail: string) {
   SetupPanel.postMessage({
     command: "updateIdfDownloadStatusDetail",
     detail: updatedDetail,
+    id,
   });
 }
 

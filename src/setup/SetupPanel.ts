@@ -269,9 +269,11 @@ export class SetupPanel {
       {
         location: vscode.ProgressLocation.Notification,
         title: "ESP-IDF",
+        cancellable: true,
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>
+        progress: vscode.Progress<{ message: string; increment?: number }>,
+        cancelToken: vscode.CancellationToken
       ) => {
         try {
           const idfContainerPath =
@@ -284,7 +286,9 @@ export class SetupPanel {
           } else {
             idfPath = await downloadInstallIdfVersion(
               selectedIdfVersion,
-              idfContainerPath
+              idfContainerPath,
+              progress,
+              cancelToken
             );
           }
           const idfVersion = await utils.getEspIdfVersion(idfPath);
@@ -315,6 +319,7 @@ export class SetupPanel {
             : "Error during auto install";
           OutputChannel.appendLine(errMsg);
           Logger.errorNotify(errMsg, error);
+          OutputChannel.show();
         }
       }
     );

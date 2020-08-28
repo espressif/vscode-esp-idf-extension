@@ -84,8 +84,12 @@ try {
 export const actions: ActionTree<IState, any> = {
   customInstallEspIdf(context) {
     const pyPath =
-      context.state.selectedSysPython === "Provide python executable path"
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
         ? context.state.manualSysPython
+        : context.state.selectedSysPython ===
+          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.virtualEnvPyPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfOnly",
@@ -96,8 +100,12 @@ export const actions: ActionTree<IState, any> = {
   },
   installEspIdf(context) {
     const pyPath =
-      context.state.selectedSysPython === "Provide python executable path"
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
         ? context.state.manualSysPython
+        : context.state.selectedSysPython ===
+          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.virtualEnvPyPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdf",
@@ -160,6 +168,11 @@ export const mutations: MutationTree<IState> = {
   setHasPrerequisites(state, hasRequisites: boolean) {
     const newState = state;
     newState.hasPrerequisites = hasRequisites;
+    Object.assign(state, newState);
+  },
+  setIdfDownloadStatusId(state, id: string) {
+    const newState = state;
+    newState.idfDownloadStatus.id = id;
     Object.assign(state, newState);
   },
   setIdfDownloadStatusPercentage(state, progress: string) {
