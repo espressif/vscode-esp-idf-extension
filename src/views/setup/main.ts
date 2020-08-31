@@ -53,6 +53,9 @@ window.addEventListener("message", (event) => {
   const msg = event.data;
   switch (msg.command) {
     case "initialLoad":
+      if (msg.espToolsPath) {
+        store.commit("setToolsFolder", msg.espToolsPath);
+      }
       if (msg.idfVersions) {
         store.commit("setEspIdfVersionList", msg.idfVersions);
       }
@@ -77,7 +80,8 @@ window.addEventListener("message", (event) => {
       break;
     case "goToCustomPage":
       if (msg.page) {
-        app.$router.push("/custom");
+        app.$router.push(msg.page);
+        store.commit("setIsIdfInstalling", false);
       }
       break;
     case "updateEspIdfFolder":

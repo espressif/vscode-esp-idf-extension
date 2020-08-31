@@ -82,6 +82,12 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
+  checkEspIdfTools(context) {
+    vscode.postMessage({
+      command: "checkEspIdfTools",
+      toolsPath: context.state.toolsResults,
+    });
+  },
   customInstallEspIdf(context) {
     const pyPath =
       context.state.selectedSysPython ===
@@ -112,6 +118,12 @@ export const actions: ActionTree<IState, any> = {
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
       manualEspIdfPath: context.state.espIdf,
+    });
+  },
+  installEspIdfTools(context) {
+    vscode.postMessage({
+      command: "installEspIdfTools",
+      toolsPath: context.state.toolsFolder,
     });
   },
   openEspIdfFolder() {

@@ -133,10 +133,6 @@ export class SetupPanel {
               message.selectedPyPath,
               message.manualEspIdfPath
             );
-            this.panel.webview.postMessage({
-              command: "setIsInstalled",
-              isInstalled: true,
-            });
           }
           break;
         case "installEspIdfOnly":
@@ -149,10 +145,6 @@ export class SetupPanel {
               message.selectedEspIdfVersion,
               message.manualEspIdfPath
             );
-            this.panel.webview.postMessage({
-              command: "goToCustomPage",
-              page: true,
-            });
           }
           break;
         case "openEspIdfFolder":
@@ -187,6 +179,7 @@ export class SetupPanel {
           this.panel.webview.postMessage({
             command: "initialLoad",
             espIdf: setupArgs.espIdfPath || espIdfPath,
+            espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersions: setupArgs.espIdfVersionsList,
@@ -226,38 +219,69 @@ export class SetupPanel {
     selectedIdfVersion: IEspIdfLink,
     espIdfPath: string
   ) {
-    let idfPath: string;
-    if (selectedIdfVersion.filename === "manual") {
-      idfPath = espIdfPath;
-    } else {
-      let idfContainerPath =
-        process.platform === "win32"
-          ? process.env.USERPROFILE
-          : process.env.HOME;
-      const option = await vscode.window.showQuickPick(
-        [
+    try {
+      let idfPath: string;
+      if (selectedIdfVersion.filename === "manual") {
+        idfPath = espIdfPath;
+      } else {
+        let idfContainerPath =
+          process.platform === "win32"
+            ? process.env.USERPROFILE
+            : process.env.HOME;
+        const option = await vscode.window.showQuickPick(
+          [
+            {
+              label: `Use default (${idfContainerPath})`,
+              target: "current",
+            },
+            { label: "Choose a container directory...", target: "another" },
+          ],
+          { placeHolder: "Select a directory to download ESP-IDF" }
+        );
+        if (option && option.target === "another") {
+          idfContainerPath = (await this.openFolder()) || idfContainerPath;
+        }
+        await vscode.window.withProgress(
           {
-            label: `Use default (${idfContainerPath})`,
-            target: "current",
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: "ESP-IDF",
           },
-          { label: "Choose a container directory...", target: "another" },
-        ],
-        { placeHolder: "Select a directory to download ESP-IDF" }
-      );
-      if (option && option.target === "another") {
-        idfContainerPath = (await this.openFolder()) || idfContainerPath;
+          async (
+            progress: vscode.Progress<{ message: string; increment?: number }>,
+            cancelToken: vscode.CancellationToken
+          ) => {
+            idfPath = await downloadInstallIdfVersion(
+              selectedIdfVersion,
+              idfContainerPath,
+              progress,
+              cancelToken
+            );
+          }
+        );
       }
-      idfPath = await downloadInstallIdfVersion(
-        selectedIdfVersion,
-        idfContainerPath
-      );
+      const toolsManager = await this.createIdfToolsManager(idfPath);
+      const requiredTools = await toolsManager.getRequiredToolsInfo();
+      this.panel.webview.postMessage({
+        command: "setRequiredToolsInfo",
+        toolsInfo: requiredTools,
+      });
+      this.panel.webview.postMessage({
+        command: "goToCustomPage",
+        page: "/custom",
+      });
+    } catch (error) {
+      const errMsg = error.message
+        ? error.message
+        : "Error during auto install";
+      OutputChannel.appendLine(errMsg);
+      Logger.errorNotify(errMsg, error);
+      OutputChannel.show();
+      this.panel.webview.postMessage({
+        command: "goToCustomPage",
+        page: "/",
+      });
     }
-    const toolsManager = await this.createIdfToolsManager(idfPath);
-    const requiredTools = await toolsManager.getRequiredToolsInfo();
-    this.panel.webview.postMessage({
-      command: "setRequiredToolsInfo",
-      toolsInfo: requiredTools,
-    });
   }
 
   private async autoInstall(
@@ -313,6 +337,10 @@ export class SetupPanel {
             exportPaths,
             exportVars
           );
+          this.panel.webview.postMessage({
+            command: "setIsInstalled",
+            isInstalled: true,
+          });
         } catch (error) {
           const errMsg = error.message
             ? error.message
@@ -320,6 +348,10 @@ export class SetupPanel {
           OutputChannel.appendLine(errMsg);
           Logger.errorNotify(errMsg, error);
           OutputChannel.show();
+          this.panel.webview.postMessage({
+            command: "goToCustomPage",
+            page: "/",
+          });
         }
       }
     );

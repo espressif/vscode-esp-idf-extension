@@ -54,8 +54,7 @@ export async function downloadInstallIdfVersion(
     throw new Error(containerNotFoundMsg);
   }
   const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
-  if (!expectedDirExists) {
-    // Replace to true after end of testing
+  if (expectedDirExists) {
     const espExistsMsg = `${expectedDirectory} already exists. Delete it or use another location`;
     OutputChannel.appendLine(espExistsMsg);
     Logger.infoNotify(espExistsMsg);

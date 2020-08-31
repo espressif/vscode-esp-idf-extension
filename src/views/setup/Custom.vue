@@ -21,16 +21,38 @@
           :propModel.sync="toolsFolder"
           :openMethod="openEspIdfToolsFolder"
         />
-        <toolDownload
-          v-for="tool in toolsResults"
-          :key="tool.id"
-          :tool="tool"
-        />
+        <div class="centerize">
+          <toolDownload
+            v-for="tool in toolsResults"
+            :key="tool.id"
+            :tool="tool"
+          />
+        </div>
       </div>
 
       <div class="centerize" v-if="selectedIdfTools === 'toolsExisting'">
         <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
       </div>
+
+      <div class="field centerize install-btn">
+        <div class="control">
+          <button
+            class="button"
+            @click.once="installEspIdfTools"
+            v-if="selectedIdfTools === 'toolsDownload'"
+          >
+            Download Tools
+          </button>
+          <button class="button" @click="checkEspIdfTools" v-else>
+            Check Tools
+          </button>
+        </div>
+      </div>
+    </div>
+    <div v-if="isInstalled">
+      <h2 class="subtitle">
+        ESP-IDF have been configured for this extension of Visual Studio Code.
+      </h2>
     </div>
   </div>
 </template>
@@ -57,10 +79,17 @@ import { IEspIdfLink } from "./types";
 export default class CustomSetup extends Vue {
   private useExistingPyEnv: boolean = false;
   private selectedIdfTools = "toolsDownload";
+  @Action checkEspIdfTools;
+  @Action installEspIdfTools;
   @Action openEspIdfToolsFolder;
   @Mutation setToolsFolder;
+  @State("isIdfInstalled") private storeIsInstalled: boolean;
   @State("toolsFolder") private storeToolsFolder: string;
   @State("toolsResults") private storeToolsResults: IEspIdfLink[];
+
+  get isInstalled() {
+    return this.storeIsInstalled;
+  }
 
   get toolsFolder() {
     return this.storeToolsFolder;

@@ -8,13 +8,6 @@
       </p>
       <div v-bind:style="{ width: idfDownloadStatus.progress }"></div>
     </div>
-    <div class="field">
-      <div class="control">
-        <router-link to="/autoinstall" class="button" @click="cancelIdfDownload"
-          >Cancel download</router-link
-        >
-      </div>
-    </div>
   </div>
 </template>
 
@@ -26,7 +19,6 @@ import { IDownload } from "../../types";
 @Component
 export default class IdfDownload extends Vue {
   @State("idfDownloadStatus") private storeIdfDownloadStatus: IDownload;
-  @Action cancelIdfDownload;
 
   get idfDownloadStatus() {
     return this.storeIdfDownloadStatus;

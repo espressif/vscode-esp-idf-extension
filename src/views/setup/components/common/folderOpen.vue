@@ -1,7 +1,7 @@
 <template>
   <div class="field centerize text-size">
     <label>{{ propLabel }}</label>
-    <div class="field expanded">
+    <div class="field is-grouped is-grouped-centered expanded">
       <div class="control expanded">
         <input type="text" class="input" v-model="propModel" />
       </div>

@@ -26,6 +26,7 @@ import { Logger } from "../logger/logger";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
+  espToolsPath: string;
   exportedPaths: string;
   exportedVars: string;
   espIdfVersionsList: IEspIdfLink[];
@@ -81,6 +82,7 @@ export async function getSetupInitialValues(
     progress.report({ increment: 20, message: "Preparing setup view..." });
     if (prevInstall) {
       setupInitArgs.espIdfPath = prevInstall.espIdfPath;
+      setupInitArgs.espToolsPath = prevInstall.espToolsPath;
       setupInitArgs.exportedPaths = prevInstall.exportedToolsPaths;
       setupInitArgs.exportedVars = prevInstall.exportedVars;
       setupInitArgs.toolsResults = prevInstall.toolsInfo;
@@ -149,6 +151,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
 
   return {
     espIdfPath,
+    espToolsPath: toolsPath,
     exportedToolsPaths,
     exportedVars,
     pyVenvPath,

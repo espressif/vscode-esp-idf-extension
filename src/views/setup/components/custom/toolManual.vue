@@ -4,32 +4,34 @@
       <label :for="tool.id"
         >Tool: {{ tool.name }} Version: {{ tool.version }}</label
       >
-      <div class="control">
-        <input
-          type="text"
-          class="input is-small"
-          v-model="tool.path"
-          :id="tool.id"
-          @change="setToolsAreInValid"
-          @keydown="setToolsAreInValid"
-        />
-      </div>
-      <div class="control">
-        <div class="icon">
-          <i
-            :class="
-              tool.doesToolExist
-                ? 'codicon codicon-check'
-                : 'codicon codicon-close'
-            "
-          ></i>
+      <div class="field is-grouped is-grouped-centered">
+        <div class="control expanded">
+          <input
+            type="text"
+            class="input is-small"
+            v-model="tool.path"
+            :id="tool.id"
+            @change="setToolsAreInValid"
+            @keydown="setToolsAreInValid"
+          />
+        </div>
+        <div class="control">
+          <div class="icon">
+            <i
+              :class="
+                tool.doesToolExist
+                  ? 'codicon codicon-check'
+                  : 'codicon codicon-close'
+              "
+            ></i>
+          </div>
         </div>
       </div>
     </div>
     <div v-for="(item, key) in tool.env" :key="key">
-      <div class="field">
+      <div class="field centerize">
         <label :for="key">Environment variable {{ key }}:</label>
-        <div class="control">
+        <div class="control expanded">
           <input
             type="text"
             class="input is-small"
@@ -62,7 +64,7 @@ export default class PreviousTool extends Vue {
 </script>
 
 <style scoped>
-.toolsMetadata input {
-  width: -webkit-fill-available;
+.toolsMetadata {
+  width: 100%;
 }
 </style>
