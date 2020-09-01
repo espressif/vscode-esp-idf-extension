@@ -120,14 +120,16 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
     OutputChannel.init()
   );
 
-  const exportedToolsPaths = await idfToolsManager.exportPaths(
+  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
     path.join(toolsPath, "tools")
   );
-  const toolsResults = await idfToolsManager.verifyPackages(exportedToolsPaths);
-  const toolsInfo = await idfToolsManager.checkToolsVersion(exportedToolsPaths);
+  const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
+    path.join(toolsPath, "tools"),
+    exportedToolsPaths
+  );
 
-  const toolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
-  if (toolsResult.length > 0) {
+  const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
+  if (failedToolsResult.length > 0) {
     return;
   }
 

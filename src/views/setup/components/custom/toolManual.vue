@@ -34,7 +34,7 @@
         <div class="control expanded">
           <input
             type="text"
-            class="input is-small"
+            class="input is-small env-input"
             v-model="tool.env[key]"
             :id="key"
             @change="setToolsAreInValid"
@@ -66,5 +66,8 @@ export default class PreviousTool extends Vue {
 <style scoped>
 .toolsMetadata {
   width: 100%;
+}
+.env-input {
+  margin-right: 5%;
 }
 </style>

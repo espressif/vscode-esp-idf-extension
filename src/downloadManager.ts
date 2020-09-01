@@ -42,7 +42,8 @@ export class DownloadManager {
   public downloadPackages(
     idfToolsManager: IdfToolsManager,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
-    pkgsProgress?: PackageProgress[]
+    pkgsProgress?: PackageProgress[],
+    cancelToken?: vscode.CancellationToken
   ): Promise<void> {
     return idfToolsManager.getPackageList().then((packages) => {
       let count: number = 1;
@@ -60,7 +61,8 @@ export class DownloadManager {
             pkg,
             `${count}/${packages.length}`,
             progress,
-            pkgProgressToUse
+            pkgProgressToUse,
+            cancelToken
           );
           count += 1;
           return p;
@@ -74,12 +76,18 @@ export class DownloadManager {
     pkg: IPackage,
     progressCount: string,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
-    pkgProgress?: PackageProgress
+    pkgProgress?: PackageProgress,
+    cancelToken?: vscode.CancellationToken
   ): Promise<void> {
     progress.report({ message: `Downloading ${progressCount}: ${pkg.name}` });
     this.appendChannel(`Downloading ${pkg.description}`);
     const urlInfoToUse = idfToolsManager.obtainUrlInfoForPlatform(pkg);
-    await this.downloadPackageWithRetries(pkg, urlInfoToUse, pkgProgress);
+    await this.downloadPackageWithRetries(
+      pkg,
+      urlInfoToUse,
+      pkgProgress,
+      cancelToken
+    );
   }
 
   public async downloadPackageWithRetries(

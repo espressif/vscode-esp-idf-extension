@@ -14,15 +14,14 @@
 
 import { LocDictionary } from "../localizationDictionary";
 import { ISetupInitArgs } from "./setupInit";
-import { IEspIdfLink, IEspIdfTool } from "../views/setup/types";
+import { IEspIdfLink } from "../views/setup/types";
 import { downloadInstallIdfVersion } from "./espIdfDownload";
 import * as idfConf from "../idfConfiguration";
 import path from "path";
 import vscode from "vscode";
 import * as utils from "../utils";
 import { downloadEspIdfTools } from "./toolInstall";
-import { PlatformInformation } from "../PlatformInformation";
-import { IdfToolsManager } from "../idfToolsManager";
+import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { installPyReqs } from "./installPyReqs";
@@ -122,6 +121,11 @@ export class SetupPanel {
     this.panel.webview.onDidReceiveMessage(async (message) => {
       console.log(message);
       switch (message.command) {
+        case "checkEspIdfTools":
+          if (message.espIdf && message.pyPath && message.toolsPath) {
+            await this.checkRequiredTools(message.espIdf, message.toolsPath);
+          }
+          break;
         case "installEspIdf":
           if (
             message.selectedEspIdfVersion &&
@@ -144,6 +148,15 @@ export class SetupPanel {
             await this.installEspIdf(
               message.selectedEspIdfVersion,
               message.manualEspIdfPath
+            );
+          }
+          break;
+        case "installEspIdfTools":
+          if (message.espIdf && message.pyPath && message.toolsPath) {
+            await this.installEspIdfTools(
+              message.espIdf,
+              message.pyPath,
+              message.toolsPath
             );
           }
           break;
@@ -260,8 +273,27 @@ export class SetupPanel {
           }
         );
       }
-      const toolsManager = await this.createIdfToolsManager(idfPath);
-      const requiredTools = await toolsManager.getRequiredToolsInfo();
+      const idfVersion = await utils.getEspIdfVersion(idfPath);
+      if (idfVersion === "x.x") {
+        throw new Error("Invalid ESP-IDF");
+      }
+      this.panel.webview.postMessage({
+        command: "updateEspIdfFolder",
+        selectedFolder: idfPath,
+      });
+      const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
+      const containerPath =
+        process.platform === "win32"
+          ? process.env.USERPROFILE
+          : process.env.HOME;
+      const toolsPath = path.join(containerPath, ".espressif", "tools");
+      const exportedToolsPaths = await toolsManager.exportPathsInString(
+        toolsPath
+      );
+      const requiredTools = await toolsManager.getRequiredToolsInfo(
+        toolsPath,
+        exportedToolsPaths
+      );
       this.panel.webview.postMessage({
         command: "setRequiredToolsInfo",
         toolsInfo: requiredTools,
@@ -273,7 +305,7 @@ export class SetupPanel {
     } catch (error) {
       const errMsg = error.message
         ? error.message
-        : "Error during auto install";
+        : "Error during esp-idf install";
       OutputChannel.appendLine(errMsg);
       Logger.errorNotify(errMsg, error);
       OutputChannel.show();
@@ -316,17 +348,26 @@ export class SetupPanel {
             );
           }
           const idfVersion = await utils.getEspIdfVersion(idfPath);
+          if (idfVersion === "x.x") {
+            throw new Error("Invalid ESP-IDF");
+          }
+          this.panel.webview.postMessage({
+            command: "updateEspIdfFolder",
+            selectedFolder: idfPath,
+          });
           const toolsPath = path.join(idfContainerPath, ".espressif");
-          const idfToolsManager = await this.createIdfToolsManager(idfPath);
+          const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+            idfPath
+          );
           await downloadEspIdfTools(toolsPath, idfToolsManager, progress);
-          const exportPaths = await idfToolsManager.exportPaths(
+          const exportPaths = await idfToolsManager.exportPathsInString(
             path.join(toolsPath, "tools")
           );
           const exportVars = await idfToolsManager.exportVars(
             path.join(toolsPath, "tools")
           );
           const virtualEnvPath = await installPyReqs(
-            espIdfPath,
+            idfPath,
             toolsPath,
             pyPath,
             progress
@@ -357,16 +398,88 @@ export class SetupPanel {
     );
   }
 
-  private async createIdfToolsManager(newIdfPath: string) {
-    const platformInfo = await PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(newIdfPath);
-    const toolsJson = JSON.parse(utils.readFileSync(toolsJsonPath));
-    const idfToolsManager = new IdfToolsManager(
-      toolsJson,
-      platformInfo,
-      OutputChannel.init()
+  private async installEspIdfTools(
+    idfPath: string,
+    pyPath: string,
+    toolsPath: string
+  ) {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF",
+        cancellable: true,
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment?: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+            idfPath
+          );
+          await downloadEspIdfTools(
+            toolsPath,
+            idfToolsManager,
+            progress,
+            cancelToken
+          );
+          const exportPaths = await idfToolsManager.exportPathsInString(
+            path.join(toolsPath, "tools")
+          );
+          const exportVars = await idfToolsManager.exportVars(
+            path.join(toolsPath, "tools")
+          );
+          const virtualEnvPath = await installPyReqs(
+            idfPath,
+            toolsPath,
+            pyPath,
+            progress
+          );
+          await this.saveSettings(
+            idfPath,
+            virtualEnvPath,
+            exportPaths,
+            exportVars
+          );
+          this.panel.webview.postMessage({
+            command: "setIsInstalled",
+            isInstalled: true,
+          });
+        } catch (error) {
+          const errMsg = error.message
+            ? error.message
+            : "Error during ESP-IDF Tools install";
+          OutputChannel.appendLine(errMsg);
+          Logger.errorNotify(errMsg, error);
+          OutputChannel.show();
+          this.panel.webview.postMessage({
+            command: "goToCustomPage",
+            page: "/",
+          });
+        }
+      }
     );
-    return idfToolsManager;
+  }
+
+  private async checkRequiredTools(idfPath: string, toolsInfo: IEspIdfTool[]) {
+    const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
+    const pathToVerify = toolsInfo
+      .reduce((prev, curr, i) => {
+        return prev + path.delimiter + curr.path;
+      }, "")
+      .slice(1);
+
+    const foundVersions = await toolsManager.verifyPackages(pathToVerify);
+    const updatedToolsInfo = toolsInfo.map((tool) => {
+      const isToolVersionCorrect =
+        tool.expected.indexOf(foundVersions[tool.name]) > -1;
+      tool.doesToolExist = isToolVersionCorrect;
+      return tool;
+    });
+    this.panel.webview.postMessage({
+      command: "setRequiredToolsInfo",
+      toolsInfo: updatedToolsInfo,
+    });
   }
 
   private async openFolder() {

@@ -2,9 +2,7 @@
   <div id="custom-setup">
     <div class="centerize" v-if="!isInstalled">
       <div class="field centerize">
-        <label for="idf-version-select"
-          >Download ESP-IDF Tools or set them manually</label
-        >
+        <label for="idf-version-select">ESP-IDF Tools</label>
         <div class="control">
           <div class="select">
             <select v-model="selectedIdfTools">
@@ -12,6 +10,21 @@
               <option value="toolsExisting">Use existing ESP-IDF Tools</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      <div class="field centerize install-btn">
+        <div class="control">
+          <button
+            class="button"
+            @click.once="installEspIdfTools"
+            v-if="selectedIdfTools === 'toolsDownload'"
+          >
+            Download Tools
+          </button>
+          <button class="button" @click="checkEspIdfTools" v-else>
+            Check Tools
+          </button>
         </div>
       </div>
 
@@ -32,21 +45,6 @@
 
       <div class="centerize" v-if="selectedIdfTools === 'toolsExisting'">
         <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
-      </div>
-
-      <div class="field centerize install-btn">
-        <div class="control">
-          <button
-            class="button"
-            @click.once="installEspIdfTools"
-            v-if="selectedIdfTools === 'toolsDownload'"
-          >
-            Download Tools
-          </button>
-          <button class="button" @click="checkEspIdfTools" v-else>
-            Check Tools
-          </button>
-        </div>
       </div>
     </div>
     <div v-if="isInstalled">

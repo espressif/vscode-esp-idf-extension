@@ -83,8 +83,18 @@ try {
 
 export const actions: ActionTree<IState, any> = {
   checkEspIdfTools(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
+        ? context.state.manualSysPython
+        : context.state.selectedSysPython ===
+          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.virtualEnvPyPath
+        : context.state.selectedSysPython;
     vscode.postMessage({
       command: "checkEspIdfTools",
+      espIdf: context.state.espIdf,
+      pyPath,
       toolsPath: context.state.toolsResults,
     });
   },
@@ -121,8 +131,18 @@ export const actions: ActionTree<IState, any> = {
     });
   },
   installEspIdfTools(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
+        ? context.state.manualSysPython
+        : context.state.selectedSysPython ===
+          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.virtualEnvPyPath
+        : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfTools",
+      espIdf: context.state.espIdf,
+      pyPath,
       toolsPath: context.state.toolsFolder,
     });
   },

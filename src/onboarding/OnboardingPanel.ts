@@ -194,7 +194,7 @@ export class OnBoardingPanel {
             message.py_bin_path
           ) {
             this.idfToolsManager
-              .checkToolsVersion(message.custom_paths)
+              .getRequiredToolsInfo(undefined, message.custom_paths)
               .then((dictTools) => {
                 const pkgsNotFound = dictTools.filter(
                   (p) => p.doesToolExist === false

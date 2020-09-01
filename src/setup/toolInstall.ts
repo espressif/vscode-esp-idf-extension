@@ -24,12 +24,13 @@ import {
   sendPkgDownloadDetail,
   sendPkgDownloadFailed,
 } from "./webviewMsgMethods";
-import { Progress } from "vscode";
+import { CancellationToken, Progress } from "vscode";
 
 export async function downloadEspIdfTools(
   installDir: string,
   idfToolsManager: IdfToolsManager,
-  progress: Progress<{ message: string; increment?: number }>
+  progress: Progress<{ message: string; increment?: number }>,
+  cancelToken?: CancellationToken
 ) {
   const manyPathsInInstallDir = installDir.split(delimiter);
   if (manyPathsInInstallDir.length > 1) {
@@ -54,7 +55,8 @@ export async function downloadEspIdfTools(
   await downloadManager.downloadPackages(
     idfToolsManager,
     progress,
-    pkgProgress
+    pkgProgress,
+    cancelToken
   );
   OutputChannel.appendLine("");
   Logger.info("");
