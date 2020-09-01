@@ -1408,6 +1408,9 @@ export async function activate(context: vscode.ExtensionContext) {
           eFuseExplorer.load(resp);
           eFuseExplorer.refresh();
         } catch (error) {
+          if (error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR") {
+            return Logger.errorNotify(error.message, error);
+          }
           Logger.errorNotify(
             "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
             error

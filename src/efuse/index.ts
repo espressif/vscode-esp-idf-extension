@@ -76,6 +76,13 @@ export class ESPEFuseManager {
     const resp = {};
     for (const name in eFuseFields) {
       const fields = eFuseFields[name];
+      if (!fields.category) {
+        const error = new Error(
+          "IDF Version >= 4.3.x required to have e-fuse view"
+        );
+        error.name = "IDF_VERSION_MIN_REQUIREMENT_ERROR";
+        throw error;
+      }
       if (!resp[fields.category]) {
         resp[fields.category] = [];
       }
