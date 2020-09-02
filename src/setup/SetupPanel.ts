@@ -359,7 +359,12 @@ export class SetupPanel {
           const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
             idfPath
           );
-          await downloadEspIdfTools(toolsPath, idfToolsManager, progress);
+          await downloadEspIdfTools(
+            toolsPath,
+            idfToolsManager,
+            progress,
+            cancelToken
+          );
           const exportPaths = await idfToolsManager.exportPathsInString(
             path.join(toolsPath, "tools")
           );
@@ -370,7 +375,8 @@ export class SetupPanel {
             idfPath,
             toolsPath,
             pyPath,
-            progress
+            progress,
+            cancelToken
           );
           await this.saveSettings(
             idfPath,
@@ -433,7 +439,8 @@ export class SetupPanel {
             idfPath,
             toolsPath,
             pyPath,
-            progress
+            progress,
+            cancelToken
           );
           await this.saveSettings(
             idfPath,

@@ -1,6 +1,5 @@
 <template>
   <div id="home">
-    <h1 class="title">ESPRESSIF</h1>
     <div class="centerize" v-if="!hasPrerequisites">
       <p>
         Before using this extension,
@@ -19,10 +18,10 @@
         required in environment PATH.
       </p>
     </div>
-    <div class="centerize" v-if="hasPrerequisites && !isInstalled">
+    <div class="centerize" v-if="hasPrerequisites">
       <div class="field install-btn">
         <div class="control">
-          <router-link to="/autoinstall" class="button">Install</router-link>
+          <router-link to="/autoinstall" class="button">Start</router-link>
         </div>
       </div>
 
@@ -33,11 +32,6 @@
           </button>
         </div>
       </div>
-    </div>
-    <div class="install-finished" v-if="isInstalled">
-      <h2 class="subtitle">
-        ESP-IDF have been configured for this extension of Visual Studio Code.
-      </h2>
     </div>
   </div>
 </template>
@@ -51,7 +45,6 @@ export default class Home extends Vue {
   @Action requestInitialValues;
   @Action useDefaultSettings;
   @State("hasPrerequisites") private storeHasPrerequisites: boolean;
-  @State("isInstalled") private storeIsInstalled: boolean;
 
   get hasPrerequisites() {
     return this.storeHasPrerequisites;
@@ -59,10 +52,6 @@ export default class Home extends Vue {
 
   get isNotWinPlatform() {
     return navigator.platform.indexOf("Win") < 0;
-  }
-
-  get isInstalled() {
-    return this.storeIsInstalled;
   }
 
   mounted() {

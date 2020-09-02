@@ -266,6 +266,46 @@ export const mutations: MutationTree<IState> = {
     newState.toolsFolder = toolsFolder;
     Object.assign(state, newState);
   },
+  setToolChecksum(state, toolData: { name: string; checksum: boolean }) {
+    const newState = state;
+    for (let i = 0; i < newState.toolsResults.length; i++) {
+      if (newState.toolsResults[i].name === toolData.name) {
+        newState.toolsResults[i].hashResult = toolData.checksum;
+        break;
+      }
+    }
+    Object.assign(state, newState);
+  },
+  setToolDetail(state, toolData: { name: string; detail: string }) {
+    const newState = state;
+    for (let i = 0; i < newState.toolsResults.length; i++) {
+      if (newState.toolsResults[i].name === toolData.name) {
+        newState.toolsResults[i].progressDetail = toolData.detail;
+        break;
+      }
+    }
+    Object.assign(state, newState);
+  },
+  setToolFailed(state, toolData: { name: string; hasFailed: boolean }) {
+    const newState = state;
+    for (let i = 0; i < newState.toolsResults.length; i++) {
+      if (newState.toolsResults[i].name === toolData.name) {
+        newState.toolsResults[i].hasFailed = toolData.hasFailed;
+        break;
+      }
+    }
+    Object.assign(state, newState);
+  },
+  setToolPercentage(state, toolData: { name: string; percentage: string }) {
+    const newState = state;
+    for (let i = 0; i < newState.toolsResults.length; i++) {
+      if (newState.toolsResults[i].name === toolData.name) {
+        newState.toolsResults[i].progress = toolData.percentage;
+        break;
+      }
+    }
+    Object.assign(state, newState);
+  },
   setToolsResult(state, toolsResults: IEspIdfTool[]) {
     const newState = state;
     newState.toolsResults = toolsResults;

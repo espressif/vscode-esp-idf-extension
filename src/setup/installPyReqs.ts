@@ -17,13 +17,14 @@ import * as pythonManager from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import { OutputChannel } from "../logger/outputChannel";
 import { PyReqLog } from "../PyReqLog";
-import { Progress } from "vscode";
+import { CancellationToken, Progress } from "vscode";
 
 export async function installPyReqs(
   espIdfPath: string,
   workingDir: string,
   sysPyBinPath: string,
-  progress: Progress<{ message: string; increment?: number }>
+  progress: Progress<{ message: string; increment?: number }>,
+  cancelToken?: CancellationToken
 ) {
   progress.report({
     message: `Checking Python and pip exists...`,
@@ -44,7 +45,8 @@ export async function installPyReqs(
     workingDir,
     logTracker,
     sysPyBinPath,
-    OutputChannel.init()
+    OutputChannel.init(),
+    cancelToken
   );
   if (virtualEnvPyBin) {
     if (logTracker.Log.indexOf("Exception") < 0) {

@@ -50,11 +50,16 @@ export async function checkPythonRequirements(
     "esp_debug_adapter",
     "requirements.txt"
   );
-  const pythonBin = await pythonManager.getPythonBinToUse(
+  const pyEnvPath = await pythonManager.getPythonEnvPath(
     espIdfPath,
     idfToolsPath,
     pythonBinPath
   );
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+  const pythonBin = path.join(pyEnvPath, ...pyDir).replace(/(\s+)/g, "\\$1");
   await utils
     .startPythonReqsProcess(pythonBin, espIdfPath, requirements)
     .then(async (pyReqLog) => {

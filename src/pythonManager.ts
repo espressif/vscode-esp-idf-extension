@@ -13,34 +13,20 @@
 // limitations under the License.
 
 import { PyReqLog } from "./PyReqLog";
-import { OutputChannel } from "vscode";
+import { CancellationToken, OutputChannel } from "vscode";
 import * as utils from "./utils";
 import { EOL } from "os";
 import { Logger } from "./logger/logger";
 import * as del from "del";
 import path from "path";
-import { pathExists } from "fs-extra";
-
-export async function getPythonBinToUse(
-  espDir: string,
-  idfToolsDir: string,
-  pythonBinPath: string
-): Promise<string> {
-  const pyVenvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
-  const pythonInEnv =
-    process.platform === "win32"
-      ? path.join(pyVenvPath, "Scripts", "python.exe")
-      : path.join(pyVenvPath, "bin", "python");
-  const haveVenvPython = await pathExists(pythonInEnv);
-  return haveVenvPython ? pythonInEnv : pythonBinPath;
-}
 
 export async function installPythonEnv(
   espDir: string,
   idfToolsDir: string,
   pyTracker: PyReqLog,
   pythonBinPath: string,
-  channel?: OutputChannel
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
 ) {
   const pyPathWithoutSpaces = pythonBinPath.replace(/(\s+)/g, "\\$1");
   const isInsideVirtualEnv = await utils.execChildProcess(
@@ -81,7 +67,10 @@ export async function installPythonEnv(
     const pythonVersion = (
       await utils.execChildProcess(
         `"${pythonBinPath}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
-        espDir
+        espDir,
+        channel,
+        undefined,
+        cancelToken
       )
     ).replace(/(\n|\r|\r\n)/gm, "");
     envModule =
@@ -90,7 +79,9 @@ export async function installPythonEnv(
       const checkVirtualEnv = await utils.execChildProcess(
         `${pyPathWithoutSpaces} -c "import virtualenv"`,
         idfToolsDir,
-        channel
+        channel,
+        undefined,
+        cancelToken
       );
     }
   } catch (error) {
@@ -99,7 +90,9 @@ export async function installPythonEnv(
         `"${pyPathWithoutSpaces}" -m pip install --user virtualenv`,
         idfToolsDir,
         pyTracker,
-        channel
+        channel,
+        undefined,
+        cancelToken
       );
     }
   }
@@ -107,9 +100,18 @@ export async function installPythonEnv(
     `${pyPathWithoutSpaces} -m ${envModule} ${pyEnvPath}`,
     idfToolsDir,
     pyTracker,
-    channel
+    channel,
+    undefined,
+    cancelToken
   );
-  await installReqs(espDir, virtualEnvPython, idfToolsDir, pyTracker, channel);
+  await installReqs(
+    espDir,
+    virtualEnvPython,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    cancelToken
+  );
   return virtualEnvPython;
 }
 
@@ -118,7 +120,8 @@ export async function installReqs(
   virtualEnvPython: string,
   idfToolsDir: string,
   pyTracker?: PyReqLog,
-  channel?: OutputChannel
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
 ) {
   const installPyPkgsMsg = `Installing ESP-IDF python packages in ${virtualEnvPython} ...\n`;
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
@@ -129,7 +132,9 @@ export async function installReqs(
     `"${virtualEnvPython}" -m pip install wheel`,
     idfToolsDir,
     pyTracker,
-    channel
+    channel,
+    undefined,
+    cancelToken
   );
   const requirements = path
     .join(espDir, "requirements.txt")
@@ -160,13 +165,17 @@ export async function installReqs(
     `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
     idfToolsDir,
     pyTracker,
-    channel
+    channel,
+    undefined,
+    cancelToken
   );
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
     idfToolsDir,
     pyTracker,
-    channel
+    channel,
+    undefined,
+    cancelToken
   );
 }
 
@@ -175,13 +184,15 @@ export async function execProcessWithLog(
   workDir: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
-  opts?: { env: NodeJS.ProcessEnv }
+  opts?: { env: NodeJS.ProcessEnv },
+  cancelToken?: CancellationToken
 ) {
   const processResult = await utils.execChildProcess(
     cmd,
     workDir,
     channel,
-    opts
+    opts,
+    cancelToken
   );
   if (pyTracker) {
     pyTracker.Log = processResult + "\n";

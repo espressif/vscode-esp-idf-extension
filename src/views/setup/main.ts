@@ -120,6 +120,38 @@ window.addEventListener("message", (event) => {
         store.commit("setIdfDownloadStatusId", msg.id);
       }
       break;
+    case "updatePkgChecksumResult":
+      if (msg.id && msg.hashResult) {
+        store.commit("setToolChecksum", {
+          name: msg.id,
+          checksum: msg.hashResult,
+        });
+      }
+      break;
+    case "updatePkgDownloadDetail":
+      if (msg.id && msg.progressDetail) {
+        store.commit("setToolDetail", {
+          name: msg.id,
+          detail: msg.progressDetail,
+        });
+      }
+      break;
+    case "updatePkgDownloadFailed":
+      if (msg.id && msg.hasFailed) {
+        store.commit("setToolFailed", {
+          name: msg.id,
+          hasFailed: msg.hasFailed,
+        });
+      }
+      break;
+    case "updatePkgDownloadPercentage":
+      if (msg.id && msg.percentage) {
+        store.commit("setToolPercentage", {
+          name: msg.id,
+          percentage: msg.percentage,
+        });
+      }
+      break;
     case "setIsInstalled":
       if (msg.isInstalled) {
         store.commit("setIsIdfInstalled", msg.isInstalled);

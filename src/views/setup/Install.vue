@@ -1,8 +1,7 @@
 <template>
   <div id="install">
-    <h1 class="title">ESPRESSIF</h1>
     <IdfDownload v-if="isInstalling" />
-    <div class="centerize" v-if="!isInstalled && !isInstalling">
+    <div class="centerize" v-if="!isInstalling">
       <div class="field">
         <label>Git version: {{ gitVersion }}</label>
       </div>
@@ -22,11 +21,6 @@
           <button class="button" @click="loadToolsInfo">Customize setup</button>
         </div>
       </div>
-    </div>
-    <div class="install-finished" v-if="isInstalled">
-      <h2 class="subtitle">
-        ESP-IDF have been configured for this extension of Visual Studio Code.
-      </h2>
     </div>
   </div>
 </template>
@@ -52,7 +46,6 @@ export default class Install extends Vue {
   @Mutation setIsIdfInstalling;
   @State("gitVersion") private storeGitVersion: string;
   @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
-  @State("isIdfInstalled") private storeIsInstalled: boolean;
   @State("isIdfInstalling") private storeIsInstalling: boolean;
 
   get gitVersion() {
@@ -61,10 +54,6 @@ export default class Install extends Vue {
 
   get isInstalling() {
     return this.storeIsInstalling;
-  }
-
-  get isInstalled() {
-    return this.storeIsInstalled;
   }
 
   autoInstall() {

@@ -1,16 +1,28 @@
 <template>
   <div id="app">
-    <transition name="fade" mode="out-in">
+    <h1 class="title">ESPRESSIF</h1>
+    <transition name="fade" mode="out-in" v-if="!isInstalled">
       <router-view></router-view>
     </transition>
+    <div class="install-finished" v-if="isInstalled">
+      <h2 class="subtitle">
+        ESP-IDF have been configured for this extension of Visual Studio Code.
+      </h2>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { State } from "vuex-class";
 
 @Component
-export default class App extends Vue {}
+export default class App extends Vue {
+  @State("isIdfInstalled") private storeIsInstalled: boolean;
+  get isInstalled() {
+    return this.storeIsInstalled;
+  }
+}
 </script>
 
 <style lang="scss">

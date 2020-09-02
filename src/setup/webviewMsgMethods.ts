@@ -52,8 +52,9 @@ export function sendPkgDownloadPercentage(
   updatedPercentage: string
 ) {
   SetupPanel.postMessage({
-    command: "update_pkgs_download_percentage",
-    updatedPkgDownloadStatus: { id: pkgName, progress: updatedPercentage },
+    command: "updatePkgDownloadPercentage",
+    id: pkgName,
+    percentage: updatedPercentage,
   });
 }
 
@@ -62,21 +63,24 @@ export function sendPkgChecksumResult(
   updatedChecksumResult: boolean
 ) {
   SetupPanel.postMessage({
-    command: "checksum_result",
-    isChecksumEqual: { id: pkgName, hashResult: updatedChecksumResult },
+    command: "updatePkgChecksumResult",
+    id: pkgName,
+    hashResult: updatedChecksumResult,
   });
 }
 
 export function sendPkgDownloadDetail(pkgName: string, updatedDetail: string) {
   SetupPanel.postMessage({
-    command: "update_pkg_download_detail",
-    updatedPkgDownloadDetail: { id: pkgName, progressDetail: updatedDetail },
+    command: "updatePkgDownloadDetail",
+    id: pkgName,
+    progressDetail: updatedDetail,
   });
 }
 
 export function sendPkgDownloadFailed(pkgName: string, failedFlag: boolean) {
   SetupPanel.postMessage({
-    command: "set_pkg_download_failed",
-    updatedPkgFailed: { id: pkgName, hasFailed: failedFlag },
+    command: "updatePkgDownloadFailed",
+    id: pkgName,
+    hasFailed: failedFlag,
   });
 }

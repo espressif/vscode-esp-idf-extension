@@ -1,7 +1,7 @@
 <template>
   <div id="custom-setup">
-    <div class="centerize" v-if="!isInstalled">
-      <div class="field centerize">
+    <div class="centerize">
+      <div class="field centerize" v-if="!isInstalling">
         <label for="idf-version-select">ESP-IDF Tools</label>
         <div class="control">
           <div class="select">
@@ -13,27 +13,20 @@
         </div>
       </div>
 
-      <div class="field centerize install-btn">
-        <div class="control">
-          <button
-            class="button"
-            @click.once="installEspIdfTools"
-            v-if="selectedIdfTools === 'toolsDownload'"
-          >
-            Download Tools
-          </button>
-          <button class="button" @click="checkEspIdfTools" v-else>
-            Check Tools
-          </button>
-        </div>
-      </div>
-
       <div class="centerize" v-if="selectedIdfTools === 'toolsDownload'">
         <folderOpen
           propLabel="Enter ESP-IDF Tools directory"
           :propModel.sync="toolsFolder"
           :openMethod="openEspIdfToolsFolder"
+          v-if="!isInstalling"
         />
+        <div class="field centerize install-btn" v-if="!isInstalling">
+          <div class="control">
+            <button class="button" @click.once="installIdfTools">
+              Download Tools
+            </button>
+          </div>
+        </div>
         <div class="centerize">
           <toolDownload
             v-for="tool in toolsResults"
@@ -44,13 +37,22 @@
       </div>
 
       <div class="centerize" v-if="selectedIdfTools === 'toolsExisting'">
+        <div class="field centerize install-btn">
+          <div class="control">
+            <button
+              class="button"
+              @click="checkEspIdfTools"
+              v-if="allToolsAreValid"
+            >
+              Save Settings
+            </button>
+            <button class="button" @click="checkEspIdfTools" v-else>
+              Check Tools
+            </button>
+          </div>
+        </div>
         <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
       </div>
-    </div>
-    <div v-if="isInstalled">
-      <h2 class="subtitle">
-        ESP-IDF have been configured for this extension of Visual Studio Code.
-      </h2>
     </div>
   </div>
 </template>
@@ -63,7 +65,7 @@ import selectPyVersion from "./components/home/selectPyVersion.vue";
 import folderOpen from "./components/common/folderOpen.vue";
 import toolDownload from "./components/custom/toolDownload.vue";
 import toolManual from "./components/custom/toolManual.vue";
-import { IEspIdfLink } from "./types";
+import { IEspIdfTool } from "./types";
 
 @Component({
   components: {
@@ -80,13 +82,22 @@ export default class CustomSetup extends Vue {
   @Action checkEspIdfTools;
   @Action installEspIdfTools;
   @Action openEspIdfToolsFolder;
+  @Mutation setIsIdfInstalling;
   @Mutation setToolsFolder;
-  @State("isIdfInstalled") private storeIsInstalled: boolean;
+  @State("isIdfInstalling") private storeIsInstalling: boolean;
   @State("toolsFolder") private storeToolsFolder: string;
-  @State("toolsResults") private storeToolsResults: IEspIdfLink[];
+  @State("toolsResults") private storeToolsResults: IEspIdfTool[];
 
-  get isInstalled() {
-    return this.storeIsInstalled;
+  get isInstalling() {
+    return this.storeIsInstalling;
+  }
+
+  get allToolsAreValid() {
+    const invalidTools = this.storeToolsResults.filter((tool) => {
+      return !tool.doesToolExist;
+    });
+    console.log(invalidTools);
+    return invalidTools.length === 0;
   }
 
   get toolsFolder() {
@@ -98,6 +109,11 @@ export default class CustomSetup extends Vue {
 
   get toolsResults() {
     return this.storeToolsResults;
+  }
+
+  installIdfTools() {
+    this.setIsIdfInstalling(true);
+    this.installEspIdfTools();
   }
 }
 </script>
