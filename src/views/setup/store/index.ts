@@ -171,6 +171,22 @@ export const actions: ActionTree<IState, any> = {
       command: "requestInitialValues",
     });
   },
+  saveCustomSettings(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
+        ? context.state.manualSysPython
+        : context.state.selectedSysPython ===
+          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.virtualEnvPyPath
+        : context.state.selectedSysPython;
+    vscode.postMessage({
+      command: "requestInitialValues",
+      espIdfPath: context.state.espIdf,
+      pyBinPath: pyPath,
+      tools: context.state.toolsResults,
+    });
+  },
   useDefaultSettings() {
     vscode.postMessage({
       command: "usePreviousSettings",

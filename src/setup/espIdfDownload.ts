@@ -107,7 +107,11 @@ export async function downloadInstallIdfVersion(
     OutputChannel.appendLine(downloadedMsg);
     Logger.info(downloadedMsg);
     sendDownloadedZip(downloadedZipPath);
-    await installManager.installZipFile(downloadedZipPath, destPath);
+    await installManager.installZipFile(
+      downloadedZipPath,
+      destPath,
+      cancelToken
+    );
     const extractedMsg = `Extracted ${downloadedZipPath} in ${destPath}.\n`;
     OutputChannel.appendLine(extractedMsg);
     Logger.info(extractedMsg);

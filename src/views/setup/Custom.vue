@@ -41,7 +41,7 @@
           <div class="control">
             <button
               class="button"
-              @click="checkEspIdfTools"
+              @click="saveCustomSettings"
               v-if="allToolsAreValid"
             >
               Save Settings
@@ -82,6 +82,7 @@ export default class CustomSetup extends Vue {
   @Action checkEspIdfTools;
   @Action installEspIdfTools;
   @Action openEspIdfToolsFolder;
+  @Action saveCustomSettings;
   @Mutation setIsIdfInstalling;
   @Mutation setToolsFolder;
   @State("isIdfInstalling") private storeIsInstalling: boolean;

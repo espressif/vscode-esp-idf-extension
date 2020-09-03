@@ -117,6 +117,9 @@ export class SetupPanel {
     this.panel.webview.html = this.createSetupHtml(scriptPath, codiconsUri);
 
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
+    const containerPath =
+      process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+    const toolsPath = path.join(containerPath, ".espressif");
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       console.log(message);
@@ -192,7 +195,7 @@ export class SetupPanel {
           this.panel.webview.postMessage({
             command: "initialLoad",
             espIdf: setupArgs.espIdfPath || espIdfPath,
-            espToolsPath: setupArgs.espToolsPath,
+            espToolsPath: setupArgs.espToolsPath || toolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersions: setupArgs.espIdfVersionsList,
@@ -200,6 +203,23 @@ export class SetupPanel {
             pyVersionList: setupArgs.pythonVersions,
             toolsResults: setupArgs.toolsResults,
           });
+          break;
+        case "saveCustomSettings":
+          if (message.espIdfPath && message.pyBinPath && message.tools) {
+            const { exportedPaths, exportedVars } = this.getCustomSetupSettings(
+              message.tools
+            );
+            await this.saveSettings(
+              message.espIdfPath,
+              message.pyBinPath,
+              exportedPaths,
+              exportedVars
+            );
+            this.panel.webview.postMessage({
+              command: "setIsInstalled",
+              isInstalled: true,
+            });
+          }
           break;
         case "usePreviousSettings":
           if (
@@ -513,6 +533,24 @@ export class SetupPanel {
     } else {
       vscode.window.showInformationMessage("No folder selected");
     }
+  }
+
+  private getCustomSetupSettings(toolsInfo: IEspIdfTool[]) {
+    const exportedPaths = toolsInfo
+      .reduce((prev, curr, i) => {
+        return prev + path.delimiter + curr.path;
+      }, "")
+      .slice(1);
+    const exportedVars = {};
+    for (const tool of toolsInfo) {
+      Object.keys(tool.env).forEach((key, index, arr) => {
+        if (Object.keys(exportedVars).indexOf(key) !== -1) {
+          exportedVars[key] = tool.env[key];
+        }
+      });
+    }
+    const exportedVarsStr = JSON.stringify(exportedVars);
+    return { exportedPaths, exportedVars: exportedVarsStr };
   }
 
   private async saveSettings(

@@ -60,7 +60,7 @@ export async function downloadEspIdfTools(
   );
   OutputChannel.appendLine("");
   Logger.info("");
-  await installManager.installPackages(idfToolsManager, progress);
+  await installManager.installPackages(idfToolsManager, progress, cancelToken);
   OutputChannel.appendLine("");
   Logger.info("");
 }
