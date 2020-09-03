@@ -17,6 +17,7 @@
         <folderOpen
           propLabel="Enter ESP-IDF Tools directory"
           :propModel.sync="toolsFolder"
+          :propMutate="setToolsFolder"
           :openMethod="openEspIdfToolsFolder"
           v-if="!isInstalling"
         />
@@ -103,9 +104,6 @@ export default class CustomSetup extends Vue {
 
   get toolsFolder() {
     return this.storeToolsFolder;
-  }
-  set toolsFolder(newValue: string) {
-    this.setToolsFolder(newValue);
   }
 
   get toolsResults() {

@@ -29,7 +29,6 @@ export interface IState {
   isEspIdfValid: boolean;
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
-  isVirtualEnvPyPathValid: boolean;
   manualSysPython: string;
   manualVEnvPython: string;
   pyVersionsList: string[];
@@ -37,7 +36,6 @@ export interface IState {
   selectedSysPython: string;
   toolsFolder: string;
   toolsResults: IEspIdfTool[];
-  virtualEnvPyPath: string;
 }
 
 export const setupState: IState = {
@@ -56,7 +54,6 @@ export const setupState: IState = {
   isEspIdfValid: false,
   isIdfInstalling: false,
   isIdfInstalled: false,
-  isVirtualEnvPyPathValid: false,
   manualSysPython: "",
   manualVEnvPython: "",
   pyVersionsList: [],
@@ -69,7 +66,6 @@ export const setupState: IState = {
   selectedSysPython: "",
   toolsFolder: "",
   toolsResults: [],
-  virtualEnvPyPath: "",
 };
 
 declare var acquireVsCodeApi: any;
@@ -89,7 +85,7 @@ export const actions: ActionTree<IState, any> = {
         ? context.state.manualSysPython
         : context.state.selectedSysPython ===
           context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.virtualEnvPyPath
+        ? context.state.manualVEnvPython
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "checkEspIdfTools",
@@ -105,7 +101,7 @@ export const actions: ActionTree<IState, any> = {
         ? context.state.manualSysPython
         : context.state.selectedSysPython ===
           context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.virtualEnvPyPath
+        ? context.state.manualVEnvPython
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfOnly",
@@ -121,7 +117,7 @@ export const actions: ActionTree<IState, any> = {
         ? context.state.manualSysPython
         : context.state.selectedSysPython ===
           context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.virtualEnvPyPath
+        ? context.state.manualVEnvPython
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdf",
@@ -137,7 +133,7 @@ export const actions: ActionTree<IState, any> = {
         ? context.state.manualSysPython
         : context.state.selectedSysPython ===
           context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.virtualEnvPyPath
+        ? context.state.manualVEnvPython
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfTools",
@@ -178,7 +174,7 @@ export const actions: ActionTree<IState, any> = {
         ? context.state.manualSysPython
         : context.state.selectedSysPython ===
           context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.virtualEnvPyPath
+        ? context.state.manualVEnvPython
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "requestInitialValues",
@@ -251,11 +247,6 @@ export const mutations: MutationTree<IState> = {
   setManualVenvPyPath(state, manualVenvPyPath) {
     const newState = state;
     newState.manualVEnvPython = manualVenvPyPath;
-    Object.assign(state, newState);
-  },
-  setPyBinPath(state, pyBinPath) {
-    const newState = state;
-    newState.virtualEnvPyPath = pyBinPath;
     Object.assign(state, newState);
   },
   setPyVersionsList(state, pyVersionsList: string[]) {

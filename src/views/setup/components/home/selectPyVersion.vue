@@ -21,6 +21,7 @@
     <folderOpen
       :propLabel="inputLabel"
       :propModel.sync="manualPythonPath"
+      :propMutate="setManualPyPath"
       :openMethod="openPythonPath"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 2]"
     />
@@ -28,6 +29,7 @@
     <folderOpen
       :propLabel="inputVenvLabel"
       :propModel.sync="manualVEnvPython"
+      :propMutate="setManualVenvPyPath"
       :openMethod="openPyVenvPath"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
     />
@@ -85,15 +87,9 @@ export default class SelectPyVersion extends Vue {
   get manualPythonPath() {
     return this.storeManualSysPython;
   }
-  set manualPythonPath(newValue: string) {
-    this.setManualPyPath(newValue);
-  }
 
   get manualVEnvPython() {
     return this.storeManualVEnvPython;
-  }
-  set manualVEnvPython(newValue: string) {
-    this.setManualVenvPyPath(newValue);
   }
 }
 </script>

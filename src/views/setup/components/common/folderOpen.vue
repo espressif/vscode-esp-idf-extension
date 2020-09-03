@@ -3,7 +3,7 @@
     <label>{{ propLabel }}</label>
     <div class="field is-grouped is-grouped-centered expanded">
       <div class="control expanded">
-        <input type="text" class="input" v-model="propModel" />
+        <input type="text" class="input" v-model="dataModel" />
       </div>
       <div class="control">
         <div class="icon">
@@ -27,6 +27,14 @@ export default class folderOpen extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Prop() propLabel: string;
   @Prop() propModel: string;
+  @Prop() propMutate: (val: string) => void;
   @Prop() openMethod: () => void;
+
+  get dataModel() {
+    return this.propModel;
+  }
+  set dataModel(newValue) {
+    this.propMutate(newValue);
+  }
 }
 </script>

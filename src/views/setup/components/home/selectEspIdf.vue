@@ -18,6 +18,7 @@
     <folderOpen
       propLabel="Enter ESP-IDF directory"
       :propModel.sync="espIdf"
+      :propMutate="setEspIdfPath"
       :openMethod="openEspIdfFolder"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
     />
@@ -57,9 +58,6 @@ export default class SelectEspIdf extends Vue {
 
   get espIdf() {
     return this.storeEspIdf;
-  }
-  set espIdf(newValue: string) {
-    this.setEspIdfPath(newValue);
   }
 }
 </script>
