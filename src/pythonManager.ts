@@ -30,7 +30,7 @@ export async function installPythonEnv(
 ) {
   const pyPathWithoutSpaces = pythonBinPath.replace(/(\s+)/g, "\\$1");
   const isInsideVirtualEnv = await utils.execChildProcess(
-    `${pyPathWithoutSpaces} -c "import sys; print(hasattr(sys, 'real_prefix'))"`,
+    `${pyPathWithoutSpaces} -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"`,
     idfToolsDir,
     channel
   );
@@ -350,11 +350,11 @@ export async function getPythonBinListWindows(workingDir: string) {
         }
       }
     } catch (error) {
-      Logger.error(
-        "Error looking for python in windows",
-        new Error("Installed Python not found in registry")
-      );
+      Logger.error("Error looking for python in windows", error);
     }
   }
-  return ["Not found"];
+  if (paths.length === 0) {
+    return ["Not found"];
+  }
+  return paths;
 }

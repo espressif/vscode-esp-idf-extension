@@ -117,7 +117,7 @@ export class DownloadManager {
         )} / ${(urlInfoToUse.size / 1024).toFixed(2)}) KB`;
         return;
       } else {
-        await del(absolutePath);
+        await del(absolutePath, { force: true });
         await this.downloadWithRetries(
           urlInfoToUse.url,
           destPath,
