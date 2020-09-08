@@ -29,8 +29,7 @@ export interface IState {
   isEspIdfValid: boolean;
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
-  manualSysPython: string;
-  manualVEnvPython: string;
+  manualPythonPath: string;
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
   selectedSysPython: string;
@@ -54,8 +53,7 @@ export const setupState: IState = {
   isEspIdfValid: false,
   isIdfInstalling: false,
   isIdfInstalled: false,
-  manualSysPython: "",
-  manualVEnvPython: "",
+  manualPythonPath: "",
   pyVersionsList: [],
   selectedEspIdfVersion: {
     filename: "",
@@ -81,11 +79,8 @@ export const actions: ActionTree<IState, any> = {
   checkEspIdfTools(context) {
     const pyPath =
       context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
-        ? context.state.manualSysPython
-        : context.state.selectedSysPython ===
-          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualVEnvPython
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "checkEspIdfTools",
@@ -97,11 +92,8 @@ export const actions: ActionTree<IState, any> = {
   customInstallEspIdf(context) {
     const pyPath =
       context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
-        ? context.state.manualSysPython
-        : context.state.selectedSysPython ===
-          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualVEnvPython
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfOnly",
@@ -113,11 +105,8 @@ export const actions: ActionTree<IState, any> = {
   installEspIdf(context) {
     const pyPath =
       context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
-        ? context.state.manualSysPython
-        : context.state.selectedSysPython ===
-          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualVEnvPython
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdf",
@@ -129,11 +118,8 @@ export const actions: ActionTree<IState, any> = {
   installEspIdfTools(context) {
     const pyPath =
       context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
-        ? context.state.manualSysPython
-        : context.state.selectedSysPython ===
-          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualVEnvPython
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdfTools",
@@ -157,11 +143,6 @@ export const actions: ActionTree<IState, any> = {
       command: "openPythonPath",
     });
   },
-  openPyVenvPath() {
-    vscode.postMessage({
-      command: "openPyVenvPath",
-    });
-  },
   requestInitialValues() {
     vscode.postMessage({
       command: "requestInitialValues",
@@ -170,14 +151,11 @@ export const actions: ActionTree<IState, any> = {
   saveCustomSettings(context) {
     const pyPath =
       context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 2]
-        ? context.state.manualSysPython
-        : context.state.selectedSysPython ===
-          context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualVEnvPython
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
         : context.state.selectedSysPython;
     vscode.postMessage({
-      command: "requestInitialValues",
+      command: "saveCustomSettings",
       espIdfPath: context.state.espIdf,
       pyBinPath: pyPath,
       tools: context.state.toolsResults,
@@ -241,12 +219,7 @@ export const mutations: MutationTree<IState> = {
   },
   setManualPyPath(state, manualPyPath) {
     const newState = state;
-    newState.manualSysPython = manualPyPath;
-    Object.assign(state, newState);
-  },
-  setManualVenvPyPath(state, manualVenvPyPath) {
-    const newState = state;
-    newState.manualVEnvPython = manualVenvPyPath;
+    newState.manualPythonPath = manualPyPath;
     Object.assign(state, newState);
   },
   setPyVersionsList(state, pyVersionsList: string[]) {

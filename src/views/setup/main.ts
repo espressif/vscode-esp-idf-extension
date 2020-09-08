@@ -69,7 +69,7 @@ window.addEventListener("message", (event) => {
         store.commit("setEspIdfPath", msg.espIdf);
       }
       if (msg.pyBinPath) {
-        store.commit("setPyBinPath", msg.pyBinPath);
+        store.commit("setManualPyPath", msg.pyBinPath);
       }
       if (msg.toolsResults) {
         store.commit("setToolsResult", msg.toolsResults);
@@ -97,11 +97,6 @@ window.addEventListener("message", (event) => {
     case "updatePythonPath":
       if (msg.selectedPyPath) {
         store.commit("setManualPyPath", msg.selectedPyPath);
-      }
-      break;
-    case "updatePythonVenvPath":
-      if (msg.selectedPyVenvPath) {
-        store.commit("setManualVenvPyPath", msg.selectedPyVenvPath);
       }
       break;
     case "updateIdfDownloadStatusPercentage":

@@ -167,13 +167,23 @@ export class IdfToolsManager {
   }
 
   public async checkBinariesVersion(pkg: IPackage, pathsToVerify: string) {
-    let modifiedPath = process.env.PATH;
-    if (process.env.PATH.indexOf(pathsToVerify) === -1) {
-      modifiedPath = `${pathsToVerify}${path.delimiter}${process.env.PATH}`;
+    const pathNameInEnv: string =
+      process.platform === "win32" ? "Path" : "PATH";
+    let modifiedPath = process.env[pathNameInEnv];
+    if (
+      process.env[pathNameInEnv] &&
+      process.env[pathNameInEnv].indexOf(pathsToVerify) === -1
+    ) {
+      modifiedPath = `${pathsToVerify}${path.delimiter}${process.env[pathNameInEnv]}`;
     }
     const versionCmd = pkg.version_cmd.join(" ");
     const modifiedEnv = Object.assign({}, process.env);
-    modifiedEnv.PATH = modifiedPath;
+    if (
+      modifiedEnv[pathNameInEnv] &&
+      !modifiedEnv[pathNameInEnv].includes(modifiedPath)
+    ) {
+      modifiedEnv[pathNameInEnv] = modifiedPath;
+    }
     try {
       const binVersionResponse = await utils.execChildProcess(
         versionCmd,

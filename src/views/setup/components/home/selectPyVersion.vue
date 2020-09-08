@@ -5,9 +5,9 @@
       <div class="control">
         <div class="select">
           <select v-model="selectedPythonVersion" id="python-version-select">
-            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
-              {{ ver }}
-            </option>
+            <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
+              ver
+            }}</option>
           </select>
         </div>
       </div>
@@ -25,14 +25,6 @@
       :openMethod="openPythonPath"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 2]"
     />
-
-    <folderOpen
-      :propLabel="inputVenvLabel"
-      :propModel.sync="manualVEnvPython"
-      :propMutate="setManualVenvPyPath"
-      :openMethod="openPyVenvPath"
-      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
-    />
   </div>
 </template>
 
@@ -49,12 +41,9 @@ import folderOpen from "../common/folderOpen.vue";
 export default class SelectPyVersion extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
-  @Action openPyVenvPath;
   @Mutation setSelectedSysPython;
   @Mutation setManualPyPath;
-  @Mutation setManualVenvPyPath;
-  @State("manualSysPython") storeManualSysPython: string;
-  @State("manualVEnvPython") private storeManualVEnvPython: string;
+  @State("manualPythonPath") storeManualSysPython: string;
   @State("pyVersionsList") storePyVersionsList: string[];
   @State("selectedSysPython") storeSelectedPythonVersion: string;
 
@@ -86,10 +75,6 @@ export default class SelectPyVersion extends Vue {
 
   get manualPythonPath() {
     return this.storeManualSysPython;
-  }
-
-  get manualVEnvPython() {
-    return this.storeManualVEnvPython;
   }
 }
 </script>

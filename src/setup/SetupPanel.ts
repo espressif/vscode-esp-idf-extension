@@ -184,13 +184,6 @@ export class SetupPanel {
             selectedPyPath,
           });
           break;
-        case "openPyVenvPath":
-          const selectedPyVenvPath = await this.openFile();
-          this.panel.webview.postMessage({
-            command: "updatePythonVenvPath",
-            selectedPyVenvPath,
-          });
-          break;
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
