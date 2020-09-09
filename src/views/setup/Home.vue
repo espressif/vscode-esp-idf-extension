@@ -27,6 +27,12 @@
 
       <div class="field install-btn">
         <div class="control">
+          <router-link to="/status" class="button">Status</router-link>
+        </div>
+      </div>
+
+      <div class="field install-btn">
+        <div class="control">
           <button v-on:click.once="useDefaultSettings" class="button">
             Use existing ESP-IDF setup
           </button>

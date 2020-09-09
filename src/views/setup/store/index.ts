@@ -15,7 +15,7 @@
 import Vue from "vue";
 import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 import Vuex from "vuex";
-import { IEspIdfLink, IEspIdfTool, IDownload } from "../types";
+import { IEspIdfLink, IEspIdfTool, IDownload, StatusType } from "../types";
 
 export interface IState {
   areToolsValid: boolean;
@@ -33,6 +33,9 @@ export interface IState {
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
   selectedSysPython: string;
+  statusEspIdf: StatusType;
+  statusEspIdfTools: StatusType;
+  statusPyVEnv: StatusType;
   toolsFolder: string;
   toolsResults: IEspIdfTool[];
 }
@@ -62,6 +65,9 @@ export const setupState: IState = {
     url: "",
   },
   selectedSysPython: "",
+  statusEspIdf: StatusType.started,
+  statusEspIdfTools: StatusType.pending,
+  statusPyVEnv: StatusType.pending,
   toolsFolder: "",
   toolsResults: [],
 };
@@ -289,6 +295,21 @@ export const mutations: MutationTree<IState> = {
   setToolsResult(state, toolsResults: IEspIdfTool[]) {
     const newState = state;
     newState.toolsResults = toolsResults;
+    Object.assign(state, newState);
+  },
+  setStatusEspIdf(state, status: StatusType) {
+    const newState = state;
+    newState.statusEspIdf = status;
+    Object.assign(state, newState);
+  },
+  setStatusEspIdfTools(state, status: StatusType) {
+    const newState = state;
+    newState.statusEspIdfTools = status;
+    Object.assign(state, newState);
+  },
+  setStatusPyVEnv(state, status: StatusType) {
+    const newState = state;
+    newState.statusPyVEnv = status;
     Object.assign(state, newState);
   },
 };

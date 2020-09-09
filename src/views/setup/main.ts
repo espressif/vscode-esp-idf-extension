@@ -22,12 +22,15 @@ import Home from "./Home.vue";
 import Install from "./Install.vue";
 // @ts-ignore
 import Custom from "./Custom.vue";
+// @ts-ignore
+import Status from "./Status.vue";
 import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },
   { path: "/autoinstall", component: Install },
   { path: "/custom", component: Custom },
+  { path: "/status", component: Status },
 ];
 
 Vue.use(VueRouter);
@@ -145,6 +148,21 @@ window.addEventListener("message", (event) => {
           name: msg.id,
           percentage: msg.percentage,
         });
+      }
+      break;
+    case "updateEspIdfStatus":
+      if (msg.status) {
+        store.commit("setStatusEspIdf", msg.status);
+      }
+      break;
+    case "updateEspIdfToolsStatus":
+      if (msg.status) {
+        store.commit("setStatusEspIdfTools", msg.status);
+      }
+      break;
+    case "updatePyVEnvStatus":
+      if (msg.status) {
+        store.commit("setStatusPyVEnv", msg.status);
       }
       break;
     case "setIsInstalled":

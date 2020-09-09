@@ -25,6 +25,7 @@ import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { installPyReqs } from "./installPyReqs";
+import { StatusType } from "../views/setup/types";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -246,6 +247,10 @@ export class SetupPanel {
     espIdfPath: string
   ) {
     try {
+      this.panel.webview.postMessage({
+        command: "goToCustomPage",
+        page: "/status",
+      });
       let idfPath: string;
       if (selectedIdfVersion.filename === "manual") {
         idfPath = espIdfPath;
@@ -345,6 +350,10 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          this.panel.webview.postMessage({
+            command: "goToCustomPage",
+            page: "/status",
+          });
           const idfContainerPath =
             process.platform === "win32"
               ? process.env.USERPROFILE
@@ -368,6 +377,14 @@ export class SetupPanel {
             command: "updateEspIdfFolder",
             selectedFolder: idfPath,
           });
+          this.panel.webview.postMessage({
+            command: "updateEspIdfStatus",
+            status: StatusType.installed,
+          });
+          this.panel.webview.postMessage({
+            command: "updateEspIdfToolsStatus",
+            status: StatusType.started,
+          });
           const toolsPath = path.join(idfContainerPath, ".espressif");
           const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
             idfPath
@@ -384,6 +401,14 @@ export class SetupPanel {
           const exportVars = await idfToolsManager.exportVars(
             path.join(toolsPath, "tools")
           );
+          this.panel.webview.postMessage({
+            command: "updateEspIdfToolsStatus",
+            status: StatusType.installed,
+          });
+          this.panel.webview.postMessage({
+            command: "updatePyVEnvStatus",
+            status: StatusType.started,
+          });
           const virtualEnvPath = await installPyReqs(
             idfPath,
             toolsPath,
@@ -397,6 +422,10 @@ export class SetupPanel {
             exportPaths,
             exportVars
           );
+          this.panel.webview.postMessage({
+            command: "updatePyVEnvStatus",
+            status: StatusType.installed,
+          });
           this.panel.webview.postMessage({
             command: "setIsInstalled",
             isInstalled: true,

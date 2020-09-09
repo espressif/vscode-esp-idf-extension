@@ -36,3 +36,10 @@ export interface IEspIdfTool extends IDownload {
   name: string;
   path: string;
 }
+
+export enum StatusType {
+  failed,
+  installed,
+  pending,
+  started,
+}
