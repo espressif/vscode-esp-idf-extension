@@ -151,7 +151,7 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "updateEspIdfStatus":
-      if (msg.status) {
+      if (typeof msg.status !== undefined) {
         store.commit("setStatusEspIdf", msg.status);
       }
       break;

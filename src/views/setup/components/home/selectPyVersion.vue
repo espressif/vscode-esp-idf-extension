@@ -23,7 +23,7 @@
       :propModel.sync="manualPythonPath"
       :propMutate="setManualPyPath"
       :openMethod="openPythonPath"
-      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 2]"
+      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
     />
   </div>
 </template>

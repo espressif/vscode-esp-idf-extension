@@ -18,18 +18,20 @@
             :class="
               statusEspIdf === statusType.installed
                 ? 'codicon codicon-check'
-                : 'codicon codicon-close'
+                : statusEspIdf === statusType.failed
+                ? 'codicon codicon-close'
+                : 'codicon codicon-loading'
             "
           ></i>
         </div>
       </div>
       <div v-if="statusEspIdf === statusType.failed">
         <p>
-          Found existing ESP-IDF in {{ idfPath }}. Replace with selected version
+          Found existing ESP-IDF in {{ espIdf }}. Replace with selected version
           ?
         </p>
-        <button @click="replaceIdfPath" class="button">Replace</button>
-        <button @click="useExistingEspIdf" class="button">Use existing</button>
+        <button @click="customInstallEspIdf" class="button">Replace</button>
+        <button @click="installEspIdfTools" class="button">Use existing</button>
       </div>
     </div>
 
@@ -41,7 +43,9 @@
             :class="
               statusEspIdfTools === statusType.installed
                 ? 'codicon codicon-check'
-                : 'codicon codicon-close'
+                : statusEspIdfTools === statusType.failed
+                ? 'codicon codicon-close'
+                : 'codicon codicon-loading'
             "
           ></i>
         </div>
@@ -64,7 +68,9 @@
             :class="
               statusPyVEnv === statusType.installed
                 ? 'codicon codicon-check'
-                : 'codicon codicon-close'
+                : statusPyVEnv === statusType.failed
+                ? 'codicon codicon-close'
+                : 'codicon codicon-loading'
             "
           ></i>
         </div>
@@ -88,16 +94,19 @@ import { StatusType } from "./types";
 
 @Component
 export default class Status extends Vue {
+  @State("espIdf") storeEspIdf: string;
+  @State("toolsFolder") storeToolsFolder: string;
+  @State("manualPythonPath") storeManualPythonPath: string;
   @State("selectedSysPython") storeSelectedPythonVersion: string;
   @State("statusEspIdf") private storeEspIdfStatus: StatusType;
   @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
   @State("statusPyVEnv") private storePyVenvStatus: StatusType;
-  @Action private replaceIdfPath;
-  @Action private useExistingEspIdf;
-  @Action private replaceIdfToolsPath;
-  @Action private useExistingTools;
-  @Action private replaceVenv;
-  @Action private useExistingVenv;
+  @Action customInstallEspIdf;
+  @Action installEspIdfTools;
+
+  get espIdf() {
+    return this.storeEspIdf;
+  }
 
   get statusEspIdf() {
     return this.storeEspIdfStatus;
@@ -113,6 +122,14 @@ export default class Status extends Vue {
 
   get statusType() {
     return StatusType;
+  }
+
+  get toolsPath() {
+    return this.storeToolsFolder;
+  }
+
+  get pyVenvPath() {
+    return this.storeManualPythonPath;
   }
 }
 </script>
@@ -158,16 +175,18 @@ export default class Status extends Vue {
   border: 2px solid #ddd;
   line-height: 30px;
   border-radius: 50%;
+  transition: opacity 1s;
 }
 
 .progressBar li:after {
   content: "";
   width: 25%;
   height: 2px;
-  top: 6.5em;
+  top: 9em;
   margin-left: 15px;
   background-color: var(--vscode-button-foreground);
   position: absolute;
+  transition: opacity 1s;
 }
 
 .progressBar li:last-child:after {

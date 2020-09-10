@@ -1,5 +1,12 @@
 <template>
   <div id="app">
+    <div class="control centerize">
+      <div class="icon">
+        <router-link to="/" class="button">
+          <i class="codicon codicon-home"></i>
+        </router-link>
+      </div>
+    </div>
     <h1 class="title">ESPRESSIF</h1>
     <transition name="fade" mode="out-in" v-if="!isInstalled">
       <router-view></router-view>
