@@ -35,7 +35,7 @@ suite("Debug Adapter Tests", () => {
   setup((done) => {
     debugClient = new EspIdfDebugClient(
       "python",
-      ["-u", DEBUG_ADAPTER, "-cc"],
+      ["-u", DEBUG_ADAPTER, "--developer-mode", "connection-check"],
       "espidf",
       { cwd: __dirname },
       true
