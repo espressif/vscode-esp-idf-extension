@@ -132,6 +132,7 @@ export class SetupPanel {
           break;
         case "installEspIdf":
           if (
+            message.espIdfContainer &&
             message.selectedEspIdfVersion &&
             message.selectedPyPath &&
             message.manualEspIdfPath
@@ -139,7 +140,8 @@ export class SetupPanel {
             await this.autoInstall(
               message.selectedEspIdfVersion,
               message.selectedPyPath,
-              message.manualEspIdfPath
+              message.manualEspIdfPath,
+              message.espIdfContainer
             );
           }
           break;
@@ -171,6 +173,13 @@ export class SetupPanel {
             selectedFolder,
           });
           break;
+        case "openEspIdfContainerFolder":
+          const selectedContainerFolder = await this.openFolder();
+          this.panel.webview.postMessage({
+            command: "updateEspIdfContainerFolder",
+            selectedContainerFolder,
+          });
+          break;
         case "openEspIdfToolsFolder":
           const selectedToolsFolder = await this.openFolder();
           this.panel.webview.postMessage({
@@ -188,6 +197,7 @@ export class SetupPanel {
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
+            espIdfContainer: containerPath,
             espIdf: setupArgs.espIdfPath || espIdfPath,
             espToolsPath: setupArgs.espToolsPath || toolsPath,
             gitVersion: setupArgs.gitVersion,
@@ -327,17 +337,18 @@ export class SetupPanel {
       OutputChannel.appendLine(errMsg);
       Logger.errorNotify(errMsg, error);
       OutputChannel.show();
-      this.panel.webview.postMessage({
+      /* this.panel.webview.postMessage({
         command: "goToCustomPage",
         page: "/",
-      });
+      }); */
     }
   }
 
   private async autoInstall(
     selectedIdfVersion: IEspIdfLink,
     pyPath: string,
-    espIdfPath: string
+    espIdfPath: string,
+    idfContainerPath: string
   ) {
     await vscode.window.withProgress(
       {
@@ -350,14 +361,10 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            page: "/status",
-          });
-          const idfContainerPath =
+          /* const idfContainerPath =
             process.platform === "win32"
               ? process.env.USERPROFILE
-              : process.env.HOME;
+              : process.env.HOME; */
           let idfPath: string;
           if (selectedIdfVersion.filename === "manual") {
             idfPath = espIdfPath;
@@ -373,6 +380,10 @@ export class SetupPanel {
           if (idfVersion === "x.x") {
             throw new Error("Invalid ESP-IDF");
           }
+          this.panel.webview.postMessage({
+            command: "goToCustomPage",
+            page: "/status",
+          });
           this.panel.webview.postMessage({
             command: "updateEspIdfFolder",
             selectedFolder: idfPath,
@@ -431,6 +442,31 @@ export class SetupPanel {
             isInstalled: true,
           });
         } catch (error) {
+          if (
+            error &&
+            error.message &&
+            error.message.indexOf("ERROR_EXISTING_ESP_IDF") > -1
+          ) {
+            this.panel.webview.postMessage({
+              command: "setEspIdfErrorStatus",
+              errorMsg: error.message,
+            });
+            OutputChannel.appendLine(error.message);
+            Logger.errorNotify(error.message, error);
+            return;
+          } else if (
+            error &&
+            error.message &&
+            error.message.indexOf("ERROR_NON_EXISTING_CONTAINER") > -1
+          ) {
+            this.panel.webview.postMessage({
+              command: "setEspIdfErrorStatus",
+              errorMsg: error.message,
+            });
+            OutputChannel.appendLine(error.message);
+            Logger.errorNotify(error.message, error);
+            return;
+          }
           const errMsg = error.message
             ? error.message
             : "Error during auto install";
@@ -501,10 +537,10 @@ export class SetupPanel {
           OutputChannel.appendLine(errMsg);
           Logger.errorNotify(errMsg, error);
           OutputChannel.show();
-          this.panel.webview.postMessage({
+          /* this.panel.webview.postMessage({
             command: "goToCustomPage",
             page: "/",
-          });
+          }); */
         }
       }
     );

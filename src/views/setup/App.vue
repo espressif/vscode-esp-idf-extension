@@ -59,5 +59,6 @@ export default class App extends Vue {
   background-color: var(--vscode-button-background);
   height: 10px;
   width: 0%;
+  align-self: flex-start;
 }
 </style>

@@ -20,6 +20,8 @@ import { IEspIdfLink, IEspIdfTool, IDownload, StatusType } from "../types";
 export interface IState {
   areToolsValid: boolean;
   espIdf: string;
+  espIdfContainer: string;
+  espIdfErrorStatus: string;
   espIdfVersionList: IEspIdfLink[];
   exportedToolsPaths: string;
   exportedVars: string;
@@ -43,6 +45,8 @@ export interface IState {
 export const setupState: IState = {
   areToolsValid: false,
   espIdf: "",
+  espIdfContainer: "",
+  espIdfErrorStatus: "",
   espIdfVersionList: [],
   exportedToolsPaths: "",
   exportedVars: "",
@@ -116,6 +120,7 @@ export const actions: ActionTree<IState, any> = {
         : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installEspIdf",
+      espIdfContainer: context.state.espIdfContainer,
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
       manualEspIdfPath: context.state.espIdf,
@@ -137,6 +142,11 @@ export const actions: ActionTree<IState, any> = {
   openEspIdfFolder() {
     vscode.postMessage({
       command: "openEspIdfFolder",
+    });
+  },
+  openEspIdfContainerFolder() {
+    vscode.postMessage({
+      command: "openEspIdfContainerFolder",
     });
   },
   openEspIdfToolsFolder() {
@@ -178,6 +188,16 @@ export const mutations: MutationTree<IState> = {
   setEspIdfPath(state, espIdf: string) {
     const newState = state;
     newState.espIdf = espIdf;
+    Object.assign(state, newState);
+  },
+  setEspIdfContainerPath(state, espIdfContainer: string) {
+    const newState = state;
+    newState.espIdfContainer = espIdfContainer;
+    Object.assign(state, newState);
+  },
+  setEspIdfErrorStatus(state, errorStatus: string) {
+    const newState = state;
+    newState.espIdfErrorStatus = errorStatus;
     Object.assign(state, newState);
   },
   setEspIdfVersionList(state, espIdfVersionList: IEspIdfLink[]) {

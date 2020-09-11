@@ -8,6 +8,13 @@
 
       <selectEspIdf></selectEspIdf>
 
+      <div class="field" v-if="espIdfErrorStatus">
+        <div class="icon">
+          <i class="codicon codicon-close"></i>
+        </div>
+        <label>{{ espIdfErrorStatus }}</label>
+      </div>
+
       <selectPyVersion></selectPyVersion>
 
       <div class="field install-btn">
@@ -47,9 +54,14 @@ export default class Install extends Vue {
   @State("gitVersion") private storeGitVersion: string;
   @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
   @State("isIdfInstalling") private storeIsInstalling: boolean;
+  @State("espIdfErrorStatus") private storeErrorStatus: string;
 
   get gitVersion() {
     return this.storeGitVersion;
+  }
+
+  get espIdfErrorStatus() {
+    return this.storeErrorStatus;
   }
 
   get isInstalling() {

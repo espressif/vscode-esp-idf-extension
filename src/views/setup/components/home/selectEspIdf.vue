@@ -22,6 +22,14 @@
       :openMethod="openEspIdfFolder"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
     />
+    <folderOpen
+      propLabel="Enter ESP-IDF container directory"
+      :propModel.sync="espIdfContainer"
+      :propMutate="setEspIdfContainerPath"
+      :openMethod="openEspIdfContainerFolder"
+      staticText="esp-idf"
+      v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
+    />
   </div>
 </template>
 
@@ -39,11 +47,14 @@ import folderOpen from "../common/folderOpen.vue";
 export default class SelectEspIdf extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openEspIdfFolder;
+  @Action private openEspIdfContainerFolder;
   @Mutation setEspIdfPath;
+  @Mutation setEspIdfContainerPath;
   @Mutation setSelectedEspIdfVersion;
   @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
   @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
   @State("espIdf") private storeEspIdf: string;
+  @State("espIdfContainer") private storeEspIdfContainer: string;
 
   get idfVersionList() {
     return this.storeEspIdfVersionList;
@@ -58,6 +69,10 @@ export default class SelectEspIdf extends Vue {
 
   get espIdf() {
     return this.storeEspIdf;
+  }
+
+  get espIdfContainer() {
+    return this.storeEspIdfContainer;
   }
 }
 </script>

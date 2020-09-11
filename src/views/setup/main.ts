@@ -71,6 +71,9 @@ window.addEventListener("message", (event) => {
       if (msg.espIdf) {
         store.commit("setEspIdfPath", msg.espIdf);
       }
+      if (msg.espIdfContainer) {
+        store.commit("setEspIdfContainerPath", msg.espIdfContainer);
+      }
       if (msg.pyBinPath) {
         store.commit("setManualPyPath", msg.pyBinPath);
       }
@@ -87,9 +90,21 @@ window.addEventListener("message", (event) => {
         store.commit("setIsIdfInstalling", false);
       }
       break;
+    case "setEspIdfErrorStatus":
+      if (msg.errorMsg) {
+        store.commit("setEspIdfErrorStatus", msg.errorMsg);
+        store.commit("setIsIdfInstalling", false);
+      }
+      break;
     case "updateEspIdfFolder":
       if (msg.selectedFolder) {
         store.commit("setEspIdfPath", msg.selectedFolder);
+      }
+      break;
+    case "updateEspIdfContainerFolder":
+      console.log(msg);
+      if (msg.selectedContainerFolder) {
+        store.commit("setEspIdfContainerPath", msg.selectedContainerFolder);
       }
       break;
     case "updateEspIdfToolsFolder":

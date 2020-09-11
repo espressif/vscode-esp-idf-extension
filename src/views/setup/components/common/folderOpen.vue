@@ -5,6 +5,9 @@
       <div class="control expanded">
         <input type="text" class="input" v-model="dataModel" />
       </div>
+      <p class="control" v-if="staticText">
+        <a class="button is-static">{{ pathSep + staticText }}</a>
+      </p>
       <div class="control">
         <div class="icon">
           <i
@@ -29,12 +32,17 @@ export default class folderOpen extends Vue {
   @Prop() propModel: string;
   @Prop() propMutate: (val: string) => void;
   @Prop() openMethod: () => void;
+  @Prop() staticText: string;
 
   get dataModel() {
     return this.propModel;
   }
   set dataModel(newValue) {
     this.propMutate(newValue);
+  }
+
+  get pathSep() {
+    return navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
   }
 }
 </script>

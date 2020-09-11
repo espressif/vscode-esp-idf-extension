@@ -1,7 +1,7 @@
 <template>
   <div class="centerize">
     <h4>ESP-IDF: {{ idfDownloadStatus.id }}</h4>
-    <div class="progressBar">
+    <div class="progressBar esp-progress">
       <p>
         <span>Downloaded: </span> {{ idfDownloadStatus.progress }}
         {{ idfDownloadStatus.progressDetail }}
@@ -25,3 +25,10 @@ export default class IdfDownload extends Vue {
   }
 }
 </script>
+
+<style scoped>
+.esp-progress {
+  width: 50%;
+  flex-direction: column;
+}
+</style>
