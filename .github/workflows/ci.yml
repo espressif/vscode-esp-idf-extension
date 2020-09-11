@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Clone Repository
         uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
