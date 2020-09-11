@@ -78,6 +78,13 @@ const webViewConfig = {
       "main.ts"
     ),
     sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
+    partition_table: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "partition-table",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

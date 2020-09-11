@@ -78,6 +78,7 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
+import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1328,6 +1329,9 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.errorNotify(message, err);
         wsServer.close();
       });
+  });
+  registerIDFCommand("esp.webview.open.partition-table", (args) => {
+    PartitionTableEditorPanel.show(context.extensionPath);
   });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {

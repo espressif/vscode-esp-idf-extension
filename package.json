@@ -71,6 +71,7 @@
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
+    "onCommand:esp.webview.open.partition-table",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -199,6 +200,11 @@
           "when": "resourceFilename == sdkconfig",
           "command": "menuconfig.start",
           "group": "navigation"
+        },
+        {
+          "when": "resourceFilename == partition-table.bin",
+          "group": "navigation",
+          "command": "esp.webview.open.partition-table"
         }
       ]
     },
@@ -652,6 +658,11 @@
       {
         "command": "espIdf.searchInEspIdfDocs",
         "title": "%espIdf.searchInEspIdfDocs.title%"
+      },
+      {
+        "command": "esp.webview.open.partition-table",
+        "title": "Open Partition Table Editor",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

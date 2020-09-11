@@ -35,4 +35,11 @@ export namespace ESP {
       export const GrantType = "authorization_code";
     }
   }
+
+  export namespace Webview {
+    export namespace PartitionTableEditor {
+      export const ViewType = "partition-table-editor";
+      export const Title = "ESP-IDF Partition Table Editor";
+    }
+  }
 }
