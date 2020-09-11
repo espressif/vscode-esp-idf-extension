@@ -81,6 +81,7 @@ import { pathExists } from "fs-extra";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
