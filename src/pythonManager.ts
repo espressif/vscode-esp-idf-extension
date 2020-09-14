@@ -124,7 +124,6 @@ export async function installReqs(
   cancelToken?: CancellationToken
 ) {
   const installPyPkgsMsg = `Installing ESP-IDF python packages in ${virtualEnvPython} ...\n`;
-  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {
     pyTracker.Log = installPyPkgsMsg;
   }
@@ -139,6 +138,31 @@ export async function installReqs(
   const requirements = path
     .join(espDir, "requirements.txt")
     .replace(/(\s+)/g, "\\$1");
+  const modifiedEnv = Object.assign({}, process.env);
+  modifiedEnv.IDF_PATH = espDir;
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    { env: modifiedEnv }
+  );
+  await installExtensionPyReqs(
+    virtualEnvPython,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    cancelToken
+  );
+}
+
+export async function installExtensionPyReqs(
+  virtualEnvPython: string,
+  idfToolsDir: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
   const debugAdapterRequirements = path
     .join(
       utils.extensionContext.extensionPath,
@@ -149,17 +173,10 @@ export async function installReqs(
   const extensionRequirements = path
     .join(utils.extensionContext.extensionPath, "requirements.txt")
     .replace(/(\s+)/g, "\\$1");
-  const modifiedEnv = Object.assign({}, process.env);
-  modifiedEnv.IDF_PATH = espDir;
-  await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    { env: modifiedEnv }
-  );
+  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
+  const installExtensionPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {
-    pyTracker.Log = installDAPyPkgsMsg;
+    pyTracker.Log = installExtensionPyPkgsMsg;
   }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
@@ -169,6 +186,9 @@ export async function installReqs(
     undefined,
     cancelToken
   );
+  if (pyTracker) {
+    pyTracker.Log = installDAPyPkgsMsg;
+  }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
     idfToolsDir,

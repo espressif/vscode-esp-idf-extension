@@ -17,13 +17,7 @@ import { EOL, tmpdir } from "os";
 import { Logger } from "../logger/logger";
 import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
-
-export interface IEspIdfLink {
-  filename: string;
-  name: string;
-  url: string;
-  mirror: string;
-}
+import { IEspIdfLink } from "../views/setup/types";
 
 export async function getEspIdfVersions(extensionPath: string) {
   const downloadManager = new DownloadManager(extensionPath);

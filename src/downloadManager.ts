@@ -349,7 +349,9 @@ export class DownloadManager {
         const req = https.request(options, handleResponse);
 
         req.on("error", (error) => {
-          this.appendChannel(error.message);
+          error.stack
+            ? this.appendChannel(error.stack)
+            : this.appendChannel(error.message);
           return reject(
             new PackageError(
               "HTTP/HTTPS Request error " + urlString,

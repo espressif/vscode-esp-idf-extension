@@ -1,5 +1,19 @@
 <template>
   <div id="select-esp-idf-version">
+    <div
+      class="field centerize"
+      v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
+    >
+      <label for="idf-mirror-select">Select mirror to use:</label>
+      <div class="control">
+        <div class="select">
+          <select v-model="selectedIdfMirror">
+            <option :value="idfMirror.Espressif">Espressif</option>
+            <option :value="idfMirror.Github">Github</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <div class="field centerize">
       <label for="idf-version-select">Select ESP-IDF version:</label>
       <div class="control">
@@ -35,9 +49,9 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { IEspIdfLink } from "../../types";
+import { IdfMirror, IEspIdfLink } from "../types";
 import { State, Action, Mutation } from "vuex-class";
-import folderOpen from "../common/folderOpen.vue";
+import folderOpen from "./folderOpen.vue";
 
 @Component({
   components: {
@@ -50,11 +64,25 @@ export default class SelectEspIdf extends Vue {
   @Action private openEspIdfContainerFolder;
   @Mutation setEspIdfPath;
   @Mutation setEspIdfContainerPath;
+  @Mutation setIdfMirror;
   @Mutation setSelectedEspIdfVersion;
-  @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
-  @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
   @State("espIdf") private storeEspIdf: string;
   @State("espIdfContainer") private storeEspIdfContainer: string;
+  @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
+  @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
+  @State("selectedIdfMirror") private storeSelectedIdfMirror;
+
+  get espIdf() {
+    return this.storeEspIdf;
+  }
+
+  get espIdfContainer() {
+    return this.storeEspIdfContainer;
+  }
+
+  get idfMirror() {
+    return IdfMirror;
+  }
 
   get idfVersionList() {
     return this.storeEspIdfVersionList;
@@ -67,12 +95,11 @@ export default class SelectEspIdf extends Vue {
     this.setSelectedEspIdfVersion(newValue);
   }
 
-  get espIdf() {
-    return this.storeEspIdf;
+  get selectedIdfMirror() {
+    return this.storeSelectedIdfMirror;
   }
-
-  get espIdfContainer() {
-    return this.storeEspIdfContainer;
+  set selectedIdfMirror(val: IdfMirror) {
+    this.setIdfMirror(val);
   }
 }
 </script>

@@ -19,6 +19,11 @@ export interface IEspIdfLink {
   url: string;
 }
 
+export enum IdfMirror {
+  Espressif,
+  Github,
+}
+
 export interface IDownload {
   id: string;
   progress: string;

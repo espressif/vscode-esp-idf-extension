@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="control centerize">
+    <div class="control centerize" v-if="!isInstalled">
       <div class="icon">
         <router-link to="/" class="button">
           <i class="codicon codicon-home"></i>
@@ -39,6 +39,8 @@ export default class App extends Vue {
   text-align: center;
   padding: 1em;
   color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  height: -webkit-fill-available;
 }
 
 .fade-enter-active,

@@ -21,15 +21,12 @@ import Home from "./Home.vue";
 // @ts-ignore
 import Install from "./Install.vue";
 // @ts-ignore
-import Custom from "./Custom.vue";
-// @ts-ignore
 import Status from "./Status.vue";
 import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },
   { path: "/autoinstall", component: Install },
-  { path: "/custom", component: Custom },
   { path: "/status", component: Status },
 ];
 
@@ -41,20 +38,28 @@ const router = new VueRouter({
 });
 
 const app = new Vue({
-  el: "#app",
   components: { App },
   data: {
     isLoaded: false,
     versions: [],
   },
+  el: "#app",
   router,
-  template: "<App />",
   store,
+  template: "<App />",
 });
 
 window.addEventListener("message", (event) => {
   const msg = event.data;
   switch (msg.command) {
+    case "goToCustomPage":
+      if (msg.page) {
+        app.$router.push(msg.page);
+      }
+      if (typeof msg.installing !== undefined) {
+        store.commit("setIsIdfInstalling", msg.installing);
+      }
+      break;
     case "initialLoad":
       if (msg.espToolsPath) {
         store.commit("setToolsFolder", msg.espToolsPath);
@@ -84,16 +89,25 @@ window.addEventListener("message", (event) => {
         store.commit("setHasPrerequisites", msg.hasPrerequisites);
       }
       break;
-    case "goToCustomPage":
-      if (msg.page) {
-        app.$router.push(msg.page);
-        store.commit("setIsIdfInstalling", false);
-      }
-      break;
     case "setEspIdfErrorStatus":
       if (msg.errorMsg) {
         store.commit("setEspIdfErrorStatus", msg.errorMsg);
         store.commit("setIsIdfInstalling", false);
+      }
+      break;
+    case "setIsIdfInstalling":
+      if (typeof msg.installing !== undefined) {
+        store.commit("setIsIdfInstalling", msg.installing);
+      }
+      break;
+    case "setIsInstalled":
+      if (msg.isInstalled) {
+        store.commit("setIsIdfInstalled", msg.isInstalled);
+      }
+      break;
+    case "setRequiredToolsInfo":
+      if (msg.toolsInfo) {
+        store.commit("setToolsResult", msg.toolsInfo);
       }
       break;
     case "updateEspIdfFolder":
@@ -107,27 +121,32 @@ window.addEventListener("message", (event) => {
         store.commit("setEspIdfContainerPath", msg.selectedContainerFolder);
       }
       break;
+    case "updateEspIdfStatus":
+      if (typeof msg.status !== undefined) {
+        store.commit("setStatusEspIdf", msg.status);
+      }
+      break;
     case "updateEspIdfToolsFolder":
       if (msg.selectedToolsFolder) {
         store.commit("setToolsFolder", msg.selectedToolsFolder);
       }
       break;
-    case "updatePythonPath":
-      if (msg.selectedPyPath) {
-        store.commit("setManualPyPath", msg.selectedPyPath);
-      }
-      break;
-    case "updateIdfDownloadStatusPercentage":
-      if (msg.percentage) {
-        store.commit("setIdfDownloadStatusPercentage", msg.percentage);
-      }
-      if (msg.id) {
-        store.commit("setIdfDownloadStatusId", msg.id);
+    case "updateEspIdfToolsStatus":
+      if (msg.status) {
+        store.commit("setStatusEspIdfTools", msg.status);
       }
       break;
     case "updateIdfDownloadStatusDetail":
       if (msg.detail) {
         store.commit("setIdfDownloadStatusDetail", msg.detail);
+      }
+      if (msg.id) {
+        store.commit("setIdfDownloadStatusId", msg.id);
+      }
+      break;
+    case "updateIdfDownloadStatusPercentage":
+      if (msg.percentage) {
+        store.commit("setIdfDownloadStatusPercentage", msg.percentage);
       }
       if (msg.id) {
         store.commit("setIdfDownloadStatusId", msg.id);
@@ -165,29 +184,19 @@ window.addEventListener("message", (event) => {
         });
       }
       break;
-    case "updateEspIdfStatus":
-      if (typeof msg.status !== undefined) {
-        store.commit("setStatusEspIdf", msg.status);
+    case "updatePyReqsLog":
+      if (msg.pyReqsLog) {
+        store.commit("setPyReqsLog", msg.pyReqsLog);
       }
       break;
-    case "updateEspIdfToolsStatus":
-      if (msg.status) {
-        store.commit("setStatusEspIdfTools", msg.status);
+    case "updatePythonPath":
+      if (msg.selectedPyPath) {
+        store.commit("setManualPyPath", msg.selectedPyPath);
       }
       break;
     case "updatePyVEnvStatus":
       if (msg.status) {
         store.commit("setStatusPyVEnv", msg.status);
-      }
-      break;
-    case "setIsInstalled":
-      if (msg.isInstalled) {
-        store.commit("setIsIdfInstalled", msg.isInstalled);
-      }
-      break;
-    case "setRequiredToolsInfo":
-      if (msg.toolsInfo) {
-        store.commit("setToolsResult", msg.toolsInfo);
       }
       break;
     default:

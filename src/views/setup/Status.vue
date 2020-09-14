@@ -10,7 +10,7 @@
       </li>
     </ul>
 
-    <div class="esp-idf">
+    <div class="centerize">
       <div class="control barText">
         <p>Installing ESP-IDF...</p>
         <div class="icon">
@@ -25,17 +25,22 @@
           ></i>
         </div>
       </div>
-      <div v-if="statusEspIdf === statusType.failed">
-        <p>
-          Found existing ESP-IDF in {{ espIdf }}. Replace with selected version
-          ?
-        </p>
-        <button @click="customInstallEspIdf" class="button">Replace</button>
-        <button @click="installEspIdfTools" class="button">Use existing</button>
+      <IdfDownload v-if="isInstalling" />
+      <div class="field" v-if="espIdfErrorStatus">
+        <div class="icon">
+          <i
+            :class="
+              statusEspIdf === statusType.installed
+                ? 'codicon codicon-check'
+                : 'codicon codicon-close'
+            "
+          ></i>
+        </div>
+        <label>{{ espIdfErrorStatus }}</label>
       </div>
     </div>
 
-    <div class="idf-tools">
+    <div class="centerize">
       <div class="control barText">
         <p>Installing ESP-IDF Tools...</p>
         <div class="icon">
@@ -50,17 +55,16 @@
           ></i>
         </div>
       </div>
-      <div v-if="statusEspIdfTools === statusType.failed">
-        <p>
-          Found existing ESP-IDF Tools in {{ toolsPath }}. Replace ESP-IDF tools
-          ?
-        </p>
-        <button @click="replaceIdfToolsPath" class="button">Replace</button>
-        <button @click="useExistingTools" class="button">Use existing</button>
+      <div class="centerize">
+        <toolDownload
+          v-for="tool in toolsResults"
+          :key="tool.id"
+          :tool="tool"
+        />
       </div>
     </div>
 
-    <div class="py-venv">
+    <div class="centerize">
       <div class="control barText">
         <p>Installing Python virtual environment for ESP-IDF...</p>
         <div class="icon">
@@ -75,13 +79,11 @@
           ></i>
         </div>
       </div>
-      <div v-if="statusPyVEnv === statusType.failed">
-        <p>
-          Found existing Python Virtual Environment in {{ pyVenvPath }}. Replace
-          environment ?
-        </p>
-        <button @click="replaceVenv" class="button">Replace</button>
-        <button @click="useExistingVenv" class="button">Use existing</button>
+      <div
+        class="field"
+        v-if="pyReqsLog && statusPyVEnv !== statusType.installed"
+      >
+        <p id="python-log" class="notification">{{ pyReqsLog }}</p>
       </div>
     </div>
   </div>
@@ -90,22 +92,49 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import { StatusType } from "./types";
+import { IEspIdfTool, StatusType } from "./types";
+import IdfDownload from "./components/IdfDownload.vue";
+import toolDownload from "./components/toolDownload.vue";
 
-@Component
+@Component({
+  components: {
+    IdfDownload,
+    toolDownload,
+  },
+})
 export default class Status extends Vue {
   @State("espIdf") storeEspIdf: string;
-  @State("toolsFolder") storeToolsFolder: string;
+  @State("espIdfErrorStatus") private storeErrorStatus: string;
+  @State("isIdfInstalling") private storeIsInstalling: boolean;
   @State("manualPythonPath") storeManualPythonPath: string;
+  @State("pyReqsLog") private storePyReqsLog: string;
+  @State("toolsFolder") storeToolsFolder: string;
   @State("selectedSysPython") storeSelectedPythonVersion: string;
   @State("statusEspIdf") private storeEspIdfStatus: StatusType;
   @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
   @State("statusPyVEnv") private storePyVenvStatus: StatusType;
+  @State("toolsResults") private storeToolsResults: IEspIdfTool[];
   @Action customInstallEspIdf;
   @Action installEspIdfTools;
 
   get espIdf() {
     return this.storeEspIdf;
+  }
+
+  get espIdfErrorStatus() {
+    return this.storeErrorStatus;
+  }
+
+  get isInstalling() {
+    return this.storeIsInstalling;
+  }
+
+  get pyReqsLog() {
+    return this.storePyReqsLog;
+  }
+
+  get pyVenvPath() {
+    return this.storeManualPythonPath;
   }
 
   get statusEspIdf() {
@@ -128,13 +157,13 @@ export default class Status extends Vue {
     return this.storeToolsFolder;
   }
 
-  get pyVenvPath() {
-    return this.storeManualPythonPath;
+  get toolsResults() {
+    return this.storeToolsResults;
   }
 }
 </script>
 
-<style>
+<style scoped>
 #status {
   display: flex;
   width: 100%;
@@ -156,6 +185,10 @@ export default class Status extends Vue {
   align-items: center;
   justify-items: center;
   margin: 1em;
+}
+
+#python-log {
+  white-space: pre-line;
 }
 
 .progressBar li {

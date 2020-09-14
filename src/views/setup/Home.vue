@@ -24,14 +24,7 @@
           <router-link to="/autoinstall" class="button">Start</router-link>
         </div>
       </div>
-
-      <div class="field install-btn">
-        <div class="control">
-          <router-link to="/status" class="button">Status</router-link>
-        </div>
-      </div>
-
-      <div class="field install-btn">
+      <div class="field install-btn" v-if="isPreviousSetupValid">
         <div class="control">
           <button v-on:click.once="useDefaultSettings" class="button">
             Use existing ESP-IDF setup
@@ -45,12 +38,15 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import { IEspIdfTool } from "./types";
 
 @Component
 export default class Home extends Vue {
   @Action requestInitialValues;
   @Action useDefaultSettings;
   @State("hasPrerequisites") private storeHasPrerequisites: boolean;
+  @State("manualPythonPath") storeManualSysPython: string;
+  @State("toolsResults") private storeToolsResults: IEspIdfTool[];
 
   get hasPrerequisites() {
     return this.storeHasPrerequisites;
@@ -58,6 +54,25 @@ export default class Home extends Vue {
 
   get isNotWinPlatform() {
     return navigator.platform.indexOf("Win") < 0;
+  }
+
+  get isPreviousSetupValid() {
+    console.log(this.storeManualSysPython);
+    if (this.storeToolsResults.length === 0) {
+      return false;
+    }
+    const failedToolsResult = this.storeToolsResults.filter(
+      (tInfo) => !tInfo.doesToolExist
+    );
+    console.log(failedToolsResult);
+    if (
+      this.storeManualSysPython &&
+      this.storeToolsResults.length > 0 &&
+      failedToolsResult.length === 0
+    ) {
+      return true;
+    }
+    return false;
   }
 
   mounted() {

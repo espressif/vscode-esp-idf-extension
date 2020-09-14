@@ -15,7 +15,13 @@
 import Vue from "vue";
 import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 import Vuex from "vuex";
-import { IEspIdfLink, IEspIdfTool, IDownload, StatusType } from "../types";
+import {
+  IdfMirror,
+  IEspIdfLink,
+  IEspIdfTool,
+  IDownload,
+  StatusType,
+} from "../types";
 
 export interface IState {
   areToolsValid: boolean;
@@ -32,8 +38,10 @@ export interface IState {
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
   manualPythonPath: string;
+  pyReqsLog: string;
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
+  selectedIdfMirror: IdfMirror;
   selectedSysPython: string;
   statusEspIdf: StatusType;
   statusEspIdfTools: StatusType;
@@ -61,6 +69,7 @@ export const setupState: IState = {
   isIdfInstalling: false,
   isIdfInstalled: false,
   manualPythonPath: "",
+  pyReqsLog: "",
   pyVersionsList: [],
   selectedEspIdfVersion: {
     filename: "",
@@ -68,6 +77,7 @@ export const setupState: IState = {
     name: "",
     url: "",
   },
+  selectedIdfMirror: IdfMirror.Github,
   selectedSysPython: "",
   statusEspIdf: StatusType.started,
   statusEspIdfTools: StatusType.pending,
@@ -86,32 +96,6 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
-  checkEspIdfTools(context) {
-    const pyPath =
-      context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualPythonPath
-        : context.state.selectedSysPython;
-    vscode.postMessage({
-      command: "checkEspIdfTools",
-      espIdf: context.state.espIdf,
-      pyPath,
-      toolsPath: context.state.toolsResults,
-    });
-  },
-  customInstallEspIdf(context) {
-    const pyPath =
-      context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualPythonPath
-        : context.state.selectedSysPython;
-    vscode.postMessage({
-      command: "installEspIdfOnly",
-      selectedEspIdfVersion: context.state.selectedEspIdfVersion,
-      selectedPyPath: pyPath,
-      manualEspIdfPath: context.state.espIdf,
-    });
-  },
   installEspIdf(context) {
     const pyPath =
       context.state.selectedSysPython ===
@@ -121,22 +105,10 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "installEspIdf",
       espIdfContainer: context.state.espIdfContainer,
+      manualEspIdfPath: context.state.espIdf,
+      mirror: context.state.selectedIdfMirror,
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
-      manualEspIdfPath: context.state.espIdf,
-    });
-  },
-  installEspIdfTools(context) {
-    const pyPath =
-      context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualPythonPath
-        : context.state.selectedSysPython;
-    vscode.postMessage({
-      command: "installEspIdfTools",
-      espIdf: context.state.espIdf,
-      pyPath,
-      toolsPath: context.state.toolsFolder,
     });
   },
   openEspIdfFolder() {
@@ -149,11 +121,6 @@ export const actions: ActionTree<IState, any> = {
       command: "openEspIdfContainerFolder",
     });
   },
-  openEspIdfToolsFolder() {
-    vscode.postMessage({
-      command: "openEspIdfToolsFolder",
-    });
-  },
   openPythonPath() {
     vscode.postMessage({
       command: "openPythonPath",
@@ -162,19 +129,6 @@ export const actions: ActionTree<IState, any> = {
   requestInitialValues() {
     vscode.postMessage({
       command: "requestInitialValues",
-    });
-  },
-  saveCustomSettings(context) {
-    const pyPath =
-      context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualPythonPath
-        : context.state.selectedSysPython;
-    vscode.postMessage({
-      command: "saveCustomSettings",
-      espIdfPath: context.state.espIdf,
-      pyBinPath: pyPath,
-      tools: context.state.toolsResults,
     });
   },
   useDefaultSettings() {
@@ -218,6 +172,11 @@ export const mutations: MutationTree<IState> = {
     newState.hasPrerequisites = hasRequisites;
     Object.assign(state, newState);
   },
+  setIdfMirror(state, mirrorToUse: IdfMirror) {
+    const newState = state;
+    newState.selectedIdfMirror = mirrorToUse;
+    Object.assign(state, mirrorToUse);
+  },
   setIdfDownloadStatusId(state, id: string) {
     const newState = state;
     newState.idfDownloadStatus.id = id;
@@ -246,6 +205,11 @@ export const mutations: MutationTree<IState> = {
   setManualPyPath(state, manualPyPath) {
     const newState = state;
     newState.manualPythonPath = manualPyPath;
+    Object.assign(state, newState);
+  },
+  setPyReqsLog(state, pyReqsLog: string) {
+    const newState = state;
+    newState.pyReqsLog = pyReqsLog;
     Object.assign(state, newState);
   },
   setPyVersionsList(state, pyVersionsList: string[]) {

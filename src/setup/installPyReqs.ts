@@ -62,6 +62,19 @@ export async function installPyReqs(
   return;
 }
 
+export async function installExtensionPyReqs(
+  workingDir: string,
+  pythonBinPath: string
+) {
+  const logTracker = new PyReqLog(sendPyReqLog);
+  await pythonManager.installExtensionPyReqs(
+    pythonBinPath,
+    workingDir,
+    logTracker,
+    OutputChannel.init()
+  );
+}
+
 export async function checkPythonPipExists(
   pyBinPath: string,
   workingDir: string
@@ -80,8 +93,8 @@ export async function checkPythonPipExists(
 
 export function sendPyReqLog(log: string) {
   SetupPanel.postMessage({
-    command: "response_py_req_install",
-    py_req_log: log,
+    command: "updatePyReqsLog",
+    pyReqsLog: log,
   });
 }
 

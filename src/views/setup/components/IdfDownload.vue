@@ -14,7 +14,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, State } from "vuex-class";
-import { IDownload } from "../../types";
+import { IDownload } from "../types";
 
 @Component
 export default class IdfDownload extends Vue {

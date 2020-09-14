@@ -19,6 +19,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { DownloadManager } from "../downloadManager";
 import { InstallManager } from "../installManager";
 import { PackageProgress } from "../PackageProgress";
+import { IdfMirror, IEspIdfLink } from "../views/setup/types";
 import {
   sendEspIdfDownloadDetail,
   sendEspIdfDownloadProgress,
@@ -27,7 +28,6 @@ import {
 } from "./webviewMsgMethods";
 import { move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
-import { IEspIdfLink } from "./espIdfVersionList";
 import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
 
@@ -40,6 +40,7 @@ export class EspIdfCloning extends AbstractCloning {
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
   destPath: string,
+  mirror: IdfMirror,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
@@ -97,8 +98,10 @@ export async function downloadInstallIdfVersion(
     if (progress) {
       progress.report({ message: downloadByHttpMsg });
     }
+    const urlToUse =
+      mirror === IdfMirror.Github ? idfVersion.url : idfVersion.mirror;
     await downloadManager.downloadWithRetries(
-      idfVersion.url,
+      urlToUse,
       destPath,
       pkgProgress,
       cancelToken

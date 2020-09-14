@@ -854,7 +854,7 @@
     "axios": "^0.19.2",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
-    "follow-redirects": "^1.6.1",
+    "follow-redirects": "^1.13.0",
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",

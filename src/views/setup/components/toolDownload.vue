@@ -47,20 +47,20 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { State } from "vuex-class";
-import { IEspIdfTool } from "../../types";
+import { IEspIdfTool, StatusType } from "../types";
 
 @Component
 export default class ToolDownloadInfo extends Vue {
   @Prop() tool: IEspIdfTool;
   @State("toolsFolder") private storeIdfToolsPath;
-  @State("isInstalled") private storeIsInstallationCompleted;
+  @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
 
   get idfTools() {
     return this.storeIdfToolsPath;
   }
 
   get isInstallationCompleted() {
-    return this.storeIsInstallationCompleted;
+    return this.storeEspIdfToolsStatus === StatusType.installed;
   }
 
   get pathSep() {
@@ -75,7 +75,7 @@ export default class ToolDownloadInfo extends Vue {
   display: flex;
   justify-content: space-around;
   flex-direction: row;
-  width: 50%;
+  width: 100%;
   align-items: center;
   align-self: center;
 }

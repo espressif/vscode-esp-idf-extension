@@ -14,12 +14,11 @@
 
 import { Progress } from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
-import { OutputChannel } from "../logger/outputChannel";
-import { PlatformInformation } from "../PlatformInformation";
 import * as utils from "../utils";
-import { getEspIdfVersions, IEspIdfLink } from "./espIdfVersionList";
+import { getEspIdfVersions } from "./espIdfVersionList";
+import { IEspIdfLink } from "../views/setup/types";
 import { getPythonList } from "./installPyReqs";
-import { readJSON, pathExists } from "fs-extra";
+import { pathExists } from "fs-extra";
 import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
 import { Logger } from "../logger/logger";
@@ -88,7 +87,6 @@ export async function getSetupInitialValues(
       setupInitArgs.toolsResults = prevInstall.toolsInfo;
       setupInitArgs.pyBinPath = prevInstall.pyVenvPath;
     }
-    console.log(setupInitArgs);
   } catch (error) {
     Logger.error(error.message, error);
   }
@@ -109,15 +107,8 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   if (idfPathVersion === "x.x") {
     return;
   }
-
-  const platformInfo = await PlatformInformation.GetPlatformInformation();
-  const toolsJsonPath = await utils.getToolsJsonPath(espIdfPath);
-  const toolsJson = await readJSON(toolsJsonPath);
-
-  const idfToolsManager = new IdfToolsManager(
-    toolsJson,
-    platformInfo,
-    OutputChannel.init()
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    espIdfPath
   );
 
   const exportedToolsPaths = await idfToolsManager.exportPathsInString(
@@ -130,7 +121,10 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
 
   const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
   if (failedToolsResult.length > 0) {
-    return;
+    return {
+      espIdfPath,
+      espToolsPath: toolsPath,
+    };
   }
 
   const exportedVars = await idfToolsManager.exportVars(
@@ -138,7 +132,12 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   );
 
   if (!exportedVars) {
-    return;
+    return {
+      espIdfPath,
+      espToolsPath: toolsPath,
+      exportedToolsPaths,
+      toolsInfo,
+    };
   }
 
   const pyVenvPath = await checkPyVersion(
@@ -148,7 +147,13 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   );
 
   if (!pyVenvPath) {
-    return;
+    return {
+      espIdfPath,
+      espToolsPath: toolsPath,
+      exportedToolsPaths,
+      exportedVars,
+      toolsInfo,
+    };
   }
 
   return {

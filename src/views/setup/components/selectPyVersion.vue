@@ -31,7 +31,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import folderOpen from "../common/folderOpen.vue";
+import folderOpen from "./folderOpen.vue";
 
 @Component({
   components: {
@@ -55,11 +55,6 @@ export default class SelectPyVersion extends Vue {
     return `Enter absolute python binary path to use. Example: ${
       this.winRoot
     }/Users/name/python${this.winRoot ? ".exe" : ""}`;
-  }
-
-  get inputVenvLabel() {
-    const pyDir = this.winRoot ? "Scripts/python.exe" : "bin/python";
-    return `Enter Python virtual environment directory. Example: ${this.winRoot}/Users/name/.espressif/python_env/idf4.0_py3.7_env/${pyDir}`;
   }
 
   get pyVersionList() {
