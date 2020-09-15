@@ -108,7 +108,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
+import { State } from "vuex-class";
 import { IEspIdfTool, StatusType } from "./types";
 import IdfDownload from "./components/IdfDownload.vue";
 import toolDownload from "./components/toolDownload.vue";
@@ -120,23 +120,13 @@ import toolDownload from "./components/toolDownload.vue";
   },
 })
 export default class Status extends Vue {
-  @State("espIdf") storeEspIdf: string;
   @State("espIdfErrorStatus") private storeErrorStatus: string;
   @State("isIdfInstalling") private storeIsInstalling: boolean;
-  @State("manualPythonPath") storeManualPythonPath: string;
   @State("pyReqsLog") private storePyReqsLog: string;
-  @State("toolsFolder") storeToolsFolder: string;
-  @State("selectedSysPython") storeSelectedPythonVersion: string;
   @State("statusEspIdf") private storeEspIdfStatus: StatusType;
   @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
   @State("statusPyVEnv") private storePyVenvStatus: StatusType;
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
-  @Action customInstallEspIdf;
-  @Action installEspIdfTools;
-
-  get espIdf() {
-    return this.storeEspIdf;
-  }
 
   get espIdfErrorStatus() {
     return this.storeErrorStatus;
@@ -148,10 +138,6 @@ export default class Status extends Vue {
 
   get pyReqsLog() {
     return this.storePyReqsLog;
-  }
-
-  get pyVenvPath() {
-    return this.storeManualPythonPath;
   }
 
   get statusEspIdf() {
@@ -168,10 +154,6 @@ export default class Status extends Vue {
 
   get statusType() {
     return StatusType;
-  }
-
-  get toolsPath() {
-    return this.storeToolsFolder;
   }
 
   get toolsResults() {

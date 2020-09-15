@@ -35,15 +35,15 @@ export function sendEspIdfDownloadDetail(id: string, updatedDetail: string) {
 
 export function sendDownloadedZip(downloadedPath: string) {
   SetupPanel.postMessage({
-    command: "notify_downloaded",
-    downloadedPath,
+    command: "setEspIdfErrorStatus",
+    errorMsg: `ESP-IDF is downloaded in ${downloadedPath}`,
   });
 }
 
 export function sendExtractedZip(extractedPath: string) {
   SetupPanel.postMessage({
-    command: "notify_extracted",
-    extractedPath,
+    command: "setEspIdfErrorStatus",
+    errorMsg: `ESP-IDF is extracted in ${extractedPath}`,
   });
 }
 

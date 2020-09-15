@@ -26,6 +26,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { installExtensionPyReqs, installPyReqs } from "./installPyReqs";
 import { StatusType } from "../views/setup/types";
+import { ensureDir } from "fs-extra";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -120,6 +121,7 @@ export class SetupPanel {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+    const defaultEspIdfPath = path.join(containerPath, "esp");
     const toolsPath = path.join(containerPath, ".espressif");
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
@@ -133,6 +135,9 @@ export class SetupPanel {
             message.manualEspIdfPath &&
             typeof message.mirror !== undefined
           ) {
+            if (message.espIdfContainer === defaultEspIdfPath) {
+              await ensureDir(defaultEspIdfPath);
+            }
             await this.autoInstall(
               message.selectedEspIdfVersion,
               message.selectedPyPath,
@@ -166,7 +171,7 @@ export class SetupPanel {
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
-            espIdfContainer: containerPath,
+            espIdfContainer: defaultEspIdfPath,
             espIdf: setupArgs.espIdfPath || espIdfPath,
             espToolsPath: setupArgs.espToolsPath || toolsPath,
             gitVersion: setupArgs.gitVersion,
@@ -263,7 +268,11 @@ export class SetupPanel {
             command: "updateEspIdfToolsStatus",
             status: StatusType.started,
           });
-          const toolsPath = path.join(idfContainerPath, ".espressif");
+          const containerPath =
+            process.platform === "win32"
+              ? process.env.USERPROFILE
+              : process.env.HOME;
+          const toolsPath = path.join(containerPath, ".espressif");
           const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
             idfPath
           );
