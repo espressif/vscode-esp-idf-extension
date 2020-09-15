@@ -1,12 +1,29 @@
 <template>
   <div id="status">
     <ul class="progressBar">
-      <li class="active">ESP-IDF</li>
-      <li :class="{ active: statusEspIdfTools !== statusType.pending }">
-        IDF Tools
+      <li
+        :class="{
+          active: statusEspIdf !== statusType.pending,
+          finished: statusEspIdf == statusType.installed,
+        }"
+      >
+        ESP-IDF
       </li>
-      <li :class="{ active: statusPyVEnv !== statusType.pending }">
-        Python Virtual Environment
+      <li
+        :class="{
+          active: statusEspIdfTools !== statusType.pending,
+          finished: statusEspIdfTools == statusType.installed,
+        }"
+      >
+        ESP-IDF Tools
+      </li>
+      <li
+        :class="{
+          active: statusPyVEnv !== statusType.pending,
+          finished: statusPyVEnv == statusType.installed,
+        }"
+      >
+        Python virtual environment
       </li>
     </ul>
 
@@ -215,7 +232,7 @@ export default class Status extends Vue {
   content: "";
   width: 25%;
   height: 2px;
-  top: 9em;
+  top: 10.25em;
   margin-left: 15px;
   background-color: var(--vscode-button-foreground);
   position: absolute;
@@ -233,6 +250,9 @@ export default class Status extends Vue {
 
 .progressBar li.active:before {
   border-color: var(--vscode-button-background);
+}
+
+.progressBar li.finished:before {
   background-color: var(--vscode-button-background);
 }
 

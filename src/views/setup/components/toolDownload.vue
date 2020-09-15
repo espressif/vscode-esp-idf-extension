@@ -75,7 +75,7 @@ export default class ToolDownloadInfo extends Vue {
   display: flex;
   justify-content: space-around;
   flex-direction: row;
-  width: 100%;
+  width: 60%;
   align-items: center;
   align-self: center;
 }
