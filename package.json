@@ -71,7 +71,6 @@
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
-    "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:esp.webview.open.partition-table",
@@ -686,11 +685,6 @@
       {
         "command": "espIdf.searchInEspIdfDocs",
         "title": "%espIdf.searchInEspIdfDocs.title%"
-      },
-      {
-        "command": "esp.webview.open.partition-table",
-        "title": "Open Partition Table Editor",
-        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.getEspAdf",

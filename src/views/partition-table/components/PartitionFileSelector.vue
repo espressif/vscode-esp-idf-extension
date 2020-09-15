@@ -36,10 +36,3 @@ export default class PartitionFileSelector extends Vue {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.select,
-.input {
-  border-color: var(--vscode-input-background);
-}
-</style>

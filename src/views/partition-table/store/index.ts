@@ -17,39 +17,78 @@
  */
 
 import Vue from "vue";
-import Vuex from "vuex";
+import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
-  state: {
-    user: {},
-    token: localStorage.getItem("auth") || null,
+declare var acquireVsCodeApi: any;
+let vscode: any;
+try {
+  vscode = acquireVsCodeApi();
+} catch (error) {
+  console.error(error);
+}
+
+export namespace PartitionTable {
+  export interface Row {
+    name: String;
+    type: String;
+    subtype: String;
+    offset: String;
+    size: String;
+    flag: String;
+  }
+  export interface State {
+    path: String;
+    rows: Array<Row>;
+    dirty: Boolean;
+  }
+}
+
+export const state: PartitionTable.State = {
+  path: "",
+  rows: [],
+  dirty: false,
+};
+
+export const mutations: MutationTree<PartitionTable.State> = {
+  ADD(state, row) {
+    state.dirty = true;
+    state.rows.push(row);
   },
-  mutations: {
-    logout(state) {
-      state.user = {};
-      state.token = null;
-    },
-    setUser(state, user) {
-      state.user = user;
-    },
-    setToken(state, token) {
-      state.token = token;
-    },
+  DELETE(state, index) {
+    state.dirty = true;
+    state.rows.splice(index, 1);
   },
-  actions: {
-    notify({ state }, message: string) {},
-    logout({ commit }) {
-      commit("logout");
-    },
-    setUser({ commit }, user) {
-      commit("setUser", user);
-    },
-    setToken({ commit }, token) {
-      commit("setToken", token);
-    },
+  CLEAN(state) {
+    state.dirty = false;
   },
-  modules: {},
-  getters: {},
-});
+};
+
+export const actions: ActionTree<PartitionTable.State, any> = {
+  addRow(ctx, row) {
+    this.commit("ADD", row);
+  },
+  deleteRow(ctx, index) {
+    this.commit("DELETE", index);
+  },
+  save() {
+    this.commit("CLEAN");
+    console.log(this.state.rows);
+  },
+  openExample(context, payload) {
+    vscode.postMessage({
+      command: "openExampleProject",
+      project_path: payload.pathToOpen,
+      name: payload.name,
+    });
+  },
+};
+
+export const examples: StoreOptions<PartitionTable.State> = {
+  state,
+  mutations,
+  actions,
+};
+
+export default new Vuex.Store(examples);

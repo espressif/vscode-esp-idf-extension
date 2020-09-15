@@ -78,7 +78,6 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
-import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
