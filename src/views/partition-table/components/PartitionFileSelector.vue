@@ -7,7 +7,7 @@
             class="input is-size-7-mobile is-size-7-tablet"
             type="text"
             placeholder="Path to the partition-table.bin file"
-            v-model="path"
+            v-model="sPath"
           />
         </div>
         <div class="control">
@@ -24,14 +24,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Emit, Vue } from "vue-property-decorator";
+import { Component, Emit, PropSync, Vue } from "vue-property-decorator";
 
 @Component
 export default class PartitionFileSelector extends Vue {
-  private path: string;
+  @PropSync("path", { type: String, required: true }) sPath: string;
+
   @Emit()
   open() {
-    return this.path;
+    return this.sPath;
   }
 }
 </script>

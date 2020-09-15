@@ -1,7 +1,7 @@
 <template>
   <div>
     <Header />
-    <PartitionFileSelector @open="openNewFile" />
+    <PartitionFileSelector @open="openNewFile" :path="path" />
   </div>
 </template>
 
@@ -19,6 +19,7 @@ import PartitionFileSelector from "./components/PartitionFileSelector.vue";
   },
 })
 export default class PartitionTableApp extends Vue {
+  private path = "esp/a/b/c";
   openNewFile(path: string) {
     console.log(path);
   }
