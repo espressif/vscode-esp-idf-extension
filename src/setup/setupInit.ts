@@ -105,7 +105,9 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
     idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   }
   if (idfPathVersion === "x.x") {
-    return;
+    return {
+      espToolsPath: toolsPath,
+    };
   }
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     espIdfPath

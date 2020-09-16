@@ -280,7 +280,7 @@
           },
           "idf.toolsPath": {
             "type": "string",
-            "default": "${env:HOME}/.espressif",
+            "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
@@ -304,7 +304,7 @@
           },
           "idf.toolsPathWin": {
             "type": "string",
-            "default": "${env:USERPROFILE}\\.espressif",
+            "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
             "scope": "resource"
           },

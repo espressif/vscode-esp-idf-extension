@@ -121,11 +121,10 @@ export class SetupPanel {
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-    const defaultEspIdfPath = path.join(containerPath, "esp");
-    const toolsPath = path.join(containerPath, ".espressif");
+    const defaultEspIdfPathContainer = path.join(containerPath, "esp");
+    const toolsPath = idfConf.readParameter("idf.toolsPath");
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
-      console.log(message);
       switch (message.command) {
         case "installEspIdf":
           if (
@@ -135,8 +134,8 @@ export class SetupPanel {
             message.manualEspIdfPath &&
             typeof message.mirror !== undefined
           ) {
-            if (message.espIdfContainer === defaultEspIdfPath) {
-              await ensureDir(defaultEspIdfPath);
+            if (message.espIdfContainer === defaultEspIdfPathContainer) {
+              await ensureDir(defaultEspIdfPathContainer);
             }
             await this.autoInstall(
               message.selectedEspIdfVersion,
@@ -171,9 +170,9 @@ export class SetupPanel {
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
-            espIdfContainer: defaultEspIdfPath,
-            espIdf: setupArgs.espIdfPath || espIdfPath,
-            espToolsPath: setupArgs.espToolsPath || toolsPath,
+            espIdfContainer: defaultEspIdfPathContainer,
+            espIdf: espIdfPath || setupArgs.espIdfPath,
+            espToolsPath: toolsPath || setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersions: setupArgs.espIdfVersionsList,
@@ -272,7 +271,9 @@ export class SetupPanel {
             process.platform === "win32"
               ? process.env.USERPROFILE
               : process.env.HOME;
-          const toolsPath = path.join(containerPath, ".espressif");
+          const toolsPath =
+            (idfConf.readParameter("idf.toolsPath") as string) ||
+            path.join(containerPath, ".espressif");
           const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
             idfPath
           );
