@@ -24,22 +24,24 @@
           </div>
         </div>
       </nav>
-      <table class="table is-fullwidth">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Sub Type</th>
-            <th>Offset</th>
-            <th>Size</th>
-            <th>Encrypted</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <slot></slot>
-        </tbody>
-      </table>
+      <div style="max-height: 350px; overflow: scroll;">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Sub Type</th>
+              <th>Offset</th>
+              <th>Size</th>
+              <th>Encrypted</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <slot></slot>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

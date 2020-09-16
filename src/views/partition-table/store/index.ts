@@ -18,7 +18,7 @@
 
 import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
-import { JSON2CSV } from "../util";
+import { CSV2JSON, JSON2CSV } from "../util";
 
 Vue.use(Vuex);
 
@@ -31,14 +31,13 @@ try {
 }
 
 export namespace PartitionTable {
-  export type SubTypesType = { label: String; value?: String };
   export interface Row {
     name: String;
     type: String;
-    subtype: SubTypesType;
+    subtype: String;
     offset: String;
     size: String;
-    flag: String;
+    flag: Boolean;
   }
   export interface State {
     path: String;
@@ -77,8 +76,10 @@ export const actions: ActionTree<PartitionTable.State, any> = {
   save() {
     //validate
     const csv = JSON2CSV(this.state.rows);
+    const obj = CSV2JSON(csv);
     this.commit("CLEAN");
     console.log(csv);
+    console.dir(obj);
   },
   openExample(context, payload) {
     vscode.postMessage({

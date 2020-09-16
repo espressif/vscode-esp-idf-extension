@@ -27,15 +27,37 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
     if (
       row.name === "" &&
       row.type === "" &&
-      row.subtype === undefined &&
+      row.subtype === "" &&
       row.offset === "" &&
       row.size === "" &&
-      row.flag === ""
+      row.flag === false
     ) {
       return;
     }
-    let subtype = row.subtype.value ? row.subtype.value : row.subtype.label;
-    csv += `${row.name},${row.type},${subtype},${row.offset},${row.size},${row.flag},\n`;
+    let flag = row.flag === true ? "encrypted" : "";
+    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag},\n`;
   });
   return csv;
+}
+
+export function CSV2JSON(csv: String): PartitionTable.Row[] {
+  const rows = new Array<PartitionTable.Row>();
+  const lines = csv.split("\n");
+  const comment = lines.shift();
+  const headers = lines.shift();
+  lines.forEach((line) => {
+    if (line === "") {
+      return;
+    }
+    const cols = line.split(",");
+    rows.push({
+      name: cols.shift(),
+      type: cols.shift(),
+      subtype: cols.shift(),
+      offset: cols.shift(),
+      size: cols.shift(),
+      flag: cols.shift() === "encrypted" ? true : false,
+    });
+  });
+  return rows;
 }
