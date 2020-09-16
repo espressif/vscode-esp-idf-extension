@@ -24,7 +24,7 @@
           </div>
         </div>
       </nav>
-      <div style="max-height: 350px; overflow: scroll;">
+      <div style="max-height: 350px; overflow: auto;">
         <table class="table is-fullwidth">
           <thead>
             <tr>
