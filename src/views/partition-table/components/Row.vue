@@ -19,14 +19,23 @@
       </span>
     </td>
     <td>
-      <span class="select is-size-7-mobile is-size-7-tablet">
+      <!-- <span class="select is-size-7-mobile is-size-7-tablet">
         <select v-model="sSubType">
           <option value="" disabled>Sub Type</option>
           <option v-for="(opt, i) in subtypes" :key="i" :value="opt.value">
             {{ opt.label }}
           </option>
         </select>
-      </span>
+      </span> -->
+      <v-select
+        :options="subtypes"
+        v-model="sSubType"
+        label="label"
+        placeholder="Sub Type"
+        taggable
+        selectOnTab
+      >
+      </v-select>
     </td>
     <td>
       <input
@@ -52,9 +61,11 @@
 </template>
 
 <script lang="ts">
+import "vue-select/dist/vue-select.css";
 import { Component, Emit, PropSync, Vue } from "vue-property-decorator";
-
-type SubTypesType = { label: String; value: String };
+import { PartitionTable } from "../store";
+import vSelect from "vue-select";
+Vue.component("v-select", vSelect);
 
 @Component
 export default class Row extends Vue {
@@ -65,7 +76,7 @@ export default class Row extends Vue {
   @PropSync("size") sSize: String;
   @PropSync("flag") sFlag: String;
 
-  public get subtypes(): SubTypesType[] {
+  public get subtypes(): PartitionTable.SubTypesType[] {
     if (this.sType === "app") {
       return [
         { label: "Factory", value: "factory" },
@@ -101,3 +112,15 @@ export default class Row extends Vue {
   del() {}
 }
 </script>
+
+<style>
+.vs__dropdown-toggle {
+  background-color: var(--vscode-input-background);
+  border-color: var(--vscode-input-border);
+  color: var(--vscode-input-foreground);
+}
+.vs__open-indicator,
+.vs__clear {
+  fill: var(--vscode-button-background);
+}
+</style>
