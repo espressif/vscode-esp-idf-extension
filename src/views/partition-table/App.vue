@@ -51,7 +51,7 @@ export default class PartitionTableApp extends Vue {
     this.addRow({
       name: "",
       type: "",
-      subtype: "",
+      subtype: undefined,
       offset: "",
       size: "",
       flag: "",

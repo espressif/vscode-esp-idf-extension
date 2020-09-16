@@ -27,17 +27,14 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
     if (
       row.name === "" &&
       row.type === "" &&
-      row.subtype === "" &&
+      row.subtype === undefined &&
       row.offset === "" &&
       row.size === "" &&
       row.flag === ""
     ) {
       return;
     }
-    let subtype: any = row.subtype;
-    if (typeof subtype === "object") {
-      subtype = subtype.value;
-    }
+    let subtype = row.subtype.value ? row.subtype.value : row.subtype.label;
     csv += `${row.name},${row.type},${subtype},${row.offset},${row.size},${row.flag},\n`;
   });
   return csv;

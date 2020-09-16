@@ -31,11 +31,11 @@ try {
 }
 
 export namespace PartitionTable {
-  export type SubTypesType = { label: String; value: String };
+  export type SubTypesType = { label: String; value?: String };
   export interface Row {
     name: String;
     type: String;
-    subtype: SubTypesType | String;
+    subtype: SubTypesType;
     offset: String;
     size: String;
     flag: String;
