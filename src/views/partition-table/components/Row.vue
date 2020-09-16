@@ -117,6 +117,9 @@ export default class Row extends Vue {
 .vs--single .vs__selected {
   color: var(--vscode-foreground);
 }
+.vs__search {
+  color: var(--vscode-foreground);
+}
 .vs__search::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
@@ -129,6 +132,7 @@ export default class Row extends Vue {
 }
 .vs__dropdown-option--highlight {
   background-color: var(--vscode-button-background);
+  color: var(--vscode-foreground);
 }
 .w-md {
   min-width: 130px;
