@@ -37,11 +37,11 @@ export interface IDebugAdapterConfig {
   debugAdapterPort?: number;
   elfFile?: string;
   env?: NodeJS.ProcessEnv;
-  logLevel?: number;
-  isPostMortemDebugMode: boolean;
-  target?: string;
-  initGdbCommands?: string[];
   gdbinitFilePath?: string;
+  initGdbCommands?: string[];
+  isPostMortemDebugMode: boolean;
+  logLevel?: number;
+  target?: string;
 }
 
 export class DebugAdapterManager extends EventEmitter {
@@ -61,11 +61,11 @@ export class DebugAdapterManager extends EventEmitter {
   private displayChan: vscode.OutputChannel;
   private elfFile: string;
   private env;
+  private gdbinitFilePath: string;
+  private initGdbCommands: string[];
+  private isPostMortemDebugMode: boolean;
   private logLevel: number;
   private port: number;
-  private isPostMortemDebugMode: boolean;
-  private initGdbCommands: string[];
-  private gdbinitFilePath: string;
   private target: string;
 
   private constructor(context: vscode.ExtensionContext) {
@@ -198,20 +198,18 @@ export class DebugAdapterManager extends EventEmitter {
         this.env[envVar] = config.env[envVar];
       }
     }
-    if (config.logLevel) {
-      this.logLevel = config.logLevel;
-    }
-    if (typeof config.isPostMortemDebugMode !== "undefined") {
-      this.isPostMortemDebugMode = config.isPostMortemDebugMode;
-    }
-    if (config.target) {
-      this.target = config.target;
+    if (config.gdbinitFilePath) {
+      this.gdbinitFilePath = config.gdbinitFilePath;
     }
     if (config.initGdbCommands) {
       this.initGdbCommands = config.initGdbCommands;
     }
-    if (config.gdbinitFilePath) {
-      this.gdbinitFilePath = config.gdbinitFilePath;
+    this.isPostMortemDebugMode = config.isPostMortemDebugMode;
+    if (config.logLevel) {
+      this.logLevel = config.logLevel;
+    }
+    if (config.target) {
+      this.target = config.target;
     }
   }
 
