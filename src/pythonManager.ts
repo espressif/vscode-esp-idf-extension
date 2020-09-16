@@ -178,6 +178,9 @@ export async function installExtensionPyReqs(
   if (pyTracker) {
     pyTracker.Log = installExtensionPyPkgsMsg;
   }
+  if (channel) {
+    channel.appendLine(installExtensionPyPkgsMsg + "\n");
+  }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
     idfToolsDir,
@@ -188,6 +191,9 @@ export async function installExtensionPyReqs(
   );
   if (pyTracker) {
     pyTracker.Log = installDAPyPkgsMsg;
+  }
+  if (channel) {
+    channel.appendLine(installDAPyPkgsMsg + "\n");
   }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,

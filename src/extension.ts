@@ -82,6 +82,7 @@ import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
 import { getSetupInitialValues } from "./setup/setupInit";
+import { installReqs } from "./pythonManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -761,6 +762,51 @@ export async function activate(context: vscode.ExtensionContext) {
         )
       );
     }
+  });
+
+  registerIDFCommand("espIdf.installPyReqs", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF:",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const espIdfPath = idfConf.readParameter(
+              "idf.espIdfPath"
+            ) as string;
+            const toolsPath = idfConf.readParameter("idf.toolsPath") as string;
+            const pyPath = idfConf.readParameter("idf.pythonBinPath") as string;
+            progress.report({
+              message: `Installing ESP-IDF Python Requirements...`,
+            });
+            await installReqs(
+              espIdfPath,
+              pyPath,
+              toolsPath,
+              undefined,
+              OutputChannel.init(),
+              cancelToken
+            );
+            vscode.window.showInformationMessage(
+              "ESP-IDF Python Requirements has been installed"
+            );
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : typeof error === "string"
+              ? error
+              : "Error installing Python requirements";
+            Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
   });
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {

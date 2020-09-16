@@ -73,6 +73,7 @@
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:espIdf.installPyReqs",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -666,6 +667,10 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.installPyReqs",
+        "title": "%espIdf.installPyReqs.title%"
       }
     ],
     "breakpoints": [

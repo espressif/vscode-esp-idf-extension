@@ -28,6 +28,7 @@
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "espIdf.getEspAdf.title": "ESP-IDF: Install ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Install ESP-MDF",
+  "espIdf.installPyReqs.title": "ESP-IDF: Install ESP-IDF Python Packages",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
