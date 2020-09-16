@@ -97,6 +97,7 @@
     "espIdf.getCoverageReport.title",
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
+    "espIdf.installPyReqs.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
