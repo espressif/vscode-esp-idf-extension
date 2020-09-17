@@ -204,7 +204,7 @@
           "group": "navigation"
         },
         {
-          "when": "resourceFilename == partition-table.bin",
+          "when": "resourceFilename == partition-table.bin || resourceExtname == .csv",
           "group": "navigation",
           "command": "esp.webview.open.partition-table"
         }

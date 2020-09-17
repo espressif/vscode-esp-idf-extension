@@ -34,7 +34,7 @@ export class PartitionTableEditorPanel {
   private disposable: Disposable[] = [];
   private readonly extensionPath: string;
 
-  public static show(extensionPath: string) {
+  public static show(extensionPath: string, filePath: string) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;

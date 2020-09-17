@@ -1391,8 +1391,8 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
-  registerIDFCommand("esp.webview.open.partition-table", (args) => {
-    PartitionTableEditorPanel.show(context.extensionPath);
+  registerIDFCommand("esp.webview.open.partition-table", (args: vscode.Uri) => {
+    PartitionTableEditorPanel.show(context.extensionPath, args.fsPath);
   });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
