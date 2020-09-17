@@ -1391,9 +1391,28 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
-  registerIDFCommand("esp.webview.open.partition-table", (args: vscode.Uri) => {
-    PartitionTableEditorPanel.show(context.extensionPath, args.fsPath);
-  });
+  registerIDFCommand(
+    "esp.webview.open.partition-table",
+    async (args: vscode.Uri) => {
+      if (!args) {
+        const msg =
+          "You can right click and open partition table editor for csv files or partition-table.bin file";
+        Logger.warn(msg);
+        const opt = await vscode.window.showWarningMessage(
+          msg,
+          "Show Docs",
+          "Ok"
+        );
+        if (opt === "Show Docs") {
+          vscode.env.openExternal(
+            vscode.Uri.parse(ESP.URL.Docs.PartitionTableEditor)
+          );
+        }
+        return;
+      }
+      PartitionTableEditorPanel.show(context.extensionPath, args.fsPath);
+    }
+  );
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");

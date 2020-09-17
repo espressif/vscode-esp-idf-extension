@@ -36,6 +36,12 @@ export namespace ESP {
     }
   }
 
+  export namespace URL {
+    export namespace Docs {
+      export const PartitionTableEditor = "";
+    }
+  }
+
   export namespace Webview {
     export namespace PartitionTableEditor {
       export const ViewType = "partition-table-editor";
