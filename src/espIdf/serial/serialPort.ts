@@ -92,6 +92,10 @@ export class SerialPort {
     }
   }
 
+  public async getListArray() {
+    return await this.list();
+  }
+
   private async updatePortListStatus(l: string) {
     const target = idfConf.readParameter("idf.saveScope");
     await idfConf.writeParameter("idf.port", l, target);

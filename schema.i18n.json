@@ -76,6 +76,7 @@
     "espIdf.configDevice.title",
     "menuconfig.start.title",
     "cmakeListsEditor.start.title",
+    "newProject.start.title",
     "espIdf.setDefaultConfig.title",
     "espIdf.selectPort.title",
     "espIdf.buildDevice.title",

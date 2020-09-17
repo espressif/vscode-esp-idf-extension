@@ -103,6 +103,8 @@ import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
 import { kill } from "process";
+import { getNewProjectArgs } from "./newProject/newProjectInit";
+import { NewProjectPanel } from "./newProject/newProjectPanel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1272,6 +1274,34 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       await CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
     });
+  });
+
+  registerIDFCommand("newProject.start", () => {
+    if (NewProjectPanel.isCreatedAndHidden()) {
+      NewProjectPanel.createOrShow(context.extensionPath);
+      return;
+    }
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: New Project",
+      },
+      async (
+        progress: vscode.Progress<{ increment: number; message: string }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const newProjectArgs = await getNewProjectArgs(progress);
+          if (!newProjectArgs || !newProjectArgs.targetList) {
+            throw new Error("Could not find ESP-IDF Targets");
+          }
+          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
+        } catch (error) {
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {

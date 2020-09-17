@@ -81,6 +81,7 @@
     "onCommand:espIdf.doctorCommand",
     "onCommand:espIdf.createNewComponent",
     "onCommand:espIdf.ninja.summary",
+    "onCommand:newProject.start",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -810,6 +811,10 @@
       {
         "command": "espIdf.disposeConfserverProcess",
         "title": "%espIdf.disposeConfserverProcess.title%"
+      },
+      {
+        "command": "newProject.start",
+        "title": "%newProject.start.title%"
       }
     ],
     "breakpoints": [

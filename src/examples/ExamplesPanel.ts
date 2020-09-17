@@ -21,6 +21,7 @@ import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 import marked from "marked";
 import { ESP } from "../config";
+import { getExamplesList } from "./Example";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -205,22 +206,7 @@ export class ExamplesPlanel {
   }
 
   private async obtainExamplesList(targetFrameworkFolder: string) {
-    const examplesPath = path.join(targetFrameworkFolder, "examples");
-    const examplesCategories = utils.getDirectories(examplesPath);
-    const examplesListPaths = utils.getSubProjects(examplesPath);
-    const exampleListInfo = examplesListPaths.map((examplePath) => {
-      const exampleCategory = examplesCategories.find(
-        (exampleCat) => examplePath.indexOf(exampleCat) > -1
-      );
-      const regexToUse =
-        process.platform === "win32" ? /([^\\]*)\\*$/ : /([^\/]*)\/*$/;
-      const exampleName = examplePath.match(regexToUse)[1];
-      return {
-        category: exampleCategory,
-        name: exampleName,
-        path: examplePath,
-      };
-    });
+    const exampleListInfo = getExamplesList(targetFrameworkFolder);
     this.panel.webview.postMessage({
       command: "set_examples_path",
       example_list: exampleListInfo,

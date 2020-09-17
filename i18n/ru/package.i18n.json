@@ -9,6 +9,7 @@
   "espIdf.configDevice.title": "ESP-IDF: Конфигурация устройства",
   "menuconfig.start.title": "ESP-IDF: Редактор конфигурации SDK",
   "cmakeListsEditor.start.title": "ESP-IDF: CMakeLists.txt Редактор",
+  "newProject.start.title": "ESP-IDF: Новый проект",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Установить файл sdkconfig по умолчанию в проекте",
   "espIdf.selectPort.title": "ESP-IDF: Выбрать последовательный порт",
   "espIdf.buildDevice.title": "ESP-IDF: Собрать проект",
