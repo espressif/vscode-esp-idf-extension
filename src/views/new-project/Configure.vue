@@ -1,5 +1,5 @@
 <template>
-  <div class="configure">
+  <div class="configure notification">
     <div class="field centerize">
       <label for="projectName" class="label">Project Name</label>
       <div class="control expanded">
@@ -56,7 +56,7 @@
       <label for="openocd-cfgs" class="label"
         >OpenOCD Configuration files (Relative paths to OPENOCD_SCRIPTS)</label
       >
-      <p class="notification">
+      <p>
         Add files separated by comma like
         <span>interface/ftdi/esp32_devkitj_v1.cfg,board/esp32-wrover.cfg</span>
       </p>
@@ -165,6 +165,14 @@ export default class Configure extends Vue {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+.configure {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  margin: 5%;
 }
 
 .expanded {

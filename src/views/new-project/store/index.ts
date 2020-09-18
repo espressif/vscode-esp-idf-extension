@@ -40,10 +40,11 @@ export interface IState {
   openOcdConfigFiles: string;
   projectName: string;
   selectedPort: string;
-  selectedTemplate: string;
+  selectedTemplate: IExample;
   serialPortList: string[];
   target: IdfTarget;
   targetList: IdfTarget[];
+  templateDetail: string;
   templates: IExample[];
 }
 
@@ -54,10 +55,11 @@ const newProjectState: IState = {
   openOcdConfigFiles: "",
   projectName: "project-name",
   selectedPort: "",
-  selectedTemplate: "",
+  selectedTemplate: null,
   serialPortList: [],
   target: null,
   targetList: [],
+  templateDetail: "",
   templates: [],
 };
 
@@ -92,9 +94,9 @@ export const mutations: MutationTree<IState> = {
     newState.selectedPort = port;
     state = { ...newState };
   },
-  setSelectedTemplate(state, port: string) {
+  setSelectedTemplate(state, template: IExample) {
     const newState = state;
-    newState.selectedPort = port;
+    newState.selectedTemplate = template;
     state = { ...newState };
   },
   setSerialPortList(state, serialPortList: string[]) {
@@ -111,6 +113,11 @@ export const mutations: MutationTree<IState> = {
   setTargetList(state, targetList: IdfTarget[]) {
     const newState = state;
     newState.targetList = targetList;
+    state = { ...newState };
+  },
+  setTemplateDetail(state, templateDetail: string) {
+    const newState = state;
+    newState.templateDetail = templateDetail;
     state = { ...newState };
   },
   setTemplates(state, templates: IExample[]) {
@@ -136,6 +143,12 @@ export const actions: ActionTree<IState, any> = {
       projectName: context.state.projectName,
       target: context.state.target,
       template: context.state.selectedTemplate,
+    });
+  },
+  getTemplateDetail(context, payload) {
+    vscode.postMessage({
+      command: "getTemplateDetail",
+      path: payload.pathToOpen,
     });
   },
   openComponentFolder() {

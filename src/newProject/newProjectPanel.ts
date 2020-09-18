@@ -11,12 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import marked from "marked";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
+import { readFile } from "fs-extra";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
 
@@ -106,6 +108,11 @@ export class NewProjectPanel {
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
+        case "getTemplateDetail":
+          if (message.path) {
+            await this.getTemplateDetail(message.path);
+          }
+          break;
         case "loadComponent":
           let selectedFolder = await this.openFolder();
           if (selectedFolder) {
@@ -164,6 +171,69 @@ export class NewProjectPanel {
     } else {
       vscode.window.showInformationMessage("No folder selected");
     }
+  }
+
+  private async getTemplateDetail(projectPath: string) {
+    try {
+      const pathToUse = vscode.Uri.file(path.join(projectPath, "README.md"));
+      const readMeContent = await readFile(pathToUse.fsPath);
+      const contentStr = this.mdToHtml(readMeContent.toString(), projectPath);
+      this.panel.webview.postMessage({
+        command: "setExampleDetail",
+        templateDetail: contentStr,
+      });
+    } catch (error) {
+      this.panel.webview.postMessage({
+        command: "set_example_detail",
+        templateDetail: "No README.md available for this project.",
+      });
+    }
+  }
+
+  private mdToHtml(content: string, examplePath: string) {
+    marked.setOptions({
+      baseUrl: null,
+      breaks: true,
+      gfm: true,
+      pedantic: false,
+      renderer: new marked.Renderer(),
+      sanitize: true,
+      smartLists: true,
+      smartypants: false,
+    });
+    let contentStr = marked(content);
+    const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
+    const matches = contentStr.match(srcLinkRegex);
+    if (matches && matches.length > 0) {
+      for (let m of matches) {
+        const unresolvedPath = m
+          .replace('src="', "")
+          .replace('src ="', "")
+          .replace('"', "");
+        const absPath = `src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
+        )}"`;
+        contentStr = contentStr.replace(m, absPath);
+      }
+    }
+    const srcEncodedRegex = /&lt;img src=&quot;(.*?)&quot;\s?&gt;/g;
+    const nextMatches = contentStr.match(srcEncodedRegex);
+    if (nextMatches && nextMatches.length > 0) {
+      for (let m of nextMatches) {
+        const pathToResolve = m.match(/(?:src=&quot;)(.*?)(?:&quot;)/);
+        const height = m.match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+        const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+        const absPath = `<img src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
+        )}" ${
+          height && height.length > 0 ? 'height="' + height[1] + '"' : ""
+        } alt="${
+          altText && altText.length > 0 ? '"alt=' + altText[1] + '"' : ""
+        } >`;
+        contentStr = contentStr.replace(m, absPath);
+      }
+    }
+    return contentStr;
   }
 
   private createHtml(scriptPath: vscode.Uri, codiconsUri: vscode.Uri): string {

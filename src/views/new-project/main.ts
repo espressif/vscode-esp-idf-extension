@@ -18,10 +18,15 @@ import VueRouter from "vue-router";
 import App from "./App.vue";
 // @ts-ignore
 import Configure from "./Configure.vue";
+// @ts-ignore
+import Templates from "./Templates.vue";
 import { store } from "./store";
 
 Vue.use(VueRouter);
-const routes = [{ path: "/", component: Configure }];
+const routes = [
+  { path: "/", component: Configure },
+  { path: "/templates", component: Templates },
+];
 
 export const router = new VueRouter({
   base: __dirname,
@@ -61,6 +66,7 @@ window.addEventListener("message", (event) => {
       }
       if (msg.templates) {
         store.commit("setTemplates", msg.templates);
+        store.commit("setSelectedTemplate", msg.templates[0]);
       }
       if (msg.openOcdConfigFiles) {
         store.commit("setOpenOcdConfigFiles", msg.openOcdConfigFiles);
@@ -69,6 +75,11 @@ window.addEventListener("message", (event) => {
     case "setContainerDirectory":
       if (msg.projectDirectory) {
         store.commit("setContainerDirectory", msg.projectDirectory);
+      }
+      break;
+    case "setExampleDetail":
+      if (msg.templateDetail) {
+        store.commit("setTemplateDetail", msg.templateDetail);
       }
       break;
     default:

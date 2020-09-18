@@ -1,5 +1,6 @@
 <template>
   <div id="init">
+    <h1 class="title">ESP-IDF New Project</h1>
     <transition name="fade" mode="out-in">
       <router-view />
     </transition>
@@ -20,7 +21,6 @@ export default class App extends Vue {}
   margin: auto;
   padding-top: 1em;
   text-align: center;
-  width: 60%;
 }
 .fade-enter-active,
 .fade-leave-active {

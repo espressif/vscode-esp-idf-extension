@@ -54,21 +54,21 @@ export async function getNewProjectArgs(
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
   const espMdfPath = idfConf.readParameter("idf.espMdfPath") as string;
-  const templates = [];
+  let templates = [];
   const idfExists = await dirExistPromise(espIdfPath);
   if (idfExists) {
     const idfTemplates = getExamplesList(espIdfPath);
-    templates.push(idfTemplates);
+    templates = templates.concat(idfTemplates);
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
     const adfTemplates = getExamplesList(espAdfPath);
-    templates.push(adfTemplates);
+    templates = templates.concat(adfTemplates);
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
     const mdfTemplates = getExamplesList(espMdfPath);
-    templates.push(mdfTemplates);
+    templates = templates.concat(mdfTemplates);
   }
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {
