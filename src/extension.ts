@@ -78,6 +78,7 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { pathExists } from "fs-extra";
+import { ChangelogViewer } from "./changelog-viewer";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -133,6 +134,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
+  ChangelogViewer.showChangeLogAndUpdateVersion(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
