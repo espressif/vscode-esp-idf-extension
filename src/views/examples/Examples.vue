@@ -44,9 +44,6 @@ import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IExample } from "./store";
 
-// tslint:disable-next-line:no-var-requires
-const marked = require("marked");
-
 @Component
 export default class Examples extends Vue {
   @State("examplesPaths") private storeExamplesPath;
@@ -58,6 +55,7 @@ export default class Examples extends Vue {
   @Action private getExampleDetail;
   @Mutation private showExampleDetail;
   @Mutation private setSelectedExample;
+  @Mutation private setExampleDetail;
 
   get selectedExample() {
     return this.storeSelectedExample;
@@ -66,17 +64,7 @@ export default class Examples extends Vue {
     return this.storeExamplesPath;
   }
   get exampleDetail() {
-    marked.setOptions({
-      renderer: new marked.Renderer(),
-      gfm: true,
-      tables: true,
-      breaks: true,
-      pedantic: false,
-      sanitize: true,
-      smartLists: true,
-      smartypants: false,
-    });
-    return marked(this.storeExampleDetail);
+    return this.storeExampleDetail;
   }
   get groups() {
     return this.groupBy(this.storeExamplesPath, "category");
@@ -85,6 +73,7 @@ export default class Examples extends Vue {
   public toggleExampleDetail(example: IExample) {
     if (example.path !== this.storeSelectedExample.path) {
       this.setSelectedExample(example);
+      this.setExampleDetail("No README.md available for this project.");
       this.getExampleDetail({ pathToOpen: example.path });
     } else {
       this.showExampleDetail();

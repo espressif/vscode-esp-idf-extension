@@ -580,6 +580,12 @@ export function appendIdfAndToolsToPath() {
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
   modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
 
+  const adfPathDir = idfConf.readParameter("idf.espAdfPath");
+  modifiedEnv.ADF_PATH = adfPathDir || process.env.ADF_PATH;
+
+  const mdfPathDir = idfConf.readParameter("idf.espMdfPath");
+  modifiedEnv.MDF_PATH = mdfPathDir || process.env.MDF_PATH;
+
   modifiedEnv.PYTHON =
     `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
 

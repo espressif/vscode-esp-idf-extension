@@ -15,18 +15,21 @@
 import { ensureDir, readFile } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
+import marked from "marked";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
 
-  public static createOrShow(extensionPath: string) {
+  public static createOrShow(
+    extensionPath: string,
+    targetFrameworkFolder: string
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -35,7 +38,8 @@ export class ExamplesPlanel {
     } else {
       ExamplesPlanel.currentPanel = new ExamplesPlanel(
         extensionPath,
-        column || vscode.ViewColumn.One
+        column || vscode.ViewColumn.One,
+        targetFrameworkFolder
       );
     }
   }
@@ -44,7 +48,11 @@ export class ExamplesPlanel {
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
 
-  private constructor(extensionPath: string, column: vscode.ViewColumn) {
+  private constructor(
+    extensionPath: string,
+    column: vscode.ViewColumn,
+    targetFrameworkFolder: string
+  ) {
     const onBoardingPanelTitle = locDic.localize(
       "examples.panelName",
       "ESP-IDF Examples"
@@ -58,6 +66,7 @@ export class ExamplesPlanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, "dist", "views")),
+          vscode.Uri.file(targetFrameworkFolder),
         ],
       }
     );
@@ -108,7 +117,7 @@ export class ExamplesPlanel {
           }
           break;
         case "getExamplesList":
-          this.obtainExamplesList();
+          this.obtainExamplesList(targetFrameworkFolder);
           break;
         case "getExampleDetail":
           if (message.path) {
@@ -117,9 +126,13 @@ export class ExamplesPlanel {
             );
             readFile(pathToUse.fsPath).then(
               (content) => {
+                const contentStr = this.resolveImgPath(
+                  content.toString(),
+                  message.path
+                );
                 this.panel.webview.postMessage({
                   command: "set_example_detail",
-                  example_detail: content.toString(),
+                  example_detail: contentStr,
                 });
               },
               (err) => {
@@ -146,9 +159,54 @@ export class ExamplesPlanel {
     this.panel.dispose();
   }
 
-  private obtainExamplesList() {
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-    const examplesPath = path.join(espIdfPath, "examples");
+  private resolveImgPath(content: string, examplePath: string) {
+    marked.setOptions({
+      baseUrl: null,
+      breaks: true,
+      gfm: true,
+      pedantic: false,
+      renderer: new marked.Renderer(),
+      sanitize: true,
+      smartLists: true,
+      smartypants: false,
+    });
+    let contentStr = marked(content);
+    const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
+    const matches = contentStr.match(srcLinkRegex);
+    if (matches && matches.length > 0) {
+      for (let m of matches) {
+        const unresolvedPath = m
+          .replace('src="', "")
+          .replace('src ="', "")
+          .replace('"', "");
+        const absPath = `src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
+        )}"`;
+        contentStr = contentStr.replace(m, absPath);
+      }
+    }
+    const srcEncodedRegex = /&lt;img src=&quot;(.*?)&quot;\s?&gt;/g;
+    const nextMatches = contentStr.match(srcEncodedRegex);
+    if (nextMatches && nextMatches.length > 0) {
+      for (let m of nextMatches) {
+        const pathToResolve = m.match(/(?:src=&quot;)(.*?)(?:&quot;)/);
+        const height = m.match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+        const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+        const absPath = `<img src="${this.panel.webview.asWebviewUri(
+          vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
+        )}" ${
+          height && height.length > 0 ? 'height="' + height[1] + '"' : ""
+        } alt="${
+          altText && altText.length > 0 ? '"alt=' + altText[1] + '"' : ""
+        } >`;
+        contentStr = contentStr.replace(m, absPath);
+      }
+    }
+    return contentStr;
+  }
+
+  private async obtainExamplesList(targetFrameworkFolder: string) {
+    const examplesPath = path.join(targetFrameworkFolder, "examples");
     const examplesCategories = utils.getDirectories(examplesPath);
     const examplesListPaths = utils.getSubProjects(examplesPath);
     const exampleListInfo = examplesListPaths.map((examplePath) => {

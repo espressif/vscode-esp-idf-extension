@@ -7,6 +7,14 @@ body {
   min-height: 100vh;
 }
 
+body {
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-font-family);
+  font-weight: var(--vscode-font-weight);
+  font-size: var(--vscode-font-size);
+}
+
 .title:not(:last-child) {
   margin-bottom: 0.2rem;
 }
