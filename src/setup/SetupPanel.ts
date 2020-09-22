@@ -24,7 +24,11 @@ import { downloadEspIdfTools } from "./toolInstall";
 import { IdfToolsManager } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
-import { installExtensionPyReqs, installPyReqs } from "./installPyReqs";
+import {
+  checkPythonPipExists,
+  installExtensionPyReqs,
+  installPyReqs,
+} from "./installPyReqs";
 import { StatusType } from "../views/setup/types";
 import { ensureDir } from "fs-extra";
 
@@ -230,6 +234,12 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          const pyCheck = await checkPythonPipExists(pyPath, __dirname);
+          if (!pyCheck) {
+            const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
+            Logger.infoNotify(containerNotFoundMsg);
+            throw new Error(containerNotFoundMsg);
+          }
           this.panel.webview.postMessage({
             command: "goToCustomPage",
             installing: true,
@@ -331,19 +341,38 @@ export class SetupPanel {
             installing: false,
           });
         } catch (error) {
-          if (
-            error &&
-            error.message &&
-            (error.message.indexOf("ERROR_EXISTING_ESP_IDF") > -1 ||
-              error.message.indexOf("ERROR_NON_EXISTING_CONTAINER") > -1)
-          ) {
-            this.panel.webview.postMessage({
-              command: "setEspIdfErrorStatus",
-              errorMsg: error.message,
-            });
-            OutputChannel.appendLine(error.message);
-            Logger.errorNotify(error.message, error);
-            return;
+          if (error && error.message) {
+            if (
+              error.message.indexOf("ERROR_EXISTING_ESP_IDF") > -1 ||
+              error.message.indexOf("ERROR_NON_EXISTING_CONTAINER") > -1
+            ) {
+              this.panel.webview.postMessage({
+                command: "setEspIdfErrorStatus",
+                errorMsg: error.message,
+              });
+              this.panel.webview.postMessage({
+                command: "goToCustomPage",
+                installing: false,
+                page: "/autoinstall",
+              });
+              OutputChannel.appendLine(error.message);
+              Logger.errorNotify(error.message, error);
+              return;
+            }
+            if (error.message.indexOf("ERROR_INVALID_PYTHON")) {
+              this.panel.webview.postMessage({
+                command: "setPyExecErrorStatus",
+                errorMsg: error.message,
+              });
+              this.panel.webview.postMessage({
+                command: "goToCustomPage",
+                installing: false,
+                page: "/autoinstall",
+              });
+              OutputChannel.appendLine(error.message);
+              Logger.errorNotify(error.message, error);
+              return;
+            }
           }
           const errMsg = error.message
             ? error.message

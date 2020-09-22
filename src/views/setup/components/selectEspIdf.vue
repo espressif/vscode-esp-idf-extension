@@ -7,7 +7,7 @@
       <label for="idf-mirror-select">Select mirror to use:</label>
       <div class="control">
         <div class="select">
-          <select v-model="selectedIdfMirror">
+          <select v-model="selectedIdfMirror" @change="clearIDfErrorStatus">
             <option :value="idfMirror.Espressif">Espressif</option>
             <option :value="idfMirror.Github">Github</option>
           </select>
@@ -18,7 +18,7 @@
       <label for="idf-version-select">Select ESP-IDF version:</label>
       <div class="control">
         <div class="select">
-          <select v-model="selectedIdfVersion">
+          <select v-model="selectedIdfVersion" @change="clearIDfErrorStatus">
             <option
               v-for="ver in idfVersionList"
               :key="ver.name"
@@ -34,6 +34,7 @@
       :propModel.sync="espIdf"
       :propMutate="setEspIdfPath"
       :openMethod="openEspIdfFolder"
+      :onChangeMethod="clearIDfErrorStatus"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
     />
     <folderOpen
@@ -41,6 +42,7 @@
       :propModel.sync="espIdfContainer"
       :propMutate="setEspIdfContainerPath"
       :openMethod="openEspIdfContainerFolder"
+      :onChangeMethod="clearIDfErrorStatus"
       staticText="esp-idf"
       v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
     />
@@ -66,6 +68,7 @@ export default class SelectEspIdf extends Vue {
   @Mutation setEspIdfContainerPath;
   @Mutation setIdfMirror;
   @Mutation setSelectedEspIdfVersion;
+  @Mutation setEspIdfErrorStatus;
   @State("espIdf") private storeEspIdf: string;
   @State("espIdfContainer") private storeEspIdfContainer: string;
   @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
@@ -100,6 +103,10 @@ export default class SelectEspIdf extends Vue {
   }
   set selectedIdfMirror(val: IdfMirror) {
     this.setIdfMirror(val);
+  }
+
+  public clearIDfErrorStatus() {
+    this.setEspIdfErrorStatus("");
   }
 }
 </script>

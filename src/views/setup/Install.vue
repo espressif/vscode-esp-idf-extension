@@ -11,10 +11,17 @@
         <div class="icon">
           <i class="codicon codicon-close"></i>
         </div>
-        <label>{{ espIdfErrorStatus }}</label>
+        <p>{{ espIdfErrorStatus }}</p>
       </div>
 
       <selectPyVersion></selectPyVersion>
+
+      <div class="field" v-if="pyExecErrorStatus">
+        <div class="icon">
+          <i class="codicon codicon-close"></i>
+        </div>
+        <p>{{ pyExecErrorStatus }}</p>
+      </div>
 
       <div class="field install-btn">
         <div class="control">
@@ -43,6 +50,7 @@ export default class Install extends Vue {
   @Action customInstallEspIdf;
   @State("gitVersion") private storeGitVersion: string;
   @State("espIdfErrorStatus") private storeErrorStatus: string;
+  @State("pyExecErrorStatus") private storePyExecErrorStatus: string;
 
   get gitVersion() {
     return this.storeGitVersion;
@@ -50,6 +58,10 @@ export default class Install extends Vue {
 
   get espIdfErrorStatus() {
     return this.storeErrorStatus;
+  }
+
+  get pyExecErrorStatus() {
+    return this.storePyExecErrorStatus;
   }
 }
 </script>

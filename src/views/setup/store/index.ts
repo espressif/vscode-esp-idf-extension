@@ -38,6 +38,7 @@ export interface IState {
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
   manualPythonPath: string;
+  pyExecErrorStatus: string;
   pyReqsLog: string;
   pyVersionsList: string[];
   selectedEspIdfVersion: IEspIdfLink;
@@ -69,6 +70,7 @@ export const setupState: IState = {
   isIdfInstalling: false,
   isIdfInstalled: false,
   manualPythonPath: "",
+  pyExecErrorStatus: "",
   pyReqsLog: "",
   pyVersionsList: [],
   selectedEspIdfVersion: {
@@ -205,6 +207,11 @@ export const mutations: MutationTree<IState> = {
   setManualPyPath(state, manualPyPath) {
     const newState = state;
     newState.manualPythonPath = manualPyPath;
+    Object.assign(state, newState);
+  },
+  setPyExecErrorStatus(state, errorStatus: string) {
+    const newState = state;
+    newState.pyExecErrorStatus = errorStatus;
     Object.assign(state, newState);
   },
   setPyReqsLog(state, pyReqsLog: string) {

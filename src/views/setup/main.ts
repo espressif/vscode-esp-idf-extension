@@ -105,6 +105,12 @@ window.addEventListener("message", (event) => {
         store.commit("setIsIdfInstalled", msg.isInstalled);
       }
       break;
+    case "setPyExecErrorStatus":
+      if (msg.errorMsg) {
+        store.commit("setPyExecErrorStatus", msg.errorMsg);
+        store.commit("setIsIdfInstalling", false);
+      }
+      break;
     case "setRequiredToolsInfo":
       if (msg.toolsInfo) {
         store.commit("setToolsResult", msg.toolsInfo);

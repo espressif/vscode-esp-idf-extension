@@ -35,6 +35,11 @@ export async function installPythonEnv(
     channel
   );
   if (isInsideVirtualEnv.replace(EOL, "") === "True") {
+    const inVenvMsg = `Using existing virtual environment ${pyPathWithoutSpaces}. Installing Python requirements...`;
+    pyTracker.Log = inVenvMsg;
+    if (channel) {
+      channel.appendLine(inVenvMsg);
+    }
     await installReqs(espDir, pythonBinPath, idfToolsDir, pyTracker, channel);
     return pythonBinPath;
   }

@@ -4,7 +4,11 @@
       <label for="python-version-select">Python version:</label>
       <div class="control">
         <div class="select">
-          <select v-model="selectedPythonVersion" id="python-version-select">
+          <select
+            v-model="selectedPythonVersion"
+            id="python-version-select"
+            @change="clearPyErrorStatus"
+          >
             <option v-for="ver in pyVersionList" :key="ver" :value="ver">{{
               ver
             }}</option>
@@ -23,6 +27,7 @@
       :propModel.sync="manualPythonPath"
       :propMutate="setManualPyPath"
       :openMethod="openPythonPath"
+      :onChangeMethod="clearPyErrorStatus"
       v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
     />
   </div>
@@ -41,8 +46,9 @@ import folderOpen from "./folderOpen.vue";
 export default class SelectPyVersion extends Vue {
   private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
-  @Mutation setSelectedSysPython;
   @Mutation setManualPyPath;
+  @Mutation setPyExecErrorStatus;
+  @Mutation setSelectedSysPython;
   @State("manualPythonPath") storeManualSysPython: string;
   @State("pyVersionsList") storePyVersionsList: string[];
   @State("selectedSysPython") storeSelectedPythonVersion: string;
@@ -52,9 +58,9 @@ export default class SelectPyVersion extends Vue {
   }
 
   get inputLabel() {
-    return `Enter absolute python binary path to use. Example: ${
+    return `Enter absolute python executable path to use. Example: ${
       this.winRoot
-    }/Users/name/python${this.winRoot ? ".exe" : ""}`;
+    }/Users/name/myPythonFolder/python${this.winRoot ? ".exe" : ""}`;
   }
 
   get pyVersionList() {
@@ -70,6 +76,10 @@ export default class SelectPyVersion extends Vue {
 
   get manualPythonPath() {
     return this.storeManualSysPython;
+  }
+
+  public clearPyErrorStatus() {
+    this.setPyExecErrorStatus("");
   }
 }
 </script>
