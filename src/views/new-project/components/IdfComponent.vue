@@ -1,6 +1,6 @@
 <template>
   <div class="field is-grouped is-grouped-centered">
-    <label :for="comp.name" v-text="comp.path" />
+    <label class="label" :for="comp.name" v-text="comp.path" />
     <div class="control icon">
       <div class="icon">
         <i class="codicon codicon-close" @click="removeComponent(comp)"></i>

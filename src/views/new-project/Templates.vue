@@ -2,10 +2,10 @@
   <div id="templates-window">
     <div id="sidenav" class="content">
       <ul>
-        <li v-for="(templateGroup, groupName) in groups" :key="groupName">
-          <p class="category" v-text="groupName" />
+        <li v-for="category in templateCategories" :key="category">
+          <p class="category subtitle" v-text="category" />
           <ul class="templates">
-            <li v-for="item in templateGroup" :key="item.path">
+            <li v-for="item in groups[category]" :key="item.path">
               <p
                 @click="toggleTemplateDetail(item)"
                 v-text="item.name"
@@ -54,29 +54,34 @@ export default class Templates extends Vue {
   @Mutation private setTemplateDetail;
   private isTemplateDetailVisible = true;
 
-  public groupBy(array: IExample[], key: string) {
+  public groupBy(array: IExample[]) {
     const result = {};
     array.forEach((item) => {
-      /* if (!result[item[key]]) {
-        result[item[key]] = [];
-      }
-      result[item[key]].push(item); */
       if (!result[item.category]) {
         result[item.category] = [];
       }
       result[item.category].push(item);
     });
-    console.log(result);
     return result;
   }
 
   get groups() {
-    return this.groupBy(this.storeTemplates, "category");
+    return this.groupBy(this.storeTemplates);
   }
 
   get selectedTemplate() {
     return this.storeSelectedTemplate;
   }
+
+  get templateCategories() {
+    const uniqueCategories = [
+      ...new Set(this.storeTemplates.map((t) => t.category)),
+    ];
+    const getStarted = uniqueCategories.indexOf("get-started");
+    uniqueCategories.splice(0, 0, uniqueCategories.splice(getStarted, 1)[0]);
+    return uniqueCategories;
+  }
+
   get templateDetail() {
     return this.storeTemplateDetail;
   }
@@ -117,9 +122,10 @@ ul.templates > li > p:hover {
 }
 #sidenav {
   height: 90%;
-  width: 30%;
   overflow-y: scroll;
   position: fixed;
+  text-align: start;
+  width: 30%;
 }
 ul > li {
   list-style-type: none;

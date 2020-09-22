@@ -1,15 +1,20 @@
 <template>
   <div class="field centerize text-size">
     <label class="label">{{ propLabel }}</label>
-    <div class="field is-grouped is-grouped-centered expanded">
+    <div class="field expanded has-addons" style="justify-content: center;">
       <div class="control expanded">
-        <input type="text" class="input" v-model="dataModel" />
+        <input
+          type="text"
+          class="input"
+          v-model="dataModel"
+          @keyup.enter="onKeyEnter"
+        />
       </div>
-      <p class="control" v-if="staticText">
+      <div class="control" v-if="staticText">
         <a class="button is-static">{{ pathSep + staticText }}</a>
-      </p>
+      </div>
       <div class="control">
-        <div class="icon">
+        <div class="icon" style="text-decoration: none;">
           <i
             :class="folderIcon"
             @mouseover="folderIcon = 'codicon codicon-folder-opened'"
@@ -32,6 +37,7 @@ export default class folderOpen extends Vue {
   @Prop() propModel: string;
   @Prop() propMutate: (val: string) => void;
   @Prop() openMethod: () => void;
+  @Prop() keyEnterMethod?: () => void;
   @Prop() staticText: string;
 
   get dataModel() {
@@ -39,6 +45,12 @@ export default class folderOpen extends Vue {
   }
   set dataModel(newValue) {
     this.propMutate(newValue);
+  }
+
+  onKeyEnter() {
+    if (this.keyEnterMethod) {
+      this.keyEnterMethod();
+    }
   }
 
   get pathSep() {

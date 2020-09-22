@@ -297,6 +297,19 @@ export function readFileSync(filePath) {
   return fs.readFileSync(filePath, "utf-8");
 }
 
+export function doesPathExists(inputPath: string) {
+  return pathExists(inputPath);
+}
+export function readJson(jsonPath: string) {
+  return readJSON(jsonPath);
+}
+
+export function writeJson(jsonPath: string, object: any) {
+  return writeJSON(jsonPath, object, {
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+  });
+}
+
 export function readComponentsDirs(filePath): IdfComponent[] {
   const filesOrFolders: IdfComponent[] = [];
 

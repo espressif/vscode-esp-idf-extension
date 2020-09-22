@@ -2,10 +2,10 @@
   <div id="examples-window">
     <div id="sidenav" class="content">
       <ul>
-        <li v-for="(exampleGroup, groupName) in groups" :key="groupName">
-          <p class="category" v-text="groupName" />
+        <li v-for="category in templateCategories" :key="category">
+          <p class="category subtitle" v-text="category" />
           <ul class="examples">
-            <li v-for="item in exampleGroup" :key="item.path">
+            <li v-for="item in groups[category]" :key="item.path">
               <p
                 @click="toggleExampleDetail(item)"
                 v-text="item.name"
@@ -69,6 +69,14 @@ export default class Examples extends Vue {
   get groups() {
     return this.groupBy(this.storeExamplesPath, "category");
   }
+  get templateCategories() {
+    const uniqueCategories = [
+      ...new Set(this.storeExamplesPath.map((t) => t.category)),
+    ];
+    const getStarted = uniqueCategories.indexOf("get-started");
+    uniqueCategories.splice(0, 0, uniqueCategories.splice(getStarted, 1)[0]);
+    return uniqueCategories;
+  }
 
   public toggleExampleDetail(example: IExample) {
     if (example.path !== this.storeSelectedExample.path) {
@@ -127,6 +135,7 @@ ul.examples > li > p:hover {
   width: 30%;
   overflow-y: scroll;
   position: fixed;
+  text-align: start;
 }
 ul > li {
   list-style-type: none;

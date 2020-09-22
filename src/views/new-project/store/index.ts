@@ -137,6 +137,7 @@ export const actions: ActionTree<IState, any> = {
   createProject(context) {
     vscode.postMessage({
       command: "createProject",
+      components: context.state.components,
       containerFolder: context.state.containerDirectory,
       openOcdConfigFiles: context.state.openOcdConfigFiles,
       port: context.state.selectedPort,

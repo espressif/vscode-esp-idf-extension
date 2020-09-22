@@ -15,10 +15,14 @@ import marked from "marked";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
+import { Logger } from "../logger/logger";
+import { OutputChannel } from "../logger/outputChannel";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { readFile } from "fs-extra";
+import { copy, ensureDir, readFile } from "fs-extra";
+import * as utils from "../utils";
+import { IExample } from "../examples/Example";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
 
@@ -108,6 +112,27 @@ export class NewProjectPanel {
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
+        case "createProject":
+          if (
+            message.components &&
+            message.containerFolder &&
+            message.openOcdConfigFiles &&
+            message.port &&
+            message.projectName &&
+            message.target &&
+            message.template
+          ) {
+            this.createProject(
+              message.components,
+              message.target,
+              message.openOcdCfgs,
+              message.port,
+              message.containerFolder,
+              message.projectName,
+              message.template
+            );
+          }
+          break;
         case "getTemplateDetail":
           if (message.path) {
             await this.getTemplateDetail(message.path);
@@ -158,6 +183,128 @@ export class NewProjectPanel {
           break;
       }
     });
+  }
+
+  private async createProject(
+    components: IComponent[],
+    idfTarget: string,
+    openOcdConfigs: string,
+    port: string,
+    projectDirectory: string,
+    projectName: string,
+    template: IExample
+  ) {
+    await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: Create project",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        token: vscode.CancellationToken
+      ) => {
+        try {
+          const projectDirExists = await utils.dirExistPromise(
+            projectDirectory
+          );
+          if (!projectDirExists) {
+            vscode.window.showInformationMessage(
+              "Project directory doesn't exists."
+            );
+            this.panel.webview.postMessage({
+              command: "goToBeginning",
+            });
+            return;
+          }
+          const newProjectPath = path.join(projectDirectory, projectName);
+          const projectNameExists = await utils.dirExistPromise(newProjectPath);
+          if (projectNameExists) {
+            const overwriteProject = await vscode.window.showInformationMessage(
+              `${newProjectPath} already exists. Overwrite content?`,
+              "Yes",
+              "No"
+            );
+            if (
+              typeof overwriteProject === "undefined" ||
+              overwriteProject === "No"
+            ) {
+              return;
+            }
+          }
+          await ensureDir(newProjectPath, { mode: 0o775 });
+          if (template && template.path !== "") {
+            await utils.copyFromSrcProject(template.path, newProjectPath);
+          } else {
+            const boilerplatePath = path.join(
+              this.extensionPath,
+              "templates",
+              "boilerplate"
+            );
+            await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
+          }
+          const settingsJsonPath = path.join(
+            newProjectPath,
+            ".vscode",
+            "settings.json"
+          );
+          const settingsJson = await utils.readJson(settingsJsonPath);
+          const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+          const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+          const extraVars = idfConf.readParameter(
+            "idf.customExtraVars"
+          ) as string;
+          const toolsDir = idfConf.readParameter("idf.toolsPath");
+          const pyPath = idfConf.readParameter("idf.pythonBinPath");
+          const isWin = process.platform === "win32" ? "Win" : "";
+          settingsJson["idf.adapterTargetName"] = idfTarget;
+          settingsJson["idf.customExtraPaths"] = extraPaths;
+          settingsJson["idf.customExtraVars"] = extraVars;
+          settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
+          settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
+          settingsJson["idf.port" + isWin] = port;
+          settingsJson["idf.pythonBinPath" + isWin] = pyPath;
+          settingsJson["idf.toolsPath" + isWin] = toolsDir;
+
+          await utils.writeJson(settingsJsonPath, settingsJson);
+          if (components && components.length > 0) {
+            const componentsPath = path.join(newProjectPath, "components");
+            await ensureDir(componentsPath, { mode: 0o775 });
+            for (const comp of components) {
+              const doesComponentExists = await utils.dirExistPromise(
+                comp.path
+              );
+              if (doesComponentExists) {
+                const compPath = path.join(componentsPath, comp.name);
+                await ensureDir(compPath, { mode: 0o775 });
+                await copy(comp.path, compPath);
+              } else {
+                const msg = `Component ${comp.name} path: ${comp.path} doesn't exist. Ignoring in new project...`;
+                Logger.info(msg);
+                OutputChannel.appendLine(msg);
+              }
+            }
+          }
+
+          const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
+          const openProjectChoice = await vscode.window.showInformationMessage(
+            projectCreatedMsg,
+            "Yes",
+            "No"
+          );
+
+          if (openProjectChoice && openProjectChoice === "Yes") {
+            vscode.commands.executeCommand(
+              "vscode.openFolder",
+              vscode.Uri.file(newProjectPath),
+              true
+            );
+          }
+        } catch (error) {
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
   }
 
   private async openFolder() {

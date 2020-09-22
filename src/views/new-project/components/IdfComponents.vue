@@ -1,15 +1,15 @@
 <template>
   <div id="components">
     <div class="field">
-      <label class="label">Add your ESP-IDF Component directory</label>
-      <div class="field centerize" style="align-items: center;">
+      <div class="field is-grouped" style="align-items: center;">
         <folderOpen
-          propLabel="Enter ESP-IDF Component directory"
+          propLabel="Add your ESP-IDF Component directory"
           :propModel.sync="storeCurrentComponentPath"
           :propMutate="setCurrentComponentPath"
           :openMethod="openComponentFolder"
+          :keyEnterMethod="addToComponentList"
         />
-        <div class="control">
+        <div class="control add-icon">
           <div class="icon">
             <i class="codicon codicon-add" @click="addToComponentList"></i>
           </div>
@@ -72,7 +72,14 @@ export default class Components extends Vue {
 </script>
 
 <style scoped>
+#components {
+  width: 100%;
+}
 .icon:hover {
   text-shadow: 2px 1px 5px var(--vscode-input-foreground);
+}
+.add-icon {
+  left: -22%;
+  margin-top: 1.25rem;
 }
 </style>

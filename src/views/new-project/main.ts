@@ -44,6 +44,8 @@ const app = new Vue({
 window.addEventListener("message", (event) => {
   const msg = event.data;
   switch (msg.command) {
+    case "goToBeginning":
+      app.$router.push("/");
     case "addComponentPath":
       if (msg.component) {
         store.commit("addComponent", msg.component);
