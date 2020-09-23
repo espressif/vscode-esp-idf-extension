@@ -27,7 +27,7 @@
       </li>
     </ul>
 
-    <div class="centerize">
+    <div class="centerize notification">
       <div class="control barText">
         <p class="label">Installing ESP-IDF...</p>
         <div class="icon">
@@ -59,7 +59,7 @@
       </div>
     </div>
 
-    <div class="centerize">
+    <div class="centerize notification">
       <div class="control barText">
         <p class="label">Installing ESP-IDF Tools...</p>
         <div class="icon">
@@ -74,7 +74,7 @@
           ></i>
         </div>
       </div>
-      <div class="toolsSection">
+      <div class="toolsSection" v-if="statusEspIdfTools !== statusType.pending">
         <toolDownload
           v-for="tool in toolsResults"
           :key="tool.id"
@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <div class="centerize">
+    <div class="centerize notification">
       <div class="control barText">
         <p class="label">
           Installing Python virtual environment for ESP-IDF...
