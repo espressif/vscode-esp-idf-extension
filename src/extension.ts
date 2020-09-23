@@ -428,51 +428,46 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.pickAWorkspaceFolder", () => {
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const selectCurrentFolderMsg = locDic.localize(
         "espIdf.pickAWorkspaceFolder.text",
         "Select your current folder"
       );
-      vscode.window
-        .showWorkspaceFolderPick({ placeHolder: selectCurrentFolderMsg })
-        .then(async (option) => {
-          if (typeof option === "undefined") {
-            const noFolderMsg = locDic.localize(
-              "extension.noFolderMessage",
-              "No workspace selected."
-            );
-            Logger.infoNotify(noFolderMsg);
-            return;
-          } else {
-            workspaceRoot = option.uri;
-            const projDescPath = path.join(
-              workspaceRoot.fsPath,
-              "build",
-              "project_description.json"
-            );
-            updateIdfComponentsTree(projDescPath);
-            const workspaceFolderInfo = {
-              clickCommand: "espIdf.pickAWorkspaceFolder",
-              currentWorkSpace: option.name,
-              tooltip: option.uri.fsPath,
-            };
-            utils.updateStatus(status, workspaceFolderInfo);
-            const projectName = await getProjectName(workspaceRoot.fsPath);
-            const projectElfFile = `${path.join(
-              workspaceRoot.fsPath,
-              "build",
-              projectName
-            )}.elf`;
-            const debugAdapterConfig = {
-              currentWorkspace: workspaceRoot,
-              elfFile: projectElfFile,
-            } as IDebugAdapterConfig;
-            debugAdapterManager.configureAdapter(debugAdapterConfig);
-            ConfserverProcess.dispose();
-            const coverageOptions = getCoverageOptions();
-            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
-          }
+      try {
+        const option = await vscode.window.showWorkspaceFolderPick({
+          placeHolder: selectCurrentFolderMsg,
         });
+        if (!option) {
+          const noFolderMsg = locDic.localize(
+            "extension.noFolderMessage",
+            "No workspace selected."
+          );
+          Logger.infoNotify(noFolderMsg);
+          return;
+        }
+        workspaceRoot = option.uri;
+        const projDescPath = path.join(
+          workspaceRoot.fsPath,
+          "build",
+          "project_description.json"
+        );
+        updateIdfComponentsTree(projDescPath);
+        const workspaceFolderInfo = {
+          clickCommand: "espIdf.pickAWorkspaceFolder",
+          currentWorkSpace: option.name,
+          tooltip: option.uri.fsPath,
+        };
+        utils.updateStatus(status, workspaceFolderInfo);
+        const debugAdapterConfig = {
+          currentWorkspace: workspaceRoot,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        ConfserverProcess.dispose();
+        const coverageOptions = getCoverageOptions();
+        covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
     });
   });
 
@@ -481,13 +476,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.setPath", () => {
-    PreCheck.perform([webIdeCheck], () => {
+    PreCheck.perform([webIdeCheck], async () => {
       const selectFrameworkMsg = locDic.localize(
         "selectFrameworkMessage",
         "Select framework to define its path:"
       );
-      vscode.window
-        .showQuickPick(
+      try {
+        const option = await vscode.window.showQuickPick(
           [
             { description: "IDF_PATH Path", label: "IDF_PATH", target: "esp" },
             {
@@ -502,69 +497,74 @@ export async function activate(context: vscode.ExtensionContext) {
             },
           ],
           { placeHolder: selectFrameworkMsg }
-        )
-        .then((option) => {
-          if (typeof option === "undefined") {
-            const noOptionMsg = locDic.localize(
-              "extension.noOptionMessage",
-              "No option selected."
+        );
+        if (!option) {
+          const noOptionMsg = locDic.localize(
+            "extension.noOptionMessage",
+            "No option selected."
+          );
+          Logger.infoNotify(noOptionMsg);
+          return;
+        }
+        let currentValue;
+        let msg: string;
+        let paramName: string;
+        switch (option.target) {
+          case "esp":
+            msg = locDic.localize(
+              "extension.enterIdfPathMessage",
+              "Enter IDF_PATH Path"
             );
-            Logger.infoNotify(noOptionMsg);
-            return;
-          }
-          let currentValue;
-          let msg: string;
-          let paramName: string;
-          switch (option.target) {
-            case "esp":
-              msg = locDic.localize(
-                "extension.enterIdfPathMessage",
-                "Enter IDF_PATH Path"
-              );
-              paramName = "idf.espIdfPath";
-              break;
-            case "idfTools":
-              msg = locDic.localize(
-                "extension.enterIdfToolsPathMessage",
-                "Enter IDF_TOOLS_PATH path"
-              );
-              paramName = "idf.toolsPath";
-              break;
-            case "customExtraPath":
-              msg = locDic.localize(
-                "extension.enterCustomPathsMessage",
-                "Enter extra paths to append to PATH"
-              );
-              paramName = "idf.customExtraPaths";
-              break;
-            default:
-              const noPathUpdatedMsg = locDic.localize(
-                "extension.noPathUpdatedMessage",
-                "No path has been updated"
-              );
-              Logger.infoNotify(noPathUpdatedMsg);
-              break;
-          }
-          if (msg && paramName) {
-            currentValue = idfConf.readParameter(paramName);
-            idfConf.updateConfParameter(
-              paramName,
-              msg,
-              currentValue,
-              option.label
+            paramName = "idf.espIdfPath";
+            break;
+          case "idfTools":
+            msg = locDic.localize(
+              "extension.enterIdfToolsPathMessage",
+              "Enter IDF_TOOLS_PATH path"
             );
-          }
-        });
+            paramName = "idf.toolsPath";
+            break;
+          case "customExtraPath":
+            msg = locDic.localize(
+              "extension.enterCustomPathsMessage",
+              "Enter extra paths to append to PATH"
+            );
+            paramName = "idf.customExtraPaths";
+            break;
+          default:
+            const noPathUpdatedMsg = locDic.localize(
+              "extension.noPathUpdatedMessage",
+              "No path has been updated"
+            );
+            Logger.infoNotify(noPathUpdatedMsg);
+            break;
+        }
+        if (msg && paramName) {
+          currentValue = idfConf.readParameter(paramName);
+          await idfConf.updateConfParameter(
+            paramName,
+            msg,
+            currentValue,
+            option.label
+          );
+        }
+      } catch (error) {
+        const errMsg =
+          error && error.message
+            ? error.message
+            : "Error at defining framework path.";
+        Logger.errorNotify(errMsg, error);
+      }
     });
   });
 
-  registerIDFCommand("espIdf.configDevice", () => {
+  registerIDFCommand("espIdf.configDevice", async () => {
     const selectConfigMsg = locDic.localize(
       "extension.selectConfigMessage",
       "Select option to define its path :"
     );
-    vscode.window
-      .showQuickPick(
+    try {
+      const option = await vscode.window.showQuickPick(
         [
           {
             description: "Device target (esp32, esp32s2)",
@@ -589,69 +589,74 @@ export async function activate(context: vscode.ExtensionContext) {
           },
         ],
         { placeHolder: selectConfigMsg }
-      )
-      .then((option) => {
-        if (typeof option === "undefined") {
-          const noOptionMsg = locDic.localize(
-            "extension.noOptionMessage",
-            "No option selected."
+      );
+      if (!option) {
+        const noOptionMsg = locDic.localize(
+          "extension.noOptionMessage",
+          "No option selected."
+        );
+        Logger.infoNotify(noOptionMsg);
+        return;
+      }
+      let currentValue;
+      let msg: string;
+      let paramName: string;
+      switch (option.target) {
+        case "deviceTarget":
+          msg = locDic.localize(
+            "extension.enterDeviceTargetMessage",
+            "Enter device target name"
           );
-          Logger.infoNotify(noOptionMsg);
-          return;
-        }
-        let currentValue;
-        let msg: string;
-        let paramName: string;
-        switch (option.target) {
-          case "deviceTarget":
-            msg = locDic.localize(
-              "extension.enterDeviceTargetMessage",
-              "Enter device target name"
-            );
-            paramName = "idf.adapterTargetName";
-            break;
-          case "devicePort":
-            msg = locDic.localize(
-              "extension.enterDevicePortMessage",
-              "Enter device port Path"
-            );
-            paramName = "idf.port";
-            break;
-          case "baudRate":
-            msg = locDic.localize(
-              "extension.enterDeviceBaudRateMessage",
-              "Enter device baud rate"
-            );
-            paramName = "idf.baudRate";
-            break;
-          case "openOcdConfig":
-            msg = locDic.localize(
-              "extension.enterOpenOcdConfigMessage",
-              "Enter OpenOCD Configuration File Paths list"
-            );
-            paramName = "idf.openOcdConfigs";
-            break;
-          default:
-            const noParamUpdatedMsg = locDic.localize(
-              "extension.noParamUpdatedMessage",
-              "No device parameter has been updated"
-            );
-            Logger.infoNotify(noParamUpdatedMsg);
-            break;
-        }
-        if (msg && paramName) {
-          currentValue = idfConf.readParameter(paramName);
-          if (currentValue instanceof Array) {
-            currentValue = currentValue.join(",");
-          }
-          idfConf.updateConfParameter(
-            paramName,
-            msg,
-            currentValue,
-            option.label
+          paramName = "idf.adapterTargetName";
+          break;
+        case "devicePort":
+          msg = locDic.localize(
+            "extension.enterDevicePortMessage",
+            "Enter device port Path"
           );
+          paramName = "idf.port";
+          break;
+        case "baudRate":
+          msg = locDic.localize(
+            "extension.enterDeviceBaudRateMessage",
+            "Enter device baud rate"
+          );
+          paramName = "idf.baudRate";
+          break;
+        case "openOcdConfig":
+          msg = locDic.localize(
+            "extension.enterOpenOcdConfigMessage",
+            "Enter OpenOCD Configuration File Paths list"
+          );
+          paramName = "idf.openOcdConfigs";
+          break;
+        default:
+          const noParamUpdatedMsg = locDic.localize(
+            "extension.noParamUpdatedMessage",
+            "No device parameter has been updated"
+          );
+          Logger.infoNotify(noParamUpdatedMsg);
+          break;
+      }
+      if (msg && paramName) {
+        currentValue = idfConf.readParameter(paramName);
+        if (currentValue instanceof Array) {
+          currentValue = currentValue.join(",");
         }
-      });
+        await idfConf.updateConfParameter(
+          paramName,
+          msg,
+          currentValue,
+          option.label
+        );
+      }
+    } catch (error) {
+      const errMsg =
+        error && error.message
+          ? error.message
+          : "Error at device configuration.";
+      Logger.errorNotify(errMsg, error);
+    }
   });
 
   vscode.workspace.onDidChangeConfiguration((e) => {
