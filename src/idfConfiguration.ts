@@ -30,7 +30,6 @@ const platformDepConfigurations: string[] = [
 
 export function addWinIfRequired(param: string) {
   const winFlag = process.platform === "win32" ? "Win" : "";
-
   for (const platDepConf of platformDepConfigurations) {
     if (param.indexOf(platDepConf) >= 0) {
       return param + winFlag;
@@ -56,41 +55,37 @@ export function readParameter(
   return paramValue;
 }
 
-export function chooseConfigurationTarget() {
+export async function chooseConfigurationTarget() {
   const previousTarget = readParameter("idf.saveScope");
-  return vscode.window
-    .showQuickPick(
-      [
-        {
-          description: "Global",
-          label: "Global",
-          target: vscode.ConfigurationTarget.Global,
-        },
-        {
-          description: "Workspace",
-          label: "Workspace",
-          target: vscode.ConfigurationTarget.Workspace,
-        },
-        {
-          description: "Workspace Folder",
-          label: "Workspace Folder",
-          target: vscode.ConfigurationTarget.WorkspaceFolder,
-        },
-      ],
-      { placeHolder: "Where to save the configuration?" }
-    )
-    .then(async (option) => {
-      if (option) {
-        await writeParameter(
-          "idf.saveScope",
-          option.target,
-          vscode.ConfigurationTarget.Global
-        );
-        return option.target;
-      } else {
-        return previousTarget || vscode.ConfigurationTarget.Global;
-      }
-    });
+  const confTarget = await vscode.window.showQuickPick(
+    [
+      {
+        description: "Global",
+        label: "Global",
+        target: vscode.ConfigurationTarget.Global,
+      },
+      {
+        description: "Workspace",
+        label: "Workspace",
+        target: vscode.ConfigurationTarget.Workspace,
+      },
+      {
+        description: "Workspace Folder",
+        label: "Workspace Folder",
+        target: vscode.ConfigurationTarget.WorkspaceFolder,
+      },
+    ],
+    { placeHolder: "Where to save the configuration?" }
+  );
+  if (!confTarget) {
+    return previousTarget || vscode.ConfigurationTarget.Global;
+  }
+  await writeParameter(
+    "idf.saveScope",
+    confTarget.target,
+    vscode.ConfigurationTarget.Global
+  );
+  return confTarget.target;
 }
 
 export async function writeParameter(
@@ -106,17 +101,14 @@ export async function writeParameter(
         .getConfiguration("", wsFolder.uri)
         .update(paramValue, newValue, target);
     } else {
-      return vscode.window
-        .showWorkspaceFolderPick({
-          placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
-        })
-        .then(async (workspaceFolder) => {
-          if (workspaceFolder) {
-            return await vscode.workspace
-              .getConfiguration("", workspaceFolder.uri)
-              .update(paramValue, newValue, target);
-          }
-        });
+      const workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+        placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
+      });
+      if (workspaceFolder) {
+        return await vscode.workspace
+          .getConfiguration("", workspaceFolder.uri)
+          .update(paramValue, newValue, target);
+      }
     }
   } else {
     return await vscode.workspace
@@ -125,47 +117,47 @@ export async function writeParameter(
   }
 }
 
-export function updateConfParameter(
+export async function updateConfParameter(
   confParamName,
   confParamDescription,
   currentValue,
   label
 ) {
-  return vscode.window
-    .showInputBox({ placeHolder: confParamDescription, value: currentValue })
-    .then((newValue) => {
-      return new Promise(async (resolve, reject) => {
-        if (newValue && newValue.indexOf("~") === -1) {
-          const typeOfConfig = checkTypeOfConfiguration(confParamName);
-          let valueToWrite;
-          if (typeOfConfig === "array") {
-            valueToWrite = parseStrToArray(newValue);
-          } else {
-            valueToWrite = newValue;
-          }
-          const target = readParameter("idf.saveScope");
-          if (
-            !PreCheck.isWorkspaceFolderOpen() &&
-            target !== vscode.ConfigurationTarget.Global
-          ) {
-            Logger.infoNotify("Open a workspace or folder first.");
-            return reject(newValue);
-          }
-          await writeParameter(confParamName, valueToWrite, target);
-          const updateMessage = locDic.localize(
-            "idfConfiguration.hasBeenUpdated",
-            " has been updated"
-          );
-          Logger.infoNotify(label + updateMessage);
-          return resolve(newValue);
-        } else {
-          Logger.infoNotify(
-            "Character ~ is not valid for ESP-IDF extension configuration settings."
-          );
-          return reject(newValue);
-        }
-      });
-    });
+  const newValue = await vscode.window.showInputBox({
+    placeHolder: confParamDescription,
+    value: currentValue,
+  });
+  if (!newValue) {
+    return;
+  }
+  if (newValue.indexOf("~") !== -1) {
+    const msg =
+      "Character ~ is not valid for ESP-IDF extension configuration settings.";
+    Logger.warnNotify(msg);
+    throw new Error(msg);
+  }
+  const typeOfConfig = checkTypeOfConfiguration(confParamName);
+  let valueToWrite;
+  if (typeOfConfig === "array") {
+    valueToWrite = parseStrToArray(newValue);
+  } else {
+    valueToWrite = newValue;
+  }
+  const target = readParameter("idf.saveScope");
+  if (
+    !PreCheck.isWorkspaceFolderOpen() &&
+    target !== vscode.ConfigurationTarget.Global
+  ) {
+    const noWsOpenMSg = `Open a workspace or folder first.`;
+    Logger.warnNotify(noWsOpenMSg);
+    throw new Error(noWsOpenMSg);
+  }
+  await writeParameter(confParamName, valueToWrite, target);
+  const updateMessage = locDic.localize(
+    "idfConfiguration.hasBeenUpdated",
+    " has been updated"
+  );
+  Logger.infoNotify(label + updateMessage);
 }
 
 export function checkTypeOfConfiguration(paramName: string) {
