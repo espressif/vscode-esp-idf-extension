@@ -17,7 +17,7 @@
  */
 
 import { join } from "path";
-import { spawn } from "../../utils";
+import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { Logger } from "../../logger/logger";
 
 export enum InfoCoreFileFormat {
@@ -47,17 +47,22 @@ export class ESPCoreDumpPyTool {
   public async generateCoreELFFile(options: CoreELFGenerationOptions) {
     let resp: Buffer;
     try {
-      resp = await spawn(options.pythonBinPath, [
-        this.toolPath,
-        "info_corefile",
-        "-t",
-        options.infoCoreFileFormat,
-        "-s",
-        options.coreElfFilePath,
-        "-c",
-        options.coreInfoFilePath,
-        options.progELFFilePath,
-      ]);
+      const env = appendIdfAndToolsToPath();
+      resp = await spawn(
+        options.pythonBinPath,
+        [
+          this.toolPath,
+          "info_corefile",
+          "-t",
+          options.infoCoreFileFormat,
+          "-s",
+          options.coreElfFilePath,
+          "-c",
+          options.coreInfoFilePath,
+          options.progELFFilePath,
+        ],
+        { env }
+      );
       return true;
     } catch (error) {
       Logger.error("espcoredump.py failed", error, { output: resp.toString() });
