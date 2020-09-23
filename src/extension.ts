@@ -77,7 +77,7 @@ import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
-import { pathExists } from "fs-extra";
+import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 
@@ -230,7 +230,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
-  vscode.workspace.onDidChangeWorkspaceFolders((e) => {
+  vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
     if (PreCheck.isWorkspaceFolderOpen()) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
@@ -245,8 +245,15 @@ export async function activate(context: vscode.ExtensionContext) {
         const coverageOptions = getCoverageOptions();
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
+      const projectName = await getProjectName(workspaceRoot.fsPath);
+      const projectElfFile = `${path.join(
+        workspaceRoot.fsPath,
+        "build",
+        projectName
+      )}.elf`;
       const debugAdapterConfig = {
         currentWorkspace: workspaceRoot,
+        elfFile: projectElfFile,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     }
@@ -677,22 +684,42 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
-      const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
-      const launchMode = session.configuration.mode || "auto";
-      if (launchMode === "auto" && !openOCDManager.isRunning()) {
-        isOpenOCDLaunchedByDebug = true;
-        await openOCDManager.start();
+      try {
+        const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
+        const launchMode = session.configuration.mode || "auto";
+        if (
+          launchMode === "auto" &&
+          !openOCDManager.isRunning() &&
+          session.name !== "Core Dump Debug"
+        ) {
+          isOpenOCDLaunchedByDebug = true;
+          await openOCDManager.start();
+        }
+        if (
+          session.name === "Core Dump Debug" ||
+          session.name === "GDB Stub Debug"
+        ) {
+          await debugAdapterManager.start();
+        }
+        if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
+          const debugAdapterConfig = {
+            debugAdapterPort: portToUse,
+            elfFile: session.configuration.elfFilePath,
+            env: session.configuration.env,
+            gdbinitFilePath: session.configuration.gdbinitFile,
+            initGdbCommands: session.configuration.initGdbCommands || [],
+            isPostMortemDebugMode: false,
+            logLevel: session.configuration.logLevel,
+          } as IDebugAdapterConfig;
+          debugAdapterManager.configureAdapter(debugAdapterConfig);
+          await debugAdapterManager.start();
+        }
+        return new vscode.DebugAdapterServer(portToUse);
+      } catch (error) {
+        const errMsg = error.message || "Error starting ESP-IDF Debug Adapter";
+        Logger.errorNotify(errMsg, error);
+        return;
       }
-      if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
-        const debugAdapterConfig = {
-          debugAdapterPort: portToUse,
-          env: session.configuration.env,
-          logLevel: session.configuration.logLevel,
-        } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
-        await debugAdapterManager.start();
-      }
-      return new vscode.DebugAdapterServer(portToUse);
     },
   });
 
@@ -1382,13 +1409,36 @@ export async function activate(context: vscode.ExtensionContext) {
       .on("started", () => {
         monitor.start();
       })
-      .on("core-dump-detected", (resp) => {
+      .on("core-dump-detected", async (resp) => {
         // perform core-dump related stuff here
         //once done call .done() to notify the monitor process
+        const coreDumpFile = "my-core-dump.elf";
+        const debugAdapterConfig = {
+          coreDumpFile: coreDumpFile,
+          isPostMortemDebugMode: true,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        await vscode.debug.startDebugging(undefined, {
+          name: "Core Dump Debug",
+          type: "espidf",
+          request: "launch",
+        });
         wsServer.done();
       })
-      .on("gdb-stub-detected", (resp) => {
-        //
+      .on("gdb-stub-detected", async (resp) => {
+        const setupCmd = [`target remote ${resp.port}`];
+        const debugAdapterConfig = {
+          initGdbCommands: setupCmd,
+          isPostMortemDebugMode: true,
+          elfFile: resp.prog,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        await vscode.debug.startDebugging(undefined, {
+          name: "GDB Stub Debug",
+          type: "espidf",
+          request: "launch",
+        });
+        wsServer.done();
       })
       .on("close", (resp) => {
         wsServer.close();
@@ -1616,7 +1666,7 @@ const flash = () => {
 
     const buildPath = path.join(workspaceRoot.fsPath, "build");
 
-    if (!utils.canAccessFile(buildPath)) {
+    if (!utils.canAccessFile(buildPath, constants.R_OK)) {
       return Logger.errorNotify(
         `Build is required before Flashing, ${buildPath} can't be accessed`,
         new Error("BUILD_PATH_ACCESS_ERROR")
@@ -1972,11 +2022,33 @@ export function deactivate() {
 
 class IdfDebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
-  public resolveDebugConfiguration(
+  public async resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.DebugConfiguration> {
+  ): Promise<vscode.DebugConfiguration> {
+    const elfFilePath = path.join(
+      workspaceRoot.fsPath,
+      "build",
+      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
+    );
+    const elfFileExists = await pathExists(elfFilePath);
+    if (!elfFileExists) {
+      const elfErr = new Error(
+        `${elfFilePath} doesn't exist. Build this project first.`
+      );
+      Logger.errorNotify(elfErr.message, elfErr);
+      const startBuild = await vscode.window.showInformationMessage(
+        elfErr.message,
+        "Yes",
+        "No"
+      );
+      if (startBuild === "Yes") {
+        buildFlashAndMonitor(false);
+      }
+      return;
+    }
+    config.elfFilePath = elfFilePath;
     return config;
   }
 }
