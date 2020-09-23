@@ -654,7 +654,7 @@
       {
         "command": "esp.rainmaker.backend.update_node_param",
         "title": "%esp.rainmaker.backend.update_node_param.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-Rainmaker",
         "icon": {
           "dark": "media/dark/edit.svg",
           "light": "media/light/edit.svg"
@@ -674,6 +674,7 @@
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
+        "category": "ESP-IDF",
         "title": "%espIdf.launchWSServerAndMonitor.title%"
       },
       {

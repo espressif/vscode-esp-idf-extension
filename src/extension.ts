@@ -76,6 +76,7 @@ import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
+import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
@@ -1410,20 +1411,63 @@ export async function activate(context: vscode.ExtensionContext) {
         monitor.start();
       })
       .on("core-dump-detected", async (resp) => {
-        // perform core-dump related stuff here
-        //once done call .done() to notify the monitor process
-        const coreDumpFile = "my-core-dump.elf";
-        const debugAdapterConfig = {
-          coreDumpFile: coreDumpFile,
-          isPostMortemDebugMode: true,
-        } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
-        await vscode.debug.startDebugging(undefined, {
-          name: "Core Dump Debug",
-          type: "espidf",
-          request: "launch",
-        });
-        wsServer.done();
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title:
+              "Core-dump detected, please wait while we parse the data received",
+          },
+          async (progress) => {
+            const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
+            const projectName = await getProjectName(workspaceRoot.fsPath);
+            const coreElfFilePath = path.join(
+              workspaceRoot.fsPath,
+              "build",
+              `${projectName}.coredump.elf`
+            );
+            if (
+              (await espCoreDumpPyTool.generateCoreELFFile({
+                coreElfFilePath,
+                coreInfoFilePath: resp.file,
+                infoCoreFileFormat: InfoCoreFileFormat.Base64,
+                progELFFilePath: resp.prog,
+                pythonBinPath,
+              })) === true
+            ) {
+              progress.report({
+                message:
+                  "Successfully created ELF file from the info received (espcoredump.py)",
+              });
+              try {
+                await vscode.debug.startDebugging(undefined, {
+                  name: "Core Dump Debug",
+                  type: "espidf",
+                  request: "launch",
+                  sessionID: "core-dump.debug.session.ws",
+                });
+                vscode.debug.onDidTerminateDebugSession((session) => {
+                  if (
+                    session.configuration.sessionID ===
+                    "core-dump.debug.session.ws"
+                  ) {
+                    monitor.dispose();
+                    wsServer.close();
+                  }
+                });
+              } catch (error) {
+                Logger.errorNotify(
+                  "Failed to launch debugger for postmortem",
+                  error
+                );
+              }
+            } else {
+              Logger.warnNotify(
+                "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+              );
+            }
+          }
+        );
       })
       .on("gdb-stub-detected", async (resp) => {
         const setupCmd = [`target remote ${resp.port}`];
