@@ -127,7 +127,7 @@ export async function updateConfParameter(
     placeHolder: confParamDescription,
     value: currentValue,
   });
-  if (!newValue) {
+  if (typeof newValue === "undefined") {
     return;
   }
   if (newValue.indexOf("~") !== -1) {
