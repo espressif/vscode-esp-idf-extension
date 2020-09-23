@@ -1440,6 +1440,11 @@ export async function activate(context: vscode.ExtensionContext) {
                   "Successfully created ELF file from the info received (espcoredump.py)",
               });
               try {
+                debugAdapterManager.configureAdapter({
+                  isPostMortemDebugMode: true,
+                  elfFile: resp.prog,
+                  coreDumpFile: coreElfFilePath,
+                });
                 await vscode.debug.startDebugging(undefined, {
                   name: "Core Dump Debug",
                   type: "espidf",
