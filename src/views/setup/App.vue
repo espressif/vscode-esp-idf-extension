@@ -13,7 +13,7 @@
     </transition>
     <div class="install-finished" v-if="isInstalled">
       <h2 class="subtitle">
-        ESP-IDF have been configured for this extension of Visual Studio Code.
+        ESP-IDF extension for Visual Studio Code have been configured.
       </h2>
     </div>
   </div>
@@ -54,7 +54,7 @@ export default class App extends Vue {
 }
 
 .progressBar {
-  width: 50%;
+  background-color: var(--vscode-input-background);
 }
 
 .progressBar div {

@@ -1,6 +1,6 @@
 <template>
   <div id="status">
-    <ul class="progressBar">
+    <ul class="statusBar">
       <li
         :class="{
           active: statusEspIdf !== statusType.pending,
@@ -29,7 +29,7 @@
 
     <div class="centerize">
       <div class="control barText">
-        <p>Installing ESP-IDF...</p>
+        <p class="label">Installing ESP-IDF...</p>
         <div class="icon">
           <i
             :class="
@@ -49,17 +49,19 @@
             :class="
               statusEspIdf === statusType.installed
                 ? 'codicon codicon-check'
-                : 'codicon codicon-close'
+                : statusEspIdf === statusType.failed
+                ? 'codicon codicon-close'
+                : 'codicon codicon-loading'
             "
           ></i>
         </div>
-        <label>{{ espIdfErrorStatus }}</label>
+        <label class="label">{{ espIdfErrorStatus }}</label>
       </div>
     </div>
 
     <div class="centerize">
       <div class="control barText">
-        <p>Installing ESP-IDF Tools...</p>
+        <p class="label">Installing ESP-IDF Tools...</p>
         <div class="icon">
           <i
             :class="
@@ -72,7 +74,7 @@
           ></i>
         </div>
       </div>
-      <div class="centerize">
+      <div class="toolsSection">
         <toolDownload
           v-for="tool in toolsResults"
           :key="tool.id"
@@ -83,7 +85,9 @@
 
     <div class="centerize">
       <div class="control barText">
-        <p>Installing Python virtual environment for ESP-IDF...</p>
+        <p class="label">
+          Installing Python virtual environment for ESP-IDF...
+        </p>
         <div class="icon">
           <i
             :class="
@@ -170,13 +174,13 @@ export default class Status extends Vue {
   align-items: center;
 }
 
-.progressBar {
+.statusBar {
   display: flex;
   width: 100%;
   counter-reset: step;
   align-items: center;
   justify-content: space-around;
-  margin: 2em;
+  margin: 0.5em;
 }
 
 .barText {
@@ -190,13 +194,13 @@ export default class Status extends Vue {
   white-space: pre-line;
 }
 
-.progressBar li {
+.statusBar li {
   list-style-type: none;
   width: 30%;
   text-align: center;
 }
 
-.progressBar li:before {
+.statusBar li:before {
   content: counter(step);
   counter-increment: step;
   width: 35px;
@@ -210,35 +214,42 @@ export default class Status extends Vue {
   transition: opacity 1s;
 }
 
-.progressBar li:after {
+.statusBar li:after {
   content: "";
-  width: 25%;
+  width: 22%;
   height: 2px;
-  top: 10.25em;
-  margin-left: 15px;
+  top: 8.75em;
+  margin-left: 2%;
   background-color: var(--vscode-button-foreground);
   position: absolute;
   transition: opacity 1s;
 }
 
-.progressBar li:last-child:after {
+.statusBar li:last-child:after {
   content: none;
 }
 
-.progressBar li.active:before,
-.progressBar li.active:after {
+.statusBar li.active:before,
+.statusBar li.active:after {
   color: var(--vscode-button-foreground);
 }
 
-.progressBar li.active:before {
+.statusBar li.active:before {
   border-color: var(--vscode-button-background);
 }
 
-.progressBar li.finished:before {
+.statusBar li.finished:before {
   background-color: var(--vscode-button-background);
 }
 
-.progressBar li.active:after {
+.statusBar li.active:after {
   background-color: var(--vscode-button-background);
+}
+
+.toolsSection {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
 }
 </style>

@@ -179,7 +179,7 @@ export async function installExtensionPyReqs(
     .join(utils.extensionContext.extensionPath, "requirements.txt")
     .replace(/(\s+)/g, "\\$1");
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
-  const installExtensionPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
+  const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {
     pyTracker.Log = installExtensionPyPkgsMsg;
   }

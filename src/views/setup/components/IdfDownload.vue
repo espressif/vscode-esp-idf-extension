@@ -1,11 +1,11 @@
 <template>
   <div class="centerize">
     <h4>ESP-IDF: {{ idfDownloadStatus.id }}</h4>
+    <p>
+      <span>Downloaded: </span> {{ idfDownloadStatus.progress }}
+      {{ idfDownloadStatus.progressDetail }}
+    </p>
     <div class="progressBar esp-progress">
-      <p>
-        <span>Downloaded: </span> {{ idfDownloadStatus.progress }}
-        {{ idfDownloadStatus.progressDetail }}
-      </p>
       <div v-bind:style="{ width: idfDownloadStatus.progress }"></div>
     </div>
   </div>

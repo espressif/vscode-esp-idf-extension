@@ -192,6 +192,23 @@ export class SetupPanel {
             setupArgs.exportedPaths &&
             setupArgs.exportedVars
           ) {
+            this.panel.webview.postMessage({
+              command: "updateEspIdfStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateEspIdfToolsStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updatePyVEnvStatus",
+              status: StatusType.started,
+            });
+            this.panel.webview.postMessage({
+              command: "goToCustomPage",
+              installing: true,
+              page: "/status",
+            });
             await installExtensionPyReqs(
               setupArgs.espToolsPath,
               setupArgs.pyBinPath

@@ -13,16 +13,12 @@
       </span>
       <span v-if="tool.hasFailed">Download again</span>
     </div>
-    <div class="progressBar">
+    <div class="progressStatus">
       <p v-if="tool.progress !== '100.00%'">
         <span>Download Status:</span>
         {{ tool.progress }}
         {{ tool.progressDetail }}
       </p>
-      <div
-        v-bind:style="{ width: tool.progress }"
-        v-if="tool.progress !== '100.00%'"
-      ></div>
       <p v-if="tool.progress === '100.00%' && !isInstallationCompleted">
         <span>Extracting {{ tool.id }}...</span>
       </p>
@@ -40,6 +36,12 @@
           tool.id
         }}
       </p>
+      <div class="progressBar">
+        <div
+          v-bind:style="{ width: tool.progress }"
+          v-if="tool.progress !== '100.00%'"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -73,15 +75,20 @@ export default class ToolDownloadInfo extends Vue {
 .pkg-progress {
   margin-top: 1%;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   flex-direction: row;
-  width: 60%;
+  width: 30%;
   align-items: center;
   align-self: center;
 }
 
+.progressStatus {
+  display: flex;
+  flex-direction: column;
+}
+
 .progressText {
-  width: 45%;
+  width: 50%;
   display: flex;
   flex-direction: column;
 }
