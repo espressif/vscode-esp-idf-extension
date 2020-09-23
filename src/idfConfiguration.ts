@@ -135,7 +135,7 @@ export function updateConfParameter(
     .showInputBox({ placeHolder: confParamDescription, value: currentValue })
     .then((newValue) => {
       return new Promise(async (resolve, reject) => {
-        if (newValue && newValue.indexOf("~") !== -1) {
+        if (newValue && newValue.indexOf("~") === -1) {
           const typeOfConfig = checkTypeOfConfiguration(confParamName);
           let valueToWrite;
           if (typeOfConfig === "array") {
@@ -159,6 +159,9 @@ export function updateConfParameter(
           Logger.infoNotify(label + updateMessage);
           return resolve(newValue);
         } else {
+          Logger.infoNotify(
+            "Character ~ is not valid for ESP-IDF extension configuration settings."
+          );
           return reject(newValue);
         }
       });
