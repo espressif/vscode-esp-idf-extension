@@ -95,6 +95,8 @@
     "espIdf.genCoverage.title",
     "espIdf.removeCoverage.title",
     "espIdf.getCoverageReport.title",
+    "espIdf.getEspAdf.title",
+    "espIdf.getEspMdf.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
@@ -103,6 +105,8 @@
     "param.port",
     "param.pythonBinPath",
     "param.espIdfPath",
+    "param.espAdfPath",
+    "param.espMdfPath",
     "param.toolsPath",
     "param.exportPaths",
     "param.exportVars",
@@ -136,5 +140,8 @@
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
     "espIdf.launchWSServerAndMonitor.title"
+    "esp_idf.initGdbCommands.description",
+    "esp_idf.debuggers.text.description",
+    "esp_idf.gdbinitFile.description"
   ]
 }

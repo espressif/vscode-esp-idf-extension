@@ -71,6 +71,8 @@
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
+    "onCommand:espIdf.getEspAdf",
+    "onCommand:espIdf.getEspMdf",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -264,6 +266,18 @@
             "description": "%param.espIdfPath%",
             "scope": "resource"
           },
+          "idf.espAdfPath": {
+            "type": "string",
+            "default": "${env:ADF_PATH}",
+            "description": "%param.espAdfPath%",
+            "scope": "resource"
+          },
+          "idf.espMdfPath": {
+            "type": "string",
+            "default": "${env:MDF_PATH}",
+            "description": "%param.espMdfPath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:HOME}/.espressif",
@@ -274,6 +288,18 @@
             "type": "string",
             "default": "${env:IDF_PATH}",
             "description": "%param.espIdfPath%",
+            "scope": "resource"
+          },
+          "idf.espAdfPathWin": {
+            "type": "string",
+            "default": "${env:ADF_PATH}",
+            "description": "%param.espAdfPath%",
+            "scope": "resource"
+          },
+          "idf.espMdfPathWin": {
+            "type": "string",
+            "default": "${env:MDF_PATH}",
+            "description": "%param.espMdfPath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
@@ -315,6 +341,7 @@
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [
+              "interface/ftdi/esp32_devkitj_v1.cfg",
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
@@ -653,6 +680,14 @@
       {
         "command": "espIdf.searchInEspIdfDocs",
         "title": "%espIdf.searchInEspIdfDocs.title%"
+      },
+      {
+        "command": "espIdf.getEspAdf",
+        "title": "%espIdf.getEspAdf.title%"
+      },
+      {
+        "command": "espIdf.getEspMdf",
+        "title": "%espIdf.getEspMdf.title%"
       }
     ],
     "breakpoints": [
@@ -701,6 +736,21 @@
                 "type": "object",
                 "description": "Environments variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
                 "default": null
+              },
+              "initGdbCommands": {
+                "type": "array",
+                "description": "%esp_idf.initGdbCommands.description%",
+                "items": {
+                  "type": "string",
+                  "description": "%esp_idf.debuggers.text.description%",
+                  "default": ""
+                },
+                "default": []
+              },
+              "gdbinitFile": {
+                "type": "string",
+                "description": "%esp_idf.gdbinitFile.description%",
+                "default": ""
               }
             }
           }
@@ -772,7 +822,7 @@
     "debugPreTask": "webpack --mode development",
     "compile": "tsc -p ./",
     "watch": "webpack --watch --mode development",
-    "test": "yarn run compile && node ./out/test/runTest.js",
+    "test": "tsc -p ./ && node ./out/test/runTest.js --VERBOSE 2>&1 >> testing.results.log",
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
@@ -787,6 +837,7 @@
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
+    "@types/marked": "^1.1.0",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
     "@types/node": "^7.10.9",

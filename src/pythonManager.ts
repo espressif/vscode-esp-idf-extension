@@ -68,6 +68,10 @@ export async function installPythonEnv(
       : ["bin", "python"];
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
   const requirements = path.join(espDir, "requirements.txt");
+  const extensionRequirements = path.join(
+    utils.extensionContext.extensionPath,
+    "requirements.txt"
+  );
   const debugAdapterRequirements = path.join(
     utils.extensionContext.extensionPath,
     "esp_debug_adapter",
@@ -152,6 +156,17 @@ export async function installPythonEnv(
   pyTracker.Log = "\n";
   if (channel) {
     channel.appendLine(espIdfReqInstallResult + "\n");
+  }
+  // Extension Python requirements
+  const extensionInstallResult = await utils.execChildProcess(
+    `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
+    pyEnvPath,
+    channel
+  );
+  pyTracker.Log = extensionInstallResult;
+  pyTracker.Log = "\n";
+  if (channel) {
+    channel.appendLine(extensionInstallResult + "\n");
   }
   // Debug Adapter Python Requirements
   pyTracker.Log = installDAPyPkgsMsg;

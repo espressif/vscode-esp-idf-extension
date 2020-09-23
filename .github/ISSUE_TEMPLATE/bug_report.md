@@ -1,8 +1,8 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ""
-labels: "bug-github"
+title: "[Bug Report]: "
+labels: "bug-report"
 ---
 
 **Pre Bug Report Checklist**
