@@ -25,7 +25,6 @@
   "espIdf.removeCoverage.title": "ESP-IDF: Remover cobertura al editor",
   "espIdf.getCoverageReport.title": "ESP-IDF: Ver reporte HTML de cobertura para este proyecto",
   "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Buscar en la documentación...",
-  "espIdf.launchWSServerAndMonitor.title": "ESP-IDF: Ejecutar IDF Monitor en modo CoreDump / GDB-Stub",
   "espIdf.getEspAdf.title": "ESP-ADF: Instalar ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Instalar ESP-MDF",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
@@ -70,7 +69,7 @@
   "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
-  "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub"
+  "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "ruta del archivo gdbinit para el ESP-IDF Debug Adapter",
   "esp_idf.debuggers.text.description": "Comando a ejecutar"
