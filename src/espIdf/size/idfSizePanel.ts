@@ -83,6 +83,9 @@ export class IDFSizePanel {
     IDFSizePanel.currentPanel = undefined;
   }
   private initWebview() {
+    this._panel.iconPath = vscode.Uri.file(
+      path.join(this._extensionPath, "media", "espressif_icon.png")
+    );
     this._panel.webview.html = this.getHtmlContent();
     this._panel.webview.postMessage(this._webviewData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);

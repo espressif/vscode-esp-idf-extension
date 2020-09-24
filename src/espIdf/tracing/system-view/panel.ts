@@ -66,6 +66,9 @@ export class SystemViewPanel {
       null,
       this.disposable
     );
+    this.panel.iconPath = Uri.file(
+      join(extensionPath, "media", "espressif_icon.png")
+    );
     this.initWebView();
     setTimeout(() => {
       this.sendCommandToWebview("initialLoad", this.traceData);

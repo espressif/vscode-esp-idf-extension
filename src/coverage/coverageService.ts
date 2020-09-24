@@ -14,7 +14,7 @@
 
 import { sep, join } from "path";
 import * as vscode from "vscode";
-import { appendIdfAndToolsToPath, spawn } from "../utils";
+import { appendIdfAndToolsToPath, extensionContext, spawn } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
@@ -197,6 +197,9 @@ export async function previewReport(dirPath: string) {
       "gcoveragePreview",
       "Coverage report",
       column
+    );
+    gcovHtmlPanel.iconPath = vscode.Uri.file(
+      join(extensionContext.extensionPath, "media", "espressif_icon.png")
     );
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
