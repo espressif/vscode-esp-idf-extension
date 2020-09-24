@@ -93,6 +93,9 @@ export class AppTracePanel {
   }
 
   private initWebview() {
+    this._panel.iconPath = vscode.Uri.file(
+      path.join(this._extensionPath, "media", "espressif_icon.png")
+    );
     this._panel.webview.html = this.getHtmlContent();
     this.sendCommandToWebview("initialLoad", this._traceData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
