@@ -2,6 +2,13 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## 0.5.1
+
+### Release Bug Fix
+
+- Fix the CI release to marketplace bug not packaging the `esp_debug_adapter`
+- Fix the System Tracing UI theme, and added webview panel icons
+
 ## 0.5.0
 
 ### ESP-ADF & ESP-MDF
