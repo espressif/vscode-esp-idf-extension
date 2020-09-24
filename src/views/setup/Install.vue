@@ -1,25 +1,19 @@
 <template>
   <div id="install">
-    <div class="centerize">
+    <div class="centerize notification">
       <div class="field">
         <label>Git version: {{ gitVersion }}</label>
       </div>
 
       <selectEspIdf></selectEspIdf>
 
-      <div class="field" v-if="espIdfErrorStatus">
-        <div class="icon">
-          <i class="codicon codicon-close"></i>
-        </div>
+      <div class="notification is-danger" v-if="espIdfErrorStatus">
         <p>{{ espIdfErrorStatus }}</p>
       </div>
 
       <selectPyVersion></selectPyVersion>
 
-      <div class="field" v-if="pyExecErrorStatus">
-        <div class="icon">
-          <i class="codicon codicon-close"></i>
-        </div>
+      <div class="notification is-danger" v-if="pyExecErrorStatus">
         <p>{{ pyExecErrorStatus }}</p>
       </div>
 
@@ -65,3 +59,9 @@ export default class Install extends Vue {
   }
 }
 </script>
+
+<style scoped>
+#install {
+  margin: 1% 5%;
+}
+</style>

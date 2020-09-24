@@ -4,7 +4,9 @@
       class="field centerize"
       v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
     >
-      <label for="idf-mirror-select">Select mirror to use:</label>
+      <label for="idf-mirror-select" class="label"
+        >Select download server:</label
+      >
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfMirror" @change="clearIDfErrorStatus">
@@ -15,7 +17,9 @@
       </div>
     </div>
     <div class="field centerize">
-      <label for="idf-version-select">Select ESP-IDF version:</label>
+      <label for="idf-version-select" class="label"
+        >Select ESP-IDF version:</label
+      >
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfVersion" @change="clearIDfErrorStatus">

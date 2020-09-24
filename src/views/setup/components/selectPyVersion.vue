@@ -1,7 +1,9 @@
 <template>
   <div id="select-py-version">
     <div class="field centerize">
-      <label for="python-version-select">Python version:</label>
+      <label for="python-version-select" class="label"
+        >Select Python version:</label
+      >
       <div class="control">
         <div class="select">
           <select

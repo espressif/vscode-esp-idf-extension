@@ -18,18 +18,46 @@
         required in environment PATH.
       </p>
     </div>
-    <div class="centerize" v-if="hasPrerequisites">
-      <div class="field install-btn">
-        <div class="control">
-          <router-link to="/autoinstall" class="button">Start</router-link>
-        </div>
+    <div class="centerize notification" v-if="hasPrerequisites">
+      <div class="control centerize">
+        <h1 class="title is-spaced">
+          Welcome to the extension setup
+        </h1>
+        <h2 class="subtitle">
+          Choose the preferred setup mode by clicking on it. You can return here
+          by pressing the <strong>home</strong> button.
+        </h2>
       </div>
-      <div class="field install-btn" v-if="isPreviousSetupValid">
-        <div class="control">
-          <button v-on:click.once="useDefaultSettings" class="button">
-            Use existing ESP-IDF setup
-          </button>
-        </div>
+      <div class="notification install-choice" @click="goTo('/autoinstall')">
+        <label for="express" class="subtitle">EXPRESS</label>
+        <p name="express">
+          Fastest option. Choose ESP-IDF version and python version to create
+          ESP-IDF python virtual environment. ESP-IDF Tools will be instaled in
+          {{ toolsFolder }}.
+        </p>
+      </div>
+      <div class="notification install-choice" @click="goTo('/customInstall')">
+        <label for="advanced" class="subtitle">ADVANCED</label>
+        <p name="advanced">
+          Configurable option. Choose ESP-IDF version and python version to
+          create ESP-IDF python virtual environment. Choose ESP-IDF Tools
+          install directory or manually input each existing ESP-IDF tool path.
+        </p>
+      </div>
+      <div
+        class="notification install-choice"
+        @click.once="useDefaultSettings"
+        v-if="isPreviousSetupValid"
+      >
+        <label for="existing" class="subtitle"> USE EXISTING SETUP</label>
+        <p>
+          We have found ESP-IDF @<span class="span-path">{{ espIdf }}</span> and
+          ESP-IDF tools in @<span class="span-path"> {{ toolsFolder }}</span
+          >. Click here to use them.
+        </p>
+        <ul>
+          <li>ESP-IDF version: x.x.x</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -39,6 +67,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IEspIdfTool } from "./types";
+import { router } from "./main";
 
 @Component
 export default class Home extends Vue {
@@ -47,9 +76,15 @@ export default class Home extends Vue {
   @State("hasPrerequisites") private storeHasPrerequisites: boolean;
   @State("manualPythonPath") storeManualSysPython: string;
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
+  @State("toolsFolder") private storeToolsFolder: string;
+  @State("espIdf") private storeEspIdf: string;
 
   get hasPrerequisites() {
     return this.storeHasPrerequisites;
+  }
+
+  get espIdf() {
+    return this.storeEspIdf;
   }
 
   get isNotWinPlatform() {
@@ -57,14 +92,12 @@ export default class Home extends Vue {
   }
 
   get isPreviousSetupValid() {
-    console.log(this.storeManualSysPython);
     if (this.storeToolsResults.length === 0) {
       return false;
     }
     const failedToolsResult = this.storeToolsResults.filter(
       (tInfo) => !tInfo.doesToolExist
     );
-    console.log(failedToolsResult);
     if (
       this.storeManualSysPython &&
       this.storeToolsResults.length > 0 &&
@@ -75,13 +108,24 @@ export default class Home extends Vue {
     return false;
   }
 
+  get toolsFolder() {
+    return this.storeToolsFolder;
+  }
+
   mounted() {
     this.requestInitialValues();
+  }
+
+  goTo(route: string) {
+    router.push(route);
   }
 }
 </script>
 
-<style>
+<style lang="scss">
+#home {
+  margin: 1% 5%;
+}
 .centerize {
   align-items: center;
   display: flex;
@@ -98,5 +142,32 @@ export default class Home extends Vue {
 
 .install-btn {
   margin: 0.5em;
+}
+
+.install-choice {
+  text-align: start;
+  width: 100%;
+}
+
+.install-choice:hover {
+  background-color: var(--vscode-textBlockQuote-background);
+  border-radius: 10px;
+}
+
+.notification {
+  .subtitle {
+    font-weight: bold;
+  }
+  a {
+    text-decoration: none;
+  }
+}
+
+div.notification.is-danger {
+  background-color: var(--vscode-editorGutter-deletedBackground);
+}
+
+.span-path {
+  color: var(--vscode-button-hoverBackground);
 }
 </style>

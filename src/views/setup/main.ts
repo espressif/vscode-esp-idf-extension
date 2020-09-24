@@ -32,7 +32,7 @@ const routes = [
 
 Vue.use(VueRouter);
 
-const router = new VueRouter({
+export const router = new VueRouter({
   routes,
   base: __dirname,
 });
