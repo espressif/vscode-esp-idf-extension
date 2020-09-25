@@ -55,7 +55,7 @@
     </transition>
     <div class="install-finished" v-if="isInstalled">
       <h2 class="subtitle">
-        ESP-IDF extension for Visual Studio Code have been configured.
+        All settings have been configured. You can close this window.
       </h2>
     </div>
   </div>

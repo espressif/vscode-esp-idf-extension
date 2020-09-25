@@ -1,28 +1,26 @@
 <template>
-  <div :key="tool.id" class="pkg-progress">
+  <div class="progressStatus">
+    <div :key="tool.id" class="pkg-progress">
+      <strong>{{ tool.id }}</strong> <em>{{ tool.expected }}</em>
+      <div class="progressBar">
+        <div v-bind:style="{ width: tool.progress }"></div>
+      </div>
+    </div>
     <div class="progressText">
-      <span>Tool:</span>
-      {{ tool.id }}
-      <br />
-      <span>Version:</span>
-      {{ tool.expected }}
-      <br />
       <span v-if="tool.progress === '100.00%'">
         <span>Checksum :</span>
         {{ tool.hashResult ? "OK" : "Invalid" }}
+        <br />
       </span>
       <span v-if="tool.hasFailed">Download again</span>
-    </div>
-    <div class="progressStatus">
-      <p v-if="tool.progress !== '100.00%'">
-        <span>Download Status:</span>
-        {{ tool.progress }}
+      <span v-if="tool.progress !== '100.00%'">
+        <span>Download Status:</span> {{ tool.progress }}
         {{ tool.progressDetail }}
-      </p>
-      <p v-if="tool.progress === '100.00%' && !isInstallationCompleted">
+      </span>
+      <span v-if="tool.progress === '100.00%' && !isInstallationCompleted">
         <span>Extracting {{ tool.id }}...</span>
-      </p>
-      <p v-if="tool.progress === '100.00%' && isInstallationCompleted">
+      </span>
+      <span v-if="tool.progress === '100.00%' && isInstallationCompleted">
         <span>Installed in</span>
         {{
           idfTools +
@@ -35,13 +33,7 @@
           pathSep +
           tool.id
         }}
-      </p>
-      <div class="progressBar">
-        <div
-          v-bind:style="{ width: tool.progress }"
-          v-if="tool.progress !== '100.00%'"
-        ></div>
-      </div>
+      </span>
     </div>
   </div>
 </template>
@@ -73,23 +65,30 @@ export default class ToolDownloadInfo extends Vue {
 
 <style scoped>
 .pkg-progress {
-  margin-top: 1%;
   display: flex;
-  justify-content: space-evenly;
-  flex-direction: row;
-  width: 33%;
+  justify-content: space-between;
+  width: 100%;
   align-items: center;
   align-self: center;
+}
+
+.progressBar {
+  width: 70%;
+  display: flex;
 }
 
 .progressStatus {
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+.progressStatus:hover {
+  background-color: var(--vscode-textBlockQuote-background);
 }
 
 .progressText {
-  width: 50%;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  text-align: end;
 }
 </style>

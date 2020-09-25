@@ -43,7 +43,8 @@
         </div>
       </div>
       <IdfDownload v-if="isInstalling" />
-      <div class="field" v-if="espIdfErrorStatus">
+      <div class="field is-grouped" v-if="espIdfErrorStatus">
+        <label class="label">{{ espIdfErrorStatus }}</label>
         <div class="icon">
           <i
             :class="
@@ -55,7 +56,6 @@
             "
           ></i>
         </div>
-        <label class="label">{{ espIdfErrorStatus }}</label>
       </div>
     </div>
 
@@ -218,7 +218,7 @@ export default class Status extends Vue {
   content: "";
   width: 22%;
   height: 2px;
-  top: 8.75em;
+  top: 10.75em;
   margin-left: 2%;
   background-color: var(--vscode-button-foreground);
   position: absolute;

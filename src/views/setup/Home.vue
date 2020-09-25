@@ -25,7 +25,7 @@
         </h1>
         <h2 class="subtitle">
           Choose the preferred setup mode by clicking on it. You can return here
-          by pressing the <strong>home</strong> button.
+          by pressing the <span class="span-path">home</span> button.
         </h2>
       </div>
       <div class="notification install-choice" @click="goTo('/autoinstall')">
