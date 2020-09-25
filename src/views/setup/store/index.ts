@@ -20,6 +20,7 @@ import {
   IEspIdfLink,
   IEspIdfTool,
   IDownload,
+  SetupMode,
   StatusType,
 } from "../types";
 
@@ -34,6 +35,7 @@ export interface IState {
   gitVersion: string;
   hasPrerequisites: boolean;
   idfDownloadStatus: IDownload;
+  idfVersion: string;
   isEspIdfValid: boolean;
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
@@ -44,6 +46,7 @@ export interface IState {
   selectedEspIdfVersion: IEspIdfLink;
   selectedIdfMirror: IdfMirror;
   selectedSysPython: string;
+  setupMode: SetupMode;
   statusEspIdf: StatusType;
   statusEspIdfTools: StatusType;
   statusPyVEnv: StatusType;
@@ -66,6 +69,7 @@ export const setupState: IState = {
     progress: "",
     progressDetail: "",
   },
+  idfVersion: "",
   isEspIdfValid: false,
   isIdfInstalling: false,
   isIdfInstalled: false,
@@ -81,6 +85,7 @@ export const setupState: IState = {
   },
   selectedIdfMirror: IdfMirror.Github,
   selectedSysPython: "",
+  setupMode: SetupMode.express,
   statusEspIdf: StatusType.started,
   statusEspIdfTools: StatusType.pending,
   statusPyVEnv: StatusType.pending,
@@ -98,6 +103,19 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
+  checkEspIdfTools(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
+        : context.state.selectedSysPython;
+    vscode.postMessage({
+      command: "checkEspIdfTools",
+      espIdf: context.state.espIdf,
+      pyPath,
+      toolsPath: context.state.toolsResults,
+    });
+  },
   installEspIdf(context) {
     const pyPath =
       context.state.selectedSysPython ===
@@ -111,6 +129,20 @@ export const actions: ActionTree<IState, any> = {
       mirror: context.state.selectedIdfMirror,
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
+      setupMode: context.state.setupMode,
+    });
+  },
+  installEspIdfTools(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
+        : context.state.selectedSysPython;
+    vscode.postMessage({
+      command: "installEspIdfTools",
+      espIdf: context.state.espIdf,
+      pyPath,
+      toolsPath: context.state.toolsFolder,
     });
   },
   openEspIdfFolder() {
@@ -123,6 +155,11 @@ export const actions: ActionTree<IState, any> = {
       command: "openEspIdfContainerFolder",
     });
   },
+  openEspIdfToolsFolder() {
+    vscode.postMessage({
+      command: "openEspIdfToolsFolder",
+    });
+  },
   openPythonPath() {
     vscode.postMessage({
       command: "openPythonPath",
@@ -131,6 +168,20 @@ export const actions: ActionTree<IState, any> = {
   requestInitialValues() {
     vscode.postMessage({
       command: "requestInitialValues",
+    });
+  },
+  saveCustomSettings(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
+        : context.state.selectedSysPython;
+    vscode.postMessage({
+      command: "saveCustomSettings",
+      espIdfPath: context.state.espIdf,
+      pyBinPath: pyPath,
+      tools: context.state.toolsResults,
+      toolsPath: context.state.toolsFolder,
     });
   },
   useDefaultSettings() {
@@ -194,6 +245,11 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus.progressDetail = progressDetail;
     Object.assign(state, newState);
   },
+  setIdfVersion(state, idfVersion) {
+    const newState = state;
+    newState.idfVersion = idfVersion;
+    Object.assign(state, newState);
+  },
   setIsIdfInstalled(state, isInstalled: boolean) {
     const newState = state;
     newState.isIdfInstalled = isInstalled;
@@ -237,6 +293,12 @@ export const mutations: MutationTree<IState> = {
     const newState = state;
     newState.selectedSysPython = selectedSysPython;
     Object.assign(state, newState);
+  },
+  setSetupMode(state, setupMode: SetupMode) {
+    const newState = state;
+    newState.setupMode = setupMode;
+    Object.assign(state, newState);
+    console.log(setupMode);
   },
   setToolsFolder(state, toolsFolder: string) {
     const newState = state;

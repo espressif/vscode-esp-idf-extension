@@ -48,3 +48,8 @@ export enum StatusType {
   pending,
   started,
 }
+
+export enum SetupMode {
+  advanced,
+  express,
+}

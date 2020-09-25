@@ -25,6 +25,7 @@ import { Logger } from "../logger/logger";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
+  espIdfVersion: string;
   espToolsPath: string;
   exportedPaths: string;
   exportedVars: string;
@@ -81,6 +82,7 @@ export async function getSetupInitialValues(
     progress.report({ increment: 20, message: "Preparing setup view..." });
     if (prevInstall) {
       setupInitArgs.espIdfPath = prevInstall.espIdfPath;
+      setupInitArgs.espIdfVersion = prevInstall.espIdfVersion;
       setupInitArgs.espToolsPath = prevInstall.espToolsPath;
       setupInitArgs.exportedPaths = prevInstall.exportedToolsPaths;
       setupInitArgs.exportedVars = prevInstall.exportedVars;
@@ -125,6 +127,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   if (failedToolsResult.length > 0) {
     return {
       espIdfPath,
+      espIdfVersion: idfPathVersion,
       espToolsPath: toolsPath,
     };
   }
@@ -136,6 +139,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   if (!exportedVars) {
     return {
       espIdfPath,
+      espIdfVersion: idfPathVersion,
       espToolsPath: toolsPath,
       exportedToolsPaths,
       toolsInfo,
@@ -151,6 +155,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   if (!pyVenvPath) {
     return {
       espIdfPath,
+      espIdfVersion: idfPathVersion,
       espToolsPath: toolsPath,
       exportedToolsPaths,
       exportedVars,
@@ -160,6 +165,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
 
   return {
     espIdfPath,
+    espIdfVersion: idfPathVersion,
     espToolsPath: toolsPath,
     exportedToolsPaths,
     exportedVars,

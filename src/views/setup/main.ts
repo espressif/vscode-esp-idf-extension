@@ -17,6 +17,8 @@ import { store } from "./store";
 // @ts-ignore
 import App from "./App.vue";
 // @ts-ignore
+import ToolsCustom from "./ToolsCustom.vue";
+// @ts-ignore
 import Home from "./Home.vue";
 // @ts-ignore
 import Install from "./Install.vue";
@@ -27,6 +29,7 @@ import "../commons/espCommons.scss";
 const routes = [
   { path: "/", component: Home },
   { path: "/autoinstall", component: Install },
+  { path: "/custom", component: ToolsCustom },
   { path: "/status", component: Status },
 ];
 
@@ -56,7 +59,7 @@ window.addEventListener("message", (event) => {
       if (msg.page) {
         app.$router.push(msg.page);
       }
-      if (typeof msg.installing !== undefined) {
+      if (typeof msg.installing !== "undefined") {
         store.commit("setIsIdfInstalling", msg.installing);
       }
       break;
@@ -66,6 +69,9 @@ window.addEventListener("message", (event) => {
       }
       if (msg.idfVersions) {
         store.commit("setEspIdfVersionList", msg.idfVersions);
+      }
+      if (msg.idfVersion) {
+        store.commit("setIdfVersion", msg.idfVersion);
       }
       if (msg.pyVersionList) {
         store.commit("setPyVersionsList", msg.pyVersionList);
@@ -95,8 +101,13 @@ window.addEventListener("message", (event) => {
         store.commit("setIsIdfInstalling", false);
       }
       break;
+    case "setIdfVersion":
+      if (msg.idfVersion) {
+        store.commit("setIdfVersion", msg.idfVersion);
+      }
+      break;
     case "setIsIdfInstalling":
-      if (typeof msg.installing !== undefined) {
+      if (typeof msg.installing !== "undefined") {
         store.commit("setIsIdfInstalling", msg.installing);
       }
       break;
@@ -116,6 +127,11 @@ window.addEventListener("message", (event) => {
         store.commit("setToolsResult", msg.toolsInfo);
       }
       break;
+    case "setSetupMode":
+      if (typeof msg.setupMode !== "undefined") {
+        store.commit("setSetupMode", msg.setupMode);
+      }
+      break;
     case "updateEspIdfFolder":
       if (msg.selectedFolder) {
         store.commit("setEspIdfPath", msg.selectedFolder);
@@ -128,7 +144,7 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "updateEspIdfStatus":
-      if (typeof msg.status !== undefined) {
+      if (typeof msg.status !== "undefined") {
         store.commit("setStatusEspIdf", msg.status);
       }
       break;

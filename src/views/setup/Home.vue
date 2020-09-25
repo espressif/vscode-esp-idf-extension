@@ -28,7 +28,10 @@
           by pressing the <span class="span-path">home</span> button.
         </h2>
       </div>
-      <div class="notification install-choice" @click="goTo('/autoinstall')">
+      <div
+        class="notification install-choice"
+        @click="goTo('/autoinstall', setupMode.express)"
+      >
         <label for="express" class="subtitle">EXPRESS</label>
         <p name="express">
           Fastest option. Choose ESP-IDF version and python version to create
@@ -36,7 +39,10 @@
           {{ toolsFolder }}.
         </p>
       </div>
-      <div class="notification install-choice" @click="goTo('/customInstall')">
+      <div
+        class="notification install-choice"
+        @click="goTo('/autoinstall', setupMode.advanced)"
+      >
         <label for="advanced" class="subtitle">ADVANCED</label>
         <p name="advanced">
           Configurable option. Choose ESP-IDF version and python version to
@@ -56,7 +62,7 @@
           >. Click here to use them.
         </p>
         <ul>
-          <li>ESP-IDF version: x.x.x</li>
+          <li>ESP-IDF version: {{ idfVersion }}</li>
         </ul>
       </div>
     </div>
@@ -66,25 +72,31 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import { IEspIdfTool } from "./types";
+import { IEspIdfTool, SetupMode } from "./types";
 import { router } from "./main";
 
 @Component
 export default class Home extends Vue {
   @Action requestInitialValues;
   @Action useDefaultSettings;
+  @Mutation setSetupMode;
   @State("hasPrerequisites") private storeHasPrerequisites: boolean;
+  @State("idfVersion") private storeIdfVersion: string;
   @State("manualPythonPath") storeManualSysPython: string;
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
   @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
 
+  get espIdf() {
+    return this.storeEspIdf;
+  }
+
   get hasPrerequisites() {
     return this.storeHasPrerequisites;
   }
 
-  get espIdf() {
-    return this.storeEspIdf;
+  get idfVersion() {
+    return this.storeIdfVersion;
   }
 
   get isNotWinPlatform() {
@@ -108,6 +120,10 @@ export default class Home extends Vue {
     return false;
   }
 
+  get setupMode() {
+    return SetupMode;
+  }
+
   get toolsFolder() {
     return this.storeToolsFolder;
   }
@@ -116,8 +132,9 @@ export default class Home extends Vue {
     this.requestInitialValues();
   }
 
-  goTo(route: string) {
+  goTo(route: string, setupMode: SetupMode) {
     router.push(route);
+    this.setSetupMode(setupMode);
   }
 }
 </script>
