@@ -78,6 +78,9 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
+    this.panel.iconPath = vscode.Uri.file(
+      path.join(extensionPath, "media", "espressif_icon.png")
+    );
     this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);

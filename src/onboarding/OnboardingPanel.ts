@@ -103,6 +103,9 @@ export class OnBoardingPanel {
         path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
       )
     );
+    this.panel.iconPath = vscode.Uri.file(
+      path.join(extensionPath, "media", "espressif_icon.png")
+    );
     this.panel.webview.html = createOnboardingHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
