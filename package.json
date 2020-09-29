@@ -687,6 +687,11 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.jtag_flash",
+        "title": "Flash (with JTag)",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

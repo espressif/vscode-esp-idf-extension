@@ -13,7 +13,7 @@
 // limitations under the License.
 
 "use strict";
-import { readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
@@ -80,6 +80,7 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1401,6 +1402,42 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.errorNotify(message, err);
         wsServer.close();
       });
+  });
+  registerIDFCommand("espIdf.jtag_flash", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const buildFolder = path.join(workspaceRoot.fsPath, "build");
+      if (!existsSync(buildFolder)) {
+        return Logger.warnNotify("First you need to build before flashing!!");
+      }
+      if (!existsSync(path.join(buildFolder, "flasher_args.json"))) {
+        return Logger.warnNotify(
+          "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+        );
+      }
+
+      const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
+      if (isOpenOCDLaunched) {
+        const tclClient = new TCLClient({ host: "localhost", port: 6666 });
+        tclClient
+          .on("response", (data) => {
+            //TODO - Impl here
+            console.log(data);
+          })
+          .on("error", (err) => {
+            Logger.errorNotify(
+              "Failed to flash (via JTag), due to some unknown error",
+              err
+            );
+          })
+          .sendCommand(
+            `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+          );
+        return;
+      }
+      Logger.warnNotify(
+        "Can't perform JTag flash, because OpenOCD server is not running!!"
+      );
+    });
   });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
