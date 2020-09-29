@@ -81,6 +81,7 @@ import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
+import { JTAGFlash } from "./flash/jtag";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1422,47 +1423,32 @@ export async function activate(context: vscode.ExtensionContext) {
         );
       }
 
+      if (FlashTask.isFlashing) {
+        return Logger.errorNotify(
+          "Can't run JTAG & UART Flash together, UART flash is running",
+          new Error("One_Task_At_A_Time")
+        );
+      }
+      FlashTask.isFlashing = true;
+
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title: "Flashing your device using JTAG, please wait",
-          cancellable: true,
         },
-        async (progress, token) => {
-          return new Promise((resolve, reject) => {
-            const tclClient = new TCLClient({ host: "localhost", port: 6666 });
-            token.onCancellationRequested((e) => {
-              tclClient.stop();
-            });
-            tclClient
-              .on("response", (data) => {
-                const response = data.toString().replace("\x1a", "").trim();
-                if (response !== "0") {
-                  OpenOCDManager.init().showOutputChannel(true);
-                  Logger.errorNotify(
-                    `Failed to flash the device (JTag), please try again [got response: ${response}]`,
-                    new Error("JTAG_FLASH_FAILED_NON_ZERO_RESPONSE"),
-                    { response }
-                  );
-                  return reject();
-                }
-
-                //Flash successful when response is 0
-                Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
-                tclClient.stop();
-                resolve();
-              })
-              .on("error", (err) => {
-                Logger.errorNotify(
-                  "Failed to flash (via JTag), due to some unknown error",
-                  err
-                );
-                reject();
-              })
-              .sendCommand(
-                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
-              );
-          });
+        async () => {
+          const client = new TCLClient({ host: "localhost", port: 6666 });
+          const jtag = new JTAGFlash(client);
+          try {
+            await jtag.flash(
+              `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+            );
+            Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+          } catch (msg) {
+            OpenOCDManager.init().showOutputChannel(true);
+            Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+          }
+          FlashTask.isFlashing = false;
         }
       );
     });
