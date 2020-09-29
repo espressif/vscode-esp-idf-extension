@@ -69,5 +69,7 @@
   "esp.rainmaker.backend.remove_node.title": "删除该节点",
   "esp.rainmaker.backend.update_node_param.title": "更新设备的参数",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth服务器网址",
-  "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口"
+  "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口",
+  "espIdf.jtag_flash.title": "Flash（带有JTag）",
+  "idf.flashType.description": "设备闪存方法，UART或JTag"
 }

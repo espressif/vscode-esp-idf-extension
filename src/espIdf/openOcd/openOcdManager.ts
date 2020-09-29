@@ -210,6 +210,10 @@ export class OpenOCDManager extends EventEmitter {
     }
   }
 
+  public showOutputChannel(preserveFocus?: boolean) {
+    this.displayChan.show(preserveFocus);
+  }
+
   private registerOpenOCDStatusBarItem() {
     this.statusBar = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,

@@ -1416,27 +1416,78 @@ export async function activate(context: vscode.ExtensionContext) {
       }
 
       const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-      if (isOpenOCDLaunched) {
-        const tclClient = new TCLClient({ host: "localhost", port: 6666 });
-        tclClient
-          .on("response", (data) => {
-            //TODO - Impl here
-            console.log(data);
-          })
-          .on("error", (err) => {
-            Logger.errorNotify(
-              "Failed to flash (via JTag), due to some unknown error",
-              err
-            );
-          })
-          .sendCommand(
-            `program_esp_bins ${buildFolder} flasher_args.json verify reset`
-          );
-        return;
+      if (!isOpenOCDLaunched) {
+        return Logger.warnNotify(
+          "Can't perform JTag flash, because OpenOCD server is not running!!"
+        );
       }
-      Logger.warnNotify(
-        "Can't perform JTag flash, because OpenOCD server is not running!!"
+
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: "Flashing your device using JTAG, please wait",
+          cancellable: true,
+        },
+        async (progress, token) => {
+          return new Promise((resolve, reject) => {
+            const tclClient = new TCLClient({ host: "localhost", port: 6666 });
+            token.onCancellationRequested((e) => {
+              tclClient.stop();
+            });
+            tclClient
+              .on("response", (data) => {
+                const response = data.toString().replace("\x1a", "").trim();
+                if (response !== "0") {
+                  OpenOCDManager.init().showOutputChannel(true);
+                  Logger.errorNotify(
+                    `Failed to flash the device (JTag), please try again [got response: ${response}]`,
+                    new Error("JTAG_FLASH_FAILED_NON_ZERO_RESPONSE"),
+                    { response }
+                  );
+                  return reject();
+                }
+
+                //Flash successful when response is 0
+                Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+                tclClient.stop();
+                resolve();
+              })
+              .on("error", (err) => {
+                Logger.errorNotify(
+                  "Failed to flash (via JTag), due to some unknown error",
+                  err
+                );
+                reject();
+              })
+              .sendCommand(
+                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+              );
+          });
+        }
       );
+    });
+  });
+  registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      let flashType = idfConf.readParameter("idf.flashType");
+      if (!flashType) {
+        flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+          ignoreFocusOut: true,
+          placeHolder:
+            "Select flash method, you can modify the choice later from settings 'idf.flashType'",
+        });
+        await idfConf.writeParameter(
+          "idf.flashType",
+          flashType,
+          vscode.ConfigurationTarget.Workspace
+        );
+      }
+
+      if (flashType === "JTAG") {
+        return vscode.commands.executeCommand("espIdf.jtag_flash");
+      } else if (flashType === "UART") {
+        return vscode.commands.executeCommand("espIdf.flashDevice");
+      }
     });
   });
   vscode.window.registerUriHandler({
@@ -1534,7 +1585,7 @@ function creatCmdsStatusBarItems() {
   createStatusBarItem(
     "$(zap)",
     "ESP-IDF Flash device",
-    "espIdf.flashDevice",
+    "espIdf.selectFlashMethodAndFlash",
     97
   );
   createStatusBarItem(

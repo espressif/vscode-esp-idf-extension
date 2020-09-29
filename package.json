@@ -497,6 +497,15 @@
             "scope": "resource",
             "minimum": 49152,
             "maximum": 65535
+          },
+          "idf.flashType": {
+            "type": "string",
+            "enum": [
+              "UART",
+              "JTAG"
+            ],
+            "description": "%idf.flashType.description%",
+            "scope": "resource"
           }
         }
       }
@@ -690,7 +699,12 @@
       },
       {
         "command": "espIdf.jtag_flash",
-        "title": "Flash (with JTag)",
+        "title": "%espIdf.jtag_flash.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectFlashMethodAndFlash",
+        "title": "Select Flash Device and Flash",
         "category": "ESP-IDF"
       }
     ],
