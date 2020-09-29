@@ -17,7 +17,7 @@
  */
 
 import { join } from "path";
-import { commands, ExtensionContext, Uri, window, workspace } from "vscode";
+import { commands, ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "./config";
 import { Logger } from "./logger/logger";
 import { packageJson } from "./utils";
@@ -46,9 +46,10 @@ export namespace ChangelogViewer {
           ESP.ChangelogViewer.FileName
         );
         try {
-          const docs = await workspace.openTextDocument(changelogFilePath);
-          await window.showTextDocument(docs);
-          await commands.executeCommand("markdown.showPreview");
+          await commands.executeCommand(
+            "markdown.showPreview",
+            Uri.file(changelogFilePath)
+          );
         } catch (error) {
           Logger.errorNotify("Failed to open the CHANGELOG.md file", error, {
             sev: 1,
