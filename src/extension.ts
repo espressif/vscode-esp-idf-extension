@@ -82,6 +82,7 @@ import { SetupPanel } from "./setup/SetupPanel";
 import {
   getSetupInitialValues,
   isCurrentInstallValid,
+  ISetupInitArgs,
 } from "./setup/setupInit";
 import { installReqs } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
@@ -957,7 +958,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("onboarding.start", () => {
+  registerIDFCommand("onboarding.start", (setupArgs?: ISetupInitArgs) => {
     PreCheck.perform([webIdeCheck], async () => {
       try {
         if (SetupPanel.isCreatedAndHidden()) {
@@ -974,10 +975,10 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              const setupArgs = await getSetupInitialValues(
-                context.extensionPath,
-                progress
-              );
+              setupArgs = setupArgs
+                ? setupArgs
+                : await getSetupInitialValues(context.extensionPath, progress);
+              setupArgs.hasPrerequisites = false;
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);

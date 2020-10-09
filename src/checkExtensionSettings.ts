@@ -49,6 +49,9 @@ export async function checkExtensionSettings(extensionPath: string) {
           setupArgs.exportedPaths &&
           setupArgs.exportedVars
         ) {
+          if (!setupArgs.hasPrerequisites) {
+            vscode.commands.executeCommand("onboarding.start", setupArgs);
+          }
           await installExtensionPyReqs(
             setupArgs.pyBinPath,
             setupArgs.espToolsPath,
@@ -63,10 +66,11 @@ export async function checkExtensionSettings(extensionPath: string) {
             setupArgs.exportedVars
           );
         } else if (typeof process.env.WEB_IDE === "undefined") {
-          vscode.commands.executeCommand("onboarding.start");
+          vscode.commands.executeCommand("onboarding.start", setupArgs);
         }
       } catch (error) {
         Logger.errorNotify(error.message, error);
+        vscode.commands.executeCommand("onboarding.start");
       }
     }
   );
