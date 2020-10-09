@@ -43,7 +43,6 @@
   "param.exportPaths": "Paths to be appended to PATH",
   "param.exportVars": "Variables to be added to system environment variables",
   "param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
-  "param.showOnboardingOnInit": "Show ESP-IDF Configuration window",
   "param.coveredLightTheme": "Background color for covered lines in Light theme for ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Background color for covered lines in Dark theme for ESP-IDF Coverage.",
   "param.partialLightTheme": "Background color for partially covered lines in Light theme for ESP-IDF Coverage.",

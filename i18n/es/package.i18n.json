@@ -43,7 +43,6 @@
   "param.espAdfPath": "Ruta del entorno de trabajo ESP-ADF (ADF_PATH)",
   "param.espMdfPath": "Ruta del entorno de trabajo ESP-MDF (MDF_PATH)",
   "param.useIDFKConfigStyle": "Habilitar/Deshabilitar validación de estilo ESP-IDF para archivos Kconfig",
-  "param.showOnboardingOnInit": "Mostrar ventana de configuración ESP-IDF",
   "param.coveredLightTheme": "Color de fondo para lineas cubiertas en temas claros por ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Color de fondo para lineas cubiertas en temas oscuros por ESP-IDF Coverage.",
   "param.partialLightTheme": "Color de fondo para lineas parcialmente cubiertas en temas claros por ESP-IDF Coverage.",

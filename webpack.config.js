@@ -63,13 +63,6 @@ const webViewConfig = {
     examples: path.resolve(__dirname, "src", "views", "examples", "main.ts"),
     size: path.resolve(__dirname, "src", "views", "size", "main.ts"),
     tracing: path.resolve(__dirname, "src", "views", "tracing", "main.ts"),
-    onboarding: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "onboarding",
-      "main.ts"
-    ),
     menuconfig: path.resolve(
       __dirname,
       "src",

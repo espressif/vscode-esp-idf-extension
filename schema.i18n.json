@@ -112,7 +112,6 @@
     "param.exportPaths",
     "param.exportVars",
     "param.useIDFKConfigStyle",
-    "param.showOnboardingOnInit",
     "param.coveredLightTheme",
     "param.coveredDarkTheme",
     "param.partialLightTheme",
