@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { LocDictionary } from "../localizationDictionary";
-import { ISetupInitArgs } from "./setupInit";
+import { ISetupInitArgs, saveSettings } from "./setupInit";
 import {
   IdfMirror,
   IEspIdfLink,
@@ -107,6 +107,9 @@ export class SetupPanel {
           ),
         ],
       }
+    );
+    this.panel.iconPath = vscode.Uri.file(
+      path.join(extensionPath, "media", "espressif_icon.png")
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
@@ -265,7 +268,7 @@ export class SetupPanel {
               setupArgs.espToolsPath,
               setupArgs.pyBinPath
             );
-            await this.saveSettings(
+            await saveSettings(
               setupArgs.espIdfPath,
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
@@ -587,7 +590,7 @@ export class SetupPanel {
       progress,
       cancelToken
     );
-    await this.saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
+    await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
     this.panel.webview.postMessage({
       command: "updatePyVEnvStatus",
       status: StatusType.installed,
@@ -679,31 +682,6 @@ export class SetupPanel {
     } else {
       vscode.window.showInformationMessage("No folder selected");
     }
-  }
-
-  private async saveSettings(
-    espIdfPath: string,
-    pythonBinPath: string,
-    exportedPaths: string,
-    exportedVars: string
-  ) {
-    await idfConf.writeParameter("idf.espIdfPath", espIdfPath, this.confTarget);
-    await idfConf.writeParameter(
-      "idf.pythonBinPath",
-      pythonBinPath,
-      this.confTarget
-    );
-    await idfConf.writeParameter(
-      "idf.customExtraPaths",
-      exportedPaths,
-      this.confTarget
-    );
-    await idfConf.writeParameter(
-      "idf.customExtraVars",
-      exportedVars,
-      this.confTarget
-    );
-    vscode.window.showInformationMessage("ESP-IDF has been configured");
   }
 
   private createSetupHtml(

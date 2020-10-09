@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Progress } from "vscode";
+import { ConfigurationTarget, Progress, window } from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfVersions } from "./espIdfVersionList";
@@ -22,6 +22,8 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
 import { Logger } from "../logger/logger";
+import { OutputChannel } from "../logger/outputChannel";
+import * as idfConf from "../idfConfiguration";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
@@ -93,6 +95,31 @@ export async function getSetupInitialValues(
     Logger.error(error.message, error);
   }
   return setupInitArgs;
+}
+
+export async function isCurrentInstallValid() {
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const toolsPath = path.join(containerPath, ".espressif");
+  const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+  let espIdfPath = idfConf.readParameter("idf.espIdfPath");
+  let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
+  if (idfPathVersion === "x.x" && process.platform === "win32") {
+    espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
+    idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
+  }
+  if (idfPathVersion === "x.x") {
+    return false;
+  }
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    espIdfPath
+  );
+  const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
+    path.join(toolsPath, "tools"),
+    extraPaths
+  );
+  const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
+  return failedToolsResult.length > 0;
 }
 
 export async function checkPreviousInstall(pythonVersions: string[]) {
@@ -201,4 +228,22 @@ export async function checkPyVersion(
     return pythonInEnv;
   }
   return;
+}
+
+export async function saveSettings(
+  espIdfPath: string,
+  pythonBinPath: string,
+  exportedPaths: string,
+  exportedVars: string,
+  confTarget: ConfigurationTarget = ConfigurationTarget.Global
+) {
+  await idfConf.writeParameter("idf.espIdfPath", espIdfPath, confTarget);
+  await idfConf.writeParameter("idf.pythonBinPath", pythonBinPath, confTarget);
+  await idfConf.writeParameter(
+    "idf.customExtraPaths",
+    exportedPaths,
+    confTarget
+  );
+  await idfConf.writeParameter("idf.customExtraVars", exportedVars, confTarget);
+  window.showInformationMessage("ESP-IDF has been configured");
 }
