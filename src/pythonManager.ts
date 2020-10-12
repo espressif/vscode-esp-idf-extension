@@ -69,32 +69,35 @@ export async function installPythonEnv(
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
   const requirements = path.join(espDir, "requirements.txt");
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
-  if (utils.canAccessFile(requirements, constants.R_OK)) {
+  if (!utils.canAccessFile(requirements, constants.R_OK)) {
     Logger.warnNotify(requirements + reqDoesNotExists);
     if (channel) {
       channel.appendLine(requirements + reqDoesNotExists);
     }
+    return;
   }
   const extensionRequirements = path.join(
     utils.extensionContext.extensionPath,
     "requirements.txt"
   );
-  if (utils.canAccessFile(extensionRequirements, constants.R_OK)) {
+  if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
     Logger.warnNotify(extensionRequirements + reqDoesNotExists);
     if (channel) {
       channel.appendLine(extensionRequirements + reqDoesNotExists);
     }
+    return;
   }
   const debugAdapterRequirements = path.join(
     utils.extensionContext.extensionPath,
     "esp_debug_adapter",
     "requirements.txt"
   );
-  if (utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
+  if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
     Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
     if (channel) {
       channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
     }
+    return;
   }
 
   const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
