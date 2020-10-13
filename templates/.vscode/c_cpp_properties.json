@@ -2,6 +2,7 @@
   "configurations": [
     {
       "name": "Linux",
+      "compilerPath": "${command:espIdf.getXtensaGdb}",
       "cStandard": "c11",
       "cppStandard": "c++17",
       "includePath": [
