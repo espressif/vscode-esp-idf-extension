@@ -19,7 +19,7 @@
                 </span>
                 &nbsp; Flash
               </a>
-              <button class="button" title="Retry">
+              <button class="button" title="Retry" @click="initDataRequest">
                 <span class="icon is-small">
                   <i class="fas fa-redo"></i>
                 </span>
@@ -39,6 +39,9 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Action } from "vuex-class";
 @Component
-export default class Header extends Vue {}
+export default class Header extends Vue {
+  @Action initDataRequest;
+}
 </script>
