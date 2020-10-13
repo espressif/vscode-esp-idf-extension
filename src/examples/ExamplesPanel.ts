@@ -20,6 +20,7 @@ import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 import marked from "marked";
+import { ESP } from "../config";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -126,7 +127,17 @@ export class ExamplesPlanel {
               const projectPath = vscode.Uri.file(resultFolder);
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
-              Logger.errorNotify("Error copying ESP-IDF example", error);
+              const msg = `Error copying ESP-IDF example.`;
+              Logger.error(msg, error);
+              const opt = await vscode.window.showErrorMessage(
+                msg,
+                "Show Docs",
+                "Ok"
+              );
+              if (opt === "Show Docs") {
+                vscode.env.openExternal(vscode.Uri.parse(ESP.URL.Docs.README));
+              }
+              return;
             }
           }
           break;
