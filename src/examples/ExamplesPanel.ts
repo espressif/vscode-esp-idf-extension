@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir, readFile } from "fs-extra";
+import { ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../localizationDictionary";
@@ -110,15 +110,20 @@ export class ExamplesPlanel {
                 ".vscode",
                 "settings.json"
               );
-              const settingsJson = await utils.readJson(settingsJsonPath);
+              const settingsJson = await readJSON(settingsJsonPath);
               const modifiedEnv = utils.appendIdfAndToolsToPath();
+              const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
               const compilerPath = await utils.isBinInPath(
-                "xtensa-esp32-elf-gdb",
+                `xtensa-${idfTarget}-elf-gdb`,
                 resultFolder,
                 modifiedEnv
               );
               settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
-              await utils.writeJson(settingsJsonPath, settingsJson);
+              await writeJSON(settingsJsonPath, settingsJson, {
+                spaces:
+                  vscode.workspace.getConfiguration().get("editor.tabSize") ||
+                  2,
+              });
               const projectPath = vscode.Uri.file(resultFolder);
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
