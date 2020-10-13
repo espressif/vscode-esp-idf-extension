@@ -19,6 +19,7 @@
 import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
+import { CSV2JSON } from "./util";
 
 new Vue({
   store,
@@ -28,22 +29,10 @@ new Vue({
 window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
-    case "set_examples_path":
-      if (message.example_list) {
-        store.commit("setExamplesPath", message.example_list);
-      }
-      break;
-    case "set_example_detail":
-      if (message.example_detail) {
-        store.commit("setExampleDetail", message.example_detail);
-      }
-      break;
-    case "set_initial_example":
-      if (message.selected_example) {
-        store.commit("setSelectedExample", message.selected_example);
-        store.dispatch("getExampleDetail", {
-          pathToOpen: message.selected_example.path,
-        });
+    case "loadInitialData":
+      if (message.csv) {
+        const rows = CSV2JSON(message.csv);
+        store.commit("SET_ROWS", rows);
       }
       break;
     default:
