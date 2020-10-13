@@ -92,7 +92,6 @@ export class ExamplesPlanel {
               canSelectMany: false,
             });
             if (!selectedFolder) {
-              vscode.window.showInformationMessage("No folder selected");
               return;
             }
             try {
