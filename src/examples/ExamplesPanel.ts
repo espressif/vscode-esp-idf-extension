@@ -101,7 +101,10 @@ export class ExamplesPlanel {
                 message.name
               );
               await ensureDir(resultFolder);
-              utils.copyFromSrcProject(message.project_path, resultFolder);
+              await utils.copyFromSrcProject(
+                message.project_path,
+                resultFolder
+              );
               const settingsJsonPath = path.join(
                 resultFolder,
                 ".vscode",
