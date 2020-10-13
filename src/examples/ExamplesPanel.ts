@@ -137,7 +137,6 @@ export class ExamplesPlanel {
               if (opt === "Show Docs") {
                 vscode.env.openExternal(vscode.Uri.parse(ESP.URL.Docs.README));
               }
-              return;
             }
           }
           break;
