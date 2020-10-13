@@ -15,7 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import { copy, pathExists } from "fs-extra";
+import { copy, pathExists, readJSON, writeJSON } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { EOL } from "os";
 import * as path from "path";
@@ -196,6 +196,19 @@ export function fileExists(filePath) {
 
 export function readFileSync(filePath) {
   return fs.readFileSync(filePath, "utf-8");
+}
+
+export function doesPathExists(inputPath: string) {
+  return pathExists(inputPath);
+}
+export function readJson(jsonPath: string) {
+  return readJSON(jsonPath);
+}
+
+export function writeJson(jsonPath: string, object: any) {
+  return writeJSON(jsonPath, object, {
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+  });
 }
 
 export function readComponentsDirs(filePath): IdfComponent[] {

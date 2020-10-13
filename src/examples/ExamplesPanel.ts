@@ -82,41 +82,45 @@ export class ExamplesPlanel {
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
-    this.panel.webview.onDidReceiveMessage((message) => {
+    this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "openExampleProject":
           if (message.project_path && message.name) {
-            vscode.window
-              .showOpenDialog({
-                canSelectFolders: true,
-                canSelectFiles: false,
-                canSelectMany: false,
-              })
-              .then((selectedFolder: vscode.Uri[]) => {
-                if (selectedFolder && selectedFolder[0].fsPath) {
-                  const resultFolder = path.join(
-                    selectedFolder[0].fsPath,
-                    message.name
-                  );
-                  ensureDir(resultFolder)
-                    .then(() => {
-                      utils.copyFromSrcProject(
-                        message.project_path,
-                        resultFolder
-                      );
-                      const projectPath = vscode.Uri.file(resultFolder);
-                      vscode.commands.executeCommand(
-                        "vscode.openFolder",
-                        projectPath
-                      );
-                    })
-                    .catch((err) => {
-                      Logger.errorNotify("Error copying ESP-IDF example", err);
-                    });
-                } else {
-                  vscode.window.showInformationMessage("No folder selected");
-                }
-              });
+            const selectedFolder = await vscode.window.showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              canSelectMany: false,
+            });
+            if (!selectedFolder) {
+              vscode.window.showInformationMessage("No folder selected");
+              return;
+            }
+            try {
+              const resultFolder = path.join(
+                selectedFolder[0].fsPath,
+                message.name
+              );
+              await ensureDir(resultFolder);
+              utils.copyFromSrcProject(message.project_path, resultFolder);
+              const settingsJsonPath = path.join(
+                resultFolder,
+                ".vscode",
+                "settings.json"
+              );
+              const settingsJson = await utils.readJson(settingsJsonPath);
+              const modifiedEnv = utils.appendIdfAndToolsToPath();
+              const compilerPath = await utils.isBinInPath(
+                "xtensa-esp32-elf-gdb",
+                resultFolder,
+                modifiedEnv
+              );
+              settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
+              await utils.writeJson(settingsJsonPath, settingsJson);
+              const projectPath = vscode.Uri.file(resultFolder);
+              vscode.commands.executeCommand("vscode.openFolder", projectPath);
+            } catch (error) {
+              Logger.errorNotify("Error copying ESP-IDF example", error);
+            }
           }
           break;
         case "getExamplesList":
@@ -127,28 +131,26 @@ export class ExamplesPlanel {
             const pathToUse = vscode.Uri.file(
               path.join(message.path, "README.md")
             );
-            readFile(pathToUse.fsPath).then(
-              (content) => {
-                const contentStr = this.resolveImgPath(
-                  content.toString(),
-                  message.path
-                );
-                this.panel.webview.postMessage({
-                  command: "set_example_detail",
-                  example_detail: contentStr,
-                });
-              },
-              (err) => {
-                const notAvailable = "No README.md available for this project.";
-                Logger.info(notAvailable);
-                Logger.info(err);
-                this.panel.webview.postMessage({
-                  command: "set_example_detail",
-                  example_detail: notAvailable,
-                });
-                vscode.window.showInformationMessage(notAvailable);
-              }
-            );
+            try {
+              const content = await readFile(pathToUse.fsPath);
+              const contentStr = this.resolveImgPath(
+                content.toString(),
+                message.path
+              );
+              this.panel.webview.postMessage({
+                command: "set_example_detail",
+                example_detail: contentStr,
+              });
+            } catch (err) {
+              const notAvailable = "No README.md available for this project.";
+              Logger.info(notAvailable);
+              Logger.info(err);
+              this.panel.webview.postMessage({
+                command: "set_example_detail",
+                example_detail: notAvailable,
+              });
+              vscode.window.showInformationMessage(notAvailable);
+            }
           }
           break;
         default:
