@@ -44,6 +44,10 @@ export function CSV2JSON(csv: String): PartitionTable.Row[] {
   const rows = new Array<PartitionTable.Row>();
   const lines = csv.split("\n");
   const comment = lines.shift();
+  if (!comment.includes("# ESP-IDF Partition Table")) {
+    console.log("Not a partition table csv, skipping...");
+    return rows;
+  }
   const headers = lines.shift();
   lines.forEach((line) => {
     if (line === "") {
