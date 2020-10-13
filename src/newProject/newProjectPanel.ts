@@ -265,6 +265,13 @@ export class NewProjectPanel {
           settingsJson["idf.port" + isWin] = port;
           settingsJson["idf.pythonBinPath" + isWin] = pyPath;
           settingsJson["idf.toolsPath" + isWin] = toolsDir;
+          const modifiedEnv = utils.appendIdfAndToolsToPath();
+          const compilerPath = await utils.isBinInPath(
+            `xtensa-${idfTarget}-elf-gdb`,
+            newProjectPath,
+            modifiedEnv
+          );
+          settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
 
           await utils.writeJson(settingsJsonPath, settingsJson);
           if (components && components.length > 0) {
