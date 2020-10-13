@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir, readFile } from "fs-extra";
+import { ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../localizationDictionary";
@@ -20,6 +20,7 @@ import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 import marked from "marked";
+import { ESP } from "../config";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -82,41 +83,61 @@ export class ExamplesPlanel {
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
-    this.panel.webview.onDidReceiveMessage((message) => {
+    this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "openExampleProject":
           if (message.project_path && message.name) {
-            vscode.window
-              .showOpenDialog({
-                canSelectFolders: true,
-                canSelectFiles: false,
-                canSelectMany: false,
-              })
-              .then((selectedFolder: vscode.Uri[]) => {
-                if (selectedFolder && selectedFolder[0].fsPath) {
-                  const resultFolder = path.join(
-                    selectedFolder[0].fsPath,
-                    message.name
-                  );
-                  ensureDir(resultFolder)
-                    .then(() => {
-                      utils.copyFromSrcProject(
-                        message.project_path,
-                        resultFolder
-                      );
-                      const projectPath = vscode.Uri.file(resultFolder);
-                      vscode.commands.executeCommand(
-                        "vscode.openFolder",
-                        projectPath
-                      );
-                    })
-                    .catch((err) => {
-                      Logger.errorNotify("Error copying ESP-IDF example", err);
-                    });
-                } else {
-                  vscode.window.showInformationMessage("No folder selected");
-                }
+            const selectedFolder = await vscode.window.showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              canSelectMany: false,
+            });
+            if (!selectedFolder) {
+              return;
+            }
+            try {
+              const resultFolder = path.join(
+                selectedFolder[0].fsPath,
+                message.name
+              );
+              await ensureDir(resultFolder);
+              await utils.copyFromSrcProject(
+                message.project_path,
+                resultFolder
+              );
+              const settingsJsonPath = path.join(
+                resultFolder,
+                ".vscode",
+                "settings.json"
+              );
+              const settingsJson = await readJSON(settingsJsonPath);
+              const modifiedEnv = utils.appendIdfAndToolsToPath();
+              const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+              const compilerPath = await utils.isBinInPath(
+                `xtensa-${idfTarget}-elf-gdb`,
+                resultFolder,
+                modifiedEnv
+              );
+              settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
+              await writeJSON(settingsJsonPath, settingsJson, {
+                spaces:
+                  vscode.workspace.getConfiguration().get("editor.tabSize") ||
+                  2,
               });
+              const projectPath = vscode.Uri.file(resultFolder);
+              vscode.commands.executeCommand("vscode.openFolder", projectPath);
+            } catch (error) {
+              const msg = `Error copying ESP-IDF example.`;
+              Logger.error(msg, error);
+              const opt = await vscode.window.showErrorMessage(
+                msg,
+                "Show Docs",
+                "Ok"
+              );
+              if (opt === "Show Docs") {
+                vscode.env.openExternal(vscode.Uri.parse(ESP.URL.Docs.README));
+              }
+            }
           }
           break;
         case "getExamplesList":
@@ -127,28 +148,26 @@ export class ExamplesPlanel {
             const pathToUse = vscode.Uri.file(
               path.join(message.path, "README.md")
             );
-            readFile(pathToUse.fsPath).then(
-              (content) => {
-                const contentStr = this.resolveImgPath(
-                  content.toString(),
-                  message.path
-                );
-                this.panel.webview.postMessage({
-                  command: "set_example_detail",
-                  example_detail: contentStr,
-                });
-              },
-              (err) => {
-                const notAvailable = "No README.md available for this project.";
-                Logger.info(notAvailable);
-                Logger.info(err);
-                this.panel.webview.postMessage({
-                  command: "set_example_detail",
-                  example_detail: notAvailable,
-                });
-                vscode.window.showInformationMessage(notAvailable);
-              }
-            );
+            try {
+              const content = await readFile(pathToUse.fsPath);
+              const contentStr = this.resolveImgPath(
+                content.toString(),
+                message.path
+              );
+              this.panel.webview.postMessage({
+                command: "set_example_detail",
+                example_detail: contentStr,
+              });
+            } catch (err) {
+              const notAvailable = "No README.md available for this project.";
+              Logger.info(notAvailable);
+              Logger.info(err);
+              this.panel.webview.postMessage({
+                command: "set_example_detail",
+                example_detail: notAvailable,
+              });
+              vscode.window.showInformationMessage(notAvailable);
+            }
           }
           break;
         default:

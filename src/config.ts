@@ -35,4 +35,12 @@ export namespace ESP {
       export const GrantType = "authorization_code";
     }
   }
+
+  export namespace URL {
+    export const GithubRepository =
+      "https://github.com/espressif/vscode-esp-idf-extension";
+    export namespace Docs {
+      export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
+    }
+  }
 }
