@@ -26,6 +26,10 @@ import {
 } from "vscode";
 import { join } from "path";
 import { ESP } from "../../config";
+import { readFileSync } from "../../utils";
+import { writeFile } from "fs-extra";
+import { Logger } from "../../logger/logger";
+import { file } from "tmp";
 
 export class PartitionTableEditorPanel {
   private static instance: PartitionTableEditorPanel;
@@ -34,12 +38,20 @@ export class PartitionTableEditorPanel {
   private disposable: Disposable[] = [];
   private readonly extensionPath: string;
 
+  private filePath: string;
+
   public static show(extensionPath: string, filePath: string) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
     if (!!this.instance) {
-      return this.instance.panel.reveal(column);
+      if (this.instance.filePath === filePath) {
+        return this.instance.panel.reveal(column);
+      }
+      // new filepath so update the
+      this.instance.getCSVFrom(filePath).then((csv) => {
+        this.instance.initDataToWebview(csv);
+      });
     }
     const panel = window.createWebviewPanel(
       ESP.Webview.PartitionTableEditor.ViewType,
@@ -53,7 +65,11 @@ export class PartitionTableEditorPanel {
         enableFindWidget: true,
       }
     );
-    this.instance = new PartitionTableEditorPanel(panel, extensionPath);
+    this.instance = new PartitionTableEditorPanel(
+      panel,
+      extensionPath,
+      filePath
+    );
   }
 
   public dispose() {
@@ -65,12 +81,17 @@ export class PartitionTableEditorPanel {
     }
   }
 
-  private constructor(panel: WebviewPanel, extensionPath: string) {
+  private constructor(
+    panel: WebviewPanel,
+    extensionPath: string,
+    filePath: string
+  ) {
     this.panel = panel;
     this.extensionPath = extensionPath;
+    this.filePath = filePath;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposable);
     this.panel.webview.onDidReceiveMessage(
-      this.onMessage,
+      (e) => this.onMessage(e),
       null,
       this.disposable
     );
@@ -78,8 +99,56 @@ export class PartitionTableEditorPanel {
       join(extensionPath, "media", "espressif_icon.png")
     );
     this.panel.webview.html = this.initWebView(this.panel.webview);
+    this.getCSVFrom(this.filePath).then((csv) => {
+      this.initDataToWebview(csv);
+    });
   }
-  private onMessage(message: any) {}
+  private async getCSVFrom(filepath: string): Promise<string> {
+    if (filepath.endsWith("csv")) {
+      return readFileSync(filepath);
+    } else if (filepath.endsWith("bin")) {
+      //bin file try to convert bin -> csv
+    }
+    return "";
+  }
+  private writeCSVDataToFile(filePath: string, csv: string) {
+    if (filePath.endsWith("csv")) {
+      writeFile(filePath, csv, (err) => {
+        if (err) {
+          Logger.errorNotify(
+            `Failed to save the partition data to the file ${filePath} due to some error. Error: ${err.message}`,
+            err
+          );
+        }
+      });
+    } else if (filePath.endsWith("bin")) {
+      //bin file try to convert csv -> bin
+    }
+  }
+  private initDataToWebview(csv: string) {
+    this.sendMessageToWebView("loadInitialData", { csv });
+  }
+  private sendMessageToWebView(command: string, payload: object) {
+    if (this.panel && this.panel.webview) {
+      this.panel.webview.postMessage({ command, ...payload });
+    }
+  }
+  private onMessage(message: any) {
+    switch (message.command) {
+      case "initDataRequest":
+        this.getCSVFrom(this.filePath).then((csv) => {
+          this.initDataToWebview(csv);
+        });
+        break;
+      case "saveDataRequest":
+        if (message.csv) {
+          this.writeCSVDataToFile(this.filePath, message.csv);
+        }
+        break;
+      default:
+        break;
+    }
+  }
   private initWebView(webview: Webview): string {
     const scriptPath = webview.asWebviewUri(
       Uri.file(
