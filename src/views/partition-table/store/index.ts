@@ -40,14 +40,12 @@ export namespace PartitionTable {
     flag: Boolean;
   }
   export interface State {
-    path: String;
     rows: Array<Row>;
     dirty: Boolean;
   }
 }
 
 export const state: PartitionTable.State = {
-  path: "",
   rows: [],
   dirty: false,
 };
@@ -64,6 +62,9 @@ export const mutations: MutationTree<PartitionTable.State> = {
   CLEAN(state) {
     state.dirty = false;
   },
+  SET_ROWS(state, rows) {
+    state.rows = rows;
+  },
 };
 
 export const actions: ActionTree<PartitionTable.State, any> = {
@@ -74,18 +75,18 @@ export const actions: ActionTree<PartitionTable.State, any> = {
     this.commit("DELETE", index);
   },
   save() {
-    //validate
+    // todo - validate fields
     const csv = JSON2CSV(this.state.rows);
-    const obj = CSV2JSON(csv);
-    this.commit("CLEAN");
     console.log(csv);
-    console.dir(obj);
-  },
-  openExample(context, payload) {
+    this.commit("CLEAN");
     vscode.postMessage({
-      command: "openExampleProject",
-      project_path: payload.pathToOpen,
-      name: payload.name,
+      command: "saveDataRequest",
+      csv,
+    });
+  },
+  initDataRequest(context) {
+    vscode.postMessage({
+      command: "initDataRequest",
     });
   },
 };
