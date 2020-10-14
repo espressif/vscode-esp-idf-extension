@@ -226,7 +226,7 @@ export async function isCurrentInstallValid() {
     extraPaths
   );
   const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
-  return failedToolsResult.length > 0;
+  return failedToolsResult.length === 0;
 }
 
 export async function saveSettings(

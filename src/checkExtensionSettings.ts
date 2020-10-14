@@ -34,7 +34,7 @@ export async function checkExtensionSettings(extensionPath: string) {
     {
       cancellable: false,
       location: vscode.ProgressLocation.Notification,
-      title: "ESP-IDF: Set extension default settings",
+      title: "ESP-IDF: Loading initial configuration...",
     },
     async (
       progress: vscode.Progress<{ message: string; increment: number }>,
