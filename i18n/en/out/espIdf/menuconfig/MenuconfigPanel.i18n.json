@@ -1,12 +1,12 @@
 {
-  "menuconfig.panelName": "IDF Menu Configuration",
-  "menuconfig.loadDefaultValues": "Loaded default settings in GUI menuconfig",
-  "menuconfig.saveValues": "Saved changes in GUI menuconfig",
-  "menuconfig.discardValues": "Discarded changes in GUI menuconfig",
+  "menuconfig.panelName": "SDK Configuration editor",
+  "menuconfig.loadDefaultValues": "Loaded default settings in SDK Configuration editor",
+  "menuconfig.saveValues": "Saved changes in SDK Configuration editor",
+  "menuconfig.discardValues": "Discarded changes in SDK Configuration editor",
   "menuconfig.wrongIdfPath": "Wrong IDF_PATH in workspace settings. Would you like to set it?",
   "menuconfig.enterIdfPath": "Enter IDF_PATH Path",
-  "menuconfig.changesNotSaved": "Changes in GUI Menuconfig have not been saved. Would you like to save them?",
+  "menuconfig.changesNotSaved": "Changes in SDK Configuration editor have not been saved. Would you like to save them?",
   "menuconfig.save": "Save",
   "menuconfig.discard": "Don't save",
-  "menuconfig.returnGuiconfig": "Return to GUI Menuconfig"
+  "menuconfig.returnGuiconfig": "Return to SDK Configuration editor"
 }

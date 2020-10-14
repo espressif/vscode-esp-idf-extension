@@ -7,7 +7,7 @@
   "espIdf.selectConfTarget.title": "ESP-IDF: Selecciona donde almacenar tu configuración",
   "espIdf.setTarget.title": "ESP-IDF: Selecciona el dispositivo Espressif a utilizar",
   "espIdf.configDevice.title": "ESP-IDF: Configuración del dispositivo",
-  "menuconfig.start.title": "ESP-IDF: Abrir herramienta de configuración ESP-IDF GUI",
+  "menuconfig.start.title": "ESP-IDF: Editor de Configuración SDK",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Establecer archivo sdkconfig por defecto",
   "espIdf.selectPort.title": "ESP-IDF: Seleccionar puerto a utilizar",
   "espIdf.buildDevice.title": "ESP-IDF: Construir el proyecto",
