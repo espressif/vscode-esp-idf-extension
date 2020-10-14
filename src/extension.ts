@@ -978,7 +978,6 @@ export async function activate(context: vscode.ExtensionContext) {
               setupArgs = setupArgs
                 ? setupArgs
                 : await getSetupInitialValues(context.extensionPath, progress);
-              setupArgs.hasPrerequisites = false;
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);

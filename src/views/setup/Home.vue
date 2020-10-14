@@ -24,8 +24,7 @@
           Welcome to the extension setup
         </h1>
         <h2 class="subtitle">
-          Choose the preferred setup mode by clicking on it. You can return here
-          by pressing the <span class="span-path">home</span> button.
+          Choose a setup mode.
         </h2>
       </div>
       <div
@@ -169,6 +168,9 @@ export default class Home extends Vue {
 .install-choice:hover {
   background-color: var(--vscode-textBlockQuote-background);
   border-radius: 10px;
+  .subtitle {
+    color: var(--vscode-button-hoverBackground);
+  }
 }
 
 .notification {
@@ -178,6 +180,11 @@ export default class Home extends Vue {
   a {
     text-decoration: none;
   }
+}
+
+#home a:hover {
+  color: var(--vscode-textLink-activeForeground);
+  font-weight: bolder;
 }
 
 div.notification.is-danger {
