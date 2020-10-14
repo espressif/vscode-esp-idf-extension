@@ -96,7 +96,8 @@ export default class App extends Vue {
 }
 </script>
 
-<style>
+<style lang="scss">
+@import "../commons/espCommons.scss";
 html,
 body {
   height: 100vh;

@@ -1,7 +1,8 @@
 {
   "configurations": [
     {
-      "name": "Linux",
+      "name": "ESP-IDF",
+      "compilerPath": "${default}",
       "cStandard": "c11",
       "cppStandard": "c++17",
       "includePath": [
