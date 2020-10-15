@@ -22,6 +22,7 @@ export namespace ESP {
   export const extensionID = "espressif.esp-idf-extension";
   export const HTTP_USER_AGENT =
     "vscode.extensions.espressif.esp-idf.extension/1.0.0 axios-client";
+
   export namespace Rainmaker {
     export let store: RainmakerStore;
     export namespace OAuth {
@@ -40,5 +41,13 @@ export namespace ESP {
   export namespace ChangelogViewer {
     export const FileName = "CHANGELOG.md";
     export const DB_VERSION_KEY = "esp.extension.version";
+  }
+
+  export namespace URL {
+    export const GithubRepository =
+      "https://github.com/espressif/vscode-esp-idf-extension";
+    export namespace Docs {
+      export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
+    }
   }
 }

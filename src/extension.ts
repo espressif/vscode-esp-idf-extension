@@ -769,7 +769,7 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         return await utils.isBinInPath(
           "xtensa-esp32-elf-gdb",
-          this.workspaceRoot.fsPath,
+          workspaceRoot.fsPath,
           modifiedEnv
         );
       } catch (error) {

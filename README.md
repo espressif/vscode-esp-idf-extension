@@ -8,8 +8,8 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - Quick prototyping by copying ESP-IDF examples with **ESP-IDF: Show ESP-IDF Examples Projects**.
 - App tracing when using ESP-IDF Application Level Tracing Library like in [ESP-IDF Application Level Tracing Example](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host).
 - Size analysis of binaries with **ESP-IDF: Size analysis of the binaries**.
-- [GUI Menuconfig tool](#ESP-IDF-GUI-Menuconfig-tool) within the extension with enabled search.
-- Easily Build, Flash and Monitor your code for the ESP-32 chip.
+- [SDK Configuration editor](#SDK-Configuration-editor) to configure your ESP-IDF project (esp-idf menuconfig).
+- Easily Build, Flash and Monitor your code for the ESP-32 and ESP32 S2 chip.
 - Syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and ESP-IDF Kconfig style syntax validation if enabled.
 - Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
@@ -26,7 +26,9 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 - [Python 3.5](https://www.python.org/download/releases/3.5/)+
 - [Git](https://git-scm.com/downloads)
-- [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for __Linux or MacOS users__. For Windows users, it is part of the onboarding configuration tools intall.
+- [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the onboarding configuration tools intall.
+
+> Please note that this extension __only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)__ the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
 ## Coming Soon
 
@@ -101,7 +103,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Configure Paths                                 |                                        |                                           |
 | Set Espressif device target                     |                                        |                                           |
 | Device configuration                            |                                        |                                           |
-| Launch gui configuration tool                   |                                        |                                           |
+| SDK Configuration editor                        |                                        |                                           |
 | Set default sdkconfig file in project           |                                        |                                           |
 | Select port to use                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
 | Build your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
@@ -117,7 +119,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Get HTML Coverage Report for project            |                                        |                                           |
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 
-The **Add Arduino ESP32 as ESP-IDF Component** command will just add [Arduino ESP32](https://github.com/espressif/arduino-esp32) at your current folder with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
 
 ## ESP-IDF Configure extension
 
@@ -208,7 +210,7 @@ the following:
 
 Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
 
-## ESP-IDF GUI Menuconfig tool
+## SDK Configuration editor
 
 This plugin includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start a configuration server process (confserver.py in **\${ESP-IDF-DIRECTORYPATH}**/tools) that enables the user to redefine ESP-IDF board parameters.
 
