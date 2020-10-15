@@ -77,6 +77,7 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { OpenOCDBoardManagerPanel } from "./espIdf/open-ocd/panel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1398,6 +1399,9 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.errorNotify(message, err);
         wsServer.close();
       });
+  });
+  registerIDFCommand("esp.webview.open.open-ocd-board-manager", () => {
+    OpenOCDBoardManagerPanel.show(context.extensionPath);
   });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {

@@ -33,7 +33,8 @@ p.subtitle {
   color: var(--vscode-foreground);
 }
 
-.notification {
+.notification,
+.card {
   color: var(--vscode-foreground);
   background-color: var(--vscode-notifications-background);
 }
