@@ -76,9 +76,7 @@ export class ExamplesPlanel {
         path.join(extensionPath, "dist", "views", "examples-bundle.js")
       )
     );
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, "media", "espressif_icon.png")
-    );
+    this.panel.iconPath = utils.getWebViewFavicon(extensionPath);
     this.panel.webview.html = createExamplesHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);

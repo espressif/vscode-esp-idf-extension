@@ -16,6 +16,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
+import { getWebViewFavicon } from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
@@ -78,9 +79,7 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, "media", "espressif_icon.png")
-    );
+    this.panel.iconPath = getWebViewFavicon(extensionPath);
     this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
