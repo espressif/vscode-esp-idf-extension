@@ -680,3 +680,9 @@ export async function startPythonReqsProcess(
     { env: modifiedEnv }
   );
 }
+
+export function getWebViewFavicon(extensionPath: string): vscode.Uri {
+  return vscode.Uri.file(
+    path.join(extensionPath, "media", "espressif_icon.png")
+  );
+}

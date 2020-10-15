@@ -17,6 +17,7 @@
  */
 import { WebviewPanel, window, ViewColumn, Uri, Disposable } from "vscode";
 import { join } from "path";
+import { getWebViewFavicon } from "../../../utils";
 export class SystemViewPanel {
   private static instance: SystemViewPanel;
   private readonly panel: WebviewPanel;
@@ -66,9 +67,7 @@ export class SystemViewPanel {
       null,
       this.disposable
     );
-    this.panel.iconPath = Uri.file(
-      join(extensionPath, "media", "espressif_icon.png")
-    );
+    this.panel.iconPath = getWebViewFavicon(extensionPath);
     this.initWebView();
     setTimeout(() => {
       this.sendCommandToWebview("initialLoad", this.traceData);
