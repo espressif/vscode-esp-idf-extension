@@ -78,6 +78,13 @@ const webViewConfig = {
       "main.ts"
     ),
     sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
+    open_ocd_board_manager: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "open-ocd-board-selector",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

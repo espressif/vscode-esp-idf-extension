@@ -23,8 +23,8 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists, PreCheck } from "../../utils";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
+import { OpenOCDManager } from "../open-ocd";
+import { TCLClient, TCLConnection } from "../open-ocd/tcl";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {
   AppTraceButtonType,

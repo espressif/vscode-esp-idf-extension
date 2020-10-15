@@ -35,4 +35,11 @@ export namespace ESP {
       export const GrantType = "authorization_code";
     }
   }
+
+  export namespace Webview {
+    export namespace OpenOCDBoardManager {
+      export const ViewType = "open-ocd-board-manager";
+      export const Title = "ESP-IDF OpenOCD Board Manager";
+    }
+  }
 }

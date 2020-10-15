@@ -28,10 +28,7 @@ import {
   IDebugAdapterConfig,
 } from "./espIdf/debugAdapter/debugAdapterManager";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
-import {
-  IOpenOCDConfig,
-  OpenOCDManager,
-} from "./espIdf/openOcd/openOcdManager";
+import { IOpenOCDConfig, OpenOCDManager } from "./espIdf/open-ocd";
 import { SerialPort } from "./espIdf/serial/serialPort";
 import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";

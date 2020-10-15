@@ -21,11 +21,10 @@ import * as vscode from "vscode";
 
 import { mkdirSync } from "fs";
 import { join } from "path";
-import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { fileExists, getElfFilePath, PreCheck } from "../../utils";
-import { OpenOCDManager } from "../openOcd/openOcdManager";
-import { TCLClient } from "../openOcd/tcl/tclClient";
+import { OpenOCDManager } from "../open-ocd";
+import { TCLClient } from "../open-ocd/tcl";
 import { Nm } from "./tools/xtensa/nm";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
 import {

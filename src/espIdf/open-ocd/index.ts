@@ -22,7 +22,7 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
-import { TCLClient, TCLConnection } from "./tcl/tclClient";
+import { TCLClient, TCLConnection } from "./tcl";
 
 export interface IOpenOCDConfig {
   openOcdConfigFilesList: string[];

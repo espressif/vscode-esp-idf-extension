@@ -73,6 +73,7 @@
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:esp.webview.open.open-ocd-board-manager",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -687,6 +688,12 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "category": "ESP-IDF",
+        "icon": "$(circuit-board)",
+        "command": "esp.webview.open.open-ocd-board-manager",
+        "title": "OpenOCD Board Manager"
       }
     ],
     "breakpoints": [
