@@ -47,9 +47,8 @@ export class BuildTask {
 
   public getShellExecution(args: string[], options?: SpawnOptions) {
     return new vscode.CustomExecution(
-      async () => new EspIdfCustomTerminal(args, "cmake", options)
+      async () => new EspIdfCustomTerminal("cmake", args, options)
     );
-    // return new vscode.ShellExecution(`cmake ${args.join(" ")}`, options);
   }
 
   public async build() {
