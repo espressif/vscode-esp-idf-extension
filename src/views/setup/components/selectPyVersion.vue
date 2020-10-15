@@ -1,6 +1,6 @@
 <template>
   <div id="select-py-version">
-    <div class="field centerize">
+    <div class="field">
       <label for="python-version-select" class="label"
         >Select Python version:</label
       >
@@ -88,7 +88,6 @@ export default class SelectPyVersion extends Vue {
 
 <style scoped>
 #select-py-version {
-  width: 80%;
   margin: 0.25em;
 }
 </style>

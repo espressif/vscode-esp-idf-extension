@@ -2,9 +2,9 @@
   <div class="toolsMetadata">
     <div class="field">
       <label class="label" :for="tool.id"
-        >Tool: {{ tool.name }} Version: {{ tool.version }}</label
+        >Tool: {{ tool.name }} Version: {{ tool.actual }}</label
       >
-      <div class="field is-grouped is-grouped-centered">
+      <div class="field is-grouped align-center">
         <div class="control expanded">
           <input
             type="text"
@@ -29,8 +29,8 @@
       </div>
     </div>
     <div v-for="(item, key) in tool.env" :key="key">
-      <div class="field centerize">
-        <label :for="key">Environment variable {{ key }}:</label>
+      <div class="field">
+        <label :for="key" class="label">Environment variable {{ key }}:</label>
         <div class="control expanded">
           <input
             type="text"

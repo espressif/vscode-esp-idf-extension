@@ -1,7 +1,7 @@
 <template>
   <div id="custom-setup">
-    <div class="notification centerize">
-      <div class="field centerize">
+    <div class="notification">
+      <div class="field">
         <label for="idf-version-select" class="label">ESP-IDF Tools</label>
         <div class="control">
           <div class="select">
@@ -20,25 +20,25 @@
         :openMethod="openEspIdfToolsFolder"
       />
 
-      <div class="centerize" v-if="selectedIdfTools === 'toolsDownload'">
-        <div class="field centerize install-btn">
+      <div v-if="selectedIdfTools === 'toolsDownload'">
+        <ul>
+          <li v-for="tool in toolsResults" :key="tool.id" class="label">
+            <strong class="span-path">{{ tool.id }}</strong>
+            <em>{{ tool.expected }}</em>
+          </li>
+        </ul>
+        <div class="field install-btn">
           <div class="control">
             <button class="button" @click.once="installIdfTools">
               Download Tools
             </button>
           </div>
         </div>
-        <div class="centerize">
-          <ul>
-            <li v-for="tool in toolsResults" :key="tool.id">
-              <strong>{{ tool.id }}</strong> <em>{{ tool.expected }}</em>
-            </li>
-          </ul>
-        </div>
       </div>
 
-      <div class="centerize" v-if="selectedIdfTools === 'toolsExisting'">
-        <div class="field centerize install-btn">
+      <div v-if="selectedIdfTools === 'toolsExisting'">
+        <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
+        <div class="field install-btn">
           <div class="control">
             <button
               class="button"
@@ -52,7 +52,6 @@
             </button>
           </div>
         </div>
-        <toolManual v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
       </div>
     </div>
   </div>

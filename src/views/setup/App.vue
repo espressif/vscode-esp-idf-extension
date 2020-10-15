@@ -82,11 +82,14 @@ export default class App extends Vue {
 }
 
 #app {
-  text-align: center;
   padding: 1em;
   color: var(--vscode-foreground);
   background-color: var(--vscode-editor-background);
   height: -webkit-fill-available;
+}
+
+.align-center {
+  align-items: center;
 }
 
 .fade-enter-active,

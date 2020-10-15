@@ -1,7 +1,7 @@
 <template>
   <div id="select-esp-idf-version">
     <div
-      class="field centerize"
+      class="field"
       v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
     >
       <label for="idf-mirror-select" class="label"
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="field centerize">
+    <div class="field">
       <label for="idf-version-select" class="label"
         >Select ESP-IDF version:</label
       >
@@ -117,7 +117,6 @@ export default class SelectEspIdf extends Vue {
 
 <style scoped>
 #select-esp-idf-version {
-  width: 100%;
   margin: 0.25em;
 }
 </style>

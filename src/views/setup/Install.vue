@@ -1,6 +1,6 @@
 <template>
   <div id="install">
-    <div class="centerize notification">
+    <div class="notification">
       <div class="field">
         <label>Git version: {{ gitVersion }}</label>
       </div>

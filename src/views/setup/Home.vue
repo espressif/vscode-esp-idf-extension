@@ -19,7 +19,7 @@
       </p>
     </div>
     <div class="centerize notification" v-if="hasPrerequisites">
-      <div class="control centerize">
+      <div class="control centerize home-title">
         <h1 class="title is-spaced">
           Welcome to the extension setup
         </h1>
@@ -56,13 +56,13 @@
       >
         <label for="existing" class="subtitle"> USE EXISTING SETUP</label>
         <p>
-          We have found ESP-IDF @<span class="span-path">{{ espIdf }}</span> and
-          ESP-IDF tools in @<span class="span-path"> {{ toolsFolder }}</span
+          We have found ESP-IDF version: {{ idfVersion }} @<span
+            class="span-path"
+            >{{ espIdf }}</span
+          >
+          and ESP-IDF tools in @<span class="span-path"> {{ toolsFolder }}</span
           >. Click here to use them.
         </p>
-        <ul>
-          <li>ESP-IDF version: {{ idfVersion }}</li>
-        </ul>
       </div>
     </div>
   </div>
@@ -150,25 +150,37 @@ export default class Home extends Vue {
 }
 
 .expanded {
-  width: 70%;
-  align-items: center;
-  display: flex;
-  justify-content: center;
+  width: 80%;
+}
+
+.home-title {
+  margin: 1%;
 }
 
 .install-btn {
   margin: 0.5em;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .install-choice {
   text-align: start;
   width: 100%;
+  border: 1px solid;
+  border-radius: 4px;
 }
 
 .install-choice:hover {
   background-color: var(--vscode-textBlockQuote-background);
-  border-radius: 10px;
+  border-color: var(--vscode-button-hoverBackground);
+  cursor: pointer;
+  .span-path {
+    font-weight: bolder;
+  }
   .subtitle {
+    color: var(--vscode-button-hoverBackground);
+  }
+  p {
     color: var(--vscode-button-hoverBackground);
   }
 }
