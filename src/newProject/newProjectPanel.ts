@@ -66,7 +66,7 @@ export class NewProjectPanel {
     this.extensionPath = extensionPath;
     const newProjectTitle = locDictionary.localize(
       "newProject.panelName",
-      "New Project Wizard"
+      "ESP-IDF New Project"
     );
     this.panel = vscode.window.createWebviewPanel(
       NewProjectPanel.viewType,
@@ -87,6 +87,10 @@ export class NewProjectPanel {
           ),
         ],
       }
+    );
+
+    this.panel.iconPath = vscode.Uri.file(
+      path.join(extensionPath, "media", "espressif_icon.png")
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
