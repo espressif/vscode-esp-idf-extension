@@ -1,7 +1,7 @@
 <template>
-  <div class="field centerize text-size">
+  <div class="field text-size">
     <label class="label">{{ propLabel }}</label>
-    <div class="field expanded has-addons" style="justify-content: center;">
+    <div class="field expanded has-addons">
       <div class="control expanded">
         <input
           type="text"

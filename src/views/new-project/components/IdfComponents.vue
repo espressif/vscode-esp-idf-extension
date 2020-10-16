@@ -1,14 +1,26 @@
 <template>
   <div id="components">
     <div class="field">
-      <div class="field is-grouped" style="align-items: center;">
-        <folderOpen
-          propLabel="Add your ESP-IDF Component directory"
-          :propModel.sync="storeCurrentComponentPath"
-          :propMutate="setCurrentComponentPath"
-          :openMethod="openComponentFolder"
-          :keyEnterMethod="addToComponentList"
-        />
+      <label class="label">Add your ESP-IDF Component directory</label>
+      <div class="field has-addons">
+        <div class="control expanded">
+          <input
+            type="text"
+            class="input"
+            v-model="currentComponentPath"
+            @keyup.enter="addToComponentList"
+          />
+        </div>
+        <div class="control">
+          <div class="icon" style="text-decoration: none;">
+            <i
+              :class="folderIcon"
+              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
+              @mouseout="folderIcon = 'codicon codicon-folder'"
+              v-on:click="openComponentFolder"
+            ></i>
+          </div>
+        </div>
         <div class="control add-icon">
           <div class="icon">
             <i class="codicon codicon-add" @click="addToComponentList"></i>
@@ -39,7 +51,7 @@ import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
   },
 })
 export default class Components extends Vue {
-  public folderIcon = "folder";
+  public folderIcon = "codicon codicon-folder";
   @Action private openComponentFolder;
   @Mutation private addComponent;
   @State("components") private storeComponents: IdfComponent[];
@@ -75,11 +87,7 @@ export default class Components extends Vue {
 #components {
   width: 100%;
 }
-.icon:hover {
+.add-icon:hover {
   text-shadow: 2px 1px 5px var(--vscode-input-foreground);
-}
-.add-icon {
-  left: -22%;
-  margin-top: 1.25rem;
 }
 </style>

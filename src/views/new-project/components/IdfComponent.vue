@@ -1,5 +1,5 @@
 <template>
-  <div class="field is-grouped is-grouped-centered">
+  <div class="field is-grouped">
     <label class="label" :for="comp.name" v-text="comp.path" />
     <div class="control icon">
       <div class="icon">

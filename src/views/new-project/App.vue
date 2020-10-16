@@ -1,6 +1,8 @@
 <template>
   <div id="init">
-    <h1 class="title">ESP-IDF New Project</h1>
+    <div class="control">
+      <h1 class="title is-spaced">ESP-IDF New Project</h1>
+    </div>
     <transition name="fade" mode="out-in">
       <router-view />
     </transition>
@@ -20,10 +22,12 @@ export default class App extends Vue {}
   cursor: default;
   margin: auto;
   padding-top: 1em;
-  text-align: center;
 }
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 1s;
+}
+.title {
+  text-align: center;
 }
 </style>

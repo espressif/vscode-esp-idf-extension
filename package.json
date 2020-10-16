@@ -1004,6 +1004,7 @@
     "typescript": "^3.9.5",
     "typescript-tslint-plugin": "^0.3.1",
     "vsce": "^1.52.0",
+    "vscode-codicons": "^0.0.12",
     "vscode-nls-dev": "^3.3.1",
     "vscode-test": "^1.0.0",
     "vue-class-component": "^7.1.0",

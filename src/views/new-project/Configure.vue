@@ -1,6 +1,6 @@
 <template>
   <div class="configure notification">
-    <div class="field centerize">
+    <div class="field">
       <label for="projectName" class="label">Project Name</label>
       <div class="control expanded">
         <input
@@ -21,8 +21,8 @@
       :staticText="projectName"
     />
 
-    <div class="field is-grouped is-grouped-centered">
-      <div class="field centerize">
+    <div class="field">
+      <div class="field">
         <label for="idf-target" class="label">Choose ESP-IDF Target</label>
         <div class="control">
           <div class="select">
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="field centerize">
+      <div class="field">
         <label for="idf-port" class="label">Choose serial port</label>
         <div class="control">
           <div class="select">
@@ -72,13 +72,11 @@
 
     <IdfComponents />
 
-    <div class="centerize">
-      <div class="field install-btn">
-        <div class="control">
-          <router-link to="/templates" class="button"
-            >Choose Template</router-link
-          >
-        </div>
+    <div class="field install-btn">
+      <div class="control">
+        <router-link to="/templates" class="button"
+          >Choose Template</router-link
+        >
       </div>
     </div>
   </div>
@@ -169,10 +167,8 @@ export default class Configure extends Vue {
 
 .configure {
   display: flex;
-  align-items: center;
   flex-direction: column;
-  justify-content: center;
-  margin: 5%;
+  margin: 1%;
 }
 
 .expanded {
@@ -184,6 +180,7 @@ export default class Configure extends Vue {
 
 .install-btn {
   margin: 0.5em;
+  align-self: flex-end;
 }
 .notification span {
   font-weight: bold;

@@ -322,8 +322,6 @@ export class NewProjectPanel {
     });
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
-    } else {
-      vscode.window.showInformationMessage("No folder selected");
     }
   }
 
