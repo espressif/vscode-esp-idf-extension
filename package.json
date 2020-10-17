@@ -3,7 +3,7 @@
   "preview": true,
   "displayName": "Espressif IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -593,10 +593,7 @@
       {
         "command": "espIdf.apptrace.archive.refresh",
         "title": "%espIdf.apptrace.archive.refresh.title%",
-        "icon": {
-          "dark": "media/dark/refresh.svg",
-          "light": "media/light/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "espIdf.apptrace.archive.showReport",
@@ -610,55 +607,37 @@
         "command": "esp.rainmaker.backend.connect",
         "title": "%esp.rainmaker.backend.connect.title%",
         "category": "ESP:Rainmaker",
-        "icon": {
-          "dark": "media/dark/sign-in.svg",
-          "light": "media/light/sign-in.svg"
-        }
+        "icon": "$(sign-in)"
       },
       {
         "command": "esp.rainmaker.backend.sync",
         "title": "%esp.rainmaker.backend.sync.title%",
         "category": "ESP:Rainmaker",
-        "icon": {
-          "dark": "media/dark/refresh.svg",
-          "light": "media/light/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "esp.rainmaker.backend.logout",
         "title": "%esp.rainmaker.backend.logout.title%",
         "category": "ESP:Rainmaker",
-        "icon": {
-          "dark": "media/dark/sign-out.svg",
-          "light": "media/light/sign-out.svg"
-        }
+        "icon": "$(sign-out)"
       },
       {
         "command": "esp.rainmaker.backend.add_node",
         "title": "%esp.rainmaker.backend.add_node.title%",
         "category": "ESP:Rainmaker",
-        "icon": {
-          "dark": "media/dark/add.svg",
-          "light": "media/light/add.svg"
-        }
+        "icon": "$(add)"
       },
       {
         "command": "esp.rainmaker.backend.remove_node",
         "title": "%esp.rainmaker.backend.remove_node.title%",
         "category": "ESP:Rainmaker",
-        "icon": {
-          "dark": "media/dark/trash.svg",
-          "light": "media/light/trash.svg"
-        }
+        "icon": "$(trash)"
       },
       {
         "command": "esp.rainmaker.backend.update_node_param",
         "title": "%esp.rainmaker.backend.update_node_param.title%",
-        "category": "ESP-Rainmaker",
-        "icon": {
-          "dark": "media/dark/edit.svg",
-          "light": "media/light/edit.svg"
-        }
+        "category": "ESP:Rainmaker",
+        "icon": "$(edit)"
       },
       {
         "command": "espIdf.genCoverage",

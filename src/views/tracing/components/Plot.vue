@@ -59,6 +59,17 @@ const Plot = Vue.extend({
     };
   },
   mounted() {
+    // Set theme color for plot
+    const style = window.getComputedStyle(document.documentElement);
+    const bgColor = style.getPropertyValue("--vscode-editor-background");
+    const fontColor = style.getPropertyValue("--vscode-editor-foreground");
+
+    this.layout.paper_bgcolor = bgColor;
+    this.layout.plot_bgcolor = bgColor;
+    this.layout.font = {
+      color: fontColor,
+    };
+
     Plotly.newPlot("plot", this.chart, this.layout, this.chartProp);
     const plot = document.getElementById("plot") as any;
     plot.on("plotly_click", (d) => {
