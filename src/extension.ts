@@ -81,6 +81,7 @@ import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
+import { ChangelogViewer } from "./changelog-viewer";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -136,6 +137,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
+  ChangelogViewer.showChangeLogAndUpdateVersion(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (

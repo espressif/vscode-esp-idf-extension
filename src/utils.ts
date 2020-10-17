@@ -27,6 +27,7 @@ import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
+import { ESP } from "./config";
 
 const extensionName = __dirname.replace(path.sep + "dist", "");
 const templateDir = path.join(extensionName, "templates");
@@ -41,9 +42,8 @@ export function setExtensionContext(context: vscode.ExtensionContext): void {
   extensionContext = context;
 }
 
-export const packageJson = vscode.extensions.getExtension(
-  "espressif.esp-idf-extension"
-).packageJSON;
+export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
+  .packageJSON;
 
 type PreCheckFunc = (...args: any[]) => boolean;
 export type PreCheckInput = [PreCheckFunc, string];
@@ -678,5 +678,11 @@ export async function startPythonReqsProcess(
     extensionContext.extensionPath,
     OutputChannel.init(),
     { env: modifiedEnv }
+  );
+}
+
+export function getWebViewFavicon(extensionPath: string): vscode.Uri {
+  return vscode.Uri.file(
+    path.join(extensionPath, "media", "espressif_icon.png")
   );
 }
