@@ -696,7 +696,7 @@
       },
       {
         "command": "esp.webview.open.partition-table",
-        "title": "Open Partition Table Editor",
+        "title": "%esp.webview.open.partition-table.title%",
         "category": "ESP-IDF"
       }
     ],
