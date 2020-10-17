@@ -7,7 +7,7 @@
   "espIdf.selectConfTarget.title": "ESP-IDF：选择保存配置设置的位置",
   "espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
   "espIdf.configDevice.title": "ESP-IDF：配置设备",
-  "menuconfig.start.title": "ESP-IDF：启动 GUI 配置工具",
+  "menuconfig.start.title": "ESP-IDF：SDK配置编辑器",
   "espIdf.setDefaultConfig.title": "ESP-IDF：设置项目默认的 sdkconfig 文件",
   "espIdf.selectPort.title": "ESP-IDF：选择要使用的烧录端口",
   "espIdf.buildDevice.title": "ESP-IDF：构建项目",
