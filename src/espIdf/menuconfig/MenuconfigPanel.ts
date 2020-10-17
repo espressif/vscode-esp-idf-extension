@@ -16,6 +16,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
+import { getWebViewFavicon } from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
@@ -59,7 +60,7 @@ export class MenuConfigPanel {
 
     const menuconfigPanelTitle = locDic.localize(
       "menuconfig.panelName",
-      "IDF Menuconfig"
+      "SDK Configuration editor"
     );
     this.panel = vscode.window.createWebviewPanel(
       MenuConfigPanel.viewType,
@@ -78,9 +79,7 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, "media", "espressif_icon.png")
-    );
+    this.panel.iconPath = getWebViewFavicon(extensionPath);
     this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
@@ -96,7 +95,7 @@ export class MenuConfigPanel {
         if (!ConfserverProcess.areValuesSaved()) {
           const changesNotSavedMessage = locDic.localize(
             "menuconfig.changesNotSaved",
-            "Changes in GUI Menuconfig have not been saved. Would you like to save them?"
+            "Changes in SDK Configuration editor have not been saved. Would you like to save them?"
           );
           const saveMsg = locDic.localize("menuconfig.save", "Save");
           const discardMsg = locDic.localize(
@@ -105,7 +104,7 @@ export class MenuConfigPanel {
           );
           const returnToGuiconfigMsg = locDic.localize(
             "menuconfig.returnGuiconfig",
-            "Return to GUI Menuconfig"
+            "Return to SDK Configuration editor"
           );
           const isModal = process.platform !== "win32" ? true : false;
           vscode.window
@@ -179,7 +178,7 @@ export class MenuConfigPanel {
           ConfserverProcess.saveGuiConfigValues();
           const saveMessage = locDic.localize(
             "menuconfig.saveValues",
-            "Saved changes in GUI menuconfig"
+            "Saved changes in SDK Configuration editor"
           );
           Logger.infoNotify(saveMessage);
           break;
@@ -187,7 +186,7 @@ export class MenuConfigPanel {
           ConfserverProcess.loadGuiConfigValues();
           const discardMessage = locDic.localize(
             "menuconfig.discardValues",
-            "Discarded changes in GUI menuconfig"
+            "Discarded changes in SDK Configuration editor"
           );
           Logger.infoNotify(discardMessage);
           break;
