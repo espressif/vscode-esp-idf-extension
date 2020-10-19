@@ -52,6 +52,10 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "initialLoad":
+      if (msg.boards && msg.boards.length > 0) {
+        store.commit("setBoards", msg.boards);
+        store.commit("setSelectedBoard", msg.boards[0]);
+      }
       if (msg.projectName) {
         store.commit("setProjectName", msg.projectName);
       }

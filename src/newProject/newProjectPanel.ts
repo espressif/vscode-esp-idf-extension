@@ -57,6 +57,7 @@ export class NewProjectPanel {
   private static readonly viewType = "newProjectWizard";
   private readonly panel: vscode.WebviewPanel;
   private extensionPath: string;
+  private _disposables: vscode.Disposable[] = [];
 
   private constructor(
     extensionPath: string,
@@ -172,13 +173,18 @@ export class NewProjectPanel {
             newProjectArgs.serialPortList &&
             newProjectArgs.serialPortList.length > 0
           ) {
+            const defConfigFiles =
+              newProjectArgs.boards && newProjectArgs.boards.length > 0
+                ? newProjectArgs.boards[0].configFiles
+                : newProjectArgs.targetList[0].openOcdFiles;
             this.panel.webview.postMessage({
+              boards: newProjectArgs.boards,
               command: "initialLoad",
               containerDirectory: containerPath,
               projectName: "project-name",
               serialPortList: newProjectArgs.serialPortList,
               targetList: newProjectArgs.targetList,
-              openOcdConfigFiles: newProjectArgs.targetList[0].openOcdFiles,
+              openOcdConfigFiles: defConfigFiles,
               templates: newProjectArgs.templates,
             });
           }
@@ -187,6 +193,14 @@ export class NewProjectPanel {
           break;
       }
     });
+
+    this.panel.onDidDispose(
+      () => {
+        NewProjectPanel.currentPanel = undefined;
+      },
+      null,
+      this._disposables
+    );
   }
 
   private async createProject(

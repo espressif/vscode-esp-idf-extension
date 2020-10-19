@@ -27,6 +27,13 @@ try {
   console.error(error);
 }
 
+export interface IdfBoard {
+  name: string;
+  description: string;
+  target: string;
+  configFiles: string;
+}
+
 export interface IdfTarget {
   id: string;
   name: string;
@@ -34,11 +41,13 @@ export interface IdfTarget {
 }
 
 export interface IState {
+  boards: IdfBoard[];
   components: IComponent[];
   containerDirectory: string;
   currentComponentPath: string;
   openOcdConfigFiles: string;
   projectName: string;
+  selectedBoard: IdfBoard;
   selectedPort: string;
   selectedTemplate: IExample;
   serialPortList: string[];
@@ -49,11 +58,13 @@ export interface IState {
 }
 
 const newProjectState: IState = {
+  boards: [],
   components: [],
   containerDirectory: "",
   currentComponentPath: "",
   openOcdConfigFiles: "",
   projectName: "project-name",
+  selectedBoard: null,
   selectedPort: "",
   selectedTemplate: null,
   serialPortList: [],
@@ -67,6 +78,11 @@ export const mutations: MutationTree<IState> = {
   addComponent(state, newComponent) {
     const newState = state;
     newState.components.push(newComponent);
+    state = { ...newState };
+  },
+  setBoards(state, boards: IdfBoard[]) {
+    const newState = state;
+    newState.boards = boards;
     state = { ...newState };
   },
   setContainerDirectory(state, containerDir: string) {
@@ -87,6 +103,11 @@ export const mutations: MutationTree<IState> = {
   setProjectName(state, projectName: string) {
     const newState = state;
     newState.projectName = projectName;
+    state = { ...newState };
+  },
+  setSelectedBoard(state, board: IdfBoard) {
+    const newState = state;
+    newState.selectedBoard = board;
     state = { ...newState };
   },
   setSelectedPort(state, port: string) {
