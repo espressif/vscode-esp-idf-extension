@@ -13,7 +13,7 @@
 // limitations under the License.
 
 "use strict";
-import { readdirSync } from "fs";
+import { constants, readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
@@ -77,7 +77,7 @@ import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
-import { pathExists } from "fs-extra";
+import { createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
@@ -1407,24 +1407,49 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   registerIDFCommand(
     "esp.webview.open.partition-table",
-    async (args: vscode.Uri) => {
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
       if (!args) {
-        const msg =
-          "You can right click and open partition table editor for csv files or partition-table.bin file";
-        Logger.warn(msg);
-        const opt = await vscode.window.showWarningMessage(
-          msg,
-          "Show Docs",
-          "Ok"
-        );
-        if (opt === "Show Docs") {
-          vscode.env.openExternal(
-            vscode.Uri.parse(ESP.URL.Docs.PartitionTableEditor)
+        // try to get the partition table name from sdkconfig and if not found create one
+        try {
+          const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM",
+            workspaceRoot.fsPath
           );
+          if (isCustomPartitionTableEnabled !== "y") {
+            throw new Error(
+              "Custom Partition Table not enabled for the project"
+            );
+          }
+
+          let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
+            workspaceRoot.fsPath
+          );
+          partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
+          if (!utils.isStringNotEmpty(partitionTableFilePath)) {
+            throw new Error(
+              "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
+            );
+          }
+
+          partitionTableFilePath = path.join(
+            workspaceRoot.fsPath,
+            partitionTableFilePath
+          );
+          if (!utils.fileExists(partitionTableFilePath)) {
+            // inform user and create file.
+            Logger.infoNotify(
+              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`
+            );
+            createFileSync(partitionTableFilePath);
+          }
+          filePath = partitionTableFilePath;
+        } catch (error) {
+          return Logger.errorNotify(error.message, error);
         }
-        return;
       }
-      PartitionTableEditorPanel.show(context.extensionPath, args.fsPath);
+      PartitionTableEditorPanel.show(context.extensionPath, filePath);
     }
   );
   vscode.window.registerUriHandler({
