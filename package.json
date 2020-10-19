@@ -43,8 +43,8 @@
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.selectConfTarget",
     "onCommand:espIdf.configDevice",
-    "onCommand:menuconfig.start",
-    "onCommand:cmakeListsEditor.start",
+    "onCommand:espIdf.menuconfig.start",
+    "onCommand:espIdf.cmakeListsEditor.start",
     "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
     "onCommand:espIdf.setTarget",
@@ -69,7 +69,7 @@
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
-    "onCommand:examples.start",
+    "onCommand:espIdf.examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
@@ -81,7 +81,7 @@
     "onCommand:espIdf.doctorCommand",
     "onCommand:espIdf.createNewComponent",
     "onCommand:espIdf.ninja.summary",
-    "onCommand:newProject.start",
+    "onCommand:espIdf.newProject.start",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -227,7 +227,7 @@
       "explorer/context": [
         {
           "when": "resourceFilename == sdkconfig",
-          "command": "menuconfig.start",
+          "command": "espIdf.menuconfig.start",
           "group": "navigation"
         },
         {
@@ -242,7 +242,7 @@
         },
         {
           "when": "resourceFilename == CMakeLists.txt",
-          "command": "cmakeListsEditor.start",
+          "command": "espIdf.cmakeListsEditor.start",
           "group": "navigation"
         }
       ]
@@ -255,8 +255,8 @@
       },
       {
         "command": "espIdf.fullClean",
-        "key": "ctrl+e f",
-        "mac": "cmd+e f"
+        "key": "ctrl+e x",
+        "mac": "cmd+e x"
       },
       {
         "command": "espIdf.buildDevice",
@@ -274,6 +274,11 @@
         "mac": "cmd+e m"
       },
       {
+        "command": "espIdf.newProject.start",
+        "key": "ctrl+e n",
+        "mac": "cmd+e n"
+      },
+      {
         "command": "espIdf.createIdfTerminal",
         "key": "ctrl+e t",
         "mac": "cmd+e t"
@@ -289,7 +294,7 @@
         "mac": "cmd+e d"
       },
       {
-        "command": "menuconfig.start",
+        "command": "espIdf.menuconfig.start",
         "key": "ctrl+e g",
         "mac": "cmd+e g"
       },
@@ -300,8 +305,8 @@
       },
       {
         "command": "espIdf.searchInEspIdfDocs",
-        "key": "ctrl+e d",
-        "mac": "cmd+e d"
+        "key": "ctrl+e q",
+        "mac": "cmd+e q"
       }
     ],
     "configuration": [
@@ -614,20 +619,20 @@
         "title": "%espIdf.configDevice.title%"
       },
       {
-        "command": "menuconfig.start",
-        "title": "%menuconfig.start.title%"
+        "command": "espIdf.menuconfig.start",
+        "title": "%espIdf.menuconfig.start.title%"
       },
       {
         "command": "espIdf.setup.start",
         "title": "%espIdf.setup.title%"
       },
       {
-        "command": "examples.start",
+        "command": "espIdf.examples.start",
         "title": "%espIdf.examples.title%"
       },
       {
-        "command": "cmakeListsEditor.start",
-        "title": "%cmakeListsEditor.start.title%"
+        "command": "espIdf.cmakeListsEditor.start",
+        "title": "%espIdf.cmakeListsEditor.start.title%"
       },
       {
         "command": "espIdf.setDefaultConfig",
@@ -813,8 +818,8 @@
         "title": "%espIdf.disposeConfserverProcess.title%"
       },
       {
-        "command": "newProject.start",
-        "title": "%newProject.start.title%"
+        "command": "espIdf.newProject.start",
+        "title": "%espIdf.newProject.start.title%"
       }
     ],
     "breakpoints": [

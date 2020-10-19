@@ -1031,7 +1031,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
 
-  registerIDFCommand("menuconfig.start", () => {
+  registerIDFCommand("espIdf.menuconfig.start", () => {
     PreCheck.perform([openFolderCheck], () => {
       try {
         if (ConfserverProcess.exists()) {
@@ -1186,7 +1186,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("examples.start", () => {
+  registerIDFCommand("espIdf.examples.start", () => {
     try {
       vscode.window.withProgress(
         {
@@ -1263,20 +1263,26 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("cmakeListsEditor.start", async (fileUri: vscode.Uri) => {
-    if (!fileUri) {
-      Logger.errorNotify(
-        "Cannot call this command directly, right click on any CMakeLists.txt file!",
-        new Error("INVALID_INVOCATION")
-      );
-      return;
+  registerIDFCommand(
+    "espIdf.cmakeListsEditor.start",
+    async (fileUri: vscode.Uri) => {
+      if (!fileUri) {
+        Logger.errorNotify(
+          "Cannot call this command directly, right click on any CMakeLists.txt file!",
+          new Error("INVALID_INVOCATION")
+        );
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        await CmakeListsEditorPanel.createOrShow(
+          context.extensionPath,
+          fileUri
+        );
+      });
     }
-    PreCheck.perform([openFolderCheck], async () => {
-      await CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
-    });
-  });
+  );
 
-  registerIDFCommand("newProject.start", () => {
+  registerIDFCommand("espIdf.newProject.start", () => {
     if (NewProjectPanel.isCreatedAndHidden()) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
@@ -2215,7 +2221,7 @@ function creatCmdsStatusBarItems() {
   createStatusBarItem(
     "$(gear)",
     "ESP-IDF Launch GUI Configuration tool",
-    "menuconfig.start",
+    "espIdf.menuconfig.start",
     100
   );
   createStatusBarItem("$(trash)", "ESP-IDF Full Clean", "espIdf.fullClean", 99);

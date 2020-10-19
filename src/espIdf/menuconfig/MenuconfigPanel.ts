@@ -120,7 +120,7 @@ export class MenuConfigPanel {
                 ConfserverProcess.saveGuiConfigValues();
               } else if (selected.title === returnToGuiconfigMsg) {
                 this.dispose();
-                vscode.commands.executeCommand("menuconfig.start");
+                vscode.commands.executeCommand("espIdf.menuconfig.start");
                 return;
               } else {
                 ConfserverProcess.loadGuiConfigValues(true);
