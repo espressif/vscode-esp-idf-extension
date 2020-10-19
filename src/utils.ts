@@ -185,6 +185,20 @@ export async function copyFromSrcProject(
   await copy(srcDirPath, destinationDir);
 }
 
+export function getConfigValueFromSDKConfig(
+  key: string,
+  workspacePath: string
+): string {
+  const sdkconfigFilePath = path.join(workspacePath, "sdkconfig");
+  if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
+    throw new Error("sdkconfig file doesn't exists or can't be read");
+  }
+  const configs = readFileSync(sdkconfigFilePath);
+  const re = new RegExp(`${key}=(.*)?`);
+  const match = configs.match(re);
+  return match ? match[1] : "";
+}
+
 export function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
   fs.unlinkSync(sdkconfigFile);
