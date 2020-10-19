@@ -13,12 +13,12 @@
         <div class="level-right">
           <div class="level-item">
             <p class="buttons are-small">
-              <a class="button" href="command:espIdf.flash">
+              <button class="button">
                 <span class="icon is-small">
-                  <i class="fas fa-bolt"></i>
+                  <i class="fas fa-tools"></i>
                 </span>
-                &nbsp; Flash
-              </a>
+                &nbsp; Build &amp; Flash
+              </button>
               <button class="button" title="Retry" @click="initDataRequest">
                 <span class="icon is-small">
                   <i class="fas fa-redo"></i>
@@ -29,8 +29,9 @@
         </div>
       </nav>
       <p class="subtitle is-size-6-mobile">
-        Partition Editor will help users to easily edit partition table through
-        GUI, and quickly flash the same.
+        Partition Editor can help you to easily edit, build &amp; flash
+        partition table through GUI, without interacting directly with the csv
+        files.
       </p>
     </div>
   </header>
