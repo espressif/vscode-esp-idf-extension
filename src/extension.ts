@@ -79,6 +79,7 @@ import { pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
+import { ChangelogViewer } from "./changelog-viewer";
 import {
   getSetupInitialValues,
   isCurrentInstallValid,
@@ -141,6 +142,7 @@ export async function activate(context: vscode.ExtensionContext) {
   Logger.init(context);
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
+  ChangelogViewer.showChangeLogAndUpdateVersion(context);
   debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
