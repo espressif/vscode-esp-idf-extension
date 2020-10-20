@@ -804,6 +804,7 @@
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
+    "@creativebulma/bulma-tooltip": "^1.2.0",
     "@fortawesome/fontawesome-free": "^5.9.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
