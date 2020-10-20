@@ -113,11 +113,14 @@ export class PartitionTableEditorPanel {
     if (filePath.endsWith("csv")) {
       writeFile(filePath, csv, (err) => {
         if (err) {
-          Logger.errorNotify(
+          return Logger.errorNotify(
             `Failed to save the partition data to the file ${filePath} due to some error. Error: ${err.message}`,
             err
           );
         }
+        Logger.infoNotify(
+          `Partition table is saved successfully. (${filePath})`
+        );
       });
     }
   }
