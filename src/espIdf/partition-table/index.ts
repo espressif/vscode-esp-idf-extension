@@ -144,6 +144,11 @@ export class PartitionTableEditorPanel {
           this.writeCSVDataToFile(this.filePath, message.csv);
         }
         break;
+      case "showErrorMessage":
+        if (message.error) {
+          Logger.errorNotify(message.error, new Error(message.error));
+        }
+        break;
       default:
         break;
     }
