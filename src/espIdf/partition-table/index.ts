@@ -44,14 +44,16 @@ export class PartitionTableEditorPanel {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : undefined;
-    if (!!this.instance) {
-      if (this.instance.filePath === filePath) {
-        return this.instance.panel.reveal(column);
+    if (!!PartitionTableEditorPanel.instance) {
+      if (PartitionTableEditorPanel.instance.filePath === filePath) {
+        return PartitionTableEditorPanel.instance.panel.reveal(column);
       }
-      // new filepath so update the
-      this.instance.getCSVFrom(filePath).then((csv) => {
-        this.instance.initDataToWebview(csv);
+      // new filepath so update the webview
+      PartitionTableEditorPanel.instance.getCSVFrom(filePath).then((csv) => {
+        PartitionTableEditorPanel.instance.filePath = filePath;
+        PartitionTableEditorPanel.instance.initDataToWebview(csv);
       });
+      return;
     }
     const panel = window.createWebviewPanel(
       ESP.Webview.PartitionTableEditor.ViewType,
@@ -65,7 +67,7 @@ export class PartitionTableEditorPanel {
         enableFindWidget: true,
       }
     );
-    this.instance = new PartitionTableEditorPanel(
+    PartitionTableEditorPanel.instance = new PartitionTableEditorPanel(
       panel,
       extensionPath,
       filePath
