@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
+import { info } from "console";
 import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
-import { CSV2JSON, JSON2CSV } from "../util";
+import { isValidJSON, JSON2CSV } from "../util";
 
 Vue.use(Vuex);
 
@@ -32,12 +33,13 @@ try {
 
 export namespace PartitionTable {
   export interface Row {
-    name: String;
-    type: String;
-    subtype: String;
-    offset: String;
-    size: String;
+    name: string;
+    type: string;
+    subtype: string;
+    offset: string;
+    size: string;
     flag: Boolean;
+    error: string;
   }
   export interface State {
     rows: Array<Row>;
@@ -65,6 +67,12 @@ export const mutations: MutationTree<PartitionTable.State> = {
   SET_ROWS(state, rows) {
     state.rows = rows;
   },
+  SET_ERROR_FOR_ROW(state, { row, error }) {
+    Vue.set(state.rows[row], "error", error);
+  },
+  CLEAR_ALL_ROW_ERRORS(state) {
+    state.rows.forEach((row) => Vue.set(row, "error", undefined));
+  },
 };
 
 export const actions: ActionTree<PartitionTable.State, any> = {
@@ -74,11 +82,21 @@ export const actions: ActionTree<PartitionTable.State, any> = {
   deleteRow(ctx, index) {
     this.commit("DELETE", index);
   },
-  save() {
-    // todo - validate fields
-    const csv = JSON2CSV(this.state.rows);
+  save(ctx) {
+    ctx.commit("CLEAR_ALL_ROW_ERRORS");
+    const { row, error, ok } = isValidJSON(ctx.state.rows);
+    if (!ok) {
+      ctx.commit("SET_ERROR_FOR_ROW", { row, error });
+      console.log(error, row);
+      vscode.postMessage({
+        command: "showErrorMessage",
+        error,
+      });
+      return;
+    }
+    const csv = JSON2CSV(ctx.state.rows);
     console.log(csv);
-    this.commit("CLEAN");
+    ctx.commit("CLEAN");
     vscode.postMessage({
       command: "saveDataRequest",
       csv,

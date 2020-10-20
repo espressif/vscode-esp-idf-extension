@@ -11,6 +11,7 @@
         :offset.sync="row.offset"
         :size.sync="row.size"
         :flag.sync="row.flag"
+        :error="row.error"
         @delete="deleteRow(i)"
       />
     </PartitionTable>
