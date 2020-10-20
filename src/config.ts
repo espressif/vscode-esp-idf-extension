@@ -48,7 +48,6 @@ export namespace ESP {
       "https://github.com/espressif/vscode-esp-idf-extension";
     export namespace Docs {
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
-      export const PartitionTableEditor = "";
     }
   }
 
