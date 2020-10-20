@@ -1,5 +1,5 @@
 <template>
-  <tr>
+  <tr :class="{ error: error }">
     <td>
       <input
         class="input is-size-7-mobile is-size-7-tablet"
@@ -47,13 +47,20 @@
     <td><input type="checkbox" v-model="sFlag" /></td>
     <td>
       <a class="delete" @click="del"></a>
+      <span
+        class="icon is-small has-tooltip-arrow"
+        :data-tooltip="error"
+        v-if="error"
+      >
+        <i class="fas fa-question-circle"></i>
+      </span>
     </td>
   </tr>
 </template>
 
 <script lang="ts">
 import "vue-select/dist/vue-select.css";
-import { Component, Emit, PropSync, Vue } from "vue-property-decorator";
+import { Component, Emit, Prop, PropSync, Vue } from "vue-property-decorator";
 import { PartitionTable } from "../store";
 import vSelect from "vue-select";
 Vue.component("v-select", vSelect);
@@ -66,6 +73,7 @@ export default class Row extends Vue {
   @PropSync("offset") sOffset: String;
   @PropSync("size") sSize: String;
   @PropSync("flag") sFlag: String;
+  @Prop() error: string;
 
   public get subtypes(): String[] {
     if (this.sType === "app") {
@@ -136,5 +144,8 @@ export default class Row extends Vue {
 }
 .w-md {
   min-width: 130px;
+}
+.error {
+  background-color: rgba(176, 81, 41, 0.1);
 }
 </style>
