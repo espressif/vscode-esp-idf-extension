@@ -54,6 +54,7 @@ export default class PartitionTableApp extends Vue {
 
 <style lang="scss">
 @import "../commons/espCommons.scss";
+@import "~@creativebulma/bulma-tooltip/dist/bulma-tooltip.min.css";
 .input,
 .textarea,
 .select select {
