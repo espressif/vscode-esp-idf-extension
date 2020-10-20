@@ -40,6 +40,7 @@
     "onCommand:espIdf.createFiles",
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
+    "onCommand:espIdf.createCustomIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.selectConfTarget",
@@ -519,6 +520,10 @@
         "title": "%espIdf.createIdfTerminal.title%"
       },
       {
+        "command": "espIdf.createCustomIdfTerminal",
+        "title": "%espIdf.createCustomIdfTerminal.title%"
+      },
+      {
         "command": "espIdf.setPath",
         "title": "%espIdf.setPath.title%"
       },
@@ -803,7 +808,7 @@
     "@types/marked": "^1.1.0",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
-    "@types/node": "^7.10.9",
+    "@types/node": "^12.12.0",
     "@types/tmp": "0.0.33",
     "@types/vscode": "^1.30.0",
     "@types/ws": "^7.2.5",

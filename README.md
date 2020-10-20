@@ -28,7 +28,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 - [Git](https://git-scm.com/downloads)
 - [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the onboarding configuration tools intall.
 
-> Please note that this extension __only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)__ the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
+> Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
 ## Coming Soon
 
@@ -111,6 +111,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Monitor your device                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
 | Build, Flash and start a monitor on your device | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
+| Open ESP-IDF Custom Terminal                    |                                        |                                           |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Show ESP-IDF Examples Projects                  |                                        |                                           |
@@ -120,6 +121,8 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+
+**Open ESP-IDF Custom Terminal** is not a complete operating system terminal. It is a vscode's pseudoterminal implementation used for this extension tasks execution. Every command executed is actually a new NodeJS child process spawn with currently opened vscode project directory and environment variables optimized for this extension (i.e. we append ESP-IDF tools to environment PATH).
 
 ## ESP-IDF Configure extension
 
