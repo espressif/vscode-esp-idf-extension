@@ -106,8 +106,6 @@ export class PartitionTableEditorPanel {
   private async getCSVFrom(filepath: string): Promise<string> {
     if (filepath.endsWith("csv")) {
       return readFileSync(filepath);
-    } else if (filepath.endsWith("bin")) {
-      //bin file try to convert bin -> csv
     }
     return "";
   }
@@ -121,8 +119,6 @@ export class PartitionTableEditorPanel {
           );
         }
       });
-    } else if (filePath.endsWith("bin")) {
-      //bin file try to convert csv -> bin
     }
   }
   private initDataToWebview(csv: string) {
