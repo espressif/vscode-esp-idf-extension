@@ -13,12 +13,18 @@
         <div class="level-right">
           <div class="level-item">
             <p class="buttons are-small">
-              <button class="button">
+              <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
                   <i class="fas fa-tools"></i>
                 </span>
-                &nbsp; Build &amp; Flash
-              </button>
+                &nbsp; Build
+              </a>
+              <a class="button" href="command:espIdf.flashDevice">
+                <span class="icon is-small">
+                  <i class="fas fa-bolt"></i>
+                </span>
+                &nbsp; Flash
+              </a>
               <button class="button" title="Retry" @click="initDataRequest">
                 <span class="icon is-small">
                   <i class="fas fa-redo"></i>
