@@ -298,7 +298,6 @@ export const mutations: MutationTree<IState> = {
     const newState = state;
     newState.setupMode = setupMode;
     Object.assign(state, newState);
-    console.log(setupMode);
   },
   setToolsFolder(state, toolsFolder: string) {
     const newState = state;

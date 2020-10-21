@@ -47,7 +47,6 @@ export default class folderOpen extends Vue {
   set dataModel(newValue) {
     if (this.onChangeMethod) {
       this.onChangeMethod();
-      console.log("zelop blop");
     }
     this.propMutate(newValue);
   }
@@ -59,7 +58,6 @@ export default class folderOpen extends Vue {
   onKeyEnter() {
     if (this.keyEnterMethod) {
       this.keyEnterMethod();
-      console.log("zsop blop");
     }
   }
 }

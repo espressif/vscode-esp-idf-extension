@@ -37,7 +37,7 @@
                 ? 'codicon codicon-check'
                 : statusEspIdf === statusType.failed
                 ? 'codicon codicon-close'
-                : 'codicon codicon-loading'
+                : 'codicon codicon-loading gear'
             "
           ></i>
         </div>
@@ -52,7 +52,7 @@
                 ? 'codicon codicon-check'
                 : statusEspIdf === statusType.failed
                 ? 'codicon codicon-close'
-                : 'codicon codicon-loading'
+                : 'codicon codicon-loading gear'
             "
           ></i>
         </div>
@@ -69,7 +69,7 @@
                 ? 'codicon codicon-check'
                 : statusEspIdfTools === statusType.failed
                 ? 'codicon codicon-close'
-                : 'codicon codicon-loading'
+                : 'codicon codicon-loading gear'
             "
           ></i>
         </div>
@@ -95,7 +95,7 @@
                 ? 'codicon codicon-check'
                 : statusPyVEnv === statusType.failed
                 ? 'codicon codicon-close'
-                : 'codicon codicon-loading'
+                : 'codicon codicon-loading gear'
             "
           ></i>
         </div>
@@ -218,7 +218,7 @@ export default class Status extends Vue {
   content: "";
   width: 22%;
   height: 2px;
-  top: 10.75em;
+  top: 7.75em;
   margin-left: 2%;
   background-color: var(--vscode-button-foreground);
   position: absolute;
@@ -251,5 +251,27 @@ export default class Status extends Vue {
   align-items: center;
   width: 100%;
   flex-wrap: wrap;
+}
+
+.icon {
+  margin-bottom: 0.5em;
+}
+
+.gear {
+  animation-name: rotateFrames;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  transform-origin: 50% 50%;
+  display: inline-block;
+}
+
+@keyframes rotateFrames {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

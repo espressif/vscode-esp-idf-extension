@@ -138,7 +138,6 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "updateEspIdfContainerFolder":
-      console.log(msg);
       if (msg.selectedContainerFolder) {
         store.commit("setEspIdfContainerPath", msg.selectedContainerFolder);
       }

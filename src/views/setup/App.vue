@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    <div class="control centerize" v-if="!isInstalled">
+    <div
+      class="control centerize"
+      v-if="!isInstalled && currentRoute !== '/' && currentRoute !== '/status'"
+    >
       <div class="icon">
         <router-link to="/" class="button">
           <i class="codicon codicon-home"></i>
@@ -53,7 +56,7 @@
     <transition name="fade" mode="out-in" v-if="!isInstalled">
       <router-view></router-view>
     </transition>
-    <div class="install-finished" v-if="isInstalled">
+    <div class="centerize install-finished" v-if="isInstalled">
       <h2 class="subtitle">
         All settings have been configured. You can close this window.
       </h2>
@@ -70,6 +73,10 @@ export default class App extends Vue {
   @State("isIdfInstalled") private storeIsInstalled: boolean;
   get isInstalled() {
     return this.storeIsInstalled;
+  }
+
+  get currentRoute() {
+    return this.$route.path;
   }
 }
 </script>

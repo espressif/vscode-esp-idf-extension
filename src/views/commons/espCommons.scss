@@ -94,9 +94,12 @@ button > span.icon > i:hover {
 .input::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
-.select:hover,
+.select select:hover,
 .input:hover {
-  border-color: var(--vscode-inputOption-activeBorder);
+  border-color: var(--vscode-inputOption-activeBorder) !important;
+}
+.select:hover::after {
+  border-color: var(--vscode-focusBorder) !important;
 }
 .select:active,
 .select:focus,
