@@ -83,6 +83,7 @@ import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import EspIdfCustomTerminal from "./espIdfCustomTerminal";
+import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1035,6 +1036,10 @@ export async function activate(context: vscode.ExtensionContext) {
     } catch (error) {
       Logger.errorNotify(error.message, error);
     }
+  });
+
+  registerIDFCommand("cmakeListsEditor.start", (fileUri: vscode.Uri) => {
+    CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {

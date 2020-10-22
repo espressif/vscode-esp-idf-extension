@@ -45,6 +45,7 @@
     "onCommand:espIdf.selectConfTarget",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
+    "onCommand:cmakeListsEditor.start",
     "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
     "onCommand:espIdf.setTarget",
@@ -200,6 +201,11 @@
         {
           "when": "resourceFilename == sdkconfig",
           "command": "menuconfig.start",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceFilename == CMakeLists.txt",
+          "command": "cmakeListsEditor.start",
           "group": "navigation"
         }
       ]
@@ -545,6 +551,10 @@
       {
         "command": "examples.start",
         "title": "%espIdf.examples.title%"
+      },
+      {
+        "command": "cmakeListsEditor.start",
+        "title": "%cmakeListsEditor.start.title%"
       },
       {
         "command": "espIdf.setDefaultConfig",
