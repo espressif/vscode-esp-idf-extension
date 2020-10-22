@@ -4,20 +4,15 @@
     :href="'#' + menu.id"
   >
     <div class="menu-line">
-      <font-awesome-icon
-        v-if="menu.isCollapsed"
-        v-show="menuSubItems.length > 0"
-        icon="caret-right"
-        class="info-icon"
-        @click="collapse"
-      />
-      <font-awesome-icon
-        v-else
-        v-show="menuSubItems.length > 0"
-        icon="caret-down"
-        class="info-icon"
-        @click="collapse"
-      />
+      <div class="info-icon" @click="collapse" v-show="menuSubItems.length > 0">
+        <i
+          :class="
+            menu.isCollapsed
+              ? 'codicon codicon-chevron-right'
+              : 'codicon codicon-chevron-down'
+          "
+        ></i>
+      </div>
       <p @click="setAsSelectedMenu" v-text="menu.title" />
     </div>
     <ul
