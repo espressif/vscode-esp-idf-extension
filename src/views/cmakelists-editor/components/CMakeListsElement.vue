@@ -5,7 +5,7 @@
         <label :for="el.id" class="label">{{ el.title }} </label>
       </div>
       <ul v-if="el.type === 'array'">
-        <li v-for="v in el.value" :key="v" class="field has-addons">
+        <li v-for="v in el.value" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
             <i class="codicon codicon-close"></i>
@@ -13,7 +13,7 @@
         </li>
       </ul>
     </div>
-    <div v-if="el.type === 'array'" class="field has-addons">
+    <div v-if="el.type === 'array'" class="field is-grouped">
       <div class="control">
         <input type="text" v-model="elementValueToPush" class="input" />
       </div>
@@ -71,5 +71,11 @@ export default class CMakeListElement extends Vue {
 <style scoped>
 .icon:hover {
   background-color: var(--vscode-button-background);
+}
+.is-grouped {
+  align-items: center;
+}
+li.is-grouped .icon {
+  margin-bottom: 0.5em;
 }
 </style>
