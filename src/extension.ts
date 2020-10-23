@@ -84,6 +84,7 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import EspIdfCustomTerminal from "./espIdfCustomTerminal";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
+import { CMakeListsType } from "./cmake/cmakeListsBuilder";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1038,8 +1039,31 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("cmakeListsEditor.start", (fileUri: vscode.Uri) => {
-    CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
+  registerIDFCommand("cmakeListsEditor.start", async (fileUri: vscode.Uri) => {
+    if (!fileUri) {
+      return;
+    }
+    const selectType = await vscode.window.showQuickPick(
+      [
+        {
+          label: `Component CMakeLists.txt`,
+          target: CMakeListsType.Component,
+        },
+        {
+          label: `Project CMakeLists.txt`,
+          target: CMakeListsType.Project,
+        },
+      ],
+      { placeHolder: "Select CMakeLists.txt type" }
+    );
+    if (!selectType) {
+      return;
+    }
+    CmakeListsEditorPanel.createOrShow(
+      context.extensionPath,
+      fileUri,
+      selectType.target
+    );
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {

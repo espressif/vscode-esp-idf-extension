@@ -1,24 +1,21 @@
 <template>
-  <div id="cmake-editor">
+  <div class="section">
     <div class="control centerize">
       <h2 class="title is-spaced">{{ title }}</h2>
     </div>
-    <div class="notification">
-      <CMakeElem
-        v-for="elem in elements"
-        :key="elem.id"
-        :el.sync="elem"
-      ></CMakeElem>
-      <div class="field is-grouped" id="editor-btns">
-        <div class="control">
-          <button class="button" @click="saveChanges">{{ save }}</button>
-        </div>
-        <div class="control">
-          <button class="button" @click="requestInitValues">
-            {{ cancel }}
-          </button>
-        </div>
+
+    <div class="field is-grouped" id="editor-btns">
+      <div class="control">
+        <button class="button" @click="saveChanges">{{ save }}</button>
       </div>
+      <div class="control">
+        <button class="button" @click="requestInitValues">
+          {{ cancel }}
+        </button>
+      </div>
+    </div>
+    <div class="notification">
+      <CMakeElem v-for="elem in elements" :key="elem.id" :el="elem"></CMakeElem>
     </div>
   </div>
 </template>
@@ -61,12 +58,6 @@ export default class CMakeListsEditor extends Vue {
 
 <style lang="scss">
 @import "../commons/espCommons.scss";
-#cmake-editor {
-  padding: 1em;
-  color: var(--vscode-foreground);
-  background-color: var(--vscode-editor-background);
-  height: -webkit-fill-available;
-}
 .centerize {
   align-items: center;
   display: flex;

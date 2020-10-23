@@ -17,6 +17,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import {
+  CMakeListsType,
   loadCmakeListBuilder,
   updateCmakeListFile,
   updateWithValuesCMakeLists,
@@ -25,7 +26,11 @@ import {
 export class CmakeListsEditorPanel {
   public static currentPanel: CmakeListsEditorPanel | undefined;
 
-  public static createOrShow(extensionPath: string, fileUri: vscode.Uri) {
+  public static createOrShow(
+    extensionPath: string,
+    fileUri: vscode.Uri,
+    type: CMakeListsType
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
@@ -35,7 +40,8 @@ export class CmakeListsEditorPanel {
       CmakeListsEditorPanel.currentPanel = new CmakeListsEditorPanel(
         extensionPath,
         column,
-        fileUri
+        fileUri,
+        type
       );
     }
   }
@@ -47,7 +53,8 @@ export class CmakeListsEditorPanel {
   public constructor(
     extensionPath: string,
     column: vscode.ViewColumn,
-    fileUri: vscode.Uri
+    fileUri: vscode.Uri,
+    type: CMakeListsType
   ) {
     this.panel = vscode.window.createWebviewPanel(
       CmakeListsEditorPanel.viewType,
@@ -104,7 +111,10 @@ export class CmakeListsEditorPanel {
       switch (message.command) {
         case "loadCMakeListSchema":
           try {
-            let listWithValues = await loadCmakeListBuilder(extensionPath);
+            let listWithValues = await loadCmakeListBuilder(
+              extensionPath,
+              type
+            );
             listWithValues = await updateWithValuesCMakeLists(
               fileUri,
               listWithValues

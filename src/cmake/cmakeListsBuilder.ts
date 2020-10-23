@@ -18,7 +18,15 @@ import { Uri } from "vscode";
 import { CmakeListsElement } from "./CmakeListsElement";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 
-export async function loadCmakeListBuilder(extensionPath: string) {
+export enum CMakeListsType {
+  Component = "component",
+  Project = "project",
+}
+
+export async function loadCmakeListBuilder(
+  extensionPath: string,
+  type: CMakeListsType
+) {
   const cmakeListsSchemaFile = join(
     extensionPath,
     "src",
@@ -33,6 +41,8 @@ export async function loadCmakeListBuilder(extensionPath: string) {
 
   // Component and Project settings are loaded together
   // Should refactor if there is a way to identify component/project CmakeLists.txt
+  console.log(schemaJson[type]);
+  return schemaJson[type] as CmakeListsElement[];
   return [].concat(
     schemaJson.project as CmakeListsElement[],
     schemaJson.component as CmakeListsElement[]
@@ -85,7 +95,7 @@ export async function updateCmakeListFile(
       );
       componentValues.push(elStr + EOL + spaces);
     } else if (el.value && el.value.length > 0) {
-      otherValues.push(el.template.replace("***", el.value.join("")));
+      otherValues.push(el.template.replace("***", "".concat(...el.value)));
     }
   }
   let resultStr: string;

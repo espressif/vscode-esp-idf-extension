@@ -15,7 +15,12 @@
     </div>
     <div v-if="el.type === 'array'" class="field is-grouped">
       <div class="control">
-        <input type="text" v-model="elementValueToPush" class="input" />
+        <input
+          type="text is-small"
+          v-model="elementValueToPush"
+          class="input"
+          @keyup.enter="addToArray"
+        />
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
@@ -25,7 +30,7 @@
     </div>
     <div v-else class="field">
       <div class="control">
-        <input type="text" v-model="el.value" class="input" />
+        <input type="text is-small" v-model="el.value" class="input" />
       </div>
     </div>
   </div>
