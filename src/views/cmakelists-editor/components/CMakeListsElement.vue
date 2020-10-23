@@ -39,7 +39,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { State } from "vuex-class";
-import { CmakeListsElement } from "../../../cmake/CmakeListsElement";
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
 
 @Component
 export default class CMakeListElement extends Vue {

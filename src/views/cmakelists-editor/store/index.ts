@@ -15,7 +15,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import { ActionTree, MutationTree, StoreOptions } from "vuex";
-import { CmakeListsElement } from "../../../cmake/CmakeListsElement";
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
 Vue.use(Vuex);
 
 // tslint:disable-next-line: interface-name

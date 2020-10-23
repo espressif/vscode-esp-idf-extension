@@ -15,7 +15,7 @@
 import { EOL } from "os";
 import { join } from "path";
 import { Uri } from "vscode";
-import { CmakeListsElement } from "./CmakeListsElement";
+import { CmakeListsElement } from "./cmakeListsElement";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 
 export enum CMakeListsType {
