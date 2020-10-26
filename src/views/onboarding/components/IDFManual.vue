@@ -11,13 +11,14 @@
         />
       </div>
       <div class="control">
-        <font-awesome-icon
-          :icon="folderIcon"
-          class="open-icon"
-          @mouseover="folderIcon = 'folder-open'"
-          @mouseout="folderIcon = 'folder'"
-          v-on:click="openFolder"
-        />
+        <div class="icon is-large" style="text-decoration: none;">
+          <i
+            :class="folderIcon"
+            @mouseover="folderIcon = 'codicon codicon-folder-opened'"
+            @mouseout="folderIcon = 'codicon codicon-folder'"
+            v-on:click="openFolder"
+          ></i>
+        </div>
       </div>
     </div>
     <div class="field">
@@ -32,13 +33,16 @@
       class="field is-grouped"
       style="align-items: center;"
     >
-      <div class="control icon is-small">
-        <font-awesome-icon
-          icon="check"
-          v-if="doesIdfPathExist"
-          class="check-icon"
-        />
-        <font-awesome-icon icon="times" v-else class="check-icon" />
+      <div class="control">
+        <div class="icon is-small">
+          <i
+            :class="
+              doesIdfPathExist
+                ? 'codicon codicon-check'
+                : 'codicon codicon-close'
+            "
+          ></i>
+        </div>
       </div>
       <div class="control">
         <p>
@@ -67,7 +71,7 @@ import { Action, Mutation, State } from "vuex-class";
 
 @Component
 export default class IDFManual extends Vue {
-  public folderIcon = "folder";
+  public folderIcon = "codicon codicon-folder";
   @Action("openEspIdfFolder") private openFolder;
   @Action("checkIdfPath") private launchCheckPath;
   @Action("saveIdfPath") private saveIdfPath;
