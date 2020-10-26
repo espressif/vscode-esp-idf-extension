@@ -15,9 +15,10 @@
 import { PyReqLog } from "./PyReqLog";
 import { CancellationToken, OutputChannel } from "vscode";
 import * as utils from "./utils";
+import * as del from "del";
+import { constants, pathExists } from "fs-extra";
 import { EOL } from "os";
 import { Logger } from "./logger/logger";
-import * as del from "del";
 import path from "path";
 
 export async function installPythonEnv(
@@ -143,6 +144,14 @@ export async function installReqs(
   const requirements = path
     .join(espDir, "requirements.txt")
     .replace(/(\s+)/g, "\\$1");
+  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
+  if (!utils.canAccessFile(requirements, constants.R_OK)) {
+    Logger.warnNotify(requirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(requirements + reqDoesNotExists);
+    }
+    return;
+  }
   const modifiedEnv = Object.assign({}, process.env);
   modifiedEnv.IDF_PATH = espDir;
   await execProcessWithLog(
@@ -168,6 +177,7 @@ export async function installExtensionPyReqs(
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
+  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   const debugAdapterRequirements = path
     .join(
       utils.extensionContext.extensionPath,
@@ -175,9 +185,23 @@ export async function installExtensionPyReqs(
       "requirements.txt"
     )
     .replace(/(\s+)/g, "\\$1");
+  if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
+    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
+    }
+    return;
+  }
   const extensionRequirements = path
     .join(utils.extensionContext.extensionPath, "requirements.txt")
     .replace(/(\s+)/g, "\\$1");
+  if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
+    Logger.warnNotify(extensionRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(extensionRequirements + reqDoesNotExists);
+    }
+    return;
+  }
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {

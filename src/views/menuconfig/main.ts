@@ -11,25 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faCaretDown,
-  faCaretRight,
-  faInfoCircle,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import vuescroll from "vue-scroll";
 import VueTheMask from "vue-the-mask";
+// @ts-ignore
 import ConfigElement from "./components/configElement.vue";
+// @ts-ignore
 import SearchBar from "./components/SearchBar.vue";
+// @ts-ignore
 import SideNavItem from "./components/SideNavItem.vue";
+// @ts-ignore
 import Menuconfig from "./Menuconfig.vue";
 import { store } from "./store";
-
-library.add(faInfoCircle, faCaretDown, faCaretRight);
-Vue.component("font-awesome-icon", FontAwesomeIcon);
 Vue.component("config-el", ConfigElement);
 Vue.component("sidenav-el", SideNavItem);
 Vue.component("search-bar", SearchBar);
