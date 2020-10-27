@@ -23,7 +23,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Action, State } from "vuex-class";
-import { CmakeListsElement } from "../../cmake/CmakeListsElement";
+import { CmakeListsElement } from "../../cmake/cmakeListsElement";
 import CMakeElem from "./components/CMakeListsElement.vue";
 
 @Component({
