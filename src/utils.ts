@@ -245,7 +245,8 @@ export function execChildProcess(
   processStr: string,
   workingDirectory: string,
   channel?: vscode.OutputChannel,
-  opts?: childProcess.ExecOptions
+  opts?: childProcess.ExecOptions,
+  cancelToken?: vscode.CancellationToken
 ): Promise<string> {
   const execOpts: childProcess.ExecOptions = opts
     ? opts
@@ -258,6 +259,9 @@ export function execChildProcess(
       processStr,
       execOpts,
       (error: Error, stdout: string, stderr: string) => {
+        if (cancelToken && cancelToken.isCancellationRequested) {
+          return reject(new Error("Process cancelled by user"));
+        }
         if (channel) {
           let message: string = "";
           let err: boolean = false;
