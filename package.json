@@ -659,6 +659,7 @@
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
+        "category": "ESP-IDF",
         "title": "%espIdf.launchWSServerAndMonitor.title%"
       },
       {
@@ -725,6 +726,21 @@
                 "type": "object",
                 "description": "Environments variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
                 "default": null
+              },
+              "initGdbCommands": {
+                "type": "array",
+                "description": "%esp_idf.initGdbCommands.description%",
+                "items": {
+                  "type": "string",
+                  "description": "%esp_idf.debuggers.text.description%",
+                  "default": ""
+                },
+                "default": []
+              },
+              "gdbinitFile": {
+                "type": "string",
+                "description": "%esp_idf.gdbinitFile.description%",
+                "default": ""
               }
             }
           }
@@ -796,7 +812,7 @@
     "debugPreTask": "webpack --mode development",
     "compile": "tsc -p ./",
     "watch": "webpack --watch --mode development",
-    "test": "yarn run compile && node ./out/test/runTest.js",
+    "test": "tsc -p ./ && node ./out/test/runTest.js --VERBOSE 2>&1 >> testing.results.log",
     "package": "vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "gulp_clean": "gulp clean",
@@ -847,6 +863,7 @@
     "typescript": "^3.9.5",
     "typescript-tslint-plugin": "^0.3.1",
     "vsce": "^1.52.0",
+    "vscode-codicons": "^0.0.12",
     "vscode-nls-dev": "^3.3.1",
     "vscode-test": "^1.0.0",
     "vue-class-component": "^7.1.0",

@@ -1,15 +1,13 @@
 <template>
-  <div v-if="config.isVisible">
+  <div v-if="config.isVisible" :class="{ 'config-el': config.type !== 'menu' }">
     <div v-if="config.type === 'choice'" class="form-group">
       <div class="field">
         <div class="field has-addons">
           <label v-text="config.title" />
           <div class="control">
-            <font-awesome-icon
-              icon="info-circle"
-              class="info-icon"
-              @click="toggleHelp"
-            />
+            <div class="info-icon" @click="toggleHelp">
+              <i class="codicon codicon-info"></i>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -39,11 +37,9 @@
         <div class="field has-addons">
           <label :for="config.id" v-text="config.title" />
           <div class="control">
-            <font-awesome-icon
-              icon="info-circle"
-              class="info-icon"
-              @click="toggleHelp"
-            />
+            <div class="info-icon" @click="toggleHelp">
+              <i class="codicon codicon-info"></i>
+            </div>
           </div>
         </div>
       </div>
@@ -52,11 +48,9 @@
       <div class="field has-addons">
         <label v-text="config.title" />
         <div class="control">
-          <font-awesome-icon
-            icon="info-circle"
-            class="info-icon"
-            @click="toggleHelp"
-          />
+          <div class="info-icon" @click="toggleHelp">
+            <i class="codicon codicon-info"></i>
+          </div>
         </div>
       </div>
       <div class="field is-grouped">
@@ -74,11 +68,9 @@
     <div v-if="config.type === 'string'" class="form-group">
       <div class="field has-addons">
         <label v-text="config.title" />
-        <font-awesome-icon
-          icon="info-circle"
-          class="info-icon"
-          @click="toggleHelp"
-        />
+        <div class="info-icon" @click="toggleHelp">
+          <i class="codicon codicon-info"></i>
+        </div>
       </div>
       <div class="field is-grouped">
         <div class="control">
@@ -95,11 +87,9 @@
       <div class="field has-addons">
         <label v-text="config.title" />
         <div class="control">
-          <font-awesome-icon
-            icon="info-circle"
-            class="info-icon"
-            @click="toggleHelp"
-          />
+          <div class="info-icon" @click="toggleHelp">
+            <i class="codicon codicon-info"></i>
+          </div>
         </div>
       </div>
       <div class="field is-grouped">
@@ -139,11 +129,9 @@
         <div class="field has-addons">
           <label :for="config.id" v-text="config.title" />
           <div class="control">
-            <font-awesome-icon
-              icon="info-circle"
-              class="info-icon"
-              @click="toggleHelp"
-            />
+            <div class="info-icon" @click="toggleHelp">
+              <i class="codicon codicon-info"></i>
+            </div>
           </div>
         </div>
       </div>
@@ -194,6 +182,9 @@ export default class ConfigElement extends Vue {
   overflow: hidden;
   margin-bottom: 0.5em;
 }
+.config-el:hover {
+  background-color: var(--vscode-notifications-background);
+}
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -205,6 +196,10 @@ input[type="number"]::-webkit-inner-spin-button {
   overflow: hidden;
   transition: max-height 0.2s ease-out;
   margin: 10px;
+}
+.input,
+.select {
+  border-color: var(--vscode-input-background);
 }
 .switch_box {
   display: -webkit-box;

@@ -47,7 +47,7 @@ export class FlashTask {
   }
 
   private verifyArgs() {
-    if (!canAccessFile(this.flashScriptPath)) {
+    if (!canAccessFile(this.flashScriptPath, constants.R_OK)) {
       throw new Error("SCRIPT_PERMISSION_ERROR");
     }
     for (const flashFile of this.model.flashSections) {
