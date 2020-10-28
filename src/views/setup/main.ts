@@ -24,7 +24,6 @@ import Home from "./Home.vue";
 import Install from "./Install.vue";
 // @ts-ignore
 import Status from "./Status.vue";
-import "../commons/espCommons.scss";
 
 const routes = [
   { path: "/", component: Home },

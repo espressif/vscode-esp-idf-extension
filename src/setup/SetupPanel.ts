@@ -97,14 +97,6 @@ export class SetupPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
-          vscode.Uri.file(
-            path.join(
-              this.extensionPath,
-              "node_modules",
-              "vscode-codicons",
-              "dist"
-            )
-          ),
         ],
       }
     );
