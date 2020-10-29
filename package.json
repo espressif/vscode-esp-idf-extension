@@ -809,10 +809,6 @@
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^5.9.0",
-    "@fortawesome/fontawesome-svg-core": "^1.2.21",
-    "@fortawesome/free-solid-svg-icons": "^5.10.1",
-    "@fortawesome/vue-fontawesome": "^0.1.6",
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
@@ -841,6 +837,7 @@
     "prettier": "2.0.2",
     "pretty-quick": "^2.0.1",
     "reflect-metadata": "^0.1.13",
+    "resolve-url-loader": "^3.1.2",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^7.0.5",

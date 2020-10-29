@@ -25,7 +25,10 @@
           >Select directory to download and install ESP-IDF. <br />(Result
           directory will be {{ resultingIdfPath }})</label
         >
-        <div class="field has-addons has-addons-centered">
+        <div
+          class="field has-addons has-addons-centered"
+          style="align-items: center;"
+        >
           <div class="control is-expanded">
             <input type="text" class="input" v-model="idfDownloadPath" />
           </div>
@@ -33,13 +36,14 @@
             <a class="button is-static"> {{ pathSep }}esp-idf </a>
           </p>
           <div class="control">
-            <font-awesome-icon
-              :icon="folderIcon"
-              class="open-icon"
-              @mouseover="folderIcon = 'folder-open'"
-              @mouseout="folderIcon = 'folder'"
-              v-on:click="openFolder"
-            />
+            <div class="icon is-large">
+              <i
+                :class="folderIcon"
+                @mouseover="folderIcon = 'codicon codicon-folder-opened'"
+                @mouseout="folderIcon = 'codicon codicon-folder'"
+                v-on:click="openFolder"
+              ></i>
+            </div>
           </div>
         </div>
         <div class="field centerize">
@@ -71,7 +75,7 @@ import IDFManual from "./components/IDFManual.vue";
 })
 export default class Download extends Vue {
   public msge: string = "Configure ESP-IDF";
-  public folderIcon = "folder";
+  public folderIcon = "codicon codicon-folder";
   @State("idfDownloadPath") private storeIdfDownloadPath: string;
   @State("idfVersionList") private storeIdfVersionList: IEspIdfLink[];
   @State("selectedIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
