@@ -2,7 +2,6 @@
   "espIdf.createFiles.title": "ESP-IDF: Create project",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Add Arduino ESP32 as ESP-IDF Component",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Open ESP-IDF Terminal",
-  "espIdf.createCustomIdfTerminal.title": "ESP-IDF: Open ESP-IDF Custom Terminal",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Add vscode configuration folder",
   "espIdf.setPath.title": "ESP-IDF: Configure Paths",
   "espIdf.selectConfTarget.title": "ESP-IDF: Select where to save configuration settings",

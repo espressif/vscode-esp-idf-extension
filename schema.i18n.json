@@ -72,7 +72,6 @@
     "espIdf.createVsCodeFolder.title",
     "espIdf.setPath.title",
     "espIdf.createIdfTerminal.title",
-    "espIdf.createCustomIdfTerminal.title",
     "espIdf.selectConfTarget.title",
     "espIdf.setTarget.title",
     "espIdf.configDevice.title",

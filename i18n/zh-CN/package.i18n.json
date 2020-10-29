@@ -2,7 +2,6 @@
   "espIdf.createFiles.title": "ESP-IDF: 新建项目",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: 添加ArduinoESP32作为ESP-IDF组件",
   "espIdf.createIdfTerminal.title": "ESP-IDF: 打开ESP-IDF终端",
-  "espIdf.createCustomIdfTerminal.title": "ESP-IDF: 打开ESP-IDF自定义终端",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
   "espIdf.setPath.title": "ESP-IDF：配置路径",
   "espIdf.selectConfTarget.title": "ESP-IDF：选择保存配置设置的位置",

@@ -791,7 +791,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
-  registerIDFCommand("espIdf.createCustomIdfTerminal", createIdfCustomTerminal);
 
   registerIDFCommand("espIdf.flashDevice", flash);
   registerIDFCommand("espIdf.buildDevice", build);
@@ -1932,22 +1931,6 @@ function createIdfTerminal() {
     });
     espIdfTerminal.show();
     overrideVscodeTerminalWithIdfEnv(espIdfTerminal, modifiedEnv);
-  });
-}
-
-function createIdfCustomTerminal() {
-  PreCheck.perform([webIdeCheck, openFolderCheck], () => {
-    const modifiedEnv = utils.appendIdfAndToolsToPath();
-    const espCustomTerminal = new EspIdfCustomTerminal("", undefined, {
-      env: modifiedEnv,
-      cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
-      shell: vscode.env.shell,
-    });
-    const espCustomIdfTerminal = vscode.window.createTerminal({
-      name: "ESP-IDF Terminal",
-      pty: espCustomTerminal,
-    });
-    espCustomIdfTerminal.show();
   });
 }
 
