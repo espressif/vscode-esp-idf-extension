@@ -23,10 +23,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@interactjs/types@1.9.19":
-  version "1.9.19"
-  resolved "https://registry.yarnpkg.com/@interactjs/types/-/types-1.9.19.tgz#f096eb395ca190995c083497c755b65be0a88677"
-  integrity sha512-PcaY5MmQTH5eiI525d57eB+/OH6V7utU5FfkbjfvYdFV2dE8NXjYlKiXOy7G0/Y08PyXPhge60TFaYOMYqmIUQ==
+"@interactjs/types@1.9.22":
+  version "1.9.22"
+  resolved "https://registry.yarnpkg.com/@interactjs/types/-/types-1.9.22.tgz#1504d3170b062555b03ee8eb954ae653b7f614e2"
+  integrity sha512-GMMMCYE+FPrKCOOOqQ/ImpqLyinb6e8psw9MR9ymTJxnkmJMKrY/GDC/187PVxpWdtSqW+GibkeRfUCOv6vFjg==
 
 "@types/follow-redirects@^1.8.0":
   version "1.13.0"
@@ -4766,7 +4766,7 @@ postcss@7.0.21:
     source-map "^0.6.1"
     supports-color "^6.1.0"
 
-postcss@^7.0.14, postcss@^7.0.16, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
+postcss@^7.0.14, postcss@^7.0.32, postcss@^7.0.5, postcss@^7.0.6:
   version "7.0.32"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-7.0.32.tgz#4310d6ee347053da3433db2be492883d62cec59d"
   integrity sha512-03eXong5NLnNCD05xscnGKGDZ98CyzoqPSMjOe6SuoQY7Z2hIj0Ld1g/O/UQRuOle2aRtiIRDg9tDcTGAkLfKw==
