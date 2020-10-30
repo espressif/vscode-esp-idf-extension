@@ -36,6 +36,10 @@ export default class App extends Vue {
   flex-direction: column;
 }
 
+.control .icon .codicon {
+  font-size: x-large;
+}
+
 .arrow {
   position: relative;
   display: inline-block;
@@ -51,12 +55,6 @@ export default class App extends Vue {
 
 .arrow:hover {
   color: var(--vscode-button-background);
-}
-
-.check-icon {
-  fill: var(--vscode-editor-foreground);
-  padding-top: 5%;
-  font-size: large;
 }
 
 .go-back {
@@ -81,16 +79,6 @@ export default class App extends Vue {
   transform-origin: right top;
 }
 
-.open-icon {
-  color: var(--vscode-button-background);
-  margin: 0.5em 0 0 0.5em;
-  cursor: pointer;
-  font-size: larger;
-}
-.open-icon:hover {
-  color: var(--vscode-button-hoverBackground);
-}
-
 .progressBar div {
   background-color: var(--vscode-button-background);
   height: 10px;
@@ -104,6 +92,7 @@ export default class App extends Vue {
 
 .text-size {
   width: 80%;
+  align-items: center;
 }
 
 .fade-enter-active,
