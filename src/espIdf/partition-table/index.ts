@@ -29,7 +29,6 @@ import { ESP } from "../../config";
 import { readFileSync } from "../../utils";
 import { writeFile } from "fs-extra";
 import { Logger } from "../../logger/logger";
-import { file } from "tmp";
 
 export class PartitionTableEditorPanel {
   private static instance: PartitionTableEditorPanel;
@@ -64,7 +63,6 @@ export class PartitionTableEditorPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [Uri.file(join(extensionPath, "dist", "views"))],
         enableCommandUris: true,
-        enableFindWidget: true,
       }
     );
     PartitionTableEditorPanel.instance = new PartitionTableEditorPanel(
