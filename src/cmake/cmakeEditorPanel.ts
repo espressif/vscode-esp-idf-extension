@@ -82,22 +82,7 @@ export class CmakeListsEditorPanel {
       )
     );
 
-    const codiconsUri = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        join(
-          extensionPath,
-          "node_modules",
-          "vscode-codicons",
-          "dist",
-          "codicon.css"
-        )
-      )
-    );
-
-    this.panel.webview.html = this.createCmakeListEditorHtml(
-      scriptsPath,
-      codiconsUri
-    );
+    this.panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
 
     this.panel.onDidDispose(
       () => {
@@ -147,17 +132,13 @@ export class CmakeListsEditorPanel {
     this.panel.dispose();
   }
 
-  private createCmakeListEditorHtml(
-    scriptPath: vscode.Uri,
-    codiconsUri: vscode.Uri
-  ): string {
+  private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>CMakeLists.txt Editor</title>
-            <link href="${codiconsUri}" rel="stylesheet" />
             </head>
             <body>
                 <div id="editor"></div>

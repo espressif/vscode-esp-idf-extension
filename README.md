@@ -280,9 +280,13 @@ We have provide a [system view tracing viewer](./docs/SYS_VIEW_TRACING_VIEWER.md
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide syntax highlighting. If `idf.useIDFKconfigStyle` is enabled, we also provide ESP-IDF Kconfig style syntax validation such as indent validation and not closing blocks found (Example: menu-endmenu). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
 
+# CMake Editor
+
+On CMakeLists.txt file right click this extension provides a custom CMake Editor to fill our ESP-IDF Project and Component registration as specified in [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file) and [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files). You need to choose which kind of CMakeLists.txt file (project or component) to edit. There is 2 types of input, one is a simple string and another is an array of strings, such as Component Sources (SRCS). All inputs are described in the CMakeLists.txt Schema (\${this_repository}/src/cmake/cmakeListsSchema.json).
+
 ## ESP Rainmaker Support
 
-We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](/docs/ESP_RAINMAKER.md) for more info
+We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](/docs/ESP_RAINMAKER.md) for more info.
 
 ## Forum
 

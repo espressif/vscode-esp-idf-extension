@@ -15,7 +15,6 @@ import Vue from "vue";
 // @ts-ignore
 import CMakeListsEditor from "./CmakeListsEditor.vue";
 import { store } from "./store";
-import "../commons/espCommons.scss";
 
 // tslint:disable-next-line: no-unused-expression
 const app = new Vue({

@@ -41,12 +41,7 @@ export async function loadCmakeListBuilder(
 
   // Component and Project settings are loaded together
   // Should refactor if there is a way to identify component/project CmakeLists.txt
-  console.log(schemaJson[type]);
   return schemaJson[type] as CmakeListsElement[];
-  return [].concat(
-    schemaJson.project as CmakeListsElement[],
-    schemaJson.component as CmakeListsElement[]
-  ) as CmakeListsElement[];
 }
 
 export async function updateWithValuesCMakeLists(
