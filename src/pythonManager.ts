@@ -338,7 +338,7 @@ export async function getPythonBinList(workingDir: string) {
 export async function getUnixPythonList(workingDir: string) {
   try {
     const pyVersionsStr = await utils.execChildProcess(
-      "which -a python python3",
+      "which -a python; which -a python3",
       workingDir
     );
     if (pyVersionsStr) {
