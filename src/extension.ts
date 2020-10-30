@@ -1934,10 +1934,7 @@ function createIdfTerminal() {
   });
 }
 
-function overrideVscodeTerminalWithIdfEnv(
-  terminal: vscode.Terminal,
-  modifiedEnv: NodeJS.ProcessEnv
-) {
+function getTxtCmd(variable: string, modifiedEnv) {
   const shellExecutable = path.basename(vscode.env.shell);
   let winShellCmd = {
     "cmd.exe": `set "VARIABLE=`,
@@ -1945,37 +1942,22 @@ function overrideVscodeTerminalWithIdfEnv(
   };
   const pathSetCmd =
     process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_PATH")
-      : `export IDF_PATH="`;
-  terminal.sendText(`${pathSetCmd}${modifiedEnv.IDF_PATH}"`);
+      ? winShellCmd[shellExecutable].replace("VARIABLE", variable)
+      : `export ${variable}="${modifiedEnv[variable]}"`;
+  return pathSetCmd;
+}
 
-  const setPythonEnvCmd =
-    process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", "Path")
-      : `export PATH="`;
-  terminal.sendText(
-    `${setPythonEnvCmd}${path.dirname(modifiedEnv.PYTHON) + path.delimiter}${
-      process.platform === "win32" ? modifiedEnv.Path : modifiedEnv.PATH
-    }"`
-  );
+function overrideVscodeTerminalWithIdfEnv(
+  terminal: vscode.Terminal,
+  modifiedEnv: NodeJS.ProcessEnv
+) {
+  terminal.sendText(`${getTxtCmd("IDF_PATH", modifiedEnv)}`);
 
-  const idfTargetSetCmd =
-    process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_TARGET")
-      : `export IDF_TARGET="`;
-  terminal.sendText(`${idfTargetSetCmd}${modifiedEnv.IDF_TARGET}"`);
-
-  const pythonSetCmd =
-    process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", "PYTHON")
-      : `export PYTHON="`;
-  terminal.sendText(`${pythonSetCmd}${modifiedEnv.PYTHON}"`);
-
-  const pythonVenvSetCmd =
-    process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", "IDF_PYTHON_ENV_PATH")
-      : `export IDF_PYTHON_ENV_PATH="`;
-  terminal.sendText(`${pythonVenvSetCmd}${modifiedEnv.IDF_PYTHON_ENV_PATH}"`);
+  const pathVar = process.platform === "win32" ? "Path" : "PATH";
+  terminal.sendText(`${getTxtCmd(pathVar, modifiedEnv)}`);
+  terminal.sendText(`${getTxtCmd("IDF_TARGET", modifiedEnv)}`);
+  terminal.sendText(`${getTxtCmd("PYTHON", modifiedEnv)}`);
+  terminal.sendText(`${getTxtCmd("IDF_PYTHON_ENV_PATH", modifiedEnv)}`);
 
   const clearCmd = process.platform === "win32" ? "cls" : "clear";
   terminal.sendText(clearCmd);
