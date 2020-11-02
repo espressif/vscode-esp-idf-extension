@@ -105,6 +105,28 @@ export async function updateCmakeListFile(
   } else {
     resultStr = otherValues.join(EOL).concat(EOL);
   }
+  const comments = await getExistingComments(fileUri);
+  resultStr = comments ? comments + resultStr : resultStr;
   await writeFile(fileUri.fsPath, resultStr);
   return resultStr;
+}
+
+export async function getExistingComments(fileUri: Uri) {
+  const fileString = await readFile(fileUri.fsPath, "utf-8");
+  const singleLineMatches = fileString.match(/^#.*/gm);
+  const multiLineMatches = fileString.match(/^#\[\[[\w\W]+?\]\]$/gm);
+  let resultStr: string = "";
+  if (multiLineMatches && multiLineMatches.length) {
+    for (let multiLineMatch of multiLineMatches) {
+      resultStr = resultStr + EOL + multiLineMatch;
+    }
+  }
+  if (singleLineMatches && singleLineMatches.length) {
+    for (let singleLineMatch of singleLineMatches) {
+      if (resultStr.indexOf(singleLineMatch) === -1) {
+        resultStr = resultStr + EOL + singleLineMatch;
+      }
+    }
+  }
+  return resultStr.concat(EOL);
 }

@@ -93,15 +93,6 @@
   ],
   "project": [
     {
-      "isEnabled": false,
-      "regex": "(?:project\\()(.*)(?:\\))",
-      "template": "project(***)",
-      "title": "Project Name",
-      "type": "string",
-      "value": "",
-      "isComponentElement": false
-    },
-    {
       "default": "VERSION 3.5",
       "isEnabled": false,
       "regex": "(?:cmake_minimum_required\\()(.*)(?:\\))",
@@ -118,6 +109,15 @@
       "type": "string",
       "title": "Include ESP-IDF CMake",
       "value": "$ENV{IDF_PATH}/tools/cmake/project.cmake",
+      "isComponentElement": false
+    },
+    {
+      "isEnabled": false,
+      "regex": "(?:project\\()(.*)(?:\\))",
+      "template": "project(***)",
+      "title": "Project Name",
+      "type": "string",
+      "value": "",
       "isComponentElement": false
     },
     {
