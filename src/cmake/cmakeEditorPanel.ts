@@ -60,14 +60,6 @@ export class CmakeListsEditorPanel {
     }
   }
 
-  public static deletePanel(filePath: string) {
-    const fileWebview = Array.from(this.cmakeListsPanels.get(filePath));
-    if (!fileWebview.length) {
-      return;
-    }
-    this.cmakeListsPanels.delete(filePath);
-  }
-
   private static readonly viewType = "cmakelists-editor";
   private disposables: vscode.Disposable[] = [];
 
@@ -105,26 +97,32 @@ export class CmakeListsEditorPanel {
 
     panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
 
-    panel.onDidDispose(() => {}, null, this.disposables);
+    const cmakeListsWatcher = vscode.workspace.createFileSystemWatcher(
+      fileUri.fsPath,
+      true,
+      false,
+      false
+    );
+    cmakeListsWatcher.onDidDelete((e) => {
+      panel.dispose();
+    });
+    cmakeListsWatcher.onDidChange(async (e) => {
+      await this.loadCMakeListsFile(extensionPath, type, fileUri, panel);
+    });
+
+    panel.onDidDispose(
+      () => {
+        cmakeListsWatcher.dispose();
+      },
+      null,
+      this.disposables
+    );
 
     panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "loadCMakeListSchema":
           try {
-            let listWithValues = await loadCmakeListBuilder(
-              extensionPath,
-              type
-            );
-            listWithValues = await updateWithValuesCMakeLists(
-              fileUri,
-              listWithValues
-            );
-            if (listWithValues) {
-              panel.webview.postMessage({
-                command: "loadElements",
-                elements: listWithValues,
-              });
-            }
+            await this.loadCMakeListsFile(extensionPath, type, fileUri, panel);
             panel.webview.postMessage({
               command: "setFileName",
               fileName: fileUri.fsPath,
@@ -160,5 +158,21 @@ export class CmakeListsEditorPanel {
             </body>
             <script src="${scriptPath}"></script>
         </html>`;
+  }
+
+  private async loadCMakeListsFile(
+    extensionPath: string,
+    type: CMakeListsType,
+    fileUri: vscode.Uri,
+    panel: vscode.WebviewPanel
+  ) {
+    let listWithValues = await loadCmakeListBuilder(extensionPath, type);
+    listWithValues = await updateWithValuesCMakeLists(fileUri, listWithValues);
+    if (listWithValues) {
+      panel.webview.postMessage({
+        command: "loadElements",
+        elements: listWithValues,
+      });
+    }
   }
 }

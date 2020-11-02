@@ -211,7 +211,6 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
     }
-    CmakeListsEditorPanel.deletePanel(e.fsPath);
   });
   context.subscriptions.push(srcWatchDeleteDisposable);
   const srcWatchCreateDisposable = newSrcWatcher.onDidCreate(async (e) => {
@@ -234,7 +233,6 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
     }
-    CmakeListsEditorPanel.deletePanel(e.fsPath);
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
