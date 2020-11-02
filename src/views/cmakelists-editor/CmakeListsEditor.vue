@@ -2,6 +2,7 @@
   <div class="section">
     <div class="control centerize">
       <h2 class="title is-spaced">{{ title }}</h2>
+      <h4 class="subtitle is-spaced">{{ fileName }}</h4>
     </div>
 
     <div class="field is-grouped" id="editor-btns">
@@ -33,12 +34,16 @@ import CMakeElem from "./components/CMakeListsElement.vue";
 })
 export default class CMakeListsEditor extends Vue {
   @State("elements") private storeElements: CmakeListsElement[];
+  @State("fileName") private storeFileName: string;
   @State("textDictionary") private storeTextDictionary;
   @Action private requestInitValues;
   @Action private saveChanges;
 
   get elements() {
     return this.storeElements;
+  }
+  get fileName() {
+    return this.storeFileName;
   }
   get save() {
     return this.storeTextDictionary.save;

@@ -37,6 +37,11 @@ window.addEventListener("message", (event) => {
         store.commit("loadCmakeListsElements", message.elements);
       }
       break;
+    case "setFileName":
+      if (message.fileName) {
+        store.commit("setFileName", message.fileName);
+      }
+      break;
     default:
       break;
   }

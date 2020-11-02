@@ -211,6 +211,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.delete);
     }
+    CmakeListsEditorPanel.deletePanel(e.fsPath);
   });
   context.subscriptions.push(srcWatchDeleteDisposable);
   const srcWatchCreateDisposable = newSrcWatcher.onDidCreate(async (e) => {
@@ -233,6 +234,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
     }
+    CmakeListsEditorPanel.deletePanel(e.fsPath);
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
@@ -1041,29 +1043,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("cmakeListsEditor.start", async (fileUri: vscode.Uri) => {
     if (!fileUri) {
+      Logger.errorNotify(
+        "Cannot call this command directly, right click on any CMakeLists.txt file!",
+        new Error("INVALID_COMMAND")
+      );
       return;
     }
-    const selectType = await vscode.window.showQuickPick(
-      [
-        {
-          label: `Component CMakeLists.txt`,
-          target: CMakeListsType.Component,
-        },
-        {
-          label: `Project CMakeLists.txt`,
-          target: CMakeListsType.Project,
-        },
-      ],
-      { placeHolder: "Select CMakeLists.txt type" }
-    );
-    if (!selectType) {
-      return;
-    }
-    CmakeListsEditorPanel.createOrShow(
-      context.extensionPath,
-      fileUri,
-      selectType.target
-    );
+    PreCheck.perform([openFolderCheck], async () => {
+      await CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
+    });
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {

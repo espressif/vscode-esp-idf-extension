@@ -22,32 +22,53 @@ import {
   updateCmakeListFile,
   updateWithValuesCMakeLists,
 } from "./cmakeListsBuilder";
+import CMakeListsWebviewCollection from "./cmakeFilesCollection";
 
 export class CmakeListsEditorPanel {
-  public static currentPanel: CmakeListsEditorPanel | undefined;
+  public static cmakeListsPanels: CMakeListsWebviewCollection = new CMakeListsWebviewCollection();
 
-  public static createOrShow(
-    extensionPath: string,
-    fileUri: vscode.Uri,
-    type: CMakeListsType
-  ) {
+  public static async createOrShow(extensionPath: string, fileUri: vscode.Uri) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
-    if (CmakeListsEditorPanel.currentPanel) {
-      CmakeListsEditorPanel.currentPanel.panel.reveal(column);
+    const fileWebview = Array.from(this.cmakeListsPanels.get(fileUri.fsPath));
+    if (fileWebview.length > 0) {
+      fileWebview[0].reveal(column);
     } else {
-      CmakeListsEditorPanel.currentPanel = new CmakeListsEditorPanel(
+      const selectType = await vscode.window.showQuickPick(
+        [
+          {
+            label: `Component CMakeLists.txt`,
+            target: CMakeListsType.Component,
+          },
+          {
+            label: `Project CMakeLists.txt`,
+            target: CMakeListsType.Project,
+          },
+        ],
+        { placeHolder: "Select CMakeLists.txt type" }
+      );
+      if (!selectType) {
+        return;
+      }
+      new CmakeListsEditorPanel(
         extensionPath,
         column,
         fileUri,
-        type
+        selectType.target
       );
     }
   }
 
+  public static deletePanel(filePath: string) {
+    const fileWebview = Array.from(this.cmakeListsPanels.get(filePath));
+    if (!fileWebview.length) {
+      return;
+    }
+    this.cmakeListsPanels.delete(filePath);
+  }
+
   private static readonly viewType = "cmakelists-editor";
-  private panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
 
   public constructor(
@@ -56,7 +77,7 @@ export class CmakeListsEditorPanel {
     fileUri: vscode.Uri,
     type: CMakeListsType
   ) {
-    this.panel = vscode.window.createWebviewPanel(
+    const panel = vscode.window.createWebviewPanel(
       CmakeListsEditorPanel.viewType,
       "CMakeLists.txt Editor",
       column,
@@ -72,27 +93,21 @@ export class CmakeListsEditorPanel {
       }
     );
 
-    this.panel.iconPath = vscode.Uri.file(
+    panel.iconPath = vscode.Uri.file(
       join(extensionPath, "media", "espressif_icon.png")
     );
 
-    const scriptsPath = this.panel.webview.asWebviewUri(
+    const scriptsPath = panel.webview.asWebviewUri(
       vscode.Uri.file(
         join(extensionPath, "dist", "views", "cmakelistsEditor-bundle.js")
       )
     );
 
-    this.panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
+    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
 
-    this.panel.onDidDispose(
-      () => {
-        this.dispose();
-      },
-      null,
-      this.disposables
-    );
+    panel.onDidDispose(() => {}, null, this.disposables);
 
-    this.panel.webview.onDidReceiveMessage(async (message) => {
+    panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "loadCMakeListSchema":
           try {
@@ -105,11 +120,15 @@ export class CmakeListsEditorPanel {
               listWithValues
             );
             if (listWithValues) {
-              this.panel.webview.postMessage({
+              panel.webview.postMessage({
                 command: "loadElements",
                 elements: listWithValues,
               });
             }
+            panel.webview.postMessage({
+              command: "setFileName",
+              fileName: fileUri.fsPath,
+            });
           } catch (error) {
             Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error);
           }
@@ -125,11 +144,7 @@ export class CmakeListsEditorPanel {
           break;
       }
     });
-  }
-
-  private dispose() {
-    CmakeListsEditorPanel.currentPanel = undefined;
-    this.panel.dispose();
+    CmakeListsEditorPanel.cmakeListsPanels.add(fileUri.fsPath, panel);
   }
 
   private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
