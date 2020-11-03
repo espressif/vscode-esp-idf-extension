@@ -1934,7 +1934,7 @@ function createIdfTerminal() {
   });
 }
 
-function getTxtCmd(variable: string, modifiedEnv) {
+function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
   const shellExecutable = path.basename(vscode.env.shell);
   let winShellCmd = {
     "cmd.exe": `set "VARIABLE=`,
@@ -1949,16 +1949,19 @@ function getTxtCmd(variable: string, modifiedEnv) {
 
 function overrideVscodeTerminalWithIdfEnv(
   terminal: vscode.Terminal,
-  modifiedEnv: NodeJS.ProcessEnv
+  modifiedEnv: { [key: string]: string }
 ) {
-  terminal.sendText(`${getTxtCmd("IDF_PATH", modifiedEnv)}`);
-
   const pathVar = process.platform === "win32" ? "Path" : "PATH";
-  terminal.sendText(`${getTxtCmd(pathVar, modifiedEnv)}`);
-  terminal.sendText(`${getTxtCmd("IDF_TARGET", modifiedEnv)}`);
-  terminal.sendText(`${getTxtCmd("PYTHON", modifiedEnv)}`);
-  terminal.sendText(`${getTxtCmd("IDF_PYTHON_ENV_PATH", modifiedEnv)}`);
-
+  const envVars = [
+    pathVar,
+    "IDF_PATH",
+    "IDF_TARGET",
+    "PYTHON",
+    "IDF_PYTHON_ENV_PATH",
+  ];
+  for (const envVar of envVars) {
+    terminal.sendText(`${getTxtCmd(envVar, modifiedEnv)}`);
+  }
   const clearCmd = process.platform === "win32" ? "cls" : "clear";
   terminal.sendText(clearCmd);
 }
