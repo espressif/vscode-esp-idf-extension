@@ -17,7 +17,8 @@
   "extension.enterIdfToolsPathMessage": "请输入 IDF_TOOLS_PATH 路径",
   "extension.enterDevicePortMessage": "请输入设备端口路径",
   "extension.enterDeviceTargetMessage": "输入要使用的 Espressif 设备",
-  "extension.enterDeviceBaudRateMessage": "请输入设备波特率",
+  "extension.enterFlashBaudRateMessage": "输入闪存波特率",
+  "extension.enterMonitorBaudRateMessage": "输入监视器波特率",
   "extension.cmdNotWebIDE": "所选命令在WebIDE中不可用",
   "extension.enterOpenOcdConfigMessage": "在OpenOCD脚本目录中输入配置文件列表",
   "extension.enterCustomPathsMessage": "请输入额外添加到 PATH 环境变量中的路径"

@@ -332,10 +332,16 @@
             "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
-          "idf.baudRate": {
+          "idf.flashBaudRate": {
             "type": "string",
-            "default": "115200",
-            "description": "%param.baudRate%",
+            "default": "460800",
+            "description": "%param.flashBaudRate%",
+            "scope": "resource"
+          },
+          "idf.monitorBaudRate": {
+            "type": "string",
+            "default": "460800",
+            "description": "%param.monitorBaudRate%",
             "scope": "resource"
           },
           "idf.openOcdConfigs": {

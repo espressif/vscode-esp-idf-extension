@@ -169,10 +169,11 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting        | Description                  |
-| -------------- | ---------------------------- |
-| `idf.port`     | Path of selected device port |
-| `idf.baudRate` | Device Baud rate             |
+| Setting               | Description                  |
+| --------------------- | ---------------------------- |
+| `idf.port`            | Path of selected device port |
+| `idf.flashBaudRate`   | Flash Baud rate              |
+| `idf.monitorBaudRate` | Monitor Baud rate            |
 
 ### Log Tracing Specific Settings
 

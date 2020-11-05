@@ -581,9 +581,14 @@ export async function activate(context: vscode.ExtensionContext) {
             target: "devicePort",
           },
           {
-            description: "Baud rate of device",
-            label: "Baud Rate",
-            target: "baudRate",
+            description: "Flash baud rate of device",
+            label: "Flash Baud Rate",
+            target: "flashBaudRate",
+          },
+          {
+            description: "Monitor baud rate of device",
+            label: "Monitor Baud Rate",
+            target: "monitorBaudRate",
           },
           {
             description:
@@ -620,12 +625,19 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           paramName = "idf.port";
           break;
-        case "baudRate":
+        case "flashBaudRate":
           msg = locDic.localize(
-            "extension.enterDeviceBaudRateMessage",
-            "Enter device baud rate"
+            "extension.enterFlashBaudRateMessage",
+            "Enter flash baud rate"
           );
-          paramName = "idf.baudRate";
+          paramName = "idf.flashBaudRate";
+          break;
+        case "monitorBaudRate":
+          msg = locDic.localize(
+            "extension.enterMonitorBaudRateMessage",
+            "Enter monitor baud rate"
+          );
+          paramName = "idf.monitorBaudRate";
           break;
         case "openOcdConfig":
           msg = locDic.localize(
@@ -1386,7 +1398,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
     const port = idfConf.readParameter("idf.port") as string;
-    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    const baudRate = idfConf.readParameter("idf.monitorBaudRate") as string;
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
@@ -1714,7 +1726,7 @@ const flash = () => {
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
-    const baudRate = idfConf.readParameter("idf.baudRate");
+    const baudRate = idfConf.readParameter("idf.flashBaudRate");
 
     const buildPath = path.join(workspaceRoot.fsPath, "build");
 
@@ -1847,7 +1859,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
-    const baudRate = idfConf.readParameter("idf.baudRate");
+    const baudRate = idfConf.readParameter("idf.flashBaudRate");
     if (!port) {
       try {
         await vscode.commands.executeCommand("espIdf.selectPort");
@@ -1981,6 +1993,7 @@ function createMonitor(): any {
       idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     const port = idfConf.readParameter("idf.port");
+    const baudRate = idfConf.readParameter("idf.monitorBaudRate") as string;
     const idfPath = path.join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = utils.appendIdfAndToolsToPath();
     if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)) {
