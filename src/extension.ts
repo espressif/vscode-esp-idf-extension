@@ -1043,7 +1043,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!fileUri) {
       Logger.errorNotify(
         "Cannot call this command directly, right click on any CMakeLists.txt file!",
-        new Error("INVALID_COMMAND")
+        new Error("INVALID_INVOCATION")
       );
       return;
     }

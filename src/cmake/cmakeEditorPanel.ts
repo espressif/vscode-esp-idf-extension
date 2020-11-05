@@ -10,7 +10,6 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-
 // limitations under the License.
 
 import { join } from "path";
@@ -95,7 +94,13 @@ export class CmakeListsEditorPanel {
       )
     );
 
-    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
+    const fontsPath = panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
+      )
+    );
+
+    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath, fontsPath);
 
     const cmakeListsWatcher = vscode.workspace.createFileSystemWatcher(
       fileUri.fsPath,
@@ -145,7 +150,10 @@ export class CmakeListsEditorPanel {
     CmakeListsEditorPanel.cmakeListsPanels.add(fileUri.fsPath, panel);
   }
 
-  private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
+  private createCmakeListEditorHtml(
+    scriptPath: vscode.Uri,
+    fontsUri: vscode.Uri
+  ): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -154,7 +162,13 @@ export class CmakeListsEditorPanel {
             <title>CMakeLists.txt Editor</title>
             </head>
             <body>
-                <div id="editor"></div>
+              <style>
+              @font-face {
+                  font-family: "codicon";
+                  src: url('${fontsUri}') format('truetype');
+              }
+              </style>
+              <div id="editor"></div>
             </body>
             <script src="${scriptPath}"></script>
         </html>`;
