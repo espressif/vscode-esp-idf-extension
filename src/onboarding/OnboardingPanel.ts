@@ -103,8 +103,13 @@ export class OnBoardingPanel {
         path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
       )
     );
+    const fontsPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
+      )
+    );
     this.panel.iconPath = utils.getWebViewFavicon(extensionPath);
-    this.panel.webview.html = createOnboardingHtml(scriptPath);
+    this.panel.webview.html = createOnboardingHtml(scriptPath, fontsPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 

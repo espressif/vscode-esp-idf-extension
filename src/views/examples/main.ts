@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Vue from "vue";
+// @ts-ignore
 import Examples from "./Examples.vue";
 import { store } from "./store";
 

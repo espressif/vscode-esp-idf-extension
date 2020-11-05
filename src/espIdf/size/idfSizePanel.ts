@@ -123,6 +123,11 @@ export class IDFSizePanel {
     const fileUrl = this._panel.webview.asWebviewUri(
       vscode.Uri.file(htmlFilePath)
     );
+    const fontsPath = this._panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this._extensionPath, "dist", "views", "fonts", "codicon.ttf")
+      )
+    );
     if (/(<head(\s.*)?>)/.test(html)) {
       html = html.replace(
         /(<head(\s.*)?>)/,
@@ -135,6 +140,9 @@ export class IDFSizePanel {
       );
     } else {
       html = `<head><base href="${fileUrl.toString()}"></head>${html}`;
+    }
+    if (html.indexOf("./codicon.ttf") !== -1) {
+      html = html.replace("./codicon.ttf", fontsPath.toString());
     }
     return html;
   }

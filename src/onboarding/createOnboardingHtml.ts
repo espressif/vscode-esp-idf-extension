@@ -14,7 +14,7 @@
 
 import { Uri } from "vscode";
 
-export function createOnboardingHtml(scriptPath: Uri): string {
+export function createOnboardingHtml(scriptPath: Uri, fontsUri: Uri): string {
   return `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -23,6 +23,12 @@ export function createOnboardingHtml(scriptPath: Uri): string {
         <title>Onboarding Setup</title>
         </head>
         <body>
+            <style>
+              @font-face {
+                  font-family: "codicon";
+                  src: url('${fontsUri}') format('truetype');
+              }
+              </style>
             <div id="app"></div>
         </body>
         <script src="${scriptPath}"></script>
