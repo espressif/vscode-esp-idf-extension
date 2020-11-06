@@ -338,12 +338,6 @@
             "description": "%param.flashBaudRate%",
             "scope": "resource"
           },
-          "idf.monitorBaudRate": {
-            "type": "string",
-            "default": "460800",
-            "description": "%param.monitorBaudRate%",
-            "scope": "resource"
-          },
           "idf.openOcdConfigs": {
             "type": "array",
             "default": [

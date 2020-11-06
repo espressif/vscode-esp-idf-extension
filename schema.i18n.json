@@ -54,7 +54,6 @@
       "extension.enterDevicePortMessage",
       "extension.enterDeviceTargetMessage",
       "extension.enterFlashBaudRateMessage",
-      "extension.enterMonitorBaudRateMessage",
       "extension.enterOpenOcdConfigMessage",
       "extension.enterCustomPathsMessage",
       "extension.cmdNotWebIDE"
@@ -103,7 +102,6 @@
     "param.adapterTargetName",
     "param.openOcdConfigFilesList",
     "param.flashBaudRate",
-    "param.monitorBaudRate",
     "param.port",
     "param.pythonBinPath",
     "param.espIdfPath",
