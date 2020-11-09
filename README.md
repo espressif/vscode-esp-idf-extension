@@ -28,7 +28,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 - [Git](https://git-scm.com/downloads)
 - [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the onboarding configuration tools intall.
 
-> Please note that this extension __only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)__ the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
+> Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
 ## Coming Soon
 

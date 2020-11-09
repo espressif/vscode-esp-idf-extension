@@ -37,7 +37,7 @@
   "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python Scripts",
   "param.espIdfPath": "Path to locate ESP-IDF framework (IDF_PATH)",
   "param.espAdfPath": "Path to locate ESP-ADF framework (ADF_PATH)",
-  "param.espMdfPath": "Path to locate ESP-ADF framework (MDF_PATH)",
+  "param.espMdfPath": "Path to locate ESP-MDF framework (MDF_PATH)",
   "param.toolsPath": "Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)",
   "param.exportPaths": "Paths to be appended to PATH",
   "param.exportVars": "Variables to be added to system environment variables",
