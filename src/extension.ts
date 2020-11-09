@@ -2038,6 +2038,7 @@ function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
   let winShellCmd = {
     "cmd.exe": `set "VARIABLE=`,
     "powershell.exe": `$Env:VARIABLE = "`,
+    "pwsh.exe": `$Env:VARIABLE = "`,
   };
   const pathSetCmd =
     process.platform === "win32"
