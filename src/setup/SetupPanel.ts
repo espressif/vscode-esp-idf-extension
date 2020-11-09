@@ -109,7 +109,12 @@ export class SetupPanel {
         path.join(extensionPath, "dist", "views", "setup-bundle.js")
       )
     );
-    this.panel.webview.html = this.createSetupHtml(scriptPath);
+    const fontsPath = this.panel.webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
+      )
+    );
+    this.panel.webview.html = this.createSetupHtml(scriptPath, fontsPath);
 
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
@@ -665,7 +670,10 @@ export class SetupPanel {
     }
   }
 
-  private createSetupHtml(scriptPath: vscode.Uri): string {
+  private createSetupHtml(
+    scriptPath: vscode.Uri,
+    fontsUri: vscode.Uri
+  ): string {
     return `<!DOCTYPE html>
       <html lang="en">
         <head>
@@ -674,6 +682,12 @@ export class SetupPanel {
           <title>ESP-IDF Setup</title>
         </head>
         <body>
+          <style>
+          @font-face {
+              font-family: "codicon";
+              src: url('${fontsUri}') format('truetype');
+          }
+          </style>
           <div id="app"></div>
         </body>
         <script src="${scriptPath}"></script>
