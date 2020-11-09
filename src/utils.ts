@@ -557,8 +557,9 @@ export function validateFileSizeAndChecksum(
 }
 
 export function appendIdfAndToolsToPath() {
-  const modifiedEnv: NodeJS.ProcessEnv = {};
-  Object.assign(modifiedEnv, process.env);
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
 
   const customVarsString = idfConf.readParameter(
@@ -617,7 +618,7 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv = "PATH";
   }
   modifiedEnv[pathNameInEnv] =
-    modifiedEnv.IDF_PYTHON_ENV_PATH +
+    path.dirname(modifiedEnv.PYTHON) +
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +

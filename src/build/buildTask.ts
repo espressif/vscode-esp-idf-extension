@@ -23,6 +23,8 @@ import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { appendIdfAndToolsToPath } from "../utils";
 import { TaskManager } from "../taskManager";
+import EspIdfCustomTerminal from "../espIdfCustomTerminal";
+import { SpawnOptions } from "child_process";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -43,11 +45,10 @@ export class BuildTask {
     }
   }
 
-  public getShellExecution(
-    args: string[],
-    options?: vscode.ShellExecutionOptions
-  ) {
-    return new vscode.ShellExecution(`cmake ${args.join(" ")}`, options);
+  public getShellExecution(args: string[], options?: SpawnOptions) {
+    return new vscode.CustomExecution(
+      async () => new EspIdfCustomTerminal("cmake", args, options)
+    );
   }
 
   public async build() {
@@ -65,7 +66,7 @@ export class BuildTask {
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath();
     await ensureDir(this.curWorkspace);
-    const options: vscode.ShellExecutionOptions = {
+    const options: SpawnOptions = {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };
@@ -74,7 +75,7 @@ export class BuildTask {
       options
     );
     TaskManager.addTask(
-      { type: "esp-idf", command: compileExecution.commandLine },
+      { type: "esp-idf", command: "ESP-IDF Compile" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Compile",
       compileExecution,
@@ -82,7 +83,7 @@ export class BuildTask {
     );
     const buildExecution = this.getShellExecution(["--build", "."], options);
     TaskManager.addTask(
-      { type: "esp-idf", command: buildExecution.commandLine },
+      { type: "esp-idf", command: "ESP-IDF Build" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
