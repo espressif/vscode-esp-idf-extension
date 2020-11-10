@@ -82,9 +82,8 @@ import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
-import EspIdfCustomTerminal from "./espIdfCustomTerminal";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
-import { CMakeListsType } from "./cmake/cmakeListsBuilder";
+import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -754,27 +753,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
-    const docsVersions = [
-      "v4.0.1",
-      "v4.0",
-      "v3.3.2",
-      "v3.3.1",
-      "v3.3",
-      "v3.2.3",
-      "v3.2.2",
-      "v3.1.7",
-      "v3.1.6",
-      "v3.1.5",
-      "v3.0.9",
-    ];
-    const idfPath =
-      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-    let idfVersion = "v" + (await utils.getEspIdfVersion(idfPath));
-    if (docsVersions.indexOf(idfVersion) === -1) {
-      const idfTarget =
-        idfConf.readParameter("idf.adapterTargetName") || "esp32";
-      idfVersion = `latest/${idfTarget}`;
-    }
     const currentEditor = vscode.window.activeTextEditor;
     if (currentEditor) {
       let selection = currentEditor.document.getText(currentEditor.selection);
@@ -784,9 +762,10 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         selection = currentEditor.document.getText(range);
       }
+      const resultUrls = await seachInEspDocs(selection);
       vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://docs.espressif.com/projects/esp-idf/en/${idfVersion}/search.html?q=${encodeURIComponent(
+          `https://docs.espressif.com/projects/esp-idf/en/latest/esp32/search.html?q=${encodeURIComponent(
             selection
           )}`
         )

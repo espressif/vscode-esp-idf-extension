@@ -47,6 +47,9 @@ export namespace ESP {
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
     export namespace Docs {
+      export const BASE_URL = "https://docs.espressif.com/projects/esp-idf";
+      export const IDF_VERSIONS =
+        "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
     }
   }
