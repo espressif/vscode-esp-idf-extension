@@ -16,6 +16,13 @@ import * as idfConf from "../../idfConfiguration";
 import { getEspIdfVersion } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
 
+export interface IDocResult {
+  name: string;
+  docName: string;
+  resultType: string;
+  url: string;
+}
+
 export async function seachInEspDocs(searchString: string) {
   const docsVersions = await getDocsVersion();
   const idfPath =
@@ -41,10 +48,16 @@ export async function seachInEspDocs(searchString: string) {
   );
   const objUrlResults = objectResultsKeys.map((resultKey) => {
     const fileIndex = docIndex.objects[""][resultKey][0];
-    const resultSection = docIndex.objects[""][resultKey][3];
+    const sectionInFile = docIndex.objects[""][resultKey][3];
     const objName = docIndex.objnames[docIndex.objects[""][resultKey][1]][2];
     const highlightTerm = encodeURIComponent(searchString.toLowerCase());
-    return `${baseUrl}/${docIndex.docnames[fileIndex]}.html?highlight=${highlightTerm}#${resultSection}`;
+    const objResult = {
+      docName: docIndex.titles[fileIndex],
+      name: resultKey || docIndex.titles[fileIndex],
+      resultType: objName,
+      url: `${baseUrl}/${docIndex.docnames[fileIndex]}.html?highlight=${highlightTerm}#${sectionInFile}`,
+    } as IDocResult;
+    return objResult;
   });
   const titleResults = getUrlsFromTerm(
     baseUrl,
@@ -54,7 +67,7 @@ export async function seachInEspDocs(searchString: string) {
   );
   const termResults = getUrlsFromTerm(baseUrl, searchString, "terms", docIndex);
 
-  return [].concat(objUrlResults, titleResults, termResults);
+  return [].concat(objUrlResults, titleResults, termResults) as IDocResult[];
 }
 
 function getUrlsFromTerm(
@@ -68,21 +81,29 @@ function getUrlsFromTerm(
     (d) => d.indexOf(searchTerm.toLowerCase()) !== -1
   );
 
-  const sectionUrlResults = [];
+  const sectionUrlResults: IDocResult[] = [];
   for (const termKey of sectionResults) {
     const termDocs = docIndex[section][termKey];
     if (Array.isArray(termDocs)) {
-      const keyResults = [];
+      const keyResults: IDocResult[] = [];
       for (const doc of termDocs) {
-        keyResults.push(
-          `${baseUrl}/${docIndex.docnames[doc]}.html?highlight=${highlightTerm}`
-        );
+        const termResult = {
+          docName: docIndex.titles[doc],
+          name: "",
+          resultType: "",
+          url: `${baseUrl}/${docIndex.docnames[doc]}.html?highlight=${highlightTerm}`,
+        } as IDocResult;
+        keyResults.push(termResult);
       }
       sectionUrlResults.push(...keyResults);
     } else {
-      sectionUrlResults.push(
-        `${baseUrl}/${docIndex.docnames[termDocs]}.html?highlight=${highlightTerm}`
-      );
+      const termResult = {
+        docName: docIndex.titles[termDocs],
+        name: "",
+        resultType: "",
+        url: `${baseUrl}/${docIndex.docnames[termDocs]}.html?highlight=${highlightTerm}`,
+      } as IDocResult;
+      sectionUrlResults.push(termResult);
     }
   }
   return sectionUrlResults;

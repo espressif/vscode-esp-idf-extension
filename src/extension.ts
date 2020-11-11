@@ -84,6 +84,7 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
+import { DocSearchResultTreeDataProvider } from "./espIdf/documentation/docResultsTreeView";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -96,6 +97,9 @@ const statusBarItems: vscode.StatusBarItem[] = [];
 const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
+
+// ESP-IDF Docs search results Tree view
+let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
 
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
@@ -762,13 +766,10 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         selection = currentEditor.document.getText(range);
       }
-      const resultUrls = await seachInEspDocs(selection);
-      vscode.env.openExternal(
-        vscode.Uri.parse(
-          `https://docs.espressif.com/projects/esp-idf/en/latest/esp32/search.html?q=${encodeURIComponent(
-            selection
-          )}`
-        )
+      const searchResults = await seachInEspDocs(selection);
+      espIdfDocsResultTreeDataProvider.getResults(searchResults);
+      Logger.infoNotify(
+        "ESP-IDF Search result generated.\n Open ESP-IDF Explorer in the Activity Bar"
       );
     }
   });
@@ -1579,6 +1580,19 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
+
+  espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
+
+  vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
+    espIdfDocsResultTreeDataProvider.clearResults();
+  });
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider(
+      "idfSearchResults",
+      espIdfDocsResultTreeDataProvider
+    )
+  );
 
   rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
   vscode.window.registerTreeDataProvider(

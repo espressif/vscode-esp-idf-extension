@@ -127,6 +127,10 @@
     "views": {
       "idfViewController": [
         {
+          "id": "idfSearchResults",
+          "name": "ESP-IDF Docs search results"
+        },
+        {
           "id": "idfAppTracer",
           "name": "IDF App Tracer"
         },
@@ -166,6 +170,11 @@
           "command": "esp.rainmaker.backend.sync",
           "group": "navigation",
           "when": "view == espRainmaker"
+        },
+        {
+          "command": "espIdf.clearDocsSearchResult",
+          "group": "navigation",
+          "when": "view == idfSearchResults"
         }
       ],
       "view/item/context": [
@@ -648,6 +657,15 @@
         "title": "%esp.rainmaker.backend.update_node_param.title%",
         "category": "ESP:Rainmaker",
         "icon": "$(edit)"
+      },
+      {
+        "command": "espIdf.openDocUrl",
+        "title": "Open ESP-IDF doc"
+      },
+      {
+        "command": "espIdf.clearDocsSearchResult",
+        "title": "Clear results",
+        "icon": "$(clear-all)"
       },
       {
         "command": "espIdf.genCoverage",
