@@ -28,6 +28,8 @@
   "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Buscar en la documentación...",
   "espIdf.getEspAdf.title": "ESP-ADF: Instalar ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Instalar ESP-MDF",
+  "espIdf.openDocUrl.title": "ESP-IDF: Abrir documentación ESP-IDF...",
+  "espIdf.clearDocsSearchResult.title": "ESP-IDF: Limpiar resultados de busqueda",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

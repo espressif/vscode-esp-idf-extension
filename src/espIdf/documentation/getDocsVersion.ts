@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import { ESP } from "../../config";
-import { readFile } from "fs-extra";
+import { pathExists, readFile, readJson, writeJSON } from "fs-extra";
 import { tmpdir } from "os";
 import { basename, join } from "path";
 import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
+import { extensionContext } from "../../utils";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -48,6 +49,13 @@ export async function getDocsVersion() {
 }
 
 export function getDocsBaseUrl(docVersion: string, idfTarget?: string) {
+  let localeLang: string = getDocsLocaleLang();
+  return `${ESP.URL.Docs.BASE_URL}/${localeLang}/${docVersion}${
+    idfTarget ? "/" + idfTarget : ""
+  }`;
+}
+
+function getDocsLocaleLang() {
   let localeLang: string = "en";
   try {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
@@ -55,14 +63,25 @@ export function getDocsBaseUrl(docVersion: string, idfTarget?: string) {
   } catch (error) {
     Logger.error("Error getting current vscode language", error);
   }
-  return `${ESP.URL.Docs.BASE_URL}/${localeLang}/${docVersion}${
-    idfTarget ? "/" + idfTarget : ""
-  }`;
+  return localeLang;
 }
 
-export async function getDocsIndex(baseUrl: string) {
+export async function getDocsIndex(
+  baseUrl: string,
+  docVersion: string,
+  idfTarget: string
+) {
+  const indexFileForIdfVersionAndTarget = join(
+    extensionContext.extensionPath,
+    `espIdfDocsIndex_lang_${getDocsLocaleLang()}_idfVersion_${docVersion}_target_${idfTarget}.json`
+  );
+  const doesIndexExists = await pathExists(indexFileForIdfVersionAndTarget);
+  if (doesIndexExists) {
+    return await readJson(indexFileForIdfVersionAndTarget);
+  }
   const indexUrl = `${baseUrl}/searchindex.js`;
   const indexObj = await readObjectFromUrlFile(indexUrl);
+  await writeJSON(indexFileForIdfVersionAndTarget, indexObj);
   return indexObj;
 }
 

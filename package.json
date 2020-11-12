@@ -660,11 +660,11 @@
       },
       {
         "command": "espIdf.openDocUrl",
-        "title": "Open ESP-IDF doc"
+        "title": "%espIdf.openDocUrl.title%"
       },
       {
         "command": "espIdf.clearDocsSearchResult",
-        "title": "Clear results",
+        "title": "%espIdf.clearDocsSearchResult.title%",
         "icon": "$(clear-all)"
       },
       {

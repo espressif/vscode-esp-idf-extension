@@ -16,11 +16,26 @@ import * as idfConf from "../../idfConfiguration";
 import { getEspIdfVersion } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
 
-export interface IDocResult {
-  name: string;
-  docName: string;
-  resultType: string;
-  url: string;
+export class IDocResult {
+  public name: string;
+  public docName: string;
+  public resultType: string;
+  public url: string;
+}
+
+export function getIntersection(
+  termResults: IDocResult[],
+  anotherTermResults: IDocResult[]
+) {
+  const results = termResults.filter((termResult: IDocResult) => {
+    const elem = anotherTermResults.filter((d: IDocResult) => {
+      return termResult.name
+        ? termResult.name === d.name
+        : termResult.docName === d.docName;
+    });
+    return elem.length;
+  });
+  return results;
 }
 
 export async function seachInEspDocs(searchString: string) {
@@ -41,16 +56,31 @@ export async function seachInEspDocs(searchString: string) {
     targetToUse = idfTarget;
   }
   const baseUrl = getDocsBaseUrl(docVersion.name, idfTarget);
-  const docIndex = await getDocsIndex(baseUrl);
+  const docIndex = await getDocsIndex(baseUrl, docVersion.name, idfTarget);
 
+  const termsToSearch = searchString.trim().split(" ");
+
+  let termsResults: IDocResult[];
+  for (const term of termsToSearch) {
+    if (!termsResults) {
+      termsResults = getResultsForTerm(baseUrl, term, docIndex);
+    } else {
+      const newTermResults = getResultsForTerm(baseUrl, term, docIndex);
+      termsResults = getIntersection(termsResults, newTermResults);
+    }
+  }
+  return Array.from(termsResults);
+}
+
+function getResultsForTerm(baseUrl: string, term: string, docIndex) {
   const objectResultsKeys = Object.keys(docIndex.objects[""]).filter(
-    (d) => d.indexOf(searchString) !== -1
+    (d) => d.indexOf(term) !== -1
   );
   const objUrlResults = objectResultsKeys.map((resultKey) => {
     const fileIndex = docIndex.objects[""][resultKey][0];
     const sectionInFile = docIndex.objects[""][resultKey][3];
     const objName = docIndex.objnames[docIndex.objects[""][resultKey][1]][2];
-    const highlightTerm = encodeURIComponent(searchString.toLowerCase());
+    const highlightTerm = encodeURIComponent(term.toLowerCase());
     const objResult = {
       docName: docIndex.titles[fileIndex],
       name: resultKey || docIndex.titles[fileIndex],
@@ -59,13 +89,8 @@ export async function seachInEspDocs(searchString: string) {
     } as IDocResult;
     return objResult;
   });
-  const titleResults = getUrlsFromTerm(
-    baseUrl,
-    searchString,
-    "titleterms",
-    docIndex
-  );
-  const termResults = getUrlsFromTerm(baseUrl, searchString, "terms", docIndex);
+  const titleResults = getUrlsFromTerm(baseUrl, term, "titleterms", docIndex);
+  const termResults = getUrlsFromTerm(baseUrl, term, "terms", docIndex);
 
   return [].concat(objUrlResults, titleResults, termResults) as IDocResult[];
 }

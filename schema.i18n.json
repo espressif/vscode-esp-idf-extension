@@ -98,6 +98,8 @@
     "espIdf.getCoverageReport.title",
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
+    "espIdf.openDocUrl.title",
+    "espIdf.clearDocsSearchResult.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

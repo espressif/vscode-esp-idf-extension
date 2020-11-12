@@ -29,9 +29,9 @@ export class DocSearchResult extends vscode.TreeItem {
       arguments: [url],
     };
     this.tooltip = `${
-      resultType ? `${resultType} in ` : "mentioned in"
+      resultType ? `${resultType} in ` : "mentioned in "
     }${docName}`;
-    this.iconPath = new vscode.ThemeIcon("file");
+    this.iconPath = new vscode.ThemeIcon("globe");
   }
 }
 
@@ -52,15 +52,22 @@ export class DocSearchResultTreeDataProvider
     this.docSearchResults = Array<DocSearchResult>(0);
   }
 
-  public getTreeItem(e: DocSearchResult) {
+  public getTreeItem(e) {
     return e;
+  }
+
+  public getParent(e: DocSearchResult) {
+    return undefined;
   }
 
   public getChildren() {
     return this.docSearchResults;
   }
 
-  public getResults(docs: IDocResult[]) {
+  public getResults(
+    docs: IDocResult[],
+    idfSearchResults: vscode.TreeView<DocSearchResult>
+  ) {
     if (!docs || docs.length < 1) {
       return;
     }
@@ -70,6 +77,7 @@ export class DocSearchResultTreeDataProvider
     );
     this.docSearchResults = docsTreeItems;
     this.OnDidChangeTreeData.fire(null);
+    idfSearchResults.reveal(docsTreeItems[0], { focus: true });
   }
 
   public clearResults() {

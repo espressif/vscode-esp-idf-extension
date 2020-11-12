@@ -2,6 +2,7 @@
 .vscode-test/**
 out
 dist/**/*.map
+espIdfDocsIndex_lang_*.json
 src/**
 .gitignore
 tsconfig.json
