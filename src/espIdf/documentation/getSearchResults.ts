@@ -27,7 +27,7 @@ export function getIntersection(
   termResults: IDocResult[],
   anotherTermResults: IDocResult[]
 ) {
-  const results = termResults.filter((termResult: IDocResult) => {
+  return termResults.filter((termResult: IDocResult) => {
     const elem = anotherTermResults.filter((d: IDocResult) => {
       return termResult.name
         ? termResult.name === d.name
@@ -35,7 +35,6 @@ export function getIntersection(
     });
     return elem.length;
   });
-  return results;
 }
 
 export async function seachInEspDocs(searchString: string) {
@@ -56,7 +55,7 @@ export async function seachInEspDocs(searchString: string) {
     targetToUse = idfTarget;
   }
   const baseUrl = getDocsBaseUrl(docVersion.name, idfTarget);
-  const docIndex = await getDocsIndex(baseUrl, docVersion.name, idfTarget);
+  const docIndex = await getDocsIndex(baseUrl);
 
   const termsToSearch = searchString.trim().split(" ");
 

@@ -13,13 +13,12 @@
 // limitations under the License.
 
 import { ESP } from "../../config";
-import { pathExists, readFile, readJson, writeJSON } from "fs-extra";
+import { readFile } from "fs-extra";
 import { tmpdir } from "os";
 import { basename, join } from "path";
 import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
-import { extensionContext } from "../../utils";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -27,6 +26,9 @@ export interface IEspIdfDocVersion {
 }
 
 export async function getDocsVersion() {
+  if (ESP.URL.Docs.IDF_VERSION_OBJ) {
+    return ESP.URL.Docs.IDF_VERSION_OBJ;
+  }
   const docsIdfVersionObj = await readObjectFromUrlFile(
     ESP.URL.Docs.IDF_VERSIONS
   );
@@ -39,6 +41,7 @@ export async function getDocsVersion() {
         } as IEspIdfDocVersion;
       }
     );
+    ESP.URL.Docs.IDF_VERSION_OBJ = docsVersions;
     return docsVersions;
   } catch (error) {
     Logger.error(
@@ -66,22 +69,13 @@ function getDocsLocaleLang() {
   return localeLang;
 }
 
-export async function getDocsIndex(
-  baseUrl: string,
-  docVersion: string,
-  idfTarget: string
-) {
-  const indexFileForIdfVersionAndTarget = join(
-    extensionContext.extensionPath,
-    `espIdfDocsIndex_lang_${getDocsLocaleLang()}_idfVersion_${docVersion}_target_${idfTarget}.json`
-  );
-  const doesIndexExists = await pathExists(indexFileForIdfVersionAndTarget);
-  if (doesIndexExists) {
-    return await readJson(indexFileForIdfVersionAndTarget);
+export async function getDocsIndex(baseUrl: string) {
+  if (ESP.URL.Docs.IDF_INDEX) {
+    return ESP.URL.Docs.IDF_INDEX;
   }
   const indexUrl = `${baseUrl}/searchindex.js`;
   const indexObj = await readObjectFromUrlFile(indexUrl);
-  await writeJSON(indexFileForIdfVersionAndTarget, indexObj);
+  ESP.URL.Docs.IDF_INDEX = indexObj;
   return indexObj;
 }
 
