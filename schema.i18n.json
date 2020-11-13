@@ -53,7 +53,7 @@
       "extension.enterIdfToolsPathMessage",
       "extension.enterDevicePortMessage",
       "extension.enterDeviceTargetMessage",
-      "extension.enterDeviceBaudRateMessage",
+      "extension.enterFlashBaudRateMessage",
       "extension.enterOpenOcdConfigMessage",
       "extension.enterCustomPathsMessage",
       "extension.cmdNotWebIDE"
@@ -101,7 +101,7 @@
     "debug.initConfig.description",
     "param.adapterTargetName",
     "param.openOcdConfigFilesList",
-    "param.baudRate",
+    "param.flashBaudRate",
     "param.port",
     "param.pythonBinPath",
     "param.espIdfPath",

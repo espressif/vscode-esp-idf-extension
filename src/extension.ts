@@ -581,9 +581,9 @@ export async function activate(context: vscode.ExtensionContext) {
             target: "devicePort",
           },
           {
-            description: "Baud rate of device",
-            label: "Baud Rate",
-            target: "baudRate",
+            description: "Flash baud rate of device",
+            label: "Flash Baud Rate",
+            target: "flashBaudRate",
           },
           {
             description:
@@ -620,12 +620,12 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           paramName = "idf.port";
           break;
-        case "baudRate":
+        case "flashBaudRate":
           msg = locDic.localize(
-            "extension.enterDeviceBaudRateMessage",
-            "Enter device baud rate"
+            "extension.enterFlashBaudRateMessage",
+            "Enter flash baud rate"
           );
-          paramName = "idf.baudRate";
+          paramName = "idf.flashBaudRate";
           break;
         case "openOcdConfig":
           msg = locDic.localize(
@@ -1386,10 +1386,35 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
     const port = idfConf.readParameter("idf.port") as string;
-    const baudRate = idfConf.readParameter("idf.baudRate") as string;
+    if (!port) {
+      try {
+        await vscode.commands.executeCommand("espIdf.selectPort");
+      } catch (error) {
+        Logger.error("Unable to execute the command: espIdf.selectPort", error);
+      }
+      return Logger.errorNotify(
+        "Select a serial port before flashing",
+        new Error("NOT_SELECTED_PORT")
+      );
+    }
+    let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+      workspaceRoot.fsPath
+    );
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
+      Logger.errorNotify(
+        "Python binary path is not defined",
+        new Error("idf.pythonBinPath is not defined")
+      );
+    }
     const idfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
+    if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
+      Logger.errorNotify(
+        idfMonitorToolPath + " is not defined",
+        new Error(idfMonitorToolPath + " is not defined")
+      );
+    }
     const elfFilePath = path.join(
       workspaceRoot.fsPath,
       "build",
@@ -1398,7 +1423,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const wsPort = idfConf.readParameter("idf.wssPort");
     const monitor = new IDFMonitor({
       port,
-      baudRate,
+      baudRate: sdkMonitorBaudRate,
       pythonBinPath,
       idfMonitorToolPath,
       elfFilePath,
@@ -1714,7 +1739,7 @@ const flash = () => {
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
-    const baudRate = idfConf.readParameter("idf.baudRate");
+    const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
 
     const buildPath = path.join(workspaceRoot.fsPath, "build");
 
@@ -1735,7 +1760,7 @@ const flash = () => {
         new Error("NOT_SELECTED_PORT")
       );
     }
-    if (!baudRate) {
+    if (!flashBaudRate) {
       return Logger.errorNotify(
         "Select a baud rate before flashing",
         new Error("NOT_SELECTED_BAUD_RATE")
@@ -1772,7 +1797,7 @@ const flash = () => {
           const model = await createFlashModel(
             flasherArgsJsonPath,
             port,
-            baudRate
+            flashBaudRate
           );
           flashTask = new FlashTask(buildPath, idfPathDir, model);
           cancelToken.onCancellationRequested(() => {
@@ -1847,7 +1872,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
     const port = idfConf.readParameter("idf.port");
-    const baudRate = idfConf.readParameter("idf.baudRate");
+    const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
     if (!port) {
       try {
         await vscode.commands.executeCommand("espIdf.selectPort");
@@ -1859,7 +1884,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
         new Error("NOT_SELECTED_PORT")
       );
     }
-    if (!baudRate) {
+    if (!flashBaudRate) {
       return Logger.errorNotify(
         "Select a baud rate before flashing",
         new Error("NOT_SELECTED_BAUD_RATE")
@@ -1896,7 +1921,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
           const model = await createFlashModel(
             flasherArgsJsonPath,
             port,
-            baudRate
+            flashBaudRate
           );
           flashTask = new FlashTask(buildPath, idfPathDir, model);
           cancelToken.onCancellationRequested(() => {
