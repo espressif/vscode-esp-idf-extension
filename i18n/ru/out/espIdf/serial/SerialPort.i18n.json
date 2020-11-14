@@ -1,6 +1,6 @@
 {
   "serial.notSerialPortFoundMessage": "Не удалось найти доступный последовательный порт",
-  "serial.portHasBeenSelectedMessage": "Был выбран порт ",
+  "serial.portHasBeenSelectedMessage": "Порт был обновлен до ",
   "serial.noPortSelectedMessage": "Порт не выбран.",
   "serial.selectSerialPortMessage": "Выберите доступный последовательный порт, к которому подключено устройство."
 }
