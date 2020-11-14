@@ -1,0 +1,12 @@
+{
+  "menuconfig.panelName": "Редактор конфигурации SDK",
+  "menuconfig.loadDefaultValues": "Загружены настройки по умолчанию в редакторе конфигурации SDK",
+  "menuconfig.saveValues": "Сохраненные изменения в редакторе конфигурации SDK",
+  "menuconfig.discardValues": "Отмененные изменения в редакторе конфигурации SDK",
+  "menuconfig.wrongIdfPath": "Неправильный IDF_PATH в настройках рабочего пространства. Вы бы хотели его установить?",
+  "menuconfig.enterIdfPath": "Введите путь IDF_PATH",
+  "menuconfig.changesNotSaved": "Изменения в редакторе конфигурации SDK не сохранены. Хотели бы вы их сохранить?",
+  "menuconfig.save": "Сохранить",
+  "menuconfig.discard": "Не сохранять",
+  "menuconfig.returnGuiconfig": "Вернуться в редактор конфигурации SDK"
+}
