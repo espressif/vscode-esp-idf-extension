@@ -86,11 +86,6 @@ export class SystemViewPanel {
     const scriptPath = this.panel.webview.asWebviewUri(
       Uri.file(join(this.extensionPath, "dist", "views", "sysView-bundle.js"))
     );
-    const fontsUri = this.panel.webview.asWebviewUri(
-      Uri.file(
-        join(this.extensionPath, "dist", "views", "fonts", "codicon.ttf")
-      )
-    );
     this.panel.webview.html = `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -99,12 +94,6 @@ export class SystemViewPanel {
       <title>System View Trace</title>
     </head>
     <body>
-      <style>
-      @font-face {
-          font-family: "codicon";
-          src: url('${fontsUri}') format('truetype');
-      }
-      </style>
       <section id="app"></section>
       <script src="${scriptPath}"></script>
     </body>

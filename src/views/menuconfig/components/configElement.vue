@@ -6,7 +6,7 @@
           <label v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <i class="codicon codicon-info"></i>
+              <iconify-icon icon="info" />
             </div>
           </div>
         </div>
@@ -38,7 +38,7 @@
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <i class="codicon codicon-info"></i>
+              <iconify-icon icon="info" />
             </div>
           </div>
         </div>
@@ -49,7 +49,7 @@
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <i class="codicon codicon-info"></i>
+            <iconify-icon icon="info" />
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@
       <div class="field has-addons">
         <label v-text="config.title" />
         <div class="info-icon" @click="toggleHelp">
-          <i class="codicon codicon-info"></i>
+          <iconify-icon icon="info" />
         </div>
       </div>
       <div class="field is-grouped">
@@ -88,7 +88,7 @@
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <i class="codicon codicon-info"></i>
+            <iconify-icon icon="info" />
           </div>
         </div>
       </div>
@@ -130,7 +130,7 @@
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <i class="codicon codicon-info"></i>
+              <iconify-icon icon="info" />
             </div>
           </div>
         </div>

@@ -71,9 +71,6 @@ export class MenuConfigPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, "dist", "views")),
-          vscode.Uri.file(
-            path.join(extensionPath, "node_modules", "vscode-codicons", "dist")
-          ),
         ],
       }
     );
@@ -82,13 +79,8 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
-    const fontsPath = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
-      )
-    );
     this.panel.iconPath = getWebViewFavicon(extensionPath);
-    this.panel.webview.html = this.createMenuconfigHtml(scriptPath, fontsPath);
+    this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
 
@@ -239,10 +231,7 @@ export class MenuConfigPanel {
     });
   }
 
-  private createMenuconfigHtml(
-    scriptPath: vscode.Uri,
-    fontsUri: vscode.Uri
-  ): string {
+  private createMenuconfigHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -251,13 +240,7 @@ export class MenuConfigPanel {
             <title>SDK Configuration Editor</title>
             </head>
             <body>
-              <style>
-              @font-face {
-                  font-family: "codicon";
-                  src: url('${fontsUri}') format('truetype');
-              }
-              </style>
-                <div id="menuconfig"></div>
+              <div id="menuconfig"></div>
             </body>
             <script src="${scriptPath}"></script>
         </html>`;

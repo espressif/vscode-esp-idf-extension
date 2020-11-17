@@ -8,13 +8,13 @@
         <input type="text" class="input" v-model="idfTools" />
       </div>
       <div class="control">
-        <div class="icon is-large">
-          <i
-            :class="folderIcon"
-            @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-            @mouseout="folderIcon = 'codicon codicon-folder'"
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="folderIcon"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
             v-on:click="openFolder"
-          ></i>
+          />
         </div>
       </div>
     </div>
@@ -54,7 +54,7 @@ import ToolDownload from "./ToolDownload.vue";
   },
 })
 export default class ToolsDownloadStep extends Vue {
-  public folderIcon = "codicon codicon-folder";
+  public folderIcon = "folder";
   @Action private downloadTools;
   @Action("openToolsFolder") private openFolder;
   @Mutation private setIdfToolsPath;

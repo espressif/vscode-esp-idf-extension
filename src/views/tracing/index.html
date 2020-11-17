@@ -7,12 +7,6 @@
   </head>
 
   <body>
-    <style>
-      @font-face {
-        font-family: "codicon";
-        src: url("./codicon.ttf") format("truetype");
-      }
-    </style>
     <div id="app">
       <div class="notification is-danger" v-if="errorMsg">
         <button class="delete" v-on:click="errorMsg = ''"></button>
@@ -35,7 +29,7 @@
               <div class="level-left">
                 <div class="level-item">
                   <span class="icon">
-                    <i class="codicon codicon-pulse is-size-3"></i>
+                    <iconify-icon icon="pulse" class="is-size-3" />
                   </span>
                 </div>
                 <div class="level-item">

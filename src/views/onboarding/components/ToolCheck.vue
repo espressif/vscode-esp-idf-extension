@@ -6,14 +6,8 @@
       <p class="result-description-small">Found {{ tool.actual }}</p>
     </div>
     <div class="control is-small centered-icon">
-      <div class="icon is-large">
-        <i
-          :class="
-            tool.doesToolExist
-              ? 'codicon codicon-check'
-              : 'codicon codicon-close'
-          "
-        ></i>
+      <div class="icon is-large is-size-4">
+        <iconify-icon :icon="tool.doesToolExist ? 'check' : 'close'" />
       </div>
     </div>
   </div>

@@ -36,13 +36,13 @@
             <a class="button is-static"> {{ pathSep }}esp-idf </a>
           </p>
           <div class="control">
-            <div class="icon is-large">
-              <i
-                :class="folderIcon"
-                @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-                @mouseout="folderIcon = 'codicon codicon-folder'"
+            <div class="icon is-large is-size-4">
+              <iconify-icon
+                :icon="folderIcon"
+                @mouseover="folderIcon = 'folder-opened'"
+                @mouseout="folderIcon = 'folder'"
                 v-on:click="openFolder"
-              ></i>
+              />
             </div>
           </div>
         </div>
@@ -75,7 +75,7 @@ import IDFManual from "./components/IDFManual.vue";
 })
 export default class Download extends Vue {
   public msge: string = "Configure ESP-IDF";
-  public folderIcon = "codicon codicon-folder";
+  public folderIcon = "folder";
   @State("idfDownloadPath") private storeIdfDownloadPath: string;
   @State("idfVersionList") private storeIdfVersionList: IEspIdfLink[];
   @State("selectedIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;

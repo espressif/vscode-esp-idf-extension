@@ -7,12 +7,6 @@
   </head>
 
   <body>
-    <style>
-      @font-face {
-        font-family: "codicon";
-        src: url("./codicon.ttf") format("truetype");
-      }
-    </style>
     <div id="app">
       <header class="section">
         <div class="container">
@@ -32,7 +26,7 @@
                     v-bind:disabled="isFlashing"
                   >
                     <span class="icon">
-                      <i class="codicon codicon-symbol-event"></i>
+                      <iconify-icon icon="symbol-event" />
                     </span>
                     &nbsp; Flash
                   </button>
@@ -42,7 +36,7 @@
                     v-on:click="retryClicked"
                   >
                     <span class="icon">
-                      <i class="codicon codicon-refresh"></i>
+                      <iconify-icon icon="refresh" />
                     </span>
                   </button>
                 </p>
@@ -138,7 +132,7 @@
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="codicon codicon-server is-size-3"></i>
+                      <iconify-icon icon="server" class="is-size-3" />
                     </span>
                     <strong style="vertical-align: super;">DRAM</strong>
                   </div>
@@ -166,7 +160,7 @@
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="codicon codicon-screen-normal is-size-3"></i>
+                      <iconify-icon icon="screen-normal" class="is-size-3" />
                     </span>
                     <strong style="vertical-align: super;">IRAM</strong>
                   </div>
@@ -204,7 +198,7 @@
                   v-model="searchText"
                 />
                 <span class="icon is-right">
-                  <i class="codicon codicon-search"></i>
+                  <iconify-icon icon="search" />
                 </span>
               </p>
             </div>
@@ -220,7 +214,7 @@
                 <div class="column is-hidden-mobile">
                   <div class="control">
                     <span class="icon is-large">
-                      <i class="codicon codicon-file-zip is-size-3"></i>
+                      <iconify-icon icon="file-zip" class="is-size-4" />
                     </span>
                   </div>
                 </div>
@@ -300,18 +294,18 @@
                 <div v-if="archiveInfo.files" class="column">
                   <div v-if="!archiveInfo.isFileInfoVisible">
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="codicon codicon-chevron-down"></i>
+                      <iconify-icon icon="chevron-down" />
                     </span>
                     <span class="icon is-small is-hidden-tablet">
-                      <i class="codicon codicon-chevron-down"></i>
+                      <iconify-icon icon="chevron-down" />
                     </span>
                   </div>
                   <div v-else>
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="codicon codicon-chevron-up"></i>
+                      <iconify-icon icon="chevron-up" />
                     </span>
                     <span class="icon is-small is-hidden-tablet">
-                      <i class="codicon codicon-chevron-up"></i>
+                      <iconify-icon icon="chevron-up" />
                     </span>
                   </div>
                 </div>
