@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as del from "del";
-import { pathExists } from "fs-extra";
+import { constants, pathExists } from "fs-extra";
 import { EOL } from "os";
 import * as path from "path";
 import { OutputChannel } from "vscode";
@@ -68,11 +68,37 @@ export async function installPythonEnv(
       : ["bin", "python"];
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
   const requirements = path.join(espDir, "requirements.txt");
+  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
+  if (!utils.canAccessFile(requirements, constants.R_OK)) {
+    Logger.warnNotify(requirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(requirements + reqDoesNotExists);
+    }
+    return;
+  }
+  const extensionRequirements = path.join(
+    utils.extensionContext.extensionPath,
+    "requirements.txt"
+  );
+  if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
+    Logger.warnNotify(extensionRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(extensionRequirements + reqDoesNotExists);
+    }
+    return;
+  }
   const debugAdapterRequirements = path.join(
     utils.extensionContext.extensionPath,
     "esp_debug_adapter",
     "requirements.txt"
   );
+  if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
+    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
+    }
+    return;
+  }
 
   const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
   const installPyPkgsMsg = `Installing ESP-IDF python packages in ${pyEnvPath} ...\n`;
@@ -152,6 +178,17 @@ export async function installPythonEnv(
   pyTracker.Log = "\n";
   if (channel) {
     channel.appendLine(espIdfReqInstallResult + "\n");
+  }
+  // Extension Python requirements
+  const extensionInstallResult = await utils.execChildProcess(
+    `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
+    pyEnvPath,
+    channel
+  );
+  pyTracker.Log = extensionInstallResult;
+  pyTracker.Log = "\n";
+  if (channel) {
+    channel.appendLine(extensionInstallResult + "\n");
   }
   // Debug Adapter Python Requirements
   pyTracker.Log = installDAPyPkgsMsg;

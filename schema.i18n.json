@@ -53,7 +53,7 @@
       "extension.enterIdfToolsPathMessage",
       "extension.enterDevicePortMessage",
       "extension.enterDeviceTargetMessage",
-      "extension.enterDeviceBaudRateMessage",
+      "extension.enterFlashBaudRateMessage",
       "extension.enterOpenOcdConfigMessage",
       "extension.enterCustomPathsMessage",
       "extension.cmdNotWebIDE"
@@ -101,7 +101,7 @@
     "debug.initConfig.description",
     "param.adapterTargetName",
     "param.openOcdConfigFilesList",
-    "param.baudRate",
+    "param.flashBaudRate",
     "param.port",
     "param.pythonBinPath",
     "param.espIdfPath",
@@ -139,6 +139,10 @@
     "esp.rainmaker.backend.update_node_param.title",
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
-    "idf.flashType.description"
+    "idf.flashType.description",
+    "espIdf.launchWSServerAndMonitor.title",
+    "esp_idf.initGdbCommands.description",
+    "esp_idf.debuggers.text.description",
+    "esp_idf.gdbinitFile.description"
   ]
 }

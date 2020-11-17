@@ -6,12 +6,15 @@
       <p class="result-description-small">Found {{ tool.actual }}</p>
     </div>
     <div class="control is-small centered-icon">
-      <font-awesome-icon
-        icon="check"
-        v-if="tool.doesToolExist"
-        class="check-icon"
-      />
-      <font-awesome-icon icon="times" v-else class="check-icon" />
+      <div class="icon is-large">
+        <i
+          :class="
+            tool.doesToolExist
+              ? 'codicon codicon-check'
+              : 'codicon codicon-close'
+          "
+        ></i>
+      </div>
     </div>
   </div>
 </template>

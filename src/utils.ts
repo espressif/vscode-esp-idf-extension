@@ -185,6 +185,36 @@ export async function copyFromSrcProject(
   await copy(srcDirPath, destinationDir);
 }
 
+export function getConfigValueFromSDKConfig(
+  key: string,
+  workspacePath: string
+): string {
+  const sdkconfigFilePath = path.join(workspacePath, "sdkconfig");
+  if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
+    throw new Error("sdkconfig file doesn't exists or can't be read");
+  }
+  const configs = readFileSync(sdkconfigFilePath);
+  const re = new RegExp(`${key}=(.*)?`);
+  const match = configs.match(re);
+  return match ? match[1] : "";
+}
+
+export function getMonitorBaudRate(workspacePath: string) {
+  let sdkMonitorBaudRate: string = "";
+  try {
+    sdkMonitorBaudRate = getConfigValueFromSDKConfig(
+      "CONFIG_ESPTOOLPY_MONITOR_BAUD",
+      workspacePath
+    );
+  } catch (error) {
+    const errMsg = error.message
+      ? error.message
+      : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
+    Logger.error(errMsg, error);
+  }
+  return sdkMonitorBaudRate;
+}
+
 export function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
   fs.unlinkSync(sdkconfigFile);
@@ -557,8 +587,9 @@ export function validateFileSizeAndChecksum(
 }
 
 export function appendIdfAndToolsToPath() {
-  const modifiedEnv: NodeJS.ProcessEnv = {};
-  Object.assign(modifiedEnv, process.env);
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
 
   const customVarsString = idfConf.readParameter(
@@ -617,7 +648,7 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv = "PATH";
   }
   modifiedEnv[pathNameInEnv] =
-    modifiedEnv.IDF_PYTHON_ENV_PATH +
+    path.dirname(modifiedEnv.PYTHON) +
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +

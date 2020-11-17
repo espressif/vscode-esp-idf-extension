@@ -28,7 +28,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 - [Git](https://git-scm.com/downloads)
 - [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the onboarding configuration tools intall.
 
-> Please note that this extension __only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)__ the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
+> Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
 ## Coming Soon
 
@@ -169,10 +169,13 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting        | Description                  |
-| -------------- | ---------------------------- |
-| `idf.port`     | Path of selected device port |
-| `idf.baudRate` | Device Baud rate             |
+| Setting             | Description                  |
+| ------------------- | ---------------------------- |
+| `idf.port`          | Path of selected device port |
+| `idf.flashBaudRate` | Flash Baud rate              |
+
+The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate).
+This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
 
 ### Log Tracing Specific Settings
 

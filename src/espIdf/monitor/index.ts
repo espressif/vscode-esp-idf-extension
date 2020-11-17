@@ -42,18 +42,29 @@ export class IDFMonitor {
     });
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
+    const baudRateToUse =
+      env.IDF_MONITOR_BAUD ||
+      env.MONITORBAUD ||
+      this.config.baudRate ||
+      "115200";
     const args = [
       this.config.pythonBinPath,
       this.config.idfMonitorToolPath,
       "-p",
       this.config.port,
       "-b",
-      this.config.baudRate,
+      baudRateToUse,
       "--ws",
       `ws://localhost:${this.config.wsPort}`,
     ];
     args.push(this.config.elfFilePath);
+    const envSetCmd = process.platform === "win32" ? "set" : "export";
+    this.terminal.sendText(`${envSetCmd} IDF_PATH=${env.IDF_PATH}`);
     this.terminal.sendText(args.join(" "));
   }
-  dispose() {}
+  async dispose() {
+    try {
+      process.kill(await this.terminal.processId);
+    } catch (error) {}
+  }
 }

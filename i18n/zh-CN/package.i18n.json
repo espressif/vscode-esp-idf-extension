@@ -23,7 +23,6 @@
   "espIdf.openOCDCommand.title": "ESP-IDF：OpenOCD 管理器",
   "espIdf.genCoverage.title": "ESP-IDF: 添加编辑器覆盖范围",
   "espIdf.searchInEspIdfDocs.title": "ESP-IDF: 在文档中搜索...",
-  "espIdf.launchWSServerAndMonitor.title": "ESP-IDF: 为CoreDump/GDB存根模式启动IDF Monitor",
   "espIdf.removeCoverage.title": "ESP-IDF: 删除编辑器覆盖范围",
   "espIdf.getCoverageReport.title": "ESP-IDF: 获取项目的HTML覆盖率报告",
   "espIdf.getEspAdf.title": "ESP-ADF: 安装ESP-ADF",
@@ -32,7 +31,7 @@
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
   "param.openOcdConfigFilesList": "OpenOCD脚本目录中的配置文件列表",
-  "param.baudRate": "设备波特率",
+  "param.flashBaudRate": "ESP-IDF闪存波特率",
   "param.port": "选中的烧录端口路径",
   "param.pythonBinPath": "项目构建使用的 Python 解释器的绝对路径",
   "param.toolsPath": "IDF_TOOLS_PATH 的路径",
@@ -71,5 +70,9 @@
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth服务器网址",
   "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口",
   "espIdf.jtag_flash.title": "Flash（带有JTag）",
-  "idf.flashType.description": "设备闪存方法，UART或JTag"
+  "idf.flashType.description": "设备闪存方法，UART或JTag",
+  "espIdf.launchWSServerAndMonitor.title": "为CoreDump / GDB-Stub模式启动IDF监视器",
+  "esp_idf.initGdbCommands.description": "要执行的一个或多个xtensa-esp32-elf-gdb命令，以便设置底层调试器。例子: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"].",
+  "esp_idf.gdbinitFile.description": "ESP-IDF调试适配器的gdbinit文件路径",
+  "esp_idf.debuggers.text.description": "要执行的命令"
 }
