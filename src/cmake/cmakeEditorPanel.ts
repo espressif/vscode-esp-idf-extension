@@ -77,9 +77,6 @@ export class CmakeListsEditorPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(join(extensionPath, "dist", "views")),
-          vscode.Uri.file(
-            join(extensionPath, "node_modules", "vscode-codicons", "dist")
-          ),
         ],
       }
     );
@@ -94,13 +91,7 @@ export class CmakeListsEditorPanel {
       )
     );
 
-    const fontsPath = panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
-      )
-    );
-
-    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath, fontsPath);
+    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
 
     const cmakeListsWatcher = vscode.workspace.createFileSystemWatcher(
       fileUri.fsPath,
@@ -150,10 +141,7 @@ export class CmakeListsEditorPanel {
     CmakeListsEditorPanel.cmakeListsPanels.add(fileUri.fsPath, panel);
   }
 
-  private createCmakeListEditorHtml(
-    scriptPath: vscode.Uri,
-    fontsUri: vscode.Uri
-  ): string {
+  private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -162,12 +150,6 @@ export class CmakeListsEditorPanel {
             <title>CMakeLists.txt Editor</title>
             </head>
             <body>
-              <style>
-              @font-face {
-                  font-family: "codicon";
-                  src: url('${fontsUri}') format('truetype');
-              }
-              </style>
               <div id="editor"></div>
             </body>
             <script src="${scriptPath}"></script>

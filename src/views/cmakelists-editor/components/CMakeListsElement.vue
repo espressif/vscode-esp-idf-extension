@@ -8,7 +8,7 @@
         <li v-for="v in el.value" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
-            <i class="codicon codicon-close"></i>
+            <iconify-icon icon="close" />
           </div>
         </li>
       </ul>
@@ -24,7 +24,7 @@
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
-          <i class="codicon codicon-add"></i>
+          <iconify-icon icon="add" />
         </div>
       </div>
     </div>

@@ -15,6 +15,12 @@ import Vue from "vue";
 // @ts-ignore
 import CMakeListsEditor from "./CmakeListsEditor.vue";
 import { store } from "./store";
+import IconifyIcon from "@iconify/vue";
+import add from "@iconify-icons/codicon/add";
+import close from "@iconify-icons/codicon/close";
+IconifyIcon.addIcon("add", add);
+IconifyIcon.addIcon("close", close);
+Vue.component("iconify-icon", IconifyIcon);
 
 // tslint:disable-next-line: no-unused-expression
 const app = new Vue({
