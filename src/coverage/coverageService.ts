@@ -14,7 +14,12 @@
 
 import { sep, join } from "path";
 import * as vscode from "vscode";
-import { appendIdfAndToolsToPath, spawn } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  extensionContext,
+  getWebViewFavicon,
+  spawn,
+} from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
@@ -198,6 +203,7 @@ export async function previewReport(dirPath: string) {
       "Coverage report",
       column
     );
+    gcovHtmlPanel.iconPath = getWebViewFavicon(extensionContext.extensionPath);
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {

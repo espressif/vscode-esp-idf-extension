@@ -25,7 +25,10 @@
           >Select directory to download and install ESP-IDF. <br />(Result
           directory will be {{ resultingIdfPath }})</label
         >
-        <div class="field has-addons has-addons-centered">
+        <div
+          class="field has-addons has-addons-centered"
+          style="align-items: center;"
+        >
           <div class="control is-expanded">
             <input type="text" class="input" v-model="idfDownloadPath" />
           </div>
@@ -33,13 +36,14 @@
             <a class="button is-static"> {{ pathSep }}esp-idf </a>
           </p>
           <div class="control">
-            <font-awesome-icon
-              :icon="folderIcon"
-              class="open-icon"
-              @mouseover="folderIcon = 'folder-open'"
-              @mouseout="folderIcon = 'folder'"
-              v-on:click="openFolder"
-            />
+            <div class="icon is-large is-size-4">
+              <iconify-icon
+                :icon="folderIcon"
+                @mouseover="folderIcon = 'folder-opened'"
+                @mouseout="folderIcon = 'folder'"
+                v-on:click="openFolder"
+              />
+            </div>
           </div>
         </div>
         <div class="field centerize">

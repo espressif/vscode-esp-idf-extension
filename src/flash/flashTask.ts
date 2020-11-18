@@ -23,6 +23,8 @@ import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { TaskManager } from "../taskManager";
+import { SpawnOptions } from "child_process";
+import EspIdfCustomTerminal from "../espIdfCustomTerminal";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -47,7 +49,7 @@ export class FlashTask {
   }
 
   private verifyArgs() {
-    if (!canAccessFile(this.flashScriptPath)) {
+    if (!canAccessFile(this.flashScriptPath, constants.R_OK)) {
       throw new Error("SCRIPT_PERMISSION_ERROR");
     }
     for (const flashFile of this.model.flashSections) {
@@ -69,7 +71,7 @@ export class FlashTask {
     this.verifyArgs();
     const flashExecution = this._flashExecution();
     TaskManager.addTask(
-      { type: "esp-idf", command: flashExecution.commandLine },
+      { type: "esp-idf", command: "ESP-IDF Flash" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
@@ -99,14 +101,13 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       flasherArgs.push(flashFile.address, flashFile.binFilePath);
     }
-    const options: vscode.ShellExecutionOptions = {
+    const options: SpawnOptions = {
       cwd: this.buildDir,
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    return new vscode.ShellExecution(
-      `${pythonBinPath} ${flasherArgs.join(" ")}`,
-      options
+    return new vscode.CustomExecution(
+      async () => new EspIdfCustomTerminal(pythonBinPath, flasherArgs, options)
     );
   }
 }

@@ -1,6 +1,22 @@
-# Change Log
+# [ESP-IDF VS Code Extension's](http://github.com/espressif/vscode-esp-idf-extension) Changelogs
+
+> We have opened a [survey link](https://bit.ly/3iNCFyY), please submit your valuable feedbacks. Thanks 👏
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
+
+## 0.5.1
+
+### Release Bug Fix
+
+- Fix the CI release to marketplace bug not packaging the `esp_debug_adapter`
+- Fix the System Tracing UI theme, and added webview panel icons
+
+## 0.5.0
+
+### ESP-ADF & ESP-MDF
+
+- Added support for ESP-ADF and ESP-MDF
+- Fixed some bugs related to [Device Baud Rate](https://github.com/espressif/vscode-esp-idf-extension/pull/166), [Webview Background Color](https://github.com/espressif/vscode-esp-idf-extension/pull/166), [Menuconfig](https://github.com/espressif/vscode-esp-idf-extension/pull/166)
 
 ## 0.4.0
 

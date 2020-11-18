@@ -109,7 +109,7 @@ const webViewConfig = {
             loader: "file-loader",
             options: {
               name: "[name].[ext]",
-              outputPath: "fonts/",
+              outputPath: "fonts",
             },
           },
         ],

@@ -22,7 +22,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
-import { getElfFilePath, PreCheck } from "../../utils";
+import { getElfFilePath, getWebViewFavicon, PreCheck } from "../../utils";
 import { LogTraceProc } from "./tools/logTraceProc";
 import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
@@ -93,6 +93,7 @@ export class AppTracePanel {
   }
 
   private initWebview() {
+    this._panel.iconPath = getWebViewFavicon(this._extensionPath);
     this._panel.webview.html = this.getHtmlContent();
     this.sendCommandToWebview("initialLoad", this._traceData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);

@@ -25,8 +25,8 @@
                     v-on:click="flashClicked"
                     v-bind:disabled="isFlashing"
                   >
-                    <span class="icon is-small">
-                      <i class="fas fa-bolt"></i>
+                    <span class="icon">
+                      <iconify-icon icon="symbol-event" />
                     </span>
                     &nbsp; Flash
                   </button>
@@ -35,8 +35,8 @@
                     title="Retry"
                     v-on:click="retryClicked"
                   >
-                    <span class="icon is-small">
-                      <i class="fas fa-redo"></i>
+                    <span class="icon">
+                      <iconify-icon icon="refresh" />
                     </span>
                   </button>
                 </p>
@@ -131,8 +131,8 @@
               <div class="columns is-vcentered has-text-centered is-mobile">
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
-                    <span class="icon is-medium is-hidden-mobile">
-                      <i class="fas fa-lg fa-memory"></i>
+                    <span class="icon is-large is-hidden-mobile">
+                      <iconify-icon icon="server" class="is-size-3" />
                     </span>
                     <strong style="vertical-align: super;">DRAM</strong>
                   </div>
@@ -159,8 +159,8 @@
               <div class="columns is-vcentered has-text-centered is-mobile">
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
-                    <span class="icon is-medium is-hidden-mobile">
-                      <i class="fas fa-lg fa-microchip"></i>
+                    <span class="icon is-large is-hidden-mobile">
+                      <iconify-icon icon="screen-normal" class="is-size-3" />
                     </span>
                     <strong style="vertical-align: super;">IRAM</strong>
                   </div>
@@ -197,8 +197,8 @@
                   placeholder="Search"
                   v-model="searchText"
                 />
-                <span class="icon is-small is-right">
-                  <i class="fas fa-search"></i>
+                <span class="icon is-right">
+                  <iconify-icon icon="search" />
                 </span>
               </p>
             </div>
@@ -212,9 +212,9 @@
                 v-on:click="toggleArchiveFileInfoTable(archiveName)"
               >
                 <div class="column is-hidden-mobile">
-                  <div>
+                  <div class="control">
                     <span class="icon is-large">
-                      <i class="fas fa-lg fa-file-archive"></i>
+                      <iconify-icon icon="file-zip" class="is-size-4" />
                     </span>
                   </div>
                 </div>
@@ -294,18 +294,18 @@
                 <div v-if="archiveInfo.files" class="column">
                   <div v-if="!archiveInfo.isFileInfoVisible">
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="fas fa-lg fa-angle-down"></i>
+                      <iconify-icon icon="chevron-down" />
                     </span>
                     <span class="icon is-small is-hidden-tablet">
-                      <i class="fas fa-angle-down"></i>
+                      <iconify-icon icon="chevron-down" />
                     </span>
                   </div>
                   <div v-else>
                     <span class="icon is-large is-hidden-mobile">
-                      <i class="fas fa-lg fa-angle-up"></i>
+                      <iconify-icon icon="chevron-up" />
                     </span>
-                    <span class="icon is-large is-hidden-tablet">
-                      <i class="fas fa-angle-up"></i>
+                    <span class="icon is-small is-hidden-tablet">
+                      <iconify-icon icon="chevron-up" />
                     </span>
                   </div>
                 </div>

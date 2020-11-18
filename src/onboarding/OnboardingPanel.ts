@@ -103,6 +103,7 @@ export class OnBoardingPanel {
         path.join(extensionPath, "dist", "views", "onboarding-bundle.js")
       )
     );
+    this.panel.iconPath = utils.getWebViewFavicon(extensionPath);
     this.panel.webview.html = createOnboardingHtml(scriptPath);
 
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);

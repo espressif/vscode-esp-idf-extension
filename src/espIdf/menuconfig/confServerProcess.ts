@@ -352,8 +352,11 @@ export class ConfserverProcess {
     });
     this.confServerProcess.on("exit", (code, signal) => {
       if (code !== 0) {
-        this.printError(`Received signal: ${signal} with code: ${code}`);
+        this.printError(
+          `SDK Configuration editor confserver process exited with code: ${code}`
+        );
       }
+      ConfserverProcess.dispose();
     });
   }
 

@@ -36,6 +36,18 @@ import QuickCallStack from "./components/QuickCallStack.vue";
 import Tree from "./components/Tree.vue";
 // @ts-ignore
 import Stats from "./components/Stats.vue";
+import IconifyIcon from "@iconify/vue";
+import pulse from "@iconify-icons/codicon/pulse";
+import search from "@iconify-icons/codicon/search";
+import history from "@iconify-icons/codicon/history";
+import triangleUp from "@iconify-icons/codicon/triangle-up";
+import triangleDown from "@iconify-icons/codicon/triangle-down";
+IconifyIcon.addIcon("pulse", pulse);
+IconifyIcon.addIcon("search", search);
+IconifyIcon.addIcon("history", history);
+IconifyIcon.addIcon("triangle-up", triangleUp);
+IconifyIcon.addIcon("triangle-down", triangleDown);
+Vue.component("iconify-icon", IconifyIcon);
 declare var acquireVsCodeApi: any;
 let vscode: any;
 try {

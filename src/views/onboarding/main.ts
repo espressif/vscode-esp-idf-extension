@@ -11,26 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faArrowCircleDown,
-  faArrowLeft,
-  faCheck,
-  faFolder,
-  faFolderOpen,
-  faTimes,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import VueRouter from "vue-router";
+// @ts-ignore
 import App from "./App.vue";
+// @ts-ignore
 import Download from "./Download.vue";
+// @ts-ignore
 import GitPyCheck from "./GitPyCheck.vue";
+// @ts-ignore
 import Home from "./Home.vue";
+// @ts-ignore
 import ToolSetup from "./ToolsSetup.vue";
 import { store } from "./store";
-import "../commons/espCommons.scss";
+import IconifyIcon from "@iconify/vue";
+import folderOpen from "@iconify-icons/codicon/folder-opened";
+import folder from "@iconify-icons/codicon/folder";
+import check from "@iconify-icons/codicon/check";
+import close from "@iconify-icons/codicon/close";
+IconifyIcon.addIcon("folder-opened", folderOpen);
+IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("check", check);
+IconifyIcon.addIcon("close", close);
+Vue.component("iconify-icon", IconifyIcon);
 
 const routes = [
   { path: "/", component: Home },
@@ -45,16 +48,6 @@ const router = new VueRouter({
   routes,
   base: __dirname,
 });
-
-library.add(
-  faArrowLeft,
-  faArrowCircleDown,
-  faCheck,
-  faFolder,
-  faFolderOpen,
-  faTimes
-);
-Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 // tslint:disable-next-line: no-unused-expression
 new Vue({

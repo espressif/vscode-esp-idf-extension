@@ -11,13 +11,14 @@
         />
       </div>
       <div class="control">
-        <font-awesome-icon
-          :icon="folderIcon"
-          class="open-icon"
-          @mouseover="folderIcon = 'folder-open'"
-          @mouseout="folderIcon = 'folder'"
-          v-on:click="openFolder"
-        />
+        <div class="icon is-large is-size-4" style="text-decoration: none;">
+          <iconify-icon
+            :icon="folderIcon"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
+            v-on:click="openFolder"
+          />
+        </div>
       </div>
     </div>
     <div class="field">
@@ -32,13 +33,10 @@
       class="field is-grouped"
       style="align-items: center;"
     >
-      <div class="control icon is-small">
-        <font-awesome-icon
-          icon="check"
-          v-if="doesIdfPathExist"
-          class="check-icon"
-        />
-        <font-awesome-icon icon="times" v-else class="check-icon" />
+      <div class="control">
+        <div class="icon is-small">
+          <iconify-icon :icon="doesIdfPathExist ? 'check' : 'close'" />
+        </div>
       </div>
       <div class="control">
         <p>

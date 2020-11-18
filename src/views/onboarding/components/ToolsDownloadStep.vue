@@ -8,13 +8,14 @@
         <input type="text" class="input" v-model="idfTools" />
       </div>
       <div class="control">
-        <font-awesome-icon
-          :icon="folderIcon"
-          class="open-icon"
-          @mouseover="folderIcon = 'folder-open'"
-          @mouseout="folderIcon = 'folder'"
-          v-on:click="openFolder"
-        />
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="folderIcon"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
+            v-on:click="openFolder"
+          />
+        </div>
       </div>
     </div>
     <div class="field is-grouped">

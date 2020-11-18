@@ -18,6 +18,24 @@
 import "./index.scss";
 
 import Vue from "vue";
+import IconifyIcon from "@iconify/vue";
+import symbolEvent from "@iconify-icons/codicon/symbol-event";
+import refresh from "@iconify-icons/codicon/refresh";
+import server from "@iconify-icons/codicon/server";
+import screenNormal from "@iconify-icons/codicon/screen-normal";
+import search from "@iconify-icons/codicon/search";
+import fileZip from "@iconify-icons/codicon/file-zip";
+import chevronDown from "@iconify-icons/codicon/chevron-down";
+import chevronUp from "@iconify-icons/codicon/chevron-up";
+IconifyIcon.addIcon("symbol-event", symbolEvent);
+IconifyIcon.addIcon("refresh", refresh);
+IconifyIcon.addIcon("server", server);
+IconifyIcon.addIcon("screen-normal", screenNormal);
+IconifyIcon.addIcon("search", search);
+IconifyIcon.addIcon("file-zip", fileZip);
+IconifyIcon.addIcon("chevron-down", chevronDown);
+IconifyIcon.addIcon("chevron-up", chevronUp);
+Vue.component("iconify-icon", IconifyIcon);
 
 const SEC = 1000;
 declare var acquireVsCodeApi: any;

@@ -11,28 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faCaretDown,
-  faCaretRight,
-  faInfoCircle,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import vuescroll from "vue-scroll";
 import VueTheMask from "vue-the-mask";
+import IconifyIcon from "@iconify/vue";
+import info from "@iconify-icons/codicon/info";
+import chevronRight from "@iconify-icons/codicon/chevron-right";
+import chevronDown from "@iconify-icons/codicon/chevron-down";
+// @ts-ignore
 import ConfigElement from "./components/configElement.vue";
+// @ts-ignore
 import SearchBar from "./components/SearchBar.vue";
+// @ts-ignore
 import SideNavItem from "./components/SideNavItem.vue";
+// @ts-ignore
 import Menuconfig from "./Menuconfig.vue";
 import { store } from "./store";
-
-library.add(faInfoCircle, faCaretDown, faCaretRight);
-Vue.component("font-awesome-icon", FontAwesomeIcon);
+IconifyIcon.addIcon("info", info);
+IconifyIcon.addIcon("chevron-right", chevronRight);
+IconifyIcon.addIcon("chevron-down", chevronDown);
 Vue.component("config-el", ConfigElement);
 Vue.component("sidenav-el", SideNavItem);
 Vue.component("search-bar", SearchBar);
+Vue.component("iconify-icon", IconifyIcon);
 Vue.use(vuescroll);
 Vue.use(VueTheMask);
 

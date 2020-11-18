@@ -21,6 +21,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
+import { getWebViewFavicon } from "../../utils";
 
 export class IDFSizePanel {
   public static createOrShow(
@@ -83,6 +84,7 @@ export class IDFSizePanel {
     IDFSizePanel.currentPanel = undefined;
   }
   private initWebview() {
+    this._panel.iconPath = getWebViewFavicon(this._extensionPath);
     this._panel.webview.html = this.getHtmlContent();
     this._panel.webview.postMessage(this._webviewData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
