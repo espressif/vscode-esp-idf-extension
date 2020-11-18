@@ -30,7 +30,10 @@ export class TaskManager {
     taskDefinition: vscode.TaskDefinition,
     scope: vscode.TaskScope,
     name: string,
-    execution: vscode.ShellExecution,
+    execution:
+      | vscode.ShellExecution
+      | vscode.ProcessExecution
+      | vscode.CustomExecution,
     problemMatchers: string | string[]
   ) {
     const newTask: vscode.Task = new vscode.Task(

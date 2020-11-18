@@ -199,6 +199,22 @@ export function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
+export function getMonitorBaudRate(workspacePath: string) {
+  let sdkMonitorBaudRate: string = "";
+  try {
+    sdkMonitorBaudRate = getConfigValueFromSDKConfig(
+      "CONFIG_ESPTOOLPY_MONITOR_BAUD",
+      workspacePath
+    );
+  } catch (error) {
+    const errMsg = error.message
+      ? error.message
+      : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
+    Logger.error(errMsg, error);
+  }
+  return sdkMonitorBaudRate;
+}
+
 export function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
   fs.unlinkSync(sdkconfigFile);
@@ -571,8 +587,9 @@ export function validateFileSizeAndChecksum(
 }
 
 export function appendIdfAndToolsToPath() {
-  const modifiedEnv: NodeJS.ProcessEnv = {};
-  Object.assign(modifiedEnv, process.env);
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
   const extraPaths = idfConf.readParameter("idf.customExtraPaths");
 
   const customVarsString = idfConf.readParameter(
@@ -631,7 +648,7 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv = "PATH";
   }
   modifiedEnv[pathNameInEnv] =
-    modifiedEnv.IDF_PYTHON_ENV_PATH +
+    path.dirname(modifiedEnv.PYTHON) +
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +

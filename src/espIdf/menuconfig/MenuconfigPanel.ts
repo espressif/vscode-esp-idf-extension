@@ -71,9 +71,6 @@ export class MenuConfigPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(extensionPath, "dist", "views")),
-          vscode.Uri.file(
-            path.join(extensionPath, "node_modules", "vscode-codicons", "dist")
-          ),
         ],
       }
     );
@@ -82,22 +79,8 @@ export class MenuConfigPanel {
         path.join(extensionPath, "dist", "views", "menuconfig-bundle.js")
       )
     );
-    const codiconsUri = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          extensionPath,
-          "node_modules",
-          "vscode-codicons",
-          "dist",
-          "codicon.css"
-        )
-      )
-    );
     this.panel.iconPath = getWebViewFavicon(extensionPath);
-    this.panel.webview.html = this.createMenuconfigHtml(
-      scriptPath,
-      codiconsUri
-    );
+    this.panel.webview.html = this.createMenuconfigHtml(scriptPath);
 
     ConfserverProcess.registerListener(this.updateConfigValues);
 
@@ -248,20 +231,16 @@ export class MenuConfigPanel {
     });
   }
 
-  private createMenuconfigHtml(
-    scriptPath: vscode.Uri,
-    codiconsUri: vscode.Uri
-  ): string {
+  private createMenuconfigHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>SDK Configuration Editor</title>
-            <link href="${codiconsUri}" rel="stylesheet" />
             </head>
             <body>
-                <div id="menuconfig"></div>
+              <div id="menuconfig"></div>
             </body>
             <script src="${scriptPath}"></script>
         </html>`;

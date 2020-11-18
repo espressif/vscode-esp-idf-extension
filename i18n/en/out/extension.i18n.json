@@ -17,7 +17,7 @@
   "extension.enterIdfToolsPathMessage": "Enter IDF_TOOLS_PATH path",
   "extension.enterDevicePortMessage": "Enter device port Path",
   "extension.enterDeviceTargetMessage": "Enter Espressif device to use",
-  "extension.enterDeviceBaudRateMessage": "Enter device baud rate",
+  "extension.enterFlashBaudRateMessage": "Enter flash baud rate",
   "extension.enterOpenOcdConfigMessage": "Enter list of configuration files inside OpenOCD Scripts directory",
   "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH",
   "extension.cmdNotWebIDE": "Selected command is not available in WebIDE"
