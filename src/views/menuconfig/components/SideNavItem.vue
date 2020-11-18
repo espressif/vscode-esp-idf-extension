@@ -5,13 +5,9 @@
   >
     <div class="menu-line">
       <div class="info-icon" @click="collapse" v-show="menuSubItems.length > 0">
-        <i
-          :class="
-            menu.isCollapsed
-              ? 'codicon codicon-chevron-right'
-              : 'codicon codicon-chevron-down'
-          "
-        ></i>
+        <iconify-icon
+          :icon="menu.isCollapsed ? 'chevron-right' : 'chevron-down'"
+        />
       </div>
       <p @click="setAsSelectedMenu" v-text="menu.title" />
     </div>

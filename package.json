@@ -809,6 +809,8 @@
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
+    "@iconify-icons/codicon": "^1.0.6",
+    "@iconify/vue": "^1.0.6",
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
@@ -837,7 +839,6 @@
     "prettier": "2.0.2",
     "pretty-quick": "^2.0.1",
     "reflect-metadata": "^0.1.13",
-    "resolve-url-loader": "^3.1.2",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^7.0.5",
@@ -848,7 +849,6 @@
     "typescript": "^3.9.5",
     "typescript-tslint-plugin": "^0.3.1",
     "vsce": "^1.52.0",
-    "vscode-codicons": "^0.0.12",
     "vscode-nls-dev": "^3.3.1",
     "vscode-test": "^1.0.0",
     "vue-class-component": "^7.1.0",

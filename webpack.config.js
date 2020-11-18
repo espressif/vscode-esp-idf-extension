@@ -95,9 +95,6 @@ const webViewConfig = {
             loader: "css-loader",
           },
           {
-            loader: "resolve-url-loader",
-          },
-          {
             loader: "sass-loader",
             options: {
               sourceMap: true,
@@ -112,7 +109,7 @@ const webViewConfig = {
             loader: "file-loader",
             options: {
               name: "[name].[ext]",
-              outputPath: "fonts/",
+              outputPath: "fonts",
             },
           },
         ],

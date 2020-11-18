@@ -24,7 +24,16 @@ import Home from "./Home.vue";
 // @ts-ignore
 import ToolSetup from "./ToolsSetup.vue";
 import { store } from "./store";
-import "../commons/espCommons.scss";
+import IconifyIcon from "@iconify/vue";
+import folderOpen from "@iconify-icons/codicon/folder-opened";
+import folder from "@iconify-icons/codicon/folder";
+import check from "@iconify-icons/codicon/check";
+import close from "@iconify-icons/codicon/close";
+IconifyIcon.addIcon("folder-opened", folderOpen);
+IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("check", check);
+IconifyIcon.addIcon("close", close);
+Vue.component("iconify-icon", IconifyIcon);
 
 const routes = [
   { path: "/", component: Home },

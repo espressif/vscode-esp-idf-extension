@@ -23,7 +23,7 @@ export function createOnboardingHtml(scriptPath: Uri): string {
         <title>Onboarding Setup</title>
         </head>
         <body>
-            <div id="app"></div>
+          <div id="app"></div>
         </body>
         <script src="${scriptPath}"></script>
     </html>`;
