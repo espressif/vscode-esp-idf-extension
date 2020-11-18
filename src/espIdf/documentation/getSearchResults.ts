@@ -54,7 +54,7 @@ export async function seachInEspDocs(searchString: string) {
   ) {
     targetToUse = idfTarget;
   }
-  const baseUrl = getDocsBaseUrl(docVersion.name, idfTarget);
+  const baseUrl = getDocsBaseUrl(docVersion.name, targetToUse);
   const docIndex = await getDocsIndex(baseUrl);
 
   const termsToSearch = searchString.trim().split(" ");
