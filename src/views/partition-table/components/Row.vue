@@ -52,7 +52,7 @@
         :data-tooltip="error"
         v-if="error"
       >
-        <i class="codicon codicon-question"></i>
+        <iconify-icon icon="question" />
       </span>
     </td>
   </tr>

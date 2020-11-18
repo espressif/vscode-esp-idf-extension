@@ -20,6 +20,18 @@ import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
 import { CSV2JSON } from "./util";
+import IconifyIcon from "@iconify/vue";
+import tools from "@iconify-icons/codicon/tools";
+import symbolEvent from "@iconify-icons/codicon/symbol-event";
+import refresh from "@iconify-icons/codicon/refresh";
+import question from "@iconify-icons/codicon/question";
+
+IconifyIcon.addIcon("tools", tools);
+IconifyIcon.addIcon("symbol-event", symbolEvent);
+IconifyIcon.addIcon("refresh", refresh);
+IconifyIcon.addIcon("question", question);
+
+Vue.component("iconify-icon", IconifyIcon);
 
 new Vue({
   store,

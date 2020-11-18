@@ -15,19 +15,19 @@
             <p class="buttons are-small">
               <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
-                  <i class="codicon codicon-tools"></i>
+                  <iconify-icon icon="tools" />
                 </span>
                 &nbsp; Build
               </a>
               <a class="button" href="command:espIdf.flashDevice">
                 <span class="icon is-small">
-                  <i class="codicon codicon-symbol-event"></i>
+                  <iconify-icon icon="symbol-event" />
                 </span>
                 &nbsp; Flash
               </a>
               <button class="button" title="Retry" @click="initDataRequest">
                 <span class="icon is-small">
-                  <i class="codicon codicon-refresh"></i>
+                  <iconify-icon icon="refresh" />
                 </span>
               </button>
             </p>
