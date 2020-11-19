@@ -150,6 +150,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "idfSearchResults",
+        "contents": "No results found."
+      }
+    ],
     "menus": {
       "view/title": [
         {

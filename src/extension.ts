@@ -765,26 +765,44 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
-    const currentEditor = vscode.window.activeTextEditor;
-    if (currentEditor) {
-      let selection = currentEditor.document.getText(currentEditor.selection);
-      if (!selection) {
-        const range = currentEditor.document.getWordRangeAtPosition(
-          currentEditor.selection.active
-        );
-        selection = currentEditor.document.getText(range);
+    vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF Docs search results",
+      },
+      async () => {
+        try {
+          const currentEditor = vscode.window.activeTextEditor;
+          if (!currentEditor) {
+            return;
+          }
+          let selection = currentEditor.document.getText(
+            currentEditor.selection
+          );
+          if (!selection) {
+            const range = currentEditor.document.getWordRangeAtPosition(
+              currentEditor.selection.active
+            );
+            selection = currentEditor.document.getText(range);
+          }
+          const searchResults = await seachInEspDocs(selection);
+          if (searchResults && searchResults.length < 1) {
+            espIdfDocsResultTreeDataProvider.clearResults();
+            Logger.infoNotify("No ESP-IDF docs found");
+            return;
+          }
+          espIdfDocsResultTreeDataProvider.getResults(
+            searchResults,
+            idfSearchResults
+          );
+        } catch (error) {
+          const errMsg = error.message || "Error searching in ESP-IDF docs";
+          Logger.errorNotify(errMsg, error);
+          return;
+        }
       }
-      const searchResults = await seachInEspDocs(selection);
-      if (searchResults && searchResults.length < 1) {
-        espIdfDocsResultTreeDataProvider.clearResults();
-        Logger.infoNotify("No ESP-IDF docs found");
-        return;
-      }
-      espIdfDocsResultTreeDataProvider.getResults(
-        searchResults,
-        idfSearchResults
-      );
-    }
+    );
   });
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {

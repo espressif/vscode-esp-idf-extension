@@ -50,6 +50,7 @@ export namespace ESP {
     export namespace Docs {
       export const BASE_URL = "https://docs.espressif.com/projects/esp-idf";
       export let IDF_INDEX;
+      export const INDEX_CACHE_LIMIT = 86400; // Seconds
       export let IDF_VERSION_OBJ: IEspIdfDocVersion[];
       export const IDF_VERSIONS =
         "https://dl.espressif.com/dl/esp-idf/idf_versions.js";

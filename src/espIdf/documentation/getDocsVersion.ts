@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import { ESP } from "../../config";
-import { readFile } from "fs-extra";
+import { pathExists, readFile, readJSON, stat, writeJSON } from "fs-extra";
 import { tmpdir } from "os";
 import { basename, join } from "path";
 import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
+import { extensionContext } from "../../utils";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -69,13 +70,34 @@ function getDocsLocaleLang() {
   return localeLang;
 }
 
-export async function getDocsIndex(baseUrl: string) {
+export async function getDocsIndex(
+  baseUrl: string,
+  idfVersion: string,
+  idfTarget: string
+) {
   if (ESP.URL.Docs.IDF_INDEX) {
     return ESP.URL.Docs.IDF_INDEX;
+  }
+  const docLang = getDocsLocaleLang();
+  const indexName = `esp_idf_docs_index_lang_${docLang}_espIdfVersion_${idfVersion}${
+    idfTarget ? `_target_${idfTarget}` : ""
+  }.json`;
+  const indexPath = join(extensionContext.extensionPath, indexName);
+  const indexExists = await pathExists(indexPath);
+
+  if (indexExists) {
+    const indexFileStats = await stat(indexPath);
+    const todayTime = new Date();
+    const timeDiff =
+      (todayTime.getTime() - indexFileStats.mtime.getTime()) / 1000;
+    if (timeDiff < ESP.URL.Docs.INDEX_CACHE_LIMIT) {
+      return readJSON(indexPath);
+    }
   }
   const indexUrl = `${baseUrl}/searchindex.js`;
   const indexObj = await readObjectFromUrlFile(indexUrl);
   ESP.URL.Docs.IDF_INDEX = indexObj;
+  await writeJSON(indexPath, indexObj);
   return indexObj;
 }
 
