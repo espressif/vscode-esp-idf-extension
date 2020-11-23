@@ -20,7 +20,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { copy, ensureDir, readFile } from "fs-extra";
+import { copy, ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 
@@ -78,14 +78,6 @@ export class NewProjectPanel {
         retainContextWhenHidden: true,
         localResourceRoots: [
           vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
-          vscode.Uri.file(
-            path.join(
-              this.extensionPath,
-              "node_modules",
-              "vscode-codicons",
-              "dist"
-            )
-          ),
         ],
       }
     );
@@ -99,18 +91,7 @@ export class NewProjectPanel {
         path.join(this.extensionPath, "dist", "views", "newProject-bundle.js")
       )
     );
-    const codiconsUri = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(
-          this.extensionPath,
-          "node_modules",
-          "vscode-codicons",
-          "dist",
-          "codicon.css"
-        )
-      )
-    );
-    this.panel.webview.html = this.createHtml(scriptPath, codiconsUri);
+    this.panel.webview.html = this.createHtml(scriptPath);
 
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
@@ -266,7 +247,7 @@ export class NewProjectPanel {
             ".vscode",
             "settings.json"
           );
-          const settingsJson = await utils.readJson(settingsJsonPath);
+          const settingsJson = await readJSON(settingsJsonPath);
           const idfPathDir = idfConf.readParameter("idf.espIdfPath");
           const extraPaths = idfConf.readParameter("idf.customExtraPaths");
           const extraVars = idfConf.readParameter(
@@ -291,7 +272,7 @@ export class NewProjectPanel {
           );
           settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
 
-          await utils.writeJson(settingsJsonPath, settingsJson);
+          await writeJSON(settingsJsonPath, settingsJson);
           if (components && components.length > 0) {
             const componentsPath = path.join(newProjectPath, "components");
             await ensureDir(componentsPath, { mode: 0o775 });
@@ -406,14 +387,13 @@ export class NewProjectPanel {
     return contentStr;
   }
 
-  private createHtml(scriptPath: vscode.Uri, codiconsUri: vscode.Uri): string {
+  private createHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
       <html lang="en">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>ESP-IDF Project</title>
-          <link href="${codiconsUri}" rel="stylesheet" />
         </head>
         <body>
           <div id="app"></div>

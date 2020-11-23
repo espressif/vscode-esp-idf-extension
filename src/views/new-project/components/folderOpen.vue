@@ -14,13 +14,13 @@
         <a class="button is-static">{{ pathSep + staticText }}</a>
       </div>
       <div class="control">
-        <div class="icon" style="text-decoration: none;">
-          <i
-            :class="folderIcon"
-            @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-            @mouseout="folderIcon = 'codicon codicon-folder'"
+        <div class="icon is-large is-size-4" style="text-decoration: none;">
+          <iconify-icon
+            :icon="folderIcon"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
             v-on:click="openMethod"
-          ></i>
+          />
         </div>
       </div>
     </div>
@@ -32,7 +32,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class folderOpen extends Vue {
-  private folderIcon = "codicon codicon-folder";
+  private folderIcon = "folder";
   @Prop() propLabel: string;
   @Prop() propModel: string;
   @Prop() propMutate: (val: string) => void;

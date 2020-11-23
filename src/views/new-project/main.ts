@@ -21,6 +21,16 @@ import Configure from "./Configure.vue";
 // @ts-ignore
 import Templates from "./Templates.vue";
 import { store } from "./store";
+import IconifyIcon from "@iconify/vue";
+import add from "@iconify-icons/codicon/add";
+import close from "@iconify-icons/codicon/close";
+import folder from "@iconify-icons/codicon/folder";
+import folderOpen from "@iconify-icons/codicon/folder-opened";
+IconifyIcon.addIcon("add", add);
+IconifyIcon.addIcon("close", close);
+IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("folder-opened", folderOpen);
+Vue.component("iconify-icon", IconifyIcon);
 
 Vue.use(VueRouter);
 const routes = [

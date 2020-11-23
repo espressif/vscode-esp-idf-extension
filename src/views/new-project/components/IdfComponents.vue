@@ -12,18 +12,18 @@
           />
         </div>
         <div class="control">
-          <div class="icon" style="text-decoration: none;">
-            <i
-              :class="folderIcon"
-              @mouseover="folderIcon = 'codicon codicon-folder-opened'"
-              @mouseout="folderIcon = 'codicon codicon-folder'"
+          <div class="icon is-large is-size-4" style="text-decoration: none;">
+            <iconify-icon
+              :icon="folderIcon"
+              @mouseover="folderIcon = 'folder-opened'"
+              @mouseout="folderIcon = 'folder'"
               v-on:click="openComponentFolder"
-            ></i>
+            />
           </div>
         </div>
         <div class="control add-icon">
-          <div class="icon">
-            <i class="codicon codicon-add" @click="addToComponentList"></i>
+          <div class="icon is-large is-size-4">
+            <iconify-icon icon="add" @click="addToComponentList" />
           </div>
         </div>
       </div>
@@ -51,7 +51,7 @@ import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
   },
 })
 export default class Components extends Vue {
-  public folderIcon = "codicon codicon-folder";
+  public folderIcon = "folder";
   @Action private openComponentFolder;
   @Mutation private addComponent;
   @State("components") private storeComponents: IdfComponent[];
@@ -87,7 +87,8 @@ export default class Components extends Vue {
 #components {
   width: 100%;
 }
-.add-icon:hover {
-  text-shadow: 2px 1px 5px var(--vscode-input-foreground);
+.add-icon .icon svg:hover {
+  filter: url(#blur-filter);
+  stroke: var(--vscode-input-foreground);
 }
 </style>

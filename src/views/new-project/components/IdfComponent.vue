@@ -2,8 +2,8 @@
   <div class="field is-grouped">
     <label class="label" :for="comp.name" v-text="comp.path" />
     <div class="control icon">
-      <div class="icon">
-        <i class="codicon codicon-close" @click="removeComponent(comp)"></i>
+      <div class="icon is-large is-size-4">
+        <iconify-icon icon="close" @click="removeComponent(comp)" />
       </div>
     </div>
   </div>
