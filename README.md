@@ -168,10 +168,13 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting        | Description                  |
-| -------------- | ---------------------------- |
-| `idf.port`     | Path of selected device port |
-| `idf.baudRate` | Device Baud rate             |
+| Setting             | Description                  |
+| ------------------- | ---------------------------- |
+| `idf.port`          | Path of selected device port |
+| `idf.flashBaudRate` | Flash Baud rate              |
+
+The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate).
+This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
 
 ### Log Tracing Specific Settings
 

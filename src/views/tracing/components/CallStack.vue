@@ -24,13 +24,13 @@
           v-model="filter.functionName"
         />
         <span class="icon is-small is-left">
-          <i class="codicon codicon-search"></i>
+          <iconify-icon icon="search" />
         </span>
       </div>
       <div class="control">
         <button class="button" @click="reverseCallStack">
           <span class="icon is-small">
-            <i class="codicon codicon-history"></i>
+            <iconify-icon icon="history" />
           </span>
           <span>Reverse Call Stack</span>
         </button>
@@ -39,13 +39,13 @@
         <button class="button" @click="collapseOrExpandCalls()">
           <template v-if="isExpanded">
             <span class="icon is-small">
-              <i class="codicon codicon-triangle-up"></i>
+              <iconify-icon icon="triangle-up" />
             </span>
             <span>Collapse All</span>
           </template>
           <template v-else>
             <span class="icon is-small">
-              <i class="codicon codicon-triangle-down"></i>
+              <iconify-icon icon="triangle-down" />
             </span>
             <span>Expand All</span>
           </template>
