@@ -70,12 +70,17 @@ export class FlashTask {
     }
     this.verifyArgs();
     const flashExecution = this._flashExecution();
+    const focusTaskOutput = idfConf.readParameter("idf.focusTaskOutput");
+    const showTaskOutput = focusTaskOutput
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
-      ["idfRelative", "idfAbsolute"]
+      ["idfRelative", "idfAbsolute"],
+      showTaskOutput
     );
   }
 

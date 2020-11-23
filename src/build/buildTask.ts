@@ -74,12 +74,17 @@ export class BuildTask {
       ["-G", "Ninja", ".."],
       options
     );
+    const focusTaskOutput = idfConf.readParameter("idf.focusTaskOutput");
+    const showTaskOutput = focusTaskOutput
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Compile" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Compile",
       compileExecution,
-      ["idfRelative", "idfAbsolute"]
+      ["idfRelative", "idfAbsolute"],
+      showTaskOutput
     );
     const buildExecution = this.getShellExecution(["--build", "."], options);
     TaskManager.addTask(
@@ -87,7 +92,8 @@ export class BuildTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
-      ["idfRelative", "idfAbsolute"]
+      ["idfRelative", "idfAbsolute"],
+      showTaskOutput
     );
   }
 }

@@ -129,6 +129,7 @@
     "trace.wait4halt.description",
     "trace.skip_size.description",
     "param.saveBeforeBuildDescription",
+    "param.focusTaskOutput",
     "param.saveScope",
     "param.rainmaker.api.server_url",
     "esp.rainmaker.backend.sync.title",
