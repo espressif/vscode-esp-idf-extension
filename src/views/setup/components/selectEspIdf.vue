@@ -65,7 +65,6 @@ import folderOpen from "./folderOpen.vue";
   },
 })
 export default class SelectEspIdf extends Vue {
-  private folderIcon = "codicon codicon-folder";
   @Action private openEspIdfFolder;
   @Action private openEspIdfContainerFolder;
   @Mutation setEspIdfPath;

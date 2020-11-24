@@ -60,7 +60,14 @@ export async function installPythonEnv(
     pythonBinPath.indexOf(virtualEnvPython) < 0 &&
     utils.fileExists(virtualEnvPython)
   ) {
-    await del(pyEnvPath, { force: true });
+    await installExtensionPyReqs(
+      virtualEnvPython,
+      idfToolsDir,
+      pyTracker,
+      channel,
+      cancelToken
+    );
+    return virtualEnvPython;
   }
 
   pyTracker.Log = creatEnvMsg;
@@ -155,7 +162,7 @@ export async function installReqs(
   const modifiedEnv = Object.assign({}, process.env);
   modifiedEnv.IDF_PATH = espDir;
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location -r "${requirements}"`,
     idfToolsDir,
     pyTracker,
     channel,
@@ -211,7 +218,7 @@ export async function installExtensionPyReqs(
     channel.appendLine(installExtensionPyPkgsMsg + "\n");
   }
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location  -r "${extensionRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel,
@@ -225,7 +232,7 @@ export async function installExtensionPyReqs(
     channel.appendLine(installDAPyPkgsMsg + "\n");
   }
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location -r "${debugAdapterRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel,

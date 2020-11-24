@@ -16,14 +16,8 @@
           />
         </div>
         <div class="control">
-          <div class="icon">
-            <i
-              :class="
-                tool.doesToolExist
-                  ? 'codicon codicon-check'
-                  : 'codicon codicon-close'
-              "
-            ></i>
+          <div class="icon is-large is-size-4">
+            <iconify-icon :icon="tool.doesToolExist ? 'check' : 'close'" />
           </div>
         </div>
       </div>

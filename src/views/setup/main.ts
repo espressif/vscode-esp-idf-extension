@@ -24,6 +24,20 @@ import Home from "./Home.vue";
 import Install from "./Install.vue";
 // @ts-ignore
 import Status from "./Status.vue";
+import IconifyIcon from "@iconify/vue";
+import check from "@iconify-icons/codicon/check";
+import close from "@iconify-icons/codicon/close";
+import folder from "@iconify-icons/codicon/folder";
+import folderOpen from "@iconify-icons/codicon/folder-opened";
+import home from "@iconify-icons/codicon/home";
+import loading from "@iconify-icons/codicon/loading";
+IconifyIcon.addIcon("check", check);
+IconifyIcon.addIcon("close", close);
+IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("folder-opened", folderOpen);
+IconifyIcon.addIcon("home", home);
+IconifyIcon.addIcon("loading", loading);
+Vue.component("iconify-icon", IconifyIcon);
 
 const routes = [
   { path: "/", component: Home },
@@ -95,7 +109,7 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "setEspIdfErrorStatus":
-      if (msg.errorMsg) {
+      if (typeof msg.errorMsg !== "undefined") {
         store.commit("setEspIdfErrorStatus", msg.errorMsg);
         store.commit("setIsIdfInstalling", false);
       }

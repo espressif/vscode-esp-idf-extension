@@ -46,7 +46,6 @@ import folderOpen from "./folderOpen.vue";
   },
 })
 export default class SelectPyVersion extends Vue {
-  private folderIcon = "codicon codicon-folder";
   @Action private openPythonPath;
   @Mutation setManualPyPath;
   @Mutation setPyExecErrorStatus;

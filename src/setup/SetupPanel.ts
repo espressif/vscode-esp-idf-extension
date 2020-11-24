@@ -109,12 +109,7 @@ export class SetupPanel {
         path.join(extensionPath, "dist", "views", "setup-bundle.js")
       )
     );
-    const fontsPath = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(extensionPath, "dist", "views", "fonts", "codicon.ttf")
-      )
-    );
-    this.panel.webview.html = this.createSetupHtml(scriptPath, fontsPath);
+    this.panel.webview.html = this.createSetupHtml(scriptPath);
 
     const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
@@ -364,10 +359,7 @@ export class SetupPanel {
           );
         } catch (error) {
           if (error && error.message) {
-            if (
-              error.message.indexOf("ERROR_EXISTING_ESP_IDF") > -1 ||
-              error.message.indexOf("ERROR_NON_EXISTING_CONTAINER") > -1
-            ) {
+            if (error.message.indexOf("ERROR_EXISTING_ESP_IDF") !== -1) {
               this.panel.webview.postMessage({
                 command: "setEspIdfErrorStatus",
                 errorMsg: error.message,
@@ -381,7 +373,7 @@ export class SetupPanel {
               Logger.errorNotify(error.message, error);
               return;
             }
-            if (error.message.indexOf("ERROR_INVALID_PYTHON")) {
+            if (error.message.indexOf("ERROR_INVALID_PYTHON") !== -1) {
               this.panel.webview.postMessage({
                 command: "setPyExecErrorStatus",
                 errorMsg: error.message,
@@ -406,6 +398,10 @@ export class SetupPanel {
           OutputChannel.appendLine(errMsg);
           Logger.errorNotify(errMsg, error);
           OutputChannel.show();
+          this.panel.webview.postMessage({
+            command: "setEspIdfErrorStatus",
+            errorMsg: "",
+          });
           this.panel.webview.postMessage({
             command: "goToCustomPage",
             installing: false,
@@ -551,6 +547,10 @@ export class SetupPanel {
             command: "setSetupMode",
             setupMode: SetupMode.express,
           });
+          this.panel.webview.postMessage({
+            command: "setEspIdfErrorStatus",
+            errorMsg: "",
+          });
         }
       }
     );
@@ -670,10 +670,7 @@ export class SetupPanel {
     }
   }
 
-  private createSetupHtml(
-    scriptPath: vscode.Uri,
-    fontsUri: vscode.Uri
-  ): string {
+  private createSetupHtml(scriptPath: vscode.Uri): string {
     return `<!DOCTYPE html>
       <html lang="en">
         <head>
@@ -682,12 +679,6 @@ export class SetupPanel {
           <title>ESP-IDF Setup</title>
         </head>
         <body>
-          <style>
-          @font-face {
-              font-family: "codicon";
-              src: url('${fontsUri}') format('truetype');
-          }
-          </style>
           <div id="app"></div>
         </body>
         <script src="${scriptPath}"></script>

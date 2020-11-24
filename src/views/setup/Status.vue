@@ -30,31 +30,41 @@
     <div class="centerize notification">
       <div class="control barText">
         <p class="label">Installing ESP-IDF...</p>
-        <div class="icon">
-          <i
-            :class="
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="
               statusEspIdf === statusType.installed
-                ? 'codicon codicon-check'
+                ? 'check'
                 : statusEspIdf === statusType.failed
-                ? 'codicon codicon-close'
-                : 'codicon codicon-loading gear'
+                ? 'close'
+                : 'loading'
             "
-          ></i>
+            :class="{
+              gear:
+                statusEspIdf !== statusType.installed &&
+                statusEspIdf !== statusType.failed,
+            }"
+          />
         </div>
       </div>
       <IdfDownload v-if="isInstalling" />
-      <div class="field is-grouped" v-if="espIdfErrorStatus">
-        <label class="label">{{ espIdfErrorStatus }}</label>
-        <div class="icon">
-          <i
-            :class="
+      <div class="control barText" v-if="espIdfErrorStatus">
+        <p class="label">{{ espIdfErrorStatus }}</p>
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="
               statusEspIdf === statusType.installed
-                ? 'codicon codicon-check'
+                ? 'check'
                 : statusEspIdf === statusType.failed
-                ? 'codicon codicon-close'
-                : 'codicon codicon-loading gear'
+                ? 'close'
+                : 'loading'
             "
-          ></i>
+            :class="{
+              gear:
+                statusEspIdf !== statusType.installed &&
+                statusEspIdf !== statusType.failed,
+            }"
+          />
         </div>
       </div>
     </div>
@@ -62,16 +72,21 @@
     <div class="centerize notification">
       <div class="control barText">
         <p class="label">Installing ESP-IDF Tools...</p>
-        <div class="icon">
-          <i
-            :class="
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="
               statusEspIdfTools === statusType.installed
-                ? 'codicon codicon-check'
+                ? 'check'
                 : statusEspIdfTools === statusType.failed
-                ? 'codicon codicon-close'
-                : 'codicon codicon-loading gear'
+                ? 'close'
+                : 'loading'
             "
-          ></i>
+            :class="{
+              gear:
+                statusEspIdfTools !== statusType.installed &&
+                statusEspIdfTools !== statusType.failed,
+            }"
+          />
         </div>
       </div>
       <div class="toolsSection" v-if="statusEspIdfTools !== statusType.pending">
@@ -88,16 +103,21 @@
         <p class="label">
           Installing Python virtual environment for ESP-IDF...
         </p>
-        <div class="icon">
-          <i
-            :class="
+        <div class="icon is-large is-size-4">
+          <iconify-icon
+            :icon="
               statusPyVEnv === statusType.installed
-                ? 'codicon codicon-check'
+                ? 'check'
                 : statusPyVEnv === statusType.failed
-                ? 'codicon codicon-close'
-                : 'codicon codicon-loading gear'
+                ? 'close'
+                : 'loading'
             "
-          ></i>
+            :class="{
+              gear:
+                statusPyVEnv !== statusType.installed &&
+                statusPyVEnv !== statusType.failed,
+            }"
+          />
         </div>
       </div>
       <div

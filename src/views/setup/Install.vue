@@ -12,8 +12,8 @@
         v-if="espIdfErrorStatus"
       >
         <p>{{ espIdfErrorStatus }}</p>
-        <div class="icon" @click="setEspIdfErrorStatus('')">
-          <i class="codicon codicon-close"></i>
+        <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus('')">
+          <iconify-icon icon="close" />
         </div>
       </div>
 
@@ -24,8 +24,8 @@
         v-if="pyExecErrorStatus"
       >
         <p>{{ pyExecErrorStatus }}</p>
-        <div class="icon" @click="setPyExecErrorStatus('')">
-          <i class="codicon codicon-close"></i>
+        <div class="icon is-large is-size-4" @click="setPyExecErrorStatus('')">
+          <iconify-icon icon="close" />
         </div>
       </div>
 
@@ -81,8 +81,7 @@ export default class Install extends Vue {
 
 .error-message {
   padding: 0.5em;
-  width: 25%;
-  margin: 0.5em 0.5em 0.5em 0.25em;
+  margin: 0.5em;
   display: flex;
   justify-content: space-between;
   align-items: center;

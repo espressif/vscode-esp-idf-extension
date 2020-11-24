@@ -26,7 +26,7 @@ import {
   sendDownloadedZip,
   sendExtractedZip,
 } from "./webviewMsgMethods";
-import { move } from "fs-extra";
+import { ensureDir, move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
 import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
@@ -47,13 +47,7 @@ export async function downloadInstallIdfVersion(
   const downloadedZipPath = path.join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
   const expectedDirectory = path.join(destPath, "esp-idf");
-
-  const containerFolderExists = await utils.dirExistPromise(destPath);
-  if (!containerFolderExists) {
-    const containerNotFoundMsg = `${destPath} doesn't exists. Select an existing directory. (ERROR_NON_EXISTING_CONTAINER)`;
-    Logger.infoNotify(containerNotFoundMsg);
-    throw new Error(containerNotFoundMsg);
-  }
+  await ensureDir(destPath);
   const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
   if (expectedDirExists) {
     const espExistsMsg = `${expectedDirectory} already exists. Delete it or use another location. (ERROR_EXISTING_ESP_IDF)`;

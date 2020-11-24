@@ -4,9 +4,9 @@
       class="control centerize"
       v-if="!isInstalled && currentRoute !== '/' && currentRoute !== '/status'"
     >
-      <div class="icon">
+      <div class="icon is-large is-size-4">
         <router-link to="/" class="button">
-          <i class="codicon codicon-home"></i>
+          <iconify-icon icon="home" />
         </router-link>
       </div>
     </div>
@@ -101,7 +101,7 @@ export default class App extends Vue {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 1s;
+  transition: opacity 0.4s;
 }
 
 .fade-enter,
