@@ -83,6 +83,10 @@ import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
 import EspIdfCustomTerminal from "./espIdfCustomTerminal";
+import {
+  ESPDAMemoryTreeDataProvider,
+  ESPDAMemoryTreeItem,
+} from "./espIdf/debugAdapter/memory-tree-view";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -104,6 +108,9 @@ let heapTraceManager: HeapTraceManager;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// ESP DA Memory View
+let espDAMemoryTreeDataProvider: ESPDAMemoryTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -1582,6 +1589,14 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBarItem);
 }
 
+function dummyMemoryItems(): ESPDAMemoryTreeItem[] {
+  return [
+    new ESPDAMemoryTreeItem("r1", "0x1000"),
+    new ESPDAMemoryTreeItem("r2", "0x2000"),
+    new ESPDAMemoryTreeItem("r3", "0x3000"),
+  ];
+}
+
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
@@ -1590,6 +1605,14 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider(
     "espRainmaker",
     rainMakerTreeDataProvider
+  );
+
+  espDAMemoryTreeDataProvider = new ESPDAMemoryTreeDataProvider(
+    dummyMemoryItems()
+  );
+  vscode.window.registerTreeDataProvider(
+    "esp.idf.da.views.memory",
+    espDAMemoryTreeDataProvider
   );
 
   context.subscriptions.push(

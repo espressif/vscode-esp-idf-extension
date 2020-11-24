@@ -143,6 +143,12 @@
           "id": "idfComponents",
           "name": "%view.components.name%"
         }
+      ],
+      "debug": [
+        {
+          "name": "ESP Memory View",
+          "id": "esp.idf.da.views.memory"
+        }
       ]
     },
     "menus": {
