@@ -129,7 +129,7 @@ export class SetupPanel {
             message.espIdfContainer &&
             message.selectedEspIdfVersion &&
             message.selectedPyPath &&
-            message.manualEspIdfPath &&
+            typeof message.manualEspIdfPath !== undefined &&
             typeof message.mirror !== undefined &&
             typeof message.setupMode !== undefined
           ) {
