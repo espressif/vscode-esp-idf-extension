@@ -184,6 +184,7 @@ export class SetupPanel {
           });
           break;
         case "requestInitialValues":
+          const pathSep = path.sep;
           this.panel.webview.postMessage({
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
@@ -193,6 +194,7 @@ export class SetupPanel {
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersion: setupArgs.espIdfVersion,
             idfVersions: setupArgs.espIdfVersionsList,
+            pathSep,
             pyBinPath: setupArgs.pyBinPath,
             pyVersionList: setupArgs.pythonVersions,
             toolsResults: setupArgs.toolsResults,

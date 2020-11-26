@@ -46,6 +46,7 @@ import { IEspIdfTool, StatusType } from "../types";
 @Component
 export default class ToolDownloadInfo extends Vue {
   @Prop() tool: IEspIdfTool;
+  @State("pathSep") private storePathSep: string;
   @State("toolsFolder") private storeIdfToolsPath;
   @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
 
@@ -58,7 +59,7 @@ export default class ToolDownloadInfo extends Vue {
   }
 
   get pathSep() {
-    return navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+    return this.storePathSep;
   }
 }
 </script>

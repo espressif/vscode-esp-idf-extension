@@ -29,10 +29,12 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { State } from "vuex-class";
 
 @Component
 export default class folderOpen extends Vue {
   private folderIcon = "folder";
+  @State("pathSep") private storePathSep: string;
   @Prop() keyEnterMethod?: () => void;
   @Prop() onChangeMethod?: () => void;
   @Prop() openMethod: () => void;
@@ -52,7 +54,7 @@ export default class folderOpen extends Vue {
   }
 
   get pathSep() {
-    return navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+    return this.storePathSep;
   }
 
   onKeyEnter() {

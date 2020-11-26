@@ -592,8 +592,13 @@ export function appendIdfAndToolsToPath() {
     }
   }
 
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const defaultEspIdfPath = path.join(containerPath, "esp", "esp-idf");
+
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-  modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
+  modifiedEnv.IDF_PATH =
+    idfPathDir || process.env.IDF_PATH || defaultEspIdfPath;
 
   const adfPathDir = idfConf.readParameter("idf.espAdfPath");
   modifiedEnv.ADF_PATH = adfPathDir || process.env.ADF_PATH;

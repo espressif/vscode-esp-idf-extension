@@ -85,6 +85,7 @@ export default class Home extends Vue {
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
   @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
+  @State("pathSep") private storePathSep: string;
 
   get espIdf() {
     return this.storeEspIdf;
@@ -99,7 +100,7 @@ export default class Home extends Vue {
   }
 
   get isNotWinPlatform() {
-    return navigator.platform.indexOf("Win") < 0;
+    return this.storePathSep.indexOf("/") !== -1;
   }
 
   get isPreviousSetupValid() {

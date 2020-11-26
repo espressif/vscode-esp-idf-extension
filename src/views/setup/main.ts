@@ -107,6 +107,9 @@ window.addEventListener("message", (event) => {
       if (msg.hasPrerequisites) {
         store.commit("setHasPrerequisites", msg.hasPrerequisites);
       }
+      if (msg.pathSep) {
+        store.commit("setPathSep", msg.pathSep);
+      }
       break;
     case "setEspIdfErrorStatus":
       if (typeof msg.errorMsg !== "undefined") {
