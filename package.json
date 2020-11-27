@@ -153,7 +153,7 @@
     "viewsWelcome": [
       {
         "view": "idfSearchResults",
-        "contents": "No results found."
+        "contents": "On any opened file editor, select some text and right click and select **ESP-IDF: Search in documentation** to get matching results here.\n\nResults are based on your current vscode language, `idf.espIdfPath` version (latest otherwise) and `idf.adapterTargetName`."
       }
     ],
     "menus": {

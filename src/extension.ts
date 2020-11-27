@@ -787,11 +787,6 @@ export async function activate(context: vscode.ExtensionContext) {
             selection = currentEditor.document.getText(range);
           }
           const searchResults = await seachInEspDocs(selection);
-          if (searchResults && searchResults.length < 1) {
-            espIdfDocsResultTreeDataProvider.clearResults();
-            Logger.infoNotify("No ESP-IDF docs found");
-            return;
-          }
           espIdfDocsResultTreeDataProvider.getResults(
             searchResults,
             idfSearchResults

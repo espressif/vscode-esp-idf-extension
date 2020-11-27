@@ -15,6 +15,7 @@
 import * as vscode from "vscode";
 import { IDocResult } from "./getSearchResults";
 import { Logger } from "../../logger/logger";
+import { ESP } from "../../config";
 
 export class DocSearchResult extends vscode.TreeItem {
   name: string;
@@ -77,7 +78,9 @@ export class DocSearchResultTreeDataProvider
     idfSearchResults: vscode.TreeView<DocSearchResult>
   ) {
     if (!docs || docs.length < 1) {
-      return;
+      docs = [
+        { name: "No results found", url: ESP.URL.Docs.BASE_URL } as IDocResult,
+      ];
     }
     this.docSearchResults = [];
     const docsTreeItems = docs.map(
