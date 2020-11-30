@@ -1695,12 +1695,7 @@ const build = () => {
               "project_description.json"
             );
             updateIdfComponentsTree(projDescPath);
-            const focusTaskOutput = idfConf.readParameter(
-              "idf.focusTaskOutput"
-            );
-            if (!focusTaskOutput) {
-              Logger.infoNotify("Build Successfully");
-            }
+            Logger.infoNotify("Build Successfully");
             TaskManager.disposeListeners();
           }
         } catch (error) {
@@ -1812,12 +1807,7 @@ const flash = () => {
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {
             flashTask.flashing(false);
-            const focusTaskOutput = idfConf.readParameter(
-              "idf.focusTaskOutput"
-            );
-            if (!focusTaskOutput) {
-              Logger.infoNotify("Flash Done ⚡️");
-            }
+            Logger.infoNotify("Flash Done ⚡️");
           }
           TaskManager.disposeListeners();
         } catch (error) {

@@ -130,6 +130,7 @@
     "trace.skip_size.description",
     "param.saveBeforeBuildDescription",
     "param.focusTaskOutput",
+    "param.notificationSilentMode",
     "param.saveScope",
     "param.rainmaker.api.server_url",
     "esp.rainmaker.backend.sync.title",

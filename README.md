@@ -144,25 +144,26 @@ This extension contributes the following settings that can be later updated in s
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
-| Setting ID                 | Description                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                                   |
-| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
-| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts            |
-| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                                |
-| `idf.customExtraVars`      | Variables to be added to system environment variables                         |
-| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                                     |
-| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation                     |
-| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                          |
-| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder           |
-| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)                    |
-| `idf.coveredLightTheme`    | Background color for covered lines in light theme for gcov coverage           |
-| `idf.coveredDarkTheme`     | Background color for covered lines in dark theme for gcov coverage            |
-| `idf.partialLightTheme`    | Background color for partially covered lines in light theme for gcov coverage |
-| `idf.partialDarkTheme`     | Background color for partially covered lines in dark theme for gcov coverage  |
-| `idf.uncoveredLightTheme`  | Background color for uncovered lines in light theme for gcov coverage         |
-| `idf.uncoveredDarkTheme`   | Background color for uncovered lines in dark theme for gcov coverage          |
-| `idf.focusTaskOutput`      | Focus on Build/Flash task output on start                                     |
+| Setting ID                   | Description                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `idf.espIdfPath`             | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.toolsPath`              | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.pythonBinPath`          | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.customExtraPaths`       | Paths to be appended to \$PATH                                                |
+| `idf.customExtraVars`        | Variables to be added to system environment variables                         |
+| `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                                     |
+| `idf.showOnboardingOnInit`   | Show ESP-IDF Configuration window on extension activation                     |
+| `idf.adapterTargetName`      | ESP-IDF target Chip (Example: esp32)                                          |
+| `idf.openOcdConfigs`         | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder           |
+| `idf.saveBeforeBuild`        | Save all the edited files before building (default `true`)                    |
+| `idf.coveredLightTheme`      | Background color for covered lines in light theme for gcov coverage           |
+| `idf.coveredDarkTheme`       | Background color for covered lines in dark theme for gcov coverage            |
+| `idf.partialLightTheme`      | Background color for partially covered lines in light theme for gcov coverage |
+| `idf.partialDarkTheme`       | Background color for partially covered lines in dark theme for gcov coverage  |
+| `idf.uncoveredLightTheme`    | Background color for uncovered lines in light theme for gcov coverage         |
+| `idf.uncoveredDarkTheme`     | Background color for uncovered lines in dark theme for gcov coverage          |
+| `idf.focusTaskOutput`        | Focus on Build/Flash task output on start                                     |
+| `idf.notificationSilentMode` | Silent all notifications messages                                             |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
