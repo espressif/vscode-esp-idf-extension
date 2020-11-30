@@ -59,7 +59,6 @@
   "trace.wait4halt.description": "apptrace：设置 wait4halt",
   "trace.skip_size.description": "apptrace：设置 skip_size",
   "param.saveBeforeBuildDescription": "在继续进行构建之前，将所有编辑的文件保存在工作区中，尽管如果无法保存文件，无论如何都会进行构建",
-  "param.focusTaskOutput": "显示生成/闪存任务输出日志",
   "param.notificationSilentMode": "禁用所有ESP-IDF扩展通知",
   "param.saveScope": "使用编号为vscode.ConfigurationTarget的ESP-IDF命令将配置保存到何处. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "ESP-Rainmaker服务器网址",

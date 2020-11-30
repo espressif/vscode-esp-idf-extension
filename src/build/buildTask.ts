@@ -74,10 +74,10 @@ export class BuildTask {
       ["-G", "Ninja", ".."],
       options
     );
-    const focusTaskOutput = idfConf.readParameter("idf.focusTaskOutput");
-    const showTaskOutput = focusTaskOutput
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
+    const showTaskOutput = isSilentMode
+      ? vscode.TaskRevealKind.Silent
+      : vscode.TaskRevealKind.Always;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Compile" },
       vscode.TaskScope.Workspace,

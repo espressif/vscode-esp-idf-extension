@@ -426,12 +426,6 @@
             "scope": "resource",
             "description": "%param.notificationSilentMode%"
           },
-          "idf.focusTaskOutput": {
-            "type": "boolean",
-            "default": false,
-            "scope": "resource",
-            "description": "%param.focusTaskOutput%"
-          },
           "idf.saveScope": {
             "type": "number",
             "default": "1",
