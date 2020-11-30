@@ -31,15 +31,15 @@ export default class UserNotificationManagerTransport extends winston.Transport 
     metadata?: any,
     callback?: (arg1, arg2) => void
   ) {
-    const focusTaskOutput = idfConf.readParameter(
+    const isSilentMode = idfConf.readParameter(
       "idf.notificationSilentMode"
     ) as boolean;
     if (metadata && metadata.user) {
-      if (level === "info" && !focusTaskOutput) {
+      if (level === "info" && !isSilentMode) {
         vscode.window.showInformationMessage(message);
-      } else if (level === "warn" && !focusTaskOutput) {
+      } else if (level === "warn" && !isSilentMode) {
         vscode.window.showWarningMessage(message);
-      } else if (level === "error" && !focusTaskOutput) {
+      } else if (level === "error") {
         vscode.window.showErrorMessage(message);
       } else {
         winston.error(
