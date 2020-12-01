@@ -88,6 +88,7 @@ import {
   DocSearchResult,
   DocSearchResultTreeDataProvider,
 } from "./espIdf/documentation/docResultsTreeView";
+import { release } from "os";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2071,6 +2072,31 @@ function createMonitor(): any {
     }
     monitorTerminal.show();
     overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
+    const osRelease = release();
+    if (
+      process.platform === "linux" &&
+      osRelease.toLowerCase().indexOf("microsoft") !== -1
+    ) {
+      const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
+      const wslCurrPath = await utils.execChildProcess(
+        `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
+        utils.extensionContext.extensionPath
+      );
+      const winWslRoot = wslCurrPath
+        .replace(wslRoot, "")
+        .replace(/\n/, "")
+        .replace(/\r/g, "");
+      const toolPath = (
+        winWslRoot +
+        idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
+      ).replace(/\\/g, "\\\\");
+      monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
+      const elfFile = await utils.getElfFilePath(workspaceRoot);
+      monitorTerminal.sendText(
+        `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
+      );
+      return;
+    }
     monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
   });
 }
