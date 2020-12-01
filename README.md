@@ -162,7 +162,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | `idf.partialDarkTheme`       | Background color for partially covered lines in dark theme for gcov coverage  |
 | `idf.uncoveredLightTheme`    | Background color for uncovered lines in light theme for gcov coverage         |
 | `idf.uncoveredDarkTheme`     | Background color for uncovered lines in dark theme for gcov coverage          |
-| `idf.notificationSilentMode` | Silent all notifications messages                                             |
+| `idf.notificationSilentMode` | Silent all notifications messages (excluding error notifications)             |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
