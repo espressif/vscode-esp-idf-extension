@@ -13,7 +13,7 @@
 // limitations under the License.
 
 "use strict";
-import { existsSync, readdirSync } from "fs";
+import { readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
@@ -1534,12 +1534,18 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.jtag_flash", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const buildFolder = path.join(workspaceRoot.fsPath, "build");
-      if (!existsSync(buildFolder)) {
+      if (!(await pathExists(buildFolder))) {
         return Logger.warnNotify("First you need to build before flashing!!");
       }
-      if (!existsSync(path.join(buildFolder, "flasher_args.json"))) {
+      if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
         return Logger.warnNotify(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+        );
+      }
+      const projectName = getProjectName(workspaceRoot.fsPath);
+      if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
+        return Logger.warnNotify(
+          `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
         );
       }
 
