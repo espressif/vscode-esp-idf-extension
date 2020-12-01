@@ -8,6 +8,7 @@
   "espIdf.setTarget.title": "ESP-IDF: Selecciona el dispositivo Espressif a utilizar",
   "espIdf.configDevice.title": "ESP-IDF: Configuración del dispositivo",
   "menuconfig.start.title": "ESP-IDF: Editor de Configuración SDK",
+  "cmakeListsEditor.start.title": "ESP-IDF: Editor de CMakeLists.txt",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Establecer archivo sdkconfig por defecto",
   "espIdf.selectPort.title": "ESP-IDF: Seleccionar puerto a utilizar",
   "espIdf.buildDevice.title": "ESP-IDF: Construir el proyecto",
