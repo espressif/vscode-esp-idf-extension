@@ -162,6 +162,10 @@ export class DownloadManager {
         });
         success = true;
       } catch (error) {
+        const errMsg = error.message
+          ? error.message
+          : `Error downloading ${urlToUse}`;
+        Logger.error(errMsg, error);
         retryCount += 1;
         if (cancelToken && cancelToken.isCancellationRequested) {
           throw error;
