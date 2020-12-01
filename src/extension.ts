@@ -1542,7 +1542,7 @@ export async function activate(context: vscode.ExtensionContext) {
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
         );
       }
-      const projectName = getProjectName(workspaceRoot.fsPath);
+      const projectName = await getProjectName(workspaceRoot.fsPath);
       if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
         return Logger.warnNotify(
           `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
