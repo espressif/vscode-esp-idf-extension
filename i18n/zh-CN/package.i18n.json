@@ -11,7 +11,7 @@
   "espIdf.setDefaultConfig.title": "ESP-IDF：设置项目默认的 sdkconfig 文件",
   "espIdf.selectPort.title": "ESP-IDF：选择要使用的烧录端口",
   "espIdf.buildDevice.title": "ESP-IDF：构建项目",
-  "espIdf.flashDevice.title": "ESP-IDF：烧写项目",
+  "espIdf.flashDevice.title": "ESP-IDF：烧写项目 (UART)",
   "espIdf.monitorDevice.title": "ESP-IDF：监视设备输出",
   "espIdf.onboarding.title": "ESP-IDF：配置 ESP-IDF 插件",
   "espIdf.examples.title": "ESP-IDF：展示 ESP-IDF 示例项目",

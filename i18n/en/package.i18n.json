@@ -11,7 +11,7 @@
   "espIdf.setDefaultConfig.title": "ESP-IDF: Set default sdkconfig file in project",
   "espIdf.selectPort.title": "ESP-IDF: Select port to use",
   "espIdf.buildDevice.title": "ESP-IDF: Build your project",
-  "espIdf.flashDevice.title": "ESP-IDF: Flash your project",
+  "espIdf.flashDevice.title": "ESP-IDF: Flash (UART) your project",
   "espIdf.monitorDevice.title": "ESP-IDF: Monitor your device",
   "espIdf.onboarding.title": "ESP-IDF: Configure ESP-IDF extension",
   "espIdf.examples.title": "ESP-IDF: Show ESP-IDF Examples Projects",
