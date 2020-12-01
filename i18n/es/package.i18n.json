@@ -70,6 +70,7 @@
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
   "espIdf.jtag_flash.title": "Flash (con JTag)",
+  "espIdf.selectFlashMethodAndFlash.title": "Seleccione el método Flash y Flash",
   "idf.flashType.description": "Método de flash del dispositivo, UART o JTag",
   "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",

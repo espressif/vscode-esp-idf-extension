@@ -684,7 +684,7 @@
       },
       {
         "command": "espIdf.selectFlashMethodAndFlash",
-        "title": "Select Flash Device and Flash",
+        "title": "%espIdf.selectFlashMethodAndFlash.title%",
         "category": "ESP-IDF"
       }
     ],

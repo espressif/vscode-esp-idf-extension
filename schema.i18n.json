@@ -139,6 +139,8 @@
     "esp.rainmaker.backend.update_node_param.title",
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
+    "espIdf.jtag_flash.title",
+    "espIdf.selectFlashMethodAndFlash.title",
     "idf.flashType.description",
     "espIdf.launchWSServerAndMonitor.title",
     "esp_idf.initGdbCommands.description",

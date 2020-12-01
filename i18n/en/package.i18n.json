@@ -70,6 +70,7 @@
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
   "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub",
   "espIdf.jtag_flash.title": "Flash (with JTag)",
+  "espIdf.selectFlashMethodAndFlash.title": "Select Flash Method and Flash",
   "idf.flashType.description": "Device flash method, UART or JTag",
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "esp_idf.initGdbCommands.description": "One or more xtensa-esp32-elf-gdb commands to execute in order to setup the underlying debugger. Example: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
