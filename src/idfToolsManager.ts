@@ -281,7 +281,7 @@ export class IdfToolsManager {
   }
 
   public async getRequiredToolsInfo(basePath?: string, pathToVerify?: string) {
-    let versions: { [key: string]: string };
+    let versions: { [key: string]: string } = {};
     if (pathToVerify) {
       versions = await this.verifyPackages(pathToVerify);
     }

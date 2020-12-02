@@ -208,7 +208,7 @@ export async function isCurrentInstallValid() {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const toolsPath = path.join(containerPath, ".espressif");
-  const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+  const extraPaths = idfConf.readParameter("idf.customExtraPaths") as string;
   let espIdfPath = idfConf.readParameter("idf.espIdfPath");
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
