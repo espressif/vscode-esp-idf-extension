@@ -359,11 +359,19 @@ export const mutations: MutationTree<IState> = {
   setStatusEspIdf(state, status: StatusType) {
     const newState = state;
     newState.statusEspIdf = status;
+    if (status === StatusType.installed) {
+      newState.idfDownloadStatus.progress = "100.00%";
+    }
     Object.assign(state, newState);
   },
   setStatusEspIdfTools(state, status: StatusType) {
     const newState = state;
     newState.statusEspIdfTools = status;
+    if (status === StatusType.installed) {
+      for (let i = 0; i < newState.toolsResults.length; i++) {
+        newState.toolsResults[i].progress = "100.00%";
+      }
+    }
     Object.assign(state, newState);
   },
   setStatusPyVEnv(state, status: StatusType) {
