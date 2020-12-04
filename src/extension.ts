@@ -84,6 +84,8 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ChangelogViewer } from "./changelog-viewer";
 import EspIdfCustomTerminal from "./espIdfCustomTerminal";
+import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
+import { CMakeListsType } from "./cmake/cmakeListsBuilder";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1036,6 +1038,19 @@ export async function activate(context: vscode.ExtensionContext) {
     } catch (error) {
       Logger.errorNotify(error.message, error);
     }
+  });
+
+  registerIDFCommand("cmakeListsEditor.start", async (fileUri: vscode.Uri) => {
+    if (!fileUri) {
+      Logger.errorNotify(
+        "Cannot call this command directly, right click on any CMakeLists.txt file!",
+        new Error("INVALID_INVOCATION")
+      );
+      return;
+    }
+    PreCheck.perform([openFolderCheck], async () => {
+      await CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
+    });
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {
