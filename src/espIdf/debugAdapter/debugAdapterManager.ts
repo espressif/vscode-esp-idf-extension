@@ -30,6 +30,7 @@ import {
 } from "../../utils";
 import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
+import { createFlashModel } from "../../flash/flashModelBuilder";
 
 export interface IDebugAdapterConfig {
   coreDumpFile?: string;
@@ -102,6 +103,20 @@ export class DebugAdapterManager extends EventEmitter {
       }
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
+      const serialPort = idfConf.readParameter("idf.port");
+      const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+
+      const flasherArgsJsonPath = path.join(
+        this.currentWorkspace.fsPath,
+        "build",
+        "flasher_args.json"
+      );
+      const model = await createFlashModel(
+        flasherArgsJsonPath,
+        serialPort,
+        flashBaudRate
+      );
+
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
       ) as string;
@@ -117,6 +132,8 @@ export class DebugAdapterManager extends EventEmitter {
         this.port.toString(),
         "-dn",
         this.target,
+        "-a",
+        model.app.address,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");

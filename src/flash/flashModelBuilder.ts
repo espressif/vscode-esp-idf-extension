@@ -26,6 +26,18 @@ export function createFlashModel(
 ): Promise<FlashModel> {
   return readJSON(modelJsonPath).then((flashArgsJson) => {
     const flashModel: FlashModel = {
+      app: {
+        address: flashArgsJson.app.offset,
+        binFilePath: flashArgsJson.app.file,
+      } as FlashSection,
+      bootloader: {
+        address: flashArgsJson.bootloader.offset,
+        binFilePath: flashArgsJson.bootloader.file,
+      } as FlashSection,
+      partitionTable: {
+        address: flashArgsJson.partition_table.offset,
+        binFilePath: flashArgsJson.partition_table.file,
+      } as FlashSection,
       baudRate,
       port,
       size: flashArgsJson.flash_settings.flash_size,
