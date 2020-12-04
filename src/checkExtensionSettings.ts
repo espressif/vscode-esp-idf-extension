@@ -50,7 +50,7 @@ export async function checkExtensionSettings(extensionPath: string) {
           setupArgs.exportedVars
         ) {
           if (!setupArgs.hasPrerequisites) {
-            vscode.commands.executeCommand("onboarding.start", setupArgs);
+            vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
           }
           await installExtensionPyReqs(
             setupArgs.pyBinPath,
@@ -66,11 +66,11 @@ export async function checkExtensionSettings(extensionPath: string) {
             setupArgs.exportedVars
           );
         } else if (typeof process.env.WEB_IDE === "undefined") {
-          vscode.commands.executeCommand("onboarding.start", setupArgs);
+          vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
         }
       } catch (error) {
         Logger.errorNotify(error.message, error);
-        vscode.commands.executeCommand("onboarding.start");
+        vscode.commands.executeCommand("espIdf.setup.start");
       }
     }
   );

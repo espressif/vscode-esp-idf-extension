@@ -19,23 +19,19 @@ import {
   IEspIdfLink,
   IEspIdfTool,
   SetupMode,
+  StatusType,
 } from "../views/setup/types";
-import { downloadInstallIdfVersion } from "./espIdfDownload";
 import * as idfConf from "../idfConfiguration";
+import { ensureDir } from "fs-extra";
 import path from "path";
 import vscode from "vscode";
-import * as utils from "../utils";
-import { downloadEspIdfTools } from "./toolInstall";
+import { expressInstall } from "./espIdfDownloadStep";
 import { IdfToolsManager } from "../idfToolsManager";
+import { installExtensionPyReqs } from "./installPyReqs";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
-import {
-  checkPythonPipExists,
-  installExtensionPyReqs,
-  installPyReqs,
-} from "./installPyReqs";
-import { StatusType } from "../views/setup/types";
-import { ensureDir } from "fs-extra";
+import { createPyReqs } from "./pyReqsInstallStep";
+import { downloadIdfTools } from "./toolsDownloadStep";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -75,8 +71,6 @@ export class SetupPanel {
   private static readonly viewType = "setupPanel";
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
-  private confTarget: vscode.ConfigurationTarget =
-    vscode.ConfigurationTarget.Global;
 
   constructor(
     private extensionPath: string,
@@ -271,6 +265,34 @@ export class SetupPanel {
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
   }
 
+  setupErrHandler(error: Error) {
+    const errMsg = error.message ? error.message : "Error during ESP-IDF setup";
+    if (errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1) {
+      SetupPanel.postMessage({
+        command: "setEspIdfErrorStatus",
+        errorMsg: error.message,
+      });
+    } else if (errMsg.indexOf("ERROR_INVALID_PYTHON") !== -1) {
+      SetupPanel.postMessage({
+        command: "setPyExecErrorStatus",
+        errorMsg: error.message,
+      });
+    } else {
+      SetupPanel.postMessage({
+        command: "setEspIdfErrorStatus",
+        errorMsg: "",
+      });
+    }
+    OutputChannel.appendLine(errMsg);
+    Logger.errorNotify(errMsg, error);
+    OutputChannel.show();
+    SetupPanel.postMessage({
+      command: "goToCustomPage",
+      installing: false,
+      page: "/autoinstall",
+    });
+  }
+
   private async autoInstall(
     selectedIdfVersion: IEspIdfLink,
     pyPath: string,
@@ -279,10 +301,10 @@ export class SetupPanel {
     mirror: IdfMirror,
     setupMode: SetupMode
   ) {
-    await vscode.window.withProgress(
+    return await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF",
+        title: "ESP-IDF Setup:",
         cancellable: true,
       },
       async (
@@ -290,125 +312,18 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const pyCheck = await checkPythonPipExists(pyPath, __dirname);
-          if (!pyCheck) {
-            const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
-            Logger.infoNotify(containerNotFoundMsg);
-            throw new Error(containerNotFoundMsg);
-          }
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: true,
-            page: "/status",
-          });
-          let idfPath: string;
-          if (selectedIdfVersion.filename === "manual") {
-            idfPath = espIdfPath;
-          } else {
-            idfPath = await downloadInstallIdfVersion(
-              selectedIdfVersion,
-              idfContainerPath,
-              mirror,
-              progress,
-              cancelToken
-            );
-          }
-          const idfVersion = await utils.getEspIdfVersion(idfPath);
-          if (idfVersion === "x.x") {
-            throw new Error("Invalid ESP-IDF");
-          }
-          this.panel.webview.postMessage({
-            command: "updateEspIdfFolder",
-            selectedFolder: idfPath,
-          });
-          this.panel.webview.postMessage({
-            command: "setIdfVersion",
-            idfVersion,
-          });
-          this.panel.webview.postMessage({
-            command: "updateEspIdfStatus",
-            status: StatusType.installed,
-          });
-          this.panel.webview.postMessage({
-            command: "setEspIdfErrorStatus",
-            errorMsg: `ESP-IDF is installed in ${idfPath}`,
-          });
-          this.panel.webview.postMessage({
-            command: "updateEspIdfToolsStatus",
-            status: StatusType.started,
-          });
-          if (setupMode === SetupMode.advanced) {
-            this.panel.webview.postMessage({
-              command: "goToCustomPage",
-              installing: false,
-              page: "/custom",
-            });
-            return;
-          }
-          const containerPath =
-            process.platform === "win32"
-              ? process.env.USERPROFILE
-              : process.env.HOME;
-          const toolsPath =
-            (idfConf.readParameter("idf.toolsPath") as string) ||
-            path.join(containerPath, ".espressif");
-          await this.downloadEspIdfTools(
-            idfPath,
-            toolsPath,
+          await expressInstall(
+            selectedIdfVersion,
             pyPath,
+            espIdfPath,
+            idfContainerPath,
+            mirror,
+            setupMode,
             progress,
             cancelToken
           );
         } catch (error) {
-          if (error && error.message) {
-            if (error.message.indexOf("ERROR_EXISTING_ESP_IDF") !== -1) {
-              this.panel.webview.postMessage({
-                command: "setEspIdfErrorStatus",
-                errorMsg: error.message,
-              });
-              this.panel.webview.postMessage({
-                command: "goToCustomPage",
-                installing: false,
-                page: "/autoinstall",
-              });
-              OutputChannel.appendLine(error.message);
-              Logger.errorNotify(error.message, error);
-              return;
-            }
-            if (error.message.indexOf("ERROR_INVALID_PYTHON") !== -1) {
-              this.panel.webview.postMessage({
-                command: "setPyExecErrorStatus",
-                errorMsg: error.message,
-              });
-              this.panel.webview.postMessage({
-                command: "goToCustomPage",
-                installing: false,
-                page: "/autoinstall",
-              });
-              this.panel.webview.postMessage({
-                command: "setSetupMode",
-                setupMode: SetupMode.express,
-              });
-              OutputChannel.appendLine(error.message);
-              Logger.errorNotify(error.message, error);
-              return;
-            }
-          }
-          const errMsg = error.message
-            ? error.message
-            : "Error during Express install";
-          OutputChannel.appendLine(errMsg);
-          Logger.errorNotify(errMsg, error);
-          OutputChannel.show();
-          this.panel.webview.postMessage({
-            command: "setEspIdfErrorStatus",
-            errorMsg: "",
-          });
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: false,
-            page: "/",
-          });
+          this.setupErrHandler(error);
         }
       }
     );
@@ -442,51 +357,6 @@ export class SetupPanel {
     });
   }
 
-  private async downloadEspIdfTools(
-    idfPath: string,
-    toolsPath: string,
-    pyPath: string,
-    progress: vscode.Progress<{ message: string; increment?: number }>,
-    cancelToken: vscode.CancellationToken
-  ) {
-    const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-      idfPath
-    );
-    const exportPaths = await idfToolsManager.exportPathsInString(
-      path.join(toolsPath, "tools")
-    );
-    const exportVars = await idfToolsManager.exportVars(
-      path.join(toolsPath, "tools")
-    );
-    const requiredTools = await idfToolsManager.getRequiredToolsInfo(
-      toolsPath,
-      exportPaths
-    );
-    this.panel.webview.postMessage({
-      command: "setRequiredToolsInfo",
-      toolsInfo: requiredTools,
-    });
-    await downloadEspIdfTools(
-      toolsPath,
-      idfToolsManager,
-      progress,
-      cancelToken
-    );
-    this.panel.webview.postMessage({
-      command: "updateEspIdfToolsStatus",
-      status: StatusType.installed,
-    });
-    await this.createPyReqs(
-      idfPath,
-      toolsPath,
-      pyPath,
-      exportPaths,
-      exportVars,
-      progress,
-      cancelToken
-    );
-  }
-
   private getCustomSetupSettings(toolsInfo: IEspIdfTool[]) {
     const exportedPaths = toolsInfo
       .reduce((prev, curr, i) => {
@@ -510,10 +380,10 @@ export class SetupPanel {
     pyPath: string,
     toolsPath: string
   ) {
-    await vscode.window.withProgress(
+    return await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF",
+        title: "ESP-IDF Tools Setup:",
         cancellable: true,
       },
       async (
@@ -521,12 +391,7 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: true,
-            page: "/status",
-          });
-          await this.downloadEspIdfTools(
+          await downloadIdfTools(
             idfPath,
             toolsPath,
             pyPath,
@@ -534,63 +399,10 @@ export class SetupPanel {
             cancelToken
           );
         } catch (error) {
-          const errMsg = error.message
-            ? error.message
-            : "Error during ESP-IDF Tools download";
-          OutputChannel.appendLine(errMsg);
-          Logger.errorNotify(errMsg, error);
-          OutputChannel.show();
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: false,
-            page: "/",
-          });
-          this.panel.webview.postMessage({
-            command: "setSetupMode",
-            setupMode: SetupMode.express,
-          });
-          this.panel.webview.postMessage({
-            command: "setEspIdfErrorStatus",
-            errorMsg: "",
-          });
+          this.setupErrHandler(error);
         }
       }
     );
-  }
-
-  private async createPyReqs(
-    idfPath: string,
-    toolsPath: string,
-    pyPath: string,
-    exportPaths: string,
-    exportVars: string,
-    progress: vscode.Progress<{ message: string; increment?: number }>,
-    cancelToken: vscode.CancellationToken
-  ) {
-    this.panel.webview.postMessage({
-      command: "updatePyVEnvStatus",
-      status: StatusType.started,
-    });
-    const virtualEnvPath = await installPyReqs(
-      idfPath,
-      toolsPath,
-      pyPath,
-      progress,
-      cancelToken
-    );
-    await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
-    this.panel.webview.postMessage({
-      command: "updatePyVEnvStatus",
-      status: StatusType.installed,
-    });
-    this.panel.webview.postMessage({
-      command: "setIsInstalled",
-      isInstalled: true,
-    });
-    this.panel.webview.postMessage({
-      command: "setIsIdfInstalling",
-      installing: false,
-    });
   }
 
   private async installPyReqs(
@@ -600,10 +412,10 @@ export class SetupPanel {
     exportPaths: string,
     exportVars: string
   ) {
-    await vscode.window.withProgress(
+    return await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF",
+        title: "ESP-IDF Python Requirements:",
         cancellable: true,
       },
       async (
@@ -611,12 +423,7 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: true,
-            page: "/status",
-          });
-          await this.createPyReqs(
+          await createPyReqs(
             idfPath,
             toolsPath,
             pyPath,
@@ -626,21 +433,7 @@ export class SetupPanel {
             cancelToken
           );
         } catch (error) {
-          const errMsg = error.message
-            ? error.message
-            : "Error during Python virtual env install";
-          OutputChannel.appendLine(errMsg);
-          Logger.errorNotify(errMsg, error);
-          OutputChannel.show();
-          this.panel.webview.postMessage({
-            command: "goToCustomPage",
-            installing: false,
-            page: "/",
-          });
-          this.panel.webview.postMessage({
-            command: "setSetupMode",
-            setupMode: SetupMode.express,
-          });
+          this.setupErrHandler(error);
         }
       }
     );

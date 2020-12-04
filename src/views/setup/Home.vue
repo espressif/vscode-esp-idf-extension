@@ -20,12 +20,8 @@
     </div>
     <div class="centerize notification" v-if="hasPrerequisites">
       <div class="control centerize home-title">
-        <h1 class="title is-spaced">
-          Welcome to the extension setup
-        </h1>
-        <h2 class="subtitle">
-          Choose a setup mode.
-        </h2>
+        <h1 class="title is-spaced">Welcome to the extension setup</h1>
+        <h2 class="subtitle">Choose a setup mode.</h2>
       </div>
       <div
         class="notification install-choice"
@@ -34,8 +30,9 @@
         <label for="express" class="subtitle">EXPRESS</label>
         <p name="express">
           Fastest option. Choose ESP-IDF version and python version to create
-          ESP-IDF python virtual environment. ESP-IDF Tools will be instaled in
-          {{ toolsFolder }}.
+          ESP-IDF python virtual environment. ESP-IDF Tools will be installed in
+          <span class="span-path">{{ toolsFolder }}</span
+          >.
         </p>
       </div>
       <div
