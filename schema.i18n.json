@@ -82,7 +82,7 @@
     "espIdf.buildDevice.title",
     "espIdf.flashDevice.title",
     "espIdf.monitorDevice.title",
-    "espIdf.onboarding.title",
+    "espIdf.setup.title",
     "espIdf.examples.title",
     "espIdf.buildFlashMonitor.title",
     "espIdf.pickAWorkspaceFolder.title",

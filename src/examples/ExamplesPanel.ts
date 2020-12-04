@@ -54,13 +54,13 @@ export class ExamplesPlanel {
     column: vscode.ViewColumn,
     targetFrameworkFolder: string
   ) {
-    const onBoardingPanelTitle = locDic.localize(
+    const panelTitle = locDic.localize(
       "examples.panelName",
       "ESP-IDF Examples"
     );
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
-      onBoardingPanelTitle,
+      panelTitle,
       column,
       {
         enableScripts: true,

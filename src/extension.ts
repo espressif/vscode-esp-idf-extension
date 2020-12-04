@@ -989,7 +989,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("onboarding.start", (setupArgs?: ISetupInitArgs) => {
+  registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
     PreCheck.perform([webIdeCheck], async () => {
       try {
         if (SetupPanel.isCreatedAndHidden()) {

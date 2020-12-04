@@ -68,7 +68,7 @@
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
-    "onCommand:onboarding.start",
+    "onCommand:espIdf.setup.start",
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
@@ -540,8 +540,8 @@
         "title": "%menuconfig.start.title%"
       },
       {
-        "command": "onboarding.start",
-        "title": "%espIdf.onboarding.title%"
+        "command": "espIdf.setup.start",
+        "title": "%espIdf.setup.title%"
       },
       {
         "command": "examples.start",

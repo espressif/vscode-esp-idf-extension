@@ -14,7 +14,7 @@
   "espIdf.buildDevice.title": "ESP-IDF：构建项目",
   "espIdf.flashDevice.title": "ESP-IDF：烧写项目",
   "espIdf.monitorDevice.title": "ESP-IDF：监视设备输出",
-  "espIdf.onboarding.title": "ESP-IDF：配置 ESP-IDF 插件",
+  "espIdf.setup.title": "ESP-IDF：配置 ESP-IDF 插件",
   "espIdf.examples.title": "ESP-IDF：展示 ESP-IDF 示例项目",
   "espIdf.buildFlashMonitor.title": "ESP-IDF：构建、烧写项目并启动监视器",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF：选择工作文件夹",
