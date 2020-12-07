@@ -489,25 +489,36 @@ export function getSubProjects(dir: string): string[] {
 }
 
 export async function getEspIdfVersion(workingDir: string) {
-  const canCheck = await checkGitExists(extensionContext.extensionPath);
-  if (canCheck === "Not found") {
-    Logger.errorNotify(
-      "Git is not found in current environment",
-      Error("git is not found")
+  try {
+    const canCheck = await checkGitExists(extensionContext.extensionPath);
+    if (canCheck === "Not found") {
+      Logger.errorNotify(
+        "Git is not found in current environment",
+        Error("git is not found")
+      );
+      return "x.x";
+    }
+    const rawEspIdfVersion = await execChildProcess(
+      "git describe --tags",
+      workingDir
     );
+    const espIdfVersionMatch = rawEspIdfVersion.match(
+      /^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
+    );
+    if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
+      return "x.x";
+    }
+    let espVersion: string = "";
+    for (let i = 1; i < espIdfVersionMatch.length; i++) {
+      if (espIdfVersionMatch[i]) {
+        espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+      }
+    }
+    return espVersion.substr(1);
+  } catch (error) {
+    Logger.info(error);
     return "x.x";
   }
-  return await execChildProcess("git describe --tags", workingDir)
-    .then((rawEspIdfVersion) => {
-      const espIdfVersionMatch = rawEspIdfVersion.match(/^v([0-9]+\.[0-9]+).*/);
-      if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
-        return "x.x";
-      }
-      return espIdfVersionMatch[1];
-    })
-    .catch((reason) => {
-      return "x.x";
-    });
 }
 
 export async function checkGitExists(workingDir: string) {

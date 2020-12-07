@@ -82,9 +82,12 @@ import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { ChangelogViewer } from "./changelog-viewer";
-import EspIdfCustomTerminal from "./espIdfCustomTerminal";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
-import { CMakeListsType } from "./cmake/cmakeListsBuilder";
+import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
+import {
+  DocSearchResult,
+  DocSearchResultTreeDataProvider,
+} from "./espIdf/documentation/docResultsTreeView";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -98,11 +101,17 @@ const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 
+// ESP-IDF Docs search results Tree view
+let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
+
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
 let heapTraceManager: HeapTraceManager;
+
+// ESP-IDF Search results
+let idfSearchResults: vscode.TreeView<DocSearchResult>;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
@@ -680,6 +689,8 @@ export async function activate(context: vscode.ExtensionContext) {
         target: idfConf.readParameter("idf.adapterTargetName"),
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
+    } else if (e.affectsConfiguration("idf.espIdfPath")) {
+      ESP.URL.Docs.IDF_INDEX = undefined;
     }
   });
 
@@ -754,44 +765,39 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
-    const docsVersions = [
-      "v4.0.1",
-      "v4.0",
-      "v3.3.2",
-      "v3.3.1",
-      "v3.3",
-      "v3.2.3",
-      "v3.2.2",
-      "v3.1.7",
-      "v3.1.6",
-      "v3.1.5",
-      "v3.0.9",
-    ];
-    const idfPath =
-      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-    let idfVersion = "v" + (await utils.getEspIdfVersion(idfPath));
-    if (docsVersions.indexOf(idfVersion) === -1) {
-      const idfTarget =
-        idfConf.readParameter("idf.adapterTargetName") || "esp32";
-      idfVersion = `latest/${idfTarget}`;
-    }
-    const currentEditor = vscode.window.activeTextEditor;
-    if (currentEditor) {
-      let selection = currentEditor.document.getText(currentEditor.selection);
-      if (!selection) {
-        const range = currentEditor.document.getWordRangeAtPosition(
-          currentEditor.selection.active
-        );
-        selection = currentEditor.document.getText(range);
+    vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF Docs search results",
+      },
+      async () => {
+        try {
+          const currentEditor = vscode.window.activeTextEditor;
+          if (!currentEditor) {
+            return;
+          }
+          let selection = currentEditor.document.getText(
+            currentEditor.selection
+          );
+          if (!selection) {
+            const range = currentEditor.document.getWordRangeAtPosition(
+              currentEditor.selection.active
+            );
+            selection = currentEditor.document.getText(range);
+          }
+          const searchResults = await seachInEspDocs(selection);
+          espIdfDocsResultTreeDataProvider.getResults(
+            searchResults,
+            idfSearchResults
+          );
+        } catch (error) {
+          const errMsg = error.message || "Error searching in ESP-IDF docs";
+          Logger.errorNotify(errMsg, error);
+          return;
+        }
       }
-      vscode.env.openExternal(
-        vscode.Uri.parse(
-          `https://docs.espressif.com/projects/esp-idf/en/${idfVersion}/search.html?q=${encodeURIComponent(
-            selection
-          )}`
-        )
-      );
-    }
+    );
   });
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
@@ -1600,6 +1606,16 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
+
+  espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
+
+  vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
+    espIdfDocsResultTreeDataProvider.clearResults();
+  });
+
+  idfSearchResults = vscode.window.createTreeView("idfSearchResults", {
+    treeDataProvider: espIdfDocsResultTreeDataProvider,
+  });
 
   rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
   vscode.window.registerTreeDataProvider(
