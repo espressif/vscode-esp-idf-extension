@@ -17,6 +17,7 @@
  */
 
 import * as vscode from "vscode";
+import { ESP } from "./config";
 
 export interface IdfTaskDefinition extends vscode.TaskDefinition {
   command?: string;
@@ -34,17 +35,18 @@ export class TaskManager {
       | vscode.ShellExecution
       | vscode.ProcessExecution
       | vscode.CustomExecution,
-    problemMatchers: string | string[]
+    problemMatchers: string | string[],
+    revealTask: vscode.TaskRevealKind
   ) {
     const newTask: vscode.Task = new vscode.Task(
       taskDefinition,
       scope,
       name,
-      "espressif.esp-idf-extension",
+      ESP.extensionID,
       execution,
       problemMatchers
     );
-    newTask.presentationOptions.reveal = vscode.TaskRevealKind.Silent;
+    newTask.presentationOptions.reveal = revealTask;
     TaskManager.tasks.push(newTask);
     return new Promise((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {

@@ -60,6 +60,7 @@
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "param.saveBeforeBuildDescription": "Guarde todos los archivos editados en el espacio de trabajo antes de continuar con la compilación, aunque si no guarda los archivos, se compilará de todos modos",
+  "param.notificationSilentMode": "Deshabilitar las notificaciones de la extensión ESP-IDF (excluyendo notficaciones de errores)",
   "param.saveScope": "Dónde se almacena las configuraciones para comandos ESP-IDF usando enum vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "URL del servidor ESP-Rainmaker API",
   "esp.rainmaker.backend.sync.title": "Sincronizar con el servidor ESP-Rainmaker",
