@@ -116,6 +116,7 @@ export class DebugAdapterManager extends EventEmitter {
         serialPort,
         flashBaudRate
       );
+      const appOffset = parseInt(model.app.address, 16).toString();
 
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
@@ -133,7 +134,7 @@ export class DebugAdapterManager extends EventEmitter {
         "-dn",
         this.target,
         "-a",
-        model.app.address,
+        appOffset,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");
