@@ -2,7 +2,7 @@
   <img src="https://www.espressif.com/sites/all/themes/espressif/logo-black.svg" alt="espressif logo" title="Espressif" align="right" height="60" />
 </a>
 
-ESP-IDF Visual Studio Code Extension
+ESP-IDF VS Code Extension
 ===
 
 Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
