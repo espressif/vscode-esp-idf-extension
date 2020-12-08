@@ -9,7 +9,7 @@ Develop and debug applications for Espressif [ESP32](https://espressif.com/en/pr
 
 <a href="https://youtu.be/Lc6ausiKvQM">
   <p align="center">
-    <img src="http://img.youtube.com/vi/Lc6ausiKvQM/0.jpg" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
+    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
   </p>
 </a>
 
