@@ -1,5 +1,5 @@
 <a href="https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension">
-  <img src="https://www.espressif.com/sites/all/themes/espressif/logo-black.svg" alt="espressif logo" title="Espressif" align="right" height="60" />
+  <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
 </a>
 
 ESP-IDF VS Code Extension
