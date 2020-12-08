@@ -203,7 +203,6 @@ export class DownloadManager {
       host: parsedUrl.host,
       path: parsedUrl.pathname,
       rejectUnauthorized: proxyStrictSSL,
-      timeout: 3000,
     };
 
     return new Promise<http.IncomingMessage>((resolve, reject) => {

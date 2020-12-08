@@ -29,14 +29,13 @@ export async function installPythonEnv(
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
-  const pyPathWithoutSpaces = pythonBinPath.replace(/(\s+)/g, "\\$1");
   const isInsideVirtualEnv = await utils.execChildProcess(
-    `${pyPathWithoutSpaces} -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"`,
+    `"${pythonBinPath}" -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"`,
     idfToolsDir,
     channel
   );
   if (isInsideVirtualEnv.replace(EOL, "") === "True") {
-    const inVenvMsg = `Using existing virtual environment ${pyPathWithoutSpaces}. Installing Python requirements...`;
+    const inVenvMsg = `Using existing virtual environment ${pythonBinPath}. Installing Python requirements...`;
     pyTracker.Log = inVenvMsg;
     if (channel) {
       channel.appendLine(inVenvMsg);
@@ -50,9 +49,7 @@ export async function installPythonEnv(
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
-  const virtualEnvPython = path
-    .join(pyEnvPath, ...pyDir)
-    .replace(/(\s+)/g, "\\$1");
+  const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
 
   const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
 
@@ -90,7 +87,7 @@ export async function installPythonEnv(
       pythonVersion.localeCompare("3.3") !== -1 ? "venv" : "virtualenv";
     if (envModule.indexOf("virtualenv") !== -1) {
       const checkVirtualEnv = await utils.execChildProcess(
-        `${pyPathWithoutSpaces} -c "import virtualenv"`,
+        `"${pythonBinPath}" -c "import virtualenv"`,
         idfToolsDir,
         channel,
         undefined,
@@ -100,7 +97,7 @@ export async function installPythonEnv(
   } catch (error) {
     if (error && error.message.indexOf("ModuleNotFoundError") !== -1) {
       await execProcessWithLog(
-        `"${pyPathWithoutSpaces}" -m pip install --user virtualenv`,
+        `"${pythonBinPath}" -m pip install --user virtualenv`,
         idfToolsDir,
         pyTracker,
         channel,
@@ -110,7 +107,7 @@ export async function installPythonEnv(
     }
   }
   await execProcessWithLog(
-    `${pyPathWithoutSpaces} -m ${envModule} ${pyEnvPath}`,
+    `"${pythonBinPath}" -m ${envModule} "${pyEnvPath}"`,
     idfToolsDir,
     pyTracker,
     channel,
@@ -148,9 +145,7 @@ export async function installReqs(
     undefined,
     cancelToken
   );
-  const requirements = path
-    .join(espDir, "requirements.txt")
-    .replace(/(\s+)/g, "\\$1");
+  const requirements = path.join(espDir, "requirements.txt");
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   if (!utils.canAccessFile(requirements, constants.R_OK)) {
     Logger.warnNotify(requirements + reqDoesNotExists);
@@ -185,13 +180,11 @@ export async function installExtensionPyReqs(
   cancelToken?: CancellationToken
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
-  const debugAdapterRequirements = path
-    .join(
-      utils.extensionContext.extensionPath,
-      "esp_debug_adapter",
-      "requirements.txt"
-    )
-    .replace(/(\s+)/g, "\\$1");
+  const debugAdapterRequirements = path.join(
+    utils.extensionContext.extensionPath,
+    "esp_debug_adapter",
+    "requirements.txt"
+  );
   if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
     Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
     if (channel) {
@@ -199,9 +192,10 @@ export async function installExtensionPyReqs(
     }
     return;
   }
-  const extensionRequirements = path
-    .join(utils.extensionContext.extensionPath, "requirements.txt")
-    .replace(/(\s+)/g, "\\$1");
+  const extensionRequirements = path.join(
+    utils.extensionContext.extensionPath,
+    "requirements.txt"
+  );
   if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
     Logger.warnNotify(extensionRequirements + reqDoesNotExists);
     if (channel) {
@@ -283,10 +277,9 @@ export async function getPythonEnvPath(
 }
 
 export async function checkPythonExists(pythonBin: string, workingDir: string) {
-  const pyPathWithoutSpaces = pythonBin.replace(/(\s+)/g, "\\$1");
   try {
     const versionResult = await utils.execChildProcess(
-      `${pyPathWithoutSpaces} --version`,
+      `"${pythonBin}" --version`,
       workingDir
     );
     if (versionResult) {
@@ -312,10 +305,9 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
 }
 
 export async function checkPipExists(pyBinPath: string, workingDir: string) {
-  const pyPathWithoutSpaces = pyBinPath.replace(/(\s+)/g, "\\$1");
   try {
     const pipResult = await utils.execChildProcess(
-      `${pyPathWithoutSpaces} -m pip --version`,
+      `"${pyBinPath}" -m pip --version`,
       workingDir
     );
     if (pipResult) {
