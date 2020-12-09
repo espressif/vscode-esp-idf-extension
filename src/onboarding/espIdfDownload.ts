@@ -199,14 +199,8 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
         return {
           filename: `esp-idf-${versionForRelease}.zip`,
           name: version + " (release branch)",
-          url: versionZip.replace(
-            versionRegex,
-            version.replace("release/", "")
-          ),
-          mirror: mirrorZip.replace(
-            versionRegex,
-            version.replace("release/", "")
-          ),
+          url: versionZip.replace(versionRegex, versionForRelease),
+          mirror: mirrorZip.replace(versionRegex, versionForRelease),
         };
       } else {
         return {
