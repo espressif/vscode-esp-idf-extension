@@ -1,6 +1,17 @@
-# ESP-IDF Visual Studio Code Extension
+<a href="https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension">
+  <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
+</a>
 
-Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](https://github.com/espressif/esp-idf) is official development framework for the [ESP-32](https://espressif.com/en/products/hardware/esp32/overview) chip.
+ESP-IDF VS Code Extension
+===
+
+Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
+
+<a href="https://youtu.be/Lc6ausiKvQM">
+  <p align="center">
+    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
+  </p>
+</a>
 
 The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
 
@@ -16,10 +27,6 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
 - Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and `idf.adapterTargetName`.
 
-## Demo
-
-![Espressif extension gif](./media/espressif_extension.gif)
-
 ## Prerequisites
 
 There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension. All the other dependencies like ESP-IDF or toolchain will be taken care by the [onboarding](./docs/ONBOARDING.md) process.
@@ -30,11 +37,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
-## Coming Soon
-
-- Create new project wizard
-- Support GDB Stub
-- Support Core Dump
 
 ## Quick Installation Guide
 
