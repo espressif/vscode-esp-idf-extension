@@ -821,8 +821,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      await utils.createVscodeFolder(workspaceRoot.fsPath);
-      Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
+      try {
+        await utils.createVscodeFolder(workspaceRoot.fsPath);
+        Logger.infoNotify(
+          "ESP-IDF vscode files have been added to the project."
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating .vscode folder";
+        Logger.errorNotify(errMsg, error);
+        return;
+      }
     });
   });
 

@@ -15,7 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import { copy, pathExists } from "fs-extra";
+import { copy, ensureDir, pathExists } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { EOL } from "os";
 import * as path from "path";
@@ -146,7 +146,24 @@ export function updateStatus(
 export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-  await copy(vscodeTemplateFolder, settingsDir);
+  await ensureDir(settingsDir);
+
+  return new Promise((resolve, reject) => {
+    fs.readdir(vscodeTemplateFolder, async (err, files) => {
+      if (err) {
+        return reject(err);
+      }
+      for (const f of files) {
+        const fPath = path.join(settingsDir, f);
+        const fSrcPath = path.join(vscodeTemplateFolder, f);
+        const fExists = await pathExists(fPath);
+        if (!fExists) {
+          await copy(fSrcPath, fPath);
+        }
+      }
+      return resolve();
+    });
+  });
 }
 
 export function chooseTemplateDir() {
