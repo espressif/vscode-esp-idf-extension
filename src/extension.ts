@@ -134,6 +134,20 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
+const minOpenOCDVersion20201202 = [
+  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201202", ""),
+  `Minimum OpenOCD version v0.10.0-esp32-20201202 is required`,
+] as utils.PreCheckInput;
+openOCDManager
+  .version()
+  .then((currentVersion) => {
+    minOpenOCDVersion20201202[0] = PreCheck.openOCDVersionValidator(
+      "v0.10.0-esp32-20201202",
+      currentVersion
+    );
+    minOpenOCDVersion20201202[1] = `Minimum OpenOCD version v0.10.0-esp32-20201202 is required while you have ${currentVersion} version installed`;
+  })
+  .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -1532,59 +1546,62 @@ export async function activate(context: vscode.ExtensionContext) {
       });
   });
   registerIDFCommand("espIdf.jtag_flash", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const buildFolder = path.join(workspaceRoot.fsPath, "build");
-      if (!(await pathExists(buildFolder))) {
-        return Logger.warnNotify("First you need to build before flashing!!");
-      }
-      if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
-        return Logger.warnNotify(
-          "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
-        );
-      }
-      const projectName = await getProjectName(workspaceRoot.fsPath);
-      if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
-        return Logger.warnNotify(
-          `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
-        );
-      }
-
-      const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-      if (!isOpenOCDLaunched) {
-        return Logger.warnNotify(
-          "Can't perform JTag flash, because OpenOCD server is not running!!"
-        );
-      }
-
-      if (FlashTask.isFlashing) {
-        return Logger.errorNotify(
-          "Can't run JTAG & UART Flash together, UART flash is running",
-          new Error("One_Task_At_A_Time")
-        );
-      }
-      FlashTask.isFlashing = true;
-
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: "Flashing your device using JTAG, please wait",
-        },
-        async () => {
-          const client = new TCLClient({ host: "localhost", port: 6666 });
-          const jtag = new JTAGFlash(client);
-          try {
-            await jtag.flash(
-              `program_esp_bins ${buildFolder} flasher_args.json verify reset`
-            );
-            Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
-          } catch (msg) {
-            OpenOCDManager.init().showOutputChannel(true);
-            Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
-          }
-          FlashTask.isFlashing = false;
+    PreCheck.perform(
+      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201202],
+      async () => {
+        const buildFolder = path.join(workspaceRoot.fsPath, "build");
+        if (!(await pathExists(buildFolder))) {
+          return Logger.warnNotify("First you need to build before flashing!!");
         }
-      );
-    });
+        if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
+          return Logger.warnNotify(
+            "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+          );
+        }
+        const projectName = await getProjectName(workspaceRoot.fsPath);
+        if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
+          return Logger.warnNotify(
+            `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
+          );
+        }
+
+        const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
+        if (!isOpenOCDLaunched) {
+          return Logger.warnNotify(
+            "Can't perform JTag flash, because OpenOCD server is not running!!"
+          );
+        }
+
+        if (FlashTask.isFlashing) {
+          return Logger.errorNotify(
+            "Can't run JTAG & UART Flash together, UART flash is running",
+            new Error("One_Task_At_A_Time")
+          );
+        }
+        FlashTask.isFlashing = true;
+
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Flashing your device using JTAG, please wait",
+          },
+          async () => {
+            const client = new TCLClient({ host: "localhost", port: 6666 });
+            const jtag = new JTAGFlash(client);
+            try {
+              await jtag.flash(
+                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+              );
+              Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+            } catch (msg) {
+              OpenOCDManager.init().showOutputChannel(true);
+              Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+            }
+            FlashTask.isFlashing = false;
+          }
+        );
+      }
+    );
   });
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck], async () => {
