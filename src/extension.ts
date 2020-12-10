@@ -134,18 +134,18 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
-const minOpenOCDVersion20201202 = [
-  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201202", ""),
-  `Minimum OpenOCD version v0.10.0-esp32-20201202 is required`,
+const minOpenOCDVersion20201125 = [
+  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201125", ""),
+  `Minimum OpenOCD version v0.10.0-esp32-20201125 is required`,
 ] as utils.PreCheckInput;
 openOCDManager
   .version()
   .then((currentVersion) => {
-    minOpenOCDVersion20201202[0] = PreCheck.openOCDVersionValidator(
-      "v0.10.0-esp32-20201202",
+    minOpenOCDVersion20201125[0] = PreCheck.openOCDVersionValidator(
+      "v0.10.0-esp32-20201125",
       currentVersion
     );
-    minOpenOCDVersion20201202[1] = `Minimum OpenOCD version v0.10.0-esp32-20201202 is required while you have ${currentVersion} version installed`;
+    minOpenOCDVersion20201125[1] = `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currentVersion} version installed`;
   })
   .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
 
@@ -1547,7 +1547,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   registerIDFCommand("espIdf.jtag_flash", () => {
     PreCheck.perform(
-      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201202],
+      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
       async () => {
         const buildFolder = path.join(workspaceRoot.fsPath, "build");
         if (!(await pathExists(buildFolder))) {
