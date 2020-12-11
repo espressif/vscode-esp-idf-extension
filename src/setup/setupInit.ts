@@ -44,8 +44,14 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
 
   const confEspIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const confToolsPath = idfConf.readParameter("idf.toolsPath") as string;
-  const toolsPath = confToolsPath || path.join(containerPath, ".espressif");
-  let espIdfPath = confEspIdfPath || path.join(containerPath, "esp", "esp-idf");
+  const toolsPath =
+    confToolsPath ||
+    process.env.IDF_TOOLS_PATH ||
+    path.join(containerPath, ".espressif");
+  let espIdfPath =
+    confEspIdfPath ||
+    process.env.IDF_PATH ||
+    path.join(containerPath, "esp", "esp-idf");
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
