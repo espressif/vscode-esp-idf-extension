@@ -105,15 +105,14 @@ export class DebugAdapterManager extends EventEmitter {
       }
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
-      const serialPort = idfConf.readParameter("idf.port");
-      const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
-
-      const flasherArgsJsonPath = path.join(
-        this.currentWorkspace.fsPath,
-        "build",
-        "flasher_args.json"
-      );
       if (!this.appOffset) {
+        const serialPort = idfConf.readParameter("idf.port");
+        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        const flasherArgsJsonPath = path.join(
+          this.currentWorkspace.fsPath,
+          "build",
+          "flasher_args.json"
+        );
         if (!canAccessFile(flasherArgsJsonPath, constants.R_OK)) {
           return reject(
             new Error(`${flasherArgsJsonPath} doesn't exist. Build first.`)
@@ -238,9 +237,7 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
-    if (config.appOffset) {
-      this.appOffset = config.appOffset;
-    }
+    this.appOffset = config.appOffset;
   }
 
   public isRunning(): boolean {
