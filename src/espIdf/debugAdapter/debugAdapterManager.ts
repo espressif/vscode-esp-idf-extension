@@ -33,6 +33,7 @@ import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 
 export interface IDebugAdapterConfig {
+  appOffset?: string;
   coreDumpFile?: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
@@ -55,6 +56,7 @@ export class DebugAdapterManager extends EventEmitter {
   private static instance: DebugAdapterManager;
 
   private adapter: ChildProcess;
+  private appOffset: string;
   private chan: Buffer;
   private coreDumpFile: string;
   private currentWorkspace: vscode.Uri;
@@ -111,12 +113,19 @@ export class DebugAdapterManager extends EventEmitter {
         "build",
         "flasher_args.json"
       );
-      const model = await createFlashModel(
-        flasherArgsJsonPath,
-        serialPort,
-        flashBaudRate
-      );
-      const appOffset = parseInt(model.app.address, 16).toString();
+      if (!this.appOffset) {
+        if (!canAccessFile(flasherArgsJsonPath, constants.R_OK)) {
+          return reject(
+            new Error(`${flasherArgsJsonPath} doesn't exist. Build first.`)
+          );
+        }
+        const model = await createFlashModel(
+          flasherArgsJsonPath,
+          serialPort,
+          flashBaudRate
+        );
+        this.appOffset = parseInt(model.app.address, 16).toString();
+      }
 
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
@@ -134,7 +143,7 @@ export class DebugAdapterManager extends EventEmitter {
         "-dn",
         this.target,
         "-a",
-        appOffset,
+        this.appOffset,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");
@@ -228,6 +237,9 @@ export class DebugAdapterManager extends EventEmitter {
     }
     if (config.target) {
       this.target = config.target;
+    }
+    if (config.appOffset) {
+      this.appOffset = config.appOffset;
     }
   }
 

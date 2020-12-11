@@ -709,6 +709,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
           const debugAdapterConfig = {
+            appOffset: session.configuration.appOffset,
             debugAdapterPort: portToUse,
             elfFile: session.configuration.elfFilePath,
             env: session.configuration.env,
@@ -1524,13 +1525,17 @@ export async function activate(context: vscode.ExtensionContext) {
           isPostMortemDebugMode: true,
           elfFile: resp.prog,
         } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
-        await vscode.debug.startDebugging(undefined, {
-          name: "GDB Stub Debug",
-          type: "espidf",
-          request: "launch",
-        });
-        wsServer.done();
+        try {
+          debugAdapterManager.configureAdapter(debugAdapterConfig);
+          await vscode.debug.startDebugging(undefined, {
+            name: "GDB Stub Debug",
+            type: "espidf",
+            request: "launch",
+          });
+          wsServer.done();
+        } catch (error) {
+          Logger.errorNotify("Failed to launch debugger for postmortem", error);
+        }
       })
       .on("close", (resp) => {
         wsServer.close();
