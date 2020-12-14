@@ -48,8 +48,9 @@ export class RMakerItem extends TreeItem {
   public set commandId(v: string) {
     this.command = {
       command: v,
-      title: this.label,
-      tooltip: this.tooltip,
+      title: typeof this.label === "string" ? this.label : this.label.label,
+      tooltip:
+        typeof this.tooltip === "string" ? this.tooltip : this.tooltip.value,
     };
   }
 
