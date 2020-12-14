@@ -1014,14 +1014,17 @@ export async function activate(context: vscode.ExtensionContext) {
             const examplesFolder = await vscode.window.showQuickPick(
               [
                 {
+                  description: "ESP-IDF",
                   label: `Use current ESP-IDF (${espIdfPath})`,
                   target: espIdfPath,
                 },
                 {
+                  description: "ESP-ADF",
                   label: `Use current ESP-ADF (${espAdfPath})`,
                   target: espAdfPath,
                 },
                 {
+                  description: "ESP-MDF",
                   label: `Use current ESP-MDF (${espMdfPath})`,
                   target: espMdfPath,
                 },
@@ -1041,7 +1044,8 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             ExamplesPlanel.createOrShow(
               context.extensionPath,
-              examplesFolder.target
+              examplesFolder.target,
+              examplesFolder.description
             );
           } catch (error) {
             Logger.errorNotify(error.message, error);
