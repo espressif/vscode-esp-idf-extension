@@ -183,16 +183,24 @@ export class RainmakerAPIClient {
   }
 
   public static async getUserInfo(): Promise<RainmakerUserInfo> {
-    const resp = await axios.get<RainmakerUserInfo>(
-      this.generateURLFor(`user`),
-      {
-        headers: this.getAuthHeader(),
+    try {
+      const resp = await axios.get<RainmakerUserInfo>(
+        this.generateURLFor(`user`),
+        {
+          headers: this.getAuthHeader(),
+        }
+      );
+      if (resp.status === 200 && resp.data.user_id) {
+        return resp.data;
       }
-    );
-    if (resp.status === 200 && resp.data.user_id) {
-      return resp.data;
+    } catch (error) {
+      if (error.response.status === 401) {
+        // session is expired
+        await this.refreshAccessToken();
+        return this.getUserInfo();
+      }
+      this.throwUnknownError(error);
     }
-    this.throwUnknownError(resp);
   }
 
   private static getAuthHeader(): any {
