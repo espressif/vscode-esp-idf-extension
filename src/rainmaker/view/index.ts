@@ -54,7 +54,8 @@ export class ESPRainMakerTreeDataProvider
   async getChildren(parent?: RMakerItem): Promise<RMakerItem[]> {
     if (!parent) {
       if (RainmakerAPIClient.isLoggedIn()) {
-        return [LoggedInAccountItem()];
+        const userInfo = await RainmakerAPIClient.getUserInfo();
+        return [LoggedInAccountItem(userInfo)];
       } else {
         return [LoginButtonItem()];
       }

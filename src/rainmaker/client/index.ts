@@ -23,6 +23,7 @@ import {
   RainmakerLoginResponseModel,
   RainmakerNodeWithDetails,
   RainmakerDeviceParams,
+  RainmakerUserInfo,
 } from "./model";
 import { readParameter } from "../../idfConfiguration";
 import { commands } from "vscode";
@@ -176,6 +177,19 @@ export class RainmakerAPIClient {
       { headers: this.getAuthHeader() }
     );
     if (resp.status === 200 && resp.data.status === "success") {
+      return resp.data;
+    }
+    this.throwUnknownError(resp);
+  }
+
+  public static async getUserInfo(): Promise<RainmakerUserInfo> {
+    const resp = await axios.get<RainmakerUserInfo>(
+      this.generateURLFor(`user`),
+      {
+        headers: this.getAuthHeader(),
+      }
+    );
+    if (resp.status === 200 && resp.data.user_id) {
       return resp.data;
     }
     this.throwUnknownError(resp);
