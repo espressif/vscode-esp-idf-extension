@@ -122,12 +122,7 @@ export class NVSPartitionTable {
   private createEditorHtml(webview: vscode.Webview): string {
     const scriptPath = webview.asWebviewUri(
       vscode.Uri.file(
-        join(
-          this.extensionPath,
-          "dist",
-          "views",
-          "nvs-partition-table-bundle.js"
-        )
+        join(this.extensionPath, "dist", "views", "nvsPartitionTable-bundle.js")
       )
     );
     return `<!DOCTYPE html>
