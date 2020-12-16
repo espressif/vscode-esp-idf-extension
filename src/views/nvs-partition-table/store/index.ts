@@ -37,14 +37,22 @@ export namespace NvsPartitionTable {
     error: string;
   }
   export interface State {
-    rows: Array<Row>;
     dirty: Boolean;
+    encrypt: Boolean;
+    encryptKeyPath: string;
+    generateKey: Boolean;
+    partitionSize: string;
+    rows: Array<Row>;
   }
 }
 
 export const state: NvsPartitionTable.State = {
-  rows: [],
   dirty: false,
+  encrypt: false,
+  encryptKeyPath: "",
+  generateKey: false,
+  partitionSize: "",
+  rows: [],
 };
 
 export const mutations: MutationTree<NvsPartitionTable.State> = {
@@ -68,9 +76,26 @@ export const mutations: MutationTree<NvsPartitionTable.State> = {
   CLEAR_ALL_ROW_ERRORS(state) {
     state.rows.forEach((row) => Vue.set(row, "error", undefined));
   },
+  setEncrypt(state, useEncryption: Boolean) {
+    state.encrypt = useEncryption;
+  },
+  setEncryptKeyPath(state, encryptKeyPath: string) {
+    state.encryptKeyPath = encryptKeyPath;
+  },
+  setGenerateKey(state, generateKey: Boolean) {
+    state.generateKey = generateKey;
+  },
+  setPartitionSize(state, partitionSize: string) {
+    state.partitionSize = partitionSize;
+  },
 };
 
 export const actions: ActionTree<NvsPartitionTable.State, any> = {
+  openKeyFile() {
+    vscode.postMessage({
+      command: "openKeyFile",
+    });
+  },
   save(context) {
     context.commit("CLEAR_ALL_ROW_ERRORS");
     /* const { row, error, ok } = isValidJSON(ctx.state.rows);

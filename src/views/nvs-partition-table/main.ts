@@ -21,15 +21,21 @@ import Vue from "vue";
 import App from "./App.vue";
 import store from "./store";
 import IconifyIcon from "@iconify/vue";
+import folder from "@iconify-icons/codicon/folder";
+import folderOpen from "@iconify-icons/codicon/folder-opened";
 import tools from "@iconify-icons/codicon/tools";
 import symbolEvent from "@iconify-icons/codicon/symbol-event";
 import refresh from "@iconify-icons/codicon/refresh";
 import question from "@iconify-icons/codicon/question";
+import symbolMethod from "@iconify-icons/codicon/symbol-method";
 
 IconifyIcon.addIcon("tools", tools);
 IconifyIcon.addIcon("symbol-event", symbolEvent);
 IconifyIcon.addIcon("refresh", refresh);
 IconifyIcon.addIcon("question", question);
+IconifyIcon.addIcon("symbol-method", symbolMethod);
+IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("folder-opened", folderOpen);
 
 Vue.component("iconify-icon", IconifyIcon);
 
@@ -41,6 +47,11 @@ new Vue({
 window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
+    case "openKeyFile":
+      if (message.keyFilePath) {
+        store.commit("updateKeyFilePath", message.keyFilePath);
+      }
+      break;
     case "loadInitialData":
       if (message.csv) {
         /* const rows = CSV2JSON(message.csv);

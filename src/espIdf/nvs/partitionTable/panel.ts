@@ -18,15 +18,15 @@
 import { join } from "path";
 import * as vscode from "vscode";
 import { readFile } from "fs-extra";
-import { file } from "tmp";
 import { Logger } from "../../../logger/logger";
+import { file } from "tmp";
 
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
   private static readonly viewType = "idfNvsPartitionTableEditor";
   private static readonly viewTitle = "ESP-IDF NVS Partition Table Editor";
 
-  private static async createOrShow(extensionPath: string, filePath: string) {
+  public static async createOrShow(extensionPath: string, filePath: string) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
@@ -35,7 +35,7 @@ export class NVSPartitionTable {
       if (NVSPartitionTable.currentPanel.filePath === filePath) {
         return NVSPartitionTable.currentPanel.panel.reveal(column);
       }
-      NVSPartitionTable.currentPanel.getCSVFromFile(filePath);
+      await NVSPartitionTable.currentPanel.getCSVFromFile(filePath);
       return;
     } else {
       const panel = vscode.window.createWebviewPanel(
@@ -58,7 +58,7 @@ export class NVSPartitionTable {
     }
   }
 
-  private static sendMesssageToPanel(command: string, payload: object) {
+  private static sendMessageToPanel(command: string, payload: object) {
     if (this.currentPanel.panel && this.currentPanel.panel.webview) {
       this.currentPanel.panel.webview.postMessage({ command, ...payload });
     }
@@ -99,7 +99,7 @@ export class NVSPartitionTable {
         return;
       }
       this.filePath = filePath;
-      NVSPartitionTable.sendMesssageToPanel("loadInitialData", {
+      NVSPartitionTable.sendMessageToPanel("loadInitialData", {
         csv: csvContent,
       });
     } catch (error) {
@@ -142,10 +142,29 @@ export class NVSPartitionTable {
   private async onMessage(message: any) {
     switch (message.command) {
       case "getInitialData":
-        this.getCSVFromFile(this.filePath);
+        await this.getCSVFromFile(this.filePath);
+        break;
+      case "openKeyFile":
+        const filePath = await this.openFile();
+        NVSPartitionTable.sendMessageToPanel("openKeyFile", {
+          keyFilePath: filePath,
+        });
         break;
       default:
         break;
+    }
+  }
+
+  private async openFile() {
+    const selectedFile = await vscode.window.showOpenDialog({
+      canSelectFolders: false,
+      canSelectFiles: true,
+      canSelectMany: false,
+    });
+    if (selectedFile && selectedFile.length > 0) {
+      return selectedFile[0].fsPath;
+    } else {
+      vscode.window.showInformationMessage("No file selected");
     }
   }
 }

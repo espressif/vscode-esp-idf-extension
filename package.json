@@ -75,6 +75,7 @@
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:espIdf.webview.nvsPartitionEditor",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -754,6 +755,10 @@
       {
         "command": "espIdf.fullClean",
         "title": "%espIdf.fullClean.title%"
+      },
+      {
+        "command": "espIdf.webview.nvsPartitionEditor",
+        "title": "%espIdf.webview.nvsPartitionEditor.title%"
       }
     ],
     "breakpoints": [
