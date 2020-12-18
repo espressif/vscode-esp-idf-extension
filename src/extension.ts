@@ -1556,10 +1556,19 @@ export async function activate(context: vscode.ExtensionContext) {
       if (uri.path === "/rainmaker" && query[0] === "code") {
         const code = query[1] || "";
         try {
-          await RainmakerAPIClient.exchangeCodeForTokens(code);
-          await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify(
-            "Rainmaker Cloud is connected successfully (via OAuth)!!"
+          vscode.window.withProgress(
+            {
+              title:
+                "Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
+              location: vscode.ProgressLocation.Notification,
+            },
+            async () => {
+              await RainmakerAPIClient.exchangeCodeForTokens(code);
+              await rainMakerTreeDataProvider.refresh();
+              Logger.infoNotify(
+                "Rainmaker Cloud is connected successfully (via OAuth)!!"
+              );
+            }
           );
         } catch (error) {
           return Logger.errorNotify(
