@@ -1132,7 +1132,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)) {
+      const appTraceLabel =
+        typeof appTraceTreeDataProvider.appTraceButton.label === "string"
+          ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
+          : appTraceTreeDataProvider.appTraceButton.label.label.match(
+              /start/gi
+            );
+      if (appTraceLabel) {
         await appTraceManager.start();
       } else {
         await appTraceManager.stop();
@@ -1142,7 +1148,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.heaptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)) {
+      const heapTraceLabel =
+        typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
+          ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
+          : appTraceTreeDataProvider.heapTraceButton.label.label.match(
+              /start/gi
+            );
+      if (heapTraceLabel) {
         await heapTraceManager.start();
       } else {
         await heapTraceManager.stop();

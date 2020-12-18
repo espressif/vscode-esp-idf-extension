@@ -869,7 +869,7 @@
     "file-loader": "^4.0.0",
     "glob": "^7.1.4",
     "gulp": "^4.0.2",
-    "gulp-cli": "^2.0.1",
+    "gulp-cli": "^2.0.3",
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^2.5.0",
