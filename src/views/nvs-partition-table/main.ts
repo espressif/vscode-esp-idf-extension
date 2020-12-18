@@ -49,7 +49,7 @@ window.addEventListener("message", (event) => {
   switch (message.command) {
     case "openKeyFile":
       if (message.keyFilePath) {
-        store.commit("updateKeyFilePath", message.keyFilePath);
+        store.commit("setEncryptKeyPath", message.keyFilePath);
       }
       break;
     case "loadInitialData":

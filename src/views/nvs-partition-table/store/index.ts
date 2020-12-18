@@ -29,7 +29,7 @@ try {
 }
 
 export namespace NvsPartitionTable {
-  export interface Row {
+  export interface IRow {
     key: string;
     type: string;
     encoding: string;
@@ -42,7 +42,7 @@ export namespace NvsPartitionTable {
     encryptKeyPath: string;
     generateKey: Boolean;
     partitionSize: string;
-    rows: Array<Row>;
+    rows: Array<IRow>;
   }
 }
 
@@ -50,9 +50,9 @@ export const state: NvsPartitionTable.State = {
   dirty: false,
   encrypt: false,
   encryptKeyPath: "",
-  generateKey: false,
+  generateKey: true,
   partitionSize: "",
-  rows: [],
+  rows: [{ key: "", type: "", encoding: "", value: "", error: "" }],
 };
 
 export const mutations: MutationTree<NvsPartitionTable.State> = {
@@ -91,6 +91,20 @@ export const mutations: MutationTree<NvsPartitionTable.State> = {
 };
 
 export const actions: ActionTree<NvsPartitionTable.State, any> = {
+  genPartition(context) {
+    vscode.postMessage({
+      command: "genNvsPartition",
+      encrypt: context.state.encrypt,
+      encryptKeyPath: context.state.encryptKeyPath,
+      generateKey: context.state.generateKey,
+      partitionSize: context.state.partitionSize,
+    });
+  },
+  initDataRequest(context) {
+    vscode.postMessage({
+      command: "getInitialData",
+    });
+  },
   openKeyFile() {
     vscode.postMessage({
       command: "openKeyFile",
@@ -115,11 +129,6 @@ export const actions: ActionTree<NvsPartitionTable.State, any> = {
       command: "saveDataRequest",
       csv,
     }); */
-  },
-  initDataRequest(context) {
-    vscode.postMessage({
-      command: "getInitialData",
-    });
   },
 };
 

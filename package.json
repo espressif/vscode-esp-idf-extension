@@ -901,6 +901,7 @@
     "webpack": "webpack --mode production"
   },
   "devDependencies": {
+    "@creativebulma/bulma-tooltip": "^1.2.0",
     "@iconify-icons/codicon": "^1.0.6",
     "@iconify/vue": "^1.0.6",
     "@types/follow-redirects": "^1.8.0",
@@ -950,6 +951,7 @@
     "vue-loader": "^15.7.1",
     "vue-property-decorator": "^8.2.1",
     "vue-router": "^3.0.2",
+    "vue-select": "^3.10.8",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
     "vuex-class": "^0.3.2",
