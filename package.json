@@ -230,6 +230,11 @@
           "group": "navigation"
         },
         {
+          "when": "resourceExtname == .csv",
+          "group": "navigation",
+          "command": "espIdf.webview.nvsPartitionEditor"
+        },
+        {
           "when": "resourceFilename == CMakeLists.txt",
           "command": "cmakeListsEditor.start",
           "group": "navigation"

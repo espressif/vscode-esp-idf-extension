@@ -17,6 +17,7 @@
  */
 import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
+import { IRowValidationResult, JSON2CSV, validateRows } from "../util";
 
 Vue.use(Vuex);
 
@@ -52,7 +53,7 @@ export const state: NvsPartitionTable.State = {
   encryptKeyPath: "",
   generateKey: true,
   partitionSize: "",
-  rows: [{ key: "", type: "", encoding: "", value: "", error: "" }],
+  rows: [{ key: "", type: "namespace", encoding: "", value: "", error: "" }],
 };
 
 export const mutations: MutationTree<NvsPartitionTable.State> = {
@@ -112,23 +113,30 @@ export const actions: ActionTree<NvsPartitionTable.State, any> = {
   },
   save(context) {
     context.commit("CLEAR_ALL_ROW_ERRORS");
-    /* const { row, error, ok } = isValidJSON(ctx.state.rows);
-    if (!ok) {
-      ctx.commit("SET_ERROR_FOR_ROW", { row, error });
-      console.log(error, row);
-      vscode.postMessage({
-        command: "showErrorMessage",
-        error,
-      });
+    if (!context.state.rows.length) {
       return;
     }
-    const csv = JSON2CSV(ctx.state.rows);
-    console.log(csv);
-    ctx.commit("CLEAN");
+    const rowResults = validateRows(context.state.rows);
+
+    for (const result of rowResults) {
+      if (!result.ok) {
+        context.commit("SET_ERROR_FOR_ROW", {
+          row: result.rowIndex,
+          error: result.errorMsg,
+        });
+        vscode.postMessage({
+          command: "showErrorMessage",
+          error: result.errorMsg,
+        });
+        return;
+      }
+    }
+    const csv = JSON2CSV(context.state.rows);
+    context.commit("CLEAN");
     vscode.postMessage({
       command: "saveDataRequest",
       csv,
-    }); */
+    });
   },
 };
 

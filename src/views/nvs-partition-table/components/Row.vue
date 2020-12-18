@@ -5,7 +5,7 @@
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Key"
-        maxlength="16"
+        maxlength="15"
         v-model="key"
       />
     </td>
@@ -33,7 +33,6 @@
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Value"
-        maxlength="16"
         v-model="value"
       />
     </td>

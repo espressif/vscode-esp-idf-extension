@@ -17,7 +17,7 @@
  */
 import { join } from "path";
 import * as vscode from "vscode";
-import { readFile } from "fs-extra";
+import { readFile, writeFile } from "fs-extra";
 import { Logger } from "../../../logger/logger";
 import { file } from "tmp";
 
@@ -92,7 +92,7 @@ export class NVSPartitionTable {
   private async getCSVFromFile(filePath: string) {
     try {
       let csvContent: string = "";
-      if (filePath.endsWith(".csv")) {
+      if (filePath && filePath.endsWith(".csv")) {
         csvContent = await readFile(filePath, "utf-8");
       }
       if (!csvContent) {
@@ -106,7 +106,6 @@ export class NVSPartitionTable {
       error.message
         ? Logger.errorNotify(error.message, error)
         : Logger.errorNotify(`Failed to read CSV from ${filePath}`, error);
-      2;
     }
   }
 
@@ -150,6 +149,15 @@ export class NVSPartitionTable {
           keyFilePath: filePath,
         });
         break;
+      case "showErrorMessage":
+        if (message.error) {
+          Logger.errorNotify(message.error, new Error(message.error));
+        }
+      case "saveDataRequest":
+        if (message.csv) {
+          this.writeCSVDataToFile(message.csv);
+        }
+        break;
       default:
         break;
     }
@@ -165,6 +173,22 @@ export class NVSPartitionTable {
       return selectedFile[0].fsPath;
     } else {
       vscode.window.showInformationMessage("No file selected");
+    }
+  }
+
+  private async writeCSVDataToFile(csv: string) {
+    try {
+      if (this.filePath && this.filePath.endsWith(".csv")) {
+        await writeFile(this.filePath, csv);
+        Logger.infoNotify(
+          `NVS Partition table is saved successfully. (${this.filePath})`
+        );
+      }
+    } catch (err) {
+      return Logger.errorNotify(
+        `Failed to save the partition data to the file ${this.filePath} due to some error. Error: ${err.message}`,
+        err
+      );
     }
   }
 }
