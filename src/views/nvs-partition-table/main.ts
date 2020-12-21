@@ -28,7 +28,7 @@ import symbolEvent from "@iconify-icons/codicon/symbol-event";
 import refresh from "@iconify-icons/codicon/refresh";
 import question from "@iconify-icons/codicon/question";
 import symbolMethod from "@iconify-icons/codicon/symbol-method";
-import { CSV2JSON } from "./util";
+import { csv2Json } from "./util";
 
 IconifyIcon.addIcon("tools", tools);
 IconifyIcon.addIcon("symbol-event", symbolEvent);
@@ -55,7 +55,7 @@ window.addEventListener("message", (event) => {
       break;
     case "loadInitialData":
       if (message.csv) {
-        const rows = CSV2JSON(message.csv);
+        const rows = csv2Json(message.csv);
         store.commit("SET_ROWS", rows);
       }
       break;

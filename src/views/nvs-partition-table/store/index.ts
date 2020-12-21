@@ -17,7 +17,7 @@
  */
 import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
-import { IRowValidationResult, JSON2CSV, validateRows } from "../util";
+import { JSON2CSV, validateRows } from "../util";
 
 Vue.use(Vuex);
 
@@ -43,6 +43,7 @@ export namespace NvsPartitionTable {
     encryptKeyPath: string;
     generateKey: Boolean;
     partitionSize: string;
+    partitionSizeError: string;
     rows: Array<IRow>;
   }
 }
@@ -53,6 +54,7 @@ export const state: NvsPartitionTable.State = {
   encryptKeyPath: "",
   generateKey: true,
   partitionSize: "",
+  partitionSizeError: "",
   rows: [{ key: "", type: "namespace", encoding: "", value: "", error: "" }],
 };
 
@@ -74,8 +76,14 @@ export const mutations: MutationTree<NvsPartitionTable.State> = {
   SET_ERROR_FOR_ROW(state, { row, error }) {
     Vue.set(state.rows[row], "error", error);
   },
+  SET_SIZE_ERROR(state, err: string) {
+    state.partitionSizeError = err;
+  },
   CLEAR_ALL_ROW_ERRORS(state) {
     state.rows.forEach((row) => Vue.set(row, "error", undefined));
+  },
+  CLEAR_SIZE_ERROR(state) {
+    state.partitionSizeError = undefined;
   },
   setEncrypt(state, useEncryption: Boolean) {
     state.encrypt = useEncryption;
@@ -93,6 +101,10 @@ export const mutations: MutationTree<NvsPartitionTable.State> = {
 
 export const actions: ActionTree<NvsPartitionTable.State, any> = {
   genPartition(context) {
+    context.commit("CLEAR_SIZE_ERROR");
+    if (!context.state.partitionSize) {
+      context.commit("SET_SIZE_ERROR", "Size can't be empty");
+    }
     vscode.postMessage({
       command: "genNvsPartition",
       encrypt: context.state.encrypt,
@@ -112,6 +124,7 @@ export const actions: ActionTree<NvsPartitionTable.State, any> = {
     });
   },
   save(context) {
+    context.commit("CLEAR_SIZE_ERROR");
     context.commit("CLEAR_ALL_ROW_ERRORS");
     if (!context.state.rows.length) {
       return;

@@ -143,21 +143,19 @@ export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
   return csv;
 }
 
-export function CSV2JSON(csv: string) {
+export function csv2Json(csv: string) {
   const rows = new Array<NvsPartitionTable.IRow>();
   const lines = csv.split(EOL);
   const header = lines.shift();
-  console.log(lines);
   if (header !== expectedHeader) {
     console.log("Not a NVS partition table csv, skipping...");
     return rows;
   }
-  for (const line of lines) {
-    if (line === "") {
-      return;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] === "") {
+      continue;
     }
-    const cols = line.split(",");
-    console.log(cols);
+    let cols = lines[i].split(",");
     rows.push({
       key: cols.shift(),
       type: cols.shift(),

@@ -73,7 +73,21 @@
           <label class="label">Size of partition (bytes)</label>
         </div>
         <div class="control">
-          <input class="input" placeholder="0x3000" v-model="partitionSize" />
+          <input
+            class="input"
+            placeholder="0x3000"
+            v-model="partitionSize"
+            :class="{ sizeErr: partitionSizeError }"
+          />
+        </div>
+        <div class="control">
+          <span
+            class="icon is-small has-tooltip-arrow"
+            :data-tooltip="partitionSizeError"
+            v-if="partitionSizeError"
+          >
+            <iconify-icon icon="question" />
+          </span>
         </div>
       </div>
     </div>
@@ -98,6 +112,7 @@ export default class Header extends Vue {
   @State("generateKey") private storeGenerateKey: Boolean;
   @State("encryptKeyPath") private storeEncryptKeyPath: string;
   @State("partitionSize") private storePartitionSize: string;
+  @State("partitionSizeError") private storePartSizeError: string;
 
   get encrypt() {
     return this.storeEncrypt;
@@ -127,6 +142,10 @@ export default class Header extends Vue {
     this.setPartitionSize(val);
   }
 
+  get partitionSizeError() {
+    return this.storePartSizeError;
+  }
+
   get showEncryptionKeyPath() {
     return this.storeEncrypt && !this.storeGenerateKey;
   }
@@ -136,3 +155,10 @@ export default class Header extends Vue {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.sizeErr {
+  border-color: rgba(176, 81, 41, 0.1);
+  border-bottom-width: 5px;
+}
+</style>

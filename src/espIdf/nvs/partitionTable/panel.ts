@@ -15,11 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { join } from "path";
+import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
 import { readFile, writeFile } from "fs-extra";
 import { Logger } from "../../../logger/logger";
-import { file } from "tmp";
+import * as idfConf from "../../../idfConfiguration";
+import { execChildProcess } from "../../../utils";
+import { OutputChannel } from "../../../logger/outputChannel";
 
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
@@ -109,6 +111,61 @@ export class NVSPartitionTable {
     }
   }
 
+  private async generateNvsPartition(
+    encrypt: boolean,
+    encryptKeyPath: string,
+    generateKey: boolean,
+    partitionSize: string
+  ) {
+    try {
+      const idfPathDir =
+        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      const dirPath = dirname(this.filePath);
+      const fileName = basename(this.filePath);
+      const resultName = fileName.replace(".csv", ".bin");
+      const toolPath = join(
+        idfPathDir,
+        "components",
+        "nvs_flash",
+        "nvs_partition_generator",
+        "nvs_partition_gen.py"
+      );
+      const genEncryptPart = encrypt ? "encrypt" : "generate";
+      const partToolArgs = [
+        toolPath,
+        genEncryptPart,
+        fileName,
+        resultName,
+        partitionSize,
+      ];
+      if (encrypt) {
+        const genOrUseKey = generateKey
+          ? "--keygen"
+          : `--inputkey ${encryptKeyPath}`;
+        partToolArgs.push(genOrUseKey);
+      }
+      OutputChannel.appendLine(`${pythonBinPath} ${partToolArgs.join(" ")}`);
+      const result = await execChildProcess(
+        `${pythonBinPath} ${partToolArgs.join(" ")}`,
+        dirPath
+      );
+      OutputChannel.appendLine(result);
+
+      if (result.indexOf("Created NVS binary: ===>") !== -1) {
+        Logger.infoNotify(`Created NVS Binary in ${join(dirPath, resultName)}`);
+      }
+    } catch (error) {
+      const msg = error.message
+        ? error.message
+        : "Error generating NVS partition";
+      OutputChannel.appendLine(msg);
+      Logger.errorNotify(msg, error);
+    }
+  }
+
   private dispose() {
     NVSPartitionTable.currentPanel = undefined;
     this.panel.dispose();
@@ -142,6 +199,21 @@ export class NVSPartitionTable {
     switch (message.command) {
       case "getInitialData":
         await this.getCSVFromFile(this.filePath);
+        break;
+      case "genNvsPartition":
+        if (
+          typeof message.encrypt !== undefined &&
+          typeof message.encryptKeyPath !== undefined &&
+          typeof message.generateKey !== undefined &&
+          message.partitionSize
+        ) {
+          await this.generateNvsPartition(
+            message.encrypt,
+            message.encryptKeyPath,
+            message.generateKey,
+            message.partitionSize
+          );
+        }
         break;
       case "openKeyFile":
         const filePath = await this.openFile();
