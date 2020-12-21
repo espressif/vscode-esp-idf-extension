@@ -17,10 +17,10 @@
  */
 import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
-import { readFile, writeFile } from "fs-extra";
+import { constants, readFile, writeFile } from "fs-extra";
 import { Logger } from "../../../logger/logger";
 import * as idfConf from "../../../idfConfiguration";
-import { execChildProcess } from "../../../utils";
+import { canAccessFile, execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
 
 export class NVSPartitionTable {
@@ -133,6 +133,25 @@ export class NVSPartitionTable {
         "nvs_partition_generator",
         "nvs_partition_gen.py"
       );
+      if (!canAccessFile(pythonBinPath, constants.R_OK)) {
+        Logger.errorNotify(
+          "Python binary path is not defined",
+          new Error("idf.pythonBinPath is not defined")
+        );
+      }
+      if (!canAccessFile(this.filePath, constants.R_OK)) {
+        Logger.warnNotify(
+          `${this.filePath} + " is not defined. Save the file first.`
+        );
+      }
+      if (!canAccessFile(toolPath, constants.R_OK)) {
+        Logger.errorNotify(
+          "nvs_partition_gen.py is not defined",
+          new Error(
+            "nvs_partition_gen.py is not defined, Make sure idf.espIdfPath is correct."
+          )
+        );
+      }
       const genEncryptPart = encrypt ? "encrypt" : "generate";
       const partToolArgs = [
         toolPath,
