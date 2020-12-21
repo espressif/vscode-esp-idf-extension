@@ -102,8 +102,3 @@ export interface RainmakerNodeWithDetails {
   nodes: string[];
   node_details: NodeDetails[];
 }
-
-export interface RainmakerUserInfo {
-  user_id: string;
-  user_name: string;
-}

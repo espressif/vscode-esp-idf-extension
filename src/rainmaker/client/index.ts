@@ -23,7 +23,6 @@ import {
   RainmakerLoginResponseModel,
   RainmakerNodeWithDetails,
   RainmakerDeviceParams,
-  RainmakerUserInfo,
 } from "./model";
 import { readParameter } from "../../idfConfiguration";
 import { commands } from "vscode";
@@ -182,24 +181,18 @@ export class RainmakerAPIClient {
     this.throwUnknownError(resp);
   }
 
-  public static async getUserInfo(): Promise<RainmakerUserInfo> {
+  public static getUserInfo(): string {
     try {
-      const resp = await axios.get<RainmakerUserInfo>(
-        this.generateURLFor(`user`),
-        {
-          headers: this.getAuthHeader(),
-        }
-      );
-      if (resp.status === 200 && resp.data.user_id) {
-        return resp.data;
-      }
+      const userInfo = this.getUserTokens();
+      const tokenPayload = userInfo.idtoken.split(".")[1];
+      const idTokenString = Buffer.from(tokenPayload, "base64").toString();
+      return JSON.parse(idTokenString).email;
     } catch (error) {
-      if (error.response.status === 401) {
-        // session is expired
-        await this.refreshAccessToken();
-        return this.getUserInfo();
-      }
-      this.throwUnknownError(error);
+      Logger.error(
+        "Failed to get username from the idtoken for rainmaker",
+        error
+      );
+      return "Failed to extract email!";
     }
   }
 

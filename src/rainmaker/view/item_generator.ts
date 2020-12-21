@@ -24,7 +24,6 @@ import {
   RainmakerDeviceParamStructure,
   RainmakerDeviceType,
   RainmakerDeviceParamType,
-  RainmakerUserInfo,
 } from "../client/model";
 
 export function LoginButtonItem(): RMakerItem {
@@ -35,12 +34,12 @@ export function LoginButtonItem(): RMakerItem {
   return loginButton;
 }
 
-export function LoggedInAccountItem(userInfo: RainmakerUserInfo): RMakerItem {
+export function LoggedInAccountItem(email: string): RMakerItem {
   const account = new RMakerItem(RMakerItemType.Account);
   account.collapsibleState = TreeItemCollapsibleState.Collapsed;
   account.label = "Rainmaker Cloud";
   account.themeIcon = "cloud-upload";
-  account.description = `(${userInfo.user_name})`;
+  account.description = `(${email})`;
   return account;
 }
 
