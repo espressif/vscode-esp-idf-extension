@@ -1011,24 +1011,31 @@ export async function activate(context: vscode.ExtensionContext) {
             const espMdfPath = idfConf.readParameter(
               "idf.espMdfPath"
             ) as string;
+
+            const pickItems = [];
+            if (espIdfPath) {
+              pickItems.push({
+                description: "ESP-IDF",
+                label: `Use current ESP-IDF (${espIdfPath})`,
+                target: espIdfPath,
+              } as vscode.QuickPickItem);
+            }
+            if (espAdfPath) {
+              pickItems.push({
+                description: "ESP-ADF",
+                label: `Use current ESP-ADF (${espAdfPath})`,
+                target: espAdfPath,
+              } as vscode.QuickPickItem);
+            }
+            if (espMdfPath) {
+              pickItems.push({
+                description: "ESP-MDF",
+                label: `Use current ESP-MDF (${espMdfPath})`,
+                target: espMdfPath,
+              } as vscode.QuickPickItem);
+            }
             const examplesFolder = await vscode.window.showQuickPick(
-              [
-                {
-                  description: "ESP-IDF",
-                  label: `Use current ESP-IDF (${espIdfPath})`,
-                  target: espIdfPath,
-                },
-                {
-                  description: "ESP-ADF",
-                  label: `Use current ESP-ADF (${espAdfPath})`,
-                  target: espAdfPath,
-                },
-                {
-                  description: "ESP-MDF",
-                  label: `Use current ESP-MDF (${espMdfPath})`,
-                  target: espMdfPath,
-                },
-              ],
+              pickItems,
               { placeHolder: "Select framework to use" }
             );
             if (!examplesFolder) {
