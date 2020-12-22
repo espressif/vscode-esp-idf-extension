@@ -15,7 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TreeItem, TreeItemCollapsibleState, ThemeIcon } from "vscode";
+import {
+  TreeItem,
+  TreeItemLabel,
+  TreeItemCollapsibleState,
+  ThemeIcon,
+} from "vscode";
 
 export enum RMakerItemType {
   None,
@@ -48,9 +53,18 @@ export class RMakerItem extends TreeItem {
   public set commandId(v: string) {
     this.command = {
       command: v,
-      title: typeof this.label === "string" ? this.label : this.label.label,
+      title:
+        typeof this.label === "string"
+          ? this.label
+          : this.label.label
+          ? this.label.label
+          : undefined,
       tooltip:
-        typeof this.tooltip === "string" ? this.tooltip : this.tooltip.value,
+        typeof this.tooltip === "string"
+          ? this.tooltip
+          : this.tooltip.value
+          ? this.tooltip.value
+          : undefined,
     };
   }
 
