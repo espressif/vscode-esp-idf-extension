@@ -2,7 +2,8 @@
   <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
 </a>
 
-# ESP-IDF VS Code Extension
+ESP-IDF VS Code Extension
+===
 
 Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
 
@@ -35,6 +36,7 @@ There are a few dependencies which needs to be downloaded and installed before y
 - [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the onboarding configuration tools intall.
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
+
 
 ## Quick Installation Guide
 
