@@ -2084,8 +2084,7 @@ function createMonitor(): any {
       );
       const winWslRoot = wslCurrPath
         .replace(wslRoot, "")
-        .replace(/\n/, "")
-        .replace(/\r/g, "");
+        .replace(/[\r\n]+/g, "");
       const toolPath = (
         winWslRoot +
         idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")

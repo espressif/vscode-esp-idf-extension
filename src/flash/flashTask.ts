@@ -107,10 +107,7 @@ export class FlashTask {
       `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
       extensionContext.extensionPath
     );
-    const winWslRoot = wslCurrPath
-      .replace(wslRoot, "")
-      .replace(/\n/, "")
-      .replace(/\r/g, "");
+    const winWslRoot = wslCurrPath.replace(wslRoot, "").replace(/[\r\n]+/g, "");
     const toolPath = (
       winWslRoot + this.flashScriptPath.replace(/\//g, "\\")
     ).replace(/\\/g, "\\\\");

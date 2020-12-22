@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { EOL, release } from "os";
+import { release } from "os";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
@@ -130,7 +130,7 @@ export class SerialPort {
       Logger.error(errMSg, error);
     }
     const choices: SerialPortDetails[] = Array<SerialPortDetails>();
-    for (let r of result.toString().trim().split(EOL)) {
+    for (let r of result.toString().trim().split("\r\n")) {
       choices.push(new SerialPortDetails(r));
     }
     return choices;
