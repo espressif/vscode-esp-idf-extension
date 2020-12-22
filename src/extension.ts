@@ -1018,21 +1018,21 @@ export async function activate(context: vscode.ExtensionContext) {
                 description: "ESP-IDF",
                 label: `Use current ESP-IDF (${espIdfPath})`,
                 target: espIdfPath,
-              } as vscode.QuickPickItem);
+              });
             }
             if (espAdfPath) {
               pickItems.push({
                 description: "ESP-ADF",
                 label: `Use current ESP-ADF (${espAdfPath})`,
                 target: espAdfPath,
-              } as vscode.QuickPickItem);
+              });
             }
             if (espMdfPath) {
               pickItems.push({
                 description: "ESP-MDF",
                 label: `Use current ESP-MDF (${espMdfPath})`,
                 target: espMdfPath,
-              } as vscode.QuickPickItem);
+              });
             }
             const examplesFolder = await vscode.window.showQuickPick(
               pickItems,
