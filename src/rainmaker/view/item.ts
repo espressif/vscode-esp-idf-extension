@@ -38,29 +38,27 @@ export class RMakerItem extends TreeItem {
     this._meta = v;
   }
 
-  constructor(type: RMakerItemType, label?: string) {
+  constructor(type: RMakerItemType, label?: string, tooltip?: string) {
     super(label);
     this.type = type;
     this.contextValue = type.toString();
     this.collapsibleState = TreeItemCollapsibleState.None;
+    this.command = {
+      title: label,
+      command: "",
+      tooltip: tooltip,
+    };
   }
 
   public set commandId(v: string) {
-    this.command = {
-      command: v,
-      title:
-        typeof this.label === "string"
-          ? this.label
-          : this.label.label
-          ? this.label.label
-          : undefined,
-      tooltip:
-        typeof this.tooltip === "string"
-          ? this.tooltip
-          : this.tooltip.value
-          ? this.tooltip.value
-          : undefined,
-    };
+    if (!this.command) {
+      this.command = {
+        title: "",
+        command: v,
+        tooltip: "",
+      };
+    }
+    this.command.command = v;
   }
 
   public set themeIcon(v: string) {

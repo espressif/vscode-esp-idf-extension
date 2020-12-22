@@ -1013,21 +1013,24 @@ export async function activate(context: vscode.ExtensionContext) {
             ) as string;
 
             const pickItems = [];
-            if (espIdfPath) {
+            const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
+            if (doesIdfPathExists) {
               pickItems.push({
                 description: "ESP-IDF",
                 label: `Use current ESP-IDF (${espIdfPath})`,
                 target: espIdfPath,
               });
             }
-            if (espAdfPath) {
+            const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
+            if (doesAdfPathExists) {
               pickItems.push({
                 description: "ESP-ADF",
                 label: `Use current ESP-ADF (${espAdfPath})`,
                 target: espAdfPath,
               });
             }
-            if (espMdfPath) {
+            const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
+            if (doesMdfPathExists) {
               pickItems.push({
                 description: "ESP-MDF",
                 label: `Use current ESP-MDF (${espMdfPath})`,
