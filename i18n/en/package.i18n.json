@@ -30,6 +30,7 @@
   "espIdf.getEspMdf.title": "ESP-IDF: Install ESP-MDF",
   "espIdf.openDocUrl.title": "ESP-IDF: Open ESP-IDF Documentation...",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: Clear ESP-IDF Search results",
+  "espIdf.fullClean.title": "ESP-IDF: Full clean project",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
