@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { EOL } from "os";
 import { PartitionTable } from "./store";
 
 export function isValidJSON(
@@ -101,7 +102,7 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
 
 export function CSV2JSON(csv: String): PartitionTable.Row[] {
   const rows = new Array<PartitionTable.Row>();
-  const lines = csv.split("\n");
+  const lines = csv.split(EOL);
   const comment = lines.shift();
   if (!comment.includes("# ESP-IDF Partition Table")) {
     console.log("Not a partition table csv, skipping...");
