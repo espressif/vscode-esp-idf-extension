@@ -30,6 +30,7 @@
   "espIdf.getEspMdf.title": "ESP-ADF: 安装ESP-MDF",
   "espIdf.installPyReqs.title": "ESP-IDF: 安装ESP-IDF扩展Python包",
   "espIdf.openDocUrl.title": "ESP-IDF: 打开ESP-IDF文档...",
+  "espIdf.doctorCommand.title": "ESP-IDF: 医生指挥部",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: 清除ESP-IDF搜索结果",
   "espIdf.fullClean.title": "ESP-IDF: 全清洁工程",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: 打开NVS分区编辑器",

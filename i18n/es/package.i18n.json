@@ -30,6 +30,7 @@
   "espIdf.getEspMdf.title": "ESP-IDF: Instalar ESP-MDF",
   "espIdf.installPyReqs.title": "ESP-IDF: Instalar paquetes Python para extensión ESP-IDF",
   "espIdf.openDocUrl.title": "ESP-IDF: Abrir documentación ESP-IDF...",
+  "espIdf.doctorCommand.title": "ESP-IDF: Comando Doctor",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: Limpiar resultados de busqueda",
   "espIdf.fullClean.title": "ESP-IDF: Limpiar el proyecto",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Abrir editor de particiones NVS",
