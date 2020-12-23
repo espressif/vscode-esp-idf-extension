@@ -95,7 +95,6 @@ export const actions: ActionTree<PartitionTable.State, any> = {
       return;
     }
     const csv = JSON2CSV(ctx.state.rows);
-    console.log(csv);
     ctx.commit("CLEAN");
     vscode.postMessage({
       command: "saveDataRequest",
