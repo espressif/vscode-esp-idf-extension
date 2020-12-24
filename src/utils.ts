@@ -148,7 +148,7 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
   await ensureDir(settingsDir);
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     fs.readdir(vscodeTemplateFolder, async (err, files) => {
       if (err) {
         return reject(err);
@@ -522,16 +522,17 @@ export async function getEspIdfVersion(workingDir: string) {
     const espIdfVersionMatch = rawEspIdfVersion.match(
       /^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
     );
-    if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
+    if (espIdfVersionMatch && espIdfVersionMatch.length > 0) {
+      let espVersion: string = "";
+      for (let i = 1; i < espIdfVersionMatch.length; i++) {
+        if (espIdfVersionMatch[i]) {
+          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+        }
+      }
+      return espVersion.substr(1);
+    } else {
       return "x.x";
     }
-    let espVersion: string = "";
-    for (let i = 1; i < espIdfVersionMatch.length; i++) {
-      if (espIdfVersionMatch[i]) {
-        espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
-      }
-    }
-    return espVersion.substr(1);
   } catch (error) {
     Logger.info(error);
     return "x.x";
