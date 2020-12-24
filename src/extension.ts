@@ -431,8 +431,9 @@ export async function activate(context: vscode.ExtensionContext) {
       const buildDir = path.join(workspaceRoot.fsPath, "build");
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
-        Logger.infoNotify(`Directory ${buildDir} does not exists.`);
-        return;
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
+        );
       }
       const cmakeCacheFile = path.join(buildDir, "CMakeCache.txt");
       const doesCmakeCacheExists = utils.canAccessFile(
@@ -440,11 +441,16 @@ export async function activate(context: vscode.ExtensionContext) {
         constants.R_OK
       );
       if (!doesCmakeCacheExists) {
-        Logger.infoNotify(
-          `Directory ${buildDir} doesn't seem to be a CMake build directory or is empty.`
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
         );
-        return;
       }
+      if (BuildTask.isBuilding || FlashTask.isFlashing) {
+        return Logger.warnNotify(
+          `There is a build or flash task running. Wait for it to finish or cancel before clean.`
+        );
+      }
+
       await del(buildDir, { force: true });
     });
   });
