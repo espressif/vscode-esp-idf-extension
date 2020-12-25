@@ -16,8 +16,12 @@
  * limitations under the License.
  */
 import { exec, ExecOptions } from "child_process";
+import { constants } from "fs-extra";
 import { EOL } from "os";
+import { delimiter } from "path";
 import * as vscode from "vscode";
+import { Config } from "winston";
+import { canAccessFile, isBinInPath } from "../utils";
 
 const GIT_VERSION_REGEX = /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g;
 
@@ -38,13 +42,21 @@ export function execChildProcess(
         return reject(error);
       }
       if (stderr && stderr.length) {
-        return resolve("".concat(stdout, stderr));
+        return resolve("".concat(stderr, stdout));
       }
       return resolve(stdout);
     });
   });
 }
 
+export interface ConfigurationAccess {
+  espIdfPath: boolean;
+  toolPaths: { [key: string]: boolean };
+  pythonBinPath: boolean;
+  cmake: boolean;
+  ninja: boolean;
+  toolsPath: boolean;
+}
 export interface Configuration {
   espIdfPath: string;
   customExtraPaths: string;
@@ -53,7 +65,7 @@ export interface Configuration {
   pythonPackages: string[];
   serialPort: string;
   openOcdConfigs: string[];
-  toolPath: string;
+  toolsPath: string;
 }
 
 export interface execResult {
@@ -64,22 +76,61 @@ export interface execResult {
 
 export interface reportObj {
   configurationSettings: Configuration;
+  configurationAccess: ConfigurationAccess;
   gitVersion: execResult;
   espIdfVersion: execResult;
   pythonVersion: execResult;
+  pipVersion: execResult;
   pythonPackages: execResult;
+  latestError: Error;
 }
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext
 ) {
   const reportedResult: reportObj = {} as reportObj;
-  getConfigurationSettings(reportedResult);
+  try {
+    getConfigurationSettings(reportedResult);
+    await getGitVersion(reportedResult, context);
+    await getEspIdfVersion(reportedResult);
+    await getPythonVersion(reportedResult, context);
+    await getPipVersion(reportedResult, context);
+    await getPythonPackages(reportedResult, context);
+    await getConfigurationAccess(reportedResult, context);
+    console.log(reportedResult);
+    // Do something with report object
+  } catch (error) {
+    console.log(reportedResult);
+    console.log(error);
+    reportedResult.latestError = error;
+    return reportedResult;
+  }
+}
 
-  await getGitVersion(reportedResult, context);
-  await getEspIdfVersion(reportedResult);
-  await getPythonVersion(reportedResult, context);
-  console.log(reportedResult);
+async function getPipVersion(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
+  reportedResult.pipVersion = {
+    error: undefined,
+    output: undefined,
+    result: undefined,
+  };
+  const rawPipVersion = await execChildProcess(
+    `${reportedResult.configurationSettings.pythonBinPath} -m pip --version`,
+    context.extensionPath
+  );
+  reportedResult.pipVersion.output = rawPipVersion;
+  const match = rawPipVersion.match(/pip\s\d+(.\d+)?(.\d+)?/g);
+  if (match && match.length) {
+    reportedResult.pipVersion.result = match[0].replace(/pip\s/, "");
+  }
+}
+
+async function getPythonPackages(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
   reportedResult.pythonPackages = {
     error: undefined,
     output: undefined,
@@ -87,19 +138,21 @@ export async function generateConfigurationReport(
   };
   try {
     const rawPythonPackagesList = await execChildProcess(
-      `${reportedResult.configurationSettings.pythonBinPath} -m pip list`,
+      `${reportedResult.configurationSettings.pythonBinPath} -m pip list --format json`,
       context.extensionPath
     );
     reportedResult.pythonPackages.output = rawPythonPackagesList;
     reportedResult.pythonPackages.result = rawPythonPackagesList;
-    reportedResult.configurationSettings.pythonPackages = rawPythonPackagesList.split(
-      EOL
-    );
+    const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
+    if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
+      reportedResult.configurationSettings.pythonPackages = JSON.parse(
+        parsedPkgsListMatches[0]
+      );
+    }
   } catch (error) {
     reportedResult.pythonPackages.result = "ERROR";
     reportedResult.pythonPackages.error = error;
   }
-  console.log(reportedResult);
 }
 
 async function getPythonVersion(
@@ -226,8 +279,57 @@ function getConfigurationSettings(reportedResult: reportObj) {
     serialPort: vscode.workspace.getConfiguration("").get("idf.port"),
     openOcdConfigs:
       vscode.workspace.getConfiguration("").get("idf.openOcdConfigs") || [],
-    toolPath: vscode.workspace
+    toolsPath: vscode.workspace
       .getConfiguration("")
       .get("idf.toolsPath" + winFlag),
   };
+}
+
+async function getConfigurationAccess(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
+  reportedResult.configurationAccess = {
+    espIdfPath: undefined,
+    toolPaths: undefined,
+    pythonBinPath: undefined,
+    cmake: undefined,
+    ninja: undefined,
+    toolsPath: undefined,
+  };
+  reportedResult.configurationAccess.toolsPath = canAccessFile(
+    reportedResult.configurationSettings.toolsPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.espIdfPath = canAccessFile(
+    reportedResult.configurationSettings.espIdfPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.pythonBinPath = canAccessFile(
+    reportedResult.configurationSettings.pythonBinPath,
+    constants.X_OK
+  );
+  const toolPathsArray = reportedResult.configurationSettings.customExtraPaths.split(
+    delimiter
+  );
+  reportedResult.configurationAccess.toolPaths = {};
+  for (const tool of toolPathsArray) {
+    reportedResult.configurationAccess.toolPaths[tool] = canAccessFile(
+      tool,
+      constants.R_OK
+    );
+  }
+  const cmd = process.platform === "win32" ? "where" : "which";
+  const cmakePathInEnv = await execChildProcess(
+    `${cmd} cmake`,
+    context.extensionPath
+  );
+  reportedResult.configurationAccess.cmake =
+    cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
+  const ninjaPathInEnv = await execChildProcess(
+    `${cmd} ninja`,
+    context.extensionPath
+  );
+  reportedResult.configurationAccess.ninja =
+    ninjaPathInEnv && ninjaPathInEnv.indexOf("not found") === -1;
 }
