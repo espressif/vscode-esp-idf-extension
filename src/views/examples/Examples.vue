@@ -138,4 +138,20 @@ ul > li > p.selectedItem {
 li > ul {
   margin-left: 5%;
 }
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6,
+.content table thead th,
+.content strong {
+  color: var(--vscode-editor-foreground);
+}
+.content blockquote p {
+  strong {
+    color: var(--vscode-button-background);
+  }
+  color: var(--vscode-button-background);
+}
 </style>

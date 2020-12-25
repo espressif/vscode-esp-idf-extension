@@ -48,7 +48,7 @@ export class TaskManager {
     );
     newTask.presentationOptions.reveal = revealTask;
     TaskManager.tasks.push(newTask);
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {
         if (e.execution.task.name === newTask.name) {
           return resolve();
@@ -77,7 +77,7 @@ export class TaskManager {
   }
 
   public static async runTasks() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       if (TaskManager.tasks && TaskManager.tasks.length > 1) {
         let lastExecution = await vscode.tasks.executeTask(
           TaskManager.tasks[0]

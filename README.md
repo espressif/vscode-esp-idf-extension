@@ -115,13 +115,17 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
-| Show ESP-IDF Examples Projects                  |                                        |                                           |
+| Show Examples Projects                          |                                        |                                           |
 | Add Editor coverage                             |                                        |                                           |
 | Remove Editor coverage                          |                                        |                                           |
 | Get HTML Coverage Report for project            |                                        |                                           |
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Install ESP-ADF                                 |                                        |                                           |
+| Install ESP-MDF                                 |                                        |                                           |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+
+The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set. The **Install ESP-ADF** will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows). **Install ESP-MDF** will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
 
 ## ESP-IDF Configure extension
 
@@ -149,8 +153,15 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | Setting ID                   | Description                                                                   |
 | ---------------------------- | ----------------------------------------------------------------------------- |
 | `idf.espIdfPath`             | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.espIdfPathWin`          | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
+| `idf.espAdfPath`             | Path to locate ESP-ADF framework (ADF_PATH)                                   |
+| `idf.espAdfPathWin`          | Path to locate ESP-ADF framework in Windows (ADF_PATH)                        |
+| `idf.espMdfPath`             | Path to locate ESP-MDF framework (MDF_PATH)                                   |
+| `idf.espMdfPathWin`          | Path to locate ESP-MDF framework in Windows (MDF_PATH)                        |
 | `idf.toolsPath`              | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.toolsPathWin`           | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
 | `idf.pythonBinPath`          | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.pythonBinPathWin`       | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
 | `idf.customExtraPaths`       | Paths to be appended to \$PATH                                                |
 | `idf.customExtraVars`        | Variables to be added to system environment variables                         |
 | `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                                     |
@@ -172,10 +183,11 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting             | Description                  |
-| ------------------- | ---------------------------- |
-| `idf.port`          | Path of selected device port |
-| `idf.flashBaudRate` | Flash Baud rate              |
+| Setting             | Description                             |
+| ------------------- | --------------------------------------- |
+| `idf.port`          | Path of selected device port            |
+| `idf.portWin`       | Path of selected device port in Windows |
+| `idf.flashBaudRate` | Flash Baud rate                         |
 
 The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate).
 This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.

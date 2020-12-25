@@ -28,34 +28,33 @@ import {
 } from "../client/model";
 
 export function LoginButtonItem(): RMakerItem {
-  const loginButton = new RMakerItem(RMakerItemType.Login);
-  loginButton.label = "Connect Rainmaker...";
+  const loginButton = new RMakerItem(
+    RMakerItemType.Login,
+    "Connect Rainmaker..."
+  );
   loginButton.themeIcon = "sign-in";
   loginButton.commandId = "esp.rainmaker.backend.connect";
   return loginButton;
 }
 
 export function LoggedInAccountItem(userInfo: RainmakerUserInfo): RMakerItem {
-  const account = new RMakerItem(RMakerItemType.Account);
+  const account = new RMakerItem(RMakerItemType.Account, "Rainmaker Cloud");
   account.collapsibleState = TreeItemCollapsibleState.Collapsed;
-  account.label = "Rainmaker Cloud";
   account.themeIcon = "cloud-upload";
   account.description = `(${userInfo.user_name})`;
   return account;
 }
 
 export function ZeroNodesAssociatedItem(): RMakerItem {
-  const node = new RMakerItem(RMakerItemType.None);
-  node.label = "No nodes associated";
+  const node = new RMakerItem(RMakerItemType.None, "No nodes associated");
   node.description = "Try adding some ESP32-S2 devices";
   node.themeIcon = "warning";
   return node;
 }
 
 export function SingleNodeItem(details: NodeDetails): RMakerItem {
-  const node = new RMakerItem(RMakerItemType.Node);
+  const node = new RMakerItem(RMakerItemType.Node, details.config.info.name);
   node.collapsibleState = TreeItemCollapsibleState.Collapsed;
-  node.label = details.config.info.name;
   node.description = details.status.connectivity.connected
     ? "(online)"
     : "(offline)";
@@ -69,9 +68,8 @@ export function DeviceItem(
   details: RainmakerDevice,
   nodeID: string
 ): RMakerItem {
-  const device = new RMakerItem(RMakerItemType.Device);
+  const device = new RMakerItem(RMakerItemType.Device, details.name);
   device.collapsibleState = TreeItemCollapsibleState.Collapsed;
-  device.label = details.name;
   // device.description = ""
   device.themeIcon = getIconPathForDeviceType(details.type);
   device.id = `${nodeID}::${details.name}`;
@@ -84,8 +82,7 @@ export function DeviceParamItem(
   details: RainmakerDeviceParamStructure,
   value: string | number | boolean
 ): RMakerItem {
-  const param = new RMakerItem(RMakerItemType.Param);
-  param.label = details.name;
+  const param = new RMakerItem(RMakerItemType.Param, details.name);
   param.tooltip = details.type;
   param.description = value.toString();
   param.themeIcon = getIconPathForParamType(details.type);

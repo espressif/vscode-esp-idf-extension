@@ -821,8 +821,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      await utils.createVscodeFolder(workspaceRoot.fsPath);
-      Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
+      try {
+        await utils.createVscodeFolder(workspaceRoot.fsPath);
+        Logger.infoNotify(
+          "ESP-IDF vscode files have been added to the project."
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating .vscode folder";
+        Logger.errorNotify(errMsg, error);
+        return;
+      }
     });
   });
 
@@ -1003,21 +1011,34 @@ export async function activate(context: vscode.ExtensionContext) {
             const espMdfPath = idfConf.readParameter(
               "idf.espMdfPath"
             ) as string;
+
+            const pickItems = [];
+            const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
+            if (doesIdfPathExists) {
+              pickItems.push({
+                description: "ESP-IDF",
+                label: `Use current ESP-IDF (${espIdfPath})`,
+                target: espIdfPath,
+              });
+            }
+            const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
+            if (doesAdfPathExists) {
+              pickItems.push({
+                description: "ESP-ADF",
+                label: `Use current ESP-ADF (${espAdfPath})`,
+                target: espAdfPath,
+              });
+            }
+            const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
+            if (doesMdfPathExists) {
+              pickItems.push({
+                description: "ESP-MDF",
+                label: `Use current ESP-MDF (${espMdfPath})`,
+                target: espMdfPath,
+              });
+            }
             const examplesFolder = await vscode.window.showQuickPick(
-              [
-                {
-                  label: `Use current ESP-IDF (${espIdfPath})`,
-                  target: espIdfPath,
-                },
-                {
-                  label: `Use current ESP-ADF (${espAdfPath})`,
-                  target: espAdfPath,
-                },
-                {
-                  label: `Use current ESP-MDF (${espMdfPath})`,
-                  target: espMdfPath,
-                },
-              ],
+              pickItems,
               { placeHolder: "Select framework to use" }
             );
             if (!examplesFolder) {
@@ -1033,7 +1054,8 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             ExamplesPlanel.createOrShow(
               context.extensionPath,
-              examplesFolder.target
+              examplesFolder.target,
+              examplesFolder.description
             );
           } catch (error) {
             Logger.errorNotify(error.message, error);

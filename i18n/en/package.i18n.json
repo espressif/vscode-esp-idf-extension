@@ -15,7 +15,7 @@
   "espIdf.flashDevice.title": "ESP-IDF: Flash your project",
   "espIdf.monitorDevice.title": "ESP-IDF: Monitor your device",
   "espIdf.onboarding.title": "ESP-IDF: Configure ESP-IDF extension",
-  "espIdf.examples.title": "ESP-IDF: Show ESP-IDF Examples Projects",
+  "espIdf.examples.title": "ESP-IDF: Show Examples Projects",
   "espIdf.buildFlashMonitor.title": "ESP-IDF: Build, Flash and start a monitor on your device",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Pick a workspace folder",
   "espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
