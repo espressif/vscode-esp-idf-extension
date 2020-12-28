@@ -45,6 +45,7 @@
     "onCommand:espIdf.selectConfTarget",
     "onCommand:espIdf.configDevice",
     "onCommand:menuconfig.start",
+    "onCommand:cmakeListsEditor.start",
     "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
     "onCommand:espIdf.setTarget",
@@ -126,6 +127,10 @@
     "views": {
       "idfViewController": [
         {
+          "id": "idfSearchResults",
+          "name": "ESP-IDF Docs search results"
+        },
+        {
           "id": "idfAppTracer",
           "name": "IDF App Tracer"
         },
@@ -149,6 +154,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "idfSearchResults",
+        "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in documentation to get matching results here.\n\nResults are based on your current vscode language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
+      }
+    ],
     "menus": {
       "view/title": [
         {
@@ -174,6 +185,11 @@
           "command": "esp.efuse.summary",
           "group": "navigation",
           "when": "view == espEFuseExplorer"
+        },
+        {
+          "command": "espIdf.clearDocsSearchResult",
+          "group": "navigation",
+          "when": "view == idfSearchResults"
         }
       ],
       "view/item/context": [
@@ -209,6 +225,11 @@
         {
           "when": "resourceFilename == sdkconfig",
           "command": "menuconfig.start",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceFilename == CMakeLists.txt",
+          "command": "cmakeListsEditor.start",
           "group": "navigation"
         }
       ]
@@ -429,6 +450,12 @@
             "scope": "resource",
             "description": "%param.saveBeforeBuildDescription%"
           },
+          "idf.notificationSilentMode": {
+            "type": "boolean",
+            "default": false,
+            "scope": "resource",
+            "description": "%param.notificationSilentMode%"
+          },
           "idf.saveScope": {
             "type": "number",
             "default": "1",
@@ -506,6 +533,15 @@
             "scope": "resource",
             "minimum": 49152,
             "maximum": 65535
+          },
+          "idf.flashType": {
+            "type": "string",
+            "enum": [
+              "UART",
+              "JTAG"
+            ],
+            "description": "%idf.flashType.description%",
+            "scope": "resource"
           }
         }
       }
@@ -554,6 +590,10 @@
       {
         "command": "examples.start",
         "title": "%espIdf.examples.title%"
+      },
+      {
+        "command": "cmakeListsEditor.start",
+        "title": "%cmakeListsEditor.start.title%"
       },
       {
         "command": "espIdf.setDefaultConfig",
@@ -649,6 +689,15 @@
         "icon": "$(edit)"
       },
       {
+        "command": "espIdf.openDocUrl",
+        "title": "%espIdf.openDocUrl.title%"
+      },
+      {
+        "command": "espIdf.clearDocsSearchResult",
+        "title": "%espIdf.clearDocsSearchResult.title%",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "espIdf.genCoverage",
         "title": "%espIdf.genCoverage.title%"
       },
@@ -685,6 +734,16 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.jtag_flash",
+        "title": "%espIdf.jtag_flash.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectFlashMethodAndFlash",
+        "title": "%espIdf.selectFlashMethodAndFlash.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
@@ -832,6 +891,7 @@
     "@types/follow-redirects": "^1.8.0",
     "@types/fs-extra": "^8.0.1",
     "@types/glob": "^7.1.1",
+    "@types/jsonic": "^0.3.0",
     "@types/marked": "^1.1.0",
     "@types/mocha": "^5.2.7",
     "@types/nock": "^9.3.1",
@@ -846,10 +906,11 @@
     "file-loader": "^4.0.0",
     "glob": "^7.1.4",
     "gulp": "^4.0.2",
-    "gulp-cli": "^2.0.1",
+    "gulp-cli": "^2.0.3",
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^2.5.0",
+    "jsonic": "^1.0.1",
     "mocha": "^7.1.1",
     "mocha-junit-reporter": "^1.23.3",
     "nock": "^10.0.6",

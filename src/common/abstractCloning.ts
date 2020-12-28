@@ -44,7 +44,7 @@ export class AbstractCloning {
     progress: Progress<{ message?: string; increment?: number }>,
     installDir: string
   ) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
         "git",
         [

@@ -1,6 +1,17 @@
-# ESP-IDF Visual Studio Code Extension
+<a href="https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension">
+  <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
+</a>
 
-Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](https://github.com/espressif/esp-idf) is official development framework for the [ESP-32](https://espressif.com/en/products/hardware/esp32/overview) chip.
+ESP-IDF VS Code Extension
+===
+
+Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
+
+<a href="https://youtu.be/Lc6ausiKvQM">
+  <p align="center">
+    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
+  </p>
+</a>
 
 The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
 
@@ -14,11 +25,7 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
 - [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
-- Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands).
-
-## Demo
-
-![Espressif extension gif](./media/espressif_extension.gif)
+- Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and `idf.adapterTargetName`.
 
 ## Prerequisites
 
@@ -30,11 +37,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
-## Coming Soon
-
-- Create new project wizard
-- Support GDB Stub
-- Support Core Dump
 
 ## Quick Installation Guide
 
@@ -113,13 +115,17 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
-| Show ESP-IDF Examples Projects                  |                                        |                                           |
+| Show Examples Projects                          |                                        |                                           |
 | Add Editor coverage                             |                                        |                                           |
 | Remove Editor coverage                          |                                        |                                           |
 | Get HTML Coverage Report for project            |                                        |                                           |
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Install ESP-ADF                                 |                                        |                                           |
+| Install ESP-MDF                                 |                                        |                                           |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+
+The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set. The **Install ESP-ADF** will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows). **Install ESP-MDF** will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
 
 ## ESP-IDF Configure extension
 
@@ -144,24 +150,32 @@ This extension contributes the following settings that can be later updated in s
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
-| Setting ID                 | Description                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `idf.espIdfPath`           | Path to locate ESP-IDF framework (IDF_PATH)                                   |
-| `idf.toolsPath`            | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
-| `idf.pythonBinPath`        | Python absolute binary path used to execute ESP-IDF Python Scripts            |
-| `idf.customExtraPaths`     | Paths to be appended to \$PATH                                                |
-| `idf.customExtraVars`      | Variables to be added to system environment variables                         |
-| `idf.useIDFKconfigStyle`   | Enable style validation for Kconfig files                                     |
-| `idf.showOnboardingOnInit` | Show ESP-IDF Configuration window on extension activation                     |
-| `idf.adapterTargetName`    | ESP-IDF target Chip (Example: esp32)                                          |
-| `idf.openOcdConfigs`       | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder           |
-| `idf.saveBeforeBuild`      | Save all the edited files before building (default `true`)                    |
-| `idf.coveredLightTheme`    | Background color for covered lines in light theme for gcov coverage           |
-| `idf.coveredDarkTheme`     | Background color for covered lines in dark theme for gcov coverage            |
-| `idf.partialLightTheme`    | Background color for partially covered lines in light theme for gcov coverage |
-| `idf.partialDarkTheme`     | Background color for partially covered lines in dark theme for gcov coverage  |
-| `idf.uncoveredLightTheme`  | Background color for uncovered lines in light theme for gcov coverage         |
-| `idf.uncoveredDarkTheme`   | Background color for uncovered lines in dark theme for gcov coverage          |
+| Setting ID                   | Description                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `idf.espIdfPath`             | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.espIdfPathWin`          | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
+| `idf.espAdfPath`             | Path to locate ESP-ADF framework (ADF_PATH)                                   |
+| `idf.espAdfPathWin`          | Path to locate ESP-ADF framework in Windows (ADF_PATH)                        |
+| `idf.espMdfPath`             | Path to locate ESP-MDF framework (MDF_PATH)                                   |
+| `idf.espMdfPathWin`          | Path to locate ESP-MDF framework in Windows (MDF_PATH)                        |
+| `idf.toolsPath`              | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.toolsPathWin`           | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
+| `idf.pythonBinPath`          | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.pythonBinPathWin`       | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
+| `idf.customExtraPaths`       | Paths to be appended to \$PATH                                                |
+| `idf.customExtraVars`        | Variables to be added to system environment variables                         |
+| `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                                     |
+| `idf.showOnboardingOnInit`   | Show ESP-IDF Configuration window on extension activation                     |
+| `idf.adapterTargetName`      | ESP-IDF target Chip (Example: esp32)                                          |
+| `idf.openOcdConfigs`         | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder           |
+| `idf.saveBeforeBuild`        | Save all the edited files before building (default `true`)                    |
+| `idf.coveredLightTheme`      | Background color for covered lines in light theme for gcov coverage           |
+| `idf.coveredDarkTheme`       | Background color for covered lines in dark theme for gcov coverage            |
+| `idf.partialLightTheme`      | Background color for partially covered lines in light theme for gcov coverage |
+| `idf.partialDarkTheme`       | Background color for partially covered lines in dark theme for gcov coverage  |
+| `idf.uncoveredLightTheme`    | Background color for uncovered lines in light theme for gcov coverage         |
+| `idf.uncoveredDarkTheme`     | Background color for uncovered lines in dark theme for gcov coverage          |
+| `idf.notificationSilentMode` | Silent all notifications messages (excluding error notifications)             |
 
 When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files. If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 
@@ -169,10 +183,11 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting             | Description                  |
-| ------------------- | ---------------------------- |
-| `idf.port`          | Path of selected device port |
-| `idf.flashBaudRate` | Flash Baud rate              |
+| Setting             | Description                             |
+| ------------------- | --------------------------------------- |
+| `idf.port`          | Path of selected device port            |
+| `idf.portWin`       | Path of selected device port in Windows |
+| `idf.flashBaudRate` | Flash Baud rate                         |
 
 The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate).
 This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
@@ -280,9 +295,13 @@ We have provide a [system view tracing viewer](./docs/SYS_VIEW_TRACING_VIEWER.md
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide syntax highlighting. If `idf.useIDFKconfigStyle` is enabled, we also provide ESP-IDF Kconfig style syntax validation such as indent validation and not closing blocks found (Example: menu-endmenu). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
 
+# CMake Editor
+
+On CMakeLists.txt file right click this extension provides a custom CMake Editor to fill our ESP-IDF Project and Component registration as specified in [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file) and [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files). You need to choose which kind of CMakeLists.txt file (project or component) to edit. There is 2 types of input, one is a simple string and another is an array of strings, such as Component Sources (SRCS). All inputs are described in the CMakeLists.txt Schema (\${this_repository}/src/cmake/cmakeListsSchema.json).
+
 ## ESP Rainmaker Support
 
-We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](/docs/ESP_RAINMAKER.md) for more info
+We support connecting, viewing and editing of ESP Rainmaker enabled devices out of the box, please [refer here](/docs/ESP_RAINMAKER.md) for more info.
 
 ## Forum
 

@@ -60,6 +60,13 @@ const extensionConfig = {
 
 const webViewConfig = {
   entry: {
+    cmakelistsEditor: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "cmakelists-editor",
+      "main.ts"
+    ),
     examples: path.resolve(__dirname, "src", "views", "examples", "main.ts"),
     size: path.resolve(__dirname, "src", "views", "size", "main.ts"),
     tracing: path.resolve(__dirname, "src", "views", "tracing", "main.ts"),

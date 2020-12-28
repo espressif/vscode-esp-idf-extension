@@ -340,7 +340,7 @@ export async function getPythonBinListWindows(workingDir: string) {
                         .then((installPaths) => {
                           const binPaths = installPaths.trim().split("\r\n");
                           for (const iPath of binPaths) {
-                            const trimPath = iPath.trim().split(/\s+/);
+                            const trimPath = iPath.trim().split(/\s{2,}/);
                             if (trimPath[0] === "ExecutablePath") {
                               paths.push(trimPath[trimPath.length - 1]);
                             }
