@@ -524,6 +524,15 @@
             "scope": "resource",
             "minimum": 49152,
             "maximum": 65535
+          },
+          "idf.flashType": {
+            "type": "string",
+            "enum": [
+              "UART",
+              "JTAG"
+            ],
+            "description": "%idf.flashType.description%",
+            "scope": "resource"
           }
         }
       }
@@ -707,6 +716,16 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.jtag_flash",
+        "title": "%espIdf.jtag_flash.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectFlashMethodAndFlash",
+        "title": "%espIdf.selectFlashMethodAndFlash.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

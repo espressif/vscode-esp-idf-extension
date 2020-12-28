@@ -81,6 +81,8 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
+import { JTAGFlash } from "./flash/jtag";
 import { ChangelogViewer } from "./changelog-viewer";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
@@ -144,6 +146,20 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
+const minOpenOCDVersion20201125 = [
+  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201125", ""),
+  `Minimum OpenOCD version v0.10.0-esp32-20201125 is required`,
+] as utils.PreCheckInput;
+openOCDManager
+  .version()
+  .then((currentVersion) => {
+    minOpenOCDVersion20201125[0] = PreCheck.openOCDVersionValidator(
+      "v0.10.0-esp32-20201125",
+      currentVersion
+    );
+    minOpenOCDVersion20201125[1] = `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currentVersion} version installed`;
+  })
+  .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -1585,6 +1601,87 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
+  registerIDFCommand("espIdf.jtag_flash", () => {
+    PreCheck.perform(
+      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
+      async () => {
+        const buildFolder = path.join(workspaceRoot.fsPath, "build");
+        if (!(await pathExists(buildFolder))) {
+          return Logger.warnNotify("First you need to build before flashing!!");
+        }
+        if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
+          return Logger.warnNotify(
+            "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+          );
+        }
+        const projectName = await getProjectName(workspaceRoot.fsPath);
+        if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
+          return Logger.warnNotify(
+            `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
+          );
+        }
+
+        const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
+        if (!isOpenOCDLaunched) {
+          return Logger.warnNotify(
+            "Can't perform JTag flash, because OpenOCD server is not running!!"
+          );
+        }
+
+        if (FlashTask.isFlashing) {
+          return Logger.errorNotify(
+            "Can't run JTAG & UART Flash together, UART flash is running",
+            new Error("One_Task_At_A_Time")
+          );
+        }
+        FlashTask.isFlashing = true;
+
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Flashing your device using JTAG, please wait",
+          },
+          async () => {
+            const client = new TCLClient({ host: "localhost", port: 6666 });
+            const jtag = new JTAGFlash(client);
+            try {
+              await jtag.flash(
+                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+              );
+              Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+            } catch (msg) {
+              OpenOCDManager.init().showOutputChannel(true);
+              Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+            }
+            FlashTask.isFlashing = false;
+          }
+        );
+      }
+    );
+  });
+  registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      let flashType = idfConf.readParameter("idf.flashType");
+      if (!flashType) {
+        flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+          ignoreFocusOut: true,
+          placeHolder:
+            "Select flash method, you can modify the choice later from settings 'idf.flashType'",
+        });
+        await idfConf.writeParameter(
+          "idf.flashType",
+          flashType,
+          vscode.ConfigurationTarget.Workspace
+        );
+      }
+
+      if (flashType === "JTAG") {
+        return vscode.commands.executeCommand("espIdf.jtag_flash");
+      } else if (flashType === "UART") {
+        return vscode.commands.executeCommand("espIdf.flashDevice");
+      }
+    });
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
@@ -1699,7 +1796,7 @@ function creatCmdsStatusBarItems() {
   createStatusBarItem(
     "$(zap)",
     "ESP-IDF Flash device",
-    "espIdf.flashDevice",
+    "espIdf.selectFlashMethodAndFlash",
     97
   );
   createStatusBarItem(

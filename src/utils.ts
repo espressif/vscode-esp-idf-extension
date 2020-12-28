@@ -72,6 +72,25 @@ export class PreCheck {
   public static notUsingWebIde(): boolean {
     return process.env.WEB_IDE ? false : true;
   }
+  public static openOCDVersionValidator(
+    minVersion: string,
+    currentVersion: string
+  ) {
+    return (): boolean => {
+      try {
+        return (
+          parseInt(currentVersion.split("-").pop()) >=
+          parseInt(minVersion.split("-").pop())
+        );
+      } catch (error) {
+        Logger.error(
+          `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
+          error
+        );
+        return false;
+      }
+    };
+  }
 }
 
 export function spawn(
