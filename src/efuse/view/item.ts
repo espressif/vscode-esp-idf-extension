@@ -26,12 +26,7 @@ export class ESPEFuseTreeDataItem extends TreeItem {
   public set commandId(v: string) {
     this.command = {
       command: v,
-      title: this.label,
-      tooltip: this.tooltip,
+      title: this.label as string,
     };
-  }
-
-  public set themeIcon(v: string) {
-    this.iconPath = new ThemeIcon(v);
   }
 }

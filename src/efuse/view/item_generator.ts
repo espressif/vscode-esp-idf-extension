@@ -18,12 +18,12 @@
 
 import { ESPEFuseTreeDataItem } from "./item";
 import { ESPEFuseSummary } from "..";
-import { TreeItemCollapsibleState } from "vscode";
+import { ThemeColor, ThemeIcon, TreeItemCollapsibleState } from "vscode";
 
 export function ConnectBoardItem(): ESPEFuseTreeDataItem {
   const item = new ESPEFuseTreeDataItem("Connect your board first");
   item.commandId = "esp.efuse.summary";
-  item.themeIcon = "debug-disconnect";
+  item.iconPath = ThemeIconFor("debug-disconnect", "errorForeground");
   item.description = "(select serial port first)";
   return item;
 }
@@ -35,7 +35,7 @@ export function CategoryItemsFor(
   for (const category in data) {
     const i = new ESPEFuseTreeDataItem(category);
     i.collapsibleState = TreeItemCollapsibleState.Collapsed;
-    i.themeIcon = "group-by-ref-type";
+    i.iconPath = ThemeIconFor("group-by-ref-type", "button.background");
     i.description = `(${data[category].length}) fields`;
     items.push(i);
   }
@@ -52,9 +52,13 @@ export function FieldsForCategory(
     const item = new ESPEFuseTreeDataItem(v.name);
     item.tooltip = v.writeable ? "writable" : "read only";
     item.description = v.value;
-    item.themeIcon = v.writeable
-      ? "debug-breakpoint-data"
-      : "debug-breakpoint-data-unverified";
+    item.iconPath = v.writeable
+      ? ThemeIconFor("edit", "merge.currentHeaderBackground")
+      : ThemeIconFor("book", "button.background");
     return item;
   });
+}
+
+function ThemeIconFor(name: string, color: string): ThemeIcon {
+  return new ThemeIcon(name, new ThemeColor(color));
 }

@@ -48,7 +48,7 @@ export class ESPEFuseTreeDataProvider
       }
       return CategoryItemsFor(this.espFuseSummaryData);
     } else {
-      return FieldsForCategory(e.label, this.espFuseSummaryData);
+      return FieldsForCategory(e.label as string, this.espFuseSummaryData);
     }
   }
 
