@@ -61,11 +61,20 @@
     "idfComponentsDataProvider": [
       "idfComponentDataProvider.proj_desc_not_found"
     ],
-    "idfConfiguration": ["idfConfiguration.hasBeenUpdated"],
-    "utils": ["utils.currentFolder", "utils.openComponentTitle"]
+    "idfConfiguration": [
+      "idfConfiguration.hasBeenUpdated"
+    ],
+    "utils": [
+      "utils.currentFolder",
+      "utils.openComponentTitle"
+    ]
   },
   "views": {
-    "menuconfig": ["save", "discard", "reset"]
+    "menuconfig": [
+      "save",
+      "discard",
+      "reset"
+    ]
   },
   "package": [
     "espIdf.createFiles.title",
@@ -143,6 +152,7 @@
     "esp.rainmaker.backend.update_node_param.title",
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
+    "esp.efuse.summary.title",
     "espIdf.jtag_flash.title",
     "espIdf.selectFlashMethodAndFlash.title",
     "idf.flashType.description",

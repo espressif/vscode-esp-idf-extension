@@ -141,6 +141,10 @@
         {
           "id": "espRainmaker",
           "name": "Rainmaker"
+        },
+        {
+          "name": "eFuse Explorer",
+          "id": "espEFuseExplorer"
         }
       ],
       "explorer": [
@@ -176,6 +180,11 @@
           "command": "esp.rainmaker.backend.sync",
           "group": "navigation",
           "when": "view == espRainmaker"
+        },
+        {
+          "command": "esp.efuse.summary",
+          "group": "navigation",
+          "when": "view == espEFuseExplorer"
         },
         {
           "command": "espIdf.clearDocsSearchResult",
@@ -708,6 +717,15 @@
       {
         "command": "espIdf.searchInEspIdfDocs",
         "title": "%espIdf.searchInEspIdfDocs.title%"
+      },
+      {
+        "command": "esp.efuse.summary",
+        "title": "%esp.efuse.summary.title%",
+        "category": "ESP-IDF: eFuse",
+        "icon": {
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
+        }
       },
       {
         "command": "espIdf.getEspAdf",

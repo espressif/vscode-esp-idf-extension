@@ -78,6 +78,8 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { ESPEFuseTreeDataProvider } from "./efuse/view";
+import { ESPEFuseManager } from "./efuse";
 import { constants, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
@@ -118,6 +120,9 @@ let idfSearchResults: vscode.TreeView<DocSearchResult>;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// ESP eFuse Explorer
+let eFuseExplorer: ESPEFuseTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -1601,6 +1606,30 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
+  registerIDFCommand("esp.efuse.summary", async () => {
+    vscode.window.withProgress(
+      {
+        title: "Getting eFuse Summary for your chip",
+        location: vscode.ProgressLocation.Notification,
+      },
+      async () => {
+        try {
+          const eFuse = new ESPEFuseManager();
+          const resp = await eFuse.summary();
+          eFuseExplorer.load(resp);
+          eFuseExplorer.refresh();
+        } catch (error) {
+          if (error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR") {
+            return Logger.errorNotify(error.message, error);
+          }
+          Logger.errorNotify(
+            "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
+            error
+          );
+        }
+      }
+    );
+  });
   registerIDFCommand("espIdf.jtag_flash", () => {
     PreCheck.perform(
       [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
@@ -1759,18 +1788,16 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   });
 
   rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
-  vscode.window.registerTreeDataProvider(
-    "espRainmaker",
-    rainMakerTreeDataProvider
-  );
+
+  eFuseExplorer = new ESPEFuseTreeDataProvider();
 
   context.subscriptions.push(
-    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer")
-  );
-  context.subscriptions.push(
+    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
-    )
+    ),
+    rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
+    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer")
   );
 }
 
