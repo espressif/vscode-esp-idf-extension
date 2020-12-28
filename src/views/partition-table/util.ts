@@ -95,7 +95,7 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
       return;
     }
     let flag = row.flag === true ? "encrypted" : "";
-    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag},\n`;
+    csv += `${row.name},${row.type},${row.subtype},${row.offset},${row.size},${flag},${EOL}`;
   });
   return csv;
 }
