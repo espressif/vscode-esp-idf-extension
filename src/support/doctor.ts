@@ -16,14 +16,19 @@
  * limitations under the License.
  */
 import { exec, ExecOptions } from "child_process";
-import { constants } from "fs-extra";
-import { EOL } from "os";
-import { delimiter } from "path";
+import { constants, pathExists, readJSON } from "fs-extra";
+import { delimiter, join } from "path";
 import * as vscode from "vscode";
-import { Config } from "winston";
-import { canAccessFile, isBinInPath } from "../utils";
+import { IdfToolsManager } from "../idfToolsManager";
+import { Logger } from "../logger/logger";
+import { OutputChannel } from "../logger/outputChannel";
+import { PlatformInformation } from "../PlatformInformation";
+import { canAccessFile } from "../utils";
 
 const GIT_VERSION_REGEX = /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g;
+const PIP_VERSION_REGEX = /pip\s\d+(.\d+)?(.\d+)?/g;
+const PYTHON_VERSION_REGEX = /Python\s\d+(.\d+)?(.\d+)?/g;
+const ESP_IDF_VERSION_REGEX = /v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/;
 
 export function execChildProcess(
   cmd: string,
@@ -51,13 +56,14 @@ export function execChildProcess(
 
 export interface ConfigurationAccess {
   espIdfPath: boolean;
-  toolPaths: { [key: string]: boolean };
+  espIdfToolsPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
-  cmake: boolean;
-  ninja: boolean;
+  cmakeInEnv: boolean;
+  ninjaInEnv: boolean;
   toolsPath: boolean;
 }
 export interface Configuration {
+  systemEnvPath: string;
   espIdfPath: string;
   customExtraPaths: string;
   customExtraVars: string;
@@ -69,7 +75,6 @@ export interface Configuration {
 }
 
 export interface execResult {
-  error: Error;
   output: string;
   result: string;
 }
@@ -83,6 +88,7 @@ export interface reportObj {
   pipVersion: execResult;
   pythonPackages: execResult;
   latestError: Error;
+  espIdfToolsVersions: {};
 }
 
 export async function generateConfigurationReport(
@@ -97,11 +103,13 @@ export async function generateConfigurationReport(
     await getPipVersion(reportedResult, context);
     await getPythonPackages(reportedResult, context);
     await getConfigurationAccess(reportedResult, context);
+    await checkEspIdfTools(reportedResult, context);
     console.log(reportedResult);
-    // Do something with report object
+    // TO DO Add some resulting file with report object
   } catch (error) {
     console.log(reportedResult);
     console.log(error);
+    Logger.error(JSON.stringify(reportedResult), error);
     reportedResult.latestError = error;
     return reportedResult;
   }
@@ -112,7 +120,6 @@ async function getPipVersion(
   context: vscode.ExtensionContext
 ) {
   reportedResult.pipVersion = {
-    error: undefined,
     output: undefined,
     result: undefined,
   };
@@ -121,7 +128,7 @@ async function getPipVersion(
     context.extensionPath
   );
   reportedResult.pipVersion.output = rawPipVersion;
-  const match = rawPipVersion.match(/pip\s\d+(.\d+)?(.\d+)?/g);
+  const match = rawPipVersion.match(PIP_VERSION_REGEX);
   if (match && match.length) {
     reportedResult.pipVersion.result = match[0].replace(/pip\s/, "");
   }
@@ -132,26 +139,20 @@ async function getPythonPackages(
   context: vscode.ExtensionContext
 ) {
   reportedResult.pythonPackages = {
-    error: undefined,
     output: undefined,
     result: undefined,
   };
-  try {
-    const rawPythonPackagesList = await execChildProcess(
-      `${reportedResult.configurationSettings.pythonBinPath} -m pip list --format json`,
-      context.extensionPath
+  const rawPythonPackagesList = await execChildProcess(
+    `${reportedResult.configurationSettings.pythonBinPath} -m pip list --format json`,
+    context.extensionPath
+  );
+  reportedResult.pythonPackages.output = rawPythonPackagesList;
+  reportedResult.pythonPackages.result = rawPythonPackagesList;
+  const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
+  if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
+    reportedResult.configurationSettings.pythonPackages = JSON.parse(
+      parsedPkgsListMatches[0]
     );
-    reportedResult.pythonPackages.output = rawPythonPackagesList;
-    reportedResult.pythonPackages.result = rawPythonPackagesList;
-    const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
-    if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
-      reportedResult.configurationSettings.pythonPackages = JSON.parse(
-        parsedPkgsListMatches[0]
-      );
-    }
-  } catch (error) {
-    reportedResult.pythonPackages.result = "ERROR";
-    reportedResult.pythonPackages.error = error;
   }
 }
 
@@ -160,59 +161,44 @@ async function getPythonVersion(
   context: vscode.ExtensionContext
 ) {
   reportedResult.pythonVersion = {
-    error: undefined,
     output: undefined,
     result: undefined,
   };
-  try {
-    const rawPythonVersion = await execChildProcess(
-      `${reportedResult.configurationSettings.pythonBinPath} --version`,
-      context.extensionPath
-    );
-    reportedResult.pythonVersion.output = rawPythonVersion;
-    const match = rawPythonVersion.match(/Python\s\d+(.\d+)?(.\d+)?/g);
-    if (match && match.length) {
-      reportedResult.pythonVersion.result = match[0].replace(/Python\s/g, "");
-    } else {
-      reportedResult.pythonVersion.result = "Not found";
-    }
-  } catch (error) {
-    reportedResult.pythonVersion.result = "ERROR";
-    reportedResult.pythonVersion.error = error;
+  const rawPythonVersion = await execChildProcess(
+    `${reportedResult.configurationSettings.pythonBinPath} --version`,
+    context.extensionPath
+  );
+  reportedResult.pythonVersion.output = rawPythonVersion;
+  const match = rawPythonVersion.match(PYTHON_VERSION_REGEX);
+  if (match && match.length) {
+    reportedResult.pythonVersion.result = match[0].replace(/Python\s/g, "");
+  } else {
+    reportedResult.pythonVersion.result = "Not found";
   }
 }
 
 async function getEspIdfVersion(reportedResult: reportObj) {
   reportedResult.espIdfVersion = {
-    error: undefined,
     output: undefined,
     result: undefined,
   };
 
-  try {
-    const rawEspIdfVersion = await execChildProcess(
-      "git describe --tags",
-      reportedResult.configurationSettings.espIdfPath
-    );
-    reportedResult.espIdfVersion.output = rawEspIdfVersion;
-    const espIdfVersionMatch = rawEspIdfVersion.match(
-      /^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
-    );
-    if (espIdfVersionMatch && espIdfVersionMatch.length) {
-      let espVersion: string = "";
-      for (let i = 1; i < espIdfVersionMatch.length; i++) {
-        if (espIdfVersionMatch[i]) {
-          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
-        }
+  const rawEspIdfVersion = await execChildProcess(
+    "git describe --tags",
+    reportedResult.configurationSettings.espIdfPath
+  );
+  reportedResult.espIdfVersion.output = rawEspIdfVersion;
+  const espIdfVersionMatch = rawEspIdfVersion.match(ESP_IDF_VERSION_REGEX);
+  if (espIdfVersionMatch && espIdfVersionMatch.length) {
+    let espVersion: string = "";
+    for (let i = 1; i < espIdfVersionMatch.length; i++) {
+      if (espIdfVersionMatch[i]) {
+        espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
       }
-      reportedResult.espIdfVersion.result = espVersion.substr(1);
-    } else {
-      reportedResult.espIdfVersion.result = "Not found";
-      reportedResult.pythonVersion.error = new Error(rawEspIdfVersion);
     }
-  } catch (error) {
-    reportedResult.espIdfVersion.result = "ERROR";
-    reportedResult.espIdfVersion.error = error;
+    reportedResult.espIdfVersion.result = espVersion.substr(1);
+  } else {
+    reportedResult.espIdfVersion.result = "Not found";
   }
 }
 
@@ -221,28 +207,22 @@ async function getGitVersion(
   context: vscode.ExtensionContext
 ) {
   reportedResult.gitVersion = {
-    error: undefined,
     output: undefined,
     result: undefined,
   };
-  try {
-    const rawGitVersion = await execChildProcess(
-      "git --version",
-      context.extensionPath
+  const rawGitVersion = await execChildProcess(
+    "git --version",
+    context.extensionPath
+  );
+  reportedResult.gitVersion.output = rawGitVersion;
+  const versionMatches = rawGitVersion.match(GIT_VERSION_REGEX);
+  if (versionMatches && versionMatches.length) {
+    reportedResult.gitVersion.result = versionMatches[0].replace(
+      /git\sversion\s/g,
+      ""
     );
-    reportedResult.gitVersion.output = rawGitVersion;
-    const versionMatches = rawGitVersion.match(GIT_VERSION_REGEX);
-    if (versionMatches && versionMatches.length) {
-      reportedResult.gitVersion.result = versionMatches[0].replace(
-        /git\sversion\s/g,
-        ""
-      );
-    } else {
-      reportedResult.gitVersion.result = "Not found";
-    }
-  } catch (error) {
-    reportedResult.gitVersion.result = "ERROR";
-    reportedResult.gitVersion.error = error;
+  } else {
+    reportedResult.gitVersion.result = "Not found";
   }
 }
 
@@ -282,6 +262,7 @@ function getConfigurationSettings(reportedResult: reportObj) {
     toolsPath: vscode.workspace
       .getConfiguration("")
       .get("idf.toolsPath" + winFlag),
+    systemEnvPath: process.platform === "win32" ? "Path" : "PATH",
   };
 }
 
@@ -291,10 +272,10 @@ async function getConfigurationAccess(
 ) {
   reportedResult.configurationAccess = {
     espIdfPath: undefined,
-    toolPaths: undefined,
+    espIdfToolsPaths: undefined,
     pythonBinPath: undefined,
-    cmake: undefined,
-    ninja: undefined,
+    cmakeInEnv: undefined,
+    ninjaInEnv: undefined,
     toolsPath: undefined,
   };
   reportedResult.configurationAccess.toolsPath = canAccessFile(
@@ -312,24 +293,55 @@ async function getConfigurationAccess(
   const toolPathsArray = reportedResult.configurationSettings.customExtraPaths.split(
     delimiter
   );
-  reportedResult.configurationAccess.toolPaths = {};
+  reportedResult.configurationAccess.espIdfToolsPaths = {};
   for (const tool of toolPathsArray) {
-    reportedResult.configurationAccess.toolPaths[tool] = canAccessFile(
+    reportedResult.configurationAccess.espIdfToolsPaths[tool] = canAccessFile(
       tool,
       constants.R_OK
     );
   }
-  const cmd = process.platform === "win32" ? "where" : "which";
-  const cmakePathInEnv = await execChildProcess(
-    `${cmd} cmake`,
-    context.extensionPath
+  if (process.platform !== "win32") {
+    const cmakePathInEnv = await execChildProcess(
+      `which cmake`,
+      context.extensionPath
+    );
+    reportedResult.configurationAccess.cmakeInEnv =
+      cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
+    const ninjaPathInEnv = await execChildProcess(
+      `which ninja`,
+      context.extensionPath
+    );
+    reportedResult.configurationAccess.ninjaInEnv =
+      ninjaPathInEnv && ninjaPathInEnv.indexOf("not found") === -1;
+  }
+}
+
+async function checkEspIdfTools(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  let toolsJsonPath: string = join(
+    reportedResult.configurationSettings.espIdfPath,
+    "tools",
+    "tools.json"
   );
-  reportedResult.configurationAccess.cmake =
-    cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
-  const ninjaPathInEnv = await execChildProcess(
-    `${cmd} ninja`,
-    context.extensionPath
+  const jsonExists = await pathExists(toolsJsonPath);
+  if (!jsonExists) {
+    const idfToolsJsonToUse =
+      reportedResult.espIdfVersion.result.localeCompare("4.0") < 0
+        ? "fallback-tools.json"
+        : "tools.json";
+    toolsJsonPath = join(context.extensionPath, idfToolsJsonToUse);
+  }
+  const toolsJson = await readJSON(toolsJsonPath);
+  const idfToolsManager = new IdfToolsManager(
+    toolsJson,
+    platformInfo,
+    OutputChannel.init()
   );
-  reportedResult.configurationAccess.ninja =
-    ninjaPathInEnv && ninjaPathInEnv.indexOf("not found") === -1;
+  const verifiedPkgs = await idfToolsManager.checkToolsVersion(
+    reportedResult.configurationSettings.customExtraPaths
+  );
+  reportedResult.espIdfToolsVersions = verifiedPkgs;
 }
