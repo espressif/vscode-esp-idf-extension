@@ -123,7 +123,7 @@ export class DebugAdapterManager extends EventEmitter {
           serialPort,
           flashBaudRate
         );
-        this.appOffset = parseInt(model.app.address, 16).toString();
+        this.appOffset = model.app.address;
       }
 
       const pythonBinPath = idfConf.readParameter(
