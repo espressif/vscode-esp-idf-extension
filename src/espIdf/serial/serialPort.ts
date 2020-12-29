@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
+import { release } from "os";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
-import { spawn } from "../../utils";
+import { execChildProcess, extensionContext, spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
 export class SerialPort {
@@ -49,7 +50,16 @@ export class SerialPort {
     );
 
     try {
-      const portList = await this.list();
+      const osRelease = release();
+      let portList: SerialPortDetails[];
+      if (
+        process.platform === "linux" &&
+        osRelease.toLowerCase().indexOf("microsoft") !== -1
+      ) {
+        portList = await this.wslList();
+      } else {
+        portList = await this.list();
+      }
       const chosen = await vscode.window.showQuickPick(
         portList.map((l: SerialPortDetails) => {
           return {
@@ -104,5 +114,25 @@ export class SerialPort {
         reject(error);
       }
     });
+  }
+
+  private async wslList(): Promise<SerialPortDetails[]> {
+    let result = "";
+    try {
+      result = await execChildProcess(
+        `powershell.exe -Command "$(cat wsl_get_serial_list.ps)"`,
+        extensionContext.extensionPath
+      );
+    } catch (error) {
+      const errMSg = error.message
+        ? error.message
+        : "Error reading COM ports from WSL";
+      Logger.error(errMSg, error);
+    }
+    const choices: SerialPortDetails[] = Array<SerialPortDetails>();
+    for (let r of result.toString().trim().split("\r\n")) {
+      choices.push(new SerialPortDetails(r));
+    }
+    return choices;
   }
 }

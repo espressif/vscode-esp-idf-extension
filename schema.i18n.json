@@ -61,11 +61,20 @@
     "idfComponentsDataProvider": [
       "idfComponentDataProvider.proj_desc_not_found"
     ],
-    "idfConfiguration": ["idfConfiguration.hasBeenUpdated"],
-    "utils": ["utils.currentFolder", "utils.openComponentTitle"]
+    "idfConfiguration": [
+      "idfConfiguration.hasBeenUpdated"
+    ],
+    "utils": [
+      "utils.currentFolder",
+      "utils.openComponentTitle"
+    ]
   },
   "views": {
-    "menuconfig": ["save", "discard", "reset"]
+    "menuconfig": [
+      "save",
+      "discard",
+      "reset"
+    ]
   },
   "package": [
     "espIdf.createFiles.title",
@@ -98,6 +107,8 @@
     "espIdf.getCoverageReport.title",
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
+    "espIdf.openDocUrl.title",
+    "espIdf.clearDocsSearchResult.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
@@ -130,6 +141,7 @@
     "trace.wait4halt.description",
     "trace.skip_size.description",
     "param.saveBeforeBuildDescription",
+    "param.notificationSilentMode",
     "param.saveScope",
     "param.rainmaker.api.server_url",
     "esp.rainmaker.backend.sync.title",
@@ -141,6 +153,10 @@
     "param.esp.rainmaker.oauth.url",
     "idf.wssPort.description",
     "esp.webview.open.partition-table.title",
+    "esp.efuse.summary.title",
+    "espIdf.jtag_flash.title",
+    "espIdf.selectFlashMethodAndFlash.title",
+    "idf.flashType.description",
     "espIdf.launchWSServerAndMonitor.title",
     "esp_idf.initGdbCommands.description",
     "esp_idf.debuggers.text.description",

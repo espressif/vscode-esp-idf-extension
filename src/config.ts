@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {
@@ -47,6 +48,12 @@ export namespace ESP {
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
     export namespace Docs {
+      export const BASE_URL = "https://docs.espressif.com/projects/esp-idf";
+      export let IDF_INDEX;
+      export const INDEX_CACHE_LIMIT = 86400; // Seconds
+      export let IDF_VERSION_OBJ: IEspIdfDocVersion[];
+      export const IDF_VERSIONS =
+        "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
     }
   }

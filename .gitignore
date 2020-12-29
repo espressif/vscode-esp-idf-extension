@@ -1,4 +1,5 @@
 dist
+esp_idf_docs_index_lang_*.json
 local-utils
 out
 node_modules

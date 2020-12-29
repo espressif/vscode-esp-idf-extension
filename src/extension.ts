@@ -78,14 +78,22 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
-import { createFileSync, pathExists } from "fs-extra";
+import { PartitionTableEditorPanel } from "./espIdf/partition-table";
+import { ESPEFuseTreeDataProvider } from "./efuse/view";
+import { ESPEFuseManager } from "./efuse";
+import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
-import { PartitionTableEditorPanel } from "./espIdf/partition-table";
+import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
+import { JTAGFlash } from "./flash/jtag";
 import { ChangelogViewer } from "./changelog-viewer";
-import EspIdfCustomTerminal from "./espIdfCustomTerminal";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
-import { CMakeListsType } from "./cmake/cmakeListsBuilder";
+import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
+import {
+  DocSearchResult,
+  DocSearchResultTreeDataProvider,
+} from "./espIdf/documentation/docResultsTreeView";
+import { release } from "os";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -99,14 +107,23 @@ const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 
+// ESP-IDF Docs search results Tree view
+let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
+
 // App Tracing
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
 let heapTraceManager: HeapTraceManager;
 
+// ESP-IDF Search results
+let idfSearchResults: vscode.TreeView<DocSearchResult>;
+
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// ESP eFuse Explorer
+let eFuseExplorer: ESPEFuseTreeDataProvider;
 
 // Kconfig Language Client
 let kconfigLangClient: LanguageClient;
@@ -135,6 +152,20 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
+const minOpenOCDVersion20201125 = [
+  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201125", ""),
+  `Minimum OpenOCD version v0.10.0-esp32-20201125 is required`,
+] as utils.PreCheckInput;
+openOCDManager
+  .version()
+  .then((currentVersion) => {
+    minOpenOCDVersion20201125[0] = PreCheck.openOCDVersionValidator(
+      "v0.10.0-esp32-20201125",
+      currentVersion
+    );
+    minOpenOCDVersion20201125[1] = `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currentVersion} version installed`;
+  })
+  .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -681,6 +712,8 @@ export async function activate(context: vscode.ExtensionContext) {
         target: idfConf.readParameter("idf.adapterTargetName"),
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
+    } else if (e.affectsConfiguration("idf.espIdfPath")) {
+      ESP.URL.Docs.IDF_INDEX = undefined;
     }
   });
 
@@ -755,44 +788,39 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
-    const docsVersions = [
-      "v4.0.1",
-      "v4.0",
-      "v3.3.2",
-      "v3.3.1",
-      "v3.3",
-      "v3.2.3",
-      "v3.2.2",
-      "v3.1.7",
-      "v3.1.6",
-      "v3.1.5",
-      "v3.0.9",
-    ];
-    const idfPath =
-      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-    let idfVersion = "v" + (await utils.getEspIdfVersion(idfPath));
-    if (docsVersions.indexOf(idfVersion) === -1) {
-      const idfTarget =
-        idfConf.readParameter("idf.adapterTargetName") || "esp32";
-      idfVersion = `latest/${idfTarget}`;
-    }
-    const currentEditor = vscode.window.activeTextEditor;
-    if (currentEditor) {
-      let selection = currentEditor.document.getText(currentEditor.selection);
-      if (!selection) {
-        const range = currentEditor.document.getWordRangeAtPosition(
-          currentEditor.selection.active
-        );
-        selection = currentEditor.document.getText(range);
+    vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF Docs search results",
+      },
+      async () => {
+        try {
+          const currentEditor = vscode.window.activeTextEditor;
+          if (!currentEditor) {
+            return;
+          }
+          let selection = currentEditor.document.getText(
+            currentEditor.selection
+          );
+          if (!selection) {
+            const range = currentEditor.document.getWordRangeAtPosition(
+              currentEditor.selection.active
+            );
+            selection = currentEditor.document.getText(range);
+          }
+          const searchResults = await seachInEspDocs(selection);
+          espIdfDocsResultTreeDataProvider.getResults(
+            searchResults,
+            idfSearchResults
+          );
+        } catch (error) {
+          const errMsg = error.message || "Error searching in ESP-IDF docs";
+          Logger.errorNotify(errMsg, error);
+          return;
+        }
       }
-      vscode.env.openExternal(
-        vscode.Uri.parse(
-          `https://docs.espressif.com/projects/esp-idf/en/${idfVersion}/search.html?q=${encodeURIComponent(
-            selection
-          )}`
-        )
-      );
-    }
+    );
   });
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
@@ -816,8 +844,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      await utils.createVscodeFolder(workspaceRoot.fsPath);
-      Logger.infoNotify("ESP-IDF VSCode files have been added to project.");
+      try {
+        await utils.createVscodeFolder(workspaceRoot.fsPath);
+        Logger.infoNotify(
+          "ESP-IDF vscode files have been added to the project."
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating .vscode folder";
+        Logger.errorNotify(errMsg, error);
+        return;
+      }
     });
   });
 
@@ -998,21 +1034,34 @@ export async function activate(context: vscode.ExtensionContext) {
             const espMdfPath = idfConf.readParameter(
               "idf.espMdfPath"
             ) as string;
+
+            const pickItems = [];
+            const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
+            if (doesIdfPathExists) {
+              pickItems.push({
+                description: "ESP-IDF",
+                label: `Use current ESP-IDF (${espIdfPath})`,
+                target: espIdfPath,
+              });
+            }
+            const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
+            if (doesAdfPathExists) {
+              pickItems.push({
+                description: "ESP-ADF",
+                label: `Use current ESP-ADF (${espAdfPath})`,
+                target: espAdfPath,
+              });
+            }
+            const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
+            if (doesMdfPathExists) {
+              pickItems.push({
+                description: "ESP-MDF",
+                label: `Use current ESP-MDF (${espMdfPath})`,
+                target: espMdfPath,
+              });
+            }
             const examplesFolder = await vscode.window.showQuickPick(
-              [
-                {
-                  label: `Use current ESP-IDF (${espIdfPath})`,
-                  target: espIdfPath,
-                },
-                {
-                  label: `Use current ESP-ADF (${espAdfPath})`,
-                  target: espAdfPath,
-                },
-                {
-                  label: `Use current ESP-MDF (${espMdfPath})`,
-                  target: espMdfPath,
-                },
-              ],
+              pickItems,
               { placeHolder: "Select framework to use" }
             );
             if (!examplesFolder) {
@@ -1028,7 +1077,8 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             ExamplesPlanel.createOrShow(
               context.extensionPath,
-              examplesFolder.target
+              examplesFolder.target,
+              examplesFolder.description
             );
           } catch (error) {
             Logger.errorNotify(error.message, error);
@@ -1127,7 +1177,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)) {
+      const appTraceLabel =
+        typeof appTraceTreeDataProvider.appTraceButton.label === "string"
+          ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
+          : appTraceTreeDataProvider.appTraceButton.label.label.match(
+              /start/gi
+            );
+      if (appTraceLabel) {
         await appTraceManager.start();
       } else {
         await appTraceManager.stop();
@@ -1137,7 +1193,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.heaptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)) {
+      const heapTraceLabel =
+        typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
+          ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
+          : appTraceTreeDataProvider.heapTraceButton.label.label.match(
+              /start/gi
+            );
+      if (heapTraceLabel) {
         await heapTraceManager.start();
       } else {
         await heapTraceManager.stop();
@@ -1592,16 +1654,130 @@ export async function activate(context: vscode.ExtensionContext) {
       PartitionTableEditorPanel.show(context.extensionPath, filePath);
     }
   );
+  registerIDFCommand("esp.efuse.summary", async () => {
+    vscode.window.withProgress(
+      {
+        title: "Getting eFuse Summary for your chip",
+        location: vscode.ProgressLocation.Notification,
+      },
+      async () => {
+        try {
+          const eFuse = new ESPEFuseManager();
+          const resp = await eFuse.summary();
+          eFuseExplorer.load(resp);
+          eFuseExplorer.refresh();
+        } catch (error) {
+          if (error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR") {
+            return Logger.errorNotify(error.message, error);
+          }
+          Logger.errorNotify(
+            "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
+            error
+          );
+        }
+      }
+    );
+  });
+  registerIDFCommand("espIdf.jtag_flash", () => {
+    PreCheck.perform(
+      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
+      async () => {
+        const buildFolder = path.join(workspaceRoot.fsPath, "build");
+        if (!(await pathExists(buildFolder))) {
+          return Logger.warnNotify("First you need to build before flashing!!");
+        }
+        if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
+          return Logger.warnNotify(
+            "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+          );
+        }
+        const projectName = await getProjectName(workspaceRoot.fsPath);
+        if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
+          return Logger.warnNotify(
+            `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
+          );
+        }
+
+        const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
+        if (!isOpenOCDLaunched) {
+          return Logger.warnNotify(
+            "Can't perform JTag flash, because OpenOCD server is not running!!"
+          );
+        }
+
+        if (FlashTask.isFlashing) {
+          return Logger.errorNotify(
+            "Can't run JTAG & UART Flash together, UART flash is running",
+            new Error("One_Task_At_A_Time")
+          );
+        }
+        FlashTask.isFlashing = true;
+
+        vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Flashing your device using JTAG, please wait",
+          },
+          async () => {
+            const client = new TCLClient({ host: "localhost", port: 6666 });
+            const jtag = new JTAGFlash(client);
+            try {
+              await jtag.flash(
+                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
+              );
+              Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+            } catch (msg) {
+              OpenOCDManager.init().showOutputChannel(true);
+              Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+            }
+            FlashTask.isFlashing = false;
+          }
+        );
+      }
+    );
+  });
+  registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      let flashType = idfConf.readParameter("idf.flashType");
+      if (!flashType) {
+        flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+          ignoreFocusOut: true,
+          placeHolder:
+            "Select flash method, you can modify the choice later from settings 'idf.flashType'",
+        });
+        await idfConf.writeParameter(
+          "idf.flashType",
+          flashType,
+          vscode.ConfigurationTarget.Workspace
+        );
+      }
+
+      if (flashType === "JTAG") {
+        return vscode.commands.executeCommand("espIdf.jtag_flash");
+      } else if (flashType === "UART") {
+        return vscode.commands.executeCommand("espIdf.flashDevice");
+      }
+    });
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
       if (uri.path === "/rainmaker" && query[0] === "code") {
         const code = query[1] || "";
         try {
-          await RainmakerAPIClient.exchangeCodeForTokens(code);
-          await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify(
-            "Rainmaker Cloud is connected successfully (via OAuth)!!"
+          vscode.window.withProgress(
+            {
+              title:
+                "Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
+              location: vscode.ProgressLocation.Notification,
+            },
+            async () => {
+              await RainmakerAPIClient.exchangeCodeForTokens(code);
+              await rainMakerTreeDataProvider.refresh();
+              Logger.infoNotify(
+                "Rainmaker Cloud is connected successfully (via OAuth)!!"
+              );
+            }
           );
         } catch (error) {
           return Logger.errorNotify(
@@ -1649,19 +1825,27 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
+  espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
+
+  vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
+    espIdfDocsResultTreeDataProvider.clearResults();
+  });
+
+  idfSearchResults = vscode.window.createTreeView("idfSearchResults", {
+    treeDataProvider: espIdfDocsResultTreeDataProvider,
+  });
+
   rainMakerTreeDataProvider = new ESPRainMakerTreeDataProvider();
-  vscode.window.registerTreeDataProvider(
-    "espRainmaker",
-    rainMakerTreeDataProvider
-  );
+
+  eFuseExplorer = new ESPEFuseTreeDataProvider();
 
   context.subscriptions.push(
-    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer")
-  );
-  context.subscriptions.push(
+    appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
-    )
+    ),
+    rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
+    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer")
   );
 }
 
@@ -1687,7 +1871,7 @@ function creatCmdsStatusBarItems() {
   createStatusBarItem(
     "$(zap)",
     "ESP-IDF Flash device",
-    "espIdf.flashDevice",
+    "espIdf.selectFlashMethodAndFlash",
     97
   );
   createStatusBarItem(
@@ -2103,6 +2287,30 @@ function createMonitor(): any {
     }
     monitorTerminal.show();
     overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
+    const osRelease = release();
+    if (
+      process.platform === "linux" &&
+      osRelease.toLowerCase().indexOf("microsoft") !== -1
+    ) {
+      const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
+      const wslCurrPath = await utils.execChildProcess(
+        `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
+        utils.extensionContext.extensionPath
+      );
+      const winWslRoot = wslCurrPath
+        .replace(wslRoot, "")
+        .replace(/[\r\n]+/g, "");
+      const toolPath = (
+        winWslRoot +
+        idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
+      ).replace(/\\/g, "\\\\");
+      monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
+      const elfFile = await utils.getElfFilePath(workspaceRoot);
+      monitorTerminal.sendText(
+        `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
+      );
+      return;
+    }
     monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
   });
 }

@@ -15,7 +15,7 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import { copy, pathExists } from "fs-extra";
+import { copy, ensureDir, pathExists } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { EOL } from "os";
 import * as path from "path";
@@ -71,6 +71,25 @@ export class PreCheck {
   }
   public static notUsingWebIde(): boolean {
     return process.env.WEB_IDE ? false : true;
+  }
+  public static openOCDVersionValidator(
+    minVersion: string,
+    currentVersion: string
+  ) {
+    return (): boolean => {
+      try {
+        return (
+          parseInt(currentVersion.split("-").pop()) >=
+          parseInt(minVersion.split("-").pop())
+        );
+      } catch (error) {
+        Logger.error(
+          `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
+          error
+        );
+        return false;
+      }
+    };
   }
 }
 
@@ -146,7 +165,24 @@ export function updateStatus(
 export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
-  await copy(vscodeTemplateFolder, settingsDir);
+  await ensureDir(settingsDir);
+
+  return new Promise<void>((resolve, reject) => {
+    fs.readdir(vscodeTemplateFolder, async (err, files) => {
+      if (err) {
+        return reject(err);
+      }
+      for (const f of files) {
+        const fPath = path.join(settingsDir, f);
+        const fSrcPath = path.join(vscodeTemplateFolder, f);
+        const fExists = await pathExists(fPath);
+        if (!fExists) {
+          await copy(fSrcPath, fPath);
+        }
+      }
+      return resolve();
+    });
+  });
 }
 
 export function chooseTemplateDir() {
@@ -489,25 +525,37 @@ export function getSubProjects(dir: string): string[] {
 }
 
 export async function getEspIdfVersion(workingDir: string) {
-  const canCheck = await checkGitExists(extensionContext.extensionPath);
-  if (canCheck === "Not found") {
-    Logger.errorNotify(
-      "Git is not found in current environment",
-      Error("git is not found")
+  try {
+    const canCheck = await checkGitExists(extensionContext.extensionPath);
+    if (canCheck === "Not found") {
+      Logger.errorNotify(
+        "Git is not found in current environment",
+        Error("git is not found")
+      );
+      return "x.x";
+    }
+    const rawEspIdfVersion = await execChildProcess(
+      "git describe --tags",
+      workingDir
     );
+    const espIdfVersionMatch = rawEspIdfVersion.match(
+      /^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
+    );
+    if (espIdfVersionMatch && espIdfVersionMatch.length > 0) {
+      let espVersion: string = "";
+      for (let i = 1; i < espIdfVersionMatch.length; i++) {
+        if (espIdfVersionMatch[i]) {
+          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+        }
+      }
+      return espVersion.substr(1);
+    } else {
+      return "x.x";
+    }
+  } catch (error) {
+    Logger.info(error);
     return "x.x";
   }
-  return await execChildProcess("git describe --tags", workingDir)
-    .then((rawEspIdfVersion) => {
-      const espIdfVersionMatch = rawEspIdfVersion.match(/^v([0-9]+\.[0-9]+).*/);
-      if (espIdfVersionMatch && espIdfVersionMatch.length < 1) {
-        return "x.x";
-      }
-      return espIdfVersionMatch[1];
-    })
-    .catch((reason) => {
-      return "x.x";
-    });
 }
 
 export async function checkGitExists(workingDir: string) {

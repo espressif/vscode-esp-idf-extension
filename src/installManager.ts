@@ -88,7 +88,7 @@ export class InstallManager {
   }
 
   public installZipFile(zipFilePath: string, destPath: string) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       await pathExists(zipFilePath).then((doesZipFileExists) => {
         if (!doesZipFileExists) {
           return reject(`File ${zipFilePath} doesn't exist.`);

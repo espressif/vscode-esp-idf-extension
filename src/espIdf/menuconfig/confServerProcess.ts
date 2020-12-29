@@ -176,7 +176,7 @@ export class ConfserverProcess {
 
     progress.report({ increment: 10, message: "Loading default values..." });
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           ConfserverProcess.instance.printError(data.toString());
