@@ -67,7 +67,7 @@
   "esp.rainmaker.backend.add_node.title": "Добавить новый узел",
   "esp.rainmaker.backend.remove_node.title": "Удалить этот узел",
   "esp.rainmaker.backend.update_node_param.title": "Обновить параметры для устройства",
-  "param.esp.rainmaker.oauth.url": "URL-адрес сервера аутентификации ESP-Rainmaker",
+  "param.esp.rainmaker.oauth.url": "URL сервера OAuth2 для ESP-Rainmaker",
   "idf.wssPort.description": "Порт сервера веб-сокетов для дампа ядра или заглушки GDB",
   "espIdf.launchWSServerAndMonitor.title": "Запустите IDF мониторинг для режима CoreDump / GDB-Stub",
   "esp_idf.initGdbCommands.description": "Одна или несколько команд xtensa-esp32-elf-gdb для настройки отладчика. Пример: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
