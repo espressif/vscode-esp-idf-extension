@@ -13,7 +13,7 @@
 // limitations under the License.
 
 "use strict";
-import { constants, readdirSync } from "fs";
+import { readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
