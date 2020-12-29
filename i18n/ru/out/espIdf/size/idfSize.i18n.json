@@ -1,8 +1,8 @@
 {
   "idfSize.canceledError": "Невозможно продолжить анализ размера в отмененном контексте",
-  "idfSize.buildFirstError": "Для анализа размера требуется сборка, сначала создайте свой проект",
-  "idfSize.filesMsg": "Расчет размеров файлов для всех архивов",
-  "idfSize.archivesMsg": "Сбор архивного списка",
-  "idfSize.overviewMsg": "Обзор сбора",
+  "idfSize.buildFirstError": "Соберите проект чтобы проанализировать его размер",
+  "idfSize.filesMsg": "Рассчитываем размер файлов для всех архивов",
+  "idfSize.archivesMsg": "Собираем список архивов",
+  "idfSize.overviewMsg": "Собираем данные для обзора",
   "idfSize.commandError": "Ошибка при вызове idf_size.py"
 }
