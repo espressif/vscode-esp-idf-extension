@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 import { exec, ExecOptions } from "child_process";
-import { constants, pathExists, readJSON } from "fs-extra";
+import { constants, pathExists, readJSON, writeFile } from "fs-extra";
+import { EOL } from "os";
 import { delimiter, join } from "path";
 import * as vscode from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
@@ -68,10 +69,22 @@ export interface Configuration {
   customExtraPaths: string;
   customExtraVars: string;
   pythonBinPath: string;
-  pythonPackages: string[];
+  pythonPackages: pyPkgVersion[];
   serialPort: string;
   openOcdConfigs: string[];
   toolsPath: string;
+}
+
+export interface pyPkgVersion {
+  name: string;
+  version: string;
+}
+
+export interface idfToolResult {
+  actual: string;
+  doesToolExist: boolean;
+  expected: string;
+  id: string;
 }
 
 export interface execResult {
@@ -82,13 +95,14 @@ export interface execResult {
 export interface reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
-  gitVersion: execResult;
+  espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
-  pythonVersion: execResult;
-  pipVersion: execResult;
-  pythonPackages: execResult;
+  gitVersion: execResult;
   latestError: Error;
-  espIdfToolsVersions: {};
+  pipVersion: execResult;
+  pythonVersion: execResult;
+  pythonPackages: execResult;
+  idfCheckRequirements: execResult;
 }
 
 export async function generateConfigurationReport(
@@ -97,15 +111,16 @@ export async function generateConfigurationReport(
   const reportedResult: reportObj = {} as reportObj;
   try {
     getConfigurationSettings(reportedResult);
+    await getConfigurationAccess(reportedResult, context);
     await getGitVersion(reportedResult, context);
     await getEspIdfVersion(reportedResult);
     await getPythonVersion(reportedResult, context);
     await getPipVersion(reportedResult, context);
     await getPythonPackages(reportedResult, context);
-    await getConfigurationAccess(reportedResult, context);
     await checkEspIdfTools(reportedResult, context);
+    await checkEspIdfRequirements(reportedResult, context);
     console.log(reportedResult);
-    // TO DO Add some resulting file with report object
+    await writeTextReport(reportedResult, context);
   } catch (error) {
     console.log(reportedResult);
     console.log(error);
@@ -262,7 +277,8 @@ function getConfigurationSettings(reportedResult: reportObj) {
     toolsPath: vscode.workspace
       .getConfiguration("")
       .get("idf.toolsPath" + winFlag),
-    systemEnvPath: process.platform === "win32" ? "Path" : "PATH",
+    systemEnvPath:
+      process.platform === "win32" ? process.env.Path : process.env.PATH,
   };
 }
 
@@ -344,4 +360,115 @@ async function checkEspIdfTools(
     reportedResult.configurationSettings.customExtraPaths
   );
   reportedResult.espIdfToolsVersions = verifiedPkgs;
+}
+
+async function checkEspIdfRequirements(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
+  reportedResult.idfCheckRequirements = {
+    output: undefined,
+    result: undefined,
+  };
+  const requirementsPath = join(
+    reportedResult.configurationSettings.espIdfPath,
+    "requirements.txt"
+  );
+  const checkPythonDepsScript = join(
+    reportedResult.configurationSettings.espIdfPath,
+    "tools",
+    "check_python_dependencies.py"
+  );
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  modifiedEnv.IDF_PATH = reportedResult.configurationSettings.espIdfPath;
+  const requirementsResult = await execChildProcess(
+    `${reportedResult.configurationSettings.pythonBinPath} ${checkPythonDepsScript} -r "${requirementsPath}"`,
+    context.extensionPath,
+    { env: modifiedEnv, cwd: context.extensionPath }
+  );
+  reportedResult.idfCheckRequirements.output = requirementsResult.trim();
+  reportedResult.idfCheckRequirements.result = requirementsResult.trim();
+}
+
+async function writeTextReport(
+  reportedResult: reportObj,
+  context: vscode.ExtensionContext
+) {
+  let output = `--------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
+  const lineBreak = `-------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
+
+  output += lineBreak;
+
+  const platformInfo = await PlatformInformation.GetPlatformInformation();
+  output += `Platform ${platformInfo.platform} Architecture ${platformInfo.architecture} ${EOL}`;
+  output += `System environment variable PATH ${EOL}`;
+
+  output += `--------------------------------------------- Extension configuration settings ----------------------------------------------${EOL}`;
+  output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
+  output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
+  output += `Custom extra vars (idf.customExtraVars) ${reportedResult.configurationSettings.customExtraVars}${EOL}`;
+  output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
+  output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
+  output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
+  output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
+  output += lineBreak;
+  output += `---------------------------------------------- Configurations access --------------------------------------------------------${EOL}`;
+  output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
+  output += `Access to ESP-IDF Custom extra paths${EOL}`;
+  for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
+    output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
+  }
+  output += `Access to Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
+  output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
+  output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
+  output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  output += `---------------------------------------------- Executables Versions -=-------------------------------------------------------${EOL}`;
+  output += `Git version ${
+    reportedResult.gitVersion.result
+      ? reportedResult.gitVersion.result
+      : reportedResult.gitVersion.output
+  }${EOL}`;
+  output += `ESP-IDF version ${
+    reportedResult.espIdfVersion.result
+      ? reportedResult.espIdfVersion.result
+      : reportedResult.espIdfVersion.output
+  }${EOL}`;
+  output += `Python version ${
+    reportedResult.espIdfVersion.result
+      ? reportedResult.espIdfVersion.result
+      : reportedResult.espIdfVersion.output
+  }${EOL}`;
+  output += `Python's pip version ${
+    reportedResult.espIdfVersion.result
+      ? reportedResult.espIdfVersion.result
+      : reportedResult.espIdfVersion.output
+  }${EOL}`;
+  output += `---------------------------------------------- Python packages in idf.pythonBinPath------------------------------------------${EOL}`;
+  output += `Python packages ${
+    reportedResult.pythonPackages.result
+      ? reportedResult.pythonPackages.result
+      : reportedResult.pythonPackages.output
+  }${EOL}`;
+  for (let pkg of reportedResult.configurationSettings.pythonPackages) {
+    output += `${pkg.name} version: ${pkg.version}${EOL}`;
+  }
+  output += `---------------------------------------------- Check ESP-IDF python requirements.txt ----------------------------------------${EOL}`;
+  output += `Python packages ${
+    reportedResult.idfCheckRequirements.result
+      ? reportedResult.idfCheckRequirements.result
+      : reportedResult.idfCheckRequirements.output
+  }${EOL}`;
+  if (reportedResult.latestError) {
+    output += `---------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
+    output += `Python packages ${
+      reportedResult.latestError.message
+        ? reportedResult.latestError.message
+        : "Unknown error in ESP-IDF doctor command"
+    }${EOL}`;
+  }
+  output += lineBreak;
+  const resultFile = join(context.extensionPath, "report.txt");
+  await writeFile(resultFile, output);
 }
