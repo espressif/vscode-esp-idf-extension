@@ -70,7 +70,7 @@
   "param.esp.rainmaker.oauth.url": "URL-адрес сервера аутентификации ESP-Rainmaker",
   "idf.wssPort.description": "Порт сервера веб-сокетов для дампа ядра или заглушки GDB",
   "espIdf.launchWSServerAndMonitor.title": "Запустите IDF мониторинг для режима CoreDump / GDB-Stub",
-  "esp_idf.initGdbCommands.description": "Одна или несколько команд xtensa-esp32-elf-gdb для выполнения, чтобы настроить базовый отладчик. Пример: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
+  "esp_idf.initGdbCommands.description": "Одна или несколько команд xtensa-esp32-elf-gdb для настройки отладчика. Пример: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "Путь к файлу gdbinit для адаптера отладки ESP-IDF",
   "esp_idf.debuggers.text.description": "Команда для выполнения"
 }
