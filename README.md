@@ -1,6 +1,16 @@
-# ESP-IDF Visual Studio Code Extension
+<a href="https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension">
+  <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
+</a>
 
-Visual Studio Code extension for Espressif IoT Development Framework, [ESP-IDF](https://github.com/espressif/esp-idf) is official development framework for the [ESP-32](https://espressif.com/en/products/hardware/esp32/overview) chip.
+# ESP-IDF VS Code Extension
+
+Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
+
+<a href="https://youtu.be/Lc6ausiKvQM">
+  <p align="center">
+    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
+  </p>
+</a>
 
 The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code, some functionality includes:
 
@@ -16,10 +26,6 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
 - Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and `idf.adapterTargetName`.
 
-## Demo
-
-![Espressif extension gif](./media/espressif_extension.gif)
-
 ## Prerequisites
 
 There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension. All the other dependencies like ESP-IDF or toolchain will be taken care by the [setup wizard](./docs/SETUP.md) process.
@@ -29,12 +35,6 @@ There are a few dependencies which needs to be downloaded and installed before y
 - [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the extension setup wizard.
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
-
-## Coming Soon
-
-- Create new project wizard
-- Support GDB Stub
-- Support Core Dump
 
 ## Quick Installation Guide
 
@@ -113,13 +113,17 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Pick a workspace folder                         |                                        |                                           |
 | Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
-| Show ESP-IDF Examples Projects                  |                                        |                                           |
+| Show Examples Projects                          |                                        |                                           |
 | Add Editor coverage                             |                                        |                                           |
 | Remove Editor coverage                          |                                        |                                           |
 | Get HTML Coverage Report for project            |                                        |                                           |
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Install ESP-ADF                                 |                                        |                                           |
+| Install ESP-MDF                                 |                                        |                                           |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+
+The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set. The **Install ESP-ADF** will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows). **Install ESP-MDF** will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
 
 ## ESP-IDF Configure extension
 
@@ -147,8 +151,15 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | Setting ID                   | Description                                                                   |
 | ---------------------------- | ----------------------------------------------------------------------------- |
 | `idf.espIdfPath`             | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.espIdfPathWin`          | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
+| `idf.espAdfPath`             | Path to locate ESP-ADF framework (ADF_PATH)                                   |
+| `idf.espAdfPathWin`          | Path to locate ESP-ADF framework in Windows (ADF_PATH)                        |
+| `idf.espMdfPath`             | Path to locate ESP-MDF framework (MDF_PATH)                                   |
+| `idf.espMdfPathWin`          | Path to locate ESP-MDF framework in Windows (MDF_PATH)                        |
 | `idf.toolsPath`              | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.toolsPathWin`           | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
 | `idf.pythonBinPath`          | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.pythonBinPathWin`       | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
 | `idf.customExtraPaths`       | Paths to be appended to \$PATH                                                |
 | `idf.customExtraVars`        | Variables to be added to system environment variables                         |
 | `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                                     |
@@ -170,10 +181,11 @@ When you use the command **ESP-IDF: Set Espressif device target** it will overri
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting             | Description                  |
-| ------------------- | ---------------------------- |
-| `idf.port`          | Path of selected device port |
-| `idf.flashBaudRate` | Flash Baud rate              |
+| Setting             | Description                             |
+| ------------------- | --------------------------------------- |
+| `idf.port`          | Path of selected device port            |
+| `idf.portWin`       | Path of selected device port in Windows |
+| `idf.flashBaudRate` | Flash Baud rate                         |
 
 The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate).
 This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.

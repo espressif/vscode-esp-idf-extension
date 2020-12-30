@@ -21,7 +21,12 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
+import {
+  appendIdfAndToolsToPath,
+  isBinInPath,
+  PreCheck,
+  spawn as sspawn,
+} from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
@@ -51,6 +56,26 @@ export class OpenOCDManager extends EventEmitter {
     this.displayChan = vscode.window.createOutputChannel("OpenOCD");
     this.tclConnectionParams = { host: "localhost", port: 6666 };
     this.registerOpenOCDStatusBarItem();
+  }
+
+  public async version(): Promise<string> {
+    const modifiedEnv = appendIdfAndToolsToPath();
+    const workspace = PreCheck.isWorkspaceFolderOpen()
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : "";
+    if (!isBinInPath("openocd", workspace, modifiedEnv)) {
+      return "";
+    }
+    const resp = await sspawn("openocd", ["--version"], {
+      cwd: workspace,
+      env: modifiedEnv,
+    });
+    const versionString = resp.toString();
+    const match = versionString.match(/v\d+\.\d+\.\d+\-\S*/gi);
+    if (!match) {
+      return "failed+to+match+version";
+    }
+    return match[0];
   }
 
   public statusBarItem(): vscode.StatusBarItem {
@@ -208,6 +233,10 @@ export class OpenOCDManager extends EventEmitter {
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
       this.displayChan.appendLine("[Stopped] : OpenOCD Server");
     }
+  }
+
+  public showOutputChannel(preserveFocus?: boolean) {
+    this.displayChan.show(preserveFocus);
   }
 
   private registerOpenOCDStatusBarItem() {

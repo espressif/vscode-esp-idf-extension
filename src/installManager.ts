@@ -97,7 +97,7 @@ export class InstallManager {
     destPath: string,
     cancelToken?: vscode.CancellationToken
   ) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       const doesZipFileExists = await pathExists(zipFilePath);
       if (!doesZipFileExists) {
         return reject(`File ${zipFilePath} doesn't exist.`);

@@ -29,18 +29,20 @@ export class ExamplesPlanel {
 
   public static createOrShow(
     extensionPath: string,
-    targetFrameworkFolder: string
+    targetFrameworkFolder: string,
+    targetDesc: string
   ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+      : vscode.ViewColumn.One;
     if (ExamplesPlanel.currentPanel) {
       ExamplesPlanel.currentPanel.panel.reveal(column);
     } else {
       ExamplesPlanel.currentPanel = new ExamplesPlanel(
         extensionPath,
-        column || vscode.ViewColumn.One,
-        targetFrameworkFolder
+        column,
+        targetFrameworkFolder,
+        targetDesc
       );
     }
   }
@@ -52,11 +54,12 @@ export class ExamplesPlanel {
   private constructor(
     extensionPath: string,
     column: vscode.ViewColumn,
-    targetFrameworkFolder: string
+    targetFrameworkFolder: string,
+    targetDesc: string
   ) {
     const panelTitle = locDic.localize(
       "examples.panelName",
-      "ESP-IDF Examples"
+      `${targetDesc} Examples`
     );
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
@@ -191,37 +194,32 @@ export class ExamplesPlanel {
       smartypants: false,
     });
     let contentStr = marked(content);
-    const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
-    const matches = contentStr.match(srcLinkRegex);
-    if (matches && matches.length > 0) {
-      for (let m of matches) {
-        const unresolvedPath = m
-          .replace('src="', "")
-          .replace('src ="', "")
-          .replace('"', "");
-        const absPath = `src="${this.panel.webview.asWebviewUri(
-          vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
-        )}"`;
-        contentStr = contentStr.replace(m, absPath);
-      }
+    const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
+    let match: RegExpExecArray;
+    while ((match = srcLinkRegex.exec(contentStr)) !== null) {
+      const unresolvedPath = match[1];
+      const absPath = `src="${this.panel.webview.asWebviewUri(
+        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
+      )}"`;
+      contentStr = contentStr.replace(match[0], absPath);
     }
-    const srcEncodedRegex = /&lt;img src=&quot;(.*?)&quot;\s?&gt;/g;
-    const nextMatches = contentStr.match(srcEncodedRegex);
-    if (nextMatches && nextMatches.length > 0) {
-      for (let m of nextMatches) {
-        const pathToResolve = m.match(/(?:src=&quot;)(.*?)(?:&quot;)/);
-        const height = m.match(/(?:height=&quot;)(.*?)(?:&quot;)/);
-        const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
-        const absPath = `<img src="${this.panel.webview.asWebviewUri(
-          vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
-        )}" ${
-          height && height.length > 0 ? 'height="' + height[1] + '"' : ""
-        } alt="${
-          altText && altText.length > 0 ? '"alt=' + altText[1] + '"' : ""
-        } >`;
-        contentStr = contentStr.replace(m, absPath);
-      }
+    const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
+    let encodedMatch: RegExpExecArray;
+    while ((encodedMatch = srcEncodedRegex.exec(contentStr)) !== null) {
+      const pathToResolve = encodedMatch[0].match(
+        /(?:src=&quot;)(.*?)(?:&quot;)/
+      );
+      const height = encodedMatch[0].match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+      const width = encodedMatch[0].match(/(?:width=&quot;)(.*?)(?:&quot;)/);
+      const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+      const absPath = `<img src="${this.panel.webview.asWebviewUri(
+        vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
+      )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
+        width && width.length > 0 ? `width="${width[1]}"` : ""
+      } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+      contentStr = contentStr.replace(encodedMatch[0], absPath);
     }
+    contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
     return contentStr;
   }
 

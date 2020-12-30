@@ -25,6 +25,12 @@ export interface TCLConnection {
   port: number;
 }
 
+export declare interface TCLClient {
+  on(event: "connect", listener: () => void): this;
+  on(event: "error", listener: (error: Error) => void): this;
+  on(event: "response", listener: (data: Buffer) => void): this;
+}
+
 export class TCLClient extends EventEmitter {
   public static readonly DELIMITER = "\x1a";
 

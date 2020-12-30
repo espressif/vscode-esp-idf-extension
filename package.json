@@ -142,6 +142,10 @@
         {
           "id": "espRainmaker",
           "name": "Rainmaker"
+        },
+        {
+          "name": "eFuse Explorer",
+          "id": "espEFuseExplorer"
         }
       ],
       "explorer": [
@@ -177,6 +181,11 @@
           "command": "esp.rainmaker.backend.sync",
           "group": "navigation",
           "when": "view == espRainmaker"
+        },
+        {
+          "command": "esp.efuse.summary",
+          "group": "navigation",
+          "when": "view == espEFuseExplorer"
         },
         {
           "command": "espIdf.clearDocsSearchResult",
@@ -519,6 +528,15 @@
             "scope": "resource",
             "minimum": 49152,
             "maximum": 65535
+          },
+          "idf.flashType": {
+            "type": "string",
+            "enum": [
+              "UART",
+              "JTAG"
+            ],
+            "description": "%idf.flashType.description%",
+            "scope": "resource"
           }
         }
       }
@@ -696,6 +714,15 @@
         "title": "%espIdf.searchInEspIdfDocs.title%"
       },
       {
+        "command": "esp.efuse.summary",
+        "title": "%esp.efuse.summary.title%",
+        "category": "ESP-IDF: eFuse",
+        "icon": {
+          "dark": "media/dark/refresh.svg",
+          "light": "media/light/refresh.svg"
+        }
+      },
+      {
         "command": "espIdf.getEspAdf",
         "title": "%espIdf.getEspAdf.title%"
       },
@@ -706,6 +733,16 @@
       {
         "command": "espIdf.installPyReqs",
         "title": "%espIdf.installPyReqs.title%"
+      },
+      {
+        "command": "espIdf.jtag_flash",
+        "title": "%espIdf.jtag_flash.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectFlashMethodAndFlash",
+        "title": "%espIdf.selectFlashMethodAndFlash.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
@@ -868,7 +905,7 @@
     "file-loader": "^4.0.0",
     "glob": "^7.1.4",
     "gulp": "^4.0.2",
-    "gulp-cli": "^2.0.1",
+    "gulp-cli": "^2.0.3",
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^2.5.0",

@@ -16,7 +16,13 @@
  * limitations under the License.
  */
 
-import { TreeDataProvider, EventEmitter, Event } from "vscode";
+import {
+  TreeDataProvider,
+  EventEmitter,
+  Event,
+  Disposable,
+  window,
+} from "vscode";
 import { RainmakerAPIClient } from "../client";
 import {
   LoggedInAccountItem,
@@ -54,7 +60,8 @@ export class ESPRainMakerTreeDataProvider
   async getChildren(parent?: RMakerItem): Promise<RMakerItem[]> {
     if (!parent) {
       if (RainmakerAPIClient.isLoggedIn()) {
-        return [LoggedInAccountItem()];
+        const userInfo = await RainmakerAPIClient.getUserInfo();
+        return [LoggedInAccountItem(userInfo)];
       } else {
         return [LoginButtonItem()];
       }
@@ -90,6 +97,10 @@ export class ESPRainMakerTreeDataProvider
   public async refresh() {
     await this.purgeClientCacheAndToken();
     this._onDidChangeTreeData.fire(null);
+  }
+
+  public registerDataProviderForTree(treeName: string): Disposable {
+    return window.registerTreeDataProvider(treeName, this);
   }
 
   private async fetchNodes(): Promise<RainmakerNodeWithDetails> {

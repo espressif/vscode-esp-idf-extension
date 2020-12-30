@@ -49,7 +49,7 @@ export class ArduinoComponentInstaller {
     }
     const componentsDir = join(this.projectDir, "components");
     await ensureDir(componentsDir);
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
         `git`,
         [

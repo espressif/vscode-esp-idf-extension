@@ -18,10 +18,16 @@
 
 import { constants } from "fs";
 import { join } from "path";
+import { release } from "os";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  canAccessFile,
+  execChildProcess,
+  extensionContext,
+} from "../utils";
 import { TaskManager } from "../taskManager";
 import { SpawnOptions } from "child_process";
 import EspIdfCustomTerminal from "../espIdfCustomTerminal";
@@ -69,11 +75,20 @@ export class FlashTask {
       throw new Error("ALREADY_FLASHING");
     }
     this.verifyArgs();
-    const flashExecution = this._flashExecution();
     const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Silent
       : vscode.TaskRevealKind.Always;
+    const osRelease = release();
+    let flashExecution: vscode.CustomExecution;
+    if (
+      process.platform === "linux" &&
+      osRelease.toLowerCase().indexOf("microsoft") !== -1
+    ) {
+      flashExecution = await this._wslFlashExecution();
+    } else {
+      flashExecution = this._flashExecution();
+    }
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash" },
       vscode.TaskScope.Workspace,
@@ -81,6 +96,51 @@ export class FlashTask {
       flashExecution,
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
+    );
+  }
+
+  public async _wslFlashExecution() {
+    this.flashing(true);
+    const modifiedEnv = appendIdfAndToolsToPath();
+    const wslRoot = extensionContext.extensionPath.replace(/\//g, "\\");
+    const wslCurrPath = await execChildProcess(
+      `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
+      extensionContext.extensionPath
+    );
+    const winWslRoot = wslCurrPath.replace(wslRoot, "").replace(/[\r\n]+/g, "");
+    const toolPath = (
+      winWslRoot + this.flashScriptPath.replace(/\//g, "\\")
+    ).replace(/\\/g, "\\\\");
+
+    const flasherArgs = [
+      toolPath,
+      "-p",
+      this.model.port,
+      "-b",
+      this.model.baudRate,
+      "--after",
+      "hard_reset",
+      "write_flash",
+      "--flash_mode",
+      this.model.mode,
+      "--flash_freq",
+      this.model.frequency,
+      "--flash_size",
+      this.model.size,
+    ];
+    for (const flashFile of this.model.flashSections) {
+      flasherArgs.push(
+        flashFile.address,
+        flashFile.binFilePath.replace(/\//g, "\\")
+      );
+    }
+    const options: SpawnOptions = {
+      cwd: this.buildDir,
+      env: modifiedEnv,
+    };
+    return new vscode.ShellExecution(
+      `powershell.exe -Command "python ${flasherArgs.join(" ")}"`,
+      options
     );
   }
 

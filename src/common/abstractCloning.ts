@@ -46,7 +46,7 @@ export class AbstractCloning {
     pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>
   ) {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
         "git",
         [
