@@ -75,6 +75,7 @@
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
@@ -233,6 +234,11 @@
           "when": "resourceExtname == .csv",
           "group": "navigation",
           "command": "espIdf.webview.nvsPartitionEditor"
+        },
+        {
+          "when": "resourceExtname == .csv",
+          "group": "navigation",
+          "command": "esp.webview.open.partition-table"
         },
         {
           "when": "resourceFilename == CMakeLists.txt",
@@ -748,6 +754,11 @@
         "title": "%espIdf.getEspMdf.title%"
       },
       {
+        "command": "esp.webview.open.partition-table",
+        "title": "%esp.webview.open.partition-table.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.jtag_flash",
         "title": "%espIdf.jtag_flash.title%",
         "category": "ESP-IDF"
@@ -985,6 +996,7 @@
     "vscode-nls": "^4.0.0",
     "vue": "^2.6.10",
     "vue-scroll": "^2.1.12",
+    "vue-select": "^3.10.8",
     "vue-the-mask": "^0.11.1",
     "vuex": "^3.1.1",
     "winston": "^2.3.1",

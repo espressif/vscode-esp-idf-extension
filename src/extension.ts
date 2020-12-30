@@ -78,9 +78,10 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
-import { constants, pathExists } from "fs-extra";
+import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
@@ -1637,6 +1638,53 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
+  registerIDFCommand(
+    "esp.webview.open.partition-table",
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
+      if (!args) {
+        // try to get the partition table name from sdkconfig and if not found create one
+        try {
+          const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM",
+            workspaceRoot.fsPath
+          );
+          if (isCustomPartitionTableEnabled !== "y") {
+            throw new Error(
+              "Custom Partition Table not enabled for the project"
+            );
+          }
+
+          let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
+            workspaceRoot.fsPath
+          );
+          partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
+          if (!utils.isStringNotEmpty(partitionTableFilePath)) {
+            throw new Error(
+              "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
+            );
+          }
+
+          partitionTableFilePath = path.join(
+            workspaceRoot.fsPath,
+            partitionTableFilePath
+          );
+          if (!utils.fileExists(partitionTableFilePath)) {
+            // inform user and create file.
+            Logger.infoNotify(
+              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`
+            );
+            createFileSync(partitionTableFilePath);
+          }
+          filePath = partitionTableFilePath;
+        } catch (error) {
+          return Logger.errorNotify(error.message, error);
+        }
+      }
+      PartitionTableEditorPanel.show(context.extensionPath, filePath);
+    }
+  );
   registerIDFCommand("esp.efuse.summary", async () => {
     vscode.window.withProgress(
       {

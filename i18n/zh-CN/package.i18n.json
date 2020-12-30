@@ -75,6 +75,7 @@
   "esp.rainmaker.backend.update_node_param.title": "更新设备的参数",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth服务器网址",
   "idf.wssPort.description": "用于核心转储或GDB存根的Web套接字服务器端口",
+  "esp.webview.open.partition-table.title": "打开Partition Table Editor UI",
   "esp.efuse.summary.title": "获取eFuse摘要",
   "espIdf.jtag_flash.title": "Flash（带有JTag）",
   "espIdf.selectFlashMethodAndFlash.title": "选择闪光方法和闪光",
