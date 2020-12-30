@@ -94,6 +94,7 @@ import {
 } from "./espIdf/documentation/docResultsTreeView";
 import { release } from "os";
 import del from "del";
+import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1741,6 +1742,33 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
+  registerIDFCommand(
+    "espIdf.webview.nvsPartitionEditor",
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
+      if (!args) {
+        try {
+          const nvsFileName = await vscode.window.showInputBox({
+            placeHolder: "Enter NVS CSV file name",
+            value: "",
+          });
+          if (!nvsFileName) {
+            return;
+          }
+          filePath = path.join(
+            workspaceRoot.fsPath,
+            `${nvsFileName.replace(".csv", "")}.csv`
+          );
+        } catch (error) {
+          const errMsg = error.message
+            ? error.message
+            : "Error at NVS Partition Editor";
+          Logger.errorNotify(errMsg, error);
+        }
+      }
+      NVSPartitionTable.createOrShow(context.extensionPath, filePath);
+    }
+  );
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");

@@ -41,7 +41,8 @@ p.subtitle {
 }
 
 .table,
-.table thead td {
+.table thead td,
+.table thead th {
   color: var(--vscode-foreground);
   background-color: var(--vscode-notifications-background);
 }
@@ -79,8 +80,9 @@ button > span.icon > i:hover {
   border-color: var(--vscode-button-foreground);
 }
 
-.select,
-.input {
+.input,
+.textarea,
+.select select {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-border);
   color: var(--vscode-input-foreground);
@@ -88,12 +90,13 @@ button > span.icon > i:hover {
 .input::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
-.select:hover,
+.select select:hover,
+.textarea,
 .input:hover {
   border-color: var(--vscode-inputOption-activeBorder);
 }
-.select:active,
-.select:focus,
+.select select:active,
+.select select:focus,
 .input:active,
 .input:focus {
   border-color: var(--vscode-inputOption-activeBorder);
