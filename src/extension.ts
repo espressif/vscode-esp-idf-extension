@@ -94,6 +94,8 @@ import {
   DocSearchResultTreeDataProvider,
 } from "./espIdf/documentation/docResultsTreeView";
 import { release } from "os";
+import del from "del";
+import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -423,6 +425,35 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.fullClean", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const buildDir = path.join(workspaceRoot.fsPath, "build");
+      const buildDirExists = await utils.dirExistPromise(buildDir);
+      if (!buildDirExists) {
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
+        );
+      }
+      const cmakeCacheFile = path.join(buildDir, "CMakeCache.txt");
+      const doesCmakeCacheExists = utils.canAccessFile(
+        cmakeCacheFile,
+        constants.R_OK
+      );
+      if (!doesCmakeCacheExists) {
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
+        );
+      }
+      if (BuildTask.isBuilding || FlashTask.isFlashing) {
+        return Logger.warnNotify(
+          `There is a build or flash task running. Wait for it to finish or cancel before clean.`
+        );
+      }
+
+      await del(buildDir, { force: true });
     });
   });
 
@@ -1759,6 +1790,33 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
+  registerIDFCommand(
+    "espIdf.webview.nvsPartitionEditor",
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
+      if (!args) {
+        try {
+          const nvsFileName = await vscode.window.showInputBox({
+            placeHolder: "Enter NVS CSV file name",
+            value: "",
+          });
+          if (!nvsFileName) {
+            return;
+          }
+          filePath = path.join(
+            workspaceRoot.fsPath,
+            `${nvsFileName.replace(".csv", "")}.csv`
+          );
+        } catch (error) {
+          const errMsg = error.message
+            ? error.message
+            : "Error at NVS Partition Editor";
+          Logger.errorNotify(errMsg, error);
+        }
+      }
+      NVSPartitionTable.createOrShow(context.extensionPath, filePath);
+    }
+  );
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
@@ -1854,14 +1912,15 @@ function creatCmdsStatusBarItems() {
     "$(plug)",
     "ESP-IDF Select device port",
     "espIdf.selectPort",
-    100
+    101
   );
   createStatusBarItem(
     "$(gear)",
     "ESP-IDF Launch GUI Configuration tool",
     "menuconfig.start",
-    99
+    100
   );
+  createStatusBarItem("$(trash)", "ESP-IDF Full Clean", "espIdf.fullClean", 99);
   createStatusBarItem(
     "$(database)",
     "ESP-IDF Build project",

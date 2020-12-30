@@ -57,6 +57,7 @@
     "onCommand:espIdf.cleanProject",
     "onCommand:espIdf.erase_flash",
     "onCommand:espIdf.size",
+    "onCommand:espIdf.fullClean",
     "onCommand:espIdf.apptrace",
     "onCommand:espIdf.heaptrace",
     "onCommand:espIdf.openOCDCommand",
@@ -75,6 +76,7 @@
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:esp.webview.open.partition-table",
+    "onCommand:espIdf.webview.nvsPartitionEditor",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -231,6 +233,11 @@
         {
           "when": "resourceExtname == .csv",
           "group": "navigation",
+          "command": "espIdf.webview.nvsPartitionEditor"
+        },
+        {
+          "when": "resourceExtname == .csv",
+          "group": "navigation",
           "command": "esp.webview.open.partition-table"
         },
         {
@@ -245,6 +252,11 @@
         "command": "espIdf.createFiles",
         "key": "ctrl+e c",
         "mac": "cmd+e c"
+      },
+      {
+        "command": "espIdf.fullClean",
+        "key": "ctrl+e f",
+        "mac": "cmd+e f"
       },
       {
         "command": "espIdf.buildDevice",
@@ -755,6 +767,14 @@
         "command": "espIdf.selectFlashMethodAndFlash",
         "title": "%espIdf.selectFlashMethodAndFlash.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.fullClean",
+        "title": "%espIdf.fullClean.title%"
+      },
+      {
+        "command": "espIdf.webview.nvsPartitionEditor",
+        "title": "%espIdf.webview.nvsPartitionEditor.title%"
       }
     ],
     "breakpoints": [
@@ -947,6 +967,7 @@
     "vue-loader": "^15.7.1",
     "vue-property-decorator": "^8.2.1",
     "vue-router": "^3.0.2",
+    "vue-select": "^3.10.8",
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
     "vuex-class": "^0.3.2",

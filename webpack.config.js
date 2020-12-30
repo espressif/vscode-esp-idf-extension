@@ -84,6 +84,13 @@ const webViewConfig = {
       "menuconfig",
       "main.ts"
     ),
+    nvsPartitionTable: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "nvs-partition-table",
+      "main.ts"
+    ),
     sysView: path.resolve(__dirname, "src", "views", "system-view", "main.ts"),
     partition_table: path.resolve(
       __dirname,
