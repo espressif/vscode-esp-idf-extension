@@ -15,3 +15,5 @@ testFiles/tools
 bandit_output.txt
 flake8_output.txt
 results/
+report.txt
+report.json

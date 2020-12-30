@@ -99,7 +99,7 @@ import { release } from "os";
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import { getBoards } from "./espIdf/openOcd/boardConfiguration";
-import { generateConfigurationReport } from "./support/doctor";
+import { generateConfigurationReport } from "./support";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;

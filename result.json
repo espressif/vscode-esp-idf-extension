@@ -1,0 +1,126 @@
+{
+  "configurationSettings": {
+    "espIdfPath": "/Users/brian/esp/esp-idf",
+    "customExtraPaths": "/Users/brian/workspace/esp41/espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/bin:/Users/brian/workspace/esp41/espressif/tools/xtensa-esp32s2-elf/esp-2020r2-8.2.0/xtensa-esp32s2-elf/bin:/Users/brian/workspace/esp41/espressif/tools/esp32ulp-elf/2.28.51-esp-20191205/esp32ulp-elf-binutils/bin:/Users/brian/workspace/esp41/espressif/tools/esp32s2ulp-elf/2.28.51-esp-20191205/esp32s2ulp-elf-binutils/bin:/Users/brian/workspace/esp41/espressif/tools/openocd-esp32/v0.10.0-esp32-20200709/openocd-esp32/bin",
+    "customExtraVars": "{\"OPENOCD_SCRIPTS\":\"/Users/brian/workspace/esp41/espressif/tools/openocd-esp32/v0.10.0-esp32-20200709/openocd-esp32/share/openocd/scripts\"}",
+    "pythonBinPath": "/Users/brian/workspace/esp41/espressif/python_env/idf4.3_py3.9_env/bin/python",
+    "pythonPackages": [
+      { "name": "bitstring", "version": "3.1.7" },
+      { "name": "Brotli", "version": "1.0.9" },
+      { "name": "certifi", "version": "2020.11.8" },
+      { "name": "cffi", "version": "1.14.4" },
+      { "name": "chardet", "version": "3.0.4" },
+      { "name": "click", "version": "7.1.2" },
+      { "name": "cryptography", "version": "3.2.1" },
+      { "name": "Flask", "version": "0.12.5" },
+      { "name": "Flask-Compress", "version": "1.8.0" },
+      { "name": "Flask-SocketIO", "version": "2.9.6" },
+      { "name": "future", "version": "0.18.2" },
+      { "name": "gcovr", "version": "4.2" },
+      { "name": "gdbgui", "version": "0.13.2.0" },
+      { "name": "gevent", "version": "1.5.0" },
+      { "name": "greenlet", "version": "0.4.17" },
+      { "name": "idna", "version": "2.10" },
+      { "name": "itsdangerous", "version": "1.1.0" },
+      { "name": "Jinja2", "version": "2.11.2" },
+      { "name": "lxml", "version": "4.6.2" },
+      { "name": "MarkupSafe", "version": "1.1.1" },
+      { "name": "pip", "version": "20.2.3" },
+      { "name": "psutil", "version": "5.7.3" },
+      { "name": "pycparser", "version": "2.20" },
+      { "name": "pyelftools", "version": "0.27" },
+      { "name": "pygdbmi", "version": "0.9.0.2" },
+      { "name": "Pygments", "version": "2.7.2" },
+      { "name": "pyparsing", "version": "2.3.1" },
+      { "name": "pyserial", "version": "3.5" },
+      { "name": "python-engineio", "version": "3.14.2" },
+      { "name": "python-socketio", "version": "4.6.1" },
+      { "name": "reedsolo", "version": "1.5.4" },
+      { "name": "requests", "version": "2.25.0" },
+      { "name": "setuptools", "version": "49.2.1" },
+      { "name": "six", "version": "1.15.0" },
+      { "name": "typing", "version": "3.7.4.3" },
+      { "name": "urllib3", "version": "1.26.2" },
+      { "name": "websocket-client", "version": "0.57.0" },
+      { "name": "Werkzeug", "version": "0.16.1" },
+      { "name": "wheel", "version": "0.36.0" },
+      { "name": "xmlrunner", "version": "1.7.7" }
+    ],
+    "serialPort": "/dev/cu.usbserial-14141501",
+    "openOcdConfigs": [
+      "interface/ftdi/esp32_devkitj_v1.cfg",
+      "board/esp32-wrover.cfg"
+    ],
+    "toolsPath": "/Users/brian/workspace/esp41/espressif",
+    "systemEnvPath": "/usr/local/opt/python@3.8/bin:/Library/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/Apple/usr/bin"
+  },
+  "configurationAccess": {
+    "espIdfPath": true,
+    "espIdfToolsPaths": {
+      "/Users/brian/workspace/esp41/espressif/tools/xtensa-esp32-elf/esp-2020r2-8.2.0/xtensa-esp32-elf/bin": true,
+      "/Users/brian/workspace/esp41/espressif/tools/xtensa-esp32s2-elf/esp-2020r2-8.2.0/xtensa-esp32s2-elf/bin": true,
+      "/Users/brian/workspace/esp41/espressif/tools/esp32ulp-elf/2.28.51-esp-20191205/esp32ulp-elf-binutils/bin": true,
+      "/Users/brian/workspace/esp41/espressif/tools/esp32s2ulp-elf/2.28.51-esp-20191205/esp32s2ulp-elf-binutils/bin": true,
+      "/Users/brian/workspace/esp41/espressif/tools/openocd-esp32/v0.10.0-esp32-20200709/openocd-esp32/bin": true
+    },
+    "pythonBinPath": true,
+    "cmakeInEnv": true,
+    "ninjaInEnv": true,
+    "toolsPath": true
+  },
+  "debugAdapterRequirements": {
+    "output": "Python requirements from /Users/brian/workspace/github-vscode-esp-idf-extension/esp_debug_adapter/requirements.txt are satisfied.",
+    "result": "Python requirements from /Users/brian/workspace/github-vscode-esp-idf-extension/esp_debug_adapter/requirements.txt are satisfied."
+  },
+  "espIdfToolsVersions": [
+    {
+      "actual": "esp-2020r2-8.2.0",
+      "doesToolExist": true,
+      "expected": "esp-2020r2-8.2.0",
+      "id": "xtensa-esp32-elf"
+    },
+    {
+      "actual": "esp-2020r2-8.2.0",
+      "doesToolExist": true,
+      "expected": "esp-2020r2-8.2.0",
+      "id": "xtensa-esp32s2-elf"
+    },
+    {
+      "actual": "2.28.51-esp-20191205",
+      "doesToolExist": true,
+      "expected": "2.28.51-esp-20191205",
+      "id": "esp32ulp-elf"
+    },
+    {
+      "actual": "2.28.51-esp-20191205",
+      "doesToolExist": true,
+      "expected": "2.28.51-esp-20191205",
+      "id": "esp32s2ulp-elf"
+    },
+    {
+      "actual": "v0.10.0-esp32-20200709",
+      "doesToolExist": true,
+      "expected": "v0.10.0-esp32-20200709",
+      "id": "openocd-esp32"
+    }
+  ],
+  "espIdfVersion": { "output": "v4.3-dev-806-gbfd71ae7ec\n", "result": "4.3" },
+  "extensionRequirements": {
+    "output": "Python requirements from /Users/brian/workspace/github-vscode-esp-idf-extension/requirements.txt are satisfied.",
+    "result": "Python requirements from /Users/brian/workspace/github-vscode-esp-idf-extension/requirements.txt are satisfied."
+  },
+  "gitVersion": { "output": "git version 2.20.1\n", "result": "2.20.1" },
+  "idfCheckRequirements": {
+    "output": "Python requirements from /Users/brian/esp/esp-idf/requirements.txt are satisfied.",
+    "result": "Python requirements from /Users/brian/esp/esp-idf/requirements.txt are satisfied."
+  },
+  "pipVersion": {
+    "output": "pip 20.2.3 from /Users/brian/workspace/esp41/espressif/python_env/idf4.3_py3.9_env/lib/python3.9/site-packages/pip (python 3.9)\n",
+    "result": "20.2.3"
+  },
+  "pythonPackages": {
+    "output": "WARNING: You are using pip version 20.2.3; however, version 20.3.3 is available.\nYou should consider upgrading via the '/Users/brian/workspace/esp41/espressif/python_env/idf4.3_py3.9_env/bin/python -m pip install --upgrade pip' command.\n[{\"name\": \"bitstring\", \"version\": \"3.1.7\"}, {\"name\": \"Brotli\", \"version\": \"1.0.9\"}, {\"name\": \"certifi\", \"version\": \"2020.11.8\"}, {\"name\": \"cffi\", \"version\": \"1.14.4\"}, {\"name\": \"chardet\", \"version\": \"3.0.4\"}, {\"name\": \"click\", \"version\": \"7.1.2\"}, {\"name\": \"cryptography\", \"version\": \"3.2.1\"}, {\"name\": \"Flask\", \"version\": \"0.12.5\"}, {\"name\": \"Flask-Compress\", \"version\": \"1.8.0\"}, {\"name\": \"Flask-SocketIO\", \"version\": \"2.9.6\"}, {\"name\": \"future\", \"version\": \"0.18.2\"}, {\"name\": \"gcovr\", \"version\": \"4.2\"}, {\"name\": \"gdbgui\", \"version\": \"0.13.2.0\"}, {\"name\": \"gevent\", \"version\": \"1.5.0\"}, {\"name\": \"greenlet\", \"version\": \"0.4.17\"}, {\"name\": \"idna\", \"version\": \"2.10\"}, {\"name\": \"itsdangerous\", \"version\": \"1.1.0\"}, {\"name\": \"Jinja2\", \"version\": \"2.11.2\"}, {\"name\": \"lxml\", \"version\": \"4.6.2\"}, {\"name\": \"MarkupSafe\", \"version\": \"1.1.1\"}, {\"name\": \"pip\", \"version\": \"20.2.3\"}, {\"name\": \"psutil\", \"version\": \"5.7.3\"}, {\"name\": \"pycparser\", \"version\": \"2.20\"}, {\"name\": \"pyelftools\", \"version\": \"0.27\"}, {\"name\": \"pygdbmi\", \"version\": \"0.9.0.2\"}, {\"name\": \"Pygments\", \"version\": \"2.7.2\"}, {\"name\": \"pyparsing\", \"version\": \"2.3.1\"}, {\"name\": \"pyserial\", \"version\": \"3.5\"}, {\"name\": \"python-engineio\", \"version\": \"3.14.2\"}, {\"name\": \"python-socketio\", \"version\": \"4.6.1\"}, {\"name\": \"reedsolo\", \"version\": \"1.5.4\"}, {\"name\": \"requests\", \"version\": \"2.25.0\"}, {\"name\": \"setuptools\", \"version\": \"49.2.1\"}, {\"name\": \"six\", \"version\": \"1.15.0\"}, {\"name\": \"typing\", \"version\": \"3.7.4.3\"}, {\"name\": \"urllib3\", \"version\": \"1.26.2\"}, {\"name\": \"websocket-client\", \"version\": \"0.57.0\"}, {\"name\": \"Werkzeug\", \"version\": \"0.16.1\"}, {\"name\": \"wheel\", \"version\": \"0.36.0\"}, {\"name\": \"xmlrunner\", \"version\": \"1.7.7\"}]\n",
+    "result": "WARNING: You are using pip version 20.2.3; however, version 20.3.3 is available.\nYou should consider upgrading via the '/Users/brian/workspace/esp41/espressif/python_env/idf4.3_py3.9_env/bin/python -m pip install --upgrade pip' command.\n[{\"name\": \"bitstring\", \"version\": \"3.1.7\"}, {\"name\": \"Brotli\", \"version\": \"1.0.9\"}, {\"name\": \"certifi\", \"version\": \"2020.11.8\"}, {\"name\": \"cffi\", \"version\": \"1.14.4\"}, {\"name\": \"chardet\", \"version\": \"3.0.4\"}, {\"name\": \"click\", \"version\": \"7.1.2\"}, {\"name\": \"cryptography\", \"version\": \"3.2.1\"}, {\"name\": \"Flask\", \"version\": \"0.12.5\"}, {\"name\": \"Flask-Compress\", \"version\": \"1.8.0\"}, {\"name\": \"Flask-SocketIO\", \"version\": \"2.9.6\"}, {\"name\": \"future\", \"version\": \"0.18.2\"}, {\"name\": \"gcovr\", \"version\": \"4.2\"}, {\"name\": \"gdbgui\", \"version\": \"0.13.2.0\"}, {\"name\": \"gevent\", \"version\": \"1.5.0\"}, {\"name\": \"greenlet\", \"version\": \"0.4.17\"}, {\"name\": \"idna\", \"version\": \"2.10\"}, {\"name\": \"itsdangerous\", \"version\": \"1.1.0\"}, {\"name\": \"Jinja2\", \"version\": \"2.11.2\"}, {\"name\": \"lxml\", \"version\": \"4.6.2\"}, {\"name\": \"MarkupSafe\", \"version\": \"1.1.1\"}, {\"name\": \"pip\", \"version\": \"20.2.3\"}, {\"name\": \"psutil\", \"version\": \"5.7.3\"}, {\"name\": \"pycparser\", \"version\": \"2.20\"}, {\"name\": \"pyelftools\", \"version\": \"0.27\"}, {\"name\": \"pygdbmi\", \"version\": \"0.9.0.2\"}, {\"name\": \"Pygments\", \"version\": \"2.7.2\"}, {\"name\": \"pyparsing\", \"version\": \"2.3.1\"}, {\"name\": \"pyserial\", \"version\": \"3.5\"}, {\"name\": \"python-engineio\", \"version\": \"3.14.2\"}, {\"name\": \"python-socketio\", \"version\": \"4.6.1\"}, {\"name\": \"reedsolo\", \"version\": \"1.5.4\"}, {\"name\": \"requests\", \"version\": \"2.25.0\"}, {\"name\": \"setuptools\", \"version\": \"49.2.1\"}, {\"name\": \"six\", \"version\": \"1.15.0\"}, {\"name\": \"typing\", \"version\": \"3.7.4.3\"}, {\"name\": \"urllib3\", \"version\": \"1.26.2\"}, {\"name\": \"websocket-client\", \"version\": \"0.57.0\"}, {\"name\": \"Werkzeug\", \"version\": \"0.16.1\"}, {\"name\": \"wheel\", \"version\": \"0.36.0\"}, {\"name\": \"xmlrunner\", \"version\": \"1.7.7\"}]\n"
+  },
+  "pythonVersion": { "output": "Python 3.9.0\n", "result": "3.9.0" }
+}
