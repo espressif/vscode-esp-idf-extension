@@ -1,24 +1,66 @@
+<a href="https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension">
+  <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="30" />
+</a>
+
 # [ESP-IDF VS Code Extension's](http://github.com/espressif/vscode-esp-idf-extension) Changelogs
 
 > We have opened a [survey link](https://bit.ly/3iNCFyY), please submit your valuable feedbacks. Thanks 👏
 
+<a href="https://youtu.be/Lc6ausiKvQM">
+
+  <p align="center">
+    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
+  </p>
+</a>
+
+---
+
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
-## 0.5.1
+## [0.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.6.0)
+
+### Features & Enhancements
+
+- [Changelog Viewer](https://github.com/espressif/vscode-esp-idf-extension/pull/180)
+- [Core Dump & GDB Stub Postmortem Debug Support](https://github.com/espressif/vscode-esp-idf-extension/pull/176)
+- [Add Support for Powershell Core](https://github.com/espressif/vscode-esp-idf-extension/pull/212)
+- [ESP-IDF custom CMake Editor](https://github.com/espressif/vscode-esp-idf-extension/pull/203)
+- [Add Option to silent the notifications](https://github.com/espressif/vscode-esp-idf-extension/pull/220)
+- [Enhance doc search from vscode, also show results inside vscode itself](https://github.com/espressif/vscode-esp-idf-extension/pull/215)
+- [Show Rainmaker LoggedIn User's Info](https://github.com/espressif/vscode-esp-idf-extension/pull/235)
+- [Add WSL Serial Support](https://github.com/espressif/vscode-esp-idf-extension/pull/224)
+- [JTAG Flashing Support](https://github.com/espressif/vscode-esp-idf-extension/pull/183)
+- [Add e-fuse bit viewer](https://github.com/espressif/vscode-esp-idf-extension/pull/151)
+- [Add Full Clean Command](https://github.com/espressif/vscode-esp-idf-extension/pull/250)
+- [Full Partition Table Editor UI](https://github.com/espressif/vscode-esp-idf-extension/pull/170)
+- [NVS Partition Editor UI](https://github.com/espressif/vscode-esp-idf-extension/pull/246)
+- [Enhanced Onboarding & Simplification](https://github.com/espressif/vscode-esp-idf-extension/pull/159)
+- [Use variable app_image_offset for debugAdapter](https://github.com/espressif/vscode-esp-idf-extension/issues/225)
+- [Win configuration parameters](https://github.com/espressif/vscode-esp-idf-extension/issues/234)
+
+### Bug Fixes
+
+- [Fix Rainmaker UI Crash](https://github.com/espressif/vscode-esp-idf-extension/issues/245)
+- [Fix Create project using example error](https://github.com/espressif/vscode-esp-idf-extension/issues/239)
+- [Fix Conflict with PlatformIO and ESP-IDF Extension](https://github.com/espressif/vscode-esp-idf-extension/issues/190)
+- [Fix Menuconfig Related Error](https://github.com/espressif/vscode-esp-idf-extension/issues/199)
+- [Fix issues with IntelliSense](https://github.com/espressif/vscode-esp-idf-extension/issues/191)
+
+## [0.5.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.5.1)
 
 ### Release Bug Fix
 
 - Fix the CI release to marketplace bug not packaging the `esp_debug_adapter`
 - Fix the System Tracing UI theme, and added webview panel icons
 
-## 0.5.0
+## [0.5.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.5.0)
 
 ### ESP-ADF & ESP-MDF
 
 - Added support for ESP-ADF and ESP-MDF
 - Fixed some bugs related to [Device Baud Rate](https://github.com/espressif/vscode-esp-idf-extension/pull/166), [Webview Background Color](https://github.com/espressif/vscode-esp-idf-extension/pull/166), [Menuconfig](https://github.com/espressif/vscode-esp-idf-extension/pull/166)
 
-## 0.4.0
+## [0.4.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.4.0)
 
 ### System View Tracing Viewer, Search IDF Documentation, etc.
 
@@ -27,7 +69,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Add [support](https://github.com/espressif/vscode-esp-idf-extension#available-commands) for searching ESP-IDF documentation from vscode itself.
 - Fixed some bugs related to [debug adapter](https://github.com/espressif/vscode-esp-idf-extension/pull/134), [gui menuconfig](https://github.com/espressif/vscode-esp-idf-extension/pull/145), [task based commands](https://github.com/espressif/vscode-esp-idf-extension/pull/143), [UI and style enhancements](https://github.com/espressif/vscode-esp-idf-extension/pull/137), etc.
 
-## 0.3.0
+## [0.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.3.0)
 
 ### Heap Tracing, Code Coverage Support, Rainmaker Support and bug fixes
 
@@ -42,7 +84,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Fix some typos in Documentation
 - Fix workspace folder error for no opened workspaces
 
-## 0.2.2
+## [0.2.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.2.2)
 
 ### Add problem matcher support for build and Minor Bug Fixes
 
@@ -50,7 +92,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Update some CI issues
 - Fixed build related errors
 
-## 0.2.1
+## [0.2.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.2.1)
 
 ### Minor bug fixes and performance enhancements
 
@@ -61,7 +103,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Fix xtensa toolchain issue and getProjectName
 - Update OpenOCD script checks
 
-## 0.2.0
+## [0.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.2.0)
 
 ### Release Debug Adapter for ESP-IDF withing VSCode
 
@@ -71,21 +113,21 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Update Issue Template for GH
 - Minor bug fixes and enhancements
 
-## 0.1.4
+## [0.1.4](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.1.4)
 
 ### i18n Validation and CMake based reading of project name
 
 - Auto validate missing `i18n` keys and trigger build failure if not found.
 - Read & Sync project name using `CMakeList`
 
-## 0.1.3
+## [0.1.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.1.3)
 
 ### Automate Github and VSCode Marketplace release
 
 - Release to Github and VSCode Marketplace using Github Actions
 - Minor bug fixes
 
-## 0.1.2
+## [0.1.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.1.2)
 
 ### Breaking Project Structural changes
 
@@ -93,7 +135,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Use `webpack` to bundle all of the extension
 - Reduce overall size of the `.vsix` significantly
 
-## 0.1.1
+## [0.1.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.1.1)
 
 ### Release to the VSCode Marketplace
 
@@ -101,7 +143,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - Update docs
 - CI improvements
 
-## 0.1.0
+## [0.1.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.1.0)
 
 ### Initial Public Release
 
