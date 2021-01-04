@@ -57,13 +57,13 @@ export class ExamplesPlanel {
     targetFrameworkFolder: string,
     targetDesc: string
   ) {
-    const onBoardingPanelTitle = locDic.localize(
+    const panelTitle = locDic.localize(
       "examples.panelName",
       `${targetDesc} Examples`
     );
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
-      onBoardingPanelTitle,
+      panelTitle,
       column,
       {
         enableScripts: true,

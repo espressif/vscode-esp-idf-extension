@@ -1,0 +1,102 @@
+// Copyright 2019 Espressif Systems (Shanghai) CO LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import * as path from "path";
+import * as vscode from "vscode";
+import { checkPythonPipExists } from "./installPyReqs";
+import { SetupPanel } from "./SetupPanel";
+import * as idfConf from "../idfConfiguration";
+import * as utils from "../utils";
+import {
+  IdfMirror,
+  IEspIdfLink,
+  SetupMode,
+  StatusType,
+} from "../views/setup/types";
+import { downloadInstallIdfVersion } from "./espIdfDownload";
+import { Logger } from "../logger/logger";
+import { downloadIdfTools } from "./toolsDownloadStep";
+
+export async function expressInstall(
+  selectedIdfVersion: IEspIdfLink,
+  pyPath: string,
+  espIdfPath: string,
+  idfContainerPath: string,
+  mirror: IdfMirror,
+  setupMode: SetupMode,
+  progress?: vscode.Progress<{ message: string; increment?: number }>,
+  cancelToken?: vscode.CancellationToken
+) {
+  const pyCheck = await checkPythonPipExists(pyPath, __dirname);
+  if (!pyCheck) {
+    const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
+    Logger.infoNotify(containerNotFoundMsg);
+    throw new Error(containerNotFoundMsg);
+  }
+  SetupPanel.postMessage({
+    command: "goToCustomPage",
+    installing: true,
+    page: "/status",
+  });
+  let idfPath: string;
+  if (selectedIdfVersion.filename === "manual") {
+    idfPath = espIdfPath;
+  } else {
+    idfPath = await downloadInstallIdfVersion(
+      selectedIdfVersion,
+      idfContainerPath,
+      mirror,
+      progress,
+      cancelToken
+    );
+  }
+  const idfVersion = await utils.getEspIdfVersion(idfPath);
+  if (idfVersion === "x.x") {
+    throw new Error("Invalid ESP-IDF");
+  }
+  SetupPanel.postMessage({
+    command: "updateEspIdfFolder",
+    selectedFolder: idfPath,
+  });
+  SetupPanel.postMessage({
+    command: "setIdfVersion",
+    idfVersion,
+  });
+  SetupPanel.postMessage({
+    command: "updateEspIdfStatus",
+    status: StatusType.installed,
+  });
+  SetupPanel.postMessage({
+    command: "setEspIdfErrorStatus",
+    errorMsg: `ESP-IDF is installed in ${idfPath}`,
+  });
+  SetupPanel.postMessage({
+    command: "updateEspIdfToolsStatus",
+    status: StatusType.started,
+  });
+  if (setupMode === SetupMode.advanced) {
+    SetupPanel.postMessage({
+      command: "goToCustomPage",
+      installing: false,
+      page: "/custom",
+    });
+    return;
+  }
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const toolsPath =
+    (idfConf.readParameter("idf.toolsPath") as string) ||
+    path.join(containerPath, ".espressif");
+  await downloadIdfTools(idfPath, toolsPath, pyPath, progress, cancelToken);
+}

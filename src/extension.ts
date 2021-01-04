@@ -50,8 +50,6 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
-import { getOnboardingInitialValues } from "./onboarding/onboardingInit";
-import { OnBoardingPanel } from "./onboarding/OnboardingPanel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
@@ -84,9 +82,17 @@ import { ESPEFuseManager } from "./efuse";
 import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
+import { SetupPanel } from "./setup/SetupPanel";
 import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
 import { JTAGFlash } from "./flash/jtag";
 import { ChangelogViewer } from "./changelog-viewer";
+import {
+  getSetupInitialValues,
+  isCurrentInstallValid,
+  ISetupInitArgs,
+} from "./setup/setupInit";
+import { installReqs } from "./pythonManager";
+import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
 import {
@@ -855,6 +861,51 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
+  registerIDFCommand("espIdf.installPyReqs", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF:",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const espIdfPath = idfConf.readParameter(
+              "idf.espIdfPath"
+            ) as string;
+            const toolsPath = idfConf.readParameter("idf.toolsPath") as string;
+            const pyPath = idfConf.readParameter("idf.pythonBinPath") as string;
+            progress.report({
+              message: `Installing ESP-IDF Python Requirements...`,
+            });
+            await installReqs(
+              espIdfPath,
+              pyPath,
+              toolsPath,
+              undefined,
+              OutputChannel.init(),
+              cancelToken
+            );
+            vscode.window.showInformationMessage(
+              "ESP-IDF Python Requirements has been installed"
+            );
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : typeof error === "string"
+              ? error
+              : "Error installing Python requirements";
+            Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
@@ -1009,14 +1060,14 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("onboarding.start", () => {
-    PreCheck.perform([webIdeCheck], () => {
+  registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
+    PreCheck.perform([webIdeCheck], async () => {
       try {
-        if (OnBoardingPanel.isCreatedAndHidden()) {
-          OnBoardingPanel.createOrShow(context.extensionPath);
+        if (SetupPanel.isCreatedAndHidden()) {
+          SetupPanel.createOrShow(context.extensionPath);
           return;
         }
-        vscode.window.withProgress(
+        await vscode.window.withProgress(
           {
             cancellable: false,
             location: vscode.ProgressLocation.Notification,
@@ -1026,14 +1077,10 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              const onboardingArgs = await getOnboardingInitialValues(
-                context.extensionPath,
-                progress
-              );
-              OnBoardingPanel.createOrShow(
-                context.extensionPath,
-                onboardingArgs
-              );
+              setupArgs = setupArgs
+                ? setupArgs
+                : await getSetupInitialValues(context.extensionPath, progress);
+              SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }
@@ -1318,12 +1365,6 @@ export async function activate(context: vscode.ExtensionContext) {
       await AppTraceManager.saveConfiguration();
     });
   });
-  const showOnboardingInit = vscode.workspace
-    .getConfiguration("idf")
-    .get("showOnboardingOnInit");
-  if (showOnboardingInit && typeof process.env.WEB_IDE === "undefined") {
-    vscode.commands.executeCommand("onboarding.start");
-  }
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
     if (RainmakerAPIClient.isLoggedIn()) {
@@ -1854,6 +1895,7 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
+  await checkExtensionSettings(context.extensionPath);
 }
 
 function validateInputForRainmakerDeviceParam(
@@ -1997,6 +2039,10 @@ const build = () => {
           buildTask.building(false);
         });
         try {
+          const checkToolsAreValid = await isCurrentInstallValid();
+          if (!checkToolsAreValid) {
+            return;
+          }
           await buildTask.build();
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {
@@ -2090,7 +2136,7 @@ const flash = () => {
     const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
     let flashTask: FlashTask;
 
-    vscode.window.withProgress(
+    await vscode.window.withProgress(
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
@@ -2105,6 +2151,10 @@ const flash = () => {
           TaskManager.disposeListeners();
         });
         try {
+          const checkToolsAreValid = await isCurrentInstallValid();
+          if (!checkToolsAreValid) {
+            return;
+          }
           const model = await createFlashModel(
             flasherArgsJsonPath,
             port,
@@ -2220,6 +2270,10 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
           buildTask.building(false);
         });
         try {
+          const checkToolsAreValid = await isCurrentInstallValid();
+          if (!checkToolsAreValid) {
+            return;
+          }
           progress.report({ message: "Building project...", increment: 20 });
           await buildTask.build().then(() => {
             buildTask.building(false);

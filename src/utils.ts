@@ -311,7 +311,8 @@ export function execChildProcess(
   processStr: string,
   workingDirectory: string,
   channel?: vscode.OutputChannel,
-  opts?: childProcess.ExecOptions
+  opts?: childProcess.ExecOptions,
+  cancelToken?: vscode.CancellationToken
 ): Promise<string> {
   const execOpts: childProcess.ExecOptions = opts
     ? opts
@@ -324,6 +325,9 @@ export function execChildProcess(
       processStr,
       execOpts,
       (error: Error, stdout: string, stderr: string) => {
+        if (cancelToken && cancelToken.isCancellationRequested) {
+          return reject(new Error("Process cancelled by user"));
+        }
         if (channel) {
           let message: string = "";
           let err: boolean = false;
@@ -332,12 +336,8 @@ export function execChildProcess(
           }
           if (stderr && stderr.length > 0) {
             message += stderr;
-            err = true;
-            if (stderr.indexOf("Licensed under GNU GPL v2") !== -1) {
-              err = false;
-            }
-            if (stderr.indexOf("DEPRECATION") !== -1) {
-              err = false;
+            if (stderr.indexOf("Error") !== -1) {
+              err = true;
             }
           }
           if (error) {
@@ -354,31 +354,15 @@ export function execChildProcess(
           if (error.message) {
             Logger.error(error.message, error);
           }
-          reject(error);
-          return;
+          return reject(error);
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          const ignoredMessages = [
-            "Licensed under GNU GPL v2",
-            "DEPRECATION",
-            "WARNING",
-            "Cache entry deserialization failed",
-            `Ignoring pywin32: markers 'platform_system == "Windows"' don't match your environment`,
-            `Ignoring None: markers 'sys_platform == "win32"' don't match your environment`,
-          ];
-          for (const msg of ignoredMessages) {
-            if (stderr.indexOf(msg) !== -1) {
-              resolve(stdout.concat(stderr));
-            }
+          if (stderr.indexOf("Error") !== -1) {
+            return reject(stderr);
           }
-          if (stderr.trim().endsWith("pip install --upgrade pip' command.")) {
-            resolve(stdout.concat(stderr));
-          }
-          reject(new Error(stderr));
-          return;
         }
-        resolve(stdout);
+        return resolve(stdout.concat(stderr));
       }
     );
   });
@@ -656,8 +640,13 @@ export function appendIdfAndToolsToPath() {
     }
   }
 
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const defaultEspIdfPath = path.join(containerPath, "esp", "esp-idf");
+
   const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-  modifiedEnv.IDF_PATH = idfPathDir || process.env.IDF_PATH;
+  modifiedEnv.IDF_PATH =
+    idfPathDir || process.env.IDF_PATH || defaultEspIdfPath;
 
   const adfPathDir = idfConf.readParameter("idf.espAdfPath");
   modifiedEnv.ADF_PATH = adfPathDir || process.env.ADF_PATH;

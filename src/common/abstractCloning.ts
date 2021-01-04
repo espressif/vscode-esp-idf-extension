@@ -19,6 +19,7 @@ import { checkGitExists, dirExistPromise } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { CancellationToken, Progress, ProgressLocation, window } from "vscode";
 import * as idfConf from "../idfConfiguration";
+import { PackageProgress } from "../PackageProgress";
 
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
@@ -41,8 +42,9 @@ export class AbstractCloning {
   }
 
   public downloadByCloning(
-    progress: Progress<{ message?: string; increment?: number }>,
-    installDir: string
+    installDir: string,
+    pkgProgress?: PackageProgress,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
@@ -66,14 +68,26 @@ export class AbstractCloning {
         }
         const progressRegex = /(\d+)(\.\d+)?%/g;
         const matches = data.toString().match(progressRegex);
-        if (progress && matches) {
-          progress.report({
-            message: `Downloading ${matches[matches.length - 1]}`,
-          });
+        if (matches) {
+          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
+          if (progress) {
+            progress.report({
+              message: progressMsg,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = matches[matches.length - 1];
+          }
         } else if (data.toString().indexOf("Cloning into") !== -1) {
-          progress.report({
-            message: `${data.toString()}`,
-          });
+          let detailMsg = " " + data.toString();
+          if (progress) {
+            progress.report({
+              message: `${data.toString()}`,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = detailMsg;
+          }
         }
       });
 
@@ -81,14 +95,26 @@ export class AbstractCloning {
         OutputChannel.appendLine(data.toString());
         const progressRegex = /(\d+)(\.\d+)?%/g;
         const matches = data.toString().match(progressRegex);
-        if (progress && matches) {
-          progress.report({
-            message: `Downloading ${matches[matches.length - 1]}`,
-          });
+        if (matches) {
+          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
+          if (progress) {
+            progress.report({
+              message: progressMsg,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = matches[matches.length - 1];
+          }
         } else if (data.toString().indexOf("Cloning into") !== -1) {
-          progress.report({
-            message: ` ${data.toString()}`,
-          });
+          let detailMsg = " " + data.toString();
+          if (progress) {
+            progress.report({
+              message: `${data.toString()}`,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = detailMsg;
+          }
         }
       });
 
@@ -162,7 +188,7 @@ export class AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.downloadByCloning(progress, installDirPath);
+          await this.downloadByCloning(installDirPath, undefined, progress);
           const target = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(configurationId, resultingPath, target);
           Logger.infoNotify(`${this.name} has been installed`);

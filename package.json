@@ -69,12 +69,13 @@
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
-    "onCommand:onboarding.start",
+    "onCommand:espIdf.setup.start",
     "onCommand:examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
     "onView:idfAppTracer",
@@ -328,7 +329,7 @@
           },
           "idf.toolsPath": {
             "type": "string",
-            "default": "${env:HOME}/.espressif",
+            "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
@@ -352,7 +353,7 @@
           },
           "idf.toolsPathWin": {
             "type": "string",
-            "default": "${env:USERPROFILE}\\.espressif",
+            "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
@@ -425,12 +426,6 @@
             "default": false,
             "scope": "resource",
             "description": "%param.useIDFKConfigStyle%"
-          },
-          "idf.showOnboardingOnInit": {
-            "type": "boolean",
-            "default": true,
-            "scope": "resource",
-            "description": "%param.showOnboardingOnInit%"
           },
           "trace.poll_period": {
             "type": "string",
@@ -602,8 +597,8 @@
         "title": "%menuconfig.start.title%"
       },
       {
-        "command": "onboarding.start",
-        "title": "%espIdf.onboarding.title%"
+        "command": "espIdf.setup.start",
+        "title": "%espIdf.setup.title%"
       },
       {
         "command": "examples.start",
@@ -752,6 +747,10 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.installPyReqs",
+        "title": "%espIdf.installPyReqs.title%"
       },
       {
         "command": "esp.webview.open.partition-table",
@@ -983,7 +982,7 @@
     "axios": "^0.19.2",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
-    "follow-redirects": "^1.6.1",
+    "follow-redirects": "^1.13.0",
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",

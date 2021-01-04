@@ -93,7 +93,10 @@ button > span.icon > i:hover {
 .select select:hover,
 .textarea,
 .input:hover {
-  border-color: var(--vscode-inputOption-activeBorder);
+  border-color: var(--vscode-inputOption-activeBorder) !important;
+}
+.select:hover::after {
+  border-color: var(--vscode-focusBorder) !important;
 }
 .select select:active,
 .select select:focus,

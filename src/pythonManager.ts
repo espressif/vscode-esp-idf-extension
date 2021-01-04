@@ -12,53 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { PyReqLog } from "./PyReqLog";
+import { CancellationToken, OutputChannel } from "vscode";
+import * as utils from "./utils";
 import * as del from "del";
 import { constants, pathExists } from "fs-extra";
 import { EOL } from "os";
-import * as path from "path";
-import { OutputChannel } from "vscode";
 import { Logger } from "./logger/logger";
-import { PyReqLog } from "./onboarding/PyReqLog";
-import * as utils from "./utils";
-
-export async function getPythonBinToUse(
-  espDir: string,
-  idfToolsDir: string,
-  pythonBinPath: string
-): Promise<string> {
-  return getPythonEnvPath(espDir, idfToolsDir, pythonBinPath).then(
-    (pyEnvPath) => {
-      const pythonInEnv =
-        process.platform === "win32"
-          ? path.join(pyEnvPath, "Scripts", "python.exe")
-          : path.join(pyEnvPath, "bin", "python");
-      return pathExists(pythonInEnv).then((haveVirtualPython) => {
-        return haveVirtualPython ? pythonInEnv : pythonBinPath;
-      });
-    }
-  );
-}
+import path from "path";
 
 export async function installPythonEnv(
   espDir: string,
   idfToolsDir: string,
   pyTracker: PyReqLog,
   pythonBinPath: string,
-  channel?: OutputChannel
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
 ) {
-  // Check if already in virtualenv and install
   const isInsideVirtualEnv = await utils.execChildProcess(
-    `"${pythonBinPath}" -c "import sys; print(hasattr(sys, 'real_prefix'))"`,
+    `"${pythonBinPath}" -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"`,
     idfToolsDir,
     channel
   );
   if (isInsideVirtualEnv.replace(EOL, "") === "True") {
-    const ignoreVirtualEnvPythonMsg = `Can't use virtualenv Python ${pythonBinPath}. Please use system wide Python executable.`;
-    Logger.infoNotify(ignoreVirtualEnvPythonMsg);
+    const inVenvMsg = `Using existing virtual environment ${pythonBinPath}. Installing Python requirements...`;
+    pyTracker.Log = inVenvMsg;
     if (channel) {
-      channel.appendLine(ignoreVirtualEnvPythonMsg);
+      channel.appendLine(inVenvMsg);
     }
-    return;
+    await installReqs(espDir, pythonBinPath, idfToolsDir, pyTracker, channel);
+    return pythonBinPath;
   }
 
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
@@ -67,12 +50,145 @@ export async function installPythonEnv(
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
+
+  const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
+
+  if (
+    pythonBinPath.indexOf(virtualEnvPython) < 0 &&
+    utils.fileExists(virtualEnvPython)
+  ) {
+    await installExtensionPyReqs(
+      virtualEnvPython,
+      idfToolsDir,
+      pyTracker,
+      channel,
+      cancelToken
+    );
+    return virtualEnvPython;
+  }
+
+  pyTracker.Log = creatEnvMsg;
+  if (channel) {
+    channel.appendLine(creatEnvMsg);
+  }
+
+  let envModule: string;
+  try {
+    const pythonVersion = (
+      await utils.execChildProcess(
+        `"${pythonBinPath}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
+        espDir,
+        channel,
+        undefined,
+        cancelToken
+      )
+    ).replace(/(\n|\r|\r\n)/gm, "");
+    envModule =
+      pythonVersion.localeCompare("3.3") !== -1 ? "venv" : "virtualenv";
+    if (envModule.indexOf("virtualenv") !== -1) {
+      const checkVirtualEnv = await utils.execChildProcess(
+        `"${pythonBinPath}" -c "import virtualenv"`,
+        idfToolsDir,
+        channel,
+        undefined,
+        cancelToken
+      );
+    }
+  } catch (error) {
+    if (error && error.message.indexOf("ModuleNotFoundError") !== -1) {
+      await execProcessWithLog(
+        `"${pythonBinPath}" -m pip install --user virtualenv`,
+        idfToolsDir,
+        pyTracker,
+        channel,
+        undefined,
+        cancelToken
+      );
+    }
+  }
+  await execProcessWithLog(
+    `"${pythonBinPath}" -m ${envModule} "${pyEnvPath}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    undefined,
+    cancelToken
+  );
+  await installReqs(
+    espDir,
+    virtualEnvPython,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    cancelToken
+  );
+  return virtualEnvPython;
+}
+
+export async function installReqs(
+  espDir: string,
+  virtualEnvPython: string,
+  idfToolsDir: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
+  const installPyPkgsMsg = `Installing ESP-IDF python packages in ${virtualEnvPython} ...\n`;
+  if (pyTracker) {
+    pyTracker.Log = installPyPkgsMsg;
+  }
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install wheel`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    undefined,
+    cancelToken
+  );
   const requirements = path.join(espDir, "requirements.txt");
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   if (!utils.canAccessFile(requirements, constants.R_OK)) {
     Logger.warnNotify(requirements + reqDoesNotExists);
     if (channel) {
       channel.appendLine(requirements + reqDoesNotExists);
+    }
+    return;
+  }
+  const modifiedEnv = Object.assign({}, process.env);
+  modifiedEnv.IDF_PATH = espDir;
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location -r "${requirements}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    { env: modifiedEnv }
+  );
+  await installExtensionPyReqs(
+    virtualEnvPython,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    cancelToken
+  );
+}
+
+export async function installExtensionPyReqs(
+  virtualEnvPython: string,
+  idfToolsDir: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
+  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
+  const debugAdapterRequirements = path.join(
+    utils.extensionContext.extensionPath,
+    "esp_debug_adapter",
+    "requirements.txt"
+  );
+  if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
+    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
     }
     return;
   }
@@ -87,122 +203,59 @@ export async function installPythonEnv(
     }
     return;
   }
-  const debugAdapterRequirements = path.join(
-    utils.extensionContext.extensionPath,
-    "esp_debug_adapter",
-    "requirements.txt"
-  );
-  if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
-    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
-    if (channel) {
-      channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
-    }
-    return;
+  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
+  const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
+  if (pyTracker) {
+    pyTracker.Log = installExtensionPyPkgsMsg;
   }
-
-  const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
-  const installPyPkgsMsg = `Installing ESP-IDF python packages in ${pyEnvPath} ...\n`;
-  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${pyEnvPath} ...\n`;
-
-  if (
-    pythonBinPath.indexOf(virtualEnvPython) < 0 &&
-    utils.fileExists(virtualEnvPython)
-  ) {
-    await del(pyEnvPath, { force: true }).catch((err) => {
-      Logger.errorNotify("Error deleting virtualenv files", err);
-    });
-  }
-
-  pyTracker.Log = creatEnvMsg;
   if (channel) {
-    channel.appendLine(creatEnvMsg);
+    channel.appendLine(installExtensionPyPkgsMsg + "\n");
   }
-
-  const pythonVersion = (
-    await utils.execChildProcess(
-      `"${pythonBinPath}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
-      espDir
-    )
-  ).replace(/(\n|\r|\r\n)/gm, "");
-
-  let envModule: string;
-  if (pythonVersion.localeCompare("3.3") >= 0) {
-    envModule = "venv";
-  } else {
-    envModule = "virtualenv";
-    const virtualEnvInstallCmd = `"${pythonBinPath}" -m pip install virtualenv --user`;
-    const virtualEnvInstallResult = await utils.execChildProcess(
-      virtualEnvInstallCmd,
-      idfToolsDir,
-      channel
-    );
-    pyTracker.Log = virtualEnvInstallResult;
-    pyTracker.Log = "\n";
-    if (channel) {
-      channel.appendLine(virtualEnvInstallResult + "\n");
-    }
-  }
-
-  const createVirtualEnvResult = await utils.execChildProcess(
-    `"${pythonBinPath}" -m ${envModule} "${pyEnvPath}"`,
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location  -r "${extensionRequirements}"`,
     idfToolsDir,
-    channel
-  );
-  pyTracker.Log = createVirtualEnvResult;
-  pyTracker.Log = "\n";
-  if (channel) {
-    channel.appendLine(createVirtualEnvResult + "\n");
-  }
-  pyTracker.Log = installPyPkgsMsg;
-  // Install wheel and other required packages
-  const systemReqs = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install wheel`,
-    pyEnvPath,
-    channel
-  );
-  pyTracker.Log = systemReqs;
-  pyTracker.Log = "\n";
-  if (channel) {
-    channel.appendLine(systemReqs + "\n");
-  }
-  // ESP-IDF Python Requirements
-  const modifiedEnv = Object.assign({}, process.env);
-  modifiedEnv.IDF_PATH = espDir;
-  const espIdfReqInstallResult = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install -r "${requirements}"`,
-    pyEnvPath,
+    pyTracker,
     channel,
-    { env: modifiedEnv }
+    undefined,
+    cancelToken
   );
-  pyTracker.Log = espIdfReqInstallResult;
-  pyTracker.Log = "\n";
-  if (channel) {
-    channel.appendLine(espIdfReqInstallResult + "\n");
+  if (pyTracker) {
+    pyTracker.Log = installDAPyPkgsMsg;
   }
-  // Extension Python requirements
-  const extensionInstallResult = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install -r "${extensionRequirements}"`,
-    pyEnvPath,
-    channel
+  if (channel) {
+    channel.appendLine(installDAPyPkgsMsg + "\n");
+  }
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install --no-warn-script-location -r "${debugAdapterRequirements}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    undefined,
+    cancelToken
   );
-  pyTracker.Log = extensionInstallResult;
-  pyTracker.Log = "\n";
-  if (channel) {
-    channel.appendLine(extensionInstallResult + "\n");
-  }
-  // Debug Adapter Python Requirements
-  pyTracker.Log = installDAPyPkgsMsg;
-  const pyDAReqInstallResult = await utils.execChildProcess(
-    `"${virtualEnvPython}" -m pip install -r "${debugAdapterRequirements}"`,
-    pyEnvPath,
-    channel
+}
+
+export async function execProcessWithLog(
+  cmd: string,
+  workDir: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  opts?: { env: NodeJS.ProcessEnv },
+  cancelToken?: CancellationToken
+) {
+  const processResult = await utils.execChildProcess(
+    cmd,
+    workDir,
+    channel,
+    opts,
+    cancelToken
   );
-  pyTracker.Log = pyDAReqInstallResult;
-  pyTracker.Log = "\n";
-  if (channel) {
-    channel.appendLine(pyDAReqInstallResult + "\n");
+  if (pyTracker) {
+    pyTracker.Log = processResult + "\n";
   }
-  return virtualEnvPython;
+  if (channel) {
+    channel.appendLine(processResult + "\n");
+  }
 }
 
 export async function getPythonEnvPath(
@@ -224,57 +277,53 @@ export async function getPythonEnvPath(
 }
 
 export async function checkPythonExists(pythonBin: string, workingDir: string) {
-  return await utils
-    .execChildProcess(`"${pythonBin}" --version`, workingDir)
-    .then((result) => {
-      if (result) {
-        const match = result.match(/Python\s\d+(.\d+)?(.\d+)?/g);
-        if (match && match.length > 0) {
-          return true;
-        } else {
-          Logger.errorNotify(
-            "Python is not found in current environment",
-            Error("")
-          );
-          return false;
-        }
+  try {
+    const versionResult = await utils.execChildProcess(
+      `"${pythonBin}" --version`,
+      workingDir
+    );
+    if (versionResult) {
+      const match = versionResult.match(/Python\s\d+(.\d+)?(.\d+)?/g);
+      if (match && match.length > 0) {
+        return true;
       }
-    })
-    .catch((err) => {
-      if (err.message) {
-        const match = err.message.match(/Python\s\d+.\d+.\d+/g);
-        if (match && match.length > 0) {
-          return true;
-        } else {
-          return false;
-        }
+    }
+  } catch (error) {
+    if (error && error.message) {
+      const match = error.message.match(/Python\s\d+.\d+.\d+/g);
+      if (match && match.length > 0) {
+        return true;
       }
-      Logger.errorNotify("Python is not found in current environment", err);
-      return false;
-    });
+    }
+    const newErr =
+      error && error.message
+        ? error
+        : new Error("Python is not found in current environment");
+    Logger.errorNotify(newErr.message, newErr);
+  }
+  return false;
 }
 
-export async function checkPipExists(pythonBin: string, workingDir: string) {
-  return await utils
-    .execChildProcess(`"${pythonBin}" -m pip --version`, workingDir)
-    .then((result) => {
-      if (result) {
-        const match = result.match(/pip\s\d+(.\d+)?(.\d+)?/g);
-        if (match && match.length > 0) {
-          return true;
-        } else {
-          Logger.errorNotify(
-            "Python pip is not found in current environment",
-            Error("")
-          );
-          return false;
-        }
+export async function checkPipExists(pyBinPath: string, workingDir: string) {
+  try {
+    const pipResult = await utils.execChildProcess(
+      `"${pyBinPath}" -m pip --version`,
+      workingDir
+    );
+    if (pipResult) {
+      const match = pipResult.match(/pip\s\d+(.\d+)?(.\d+)?/g);
+      if (match && match.length > 0) {
+        return true;
       }
-    })
-    .catch((err) => {
-      Logger.errorNotify("Python pip is not found in current environment", err);
-      return false;
-    });
+    }
+  } catch (error) {
+    const newErr =
+      error && error.message
+        ? error
+        : new Error("Pip is not found in current environment");
+    Logger.errorNotify(newErr.message, newErr);
+  }
+  return false;
 }
 
 export async function getPythonBinList(workingDir: string) {
@@ -286,18 +335,19 @@ export async function getPythonBinList(workingDir: string) {
 }
 
 export async function getUnixPythonList(workingDir: string) {
-  return await utils
-    .execChildProcess("which -a python python3", workingDir)
-    .then((result) => {
-      if (result) {
-        const resultList = result.trim().split("\n");
-        return resultList;
-      }
-    })
-    .catch((err) => {
-      Logger.errorNotify("Error looking for python in system", err);
-      return ["Not found"];
-    });
+  try {
+    const pyVersionsStr = await utils.execChildProcess(
+      "which -a python; which -a python3",
+      workingDir
+    );
+    if (pyVersionsStr) {
+      const resultList = pyVersionsStr.trim().split("\n");
+      return resultList;
+    }
+  } catch (error) {
+    Logger.errorNotify("Error looking for python in system", error);
+    return ["Not found"];
+  }
 }
 
 export async function getPythonBinListWindows(workingDir: string) {
@@ -308,74 +358,57 @@ export async function getPythonBinListWindows(workingDir: string) {
     "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432NODE\\PYTHON",
   ];
   for (const root of registryRootLocations) {
-    await utils
-      .execChildProcess("reg query " + root, workingDir)
-      .then(async (result) => {
-        if (result.trim() === "") {
-          return;
+    try {
+      const rootResult = await utils.execChildProcess(
+        "reg query " + root,
+        workingDir
+      );
+      if (!rootResult.trim()) {
+        continue;
+      }
+      const companies = rootResult.trim().split("\r\n");
+      for (const company of companies) {
+        if (company.indexOf("PyLauncher") !== -1) {
+          continue;
         }
-        const companies = result.trim().split("\r\n");
-        for (const company of companies) {
-          await utils
-            .execChildProcess("reg query " + company, workingDir)
-            .then(async (companyTags) => {
-              if (companyTags.trim() === "") {
-                return;
-              }
-              if (company.indexOf("PyLauncher") !== -1) {
-                return;
-              }
-              const tags = companyTags.trim().split("\r\n");
-              utils
-                .execChildProcess(
-                  "reg query " + tags[tags.length - 1],
-                  workingDir
-                )
-                .then((keyValues) => {
-                  const values = keyValues.trim().split("\r\n");
-                  for (const val of values) {
-                    if (val.indexOf("InstallPath") !== -1) {
-                      utils
-                        .execChildProcess("reg query " + val, workingDir)
-                        .then((installPaths) => {
-                          const binPaths = installPaths.trim().split("\r\n");
-                          for (const iPath of binPaths) {
-                            const trimPath = iPath.trim().split(/\s{2,}/);
-                            if (trimPath[0] === "ExecutablePath") {
-                              paths.push(trimPath[trimPath.length - 1]);
-                            }
-                          }
-                        })
-                        .catch((err) => {
-                          Logger.error(
-                            "Error looking for python in windows system",
-                            err
-                          );
-                        });
-                    }
-                  }
-                })
-                .catch((err) => {
-                  Logger.error(
-                    "Error looking for python in windows system",
-                    err
-                  );
-                });
-            })
-            .catch((err) => {
-              Logger.error("Error looking for python in windows system", err);
-            });
+        const companyResult = await utils.execChildProcess(
+          "reg query " + company,
+          workingDir
+        );
+        if (!companyResult.trim()) {
+          continue;
         }
-      })
-      .catch((err) => {
-        Logger.error("Error looking for python in windows", err);
-      });
+        const tags = companyResult.trim().split("\r\n");
+        const keyValues = await utils.execChildProcess(
+          "reg query " + tags[tags.length - 1],
+          workingDir
+        );
+        if (!keyValues.trim()) {
+          continue;
+        }
+        const values = keyValues.trim().split("\r\n");
+        for (const val of values) {
+          if (val.indexOf("InstallPath") !== -1) {
+            const installPaths = await utils.execChildProcess(
+              "reg query " + val,
+              workingDir
+            );
+            const binPaths = installPaths.trim().split("\r\n");
+            for (const iPath of binPaths) {
+              const trimPath = iPath.trim().split(/\s{2,}/);
+              if (trimPath[0] === "ExecutablePath") {
+                paths.push(trimPath[trimPath.length - 1]);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      Logger.error("Error looking for python in windows", error);
+    }
   }
   if (paths.length === 0) {
-    Logger.error(
-      "Error looking for python in windows",
-      new Error("Installed Python not found in registry")
-    );
+    return ["Not found"];
   }
   return paths;
 }

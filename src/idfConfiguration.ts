@@ -194,8 +194,10 @@ export function resolveVariables(configPath: string) {
     }
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);
-      const pathInEnv = process.env[envVariable];
-      return pathInEnv;
+      if (Object.keys(process.env).indexOf(envVariable) === -1) {
+        return "";
+      }
+      return process.env[envVariable];
     }
     if (match.indexOf("workspaceFolder") > 0) {
       return PreCheck.isWorkspaceFolderOpen()

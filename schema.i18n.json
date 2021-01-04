@@ -61,20 +61,11 @@
     "idfComponentsDataProvider": [
       "idfComponentDataProvider.proj_desc_not_found"
     ],
-    "idfConfiguration": [
-      "idfConfiguration.hasBeenUpdated"
-    ],
-    "utils": [
-      "utils.currentFolder",
-      "utils.openComponentTitle"
-    ]
+    "idfConfiguration": ["idfConfiguration.hasBeenUpdated"],
+    "utils": ["utils.currentFolder", "utils.openComponentTitle"]
   },
   "views": {
-    "menuconfig": [
-      "save",
-      "discard",
-      "reset"
-    ]
+    "menuconfig": ["save", "discard", "reset"]
   },
   "package": [
     "espIdf.createFiles.title",
@@ -91,7 +82,7 @@
     "espIdf.buildDevice.title",
     "espIdf.flashDevice.title",
     "espIdf.monitorDevice.title",
-    "espIdf.onboarding.title",
+    "espIdf.setup.title",
     "espIdf.examples.title",
     "espIdf.buildFlashMonitor.title",
     "espIdf.pickAWorkspaceFolder.title",
@@ -107,6 +98,7 @@
     "espIdf.getCoverageReport.title",
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
+    "espIdf.installPyReqs.title",
     "espIdf.openDocUrl.title",
     "espIdf.clearDocsSearchResult.title",
     "debug.initConfig.name",
@@ -123,7 +115,6 @@
     "param.exportPaths",
     "param.exportVars",
     "param.useIDFKConfigStyle",
-    "param.showOnboardingOnInit",
     "param.coveredLightTheme",
     "param.coveredDarkTheme",
     "param.partialLightTheme",

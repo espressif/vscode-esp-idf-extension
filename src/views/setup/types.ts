@@ -12,10 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Vue from "vue";
-import Vuex from "vuex";
-import { onboarding } from "./onboarding";
+export interface IEspIdfLink {
+  filename: string;
+  name: string;
+  mirror: string;
+  url: string;
+}
 
-Vue.use(Vuex);
+export enum IdfMirror {
+  Espressif,
+  Github,
+}
 
-export const store = new Vuex.Store(onboarding);
+export interface IDownload {
+  id: string;
+  progress: string;
+  progressDetail: string;
+}
+
+export interface IEspIdfTool extends IDownload {
+  actual: string;
+  description: string;
+  doesToolExist: boolean;
+  env: {};
+  expected: string;
+  hashResult: boolean;
+  hasFailed: boolean;
+  name: string;
+  path: string;
+}
+
+export enum StatusType {
+  failed,
+  installed,
+  pending,
+  started,
+}
+
+export enum SetupMode {
+  advanced,
+  express,
+}
