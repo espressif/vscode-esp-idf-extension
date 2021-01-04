@@ -796,6 +796,10 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
+              "appOffset": {
+                "type": "string",
+                "description": "%esp_idf.appOffset.description%"
+              },
               "debugPort": {
                 "type": "number",
                 "description": "Port for ESP-IDF Debug Adapter. Default: 43474",

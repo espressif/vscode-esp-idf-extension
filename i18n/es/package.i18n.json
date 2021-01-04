@@ -81,6 +81,7 @@
   "espIdf.selectFlashMethodAndFlash.title": "Seleccione el método Flash y Flash",
   "idf.flashType.description": "Método de flash del dispositivo, UART o JTag",
   "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub",
+  "esp_idf.appOffset.description": "Sobrescribir offset de inicio de programa (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "ruta del archivo gdbinit para el ESP-IDF Debug Adapter",
   "esp_idf.debuggers.text.description": "Comando a ejecutar"

@@ -158,6 +158,7 @@
     "espIdf.selectFlashMethodAndFlash.title",
     "idf.flashType.description",
     "espIdf.launchWSServerAndMonitor.title",
+    "esp_idf.appOffset.description",
     "esp_idf.initGdbCommands.description",
     "esp_idf.debuggers.text.description",
     "esp_idf.gdbinitFile.description"

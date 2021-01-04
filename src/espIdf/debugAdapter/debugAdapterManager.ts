@@ -30,8 +30,10 @@ import {
 } from "../../utils";
 import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
+import { createFlashModel } from "../../flash/flashModelBuilder";
 
 export interface IDebugAdapterConfig {
+  appOffset?: string;
   coreDumpFile?: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
@@ -54,6 +56,7 @@ export class DebugAdapterManager extends EventEmitter {
   private static instance: DebugAdapterManager;
 
   private adapter: ChildProcess;
+  private appOffset: string;
   private chan: Buffer;
   private coreDumpFile: string;
   private currentWorkspace: vscode.Uri;
@@ -102,6 +105,27 @@ export class DebugAdapterManager extends EventEmitter {
       }
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
+      if (!this.appOffset) {
+        const serialPort = idfConf.readParameter("idf.port");
+        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        const flasherArgsJsonPath = path.join(
+          this.currentWorkspace.fsPath,
+          "build",
+          "flasher_args.json"
+        );
+        if (!canAccessFile(flasherArgsJsonPath, constants.R_OK)) {
+          return reject(
+            new Error(`${flasherArgsJsonPath} doesn't exist. Build first.`)
+          );
+        }
+        const model = await createFlashModel(
+          flasherArgsJsonPath,
+          serialPort,
+          flashBaudRate
+        );
+        this.appOffset = model.app.address;
+      }
+
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
       ) as string;
@@ -117,6 +141,8 @@ export class DebugAdapterManager extends EventEmitter {
         this.port.toString(),
         "-dn",
         this.target,
+        "-a",
+        this.appOffset,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");
@@ -211,6 +237,7 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
+    this.appOffset = config.appOffset;
   }
 
   public isRunning(): boolean {
