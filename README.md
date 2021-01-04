@@ -106,6 +106,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | SDK Configuration editor                        |                                        |                                           |
 | Set default sdkconfig file in project           |                                        |                                           |
 | Select port to use                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
+| Full clean project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Build your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
 | Flash your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Monitor your device                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
@@ -120,6 +121,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Install ESP-ADF                                 |                                        |                                           |
 | Install ESP-MDF                                 |                                        |                                           |
+| Open NVS Partition Editor                       |                                        |                                           |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
 

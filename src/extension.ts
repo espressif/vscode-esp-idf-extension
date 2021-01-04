@@ -76,9 +76,10 @@ import { FlashTask } from "./flash/flashTask";
 import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
+import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
-import { constants, pathExists } from "fs-extra";
+import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
@@ -99,6 +100,8 @@ import {
   DocSearchResultTreeDataProvider,
 } from "./espIdf/documentation/docResultsTreeView";
 import { release } from "os";
+import del from "del";
+import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -428,6 +431,35 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.fullClean", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const buildDir = path.join(workspaceRoot.fsPath, "build");
+      const buildDirExists = await utils.dirExistPromise(buildDir);
+      if (!buildDirExists) {
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
+        );
+      }
+      const cmakeCacheFile = path.join(buildDir, "CMakeCache.txt");
+      const doesCmakeCacheExists = utils.canAccessFile(
+        cmakeCacheFile,
+        constants.R_OK
+      );
+      if (!doesCmakeCacheExists) {
+        return Logger.warnNotify(
+          `There is no build directory to clean, exiting!`
+        );
+      }
+      if (BuildTask.isBuilding || FlashTask.isFlashing) {
+        return Logger.warnNotify(
+          `There is a build or flash task running. Wait for it to finish or cancel before clean.`
+        );
+      }
+
+      await del(buildDir, { force: true });
     });
   });
 
@@ -1647,6 +1679,53 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer.close();
       });
   });
+  registerIDFCommand(
+    "esp.webview.open.partition-table",
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
+      if (!args) {
+        // try to get the partition table name from sdkconfig and if not found create one
+        try {
+          const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM",
+            workspaceRoot.fsPath
+          );
+          if (isCustomPartitionTableEnabled !== "y") {
+            throw new Error(
+              "Custom Partition Table not enabled for the project"
+            );
+          }
+
+          let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
+            "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
+            workspaceRoot.fsPath
+          );
+          partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
+          if (!utils.isStringNotEmpty(partitionTableFilePath)) {
+            throw new Error(
+              "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
+            );
+          }
+
+          partitionTableFilePath = path.join(
+            workspaceRoot.fsPath,
+            partitionTableFilePath
+          );
+          if (!utils.fileExists(partitionTableFilePath)) {
+            // inform user and create file.
+            Logger.infoNotify(
+              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`
+            );
+            createFileSync(partitionTableFilePath);
+          }
+          filePath = partitionTableFilePath;
+        } catch (error) {
+          return Logger.errorNotify(error.message, error);
+        }
+      }
+      PartitionTableEditorPanel.show(context.extensionPath, filePath);
+    }
+  );
   registerIDFCommand("esp.efuse.summary", async () => {
     vscode.window.withProgress(
       {
@@ -1752,6 +1831,33 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
+  registerIDFCommand(
+    "espIdf.webview.nvsPartitionEditor",
+    async (args?: vscode.Uri) => {
+      let filePath = args?.fsPath;
+      if (!args) {
+        try {
+          const nvsFileName = await vscode.window.showInputBox({
+            placeHolder: "Enter NVS CSV file name",
+            value: "",
+          });
+          if (!nvsFileName) {
+            return;
+          }
+          filePath = path.join(
+            workspaceRoot.fsPath,
+            `${nvsFileName.replace(".csv", "")}.csv`
+          );
+        } catch (error) {
+          const errMsg = error.message
+            ? error.message
+            : "Error at NVS Partition Editor";
+          Logger.errorNotify(errMsg, error);
+        }
+      }
+      NVSPartitionTable.createOrShow(context.extensionPath, filePath);
+    }
+  );
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
@@ -1848,14 +1954,15 @@ function creatCmdsStatusBarItems() {
     "$(plug)",
     "ESP-IDF Select device port",
     "espIdf.selectPort",
-    100
+    101
   );
   createStatusBarItem(
     "$(gear)",
     "ESP-IDF Launch GUI Configuration tool",
     "menuconfig.start",
-    99
+    100
   );
+  createStatusBarItem("$(trash)", "ESP-IDF Full Clean", "espIdf.fullClean", 99);
   createStatusBarItem(
     "$(database)",
     "ESP-IDF Build project",
