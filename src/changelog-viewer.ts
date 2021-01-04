@@ -33,7 +33,7 @@ export namespace ChangelogViewer {
     //check
     if (currentVersion !== storedVersion) {
       //new version update
-      const msg = `It seems like out ESP-IDF Extension just got updated to version ${currentVersion}, checkout the changelog to see what new features got added`;
+      const msg = `It seems like the ESP-IDF Extension just got updated to version ${currentVersion}, checkout the changelog to see what new features got added`;
       const resp = await window.showInformationMessage(
         msg,
         "View Changelog",
