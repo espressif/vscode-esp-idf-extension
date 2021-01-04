@@ -142,6 +142,7 @@
     "esp.rainmaker.backend.remove_node.title",
     "esp.rainmaker.backend.update_node_param.title",
     "param.esp.rainmaker.oauth.url",
+    "param.esp.rainmaker.cli.path",
     "idf.wssPort.description",
     "espIdf.launchWSServerAndMonitor.title",
     "esp_idf.initGdbCommands.description",

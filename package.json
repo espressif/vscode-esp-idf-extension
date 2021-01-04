@@ -481,6 +481,11 @@
             "scope": "resource",
             "description": "%param.esp.rainmaker.oauth.url%"
           },
+          "esp.rainmaker.cli.path": {
+            "type": "string",
+            "scope": "resource",
+            "description": "%param.esp.rainmaker.cli.path%"
+          },
           "idf.coveredLightTheme": {
             "type": "string",
             "default": "rgba(0,128,0,0.1)",

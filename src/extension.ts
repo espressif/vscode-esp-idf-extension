@@ -1345,9 +1345,31 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
   registerIDFCommand("esp.rainmaker.backend.add_node", async () => {
-    Logger.infoNotify(
-      "Coming Soon!! until then you can add nodes using mobile app"
+    const espRainmakerCLIToolPath = idfConf.readParameter(
+      "esp.rainmaker.cli.path"
     );
+    if (!espRainmakerCLIToolPath) {
+      return Logger.warnNotify(
+        "You will need to set the config (esp.rainmaker.cli.path), please download rainmaker cli and provide the path of the same."
+      );
+    }
+    if (!(await pathExists(espRainmakerCLIToolPath))) {
+      return Logger.warnNotify(
+        `Rainmaker CLI Path (${espRainmakerCLIToolPath}) is unaccessible or does not exists`
+      );
+    }
+    if (
+      !(await pathExists(path.join(espRainmakerCLIToolPath, "rainmaker.py")))
+    ) {
+      return Logger.warnNotify(
+        `Rainmaker CLI Path (${espRainmakerCLIToolPath}) is don't have the rainmaker.py tools present, please make sure you provide the cli path, which is <rainmaker_rep>/cli`
+      );
+    }
+    if (await pathExists(path.join())) {
+      return Logger.infoNotify(
+        `Rainmaker CLI has credentials already configured, we will use the same for adding your node. Please confirm that you are using the same account for Rainmaker CLI and VS Code`
+      );
+    }
   });
   registerIDFCommand(
     "esp.rainmaker.backend.update_node_param",

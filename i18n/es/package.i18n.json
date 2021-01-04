@@ -72,6 +72,7 @@
   "esp.rainmaker.backend.remove_node.title": "Eliminar este nodo",
   "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
+  "param.esp.rainmaker.cli.path": "Ruta de las herramientas CLI de ESP-Rainmaker",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
   "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
