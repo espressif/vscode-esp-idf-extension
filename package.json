@@ -186,11 +186,6 @@
           "when": "view == espRainmaker"
         },
         {
-          "command": "esp.efuse.summary",
-          "group": "navigation",
-          "when": "view == espEFuseExplorer"
-        },
-        {
           "command": "espIdf.clearDocsSearchResult",
           "group": "navigation",
           "when": "view == idfSearchResults"
@@ -734,11 +729,7 @@
       {
         "command": "esp.efuse.summary",
         "title": "%esp.efuse.summary.title%",
-        "category": "ESP-IDF: eFuse",
-        "icon": {
-          "dark": "media/dark/refresh.svg",
-          "light": "media/light/refresh.svg"
-        }
+        "category": "ESP-IDF: eFuse"
       },
       {
         "command": "espIdf.getEspAdf",
