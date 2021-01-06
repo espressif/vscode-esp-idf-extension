@@ -523,7 +523,7 @@ export async function getEspIdfVersion(workingDir: string) {
       workingDir
     );
     const espIdfVersionMatch = rawEspIdfVersion.match(
-      /^v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
+      /v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
     );
     if (espIdfVersionMatch && espIdfVersionMatch.length > 0) {
       let espVersion: string = "";
