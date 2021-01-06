@@ -2449,16 +2449,15 @@ function createIdfTerminal() {
 
 function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
   const shellExecutable = path.basename(vscode.env.shell);
-  let winShellCmd = {
-    "cmd.exe": `set "VARIABLE=`,
-    "powershell.exe": `$Env:VARIABLE = "`,
-    "pwsh.exe": `$Env:VARIABLE = "`,
-  };
-  const pathSetCmd =
-    process.platform === "win32"
-      ? winShellCmd[shellExecutable].replace("VARIABLE", variable)
-      : `export ${variable}="${modifiedEnv[variable]}"`;
-  return pathSetCmd;
+  switch (shellExecutable) {
+    case "cmd.exe":
+      return `set ${variable}="${modifiedEnv[variable]}"`;
+    case "powershell.exe":
+    case "pwsh.exe":
+      return `$Env:${variable}="${modifiedEnv[variable]}"`;
+    default:
+      return `export ${variable}="${modifiedEnv[variable]}"`;
+  }
 }
 
 function overrideVscodeTerminalWithIdfEnv(
