@@ -37,5 +37,15 @@ If applicable, please share the log file which can be obtained from
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
+**Extension Configuration settings**
+Open Command Palette (F1) and type `Preferences: Open Settings (JSON)` or use `{CURRENT_PROJECT}/.vscode/settings.json` to get the following extension configuration settings value:
+
+- `idf.espIdfPath` (MacOS or Linux) or `idf.espIdfPathWin` (Windows) also called `Path to locate ESP-IDF framework (IDF_PATH)` in `Preferences: Open Settings (UI)`.
+- `idf.pythonBinPath` (MacOS or Linux) or `idf.pythonBinPathWin` (Windows) also called `Python absolute binary path used to execute ESP-IDF Python Scripts` in `Preferences: Open Settings (UI)`.
+- `idf.openOcdConfigs` also called `List of configuration files inside OpenOCD Scripts directory` in `Preferences: Open Settings (UI)`.
+- `idf.customExtraPaths` also called `Paths to be appended to PATH` in `Preferences: Open Settings (UI)`.
+- `idf.customExtraVars` also called `Variables to be added to system environment variables` in `Preferences: Open Settings (UI)`.
+- `idf.adapterTargetName` also called `Target name for ESP-IDF Debug Adapter` in `Preferences: Open Settings (UI)`.
+
 **Additional context**
 Add any other context about the problem here.
