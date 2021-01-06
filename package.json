@@ -83,6 +83,7 @@
     "onCommand:espIdf.ninja.summary",
     "onCommand:espIdf.newProject.start",
     "onCommand:espIdf.setGcovConfig",
+    "onCommand:esp.component-manager.ui.show",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -639,6 +640,12 @@
             "type": "boolean",
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
             "default": true
+          },
+          "esp.component-manager.url": {
+            "type": "string",
+            "description": "%esp.component-manager.url.description%",
+            "scope": "resource",
+            "default": "https://components.espressif.com"
           }
         }
       }
@@ -886,6 +893,11 @@
       {
         "command": "espIdf.setGcovConfig",
         "title": "%espIdf.setGcovConfig.title%"
+      },
+      {
+        "command": "esp.component-manager.ui.show",
+        "title": "%esp.component-manager.ui.show.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
