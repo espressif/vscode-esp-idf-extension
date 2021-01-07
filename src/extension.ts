@@ -2455,6 +2455,8 @@ function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
     case "powershell.exe":
     case "pwsh.exe":
       return `$Env:${variable}="${modifiedEnv[variable]}"`;
+    case "pwsh":
+      return `$Env:${variable}="${modifiedEnv[variable]}"`;
     default:
       return `export ${variable}="${modifiedEnv[variable]}"`;
   }
