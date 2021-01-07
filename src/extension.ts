@@ -86,11 +86,7 @@ import { SetupPanel } from "./setup/SetupPanel";
 import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
 import { JTAGFlash } from "./flash/jtag";
 import { ChangelogViewer } from "./changelog-viewer";
-import {
-  getSetupInitialValues,
-  isCurrentInstallValid,
-  ISetupInitArgs,
-} from "./setup/setupInit";
+import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import { installReqs } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
@@ -2039,10 +2035,6 @@ const build = () => {
           buildTask.building(false);
         });
         try {
-          const checkToolsAreValid = await isCurrentInstallValid();
-          if (!checkToolsAreValid) {
-            return;
-          }
           await buildTask.build();
           await TaskManager.runTasks();
           if (!cancelToken.isCancellationRequested) {
@@ -2151,10 +2143,6 @@ const flash = () => {
           TaskManager.disposeListeners();
         });
         try {
-          const checkToolsAreValid = await isCurrentInstallValid();
-          if (!checkToolsAreValid) {
-            return;
-          }
           const model = await createFlashModel(
             flasherArgsJsonPath,
             port,
@@ -2270,10 +2258,6 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
           buildTask.building(false);
         });
         try {
-          const checkToolsAreValid = await isCurrentInstallValid();
-          if (!checkToolsAreValid) {
-            return;
-          }
           progress.report({ message: "Building project...", increment: 20 });
           await buildTask.build().then(() => {
             buildTask.building(false);
@@ -2451,7 +2435,7 @@ function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
   const shellExecutable = path.basename(vscode.env.shell);
   switch (shellExecutable) {
     case "cmd.exe":
-      return `set ${variable}="${modifiedEnv[variable]}"`;
+      return `set "${variable}=${modifiedEnv[variable]}"`;
     case "powershell.exe":
     case "pwsh.exe":
       return `$Env:${variable}="${modifiedEnv[variable]}"`;
