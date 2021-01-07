@@ -21,7 +21,7 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath } from "../utils";
+import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import EspIdfCustomTerminal from "../espIdfCustomTerminal";
 import { SpawnOptions } from "child_process";
@@ -65,6 +65,19 @@ export class BuildTask {
     }
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath();
+    const canAccessCMake = await isBinInPath(
+      "cmake",
+      this.curWorkspace,
+      modifiedEnv
+    );
+    const canAccessNinja = await isBinInPath(
+      "ninja",
+      this.curWorkspace,
+      modifiedEnv
+    );
+    if (canAccessCMake === "" && canAccessNinja === "") {
+      throw new Error("CMake or Ninja executables not found");
+    }
     await ensureDir(this.curWorkspace);
     const options: SpawnOptions = {
       cwd: this.curWorkspace,
