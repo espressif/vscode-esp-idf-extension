@@ -4,6 +4,8 @@
 
 # ESP-IDF VS Code Extension
 
+#### [Github Repository](https://github.com/espressif/vscode-esp-idf-extension)&nbsp;&nbsp;|&nbsp;&nbsp;[Issues](https://github.com/espressif/vscode-esp-idf-extension/issues)&nbsp;&nbsp;|&nbsp;&nbsp;[Releases](https://github.com/espressif/vscode-esp-idf-extension/releases)&nbsp;&nbsp;|&nbsp;&nbsp;[How to use](#How-to-use)
+
 Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
 
 <a href="https://youtu.be/Lc6ausiKvQM">
@@ -16,27 +18,58 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 
 - Quick [Configure ESP-IDF extension](./docs/SETUP.md) for first time user to help you download, install and setup ESP-IDF and required tools within Visual Studio Code extension.
 - Quick prototyping by copying ESP-IDF examples with **ESP-IDF: Show ESP-IDF Examples Projects**.
-- App tracing when using ESP-IDF Application Level Tracing Library like in [ESP-IDF Application Level Tracing Example](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host).
-- Size analysis of binaries with **ESP-IDF: Size analysis of the binaries**.
-- [SDK Configuration editor](#SDK-Configuration-editor) to configure your ESP-IDF project (esp-idf menuconfig).
+- Syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and ESP-IDF Kconfig style syntax validation if `idf.useIDFKconfigStyle` is enabled.
+- GUI [SDK Configuration editor](#SDK-Configuration-editor) to configure your ESP-IDF project (esp-idf menuconfig).
+- [Partition table editor](./docs/PARTITION_TABLE_EDITOR.md) and [NVS Partition editor](./docs/NVS_PARTITION_EDITOR.md).
 - Easily Build, Flash and Monitor your code for the ESP-32 and ESP32 S2 chip.
-- Syntax highlighting for [KConfig](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and ESP-IDF Kconfig style syntax validation if enabled.
-- Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - OpenOCD server within Visual Studio Code.
+- [DEBUGGING](./docs/DEBUGGING.md) with [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter).
+- Size analysis of binaries with **ESP-IDF: Size analysis of the binaries**.
+- App tracing when using ESP-IDF Application Level Tracing Library like in [ESP-IDF Application Level Tracing Example](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host).
+- [Heap tracing](./docs/HEAP_TRACING.md)
+- [System view tracing viewer](./docs/SYS_VIEW_TRACING_VIEWER.md)
+- Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/LANG_CONTRIBUTE.md).
 - [Code Coverage](./docs/COVERAGE.md) for editor source highlighting and generate HTML reports.
 - Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and `idf.adapterTargetName`.
+- [Rainmaker integration](/docs/ESP_RAINMAKER.md)
+- [Core dump and GdbStub](./docs/POSTMORTEM.md) postmortem mode.
 
 ## Prerequisites
 
-There are a few dependencies which needs to be downloaded and installed before you can continue to use the extension. All the other dependencies like ESP-IDF or toolchain will be taken care by the [setup wizard](./docs/SETUP.md) process.
+There are few dependencies required in your system and available in environment variable PATH before installing this extension:
 
-- [Python 3.5](https://www.python.org/download/releases/3.5/)+
-- [Git](https://git-scm.com/downloads)
-- [CMake](https://cmake.org/download) and [Ninja](https://github.com/ninja-build/ninja/releases) for **Linux or MacOS users**. For Windows users, it is part of the extension setup wizard.
+| Linux                                                        | MacOS                                                        | Windows                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ |
+| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |
+| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                              |
+| [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                              |
+
+All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not work fully.
 
-## Quick Installation Guide
+## How to use
+
+- Install this extension in your Visual Studio Code.
+- Then
+  - Either open Visual Studio Code and create a workspace folder.
+  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
+- Press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF and tools and configure the extension.
+
+  - Please take a look at [SETUP](./docs/SETUP.md) for details about extension configuration.
+
+- Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
+
+  > **Note:** If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required **compile_commands.json** used by [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to resolve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**. If you don't want to build your project beforehand, you can configure your project using [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md)
+
+- Do some coding!
+- Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
+- When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
+- You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
+
+## Installation Guide
 
 There are several ways to install this extension to your VSCode, easiest one is from VSCode Marketplace. However if you are looking to contribute to this project we suggest you to have install in [Source mode](#Build-from-Source-Code).
 
@@ -72,24 +105,6 @@ To install from `.vsix` file, first head to [releases page](https://github.com/e
 - Click Uninstall.
 - Go to your `${VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder.
 
-## How to use
-
-- First set up your Visual Studio Code as explained in the former section.
-- Then
-  - Either open Visual Studio Code and create a workspace folder.
-  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
-- Press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to configure the extension Please take a look at [SETUP](./docs/SETUP.md) for more detail about extension configuration.
-
-- Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
-
-  > **Note:** If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required **compile_commands.json** used by [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to resolve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**. If you don't want to build your project beforehand, you can configure your project using [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md)
-
-- Do some coding!
-- Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
-- When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
-- You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
-
 ## Available commands
 
 Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to see possible actions.
@@ -121,6 +136,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Install ESP-ADF                                 |                                        |                                           |
 | Install ESP-MDF                                 |                                        |                                           |
+| Install ESP-IDF Python Packages                 |                                        |                                           |
 | Open NVS Partition Editor                       |                                        |                                           |
 
 The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
@@ -295,7 +311,7 @@ We have provide a [system view tracing viewer](./docs/SYS_VIEW_TRACING_VIEWER.md
 
 When you open a `Kconfig`, `Kconfig.projbuild` or `Kconfig.in` file we provide syntax highlighting. If `idf.useIDFKconfigStyle` is enabled, we also provide ESP-IDF Kconfig style syntax validation such as indent validation and not closing blocks found (Example: menu-endmenu). Please review [Kconfig Formatting Rules](https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/kconfig.html) and [Kconfig Language](https://github.com/espressif/esp-idf/blob/master/tools/kconfig/kconfig-language.txt) for further details about the ESP-IDF Kconfig formatting rules and Kconfig language in general.
 
-# CMake Editor
+## CMake Editor
 
 On CMakeLists.txt file right click this extension provides a custom CMake Editor to fill our ESP-IDF Project and Component registration as specified in [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file) and [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files). You need to choose which kind of CMakeLists.txt file (project or component) to edit. There is 2 types of input, one is a simple string and another is an array of strings, such as Component Sources (SRCS). All inputs are described in the CMakeLists.txt Schema (\${this_repository}/src/cmake/cmakeListsSchema.json).
 
@@ -305,7 +321,7 @@ We support connecting, viewing and editing of ESP Rainmaker enabled devices out 
 
 ## Forum
 
-If you are lost at any point you can always ask question, help and suggestion in the [forum](https://spectrum.chat/espidf-vsc?tab=posts), apart from creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow [their suggested channel](https://esp32.com) of communications.
+Check out the IDEs for ESP-IDF in [ESP32 forums](https://esp32.com).
 
 ## Code of Conduct
 
