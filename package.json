@@ -78,6 +78,7 @@
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
+    "onCommand:espIdf.selectOpenOcdConfigFiles",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -765,6 +766,10 @@
       {
         "command": "espIdf.webview.nvsPartitionEditor",
         "title": "%espIdf.webview.nvsPartitionEditor.title%"
+      },
+      {
+        "command": "espIdf.selectOpenOcdConfigFiles",
+        "title": "%espIdf.selectOpenOcdConfigFiles.title%"
       }
     ],
     "breakpoints": [

@@ -33,6 +33,7 @@
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: Limpiar resultados de busqueda",
   "espIdf.fullClean.title": "ESP-IDF: Limpiar el proyecto",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Abrir editor de particiones NVS",
+  "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: Selecciona configuración OpenOCD Board",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

@@ -33,6 +33,7 @@
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: 清除ESP-IDF搜索结果",
   "espIdf.fullClean.title": "ESP-IDF: 全清洁工程",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: 打开NVS分区编辑器",
+  "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: 选择OpenOCD板配置",
   "debug.initConfig.name": "ESP-IDF：启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",

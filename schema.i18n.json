@@ -101,6 +101,7 @@
     "espIdf.installPyReqs.title",
     "espIdf.openDocUrl.title",
     "espIdf.clearDocsSearchResult.title",
+    "espIdf.selectOpenOcdConfigFiles.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
