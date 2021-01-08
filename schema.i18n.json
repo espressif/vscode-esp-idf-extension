@@ -148,6 +148,8 @@
     "espIdf.jtag_flash.title",
     "espIdf.selectFlashMethodAndFlash.title",
     "idf.flashType.description",
+    "esp.component-manager.ui.show.title",
+    "esp.component-manager.url.description",
     "espIdf.launchWSServerAndMonitor.title",
     "esp_idf.appOffset.description",
     "esp_idf.initGdbCommands.description",

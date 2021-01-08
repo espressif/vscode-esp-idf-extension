@@ -78,6 +78,7 @@
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
+    "onCommand:esp.component-manager.ui.show",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -550,6 +551,12 @@
             ],
             "description": "%idf.flashType.description%",
             "scope": "resource"
+          },
+          "esp.component-manager.url": {
+            "type": "string",
+            "description": "%esp.component-manager.url.description%",
+            "scope": "resource",
+            "default": "https://components.espressif.com"
           }
         }
       }
@@ -765,6 +772,11 @@
       {
         "command": "espIdf.webview.nvsPartitionEditor",
         "title": "%espIdf.webview.nvsPartitionEditor.title%"
+      },
+      {
+        "category": "ESP-IDF:ComponentManager",
+        "command": "esp.component-manager.ui.show",
+        "title": "%esp.component-manager.ui.show.title%"
       }
     ],
     "breakpoints": [

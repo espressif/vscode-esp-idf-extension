@@ -98,6 +98,7 @@ import {
 import { release } from "os";
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
+import { ComponentManagerUIPanel } from "./component-manager/panel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1859,6 +1860,13 @@ export async function activate(context: vscode.ExtensionContext) {
       NVSPartitionTable.createOrShow(context.extensionPath, filePath);
     }
   );
+  registerIDFCommand("esp.component-manager.ui.show", async () => {
+    try {
+      ComponentManagerUIPanel.show(context.extensionPath);
+    } catch (error) {
+      Logger.errorNotify(error.message, error);
+    }
+  });
   vscode.window.registerUriHandler({
     handleUri: async (uri: vscode.Uri) => {
       const query = uri.query.split("=");
