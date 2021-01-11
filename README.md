@@ -4,15 +4,16 @@
 
 # ESP-IDF VS Code Extension
 
+[![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
+
 Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
+The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code. See all [features](./docs/FEATURES.md).
 
 <a href="https://youtu.be/Lc6ausiKvQM">
   <p align="center">
     <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
   </p>
 </a>
-
-The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code. See all [features](./docs/FEATURES.md).
 
 ## Quick links
 
@@ -26,7 +27,7 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - [How to use](#How-to-use)
 - [Setup process](./docs/SETUP.md)
 - [Releases](https://github.com/espressif/vscode-esp-idf-extension/releases)
-- [Working with multiple projects](#Working-with-multiple-projects)
+- [Working with multiple projects](./docs/MULTI_PROJECTS.md)
 
 ## Prerequisites
 
@@ -56,7 +57,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
 
-  > **Note:** If you want to get code navigation and ESP-IDF function references, build the project a first time. This will generate the required **compile_commands.json** used by [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to resolve header/source links. You can do a rebuild by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**. If you don't want to build your project beforehand, you can configure your project using [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md)
+  > **Note:** If you want to get code navigation and ESP-IDF function references, the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to resolve header/source links using their Tag Parser engine. By default, projects created with **ESP-IDF: Create ESP-IDF project** tries to resolve headers by manually recursing ESP-IDF directory sources. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
@@ -119,43 +120,6 @@ the following:
 8. `BuildFlash` - Execute a build followed by a flash command.
 
 Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
-
-## Working with multiple projects
-
-For big projects, a user will typically have one or more projects to build, flash or monitor. The ESP-IDF extension follows the [Visual Studio Code Workspace file schema](https://code.visualstudio.com/docs/editor/multi-root-workspaces#_workspace-file-schema) to identify all projects folders inside the current workspace (which would be the root folder).
-
-You can select the current project by clicking the **ESP-IDF Current Project** Item in the Visual Studio Code Status bar or by pressing F1 and typing **ESP-IDF: Pick a workspace folder for IDF commands** which will determine the folder where to obtain the ESP-IDF Settings such as current device USB port, ESP-IDF path, etc.
-
-Projects folders and workspace level settings are defined in the `.code-workspace` file such as:
-
-```json
-{
-  "folders": [
-    {
-      "path": "./project1"
-    },
-    {
-      "path": "./project2"
-    }
-  ],
-  "settings": {
-    "idf.port": "/dev/ttyUSB1",
-    "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
-  }
-}
-```
-
-Settings in the root folder's `.code-workspace` can be used when your **ESP-IDF Current Project** directory doesn't contain a `.vscode/settings.json` file. If there is no
-
-If you want to open a project with multiple subprojects in Visual Studio Code, click Menu **File** then **Open Workspace** which will open a window to select the `.code-workspace` of your root project.
-You can either manually create this `.code-workspace` file and define all sub folders (projects) or when you click Menu **File** --> **Save Workspace as...** which doesn't automatically add any folder inside the current directory.
-You can add a folder to the workspace when you click Menu **File** --> **Add Folder to Workspace...**.
-
-> **NOTE:** You still need to manually select the debug configuration in the Debug tab that correspond to your current workspace folder. There is a project folder suffix on each debug configuration.
-
-## Forum
-
-Check out the IDEs for ESP-IDF in [ESP32 forums](https://esp32.com).
 
 ## Code of Conduct
 

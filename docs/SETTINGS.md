@@ -20,7 +20,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 This is how the extension uses them:
 
 1. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as `openocd` or `cmake` (i.e. build your current project) else extension commands will try to use what is already in your system PATH.
-   > **NOTE:** In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./docs/SETUP.md) which will be saved in `idf.customExtraPaths`.
+   > **NOTE:** In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in `idf.customExtraPaths`.
 2. `idf.customExtraVars` stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
 3. `idf.espIdfPath` (or `idf.espIdfPathWin` in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
 4. `idf.pythonBinPath` (or `idf.espIdfPathWin` in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
@@ -65,10 +65,13 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 | Setting ID                   | Description                                                       |
 | ---------------------------- | ----------------------------------------------------------------- |
-| `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                         |
-| `idf.showOnboardingOnInit`   | Show ESP-IDF Configuration window on extension activation         |
-| `idf.saveBeforeBuild`        | Save all the edited files before building (default `true`)        |
 | `idf.notificationSilentMode` | Silent all notifications messages (excluding error notifications) |
+| `idf.saveBeforeBuild`        | Save all the edited files before building (default `true`)        |
+| `idf.showOnboardingOnInit`   | Show ESP-IDF Configuration window on extension activation         |
+| `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                         |
+| `idf.saveScope`              | Where to save extension settings                                  |
+
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `ESP-IDF: Configure Paths`, `ESP-IDF: Device configuration` and `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
 
 ### Log Tracing Specific Settings
 
