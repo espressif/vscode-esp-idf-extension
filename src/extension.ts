@@ -1199,38 +1199,45 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
-    const boards = await getBoards();
-    const choices = boards.map((b) => {
-      return {
-        description: `${b.description} (${b.configFiles.join(",")})`,
-        label: b.name,
-        target: b,
-      };
-    });
-    const selectOpenOCdConfigsMsg = locDic.localize(
-      "extension.enterOpenOcdConfigMessage",
-      "Enter OpenOCD Configuration File Paths list"
-    );
-    const selectedBoard = await vscode.window.showQuickPick(choices, {
-      placeHolder: selectOpenOCdConfigsMsg,
-    });
-    if (!selectedBoard) {
+    try {
+      const boards = await getBoards();
+      const choices = boards.map((b) => {
+        return {
+          description: `${b.description} (${b.configFiles.join(",")})`,
+          label: b.name,
+          target: b,
+        };
+      });
+      const selectOpenOCdConfigsMsg = locDic.localize(
+        "extension.enterOpenOcdConfigMessage",
+        "Enter OpenOCD Configuration File Paths list"
+      );
+      const selectedBoard = await vscode.window.showQuickPick(choices, {
+        placeHolder: selectOpenOCdConfigsMsg,
+      });
+      if (!selectedBoard) {
+        return;
+      }
+      const target = idfConf.readParameter("idf.saveScope");
+      if (
+        !PreCheck.isWorkspaceFolderOpen() &&
+        target !== vscode.ConfigurationTarget.Global
+      ) {
+        const noWsOpenMSg = `Open a workspace or folder first.`;
+        Logger.warnNotify(noWsOpenMSg);
+        throw new Error(noWsOpenMSg);
+      }
+      await idfConf.writeParameter(
+        "idf.openOcdConfigs",
+        selectedBoard.target.configFiles.join(","),
+        target
+      );
+    } catch (error) {
+      const errMsg =
+        error.message || "Failed to select openOCD configuration files";
+      Logger.errorNotify(errMsg, error);
       return;
     }
-    const target = idfConf.readParameter("idf.saveScope");
-    if (
-      !PreCheck.isWorkspaceFolderOpen() &&
-      target !== vscode.ConfigurationTarget.Global
-    ) {
-      const noWsOpenMSg = `Open a workspace or folder first.`;
-      Logger.warnNotify(noWsOpenMSg);
-      throw new Error(noWsOpenMSg);
-    }
-    await idfConf.writeParameter(
-      "idf.openOcdConfigs",
-      selectedBoard.target.configFiles.join(","),
-      target
-    );
   });
 
   registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
