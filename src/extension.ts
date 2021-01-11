@@ -1006,7 +1006,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (selectedTarget.target === "esp32") {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
-          ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
           configurationTarget
         );
       }
