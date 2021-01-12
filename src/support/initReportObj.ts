@@ -72,4 +72,14 @@ export const reportedResult: reportObj = {
     output: undefined,
     result: undefined,
   },
+  systemInfo: {
+    architecture: undefined,
+    envPath: undefined,
+    extensionVersion: undefined,
+    language: undefined,
+    shell: undefined,
+    platform: undefined,
+    systemName: undefined,
+    vscodeVersion: undefined,
+  },
 } as reportObj;

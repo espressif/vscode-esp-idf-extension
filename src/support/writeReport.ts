@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 import { writeFile, writeJson } from "fs-extra";
-import { EOL } from "os";
+import { EOL, release } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
-import { PlatformInformation } from "../PlatformInformation";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
@@ -28,9 +27,14 @@ export async function writeTextReport(
 ) {
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
-  const platformInfo = await PlatformInformation.GetPlatformInformation();
-  output += `Platform ${platformInfo.platform} Architecture ${platformInfo.architecture} ${EOL}`;
-  output += `System environment variable PATH ${EOL}`;
+  output += `Operating system name ${release()} ${EOL}`;
+  output += `Platform ${reportedResult.systemInfo.platform} ${EOL}`;
+  output += `Architecture ${reportedResult.systemInfo.architecture} ${EOL}`;
+  output += `System environment variable PATH ${EOL} ${reportedResult.systemInfo.envPath} ${EOL}`;
+  output += `Visual Studio Code version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
+  output += `Visual Studio Code language ${reportedResult.systemInfo.language} ${EOL}`;
+  output += `Visual Studio Code shell ${reportedResult.systemInfo.shell} ${EOL}`;
+  output += `ESP-IDF Extension version ${reportedResult.systemInfo.vscodeVersion} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;

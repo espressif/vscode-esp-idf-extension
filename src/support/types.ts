@@ -36,6 +36,17 @@ export interface Configuration {
   toolsPath: string;
 }
 
+export interface SystemInfo {
+  architecture: string;
+  envPath: string;
+  extensionVersion: string;
+  language: string;
+  shell: string;
+  platform: string;
+  systemName: string;
+  vscodeVersion: string;
+}
+
 export interface pyPkgVersion {
   name: string;
   version: string;
@@ -67,4 +78,5 @@ export interface reportObj {
   extensionRequirements: execResult;
   debugAdapterRequirements: execResult;
   formatedOutput: string;
+  systemInfo: SystemInfo;
 }
