@@ -29,9 +29,9 @@ We provide editor code coverage highlight and HTML reports for ESP-IDF projects,
 
 ## Debugging
 
-Click <kbd>F5</kbd> to start debugging. To configure the debug behaviour, please review [DEBUGGING](./DEBUGGING.md). If mode is set to `auto`, OpenOCD Server is launched by the extension and the output is shown in the `OpenOCD` Output window.
+Click <kbd>F5</kbd> to start debugging. To configure the debug behaviour, please review [DEBUGGING](./DEBUGGING.md).
 
-> **NOTE** For correct debug experience, first `build`, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md).
+> **NOTE** For correct debug experience, first `build` your project, choose the right serial port, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md).
 
 ## CMake Editor
 
@@ -53,9 +53,13 @@ You can follow [this](./HEAP_TRACING.md) quick step-by-step guide for heap traci
 
 ## SDK Configuration editor
 
+### Prerequisites
+
+- ESP-IDF `>=v4.x`
+
 This plugin includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start a configuration server process (confserver.py in **\${ESP-IDF-DIRECTORYPATH}**/tools) that enables the user to redefine ESP-IDF board parameters.
 
-When the user modify a parameter value, the value is send to the confserver.py process, which return the new value and other values modified to GUI menuconfig and then update the values in the UI.
+When the user modify a parameter value, the value is send to the `confserver.py` process, which return the new value and other values modified to GUI menuconfig and then update the values in the UI.
 
 Values are not automatically saved to the sdkconfig file until you click save changes. You can cancel any changes and load the values from the sdkconfig file by clicking cancel changes. If you click set default the current sdkconfig file is replaced by a template sdkconfig file and then loaded into the GUI menuconfig rendered values.
 

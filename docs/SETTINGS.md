@@ -2,6 +2,8 @@
 
 This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu (F1 -> Preferences: Open Settings (UI)).
 
+> **NOTE:** Please consider that `~` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
+
 ### ESP-IDF Specific Settings
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
@@ -84,8 +86,6 @@ These settings are specific to the Log Tracing
 | `trace.stop_tmo`    | stop_tmo will be set for the apptrace    |
 | `trace.wait4halt`   | wait4halt will be set for the apptrace   |
 | `trace.skip_size`   | skip_size will be set for the apptrace   |
-
-> **NOTE:** Please consider that `~` and `$VAR` are not recognized when you set one of the previous path. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path such as `${config:idf.espIdfPath}`.
 
 ### Other frameworks Specific Settings
 
