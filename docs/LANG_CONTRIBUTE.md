@@ -21,13 +21,10 @@ For ease you could copy the `en` for English definitions. A language folder tree
 
 Each file has a key value structure such as:
 
-```
+```json
 {
-    "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project",
-    .
-    .
-    .
-    "key": "value"
+  "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project",
+  "textID": "value"
 }
 ```
 

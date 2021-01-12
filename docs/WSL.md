@@ -2,7 +2,7 @@
 
 We have tested this extension using Windows 10 Build 19041 with WSL 2 with the Microsoft's Ubuntu 20.04 distribution for WSL.
 
-Currently in WSL 2, we have no access to serial ports. Calling powershell.exe from distribution's shell we obtain serial ports and perform flash and monitor tasks.
+Currently in WSL 2, we have no access to serial ports. Calling `powershell.exe` from distribution's shell we obtain serial ports and perform flash and monitor tasks.
 
 ## Limitations
 
