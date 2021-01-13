@@ -5,9 +5,10 @@
 # ESP-IDF VS Code Extension
 
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
+[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP--32-green)](https://www.espressif.com/en/products/socs/esp32-s2)
+[![ESP32-S2](https://img.shields.io/badge/Supported%20Chip-ESP32--S2-green)](https://www.espressif.com/en/products/socs/esp32-s2)
 
-Develop and debug applications for Espressif [ESP32](https://espressif.com/en/products/hardware/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2) chips with [ESP-IDF](https://github.com/espressif/esp-idf) IoT Development Framework.
-The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug your ESP-IDF code. See all [features](./docs/FEATURES.md).
+Develop, build, flash, monitor and debug Espressif chips with Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf).
 
 <a href="https://youtu.be/Lc6ausiKvQM">
   <p align="center">
@@ -21,10 +22,10 @@ The ESP-IDF extension makes it easy to develop, build, flash, monitor and debug 
 - [Configuration settings](./docs/SETTINGS.md)
 - [Commands](#Available-commands)
 - [Contribute](./docs/CONTRIBUTING.md)
-- [Features](./docs/FEATURES.md)
 - [Github Repository](https://github.com/espressif/vscode-esp-idf-extension)
 - [Github issues](https://github.com/espressif/vscode-esp-idf-extension/issues)
 - [How to use](#How-to-use)
+- [**See all features**](./docs/FEATURES.md)
 - [Setup process](./docs/SETUP.md)
 - [Releases](https://github.com/espressif/vscode-esp-idf-extension/releases)
 - [Working with multiple projects](./docs/MULTI_PROJECTS.md)
@@ -99,11 +100,11 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-IDF Python Packages                 |                                        |                                           |
 | Open NVS Partition Editor                       |                                        |                                           |
 
-The **Add Arduino ESP32 as ESP-IDF Component** command will add [Arduino ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory with in `${CURRENT_FOLDER}/components/arduino`. You can also use **Create ESP-IDF project** with the `arduino-as-component` template to create a new project folder that includes arduino as ESP-IDF component.
+The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **Create ESP-IDF project** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
 
 The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
-The **Install ESP-ADF** will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
-The **Install ESP-MDF** will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
+The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
+The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
 ## Available Tasks in tasks.json
 
