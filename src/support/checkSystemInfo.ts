@@ -16,24 +16,21 @@
  * limitations under the License.
  */
 import { ESP } from "../config";
-import { PlatformInformation } from "../PlatformInformation";
 import { reportObj } from "./types";
 import * as vscode from "vscode";
+import * as os from "os";
 
-export async function checkSystemInfo(
-  reportedResult: reportObj,
-  context: vscode.ExtensionContext
-) {
-  const platformInfo = await PlatformInformation.GetPlatformInformation();
+export async function checkSystemInfo(reportedResult: reportObj) {
   const extensionVersion = vscode.extensions.getExtension(ESP.extensionID);
-  reportedResult.systemInfo.architecture = platformInfo.architecture;
+  reportedResult.systemInfo.architecture = os.arch();
   reportedResult.systemInfo.envPath =
     process.platform === "win32" ? process.env.Path : process.env.PATH;
   reportedResult.systemInfo.extensionVersion = extensionVersion
     ? extensionVersion.packageJSON.version
     : "ESP-IDF_VERSION_NOT_FOUND";
   reportedResult.systemInfo.language = vscode.env.language;
-  reportedResult.systemInfo.platform = platformInfo.platform;
+  reportedResult.systemInfo.platform = os.platform();
+  reportedResult.systemInfo.systemName = os.release();
   reportedResult.systemInfo.shell = vscode.env.shell;
   reportedResult.systemInfo.vscodeVersion = vscode.version;
 }

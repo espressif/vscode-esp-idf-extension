@@ -100,6 +100,8 @@ import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import { getBoards } from "./espIdf/openOcd/boardConfiguration";
 import { generateConfigurationReport } from "./support";
+import { initializeReportObject } from "./support/initReportObj";
+import { writeTextReport } from "./support/writeReport";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1341,7 +1343,37 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.doctorCommand", async () => {
-    await generateConfigurationReport(context);
+    await vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: Preparing ESP-IDF extension report",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>
+      ) => {
+        const reportedResult = initializeReportObject();
+        try {
+          await generateConfigurationReport(
+            context,
+            workspaceRoot,
+            reportedResult
+          );
+        } catch (error) {
+          reportedResult.latestError = error;
+          const errMsg = error.message
+            ? error.message
+            : "Configuration report error";
+          Logger.error(errMsg, error);
+          Logger.warnNotify(
+            "Extension configuration report has been copied to clipboard with errors"
+          );
+          const reportOutput = await writeTextReport(reportedResult, context);
+          await vscode.env.clipboard.writeText(reportOutput);
+          return reportedResult;
+        }
+      }
+    );
   });
 
   registerIDFCommand(

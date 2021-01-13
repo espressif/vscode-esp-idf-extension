@@ -17,7 +17,7 @@
  */
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
-import { reportedResult } from "./initReportObj";
+import { reportObj } from "./types";
 import { getConfigurationSettings } from "./configurationSettings";
 import { getConfigurationAccess } from "./configurationAccess";
 import { getGitVersion } from "./gitVersion";
@@ -32,38 +32,33 @@ import {
   checkExtensionRequirements,
 } from "./checkExtensionRequirements";
 import { writeTextReport } from "./writeReport";
+import { checkSystemInfo } from "./checkSystemInfo";
+import { checkCCppPropertiesJson, checkLaunchJson } from "./checkVscodeFiles";
 
 export async function generateConfigurationReport(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  currentWorkspace: vscode.Uri,
+  reportedResult: reportObj
 ) {
-  try {
-    getConfigurationSettings(reportedResult);
-    await getConfigurationAccess(reportedResult, context);
-    await getGitVersion(reportedResult, context);
-    await getEspIdfVersion(reportedResult);
-    await getPythonVersion(reportedResult, context);
-    await getPipVersion(reportedResult, context);
-    await getPythonPackages(reportedResult, context);
-    await checkEspIdfTools(reportedResult, context);
-    await checkEspIdfRequirements(reportedResult, context);
-    await checkExtensionRequirements(reportedResult, context);
-    await checkDebugAdapterRequirements(reportedResult, context);
-    const reportOutput = await writeTextReport(reportedResult, context);
-    await vscode.env.clipboard.writeText(reportOutput);
-    reportedResult.formatedOutput = reportOutput;
-    Logger.infoNotify(
-      "Extension configuration report has been copied to clipboard"
-    );
-    return reportedResult;
-  } catch (error) {
-    reportedResult.latestError = error;
-    const errMsg = error.message ? error.message : "Configuration report error";
-    Logger.error(errMsg, error);
-    Logger.warnNotify(
-      "Extension configuration report has been copied to clipboard with errors"
-    );
-    const reportOutput = await writeTextReport(reportedResult, context);
-    await vscode.env.clipboard.writeText(reportOutput);
-    return reportedResult;
-  }
+  getConfigurationSettings(reportedResult);
+  await checkSystemInfo(reportedResult);
+  await getConfigurationAccess(reportedResult, context);
+  await getGitVersion(reportedResult, context);
+  await getEspIdfVersion(reportedResult);
+  await getPythonVersion(reportedResult, context);
+  await getPipVersion(reportedResult, context);
+  await getPythonPackages(reportedResult, context);
+  await checkEspIdfTools(reportedResult, context);
+  await checkEspIdfRequirements(reportedResult, context);
+  await checkExtensionRequirements(reportedResult, context);
+  await checkDebugAdapterRequirements(reportedResult, context);
+  await checkLaunchJson(reportedResult, currentWorkspace);
+  await checkCCppPropertiesJson(reportedResult, currentWorkspace);
+  const reportOutput = await writeTextReport(reportedResult, context);
+  await vscode.env.clipboard.writeText(reportOutput);
+  reportedResult.formatedOutput = reportOutput;
+  Logger.infoNotify(
+    "Extension configuration report has been copied to clipboard"
+  );
+  return reportedResult;
 }

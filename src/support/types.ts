@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-export interface ConfigurationAccess {
+export class ConfigurationAccess {
   espIdfPath: boolean;
   espIdfToolsPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
@@ -24,7 +24,7 @@ export interface ConfigurationAccess {
   ninjaInEnv: boolean;
   toolsPath: boolean;
 }
-export interface Configuration {
+export class Configuration {
   systemEnvPath: string;
   espIdfPath: string;
   customExtraPaths: string;
@@ -36,7 +36,7 @@ export interface Configuration {
   toolsPath: string;
 }
 
-export interface SystemInfo {
+export class SystemInfo {
   architecture: string;
   envPath: string;
   extensionVersion: string;
@@ -47,30 +47,32 @@ export interface SystemInfo {
   vscodeVersion: string;
 }
 
-export interface pyPkgVersion {
+export class pyPkgVersion {
   name: string;
   version: string;
 }
 
-export interface idfToolResult {
+export class idfToolResult {
   actual: string;
   doesToolExist: boolean;
   expected: string;
   id: string;
 }
 
-export interface execResult {
+export class execResult {
   output: string;
   result: string;
 }
 
-export interface reportObj {
+export class reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
   espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
   gitVersion: execResult;
   latestError: Error;
+  launchJson: any;
+  cCppPropertiesJson: any;
   pipVersion: execResult;
   pythonVersion: execResult;
   pythonPackages: execResult;

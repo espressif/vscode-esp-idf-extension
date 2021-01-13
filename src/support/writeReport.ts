@@ -27,9 +27,7 @@ export async function writeTextReport(
 ) {
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
-  output += `Operating system name ${release()} ${EOL}`;
-  output += `Platform ${reportedResult.systemInfo.platform} ${EOL}`;
-  output += `Architecture ${reportedResult.systemInfo.architecture} ${EOL}`;
+  output += `OS ${reportedResult.systemInfo.platform} ${reportedResult.systemInfo.architecture} ${reportedResult.systemInfo.systemName} ${EOL}`;
   output += `System environment variable PATH ${EOL} ${reportedResult.systemInfo.envPath} ${EOL}`;
   output += `Visual Studio Code version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
   output += `Visual Studio Code language ${reportedResult.systemInfo.language} ${EOL}`;
@@ -104,6 +102,14 @@ export async function writeTextReport(
       ? reportedResult.debugAdapterRequirements.result
       : reportedResult.debugAdapterRequirements.output
   }${EOL}`;
+  if (reportedResult.launchJson) {
+    output += `---------------------------------------------------- Visual Studio Code launch.json --------------------------------------------------------${EOL}`;
+    output += `${reportedResult.launchJson} ${EOL}`;
+  }
+  if (reportedResult.cCppPropertiesJson) {
+    output += `---------------------------------------------------- Visual Studio Code c_cpp_properties.json ----------------------------------------------${EOL}`;
+    output += `${reportedResult.cCppPropertiesJson} ${EOL}`;
+  }
   if (reportedResult.latestError) {
     output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
     output += `Latest error at ${

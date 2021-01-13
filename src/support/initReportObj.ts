@@ -17,8 +17,9 @@
  */
 import { reportObj } from "./types";
 
-export const reportedResult: reportObj = {
-  configurationSettings: {
+export function initializeReportObject() {
+  const report = new reportObj();
+  report.configurationSettings = {
     systemEnvPath: undefined,
     espIdfPath: undefined,
     customExtraPaths: undefined,
@@ -28,51 +29,53 @@ export const reportedResult: reportObj = {
     serialPort: undefined,
     openOcdConfigs: undefined,
     toolsPath: undefined,
-  },
-  configurationAccess: {
+  };
+  report.cCppPropertiesJson = undefined;
+  report.configurationAccess = {
     espIdfPath: undefined,
     espIdfToolsPaths: undefined,
     pythonBinPath: undefined,
     cmakeInEnv: undefined,
     ninjaInEnv: undefined,
     toolsPath: undefined,
-  },
-  debugAdapterRequirements: {
+  };
+  report.debugAdapterRequirements = {
     output: undefined,
     result: undefined,
-  },
-  espIdfToolsVersions: undefined,
-  espIdfVersion: {
+  };
+  report.espIdfToolsVersions = undefined;
+  report.espIdfVersion = {
     output: undefined,
     result: undefined,
-  },
-  extensionRequirements: {
+  };
+  report.extensionRequirements = {
     output: undefined,
     result: undefined,
-  },
-  formatedOutput: undefined,
-  gitVersion: {
+  };
+  report.formatedOutput = undefined;
+  report.gitVersion = {
     output: undefined,
     result: undefined,
-  },
-  idfCheckRequirements: {
+  };
+  report.idfCheckRequirements = {
     output: undefined,
     result: undefined,
-  },
-  latestError: undefined,
-  pipVersion: {
+  };
+  report.launchJson = undefined;
+  report.latestError = undefined;
+  report.pipVersion = {
     output: undefined,
     result: undefined,
-  },
-  pythonPackages: {
+  };
+  report.pythonPackages = {
     output: undefined,
     result: undefined,
-  },
-  pythonVersion: {
+  };
+  report.pythonVersion = {
     output: undefined,
     result: undefined,
-  },
-  systemInfo: {
+  };
+  report.systemInfo = {
     architecture: undefined,
     envPath: undefined,
     extensionVersion: undefined,
@@ -81,5 +84,6 @@ export const reportedResult: reportObj = {
     platform: undefined,
     systemName: undefined,
     vscodeVersion: undefined,
-  },
-} as reportObj;
+  };
+  return report;
+}
