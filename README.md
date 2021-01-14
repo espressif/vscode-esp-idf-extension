@@ -5,8 +5,7 @@
 # ESP-IDF VS Code Extension
 
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
-[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32-green)](https://www.espressif.com/en/products/socs/esp32-s2)
-[![ESP32-S2](https://img.shields.io/badge/Supported%20Chip-ESP32--S2-green)](https://www.espressif.com/en/products/socs/esp32-s2)
+[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2-green)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 
@@ -22,6 +21,7 @@ Develop, [build](./docs/FEATURES.md), [flash](./docs/FEATURES.md), [monitor](./d
 
 - [Build from source code and how to install](./docs/INSTALL.md)
 - [Configuration settings](./docs/SETTINGS.md)
+- [Chips and supported frameworks](./docs/HARDWARE_SUPPORT.md)
 - [Commands](#Available-commands)
 - [Contribute](./docs/CONTRIBUTING.md)
 - [Github Repository](https://github.com/espressif/vscode-esp-idf-extension)
