@@ -81,6 +81,8 @@
   "espIdf.jtag_flash.title": "Flash（带有JTag）",
   "espIdf.selectFlashMethodAndFlash.title": "选择闪光方法和闪光",
   "idf.flashType.description": "设备闪存方法，UART或JTag",
+  "openocd.tcl.host.description": "openocd tcl连接的主机",
+  "openocd.tcl.port.description": "openocd tcl连接的端口",
   "espIdf.launchWSServerAndMonitor.title": "为CoreDump / GDB-Stub模式启动IDF监视器",
   "esp_idf.appOffset.description": "重写生成程序开始地址偏移量 (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "要执行的一个或多个xtensa-esp32-elf-gdb命令，以便设置底层调试器。例子: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"].",

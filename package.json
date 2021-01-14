@@ -551,6 +551,18 @@
             ],
             "description": "%idf.flashType.description%",
             "scope": "resource"
+          },
+          "openocd.tcl.host": {
+            "type": "string",
+            "description": "%openocd.tcl.host.description%",
+            "scope": "resource",
+            "default": "localhost"
+          },
+          "openocd.tcl.port": {
+            "type": "number",
+            "description": "%openocd.tcl.port.description%",
+            "scope": "resource",
+            "default": 6666
           }
         }
       }

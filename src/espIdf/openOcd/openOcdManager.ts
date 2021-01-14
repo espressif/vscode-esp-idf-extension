@@ -52,10 +52,6 @@ export class OpenOCDManager extends EventEmitter {
   private constructor() {
     super();
     this.configureServerWithDefaultParam();
-    this.chan = Buffer.alloc(0);
-    this.displayChan = vscode.window.createOutputChannel("OpenOCD");
-    this.tclConnectionParams = { host: "localhost", port: 6666 };
-    this.registerOpenOCDStatusBarItem();
   }
 
   public async version(): Promise<string> {
@@ -250,7 +246,15 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private configureServerWithDefaultParam() {
-    this.openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
+    const openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
+    const host = idfConf.readParameter("openocd.tcl.host");
+    const port = idfConf.readParameter("openocd.tcl.port");
+
+    this.openOcdConfigFilesList = openOcdConfigFilesList;
+    this.chan = Buffer.alloc(0);
+    this.displayChan = vscode.window.createOutputChannel("OpenOCD");
+    this.tclConnectionParams = { host, port };
+    this.registerOpenOCDStatusBarItem();
   }
 
   private sendToOutputChannel(data: Buffer) {

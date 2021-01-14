@@ -81,6 +81,8 @@
   "espIdf.jtag_flash.title": "Flash (con JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Seleccione el método Flash y Flash",
   "idf.flashType.description": "Método de flash del dispositivo, UART o JTag",
+  "openocd.tcl.host.description": "Anfitrión para conexión tcl openocd",
+  "openocd.tcl.port.description": "Puerto para conexión tcl openocd",
   "espIdf.launchWSServerAndMonitor.title": "Inicie el monitor IDF para el modo CoreDump / GDB-Stub",
   "esp_idf.appOffset.description": "Sobrescribir offset de inicio de programa (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "Uno o varios comandos xtensa-esp32-elf-gdb a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",

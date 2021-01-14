@@ -47,7 +47,9 @@ export class HeapTraceManager extends EventEmitter {
     super();
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    const tclConnectionParams = { host: "localhost", port: 6666 };
+    const host = idfConf.readParameter("openocd.tcl.host");
+    const port = idfConf.readParameter("openocd.tcl.port");
+    const tclConnectionParams = { host, port };
     this.heapTraceNotificationTCLClientHandler = new TCLClient(
       tclConnectionParams
     );

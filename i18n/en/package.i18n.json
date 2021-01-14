@@ -81,6 +81,8 @@
   "espIdf.jtag_flash.title": "Flash (with JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Select Flash Method and Flash",
   "idf.flashType.description": "Device flash method, UART or JTag",
+  "openocd.tcl.host.description": "Host for openocd tcl connection",
+  "openocd.tcl.port.description": "Port for openocd tcl connection",
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "esp_idf.appOffset.description": "Override build program start address offset (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "One or more xtensa-esp32-elf-gdb commands to execute in order to setup the underlying debugger. Example: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",

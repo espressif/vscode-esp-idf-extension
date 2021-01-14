@@ -129,7 +129,9 @@ export class AppTraceManager extends EventEmitter {
     super();
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    this.tclConnectionParams = { host: "localhost", port: 6666 };
+    const host = idfConf.readParameter("openocd.tcl.host");
+    const port = idfConf.readParameter("openocd.tcl.port");
+    this.tclConnectionParams = { host, port };
     this.shallContinueCheckingStatus = false;
   }
 

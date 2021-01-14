@@ -1835,7 +1835,9 @@ export async function activate(context: vscode.ExtensionContext) {
             title: "Flashing your device using JTAG, please wait",
           },
           async () => {
-            const client = new TCLClient({ host: "localhost", port: 6666 });
+            const host = idfConf.readParameter("openocd.tcl.host");
+            const port = idfConf.readParameter("openocd.tcl.port");
+            const client = new TCLClient({ host, port });
             const jtag = new JTAGFlash(client);
             try {
               await jtag.flash(
