@@ -5,10 +5,12 @@
 # ESP-IDF VS Code Extension
 
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
-[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP--32-green)](https://www.espressif.com/en/products/socs/esp32-s2)
+[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32-green)](https://www.espressif.com/en/products/socs/esp32-s2)
 [![ESP32-S2](https://img.shields.io/badge/Supported%20Chip-ESP32--S2-green)](https://www.espressif.com/en/products/socs/esp32-s2)
+![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
+[![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 
-Develop, build, flash, monitor and debug Espressif chips with Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf).
+Develop, [build](./docs/FEATURES.md), [flash](./docs/FEATURES.md), [monitor](./docs/FEATURES.md), [debug](./DEBUGGING.md) and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf).
 
 <a href="https://youtu.be/Lc6ausiKvQM">
   <p align="center">
@@ -58,7 +60,9 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
 
-  > **Note:** If you want to get code navigation and ESP-IDF function references, the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to resolve header/source links using their Tag Parser engine. By default, projects created with **ESP-IDF: Create ESP-IDF project** tries to resolve headers by manually recursing ESP-IDF directory sources. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
+- Configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
+
+  > **Note:** If you want to get code navigation and ESP-IDF function references, the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to resolve header/source links. By default, projects created with **ESP-IDF: Create ESP-IDF project** tries to resolve headers by manually recursing ESP-IDF directory sources with the Tag Parser engine. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
