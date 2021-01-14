@@ -1232,6 +1232,7 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.configFiles.join(","),
         target
       );
+      Logger.infoNotify("OpenOCD Board configuration files are updated.");
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";
