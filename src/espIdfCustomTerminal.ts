@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ChildProcess, spawn, SpawnOptions } from "child_process";
 import { Logger } from "./logger/logger";
+import { EOL } from "os";
 
 export default class EspIdfCustomTerminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
@@ -43,7 +44,9 @@ export default class EspIdfCustomTerminal implements vscode.Pseudoterminal {
   }
 
   formatText(text: string) {
-    return `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
+    return process.platform === "win32"
+      ? `${text.split(/\r?\n/g).join(EOL)}`
+      : `\r${text.split(/\r?\n/g).join("\r")}\r`;
   }
 
   async handleInput(input: string) {
@@ -131,6 +134,7 @@ export default class EspIdfCustomTerminal implements vscode.Pseudoterminal {
             `ESP-IDF Terminal process ended with exit code ${code}.`
           );
           Logger.error(error.message, new Error(error.message));
+          this.closeEmitter.fire(code);
         }
         this.addNewLine();
         this.childProcess = undefined;
