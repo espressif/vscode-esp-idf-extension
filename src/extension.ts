@@ -98,6 +98,7 @@ import {
 import { release } from "os";
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
+import { getBoards } from "./espIdf/openOcd/boardConfiguration";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1005,7 +1006,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (selectedTarget.target === "esp32") {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
-          ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"],
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
           configurationTarget
         );
       }
@@ -1195,6 +1196,49 @@ export async function activate(context: vscode.ExtensionContext) {
       result = result + " -f " + configFile;
     });
     return result.trim();
+  });
+
+  registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
+    try {
+      const boards = await getBoards();
+      const choices = boards.map((b) => {
+        return {
+          description: `${b.description} (${b.configFiles.join(",")})`,
+          label: b.name,
+          target: b,
+        };
+      });
+      const selectOpenOCdConfigsMsg = locDic.localize(
+        "extension.enterOpenOcdConfigMessage",
+        "Enter OpenOCD Configuration File Paths list"
+      );
+      const selectedBoard = await vscode.window.showQuickPick(choices, {
+        placeHolder: selectOpenOCdConfigsMsg,
+      });
+      if (!selectedBoard) {
+        return;
+      }
+      const target = idfConf.readParameter("idf.saveScope");
+      if (
+        !PreCheck.isWorkspaceFolderOpen() &&
+        target !== vscode.ConfigurationTarget.Global
+      ) {
+        const noWsOpenMSg = `Open a workspace or folder first.`;
+        Logger.warnNotify(noWsOpenMSg);
+        throw new Error(noWsOpenMSg);
+      }
+      await idfConf.writeParameter(
+        "idf.openOcdConfigs",
+        selectedBoard.target.configFiles.join(","),
+        target
+      );
+      Logger.infoNotify("OpenOCD Board configuration files are updated.");
+    } catch (error) {
+      const errMsg =
+        error.message || "Failed to select openOCD configuration files";
+      Logger.errorNotify(errMsg, error);
+      return;
+    }
   });
 
   registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
@@ -1792,7 +1836,9 @@ export async function activate(context: vscode.ExtensionContext) {
             title: "Flashing your device using JTAG, please wait",
           },
           async () => {
-            const client = new TCLClient({ host: "localhost", port: 6666 });
+            const host = idfConf.readParameter("openocd.tcl.host");
+            const port = idfConf.readParameter("openocd.tcl.port");
+            const client = new TCLClient({ host, port });
             const jtag = new JTAGFlash(client);
             try {
               await jtag.flash(

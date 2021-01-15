@@ -78,6 +78,7 @@
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
+    "onCommand:espIdf.selectOpenOcdConfigFiles",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -550,6 +551,18 @@
             ],
             "description": "%idf.flashType.description%",
             "scope": "resource"
+          },
+          "openocd.tcl.host": {
+            "type": "string",
+            "description": "%openocd.tcl.host.description%",
+            "scope": "resource",
+            "default": "localhost"
+          },
+          "openocd.tcl.port": {
+            "type": "number",
+            "description": "%openocd.tcl.port.description%",
+            "scope": "resource",
+            "default": 6666
           }
         }
       }
@@ -765,6 +778,10 @@
       {
         "command": "espIdf.webview.nvsPartitionEditor",
         "title": "%espIdf.webview.nvsPartitionEditor.title%"
+      },
+      {
+        "command": "espIdf.selectOpenOcdConfigFiles",
+        "title": "%espIdf.selectOpenOcdConfigFiles.title%"
       }
     ],
     "breakpoints": [
