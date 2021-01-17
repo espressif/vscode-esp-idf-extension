@@ -191,7 +191,7 @@ export class AppTraceManager extends EventEmitter {
   public async stop() {
     if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
-      const stopHandler = this.sendCommandToTCLSession("esp32 apptrace stop");
+      const stopHandler = this.sendCommandToTCLSession("esp apptrace stop");
       stopHandler.on("response", (resp: Buffer) => {
         const respStr = resp.toString();
         if (respStr.includes("Tracing is not running!")) {
@@ -268,7 +268,7 @@ export class AppTraceManager extends EventEmitter {
     });
     const statusCheckerTimer = setInterval(() => {
       if (this.shallContinueCheckingStatus) {
-        tclClient.sendCommandWithCapture("esp32 apptrace status");
+        tclClient.sendCommandWithCapture("esp apptrace status");
       } else {
         clearInterval(statusCheckerTimer);
       }
