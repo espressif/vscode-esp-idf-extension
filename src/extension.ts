@@ -1203,7 +1203,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const boards = await getBoards();
       const choices = boards.map((b) => {
         return {
-          description: `${b.description} (${b.configFiles.join(",")})`,
+          description: `${b.description} (${b.configFiles})`,
           label: b.name,
           target: b,
         };
@@ -1229,7 +1229,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       await idfConf.writeParameter(
         "idf.openOcdConfigs",
-        selectedBoard.target.configFiles.join(","),
+        selectedBoard.target.configFiles,
         target
       );
       Logger.infoNotify("OpenOCD Board configuration files are updated.");
