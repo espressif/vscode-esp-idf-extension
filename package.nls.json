@@ -28,7 +28,7 @@
   "espIdf.searchInEspIdfDocs.title": "ESP-IDF: Search in documentation...",
   "espIdf.getEspAdf.title": "ESP-IDF: Install ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Install ESP-MDF",
-  "espIdf.installPyReqs.title": "ESP-IDF: Install ESP-IDF Python Packages",
+  "espIdf.installPyReqs.title": "ESP-IDF: Install ESP-IDF extension Python Packages",
   "espIdf.openDocUrl.title": "ESP-IDF: Open ESP-IDF Documentation...",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF: Clear ESP-IDF Search results",
   "espIdf.fullClean.title": "ESP-IDF: Full clean project",
