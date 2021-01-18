@@ -32,13 +32,13 @@ const defaultBoards = [
     name: "ESP32 module",
     description: "ESP32 used with ESP-PROG board",
     target: "esp32",
-    configFiles: ["interface/ftdi/esp32_devkitjv1.cfg", "target/esp32.cfg"],
+    configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
   } as IdfBoard,
   {
     name: "ESP32-S2 module",
     description: "ESP32-S2 used with ESP-PROG board",
     target: "esp32s2",
-    configFiles: ["interface/ftdi/esp32_devkitjv1.cfg", "target/esp32s2.cfg"],
+    configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
   } as IdfBoard,
 ];
 
@@ -76,7 +76,7 @@ export async function getBoards() {
       name: "Custom board",
       description: "No board selected",
       target: "esp32",
-      configFiles: ["interface/ftdi/esp32_devkitjv1.cfg", "target/esp32.cfg"],
+      configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
     } as IdfBoard;
     espBoards.push(emptyBoard);
     return espBoards;
