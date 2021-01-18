@@ -102,6 +102,8 @@
     "espIdf.openDocUrl.title",
     "espIdf.clearDocsSearchResult.title",
     "espIdf.selectOpenOcdConfigFiles.title",
+    "espIdf.fullClean.title",
+    "espIdf.webview.nvsPartitionEditor.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

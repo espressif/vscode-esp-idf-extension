@@ -754,3 +754,26 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
     path.join(extensionPath, "media", "espressif_icon.png")
   );
 }
+
+/**
+ * Compare two version strings based on semantic versioning.
+ * @param {string} v1 - String containing dot-separated numbers.
+ * @param {string} v2 - String containing dot-separated numbers.
+ * @return {number} v1 > v2 => 1 | v1 < v2 => -1 | v1 = v2 => 0
+ */
+export function compareVersion(v1: string, v2: string) {
+  const v1Parts = v1.split(".");
+  const v2Parts = v2.split(".");
+  const minParts = Math.min(v1Parts.length, v2Parts.length);
+  for (let i = 0; i < minParts; i++) {
+    let v1Ver = parseInt(v1Parts[i], 10);
+    let v2Ver = parseInt(v2Parts[i], 10);
+    if (v1Ver > v2Ver) return 1;
+    if (v1Ver < v2Ver) return -1;
+  }
+  return v1Parts.length === v2Parts.length
+    ? 0
+    : v1Parts.length < v2Parts.length
+    ? -1
+    : 1;
+}

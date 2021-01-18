@@ -2436,9 +2436,15 @@ function createMonitor(): any {
     monitorTerminal.show();
     overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
     const osRelease = release();
+    const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
+    let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
+    if (kernelMatch && kernelMatch.length) {
+      isWsl2Kernel = utils.compareVersion(kernelMatch[1], "4.19");
+    }
     if (
       process.platform === "linux" &&
-      osRelease.toLowerCase().indexOf("microsoft") !== -1
+      osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
+      isWsl2Kernel !== -1
     ) {
       const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
       const wslCurrPath = await utils.execChildProcess(
