@@ -65,6 +65,7 @@ export class BuildTask {
     }
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath();
+    await ensureDir(this.curWorkspace);
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.curWorkspace,
@@ -75,10 +76,9 @@ export class BuildTask {
       this.curWorkspace,
       modifiedEnv
     );
-    if (canAccessCMake === "" && canAccessNinja === "") {
+    if (canAccessCMake === "" || canAccessNinja === "") {
       throw new Error("CMake or Ninja executables not found");
     }
-    await ensureDir(this.curWorkspace);
     const options: SpawnOptions = {
       cwd: this.curWorkspace,
       env: modifiedEnv,
