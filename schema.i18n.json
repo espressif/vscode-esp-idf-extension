@@ -103,6 +103,7 @@
     "espIdf.selectOpenOcdConfigFiles.title",
     "espIdf.fullClean.title",
     "espIdf.webview.nvsPartitionEditor.title",
+    "espIdf.doctorCommand.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

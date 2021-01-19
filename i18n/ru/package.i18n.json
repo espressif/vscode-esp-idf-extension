@@ -30,6 +30,7 @@
   "espIdf.getEspMdf.title": "ESP-IDF: Установить ESP-MDF",
   "espIdf.installPyReqs.title": "ESP-IDF: Установите пакеты Python расширения ESP-IDF",
   "espIdf.openDocUrl.title": "ESP-IDF: Открыть документацию ...",
+  "espIdf.doctorCommand.title": "ESP-IDF: Команда врача",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF:  Очистить результаты поиска",
   "espIdf.fullClean.title": "ESP-IDF: Полный чистый проект",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Откройте редактор разделов NVS",
