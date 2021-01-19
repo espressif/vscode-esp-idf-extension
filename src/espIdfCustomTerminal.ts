@@ -46,7 +46,7 @@ export default class EspIdfCustomTerminal implements vscode.Pseudoterminal {
   formatText(text: string) {
     return process.platform === "win32"
       ? `${text.split(/\r?\n/g).join(EOL)}`
-      : `\r${text.split(/\r?\n/g).join("\r")}\r`;
+      : `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
   }
 
   async handleInput(input: string) {
