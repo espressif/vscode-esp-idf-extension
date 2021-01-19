@@ -31,6 +31,8 @@ If applicable, add screenshots to help explain your problem.
 - ESP-IDF Version: [e.g. v3.2.2]
 - Python Version: [e.g. 2.7.10]
 
+> **NOTE**: You can use the `ESP-IDF: Doctor command` to generate a report of your configuration.
+
 **Logs**
 If applicable, please share the log file which can be obtained from
 

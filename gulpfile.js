@@ -31,7 +31,14 @@ languagesDirs.forEach((langDir) => {
 });
 
 function clean(done) {
-  del(["out/**", "package.nls.*.json", "*.vsix"]);
+  del([
+    "dist/**",
+    "out/**",
+    "package.nls.*.json",
+    "*.vsix",
+    "report.json",
+    "report.txt",
+  ]);
   done();
 }
 

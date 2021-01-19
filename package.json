@@ -79,6 +79,7 @@
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
     "onCommand:espIdf.selectOpenOcdConfigFiles",
+    "onCommand:espIdf.doctorCommand",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -782,6 +783,10 @@
       {
         "command": "espIdf.selectOpenOcdConfigFiles",
         "title": "%espIdf.selectOpenOcdConfigFiles.title%"
+      },
+      {
+        "command": "espIdf.doctorCommand",
+        "title": "%espIdf.doctorCommand.title%"
       }
     ],
     "breakpoints": [
