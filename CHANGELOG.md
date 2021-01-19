@@ -21,13 +21,14 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 ### Features and enhancements
 
-- [Select openOCD board command](https://github.com/espressif/vscode-esp-idf-extension/pull/286) based on esp-config.json from OpenOCD repository.
+- [ESP-IDF: Doctor command](https://github.com/espressif/vscode-esp-idf-extension/pull/255) to generate an extension configuration report.
 - [Enhance readme and documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/284)
+- [Select openOCD board command](https://github.com/espressif/vscode-esp-idf-extension/pull/286) based on esp-config.json from OpenOCD repository.
 - [Russian localization for commands](https://github.com/espressif/vscode-esp-idf-extension/pull/216) Thanks @Vasilius-001 !
 
 ### Bug Fixes
 
-- [WSL 1 serial ports](https://github.com/espressif/vscode-esp-idf-extension/pull/298)
+- [WSL 1 serial port fix](https://github.com/espressif/vscode-esp-idf-extension/pull/298)
 - [Fix OpenOCD Config Files](https://github.com/espressif/vscode-esp-idf-extension/pull/296) Thanks @meltdown03 !
 - [Fix custom terminal output formatting](https://github.com/espressif/vscode-esp-idf-extension/pull/291)
 - [Remove check IDF tools before build or flash, update tasks.json template](https://github.com/espressif/vscode-esp-idf-extension/pull/281)
