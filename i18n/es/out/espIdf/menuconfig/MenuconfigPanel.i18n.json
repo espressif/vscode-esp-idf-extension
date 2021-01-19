@@ -1,6 +1,5 @@
 {
   "menuconfig.panelName": "SDK Configuration editor",
-  "menuconfig.loadDefaultValues": "Se han cargado los valores por defecto.",
   "menuconfig.saveValues": "Se han guardado los parametros modificados.",
   "menuconfig.discardValues": "Se han ignorado los valores modificados",
   "menuconfig.wrongIdfPath": "La ruta de IDF_PATH es incorrecta. ¿Quisiera introducirla?",
