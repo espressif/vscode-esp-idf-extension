@@ -1,6 +1,5 @@
 {
   "menuconfig.panelName": "SDK Configuration editor",
-  "menuconfig.loadDefaultValues": "Loaded default settings in SDK Configuration editor",
   "menuconfig.saveValues": "Saved changes in SDK Configuration editor",
   "menuconfig.discardValues": "Discarded changes in SDK Configuration editor",
   "menuconfig.wrongIdfPath": "Wrong IDF_PATH in workspace settings. Would you like to set it?",
