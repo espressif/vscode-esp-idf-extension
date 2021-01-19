@@ -2,7 +2,7 @@
   <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="30" />
 </a>
 
-# [ESP-IDF VS Code Extension's](http://github.com/espressif/vscode-esp-idf-extension) Changelogs
+# [ESP-IDF VS Code Extension's](http://github.com/espressif/vscode-esp-idf-extension) Changelog
 
 > We have opened a [survey link](https://bit.ly/3iNCFyY), please submit your valuable feedbacks. Thanks 👏
 
@@ -16,6 +16,24 @@
 ---
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
+
+## [0.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.6.1)
+
+### Features and enhancements
+
+- [ESP-IDF: Doctor command](https://github.com/espressif/vscode-esp-idf-extension/pull/255) to generate an extension configuration report.
+- [Enhance readme and documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/284)
+- [Select openOCD board command](https://github.com/espressif/vscode-esp-idf-extension/pull/286) based on esp-config.json from OpenOCD repository.
+- [Russian localization for commands](https://github.com/espressif/vscode-esp-idf-extension/pull/216) Thanks @Vasilius-001 !
+
+### Bug Fixes
+
+- [WSL 1 serial port fix](https://github.com/espressif/vscode-esp-idf-extension/pull/298)
+- [Fix OpenOCD Config Files](https://github.com/espressif/vscode-esp-idf-extension/pull/296) Thanks @meltdown03 !
+- [Fix custom terminal output formatting](https://github.com/espressif/vscode-esp-idf-extension/pull/291)
+- [Remove check IDF tools before build or flash, update tasks.json template](https://github.com/espressif/vscode-esp-idf-extension/pull/281)
+- [Fix env variables settings in IDF Monitor command](https://github.com/espressif/vscode-esp-idf-extension/pull/274)
+- [Fix eFuse explorer icons](https://github.com/espressif/vscode-esp-idf-extension/pull/268)
 
 ## [0.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.6.0)
 
