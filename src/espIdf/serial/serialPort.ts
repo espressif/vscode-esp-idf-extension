@@ -21,7 +21,12 @@ import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
-import { execChildProcess, extensionContext, spawn } from "../../utils";
+import {
+  compareVersion,
+  execChildProcess,
+  extensionContext,
+  spawn,
+} from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
 export class SerialPort {
@@ -51,10 +56,17 @@ export class SerialPort {
 
     try {
       const osRelease = release();
+      const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
+      let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
+      if (kernelMatch && kernelMatch.length) {
+        isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
+      }
+      console.log(isWsl2Kernel);
       let portList: SerialPortDetails[];
       if (
         process.platform === "linux" &&
-        osRelease.toLowerCase().indexOf("microsoft") !== -1
+        osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
+        isWsl2Kernel !== -1
       ) {
         portList = await this.wslList();
       } else {
