@@ -32,7 +32,7 @@ export class JTAGFlash {
           }
 
           //Flash successful when response is 0
-          resolve();
+          resolve(response);
         })
         .on("error", (err) => {
           reject(

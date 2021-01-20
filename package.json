@@ -564,6 +564,10 @@
             "description": "%openocd.tcl.port.description%",
             "scope": "resource",
             "default": 6666
+          },
+          "openocd.jtag.command.force_unix_path_separator": {
+            "type": "boolean",
+            "default": true
           }
         }
       }
