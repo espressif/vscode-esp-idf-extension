@@ -1836,7 +1836,7 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform(
       [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
       async () => {
-        const buildFolder = path.join(workspaceRoot.fsPath, "build");
+        let buildFolder = path.join(workspaceRoot.fsPath, "build");
         if (!(await pathExists(buildFolder))) {
           return Logger.warnNotify("First you need to build before flashing!!");
         }
@@ -1877,6 +1877,12 @@ export async function activate(context: vscode.ExtensionContext) {
             const port = idfConf.readParameter("openocd.tcl.port");
             const client = new TCLClient({ host, port });
             const jtag = new JTAGFlash(client);
+            const forceUNIXPathSeparator = idfConf.readParameter(
+              "openocd.jtag.command.force_unix_path_separator"
+            );
+            if (forceUNIXPathSeparator === true) {
+              buildFolder = buildFolder.replace(/\\/g, "/");
+            }
             try {
               await jtag.flash(
                 `program_esp_bins ${buildFolder} flasher_args.json verify reset`
