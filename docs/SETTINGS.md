@@ -33,13 +33,14 @@ This is how the extension uses them:
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting                 | Description                                                         |
-| ----------------------- | ------------------------------------------------------------------- |
-| `idf.adapterTargetName` | ESP-IDF target Chip (Example: esp32)                                |
-| `idf.flashBaudRate`     | Flash Baud rate                                                     |
-| `idf.openOcdConfigs`    | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
-| `idf.port`              | Path of selected device port                                        |
-| `idf.portWin`           | Path of selected device port in Windows                             |
+| Setting                                          | Description                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                |
+| `idf.flashBaudRate`                              | Flash Baud rate                                                     |
+| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
+| `idf.port`                                       | Path of selected device port                                        |
+| `idf.portWin`                                    | Path of selected device port in Windows                             |
 
 This is how the extension uses them:
 
