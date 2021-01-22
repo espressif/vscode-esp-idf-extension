@@ -68,13 +68,14 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ### Extension Behaviour Settings
 
-| Setting ID                   | Description                                                       |
-| ---------------------------- | ----------------------------------------------------------------- |
-| `idf.notificationSilentMode` | Silent all notifications messages (excluding error notifications) |
-| `idf.saveBeforeBuild`        | Save all the edited files before building (default `true`)        |
-| `idf.showOnboardingOnInit`   | Show ESP-IDF Configuration window on extension activation         |
-| `idf.useIDFKconfigStyle`     | Enable style validation for Kconfig files                         |
-| `idf.saveScope`              | Where to save extension settings                                  |
+| Setting ID                        | Description                                                       |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `idf.notificationSilentMode`      | Silent all notifications messages (excluding error notifications) |
+| `idf.saveBeforeBuild`             | Save all the edited files before building (default `true`)        |
+| `idf.showOnboardingOnInit`        | Show ESP-IDF Configuration window on extension activation         |
+| `idf.useIDFKconfigStyle`          | Enable style validation for Kconfig files                         |
+| `idf.saveScope`                   | Where to save extension settings                                  |
+| `idf.launchMonitorOnDebugSession` | Launch ESP-IDF Monitor along with ESP-IDF Debug session           |
 
 The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
 

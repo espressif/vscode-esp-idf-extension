@@ -307,12 +307,14 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    // endOpenOcdServer(); // Should openOcd restart at every debug session?
     if (isOpenOCDLaunchedByDebug) {
       isOpenOCDLaunchedByDebug = false;
       openOCDManager.stop();
     }
     debugAdapterManager.stop();
+    if (monitorTerminal) {
+      monitorTerminal.dispose();
+    }
   });
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -767,14 +769,14 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.name !== "Core Dump Debug"
+          session.configuration.sessionID !== "core-dump.debug.session.ws"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
         }
         if (
-          session.name === "Core Dump Debug" ||
-          session.name === "GDB Stub Debug"
+          session.configuration.sessionID === "core-dump.debug.session.ws" ||
+          session.configuration.sessionID === "gdbstub.debug.session.ws"
         ) {
           await debugAdapterManager.start();
         }
@@ -792,12 +794,45 @@ export async function activate(context: vscode.ExtensionContext) {
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
         }
+        const useMonitorWithDebug = idfConf.readParameter(
+          "idf.launchMonitorOnDebugSession"
+        );
+        if (
+          (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
+            session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+          useMonitorWithDebug
+        ) {
+          createMonitor();
+        }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
         const errMsg = error.message || "Error starting ESP-IDF Debug Adapter";
         Logger.errorNotify(errMsg, error);
         return;
       }
+    },
+  });
+
+  vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
+    createDebugAdapterTracker(session: vscode.DebugSession) {
+      return {
+        onWillReceiveMessage: (m) => {
+          const useMonitorWithDebug = idfConf.readParameter(
+            "idf.launchMonitorOnDebugSession"
+          );
+          if (
+            m &&
+            m.command &&
+            m.command === "stackTrace" &&
+            (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
+              session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+            monitorTerminal &&
+            useMonitorWithDebug
+          ) {
+            monitorTerminal.show();
+          }
+        },
+      };
     },
   });
 
@@ -1743,8 +1778,16 @@ export async function activate(context: vscode.ExtensionContext) {
             name: "GDB Stub Debug",
             type: "espidf",
             request: "launch",
+            sessionID: "gdbstub.debug.session.ws",
           });
-          wsServer.done();
+          vscode.debug.onDidTerminateDebugSession((session) => {
+            if (
+              session.configuration.sessionID === "gdbstub.debug.session.ws"
+            ) {
+              monitor.dispose();
+              wsServer.close();
+            }
+          });
         } catch (error) {
           Logger.errorNotify("Failed to launch debugger for postmortem", error);
         }
