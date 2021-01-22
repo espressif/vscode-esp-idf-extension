@@ -114,6 +114,7 @@ const statusBarItems: vscode.StatusBarItem[] = [];
 const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
+let isMonitorLaunchedByDebug: boolean = false;
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -312,7 +313,8 @@ export async function activate(context: vscode.ExtensionContext) {
       openOCDManager.stop();
     }
     debugAdapterManager.stop();
-    if (monitorTerminal) {
+    if (isMonitorLaunchedByDebug) {
+      isMonitorLaunchedByDebug = false;
       monitorTerminal.dispose();
     }
   });
@@ -802,6 +804,7 @@ export async function activate(context: vscode.ExtensionContext) {
             session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
           useMonitorWithDebug
         ) {
+          isMonitorLaunchedByDebug = true;
           createMonitor();
         }
         return new vscode.DebugAdapterServer(portToUse);
