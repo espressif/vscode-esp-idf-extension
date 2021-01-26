@@ -55,6 +55,7 @@
   "param.partialDarkTheme": "Цвет фона для частично покрытых линий в темной теме для покрытия кода ESP-IDF.",
   "param.uncoveredLightTheme": "Цвет фона для непокрытых линий в светлой теме для покрытия кода ESP-IDF.",
   "param.uncoveredDarkTheme": "Цвет фона для непокрытых линий в темной теме для покрытия кода ESP-IDF.",
+  "param.launchMonitorOnDebugSession.title": "Запустите IDF Monitor вместе с сеансом ESP-IDF Debug Adapter.",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",
