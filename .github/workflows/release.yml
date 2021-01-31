@@ -30,7 +30,20 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ESP IDF VSCode Extension Release ${{ github.ref }}
           draft: true
-          prerelease: true
+          body: |
+            ### Release Highlights
+
+            ### Features & Enhancements
+
+            <!-- Insert The Features and Enhancements below as points possibly add the link to the PR/commit -->
+
+            ### Bug Fixes
+
+            <!-- Insert The Bug Fixes below as points, also add relevant links -->
+
+      - name: Determine version
+        id: version
+        run: "echo ::set-output name=version::${GITHUB_REF:11}"
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -40,7 +53,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./esp-idf-extension.vsix
-          asset_name: esp-idf-extension-${{ github.ref }}.vsix
+          asset_name: esp-idf-extension-${{ steps.version.outputs.version }}.vsix
           asset_content_type: application/zip
 
       - name: Marketplace release
