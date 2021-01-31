@@ -114,6 +114,7 @@ const statusBarItems: vscode.StatusBarItem[] = [];
 const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
+let isMonitorLaunchedByDebug: boolean = false;
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -307,12 +308,15 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    // endOpenOcdServer(); // Should openOcd restart at every debug session?
     if (isOpenOCDLaunchedByDebug) {
       isOpenOCDLaunchedByDebug = false;
       openOCDManager.stop();
     }
     debugAdapterManager.stop();
+    if (isMonitorLaunchedByDebug) {
+      isMonitorLaunchedByDebug = false;
+      monitorTerminal.dispose();
+    }
   });
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -767,14 +771,14 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.name !== "Core Dump Debug"
+          session.configuration.sessionID !== "core-dump.debug.session.ws"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
         }
         if (
-          session.name === "Core Dump Debug" ||
-          session.name === "GDB Stub Debug"
+          session.configuration.sessionID === "core-dump.debug.session.ws" ||
+          session.configuration.sessionID === "gdbstub.debug.session.ws"
         ) {
           await debugAdapterManager.start();
         }
@@ -792,12 +796,45 @@ export async function activate(context: vscode.ExtensionContext) {
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
         }
+        const useMonitorWithDebug = idfConf.readParameter(
+          "idf.launchMonitorOnDebugSession"
+        );
+        if (
+          (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
+            session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+          useMonitorWithDebug
+        ) {
+          isMonitorLaunchedByDebug = true;
+          await createMonitor();
+        }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
         const errMsg = error.message || "Error starting ESP-IDF Debug Adapter";
-        Logger.errorNotify(errMsg, error);
-        return;
+        return Logger.errorNotify(errMsg, error);
       }
+    },
+  });
+
+  vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
+    createDebugAdapterTracker(session: vscode.DebugSession) {
+      return {
+        onWillReceiveMessage: (m) => {
+          const useMonitorWithDebug = idfConf.readParameter(
+            "idf.launchMonitorOnDebugSession"
+          );
+          if (
+            m &&
+            m.command &&
+            m.command === "stackTrace" &&
+            (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
+              session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+            monitorTerminal &&
+            useMonitorWithDebug
+          ) {
+            monitorTerminal.show();
+          }
+        },
+      };
     },
   });
 
@@ -1743,8 +1780,16 @@ export async function activate(context: vscode.ExtensionContext) {
             name: "GDB Stub Debug",
             type: "espidf",
             request: "launch",
+            sessionID: "gdbstub.debug.session.ws",
           });
-          wsServer.done();
+          vscode.debug.onDidTerminateDebugSession((session) => {
+            if (
+              session.configuration.sessionID === "gdbstub.debug.session.ws"
+            ) {
+              monitor.dispose();
+              wsServer.close();
+            }
+          });
         } catch (error) {
           Logger.errorNotify("Failed to launch debugger for postmortem", error);
         }
@@ -2373,7 +2418,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
               message: "Launching monitor...",
               increment: 10,
             });
-            createMonitor();
+            await createMonitor();
           }
           TaskManager.disposeListeners();
         } catch (error) {
@@ -2426,89 +2471,105 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
   });
 };
 
-function createMonitor(): any {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildTask.isBuilding || FlashTask.isFlashing) {
-      const waitProcessIsFinishedMsg = locDic.localize(
-        "extension.waitProcessIsFinishedMessage",
-        "Wait for ESP-IDF build or flash to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time")
-      );
-      return;
-    }
-
-    const idfPathDir =
-      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    const port = idfConf.readParameter("idf.port");
-    const idfPath = path.join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = utils.appendIdfAndToolsToPath();
-    if (!utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)) {
-      Logger.errorNotify(
-        "Python binary path is not defined",
-        new Error("idf.pythonBinPath is not defined")
-      );
-    }
-    if (!idfPathDir) {
-      Logger.errorNotify(
-        "ESP-IDF Path is not defined",
-        new Error("idf.espIdfPath is not defined")
-      );
-    }
-    if (!port) {
-      try {
-        await vscode.commands.executeCommand("espIdf.selectPort");
-      } catch (error) {
-        Logger.error("Unable to execute the command: espIdf.selectPort", error);
+function createMonitor() {
+  return new Promise<void>((resolve, reject) => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      if (BuildTask.isBuilding || FlashTask.isFlashing) {
+        const waitProcessIsFinishedMsg = locDic.localize(
+          "extension.waitProcessIsFinishedMessage",
+          "Wait for ESP-IDF build or flash to finish"
+        );
+        Logger.errorNotify(
+          waitProcessIsFinishedMsg,
+          new Error("One_Task_At_A_Time")
+        );
+        return reject();
       }
-      return Logger.errorNotify(
-        "Select a serial port before flashing",
-        new Error("NOT_SELECTED_PORT")
-      );
-    }
-    if (typeof monitorTerminal === "undefined") {
-      monitorTerminal = vscode.window.createTerminal({
-        name: "ESP-IDF Monitor",
-        env: modifiedEnv,
-        cwd: workspaceRoot.fsPath,
-      });
-    }
-    monitorTerminal.show();
-    overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
-    const osRelease = release();
-    const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
-    let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
-    if (kernelMatch && kernelMatch.length) {
-      isWsl2Kernel = utils.compareVersion(kernelMatch[1], "4.19");
-    }
-    if (
-      process.platform === "linux" &&
-      osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
-      isWsl2Kernel !== -1
-    ) {
-      const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
-      const wslCurrPath = await utils.execChildProcess(
-        `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
-        utils.extensionContext.extensionPath
-      );
-      const winWslRoot = wslCurrPath
-        .replace(wslRoot, "")
-        .replace(/[\r\n]+/g, "");
-      const toolPath = (
-        winWslRoot +
-        idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
-      ).replace(/\\/g, "\\\\");
-      monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
-      const elfFile = await utils.getElfFilePath(workspaceRoot);
-      monitorTerminal.sendText(
-        `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
-      );
-      return;
-    }
-    monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
+
+      const idfPathDir =
+        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      const port = idfConf.readParameter("idf.port");
+      const idfPath = path.join(idfPathDir, "tools", "idf.py");
+      const modifiedEnv = utils.appendIdfAndToolsToPath();
+      if (
+        !utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)
+      ) {
+        Logger.errorNotify(
+          "Python binary path is not defined",
+          new Error("idf.pythonBinPath is not defined")
+        );
+      }
+      if (!idfPathDir) {
+        Logger.errorNotify(
+          "ESP-IDF Path is not defined",
+          new Error("idf.espIdfPath is not defined")
+        );
+      }
+      if (!port) {
+        try {
+          await vscode.commands.executeCommand("espIdf.selectPort");
+        } catch (error) {
+          Logger.error(
+            "Unable to execute the command: espIdf.selectPort",
+            error
+          );
+        }
+        Logger.errorNotify(
+          "Select a serial port before flashing",
+          new Error("NOT_SELECTED_PORT")
+        );
+        return reject(new Error("NOT_SELECTED_PORT"));
+      }
+      if (typeof monitorTerminal === "undefined") {
+        monitorTerminal = vscode.window.createTerminal({
+          name: "ESP-IDF Monitor",
+          env: modifiedEnv,
+          cwd: workspaceRoot.fsPath,
+        });
+      }
+      monitorTerminal.show();
+      overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
+      const osRelease = release();
+      const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
+      let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
+      if (kernelMatch && kernelMatch.length) {
+        isWsl2Kernel = utils.compareVersion(kernelMatch[1], "4.19");
+      }
+      if (
+        process.platform === "linux" &&
+        osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
+        isWsl2Kernel !== -1
+      ) {
+        const wslRoot = utils.extensionContext.extensionPath.replace(
+          /\//g,
+          "\\"
+        );
+        const wslCurrPath = await utils.execChildProcess(
+          `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
+          utils.extensionContext.extensionPath
+        );
+        const winWslRoot = wslCurrPath
+          .replace(wslRoot, "")
+          .replace(/[\r\n]+/g, "");
+        const toolPath = (
+          winWslRoot +
+          idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
+        ).replace(/\\/g, "\\\\");
+        monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
+        const elfFile = await utils.getElfFilePath(workspaceRoot);
+        monitorTerminal.sendText(
+          `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
+        );
+      } else {
+        monitorTerminal.sendText(
+          `${pythonBinPath} ${idfPath} -p ${port} monitor`
+        );
+      }
+      return resolve();
+    });
   });
 }
 

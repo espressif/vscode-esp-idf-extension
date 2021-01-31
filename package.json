@@ -567,6 +567,12 @@
           "openocd.jtag.command.force_unix_path_separator": {
             "type": "boolean",
             "default": true
+          },
+          "idf.launchMonitorOnDebugSession": {
+            "type": "boolean",
+            "description": "%param.launchMonitorOnDebugSession.title%",
+            "scope": "resource",
+            "default": true
           }
         }
       }

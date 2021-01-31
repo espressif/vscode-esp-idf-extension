@@ -19,6 +19,7 @@
 import * as vscode from "vscode";
 import * as winston from "winston";
 import * as idfConf from "../idfConfiguration";
+import { Telemetry } from "../telemetry";
 
 export default class UserNotificationManagerTransport extends winston.Transport {
   constructor(options: any) {
@@ -40,7 +41,16 @@ export default class UserNotificationManagerTransport extends winston.Transport 
       } else if (level === "warn" && !isSilentMode) {
         vscode.window.showWarningMessage(message);
       } else if (level === "error") {
-        vscode.window.showErrorMessage(message);
+        vscode.window
+          .showErrorMessage(message, "Report", "Cancel")
+          .then((item) => {
+            if (item === "Cancel") {
+              return;
+            }
+            if (item === "Report") {
+              Telemetry.sendEvent("UserReport", { message });
+            }
+          });
       } else {
         winston.error(
           `Invalid error level '${level}' for user notification. ${message}`
