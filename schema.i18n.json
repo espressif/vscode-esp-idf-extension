@@ -15,7 +15,7 @@
         ]
       },
       "serial": {
-        "SerialPort": [
+        "serialPort": [
           "serial.notSerialPortFoundMessage",
           "serial.noPortSelectedMessage",
           "serial.portHasBeenSelectedMessage",
