@@ -1,6 +1,5 @@
 {
   "name": "esp-idf-extension",
-  "preview": true,
   "displayName": "Espressif IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
   "version": "0.6.1",
