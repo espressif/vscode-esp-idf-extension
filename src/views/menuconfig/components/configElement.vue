@@ -12,15 +12,17 @@
         </div>
         <div class="field">
           <div class="control">
-            <select v-model="config.value" class="select" @change="onChange">
-              <option
-                v-for="option in config.children"
-                :key="option.id"
-                :value="option.id"
-              >
-                {{ option.title }}
-              </option>
-            </select>
+            <div class="select is-small">
+              <select v-model="config.value" @change="onChange">
+                <option
+                  v-for="option in config.children"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{ option.title }}
+                </option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
