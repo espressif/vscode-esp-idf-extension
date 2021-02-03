@@ -269,7 +269,12 @@ export async function getPythonEnvPath(
       espIdfDir
     )
   ).replace(/(\n|\r|\r\n)/gm, "");
-  const espIdfVersion = await utils.getEspIdfVersion(espIdfDir);
+  const fullEspIdfVersion = await utils.getEspIdfVersion(espIdfDir);
+  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
   const resultVersion = `idf${espIdfVersion}_py${pythonVersion}_env`;
   const idfPyEnvPath = path.join(idfToolsDir, "python_env", resultVersion);
 
