@@ -102,6 +102,7 @@
     "espIdf.clearDocsSearchResult.title",
     "espIdf.selectOpenOcdConfigFiles.title",
     "espIdf.fullClean.title",
+    "espIdf.createNewComponent.title",
     "espIdf.webview.nvsPartitionEditor.title",
     "espIdf.doctorCommand.title",
     "debug.initConfig.name",

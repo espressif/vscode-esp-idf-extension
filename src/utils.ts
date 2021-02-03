@@ -15,7 +15,15 @@
 import * as childProcess from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
-import { copy, ensureDir, pathExists } from "fs-extra";
+import {
+  copy,
+  ensureDir,
+  mkdirp,
+  move,
+  pathExists,
+  readFile,
+  writeFile,
+} from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { EOL } from "os";
 import * as path from "path";
@@ -753,6 +761,33 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   return vscode.Uri.file(
     path.join(extensionPath, "media", "espressif_icon.png")
   );
+}
+
+export async function createNewComponent(
+  name: string,
+  currentDirectory: string
+) {
+  const componentDirPath = path.join(currentDirectory, "components", name);
+  await mkdirp(componentDirPath);
+  const newComponentTemplatePath = path.join(
+    extensionContext.extensionPath,
+    "templates",
+    "new_component"
+  );
+  await copy(newComponentTemplatePath, componentDirPath);
+  const header = path.join(componentDirPath, "include", "new_component.h");
+  const newHeader = path.join(componentDirPath, "include", `${name}.h`);
+  await move(header, newHeader);
+  const sourceFile = path.join(componentDirPath, "new_component.c");
+  const newSourceFile = path.join(componentDirPath, `${name}.c`);
+  await move(sourceFile, newSourceFile);
+  let sourceContent = await readFile(newSourceFile, "utf8");
+  sourceContent = sourceContent.replace("new_component", name);
+  await writeFile(newSourceFile, sourceContent);
+  const cmakeListsFilePath = path.join(componentDirPath, "CMakeLists.txt");
+  let cmakeListsContent = await readFile(cmakeListsFilePath, "utf8");
+  cmakeListsContent = cmakeListsContent.replace("new_component", name);
+  await writeFile(cmakeListsFilePath, cmakeListsContent);
 }
 
 /**

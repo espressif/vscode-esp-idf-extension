@@ -33,6 +33,7 @@
   "espIdf.doctorCommand.title": "ESP-IDF: Команда врача",
   "espIdf.clearDocsSearchResult.title": "ESP-IDF:  Очистить результаты поиска",
   "espIdf.fullClean.title": "ESP-IDF: Полный чистый проект",
+  "espIdf.createNewComponent.title": "ESP-IDF: Создать новый компонент ESP-IDF",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Откройте редактор разделов NVS",
   "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: Выберите конфигурацию платы OpenOCD",
   "debug.initConfig.name": "ESP-IDF: Запустить",
