@@ -23,6 +23,12 @@ This extension provides many features to ease development of ESP-IDF Projects.
 - [CMake Editor](#CMake-Editor)
 - [Support for WSL 2](./WSL.md)
 
+## Arduino as ESP-IDF component
+
+The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **Create ESP-IDF project** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
+
+> **NOTE** Not all versions of ESP-IDF are supported. Make sure to check [Arduino-ESP32](https://github.com/espressif/arduino-esp32) to see if your ESP-IDF version is compatible.
+
 ## Build
 
 **ESP-IDF: Build your project** is provided by this extension to build your project using `CMake` and `Ninja-build` as explained in [ESP-IDF Build system using Cmake directly](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#using-cmake-directly).

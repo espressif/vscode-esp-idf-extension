@@ -23,10 +23,9 @@ import { join } from "path";
 import { ensureDir } from "fs-extra";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
+import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {
-  private readonly ARDUINO_ESP32_URL =
-    "https://github.com/espressif/arduino-esp32.git";
   private readonly projectDir: string;
   private cloneProcess: ChildProcess;
   constructor(projectDir: string) {
@@ -57,7 +56,7 @@ export class ArduinoComponentInstaller {
           "--progress",
           "-b",
           branchToUse,
-          this.ARDUINO_ESP32_URL,
+          ESP.URL.ARDUINO_ESP32_URL,
           "arduino",
         ],
         { cwd: componentsDir }
@@ -101,12 +100,6 @@ export class ArduinoComponentInstaller {
 
   public async addArduinoAsComponent(espIdfPath?: string) {
     const branchToUse = await this.checkIdfVersion(espIdfPath);
-    if (branchToUse.indexOf("master") != -1) {
-      Logger.infoNotify(
-        "Using Arduino esp32 master. This could has some issues with your ESP-IDF. Continue ?"
-      );
-      return;
-    }
     await ensureDir(this.projectDir);
     await this.cloneArduinoInComponentsFolder(branchToUse);
   }
