@@ -65,7 +65,11 @@ export class IdfToolsManager {
           this.allPackages = this.toolsJson.tools as IPackage[];
           // Change relative path to desired full paths.
           for (const pkg of this.allPackages) {
-            if (pkg.export_paths && pkg.export_paths[0][0] !== "") {
+            if (
+              pkg.export_paths &&
+              pkg.export_paths.length > 0 &&
+              pkg.export_paths[0][0] !== ""
+            ) {
               pkg.binaries = pkg.export_paths[0];
             }
             if (pkg.platform_overrides) {
