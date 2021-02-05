@@ -775,12 +775,13 @@ export async function createNewComponent(
     "new_component"
   );
   await copy(newComponentTemplatePath, componentDirPath);
-  const header = path.join(componentDirPath, "include", "new_component.h");
-  const newHeader = path.join(componentDirPath, "include", `${name}.h`);
+async function rename(oldName: string, newName: string) {
+  const oldPath = path.join(componentDirPath, "include", oldName);
+  const newPath = path.join(componentDirPath, "include", newName);
   await move(header, newHeader);
-  const sourceFile = path.join(componentDirPath, "new_component.c");
-  const newSourceFile = path.join(componentDirPath, `${name}.c`);
-  await move(sourceFile, newSourceFile);
+}
+await rename("new_component.h", `${name}.h`)
+await rename("new_component.c", `${name}.c`)
   let sourceContent = await readFile(newSourceFile, "utf8");
   sourceContent = sourceContent.replace("new_component", name);
   await writeFile(newSourceFile, sourceContent);
