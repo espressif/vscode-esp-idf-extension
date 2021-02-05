@@ -775,20 +775,30 @@ export async function createNewComponent(
     "new_component"
   );
   await copy(newComponentTemplatePath, componentDirPath);
-async function rename(oldName: string, newName: string) {
-  const oldPath = path.join(componentDirPath, "include", oldName);
-  const newPath = path.join(componentDirPath, "include", newName);
-  await move(header, newHeader);
-}
-await rename("new_component.h", `${name}.h`)
-await rename("new_component.c", `${name}.c`)
-  let sourceContent = await readFile(newSourceFile, "utf8");
-  sourceContent = sourceContent.replace("new_component", name);
-  await writeFile(newSourceFile, sourceContent);
-  const cmakeListsFilePath = path.join(componentDirPath, "CMakeLists.txt");
-  let cmakeListsContent = await readFile(cmakeListsFilePath, "utf8");
-  cmakeListsContent = cmakeListsContent.replace("new_component", name);
-  await writeFile(cmakeListsFilePath, cmakeListsContent);
+  const rename = async function (
+    oldName: string,
+    newName: string,
+    ...containerPath: string[]
+  ) {
+    const oldPath = path.join(...containerPath, oldName);
+    const newPath = path.join(...containerPath, newName);
+    await move(oldPath, newPath);
+  };
+  const replaceContentInFile = async function (
+    replacementStr: string,
+    filePath: string
+  ) {
+    let sourceContent = await readFile(filePath, "utf8");
+    sourceContent = sourceContent.replace("new_component", replacementStr);
+    await writeFile(filePath, sourceContent);
+  };
+  await rename("new_component.h", `${name}.h`, componentDirPath, "include");
+  await rename("new_component.c", `${name}.c`, componentDirPath);
+  await replaceContentInFile(name, path.join(componentDirPath, `${name}.c`));
+  await replaceContentInFile(
+    name,
+    path.join(componentDirPath, "CMakeLists.txt")
+  );
 }
 
 /**
