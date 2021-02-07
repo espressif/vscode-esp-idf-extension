@@ -977,6 +977,27 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createNewComponent", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        const componentName = await vscode.window.showInputBox({
+          placeHolder: "Enter ESP-IDF component name",
+          value: "",
+        });
+        if (!componentName) {
+          return;
+        }
+        await utils.createNewComponent(componentName, workspaceRoot.fsPath);
+        Logger.infoNotify(
+          `The ESP-IDF component ${componentName} has been created`
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating ESP-IDF component";
+        return Logger.errorNotify(errMsg, error);
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
 
   registerIDFCommand("espIdf.flashDevice", flash);
