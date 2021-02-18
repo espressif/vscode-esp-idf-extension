@@ -1895,6 +1895,42 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     );
   });
+
+  registerIDFCommand("espIdf.ninja.summary", async () => {
+    vscode.window.withProgress(
+      {
+        title: "Getting ninja build summary",
+        location: vscode.ProgressLocation.Notification,
+      },
+      async () => {
+        try {
+          const pythonBinPath = idfConf.readParameter(
+            "idf.pythonBinPath"
+          ) as string;
+          const ninjaSummaryScript = path.join(
+            context.extensionPath,
+            "external",
+            "chromium",
+            "ninja-build-summary.py"
+          );
+          const buildDir = path.join(workspaceRoot.fsPath, "build");
+          const summaryResult = await utils.execChildProcess(
+            `${pythonBinPath} ${ninjaSummaryScript} -C ${buildDir}`,
+            workspaceRoot.fsPath,
+            OutputChannel.init()
+          );
+          OutputChannel.appendLine(
+            `Ninja build summary - ${Date().toLocaleString()}`
+          );
+          OutputChannel.appendLine(summaryResult);
+          OutputChannel.show();
+        } catch (error) {
+          Logger.errorNotify("Ninja build summary found an error", error);
+        }
+      }
+    );
+  });
+
   registerIDFCommand("espIdf.jtag_flash", () => {
     PreCheck.perform(
       [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],

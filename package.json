@@ -80,6 +80,7 @@
     "onCommand:espIdf.selectOpenOcdConfigFiles",
     "onCommand:espIdf.doctorCommand",
     "onCommand:espIdf.createNewComponent",
+    "onCommand:espIdf.ninja.summary",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -801,6 +802,10 @@
       {
         "command": "espIdf.createNewComponent",
         "title": "%espIdf.createNewComponent.title%"
+      },
+      {
+        "command": "espIdf.ninja.summary",
+        "title": "%espIdf.ninja.summary.title%"
       }
     ],
     "breakpoints": [

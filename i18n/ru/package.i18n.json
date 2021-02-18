@@ -36,6 +36,7 @@
   "espIdf.createNewComponent.title": "ESP-IDF: Создать новый компонент ESP-IDF",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Откройте редактор разделов NVS",
   "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: Выберите конфигурацию платы OpenOCD",
+  "espIdf.ninja.summary.title": "ESP-IDF: Показать сводку сборки ninja",
   "debug.initConfig.name": "ESP-IDF: Запустить",
   "debug.initConfig.description": "Новая конфигурация для запуска проектов ESP-IDF",
   "param.adapterTargetName": "Целевое устройство для адаптера отладки ESP-IDF",

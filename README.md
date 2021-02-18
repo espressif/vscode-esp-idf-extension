@@ -106,6 +106,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Select OpenOCD Board Configuration              |                                        |                                           |
 | Doctor command                                  |                                        |                                           |
 | Create new ESP-IDF Component                    |                                        |                                           |
+| Show ninja build summary                        |                                        |                                           |
 
 The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **Create ESP-IDF project** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
 
