@@ -47,6 +47,8 @@ export namespace ESP {
   export namespace URL {
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
+    export const ARDUINO_ESP32_URL =
+      "https://github.com/espressif/arduino-esp32.git";
     export namespace Docs {
       export const BASE_URL = "https://docs.espressif.com/projects/esp-idf";
       export let IDF_INDEX;

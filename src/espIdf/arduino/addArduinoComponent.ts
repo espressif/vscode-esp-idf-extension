@@ -23,11 +23,9 @@ import { join } from "path";
 import { ensureDir } from "fs-extra";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
-import { Progress } from "vscode";
+import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {
-  private readonly ARDUINO_ESP32_URL =
-    "https://github.com/espressif/arduino-esp32.git";
   private readonly projectDir: string;
   private cloneProcess: ChildProcess;
   constructor(projectDir: string) {
@@ -58,7 +56,7 @@ export class ArduinoComponentInstaller {
           "--progress",
           "-b",
           branchToUse,
-          this.ARDUINO_ESP32_URL,
+          ESP.URL.ARDUINO_ESP32_URL,
           "arduino",
         ],
         { cwd: componentsDir }
@@ -88,21 +86,20 @@ export class ArduinoComponentInstaller {
         idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     }
     const idfVersion = await getEspIdfVersion(espIdfPath);
-    const results = {
+    const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
+    const espIdfVersion =
+      majorMinorMatches && majorMinorMatches.length > 0
+        ? majorMinorMatches[1]
+        : "x.x";
+    const results: { [key: string]: string } = {
       "4.0": "idf-release/v4.0",
-      "3.3": "idf-release/v3.3",
+      "4.2": "idf-release/v4.2",
     };
-    return results[idfVersion] || undefined;
+    return results[espIdfVersion] || "master";
   }
 
   public async addArduinoAsComponent(espIdfPath?: string) {
     const branchToUse = await this.checkIdfVersion(espIdfPath);
-    if (!branchToUse) {
-      Logger.infoNotify(
-        "ESP-IDF version 4.0 or 3.3 is required for Arduino ESP32"
-      );
-      return;
-    }
     await ensureDir(this.projectDir);
     await this.cloneArduinoInComponentsFolder(branchToUse);
   }
