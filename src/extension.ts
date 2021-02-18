@@ -102,6 +102,7 @@ import { getBoards } from "./espIdf/openOcd/boardConfiguration";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
+import { kill } from "process";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -315,7 +316,10 @@ export async function activate(context: vscode.ExtensionContext) {
     debugAdapterManager.stop();
     if (isMonitorLaunchedByDebug) {
       isMonitorLaunchedByDebug = false;
-      monitorTerminal.dispose();
+      monitorTerminal.processId.then((monitorPid) => {
+        kill(monitorPid, "SIGKILL");
+        monitorTerminal.dispose();
+      });
     }
   });
 
@@ -341,13 +345,6 @@ export async function activate(context: vscode.ExtensionContext) {
     ConfserverProcess.dispose();
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
-
-  vscode.window.onDidCloseTerminal((terminal: vscode.Terminal) => {
-    terminal.dispose();
-    setTimeout(() => {
-      monitorTerminal = undefined;
-    }, 200);
-  });
 
   registerIDFCommand("espIdf.createFiles", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -2235,6 +2232,8 @@ const flash = () => {
 
     if (monitorTerminal) {
       Logger.warnNotify("ESP-IDF Monitor was closed.");
+      const monitorPid = await monitorTerminal.processId;
+      kill(monitorPid, "SIGKILL");
       monitorTerminal.dispose();
       setTimeout(() => {
         monitorTerminal = undefined;
@@ -2367,6 +2366,8 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
     }
     if (monitorTerminal) {
       Logger.warnNotify("ESP-IDF Monitor was closed.");
+      const monitorPid = await monitorTerminal.processId;
+      kill(monitorPid, "SIGKILL");
       monitorTerminal.dispose();
       setTimeout(() => {
         monitorTerminal = undefined;
@@ -2645,7 +2646,10 @@ function overrideVscodeTerminalWithIdfEnv(
 export function deactivate() {
   Telemetry.dispose();
   if (monitorTerminal) {
-    monitorTerminal.dispose();
+    monitorTerminal.processId.then((monitorPid) => {
+      kill(monitorPid, "SIGKILL");
+      monitorTerminal.dispose();
+    });
   }
   OutputChannel.end();
 
