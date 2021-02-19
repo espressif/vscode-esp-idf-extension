@@ -36,6 +36,7 @@
   "espIdf.createNewComponent.title": "ESP-IDF: Create new ESP-IDF Component",
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Open NVS Partition Editor",
   "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: Select OpenOCD Board Configuration",
+  "espIdf.ninja.summary.title": "ESP-IDF: Show ninja build summary",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",

@@ -105,6 +105,7 @@
     "espIdf.createNewComponent.title",
     "espIdf.webview.nvsPartitionEditor.title",
     "espIdf.doctorCommand.title",
+    "espIdf.ninja.summary.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
