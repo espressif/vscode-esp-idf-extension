@@ -33,11 +33,13 @@ languagesDirs.forEach((langDir) => {
 function clean(done) {
   del([
     "dist/**",
+    "esp_idf_vsc_ext.log",
     "out/**",
     "package.nls.*.json",
     "*.vsix",
     "report.json",
     "report.txt",
+    "testing.results.log",
   ]);
   done();
 }
