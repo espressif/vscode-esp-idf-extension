@@ -27,12 +27,7 @@ export async function loadCmakeListBuilder(
   extensionPath: string,
   type: CMakeListsType
 ) {
-  const cmakeListsSchemaFile = join(
-    extensionPath,
-    "src",
-    "cmake",
-    "cmakeListsSchema.json"
-  );
+  const cmakeListsSchemaFile = join(extensionPath, "cmakeListsSchema.json");
   const doesSchemaExists = await pathExists(cmakeListsSchemaFile);
   if (!doesSchemaExists) {
     return;

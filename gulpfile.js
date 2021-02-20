@@ -38,6 +38,7 @@ function clean(done) {
     "*.vsix",
     "report.json",
     "report.txt",
+    "testing.results.log",
   ]);
   done();
 }
