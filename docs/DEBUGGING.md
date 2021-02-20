@@ -100,7 +100,7 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
-      "miDebuggerPath": "${command:espIdf.getXtensaGcc}",
+      "miDebuggerPath": "${command:espIdf.getXtensaGdb}",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "windows": {
         "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"

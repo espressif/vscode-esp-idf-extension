@@ -940,6 +940,26 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.getXtensaGdb", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      const modifiedEnv = utils.appendIdfAndToolsToPath();
+      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      try {
+        return await utils.isBinInPath(
+          `xtensa-${idfTarget}-elf-gdb`,
+          workspaceRoot.fsPath,
+          modifiedEnv
+        );
+      } catch (error) {
+        Logger.errorNotify(
+          "xtensa-esp32-elf-gdb is not found in idf.customExtraPaths",
+          error
+        );
+        return;
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.getXtensaGcc", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
