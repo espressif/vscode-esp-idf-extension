@@ -21,6 +21,8 @@ const locDic = new LocDictionary(__filename);
 
 const platformDepConfigurations: string[] = [
   "idf.espIdfPath",
+  "idf.espAdfPath",
+  "idf.espMdfPath",
   "idf.pythonBinPath",
   "idf.port",
   "idf.deviceInterface",
