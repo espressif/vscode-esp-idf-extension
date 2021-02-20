@@ -952,7 +952,7 @@ export async function activate(context: vscode.ExtensionContext) {
         );
       } catch (error) {
         Logger.errorNotify(
-          "xtensa-esp32-elf-gdb is not found in idf.customExtraPaths",
+          "xtensa-TARGET-elf-gdb is not found in idf.customExtraPaths",
           error
         );
         return;
@@ -972,7 +972,7 @@ export async function activate(context: vscode.ExtensionContext) {
         );
       } catch (error) {
         Logger.errorNotify(
-          "xtensa-esp32-elf-gcc is not found in idf.customExtraPaths",
+          "xtensa-TARGET-elf-gcc is not found in idf.customExtraPaths",
           error
         );
         return;
