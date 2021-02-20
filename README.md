@@ -74,39 +74,40 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
 Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to see possible actions.
 
-| Command Description                             | Keyboard Shortcuts (Mac)               | Keyboard Shortcuts (Windows/ Linux)       |
-| ----------------------------------------------- | -------------------------------------- | ----------------------------------------- |
-| Configure ESP-IDF extension                     |                                        |                                           |
-| Create ESP-IDF project                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
-| Add vscode configuration folder                 |                                        |                                           |
-| Add Arduino ESP32 as ESP-IDF Component          |                                        |                                           |
-| Configure Paths                                 |                                        |                                           |
-| Set Espressif device target                     |                                        |                                           |
-| Device configuration                            |                                        |                                           |
-| SDK Configuration editor                        |                                        |                                           |
-| Set default sdkconfig file in project           |                                        |                                           |
-| Select port to use                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
-| Full clean project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
-| Build your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
-| Flash your project                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
-| Monitor your device                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
-| Build, Flash and start a monitor on your device | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
-| Open ESP-IDF Terminal                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
-| Pick a workspace folder                         |                                        |                                           |
-| Size analysis of the binaries                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
-| Show Examples Projects                          |                                        |                                           |
-| Add Editor coverage                             |                                        |                                           |
-| Remove Editor coverage                          |                                        |                                           |
-| Get HTML Coverage Report for project            |                                        |                                           |
-| Search in documentation...                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
-| Install ESP-ADF                                 |                                        |                                           |
-| Install ESP-MDF                                 |                                        |                                           |
-| Install ESP-IDF Python Packages                 |                                        |                                           |
-| Open NVS Partition Editor                       |                                        |                                           |
-| Select OpenOCD Board Configuration              |                                        |                                           |
-| Doctor command                                  |                                        |                                           |
-| Create new ESP-IDF Component                    |                                        |                                           |
-| Show ninja build summary                        |                                        |                                           |
+| Command Description                                     | Keyboard Shortcuts (Mac)               | Keyboard Shortcuts (Windows/ Linux)       |
+| ------------------------------------------------------- | -------------------------------------- | ----------------------------------------- |
+| Configure ESP-IDF extension                             |                                        |                                           |
+| Create ESP-IDF project                                  | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
+| Add vscode configuration folder                         |                                        |                                           |
+| Add Arduino ESP32 as ESP-IDF Component                  |                                        |                                           |
+| Configure Paths                                         |                                        |                                           |
+| Set Espressif device target                             |                                        |                                           |
+| Device configuration                                    |                                        |                                           |
+| SDK Configuration editor                                |                                        |                                           |
+| Set default sdkconfig file in project                   |                                        |                                           |
+| Select port to use                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
+| Full clean project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
+| Build your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
+| Flash your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
+| Monitor your device                                     | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
+| Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
+| Pick a workspace folder                                 |                                        |                                           |
+| Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
+| Show Examples Projects                                  |                                        |                                           |
+| Add Editor coverage                                     |                                        |                                           |
+| Remove Editor coverage                                  |                                        |                                           |
+| Get HTML Coverage Report for project                    |                                        |                                           |
+| Search in documentation...                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Install ESP-ADF                                         |                                        |                                           |
+| Install ESP-MDF                                         |                                        |                                           |
+| Install ESP-IDF Python Packages                         |                                        |                                           |
+| Open NVS Partition Editor                               |                                        |                                           |
+| Select OpenOCD Board Configuration                      |                                        |                                           |
+| Doctor command                                          |                                        |                                           |
+| Create new ESP-IDF Component                            |                                        |                                           |
+| Show ninja build summary                                |                                        |                                           |
+| Dispose current SDK Configuration editor server process |                                        |                                           |
 
 The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **Create ESP-IDF project** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
 
