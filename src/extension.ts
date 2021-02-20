@@ -1039,6 +1039,16 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.disposeConfserverProcess", () => {
+    try {
+      if (ConfserverProcess.exists()) {
+        ConfserverProcess.dispose();
+      }
+    } catch (error) {
+      Logger.errorNotify(error.message, error);
+    }
+  });
+
   registerIDFCommand("espIdf.setTarget", () => {
     PreCheck.perform([openFolderCheck], async () => {
       const enterDeviceTargetMsg = locDic.localize(

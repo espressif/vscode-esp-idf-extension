@@ -37,6 +37,7 @@
   "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Abrir editor de particiones NVS",
   "espIdf.selectOpenOcdConfigFiles.title": "ESP-IDF: Selecciona configuración OpenOCD Board",
   "espIdf.ninja.summary.title": "ESP-IDF: Mostrar resumen de construccion con ninja",
+  "espIdf.disposeConfserverProcess.title": "ESP-IDF: Cerrar proceso de servidor de editor de Configuración SDK",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

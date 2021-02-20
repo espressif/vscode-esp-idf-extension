@@ -806,6 +806,10 @@
       {
         "command": "espIdf.ninja.summary",
         "title": "%espIdf.ninja.summary.title%"
+      },
+      {
+        "command": "espIdf.disposeConfserverProcess",
+        "title": "%espIdf.disposeConfserverProcess.title%"
       }
     ],
     "breakpoints": [
