@@ -115,7 +115,7 @@ export class ExamplesPlanel {
               const modifiedEnv = utils.appendIdfAndToolsToPath();
               const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
               const compilerPath = await utils.isBinInPath(
-                `xtensa-${idfTarget}-elf-gdb`,
+                `xtensa-${idfTarget}-elf-gcc`,
                 resultFolder,
                 modifiedEnv
               );

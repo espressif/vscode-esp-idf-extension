@@ -116,6 +116,19 @@ The **Show Examples Projects** command allows you create a new project using one
 The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
+### Commands for tasks.json and launch.json
+
+We have implemented some utilities commands that can be used in tasks.json and launch.json like
+
+```json
+"miDebuggerPath": "${command:espIdf.getXtensaGdb}"
+```
+
+as shown in the [debugging documentation](./DEBUGGING.md).
+
+- `espIdf.getXtensaGcc`: Return the absolute path of the xtensa toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+- `espIdf.getXtensaGdb`: Return the absolute path of the xtensa toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+
 ## Available Tasks in tasks.json
 
 There is also some tasks defined in Tasks.json, which can be executed by running <kbd>F1</kbd> and writing `Tasks: Run task` and selecting one of
