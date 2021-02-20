@@ -17,6 +17,28 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.0.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.0)
+
+### Features and enhancements
+
+- [Add report button](https://github.com/espressif/vscode-esp-idf-extension/pull/302) to send error to telemetry backend.
+- [Launch ESP-IDF Monitor on debug session launch](https://github.com/espressif/vscode-esp-idf-extension/pull/303).
+- [CI Enhancements](https://github.com/espressif/vscode-esp-idf-extension/pull/308)
+- [New IDF Component command](https://github.com/espressif/vscode-esp-idf-extension/pull/310) to add a component in current project.
+- [Add post build ninja summary from Chromium tools script](https://github.com/espressif/vscode-esp-idf-extension/pull/315)
+- [Add command to dispose cached SDK Configuration Editor confserver process](https://github.com/espressif/vscode-esp-idf-extension/pull/325)
+
+### Bug Fixes
+
+- [Fix JTAG Flashing issue](https://github.com/espressif/vscode-esp-idf-extension/pull/301)
+- [Fix select UI on SDK Configuration Editor](https://github.com/espressif/vscode-esp-idf-extension/pull/304)
+- [Use only major_minor for python_env directories](https://github.com/espressif/vscode-esp-idf-extension/pull/311)
+- [Update Arduino esp32 branches and fallback on master](https://github.com/espressif/vscode-esp-idf-extension/pull/312)
+- [Kill ESP-IDF Monitor terminal on Flash task execution](https://github.com/espressif/vscode-esp-idf-extension/pull/314)
+- [Fix CMakeLists.txt Editor schema error](https://github.com/espressif/vscode-esp-idf-extension/pull/319)
+- [Fix missing ESP-ADF ESP-MDF env variables on Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/320)
+- [Fix default compiler path on Show ESP-IDF examples created projects](https://github.com/espressif/vscode-esp-idf-extension/pull/324)
+
 ## [0.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v0.6.1)
 
 ### Features and enhancements
