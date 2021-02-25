@@ -25,6 +25,7 @@ import { FlashModel } from "./flashModel";
 import {
   appendIdfAndToolsToPath,
   canAccessFile,
+  compareVersion,
   execChildProcess,
   extensionContext,
 } from "../utils";
@@ -80,10 +81,17 @@ export class FlashTask {
       ? vscode.TaskRevealKind.Silent
       : vscode.TaskRevealKind.Always;
     const osRelease = release();
+    const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
+    let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
+    if (kernelMatch && kernelMatch.length) {
+      isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
+    }
+    console.log(isWsl2Kernel);
     let flashExecution: vscode.CustomExecution;
     if (
       process.platform === "linux" &&
-      osRelease.toLowerCase().indexOf("microsoft") !== -1
+      osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
+      isWsl2Kernel !== -1
     ) {
       flashExecution = await this._wslFlashExecution();
     } else {
