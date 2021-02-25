@@ -21,8 +21,11 @@ Vue.use(Vuex);
 // tslint:disable-next-line: interface-name
 export interface IState {
   elements: CmakeListsElement[];
+  emptyElements: CmakeListsElement[];
   fileName: string;
+  selectedElementToAdd: CmakeListsElement;
   textDictionary: {
+    add: string;
     save: string;
     discard: string;
     title: string;
@@ -31,8 +34,11 @@ export interface IState {
 
 export const CMakeListEditorState: IState = {
   elements: [],
+  emptyElements: [],
   fileName: "",
+  selectedElementToAdd: undefined,
   textDictionary: {
+    add: "Add",
     discard: "Discard",
     save: "Save",
     title: "CMakeLists.txt Editor",
@@ -77,9 +83,20 @@ export const mutations: MutationTree<IState> = {
     newState.elements = elements;
     state = { ...newState };
   },
+  loadEmptyElements(state, elements) {
+    const newState = state;
+    newState.emptyElements = elements;
+    newState.selectedElementToAdd = elements[0];
+    state = { ...newState };
+  },
   setFileName(state, fileName) {
     const newState = state;
     newState.fileName = fileName;
+    state = { ...newState };
+  },
+  setSelectedElementToAdd(state, el: CmakeListsElement) {
+    const newState = state;
+    newState.selectedElementToAdd = el;
     state = { ...newState };
   },
 };

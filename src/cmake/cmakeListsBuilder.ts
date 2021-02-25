@@ -51,22 +51,53 @@ export function parseCmakeListsText(
   cmakeListFileText: string,
   cmakeLists: CmakeListsElement[]
 ) {
+  const resultCMakeListsEls: CmakeListsElement[] = [];
   for (const element of cmakeLists) {
-    if (element.type === "array") {
-      const regex = new RegExp(element.regex);
-      const resultStr = cmakeListFileText.match(regex);
-      if (resultStr && resultStr[1].trim().split(" ").length > 0) {
-        element.value = resultStr[1].trim().replace(/\"/g, "").split(" ");
-      }
-    } else {
-      const regex = new RegExp(element.regex);
-      const resultStr = cmakeListFileText.match(regex);
-      if (resultStr && resultStr[1].trim().length > 0) {
-        element.value = [resultStr[1].trim()];
+    const regex = new RegExp(element.regex, "g");
+    let resultStr: RegExpExecArray;
+    while ((resultStr = regex.exec(cmakeListFileText))) {
+      if (resultStr && resultStr.length > 1 && resultStr[1].length > 1) {
+        let newElement: CmakeListsElement = JSON.parse(JSON.stringify(element));
+        newElement.value = [];
+        newElement.value =
+          element.type === "array"
+            ? resultStr[1].trim().replace(/\"/g, "").split(" ")
+            : [resultStr[1].trim()];
+        switch (element.type) {
+          case "array":
+            newElement.value = resultStr[1]
+              .trim()
+              .replace(/\"/g, "")
+              .split(" ");
+            break;
+          case "binary_data":
+            if (resultStr[1]) {
+              newElement.variable = resultStr[1].trim();
+            }
+            if (resultStr[2]) {
+              newElement.value = [resultStr[2].trim()];
+            }
+            if (resultStr[3]) {
+              newElement.typeValue = resultStr[3].trim();
+            }
+            break;
+          case "set":
+            if (resultStr[1]) {
+              newElement.variable = resultStr[1].trim();
+            }
+            if (resultStr[2]) {
+              newElement.value = [resultStr[2].trim()];
+            }
+            break;
+          default:
+            newElement.value = [resultStr[1].trim()];
+            break;
+        }
+        resultCMakeListsEls.push(newElement);
       }
     }
   }
-  return cmakeLists;
+  return resultCMakeListsEls;
 }
 
 export async function updateCmakeListFile(
@@ -77,7 +108,7 @@ export async function updateCmakeListFile(
   const spaces = new Array(componentStr.length + 1).join(" ");
   const componentValues: string[] = [];
   const otherValues: string[] = [];
-  for (const el of values) {
+  for (let el of values) {
     if (el.isComponentElement && el.value && el.value.length > 0) {
       const elStr = el.template.replace(
         "***",
@@ -85,7 +116,12 @@ export async function updateCmakeListFile(
       );
       componentValues.push(elStr + EOL + spaces);
     } else if (el.value && el.value.length > 0) {
-      otherValues.push(el.template.replace("***", "".concat(...el.value)));
+      otherValues.push(
+        el.template
+          .replace("***", "".concat(...el.value))
+          .replace("VARIABLE", el.variable)
+          .replace("TYPE", el.typeValue)
+      );
     }
   }
   let resultStr: string;

@@ -1,7 +1,6 @@
 {
   "component": [
     {
-      "isEnabled": false,
       "template": "SRCS ***",
       "regex": "(?:SRCS)([^)\n\r]*)",
       "title": "Component Sources (SRCS)",
@@ -10,7 +9,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "EXCLUDE_SRCS ***",
       "regex": "(?:EXCLUDE_SRCS)([^)\n\r]*)",
       "title": "Remove files from static library build (EXCLUDE_SRCS)",
@@ -19,7 +17,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "LDFRAGMENTS ***",
       "regex": "(?:LDFRAGMENTS)([^)\n\r]*)",
       "title": "Linker fragment files (LDFRAGMENTS)",
@@ -28,7 +25,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "EMBED_FILES ***",
       "regex": "(?:EMBED_FILES)([^)\n\r]*)",
       "title": "Binary files to be embedded in the component (EMBED_FILES)",
@@ -37,7 +33,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "EMBED_TXTFILES ***",
       "regex": "(?:EMBED_TXTFILES)([^)\n\r]*)",
       "title": "Text files to be embedded in the component (EMBED_TXTFILES)",
@@ -46,7 +41,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "INCLUDE_DIRS ***",
       "regex": "(?:INCLUDE_DIRS)([^)\n\r]*)",
       "title": "Relative paths to the components (INCLUDE_DIRS) for all other components",
@@ -55,7 +49,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "PRIV_INCLUDE_DIRS ***",
       "regex": "(?:PRIV_INCLUDE_DIRS)([^)\n\r]*)",
       "title": "Relative paths to the components (PRIV_INCLUDE_DIRS) for this component",
@@ -64,7 +57,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "REQUIRES ***",
       "regex": "(?:REQUIRES)([^)\n\r]*)",
       "title": "Public component requirements for the component (REQUIRES)",
@@ -73,7 +65,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "REQUIRED_IDF_TARGETS ***",
       "regex": "(?:REQUIRED_IDF_TARGETS)([^)\n\r]*)",
       "title": "Specify the only target the component supports (REQUIRED_IDF_TARGETS)",
@@ -82,7 +73,6 @@
       "isComponentElement": true
     },
     {
-      "isEnabled": false,
       "template": "PRIV_REQUIRES ***",
       "regex": "(?:PRIV_REQUIRES)([^)\n\r]*)",
       "title": "Private component requirements for the component (PRIV_REQUIRES)",
@@ -94,7 +84,6 @@
   "project": [
     {
       "default": "VERSION 3.5",
-      "isEnabled": false,
       "regex": "(?:cmake_minimum_required\\()(.*)(?:\\))",
       "template": "cmake_minimum_required(***)",
       "title": "CMake Minimum Requirement",
@@ -103,16 +92,25 @@
       "isComponentElement": false
     },
     {
-      "isEnabled": false,
+      "template": "SET(VARIABLE ***)",
+      "regex": "(?:set|SET)\\((.*) (.*)\\)",
+      "title": "Set variable with value set(VARIABLE \"VALUE\")",
+      "type": "set",
+      "value": [],
+      "variable": "",
+      "isComponentElement": false,
+      "canHaveMany": true
+    },
+    {
       "regex": "(?:include\\()(.*)(?:\\))",
       "template": "include(***)",
       "type": "string",
-      "title": "Include ESP-IDF CMake",
+      "title": "Include include(path)",
       "value": "$ENV{IDF_PATH}/tools/cmake/project.cmake",
-      "isComponentElement": false
+      "isComponentElement": false,
+      "canHaveMany": true
     },
     {
-      "isEnabled": false,
       "regex": "(?:project\\()(.*)(?:\\))",
       "template": "project(***)",
       "title": "Project Name",
@@ -121,13 +119,14 @@
       "isComponentElement": false
     },
     {
-      "isEnabled": false,
-      "template": "SET(EXTRA_COMPONENT_DIRS, ***)",
-      "regex": "(?:EXTRA_COMPONENT_DIRS)([^)\n\r]*)",
-      "title": "List of additional components (EXTRA_COMPONENT_DIRS)",
-      "type": "array",
-      "value": [],
-      "isComponentElement": false
+      "template": "target_add_binary_data(VARIABLE *** TYPE)",
+      "regex": "target_add_binary_data\\((.*) (.*) (.*)\\)",
+      "title": "target_add_binary_data(target file BINARY|TEXT)",
+      "type": "binary_data",
+      "typeValue": "",
+      "value": "",
+      "variable": "",
+      "canHaveMany": true
     }
   ]
 }
