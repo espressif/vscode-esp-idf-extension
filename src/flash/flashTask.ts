@@ -86,7 +86,6 @@ export class FlashTask {
     if (kernelMatch && kernelMatch.length) {
       isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
     }
-    console.log(isWsl2Kernel);
     let flashExecution: vscode.CustomExecution;
     if (
       process.platform === "linux" &&
