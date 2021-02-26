@@ -22,7 +22,9 @@ import {
   move,
   pathExists,
   readFile,
+  readJSON,
   writeFile,
+  writeJSON,
 } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { EOL } from "os";
@@ -188,6 +190,29 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
           await copy(fSrcPath, fPath);
         }
       }
+      const cCppPropertiesJsonPath = path.join(
+        curWorkspaceFsPath,
+        ".vscode",
+        "c_cpp_properties.json"
+      );
+      const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
+      const modifiedEnv = appendIdfAndToolsToPath();
+      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      const compilerPath = await isBinInPath(
+        `xtensa-${idfTarget}-elf-gcc`,
+        curWorkspaceFsPath,
+        modifiedEnv
+      );
+      if (
+        cCppPropertiesJson &&
+        cCppPropertiesJson.configurations &&
+        cCppPropertiesJson.configurations.length
+      ) {
+        cCppPropertiesJson.configurations[0].compilerPath = compilerPath;
+      }
+      await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
+        spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+      });
       return resolve();
     });
   });

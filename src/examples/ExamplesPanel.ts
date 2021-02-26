@@ -106,25 +106,6 @@ export class ExamplesPlanel {
                 message.project_path,
                 resultFolder
               );
-              const settingsJsonPath = path.join(
-                resultFolder,
-                ".vscode",
-                "settings.json"
-              );
-              const settingsJson = await readJSON(settingsJsonPath);
-              const modifiedEnv = utils.appendIdfAndToolsToPath();
-              const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-              const compilerPath = await utils.isBinInPath(
-                `xtensa-${idfTarget}-elf-gcc`,
-                resultFolder,
-                modifiedEnv
-              );
-              settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
-              await writeJSON(settingsJsonPath, settingsJson, {
-                spaces:
-                  vscode.workspace.getConfiguration().get("editor.tabSize") ||
-                  2,
-              });
               const projectPath = vscode.Uri.file(resultFolder);
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {

@@ -8,12 +8,16 @@
       "includePath": [
         "${config:idf.espIdfPath}/components/**",
         "${config:idf.espIdfPathWin}/components/**",
+        "${config:idf.espAdfPath}/components/**",
+        "${config:idf.espAdfPathWin}/components/**",
         "${workspaceFolder}/**"
       ],
       "browse": {
         "path": [
           "${config:idf.espIdfPath}/components",
           "${config:idf.espIdfPathWin}/components",
+          "${config:idf.espAdfPath}/components/**",
+          "${config:idf.espAdfPathWin}/components/**",
           "${workspaceFolder}"
         ],
         "limitSymbolsToIncludedHeaders": false
