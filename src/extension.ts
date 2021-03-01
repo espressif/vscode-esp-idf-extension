@@ -2613,14 +2613,17 @@ function createMonitor() {
         return reject(new Error("NOT_SELECTED_PORT"));
       }
       if (typeof monitorTerminal === "undefined") {
+        const shellExecutable = path.basename(vscode.env.shell);
         monitorTerminal = vscode.window.createTerminal({
           name: "ESP-IDF Monitor",
           env: modifiedEnv,
           cwd: workspaceRoot.fsPath,
+          shellArgs: [],
+          shellPath: shellExecutable,
+          strictEnv: true,
         });
       }
       monitorTerminal.show();
-      overrideVscodeTerminalWithIdfEnv(monitorTerminal, modifiedEnv);
       const osRelease = release();
       const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
       let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
@@ -2665,49 +2668,17 @@ function createMonitor() {
 function createIdfTerminal() {
   PreCheck.perform([webIdeCheck, openFolderCheck], () => {
     const modifiedEnv = utils.appendIdfAndToolsToPath();
+    const shellExecutable = path.basename(vscode.env.shell);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
       strictEnv: true,
+      shellArgs: [],
+      shellPath: shellExecutable,
     });
     espIdfTerminal.show();
-    overrideVscodeTerminalWithIdfEnv(espIdfTerminal, modifiedEnv);
   });
-}
-
-function getTxtCmd(variable: string, modifiedEnv: { [key: string]: string }) {
-  const shellExecutable = path.basename(vscode.env.shell);
-  switch (shellExecutable) {
-    case "cmd.exe":
-      return `set "${variable}=${modifiedEnv[variable]}"`;
-    case "powershell.exe":
-    case "pwsh.exe":
-      return `$Env:${variable}="${modifiedEnv[variable]}"`;
-    case "pwsh":
-      return `$Env:${variable}="${modifiedEnv[variable]}"`;
-    default:
-      return `export ${variable}="${modifiedEnv[variable]}"`;
-  }
-}
-
-function overrideVscodeTerminalWithIdfEnv(
-  terminal: vscode.Terminal,
-  modifiedEnv: { [key: string]: string }
-) {
-  const pathVar = process.platform === "win32" ? "Path" : "PATH";
-  const envVars = [
-    pathVar,
-    "IDF_PATH",
-    "IDF_TARGET",
-    "PYTHON",
-    "IDF_PYTHON_ENV_PATH",
-  ];
-  for (const envVar of envVars) {
-    terminal.sendText(`${getTxtCmd(envVar, modifiedEnv)}`);
-  }
-  const clearCmd = process.platform === "win32" ? "cls" : "clear";
-  terminal.sendText(clearCmd);
 }
 
 export function deactivate() {
