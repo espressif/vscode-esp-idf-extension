@@ -316,10 +316,7 @@ export async function activate(context: vscode.ExtensionContext) {
     debugAdapterManager.stop();
     if (isMonitorLaunchedByDebug) {
       isMonitorLaunchedByDebug = false;
-      monitorTerminal.processId.then((monitorPid) => {
-        kill(monitorPid, "SIGKILL");
-        monitorTerminal.dispose();
-      });
+      monitorTerminal.dispose();
     }
   });
 
@@ -345,6 +342,18 @@ export async function activate(context: vscode.ExtensionContext) {
     ConfserverProcess.dispose();
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
+
+  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {
+    const terminalPid = await terminal.processId;
+    const monitorTerminalPid = (await monitorTerminal?.processId) || -1;
+    if (monitorTerminalPid === terminalPid) {
+      monitorTerminal = undefined;
+      kill(monitorTerminalPid);
+      setTimeout(() => {
+        terminal.dispose();
+      }, 500);
+    }
+  });
 
   registerIDFCommand("espIdf.createFiles", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -2298,13 +2307,8 @@ const flash = () => {
     }
 
     if (monitorTerminal) {
-      Logger.warnNotify("ESP-IDF Monitor was closed.");
-      const monitorPid = await monitorTerminal.processId;
-      kill(monitorPid, "SIGKILL");
+      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
       monitorTerminal.dispose();
-      setTimeout(() => {
-        monitorTerminal = undefined;
-      }, 200);
     }
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
@@ -2432,13 +2436,8 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       return;
     }
     if (monitorTerminal) {
-      Logger.warnNotify("ESP-IDF Monitor was closed.");
-      const monitorPid = await monitorTerminal.processId;
-      kill(monitorPid, "SIGKILL");
+      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
       monitorTerminal.dispose();
-      setTimeout(() => {
-        monitorTerminal = undefined;
-      }, 200);
     }
     const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
@@ -2684,10 +2683,7 @@ function createIdfTerminal() {
 export function deactivate() {
   Telemetry.dispose();
   if (monitorTerminal) {
-    monitorTerminal.processId.then((monitorPid) => {
-      kill(monitorPid, "SIGKILL");
-      monitorTerminal.dispose();
-    });
+    monitorTerminal.dispose();
   }
   OutputChannel.end();
 
