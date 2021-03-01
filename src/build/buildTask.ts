@@ -23,8 +23,6 @@ import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
-import EspIdfCustomTerminal from "../espIdfCustomTerminal";
-import { SpawnOptions } from "child_process";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -45,10 +43,11 @@ export class BuildTask {
     }
   }
 
-  public getShellExecution(args: string[], options?: SpawnOptions) {
-    return new vscode.CustomExecution(
-      async () => new EspIdfCustomTerminal("cmake", args, options)
-    );
+  public getShellExecution(
+    args: string[],
+    options?: vscode.ShellExecutionOptions
+  ) {
+    return new vscode.ShellExecution(`cmake ${args.join(" ")}`, options);
   }
 
   public async build() {
@@ -79,7 +78,7 @@ export class BuildTask {
     if (canAccessCMake === "" || canAccessNinja === "") {
       throw new Error("CMake or Ninja executables not found");
     }
-    const options: SpawnOptions = {
+    const options: vscode.ShellExecutionOptions = {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };

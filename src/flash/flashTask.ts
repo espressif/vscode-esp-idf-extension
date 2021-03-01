@@ -30,8 +30,6 @@ import {
   extensionContext,
 } from "../utils";
 import { TaskManager } from "../taskManager";
-import { SpawnOptions } from "child_process";
-import EspIdfCustomTerminal from "../espIdfCustomTerminal";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -86,7 +84,7 @@ export class FlashTask {
     if (kernelMatch && kernelMatch.length) {
       isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
     }
-    let flashExecution: vscode.CustomExecution;
+    let flashExecution: vscode.ShellExecution;
     if (
       process.platform === "linux" &&
       osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
@@ -141,7 +139,7 @@ export class FlashTask {
         flashFile.binFilePath.replace(/\//g, "\\")
       );
     }
-    const options: SpawnOptions = {
+    const options: vscode.ShellExecutionOptions = {
       cwd: this.buildDir,
       env: modifiedEnv,
     };
@@ -173,13 +171,14 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       flasherArgs.push(flashFile.address, flashFile.binFilePath);
     }
-    const options: SpawnOptions = {
+    const options: vscode.ShellExecutionOptions = {
       cwd: this.buildDir,
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    return new vscode.CustomExecution(
-      async () => new EspIdfCustomTerminal(pythonBinPath, flasherArgs, options)
+    return new vscode.ShellExecution(
+      `${pythonBinPath} ${flasherArgs.join(" ")}`,
+      options
     );
   }
 }
