@@ -349,9 +349,6 @@ export async function activate(context: vscode.ExtensionContext) {
     if (monitorTerminalPid === terminalPid) {
       monitorTerminal = undefined;
       kill(monitorTerminalPid);
-      setTimeout(() => {
-        terminal.dispose();
-      }, 500);
     }
   });
 
