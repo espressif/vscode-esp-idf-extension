@@ -65,6 +65,6 @@ If something went wrong during the install please check for any error on one of 
 
 4. In Visual Studio Code, select menu "Help" -> Toggle Developer Tools and copy any error in the Console tab related to this extension.
 
-If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Go to menu View -> Command Palette and search for the former command.
+If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
 
 If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).

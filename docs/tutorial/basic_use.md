@@ -9,7 +9,7 @@ You have several options to create a project:
 
 > **NOTE:** To configure any additional supported framework, please review [configuring additional frameworks](./additional_frameworks.md)
 
-1. Let's use the ESP-IDF get-started's blink example for this tutorial. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md)
+1. Let's use the ESP-IDF get-started's blink example for this tutorial. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
 2. A window will be open with a list a projects, go the **get-started** section and choose the `blink_example`. You will see a **Create blink_example project** button in the top and a description of the project below. Click **Create blink_example project** button.
 
 <p align="center">
@@ -18,7 +18,7 @@ You have several options to create a project:
 
 3. Now select a container directory where to copy the example project. For example, if the user choose `/Users/myUser/someFolder` the resulting folder will be `/Users/myUser/someFolder/blink`. This new project directory will be created and opened in Visual Studio Code.
 
-4. First the user should select the Espressif target with the **ESP-IDF: Set Espressif device target** to choose between ESP32, ESP32 S2 and other Espressif devices. Default is ESP32.
+4. First the user should select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command. Default is `esp32` and the one used in this tutorial.
 
 5. Next configure your project using menuconfig. Use the **ESP-IDF: SDK Configuration editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
