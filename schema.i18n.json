@@ -110,6 +110,7 @@
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
+    "param.customAdapterTargetName",
     "param.openOcdConfigFilesList",
     "param.flashBaudRate",
     "param.port",

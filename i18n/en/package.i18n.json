@@ -42,6 +42,7 @@
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
+  "param.customAdapterTargetName": "Custom target name for ESP-IDF Debug Adapter",
   "param.openOcdConfigFilesList": "List of configuration files inside OpenOCD Scripts directory",
   "param.port": "Path of selected device port",
   "param.flashBaudRate": "ESP-IDF Flash Baud rate",

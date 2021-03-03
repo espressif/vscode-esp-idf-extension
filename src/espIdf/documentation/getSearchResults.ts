@@ -42,7 +42,10 @@ export async function seachInEspDocs(searchString: string) {
   const idfPath =
     idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
   let idfVersion = "v" + (await getEspIdfVersion(idfPath));
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName") as string;
+  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  if (idfTarget === "custom") {
+    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+  }
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
   let targetToUse: string;
   if (!docVersion) {

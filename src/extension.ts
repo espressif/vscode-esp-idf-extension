@@ -1088,6 +1088,24 @@ export async function activate(context: vscode.ExtensionContext) {
         [
           { description: "ESP32", label: "ESP32", target: "esp32" },
           { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
+          { description: "ESP32-S3", label: "ESP32-S3", target: "esp32s3" },
+          {
+            description: "ESP32-C3 (Built-in USB JTAG)",
+            label: "ESP32-C3 (Built-in USB JTAG)",
+            target: "esp32c3",
+            type: "usb",
+          },
+          {
+            description: "ESP32-C3 (ESP-PROG JTAG)",
+            label: "ESP32-C3 (ESP-PROG JTAG)",
+            target: "esp32c3",
+            type: "prog",
+          },
+          {
+            description: "Custom target",
+            label: "Custom target",
+            target: "custom",
+          },
         ],
         { placeHolder: enterDeviceTargetMsg }
       );
@@ -1095,6 +1113,28 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       const configurationTarget = idfConf.readParameter("idf.saveScope");
+      if (selectedTarget.target === "custom") {
+        const customIdfTarget = await vscode.window.showInputBox({
+          placeHolder: "Enter custom target name (IDF_TARGET)",
+          value: "",
+        });
+        if (!customIdfTarget) {
+          return;
+        }
+        await idfConf.writeParameter(
+          "idf.adapterTargetName",
+          selectedTarget.target,
+          configurationTarget
+        );
+        await idfConf.writeParameter(
+          "idf.customAdapterTargetName",
+          customIdfTarget,
+          configurationTarget
+        );
+        return Logger.infoNotify(
+          `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`
+        );
+      }
       await idfConf.writeParameter(
         "idf.adapterTargetName",
         selectedTarget.target,
@@ -1111,6 +1151,33 @@ export async function activate(context: vscode.ExtensionContext) {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
+          configurationTarget
+        );
+      }
+      if (selectedTarget.target === "esp32s3") {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"],
+          configurationTarget
+        );
+      }
+      if (
+        selectedTarget.target === "esp32c3" &&
+        selectedTarget.type === "usb"
+      ) {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["board/esp32c3-builtin.cfg"],
+          configurationTarget
+        );
+      }
+      if (
+        selectedTarget.target === "esp32c3" &&
+        selectedTarget.type === "prog"
+      ) {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["board/esp32c3-ftdi.cfg"],
           configurationTarget
         );
       }

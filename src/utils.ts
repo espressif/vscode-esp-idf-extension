@@ -749,7 +749,10 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  if (idfTarget === "custom") {
+    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+  }
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
   return modifiedEnv;

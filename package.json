@@ -405,13 +405,25 @@
             "default": "esp32",
             "enum": [
               "esp32",
-              "esp32s2"
+              "esp32s2",
+              "esp32s3",
+              "esp32c3",
+              "custom"
             ],
             "enumDescriptions": [
               "esp32",
-              "esp32"
+              "esp32 s2",
+              "esp32 s3",
+              "esp32 c3",
+              "custom"
             ],
             "description": "%param.adapterTargetName%",
+            "scope": "resource"
+          },
+          "idf.customAdapterTargetName": {
+            "type": "string",
+            "default": "",
+            "description": "%param.customAdapterTargetName%",
             "scope": "resource"
           },
           "idf.customExtraPaths": {
