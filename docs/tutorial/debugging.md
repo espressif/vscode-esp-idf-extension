@@ -102,5 +102,12 @@ A common debugging tasks is checking the value of a program variable as the prog
 You can send any GDB commands in the Debug console with `--exec COMMAND`. More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
 
 <p align="center">
-  <img src="../../media/debug/gdb_commands.png" alt="Watch program variables">
+  <img src="../../media/debug/gdb_commands.png" alt="GDB Commands">
 </p>
+
+You can start a monitor session that can capture fatal error events with `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command and, if configured in your project's sdkconfig, trigger the start of a debug session for GDB remote protocol server (GDBStub) or [ESP-IDF Core Dump](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump) when an error is found. Read more in the [panic handler documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler).
+
+- **Core dump** is configured when `Core dump's Data destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
+- **GDB Stub** is configured when `Panic handler behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
+
+See other [ESP-IDF extension features](../FEATURES.md).

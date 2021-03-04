@@ -56,7 +56,7 @@ You have several options to create a project:
 
 You can debug ESP-IDF projects as shown in the [debug tutorial](./debugging.md).
 
-The **ESP-IDF: Open ESP-IDF Terminal** will launch a system terminal with ESP-IDF, ESP-IDF tools and ESP-IDF python virtual environment in environment variables. Just typing `idf.py` or `esptool.py` should work to execute scripts from ESP-IDF and additional frameworks.
+The **ESP-IDF: Open ESP-IDF Terminal** will launch a system terminal with ESP-IDF, ESP-IDF tools and ESP-IDF python virtual environment loaded as environment variables. Just typing `idf.py` or `esptool.py` should work to execute scripts from ESP-IDF and additional frameworks.
 
 See other [ESP-IDF extension features](../FEATURES.md).
 
