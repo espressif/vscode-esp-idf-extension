@@ -1,7 +1,7 @@
 # Installation
 
 1. Download and install [Visual Studio Code](https://code.visualstudio.com/).
-2. Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of VS Code or the View: Extensions command <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd>.
+2. Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of Visual Studio Code or the **View: Extensions** command <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd>.
 3. Search the extension with any related keyword like `espressif`, `esp-idf`, `esp32`, `esp32s2`, etc.
 4. Install the extension.
 
