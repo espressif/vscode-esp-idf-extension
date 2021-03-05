@@ -1,14 +1,20 @@
 # Debugging
 
-This tutorial will show the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If the user hasn't configured the extension as explained in [Install tutorial](./install.md) please refer to do so first.
+This tutorial will show the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If the user hasn't configured the extension as explained in [Install tutorial](./install.md) please do it first.
+
+> **NOTE:** If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
 
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
 2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device configuration** to manually set any value you desire the By default, when you used **ESP-IDF: Set Espressif device target** the following files are set:
-3. Choosing esp32 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
-4. Choosing esp32s2 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
-5. Choosing esp32s3 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"]
-6. Choosing esp32c3 as IDF_TARGET will set to `idf.openOCDConfigs` to ["board/esp32c3-builtin.cfg"] if using built-in usb jtag or ["board/esp32c3-ftdi.cfg"] if using ESP-PROG-JTAG.
-7. With the blink example folder open in your visual studio code window, press F5.
+
+- Choosing esp32 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
+- Choosing esp32s2 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
+- Choosing esp32s3 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"]
+- Choosing esp32c3 as IDF_TARGET will set to `idf.openOCDConfigs` to ["board/esp32c3-builtin.cfg"] if using built-in usb jtag or ["board/esp32c3-ftdi.cfg"] if using ESP-PROG-JTAG.
+
+> **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
+
+3. With the blink example folder open in your visual studio code window, press F5.
 
 Several steps will be automatically done for you but explained for clarity. You can skip to step 6 to continue the debug tutorial part.
 
@@ -99,7 +105,7 @@ A common debugging tasks is checking the value of a program variable as the prog
 
 # Next steps
 
-You can send any GDB commands in the Debug console with `--exec COMMAND`. More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
+You can send any GDB commands in the Debug console with `--exec COMMAND`. More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line). You need to set `logLevel: 5` in the project's launch.json to see the command output.
 
 <p align="center">
   <img src="../../media/debug/gdb_commands.png" alt="GDB Commands">
@@ -109,5 +115,7 @@ You can start a monitor session that can capture fatal error events with `ESP-ID
 
 - **Core dump** is configured when `Core dump's Data destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 - **GDB Stub** is configured when `Panic handler behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
+
+The user can modify the debug session as shown in the [DEBUGGING](../DEBUGGING.md) documentation by customizing settings such as the program start address offset, the ESP-IDF Debug Adapter server port, logging level and custom initial gdb commands.
 
 See other [ESP-IDF extension features](../FEATURES.md).
