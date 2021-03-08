@@ -38,30 +38,47 @@ The example will enable the following options by default:
 
 > **NOTE:** For any project that you want to generate code coverage, you should enable these settings in your sdkconfig.
 
-6. Now to build the project, flash your device and start the ESP-IDF Monitor you can use the **ESP-IDF: Build your project**, **ESP-IDF: Flash your project** and **ESP-IDF: Monitor your device** commands as explained in the [basic use tutorial](./basic_use.md).
+6. Now to build the project, flash your device and start the ESP-IDF Monitor you can use the **ESP-IDF: Build your project**, **ESP-IDF: Flash your project** and **ESP-IDF: Monitor your device** commands as explained in the [basic use tutorial](./basic_use.md). If everything is executed correctly, there will be a message in ESP-IDF Monitor saying `Ready to dump GCOV data...`
 
 > **NOTE:** There is also a **ESP-IDF: Build, Flash and start a monitor on your device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>D</kbd> keyboard shortcut).
 
-7. If everything executed correctly, there will be a message in ESP-IDF Monitor saying `Ready to dump GCOV data...`. Next step is to launch openOCD and send some commands. To start openOCD from the extension, execute the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. OpenOCD server output is shown in menu `View` -> Output -> OpenOCD.
+7. Next step is to launch openOCD and send some commands. To start openOCD from the extension, execute the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. OpenOCD server output is shown in menu `View` -> `Output` -> `OpenOCD`.
 
-8. Launch a new terminal with menu Terminal -> New Terminal and execute `telnet <oocd_host> <oocd_port>` which by default is `telnet localhost 4444`.
+8. Launch a new terminal with menu Terminal -> New Terminal and execute `telnet <oocd_host> <oocd_port>` which by default is `telnet localhost 4444`. Latest macOS users can use `nc <oocd_host> <oocd_port>` if `telnet` is not in the system.
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
 9. First send the openOCD command `esp gcov dump` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the `esp gcov` command for instant run-time dump.
 
+<p align="center">
+  <img src="../../media/coverage/oocd_cmds.png" alt="OpenOCD Commands">
+</p>
+
 10. After dumping data one or more times, open the desired file in your editor and execute the **ESP-IDF: Add Editor coverage** command to highlight the editor with code coverage.
 
-You can customize highlight color using the extension settings. Visual Studio code support `"red"`, `rgb(255,0,120)` or `rgba(120,0,0,0.1)`. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+You can customize highlight color using these extension settings:
 
 - Covered lines use `idf.coveredLightTheme` for light themes and `idf.coveredDarkTheme` for dark themes.
 - Partially covered lines use `idf.partialLightTheme` for light themes and `idf.partialDarkTheme` for dark themes.
 - Non-covered lines use `idf.uncoveredLightTheme` for light themes and `idf.uncoveredDarkTheme` for dark themes.
 
-11. When finished, use the **ESP-IDF; Remove Editor coverage** command to remove the code coverage or close the editor.
+Visual Studio code support `"red"`, `rgb(255,0,120)` or `rgba(120,0,0,0.1)`.
+Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+
+<p align="center">
+  <img src="../../media/coverage/editor_coverage.png" alt="Editor coverage">
+</p>
+
+11. When finished, use the **ESP-IDF; Remove Editor coverage** command to remove the code coverage.
 
 12. The user can generate a html report using the **ESP-IDF: Get HTML Coverage Report for project** command.
 
+<p align="center">
+  <img src="../../media/coverage/html_report.png" alt="html report">
+</p>
+
 ## Troubleshooting
 
-Make sure you have `gcovr` installed using
+Make sure you had properly configure xtensa toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `xtensa-esp32-elf-gcov` and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
+
+A easy way is to verify is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `xtensa-esp32-elf-gcov --version` and `gcovr --version`.
