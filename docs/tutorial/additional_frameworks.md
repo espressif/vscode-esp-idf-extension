@@ -14,4 +14,7 @@ After configuring these framework, you can see their examples with the **ESP-IDF
 
 ## Others
 
-The **Add Arduino-ESP32 as ESP-IDF Component** extension command will clone [Arduino-ESP32](https://github.com/espressif/arduino-esp32) and use as a ESP-IDF component in your current directory. You should check the Arduino-ESP32 for more information about using this arduino libraries as esp-idf component. This is not an arduino extension.
+- **Add Arduino-ESP32 as ESP-IDF Component** extension command will clone [Arduino-ESP32](https://github.com/espressif/arduino-esp32) and use as a [ESP-IDF component](https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md) in your current directory.
+- **Create ESP-IDF project** command with `arduino-as-component` template to create a new project with arduino as a [ESP-IDF component](https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md).
+
+You should check the [Arduino-ESP32](https://github.com/espressif/arduino-esp32) repository for more information about using this arduino libraries as esp-idf component. This is not an arduino extension.
