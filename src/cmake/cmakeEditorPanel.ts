@@ -163,6 +163,12 @@ export class CmakeListsEditorPanel {
     panel: vscode.WebviewPanel
   ) {
     let listWithValues = await loadCmakeListBuilder(extensionPath, type);
+    if (listWithValues) {
+      panel.webview.postMessage({
+        command: "loadEmptyElements",
+        elements: listWithValues,
+      });
+    }
     listWithValues = await updateWithValuesCMakeLists(fileUri, listWithValues);
     if (listWithValues) {
       panel.webview.postMessage({

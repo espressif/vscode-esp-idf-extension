@@ -13,11 +13,14 @@
 // limitations under the License.
 
 export class CmakeListsElement {
-  public isComponentElement: boolean;
-  public type: string;
-  public value: string[];
-  public title: string;
-  public template: string;
-  public regex: string;
+  public canHaveMany: boolean;
   public default: string;
+  public isComponentElement: boolean;
+  public regex: string;
+  public template: string;
+  public title: string;
+  public type: string;
+  public typeValue: string;
+  public value: string[];
+  public variable: string;
 }

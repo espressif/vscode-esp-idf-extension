@@ -43,6 +43,10 @@ window.addEventListener("message", (event) => {
         store.commit("loadCmakeListsElements", message.elements);
       }
       break;
+    case "loadEmptyElements":
+      if (message.elements) {
+        store.commit("loadEmptyElements", message.elements);
+      }
     case "setFileName":
       if (message.fileName) {
         store.commit("setFileName", message.fileName);
