@@ -56,7 +56,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 - Check you have installed the [Prerequisites](#Prerequisites)
 - Press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF and tools and configure the extension.
 
-  - Please take a look at [SETUP](./docs/SETUP.md) for details about extension configuration.
+- Please take a look at [SETUP](./docs/SETUP.md) for details about extension configuration.
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create ESP-IDF project** to generate a template ESP-IDF project.
 
@@ -86,6 +86,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Create ESP-IDF project                                  | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Create new ESP-IDF Component                            |                                        |                                           |
 | Device configuration                                    |                                        |                                           |
+| Dispose current SDK Configuration editor server process |                                        |                                           |
 | Doctor command                                          |                                        |                                           |
 | Flash your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Full clean project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
@@ -101,22 +102,23 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
 | Select port to use                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
-| Set Espressif device target                             |                                        |                                           |
+| Select OpenOCD Board Configuration                      |                                        |                                           |
 | Set default sdkconfig file in project                   |                                        |                                           |
+| Set Espressif device target                             |                                        |                                           |
 | Show Examples Projects                                  |                                        |                                           |
+| Show ninja build summary                                |                                        |                                           |
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Remove Editor coverage                                  |                                        |                                           |
-| Select OpenOCD Board Configuration                      |                                        |                                           |
-| Show ninja build summary                                |                                        |                                           |
-| Dispose current SDK Configuration editor server process |                                        |                                           |
 
 The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **Create ESP-IDF project** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
 
 > **NOTE** Not all versions of ESP-IDF are supported. Make sure to check [Arduino-ESP32](https://github.com/espressif/arduino-esp32) to see if your ESP-IDF version is compatible.
 
-The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
 The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
+
 The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+
+The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
 
 ### Commands for tasks.json and launch.json
 
@@ -128,6 +130,10 @@ We have implemented some utilities commands that can be used in tasks.json and l
 
 as shown in the [debugging documentation](./DEBUGGING.md).
 
+- `espIdf.getExtensionPath`: Get the installed location absolute path.
+- `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
+- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `"-f interface/ftdi/esp32_devkitj_v1.cfg" -f board/esp32-wrover.cfg`.
+- `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
 - `espIdf.getXtensaGcc`: Return the absolute path of the xtensa toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 - `espIdf.getXtensaGdb`: Return the absolute path of the xtensa toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 

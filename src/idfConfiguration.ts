@@ -25,8 +25,6 @@ const platformDepConfigurations: string[] = [
   "idf.espMdfPath",
   "idf.pythonBinPath",
   "idf.port",
-  "idf.deviceInterface",
-  "idf.board",
   "idf.toolsPath",
 ];
 

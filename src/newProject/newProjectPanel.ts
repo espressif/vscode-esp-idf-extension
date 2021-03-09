@@ -193,6 +193,8 @@ export class NewProjectPanel {
     projectName: string,
     template: IExample
   ) {
+    const newProjectPath = path.join(projectDirectory, projectName);
+    let isSkipped = false;
     await vscode.window.withProgress(
       {
         cancellable: true,
@@ -214,9 +216,9 @@ export class NewProjectPanel {
             this.panel.webview.postMessage({
               command: "goToBeginning",
             });
+            isSkipped = true;
             return;
           }
-          const newProjectPath = path.join(projectDirectory, projectName);
           const projectNameExists = await utils.dirExistPromise(newProjectPath);
           if (projectNameExists) {
             const overwriteProject = await vscode.window.showInformationMessage(
@@ -228,6 +230,7 @@ export class NewProjectPanel {
               typeof overwriteProject === "undefined" ||
               overwriteProject === "No"
             ) {
+              isSkipped = true;
               return;
             }
           }
@@ -249,6 +252,8 @@ export class NewProjectPanel {
           );
           const settingsJson = await readJSON(settingsJsonPath);
           const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+          const adfPathDir = idfConf.readParameter("idf.espAdfPath");
+          const mdfPathDir = idfConf.readParameter("idf.espMdfPath");
           const extraPaths = idfConf.readParameter("idf.customExtraPaths");
           const extraVars = idfConf.readParameter(
             "idf.customExtraVars"
@@ -256,23 +261,23 @@ export class NewProjectPanel {
           const toolsDir = idfConf.readParameter("idf.toolsPath");
           const pyPath = idfConf.readParameter("idf.pythonBinPath");
           const isWin = process.platform === "win32" ? "Win" : "";
+          const modifiedEnv = utils.appendIdfAndToolsToPath();
+          const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
           settingsJson["idf.adapterTargetName"] = idfTarget;
           settingsJson["idf.customExtraPaths"] = extraPaths;
           settingsJson["idf.customExtraVars"] = extraVars;
           settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
+          settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
+          settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
           settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
           settingsJson["idf.port" + isWin] = port;
           settingsJson["idf.pythonBinPath" + isWin] = pyPath;
           settingsJson["idf.toolsPath" + isWin] = toolsDir;
-          const modifiedEnv = utils.appendIdfAndToolsToPath();
-          const compilerPath = await utils.isBinInPath(
-            `xtensa-${idfTarget}-elf-gdb`,
-            newProjectPath,
-            modifiedEnv
-          );
-          settingsJson["C_Cpp.default.compilerPath"] = compilerPath;
+          await writeJSON(settingsJsonPath, settingsJson, {
+            spaces:
+              vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+          });
 
-          await writeJSON(settingsJsonPath, settingsJson);
           if (components && components.length > 0) {
             const componentsPath = path.join(newProjectPath, "components");
             await ensureDir(componentsPath, { mode: 0o775 });
@@ -291,26 +296,28 @@ export class NewProjectPanel {
               }
             }
           }
-
-          const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
-          const openProjectChoice = await vscode.window.showInformationMessage(
-            projectCreatedMsg,
-            "Yes",
-            "No"
-          );
-
-          if (openProjectChoice && openProjectChoice === "Yes") {
-            vscode.commands.executeCommand(
-              "vscode.openFolder",
-              vscode.Uri.file(newProjectPath),
-              true
-            );
-          }
         } catch (error) {
           Logger.errorNotify(error.message, error);
         }
       }
     );
+    if (isSkipped) {
+      return;
+    }
+    const projectCreatedMsg = `Project ${projectName} has been created. Open project in a new window?`;
+    const openProjectChoice = await vscode.window.showInformationMessage(
+      projectCreatedMsg,
+      "Yes",
+      "No"
+    );
+
+    if (openProjectChoice && openProjectChoice === "Yes") {
+      vscode.commands.executeCommand(
+        "vscode.openFolder",
+        vscode.Uri.file(newProjectPath),
+        true
+      );
+    }
   }
 
   private async openFolder() {
