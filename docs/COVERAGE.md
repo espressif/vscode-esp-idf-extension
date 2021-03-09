@@ -11,7 +11,7 @@ Make sure you had properly configure xtensa toolchain in `idf.customExtraPaths` 
 
 ## Editor Coverage
 
-For the text editor highlighting, we use execute a child process with `gcovr -r . --gcov-executable xtensa-eslp-elf-gcov --json`.
+For the text editor highlighting, we use execute a child process with `gcovr -r . --gcov-executable xtensa-esp-elf-gcov --json`.
 
 > **NOTE:** This assumes you had configure your extension with Xtensa toolchain in `idf.customExtraPaths` and installed the `gcovr` from Debug adapter's python requirements.
 
@@ -25,7 +25,7 @@ You can customize highlight color using the extension settings. Visual Studio co
 
 ## HTML report
 
-We execute a child process with command `gcovr -r . --gcov-executable xtensa-eslp-elf-gcov --html` for the HTML report.
+We execute a child process with command `gcovr -r . --gcov-executable xtensa-esp-elf-gcov --html` for the HTML report.
 
 > **NOTE:** This assumes you had configure your extension with Xtensa toolchain in `idf.customExtraPaths` and installed the `gcovr` from Debug adapter's python requirements.
 

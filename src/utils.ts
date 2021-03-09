@@ -199,8 +199,12 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
       const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
       const modifiedEnv = appendIdfAndToolsToPath();
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      const gccTool =
+        idfTarget === "esp32c3"
+          ? "riscv32-esp-elf-gcc"
+          : `xtensa-${idfTarget}-elf-gcc`;
       const compilerPath = await isBinInPath(
-        `xtensa-${idfTarget}-elf-gcc`,
+        gccTool,
         curWorkspaceFsPath,
         modifiedEnv
       );
@@ -478,14 +482,17 @@ export function readDirPromise(dirPath) {
 
 export function dirExistPromise(dirPath) {
   return new Promise<boolean>((resolve, reject) => {
+    if (!dirPath) {
+      return resolve(false);
+    }
     fs.stat(dirPath, (err, stats) => {
       if (err) {
-        resolve(false);
+        return resolve(false);
       } else {
         if (stats.isDirectory()) {
-          resolve(true);
+          return resolve(true);
         }
-        resolve(false);
+        return resolve(false);
       }
     });
   });

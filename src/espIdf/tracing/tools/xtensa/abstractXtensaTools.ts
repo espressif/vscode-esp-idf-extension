@@ -54,6 +54,9 @@ export abstract class XtensaTools {
     ) {
       return `xtensa-${idfTarget}-elf-${toolName}`;
     }
+    if (idfTarget === "esp32c3") {
+      return `riscv32-esp-elf-${toolName}`;
+    }
     return `unknown-tracing-tool`;
   }
 }

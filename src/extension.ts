@@ -952,17 +952,18 @@ export async function activate(context: vscode.ExtensionContext) {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      const gdbTool =
+        idfTarget === "esp32c3"
+          ? "riscv32-esp-elf-gdb"
+          : `xtensa-${idfTarget}-elf-gdb`;
       try {
         return await utils.isBinInPath(
-          `xtensa-${idfTarget}-elf-gdb`,
+          gdbTool,
           workspaceRoot.fsPath,
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify(
-          "xtensa-TARGET-elf-gdb is not found in idf.customExtraPaths",
-          error
-        );
+        Logger.errorNotify("gdb is not found in idf.customExtraPaths", error);
         return;
       }
     });
@@ -972,17 +973,18 @@ export async function activate(context: vscode.ExtensionContext) {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath();
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+      const gccTool =
+        idfTarget === "esp32c3"
+          ? "riscv32-esp-elf-gcc"
+          : `xtensa-${idfTarget}-elf-gcc`;
       try {
         return await utils.isBinInPath(
-          `xtensa-${idfTarget}-elf-gcc`,
+          gccTool,
           workspaceRoot.fsPath,
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify(
-          "xtensa-TARGET-elf-gcc is not found in idf.customExtraPaths",
-          error
-        );
+        Logger.errorNotify("gcc is not found in idf.customExtraPaths", error);
         return;
       }
     });
