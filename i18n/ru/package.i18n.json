@@ -1,5 +1,5 @@
 {
-  "espIdf.createFiles.title": "ESP-IDF: Создать проект",
+  "espIdf.createFiles.title": "Создать проект из шаблона расширения",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Добавить Arduino ESP32 как компонент ESP-IDF",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Открыть терминал ESP-IDF",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Добавить папку конфигурации vscode",
@@ -7,8 +7,9 @@
   "espIdf.setTarget.title": "ESP-IDF: Установить целевое устройство Espressif",
   "espIdf.selectConfTarget.title": "ESP-IDF: Выбрать место для сохранения настроек конфигурации",
   "espIdf.configDevice.title": "ESP-IDF: Конфигурация устройства",
-  "menuconfig.start.title": "ESP-IDF: Редактор конфигурации SDK",
-  "cmakeListsEditor.start.title": "ESP-IDF: CMakeLists.txt Редактор",
+  "espIdf.menuconfig.start.title": "ESP-IDF: Редактор конфигурации SDK",
+  "espIdf.cmakeListsEditor.start.title": "ESP-IDF: CMakeLists.txt Редактор",
+  "espIdf.newProject.start.title": "ESP-IDF: Новый проект",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Установить файл sdkconfig по умолчанию в проекте",
   "espIdf.selectPort.title": "ESP-IDF: Выбрать последовательный порт",
   "espIdf.buildDevice.title": "ESP-IDF: Собрать проект",

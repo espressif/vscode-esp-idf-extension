@@ -103,6 +103,8 @@ import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
 import { kill } from "process";
+import { getNewProjectArgs } from "./newProject/newProjectInit";
+import { NewProjectPanel } from "./newProject/newProjectPanel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1029,7 +1031,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
 
-  registerIDFCommand("menuconfig.start", () => {
+  registerIDFCommand("espIdf.menuconfig.start", () => {
     PreCheck.perform([openFolderCheck], () => {
       try {
         if (ConfserverProcess.exists()) {
@@ -1184,7 +1186,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("examples.start", () => {
+  registerIDFCommand("espIdf.examples.start", () => {
     try {
       vscode.window.withProgress(
         {
@@ -1261,17 +1263,51 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("cmakeListsEditor.start", async (fileUri: vscode.Uri) => {
-    if (!fileUri) {
-      Logger.errorNotify(
-        "Cannot call this command directly, right click on any CMakeLists.txt file!",
-        new Error("INVALID_INVOCATION")
-      );
+  registerIDFCommand(
+    "espIdf.cmakeListsEditor.start",
+    async (fileUri: vscode.Uri) => {
+      if (!fileUri) {
+        Logger.errorNotify(
+          "Cannot call this command directly, right click on any CMakeLists.txt file!",
+          new Error("INVALID_INVOCATION")
+        );
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        await CmakeListsEditorPanel.createOrShow(
+          context.extensionPath,
+          fileUri
+        );
+      });
+    }
+  );
+
+  registerIDFCommand("espIdf.newProject.start", () => {
+    if (NewProjectPanel.isCreatedAndHidden()) {
+      NewProjectPanel.createOrShow(context.extensionPath);
       return;
     }
-    PreCheck.perform([openFolderCheck], async () => {
-      await CmakeListsEditorPanel.createOrShow(context.extensionPath, fileUri);
-    });
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: New Project",
+      },
+      async (
+        progress: vscode.Progress<{ increment: number; message: string }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const newProjectArgs = await getNewProjectArgs(progress);
+          if (!newProjectArgs || !newProjectArgs.targetList) {
+            throw new Error("Could not find ESP-IDF Targets");
+          }
+          NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
+        } catch (error) {
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
   });
 
   registerIDFCommand("espIdf.openIdfDocument", (docUri: vscode.Uri) => {
@@ -2185,7 +2221,7 @@ function creatCmdsStatusBarItems() {
   createStatusBarItem(
     "$(gear)",
     "ESP-IDF Launch GUI Configuration tool",
-    "menuconfig.start",
+    "espIdf.menuconfig.start",
     100
   );
   createStatusBarItem("$(trash)", "ESP-IDF Full Clean", "espIdf.fullClean", 99);

@@ -1,5 +1,5 @@
 {
-  "espIdf.createFiles.title": "ESP-IDF: 新建项目",
+  "espIdf.createFiles.title": "ESP-IDF: 从扩展模板创建项目",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: 添加ArduinoESP32作为ESP-IDF组件",
   "espIdf.createIdfTerminal.title": "ESP-IDF: 打开ESP-IDF终端",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
@@ -7,8 +7,9 @@
   "espIdf.selectConfTarget.title": "ESP-IDF：选择保存配置设置的位置",
   "espIdf.setTarget.title": "ESP-IDF: 设置espressif设备目标",
   "espIdf.configDevice.title": "ESP-IDF：配置设备",
-  "menuconfig.start.title": "ESP-IDF：SDK配置编辑器",
-  "cmakeListsEditor.start.title": "ESP-IDF：CMakeLists.txt文件编辑",
+  "espIdf.menuconfig.start.title": "ESP-IDF：SDK配置编辑器",
+  "espIdf.cmakeListsEditor.start.title": "ESP-IDF：CMakeLists.txt文件编辑",
+  "espIdf.newProject.start.title": "ESP-IDF: 新建项目",
   "espIdf.setDefaultConfig.title": "ESP-IDF：设置项目默认的 sdkconfig 文件",
   "espIdf.selectPort.title": "ESP-IDF：选择要使用的烧录端口",
   "espIdf.buildDevice.title": "ESP-IDF：构建项目",

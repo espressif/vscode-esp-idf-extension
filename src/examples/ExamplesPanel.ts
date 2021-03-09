@@ -19,8 +19,8 @@ import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
-import marked from "marked";
 import { ESP } from "../config";
+import { getExamplesList } from "./Example";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -132,9 +132,10 @@ export class ExamplesPlanel {
             );
             try {
               const content = await readFile(pathToUse.fsPath);
-              const contentStr = this.resolveImgPath(
+              const contentStr = utils.markdownToWebviewHtml(
                 content.toString(),
-                message.path
+                message.path,
+                this.panel
               );
               this.panel.webview.postMessage({
                 command: "set_example_detail",
@@ -163,64 +164,8 @@ export class ExamplesPlanel {
     this.panel.dispose();
   }
 
-  private resolveImgPath(content: string, examplePath: string) {
-    marked.setOptions({
-      baseUrl: null,
-      breaks: true,
-      gfm: true,
-      pedantic: false,
-      renderer: new marked.Renderer(),
-      sanitize: true,
-      smartLists: true,
-      smartypants: false,
-    });
-    let contentStr = marked(content);
-    const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
-    let match: RegExpExecArray;
-    while ((match = srcLinkRegex.exec(contentStr)) !== null) {
-      const unresolvedPath = match[1];
-      const absPath = `src="${this.panel.webview.asWebviewUri(
-        vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
-      )}"`;
-      contentStr = contentStr.replace(match[0], absPath);
-    }
-    const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
-    let encodedMatch: RegExpExecArray;
-    while ((encodedMatch = srcEncodedRegex.exec(contentStr)) !== null) {
-      const pathToResolve = encodedMatch[0].match(
-        /(?:src=&quot;)(.*?)(?:&quot;)/
-      );
-      const height = encodedMatch[0].match(/(?:height=&quot;)(.*?)(?:&quot;)/);
-      const width = encodedMatch[0].match(/(?:width=&quot;)(.*?)(?:&quot;)/);
-      const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
-      const absPath = `<img src="${this.panel.webview.asWebviewUri(
-        vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
-      )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
-        width && width.length > 0 ? `width="${width[1]}"` : ""
-      } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
-      contentStr = contentStr.replace(encodedMatch[0], absPath);
-    }
-    contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-    return contentStr;
-  }
-
   private async obtainExamplesList(targetFrameworkFolder: string) {
-    const examplesPath = path.join(targetFrameworkFolder, "examples");
-    const examplesCategories = utils.getDirectories(examplesPath);
-    const examplesListPaths = utils.getSubProjects(examplesPath);
-    const exampleListInfo = examplesListPaths.map((examplePath) => {
-      const exampleCategory = examplesCategories.find(
-        (exampleCat) => examplePath.indexOf(exampleCat) > -1
-      );
-      const regexToUse =
-        process.platform === "win32" ? /([^\\]*)\\*$/ : /([^\/]*)\/*$/;
-      const exampleName = examplePath.match(regexToUse)[1];
-      return {
-        category: exampleCategory,
-        name: exampleName,
-        path: examplePath,
-      };
-    });
+    const exampleListInfo = getExamplesList(targetFrameworkFolder);
     this.panel.webview.postMessage({
       command: "set_examples_path",
       example_list: exampleListInfo,

@@ -1,5 +1,5 @@
 {
-  "espIdf.createFiles.title": "ESP-IDF: Create project",
+  "espIdf.createFiles.title": "ESP-IDF: Create project from extension template",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Add Arduino ESP32 as ESP-IDF Component",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Open ESP-IDF Terminal",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Add vscode configuration folder",
@@ -7,8 +7,9 @@
   "espIdf.selectConfTarget.title": "ESP-IDF: Select where to save configuration settings",
   "espIdf.setTarget.title": "ESP-IDF: Set Espressif device target",
   "espIdf.configDevice.title": "ESP-IDF: Device configuration",
-  "menuconfig.start.title": "ESP-IDF: SDK Configuration editor",
-  "cmakeListsEditor.start.title": "ESP-IDF: CMakeLists.txt Editor",
+  "espIdf.menuconfig.start.title": "ESP-IDF: SDK Configuration editor",
+  "espIdf.cmakeListsEditor.start.title": "ESP-IDF: CMakeLists.txt Editor",
+  "espIdf.newProject.start.title": "ESP-IDF: New Project",
   "espIdf.setDefaultConfig.title": "ESP-IDF: Set default sdkconfig file in project",
   "espIdf.selectPort.title": "ESP-IDF: Select port to use",
   "espIdf.buildDevice.title": "ESP-IDF: Build your project",
