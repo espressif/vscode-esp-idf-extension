@@ -27,6 +27,7 @@ import {
   writeJSON,
 } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
+import marked from "marked";
 import { EOL } from "os";
 import * as path from "path";
 import * as url from "url";
@@ -860,4 +861,55 @@ export function compareVersion(v1: string, v2: string) {
     : v1Parts.length < v2Parts.length
     ? -1
     : 1;
+}
+
+/**
+ * Parse markdown into html and fix images with panel paths
+ * @param {string} content - String with markdown content
+ * @param {string} projectPath - Project absolute path where images are
+ * @param {vscode.WebviewPanel} - Webview panel for webviewURI generation
+ */
+export function markdownToWebviewHtml(
+  content: string,
+  projectPath: string,
+  panel: vscode.WebviewPanel
+) {
+  marked.setOptions({
+    baseUrl: null,
+    breaks: true,
+    gfm: true,
+    pedantic: false,
+    renderer: new marked.Renderer(),
+    sanitize: true,
+    smartLists: true,
+    smartypants: false,
+  });
+  let contentStr = marked(content);
+  const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
+  let match: RegExpExecArray;
+  while ((match = srcLinkRegex.exec(contentStr)) !== null) {
+    const unresolvedPath = match[1];
+    const absPath = `src="${panel.webview.asWebviewUri(
+      vscode.Uri.file(path.resolve(projectPath, unresolvedPath))
+    )}"`;
+    contentStr = contentStr.replace(match[0], absPath);
+  }
+  const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
+  let encodedMatch: RegExpExecArray;
+  while ((encodedMatch = srcEncodedRegex.exec(contentStr)) !== null) {
+    const pathToResolve = encodedMatch[0].match(
+      /(?:src=&quot;)(.*?)(?:&quot;)/
+    );
+    const height = encodedMatch[0].match(/(?:height=&quot;)(.*?)(?:&quot;)/);
+    const width = encodedMatch[0].match(/(?:width=&quot;)(.*?)(?:&quot;)/);
+    const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
+    const absPath = `<img src="${panel.webview.asWebviewUri(
+      vscode.Uri.file(path.resolve(projectPath, pathToResolve[1]))
+    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
+      width && width.length > 0 ? `width="${width[1]}"` : ""
+    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+    contentStr = contentStr.replace(encodedMatch[0], absPath);
+  }
+  contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  return contentStr;
 }

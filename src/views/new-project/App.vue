@@ -1,7 +1,7 @@
 <template>
   <div id="init">
     <div class="control">
-      <h1 class="title is-spaced">ESP-IDF New Project</h1>
+      <h1 class="title is-spaced">New Project</h1>
     </div>
     <transition name="fade" mode="out-in">
       <router-view />

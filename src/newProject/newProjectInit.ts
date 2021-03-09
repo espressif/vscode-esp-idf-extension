@@ -23,6 +23,9 @@ import { readJSON } from "fs-extra";
 import { Logger } from "../logger/logger";
 
 export interface INewProjectArgs {
+  espIdfPath: string;
+  espAdfPath: string;
+  espMdfPath: string;
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
@@ -123,6 +126,9 @@ export async function getNewProjectArgs(
   return {
     boards: espBoards,
     components,
+    espAdfPath: adfExists ? espAdfPath : undefined,
+    espIdfPath: idfExists ? espIdfPath : undefined,
+    espMdfPath: mdfExists ? espMdfPath : undefined,
     serialPortList,
     targetList,
     templates,

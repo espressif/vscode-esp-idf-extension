@@ -67,8 +67,21 @@ export class NewProjectPanel {
     this.extensionPath = extensionPath;
     const newProjectTitle = locDictionary.localize(
       "newProject.panelName",
-      "ESP-IDF New Project"
+      "New Project"
     );
+    let localResourceRoots: vscode.Uri[] = [];
+    localResourceRoots.push(
+      vscode.Uri.file(path.join(this.extensionPath, "dist", "views"))
+    );
+    if (newProjectArgs.espAdfPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espAdfPath));
+    }
+    if (newProjectArgs.espIdfPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espIdfPath));
+    }
+    if (newProjectArgs.espMdfPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
+    }
     this.panel = vscode.window.createWebviewPanel(
       NewProjectPanel.viewType,
       newProjectTitle,
@@ -76,9 +89,7 @@ export class NewProjectPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
-        ],
+        localResourceRoots,
       }
     );
 
@@ -335,7 +346,11 @@ export class NewProjectPanel {
     try {
       const pathToUse = vscode.Uri.file(path.join(projectPath, "README.md"));
       const readMeContent = await readFile(pathToUse.fsPath);
-      const contentStr = this.mdToHtml(readMeContent.toString(), projectPath);
+      const contentStr = utils.markdownToWebviewHtml(
+        readMeContent.toString(),
+        projectPath,
+        this.panel
+      );
       this.panel.webview.postMessage({
         command: "setExampleDetail",
         templateDetail: contentStr,
@@ -346,52 +361,6 @@ export class NewProjectPanel {
         templateDetail: "No README.md available for this project.",
       });
     }
-  }
-
-  private mdToHtml(content: string, examplePath: string) {
-    marked.setOptions({
-      baseUrl: null,
-      breaks: true,
-      gfm: true,
-      pedantic: false,
-      renderer: new marked.Renderer(),
-      sanitize: true,
-      smartLists: true,
-      smartypants: false,
-    });
-    let contentStr = marked(content);
-    const srcLinkRegex = /src\s*=\s*"(.+?)"/g;
-    const matches = contentStr.match(srcLinkRegex);
-    if (matches && matches.length > 0) {
-      for (let m of matches) {
-        const unresolvedPath = m
-          .replace('src="', "")
-          .replace('src ="', "")
-          .replace('"', "");
-        const absPath = `src="${this.panel.webview.asWebviewUri(
-          vscode.Uri.file(path.resolve(examplePath, unresolvedPath))
-        )}"`;
-        contentStr = contentStr.replace(m, absPath);
-      }
-    }
-    const srcEncodedRegex = /&lt;img src=&quot;(.*?)&quot;\s?&gt;/g;
-    const nextMatches = contentStr.match(srcEncodedRegex);
-    if (nextMatches && nextMatches.length > 0) {
-      for (let m of nextMatches) {
-        const pathToResolve = m.match(/(?:src=&quot;)(.*?)(?:&quot;)/);
-        const height = m.match(/(?:height=&quot;)(.*?)(?:&quot;)/);
-        const altText = m.match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
-        const absPath = `<img src="${this.panel.webview.asWebviewUri(
-          vscode.Uri.file(path.resolve(examplePath, pathToResolve[1]))
-        )}" ${
-          height && height.length > 0 ? 'height="' + height[1] + '"' : ""
-        } alt="${
-          altText && altText.length > 0 ? '"alt=' + altText[1] + '"' : ""
-        } >`;
-        contentStr = contentStr.replace(m, absPath);
-      }
-    }
-    return contentStr;
   }
 
   private createHtml(scriptPath: vscode.Uri): string {

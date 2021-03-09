@@ -138,11 +138,20 @@ li > ul {
   margin-left: 5%;
 }
 
-blockquote {
-  color: var(--vscode-foreground);
-  background-color: var(--vscode-notifications-background);
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6,
+.content table thead th,
+.content strong {
+  color: var(--vscode-editor-foreground);
 }
-blockquote:not(:last-child) {
-  margin-bottom: 0.8em;
+.content blockquote p {
+  strong {
+    color: var(--vscode-button-background);
+  }
+  color: var(--vscode-button-background);
 }
 </style>
