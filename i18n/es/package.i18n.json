@@ -1,5 +1,5 @@
 {
-  "espIdf.createFiles.title": "ESP-IDF: Crear proyecto",
+  "espIdf.createFiles.title": "ESP-IDF: Crear proyecto a partir de plantilla de la extensión",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Agregar Arduino ESP32 como componente ESP-IDF",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Abrir terminal ESP-IDF",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Agregar carpeta de configuración vscode",

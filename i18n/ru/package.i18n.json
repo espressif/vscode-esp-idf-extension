@@ -1,5 +1,5 @@
 {
-  "espIdf.createFiles.title": "ESP-IDF: Создать проект",
+  "espIdf.createFiles.title": "Создать проект из шаблона расширения",
   "espIdf.addArduinoAsComponentToCurFolder.title": "ESP-IDF: Добавить Arduino ESP32 как компонент ESP-IDF",
   "espIdf.createIdfTerminal.title": "ESP-IDF: Открыть терминал ESP-IDF",
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Добавить папку конфигурации vscode",

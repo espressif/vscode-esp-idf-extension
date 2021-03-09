@@ -83,7 +83,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Build your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
 | Configure ESP-IDF extension                             |                                        |                                           |
 | Configure Paths                                         |                                        |                                           |
-| Create ESP-IDF project                                  | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
+| Create project from extension template                  | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Create new ESP-IDF Component                            |                                        |                                           |
 | Device configuration                                    |                                        |                                           |
 | Dispose current SDK Configuration editor server process |                                        |                                           |

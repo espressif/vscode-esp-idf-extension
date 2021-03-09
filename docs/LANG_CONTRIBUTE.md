@@ -23,7 +23,7 @@ Each file has a key value structure such as:
 
 ```json
 {
-  "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project",
+  "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project from extension template",
   "textID": "value"
 }
 ```
