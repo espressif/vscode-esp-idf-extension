@@ -42,6 +42,7 @@
   "debug.initConfig.name": "ESP-IDF：启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
+  "param.customAdapterTargetName": "ESP-IDF调试适配器的自定义目标名称",
   "param.openOcdConfigFilesList": "OpenOCD脚本目录中的配置文件列表",
   "param.flashBaudRate": "ESP-IDF闪存波特率",
   "param.port": "选中的烧录端口路径",

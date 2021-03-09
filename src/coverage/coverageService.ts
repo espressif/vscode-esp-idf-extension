@@ -16,13 +16,14 @@ import { sep, join } from "path";
 import * as vscode from "vscode";
 import {
   appendIdfAndToolsToPath,
+  dirExistPromise,
   extensionContext,
   getWebViewFavicon,
   spawn,
 } from "../utils";
+import * as idfConf from "../idfConfiguration";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
-import * as idfConf from "../idfConfiguration";
 
 const COVERED_FACTOR = 0.9;
 const PARTIAL_FACTOR = 0.75;
@@ -42,19 +43,50 @@ export interface textEditorWithCoverage {
   uncoveredLines: vscode.Range[];
 }
 
-export async function buildJson(dirPath: string) {
-  const idfPathDir =
+export function getGcovExecutable(idfTarget: string) {
+  return idfTarget === "esp32c3"
+    ? "riscv32-esp-elf-gcov"
+    : `xtensa-${idfTarget}-elf-gcov`;
+}
+
+export async function getGcovFilterPaths() {
+  const espAdfPath =
+    idfConf.readParameter("idf.espAdfPath") || process.env.ADF_PATH;
+  const espIdfPath =
     idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  const componentsDir = join(idfPathDir, "components");
+  const espMdfPath =
+    idfConf.readParameter("idf.espMdfPath") || process.env.MDF_PATH;
+
+  const pathsToFilter: string[] = [];
+
+  const idfExists = await dirExistPromise(espIdfPath);
+  if (idfExists) {
+    pathsToFilter.push("--filter", join(espIdfPath, "components"));
+  }
+  const adfExists = await dirExistPromise(espAdfPath);
+  if (adfExists) {
+    pathsToFilter.push("--filter", join(espAdfPath, "components"));
+  }
+  const mdfExists = await dirExistPromise(espMdfPath);
+  if (mdfExists) {
+    pathsToFilter.push("--filter", join(espMdfPath, "components"));
+  }
+  return pathsToFilter;
+}
+
+export async function buildJson(dirPath: string) {
+  const componentsDir = await getGcovFilterPaths();
+  const idfTarget = idfConf.readParameter("idf.adapterTargetName") || "esp32";
+  const gcovTool = getGcovExecutable(idfTarget);
+
   const result = await _runCmd(
     "gcovr",
     [
       "--filter",
       ".",
-      "--filter",
-      componentsDir,
+      ...componentsDir,
       "--gcov-executable",
-      "xtensa-esp32-elf-gcov",
+      gcovTool,
       "--json",
     ],
     dirPath
@@ -63,18 +95,17 @@ export async function buildJson(dirPath: string) {
 }
 
 export async function buildHtml(dirPath: string) {
-  const idfPathDir =
-    idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  const componentsDir = join(idfPathDir, "components");
+  const componentsDir = await getGcovFilterPaths();
+  const idfTarget = idfConf.readParameter("idf.adapterTargetName") || "esp32";
+  const gcovTool = getGcovExecutable(idfTarget);
   const result = await _runCmd(
     "gcovr",
     [
       "--filter",
       ".",
-      "--filter",
-      componentsDir,
+      ...componentsDir,
       "--gcov-executable",
-      "xtensa-esp32-elf-gcov",
+      gcovTool,
       "--html",
     ],
     dirPath

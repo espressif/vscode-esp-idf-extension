@@ -48,6 +48,7 @@ Open Command Palette (F1) and type `Preferences: Open Settings (JSON)` or use `{
 - `idf.customExtraPaths` also called `Paths to be appended to PATH` in `Preferences: Open Settings (UI)`.
 - `idf.customExtraVars` also called `Variables to be added to system environment variables` in `Preferences: Open Settings (UI)`.
 - `idf.adapterTargetName` also called `Target name for ESP-IDF Debug Adapter` in `Preferences: Open Settings (UI)`.
+- `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 
 **Additional context**
 Add any other context about the problem here.

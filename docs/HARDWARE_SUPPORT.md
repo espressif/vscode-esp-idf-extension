@@ -1,7 +1,9 @@
 # Current chips supported in this extension
 
 [ESP32](https://www.espressif.com/en/products/socs/esp32-s2)
-[ESP32 S2](https://www.espressif.com/en/products/socs/esp32-s2)
+[ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2)
+[ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3)
+[ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3) **App Tracing not available yet**
 
 In addition to ESP-IDF chips, there are several boards configurations files implemented for OpenOCD. The `idf.openOcdConfigs` configuration setting is used by this extension to set OpenOCD Configuration files for the OpenOCD server executed within the extension. Here is more information about [OpenOCD Configuration targets](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 

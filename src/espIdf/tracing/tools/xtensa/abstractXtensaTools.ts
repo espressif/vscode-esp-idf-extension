@@ -43,10 +43,20 @@ export abstract class XtensaTools {
   }
 
   private toolNameForTarget(toolName: string): string {
-    const target = idfConf.readParameter("idf.adapterTargetName");
-    if (target) {
-      return `xtensa-${target}-elf-${toolName}`;
+    let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+    if (idfTarget == "custom") {
+      idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
     }
-    return `xtensa-esp32-elf-${toolName}`; // fallback default
+    if (
+      idfTarget === "esp32" ||
+      idfTarget === "esp32s2" ||
+      idfTarget === "esp32s3"
+    ) {
+      return `xtensa-${idfTarget}-elf-${toolName}`;
+    }
+    if (idfTarget === "esp32c3") {
+      return `riscv32-esp-elf-${toolName}`;
+    }
+    return `unknown-tracing-tool`;
   }
 }

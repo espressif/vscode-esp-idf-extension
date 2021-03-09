@@ -256,7 +256,11 @@ export class DebugAdapterManager extends EventEmitter {
     this.isPostMortemDebugMode = false;
     this.port = 43474;
     this.logLevel = 0;
-    this.target = idfConf.readParameter("idf.adapterTargetName");
+    let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+    if (idfTarget === "custom") {
+      idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+    }
+    this.target = idfTarget;
     this.env = appendIdfAndToolsToPath();
     this.env.PYTHONPATH = path.join(
       extensionPath,
