@@ -35,5 +35,5 @@ For this example, the project has been already configured for application tracin
 7. Click on `Heap Trace Log #1` and choose the `SystemView Tracing` option for the `ESP System View Report` window.
 
 <p align="center">
-  <img src="../../media/tutorials/heap_trace/sysview_report.png" alt="Trace Report">
+  <img src="../../media/tutorials/heap_trace/sysview_report.png" alt="SystemView Trace Report">
 </p>
