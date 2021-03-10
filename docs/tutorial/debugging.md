@@ -29,7 +29,7 @@ Several steps will be automatically done for you but explained for clarity. You 
 6. The debug session will start after the debug adapter server is launched and ready.
 
 <p align="center">
-  <img src="../../media/debug/init_halted.png" alt="Initial halted">
+  <img src="../../media/tutorials/debug/init_halted.png" alt="Initial halted">
 </p>
 
 # Navigating through the code, call stack and threads
@@ -39,7 +39,7 @@ Several steps will be automatically done for you but explained for clarity. You 
 By expanding threads you can navigate throughout the application. Thread #5 that contains much longer call stack where the user can see, besides function calls, numbers like `0x4000000c` representing address of binary code not provided in source form.
 
 <p align="center">
-  <img src="../../media/debug/thread5.png" alt="Threads">
+  <img src="../../media/tutorials/debug/thread5.png" alt="Threads">
 </p>
 
 Go back to the `app_main()` in Thread #1 to familiar code of blink.c file that will be examined in more details in the following examples. Debugger makes it easy to navigate through the code of entire application. This comes handy when stepping through the code and working with breakpoints and will be discussed below.
@@ -54,7 +54,7 @@ When debugging, we would like to be able to stop the application at critical lin
 > **NOTE:** Consider that ESP32 has a maximum of 2 hardware breakpoints. Please look at [ESP-IDF Debugging tips: Breakpoints](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-breakpoints) for more information.
 
 <p align="center">
-  <img src="../../media/debug/breakpoint.png" alt="breakpoint">
+  <img src="../../media/tutorials/debug/breakpoint.png" alt="breakpoint">
 </p>
 
 The Visual Studio Code shows a **Debug toolbar** on the top of the editor with several actions as explained in [Visual Studio Code Debug Actions](https://code.visualstudio.com/docs/editor/debugging#_debug-actions).
@@ -72,19 +72,19 @@ Before being able to demonstrate this functionality, using information discussed
 11. Resume program by entering pressing F5 and let it halt. Now press “Step Over (F10)”, one by one couple of times, to see how debugger is stepping one program line at a time.
 
 <p align="center">
-  <img src="../../media/debug/step_over.png" alt="Step over">
+  <img src="../../media/tutorials/debug/step_over.png" alt="Step over">
 </p>
 
 12. If you press “Step Into (F11)” instead, then debugger will step inside subroutine call.
 
 <p align="center">
-  <img src="../../media/debug/step_into.png" alt="Step into">
+  <img src="../../media/tutorials/debug/step_into.png" alt="Step into">
 </p>
 
 13. If you press “Step Out (Shift + F11)” instead, then debugger will step outside the subroutine call.
 
 <p align="center">
-  <img src="../../media/debug/step_out.png" alt="Step out">
+  <img src="../../media/tutorials/debug/step_out.png" alt="Step out">
 </p>
 
 In this particular case debugger stepped inside `vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS)` and effectively moved to `tasks.c` code. See [Why stepping with “next” does not bypass subroutine calls?](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-why-next-works-as-step) for potential limitations using the `next` command.
@@ -100,7 +100,7 @@ A common debugging tasks is checking the value of a program variable as the prog
 16. Continue the program execution by pressing F5. Each time the program is halted, you will see `i` being incremented.
 
 <p align="center">
-  <img src="../../media/debug/watch_set_program_vars.png" alt="Watch program variables">
+  <img src="../../media/tutorials/debug/watch_set_program_vars.png" alt="Watch program variables">
 </p>
 
 # Next steps
@@ -108,7 +108,7 @@ A common debugging tasks is checking the value of a program variable as the prog
 You can send any GDB commands in the Debug console with `--exec COMMAND`. More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line). You need to set `logLevel: 5` in the project's launch.json to see the command output.
 
 <p align="center">
-  <img src="../../media/debug/gdb_commands.png" alt="GDB Commands">
+  <img src="../../media/tutorials/debug/gdb_commands.png" alt="GDB Commands">
 </p>
 
 You can start a monitor session that can capture fatal error events with `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command and, if configured in your project's sdkconfig, trigger the start of a debug session for GDB remote protocol server (GDBStub) or [ESP-IDF Core Dump](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump) when an error is found. Read more in the [panic handler documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler).

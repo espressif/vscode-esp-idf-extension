@@ -22,7 +22,7 @@ key2,file,string,/path/to/file
 > **NOTE:** Make sure that the size of partition is enough for inserted data.
 
 <p align="center">
-  <img src="../../media/nvs/nvs_partition_editor.png" alt="NVS Partition editor">
+  <img src="../../media/tutorials/nvs/nvs_partition_editor.png" alt="NVS Partition editor">
 </p>
 
 4. Save the CSV data (First time will create the csv file).

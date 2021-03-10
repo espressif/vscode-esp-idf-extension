@@ -27,3 +27,5 @@ gulpfile.js
 .yarnrc
 report.txt
 report.json
+media/screenshots
+media/tutorials

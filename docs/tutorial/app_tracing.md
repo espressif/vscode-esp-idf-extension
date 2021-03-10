@@ -7,7 +7,7 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/app_trac
 2. A window will be open with a list a projects, go the **system** section and choose the `app_trace_to_host`. You will see a **Create project using example app_trace_to_host** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
 
 <p align="center">
-  <img src="../../media/app_trace/app_tracing.png" alt="Application Level Tracing Example">
+  <img src="../../media/tutorials/app_trace/app_tracing.png" alt="Application Level Tracing Example">
 </p>
 
 For this example, the project has been already configured for application tracing purposes. For more information please take a look at the [Application Level Tracing library documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html).
@@ -21,11 +21,11 @@ For this example, the project has been already configured for application tracin
 > **NOTE:** Make sure that openOCD configuration files are properly configured as described in [Debugging tutorial](./debugging.md).
 
 <p align="center">
-  <img src="../../media/app_trace/start_tracing.png" alt="Start Tracing">
+  <img src="../../media/tutorials/app_trace/start_tracing.png" alt="Start Tracing">
 </p>
 
 5. Click on `Trace Log #1` to open a window with the trace report. Click `Show report` button to see the trace output.
 
 <p align="center">
-  <img src="../../media/app_trace/trace_report.png" alt="Trace Report">
+  <img src="../../media/tutorials/app_trace/trace_report.png" alt="Trace Report">
 </p>

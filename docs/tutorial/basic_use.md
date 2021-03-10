@@ -13,7 +13,7 @@ You have several options to create a project:
 2. A window will be open with a list a projects, go the **get-started** section and choose the `blink_example`. You will see a **Create blink_example project** button in the top and a description of the project below. Click **Create blink_example project** button.
 
 <p align="center">
-  <img src="../../media/basic_use/blink_example.png" alt="Blink example">
+  <img src="../../media/tutorials/basic_use/blink_example.png" alt="Blink example">
 </p>
 
 3. Now select a container directory where to copy the example project. For example, if the user choose `/Users/myUser/someFolder` the resulting folder will be `/Users/myUser/someFolder/blink`. This new project directory will be created and opened in Visual Studio Code.
@@ -23,7 +23,7 @@ You have several options to create a project:
 5. Next configure your project using menuconfig. Use the **ESP-IDF: SDK Configuration editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 <p align="center">
-  <img src="../../media/basic_use/gui_menuconfig.png" alt="GUI Menuconfig">
+  <img src="../../media/tutorials/basic_use/gui_menuconfig.png" alt="GUI Menuconfig">
 </p>
 
 6. Now to build the project, use the **ESP-IDF: Build your project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>B</kbd> keyboard shortcut). The user will see a new terminal being launched with the build output and a notification bar with Building Project message until it is done then a Build done message when finished.
@@ -31,7 +31,7 @@ You have several options to create a project:
 > **NOTE:** There is a `idf.notificationSilentMode` configuration setting if the user does not wants to see the output automatically. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify this configuration setting.
 
 <p align="center">
-  <img src="../../media/basic_use/build.png" alt="Building">
+  <img src="../../media/tutorials/basic_use/build.png" alt="Building">
 </p>
 
 7. Before flashing the project, the user needs to specify the serial port of the device with the **ESP-IDF: Select port to use** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>P</kbd> keyboard shortcut). You can choose between UART/JTAG flashing mode and then a list of serial ports will be shown for the user to select.
@@ -43,7 +43,7 @@ You have several options to create a project:
 > **NOTE:** There is an `idf.flashBaudRate` configuration settings to modify the flashing baud rate. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify this configuration setting.
 
 <p align="center">
-  <img src="../../media/basic_use/flash.png" alt="Flashing">
+  <img src="../../media/tutorials/basic_use/flash.png" alt="Flashing">
 </p>
 
 9. Now to start monitoring your device, use the **ESP-IDF: Monitor your device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>M</kbd> keyboard shortcut). The user will see a new terminal being launched with the `idf.py monitor` output.
@@ -51,7 +51,7 @@ You have several options to create a project:
 > **NOTE** The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify `idf.customExtraVars`.
 
 <p align="center">
-  <img src="../../media/basic_use/monitor.png" alt="Monitor">
+  <img src="../../media/tutorials/basic_use/monitor.png" alt="Monitor">
 </p>
 
 ## Next steps

@@ -17,7 +17,7 @@ Let's use the ESP-IDF system's [gcov example](https://github.com/espressif/esp-i
 2. A window will be open with a list a projects, go the **system** section and choose the `gcov`. You will see a **Create project using example gcov** button in the top and a description of the project below. Click **Create project using example gcov** button.
 
 <p align="center">
-  <img src="../../media/coverage/gcov_example.png" alt="GCov example">
+  <img src="../../media/tutorials/coverage/gcov_example.png" alt="GCov example">
 </p>
 
 3. Now select a container directory where to copy the example project. For example, if the user choose `/Users/myUser/someFolder` the resulting folder will be `/Users/myUser/someFolder/gcov`. This new project directory will be created and opened in Visual Studio Code.
@@ -27,7 +27,7 @@ Let's use the ESP-IDF system's [gcov example](https://github.com/espressif/esp-i
 5. Next configure your project using menuconfig. Use the **ESP-IDF: SDK Configuration editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 <p align="center">
-  <img src="../../media/basic_use/gui_menuconfig.png" alt="GUI Menuconfig">
+  <img src="../../media/tutorials/basic_use/gui_menuconfig.png" alt="GUI Menuconfig">
 </p>
 
 The example will enable the following options by default:
@@ -51,7 +51,7 @@ The example will enable the following options by default:
 9. First send the openOCD command `esp gcov dump` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the `esp gcov` command for instant run-time dump.
 
 <p align="center">
-  <img src="../../media/coverage/oocd_cmds.png" alt="OpenOCD Commands">
+  <img src="../../media/tutorials/coverage/oocd_cmds.png" alt="OpenOCD Commands">
 </p>
 
 10. After dumping data one or more times, open the desired file in your editor and execute the **ESP-IDF: Add Editor coverage** command to highlight the editor with code coverage.
@@ -66,7 +66,7 @@ Visual Studio code support `"red"`, `rgb(255,0,120)` or `rgba(120,0,0,0.1)`.
 Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
 <p align="center">
-  <img src="../../media/coverage/editor_coverage.png" alt="Editor coverage">
+  <img src="../../media/tutorials/coverage/editor_coverage.png" alt="Editor coverage">
 </p>
 
 11. When finished, use the **ESP-IDF; Remove Editor coverage** command to remove the code coverage.
@@ -74,7 +74,7 @@ Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these conf
 12. The user can generate a html report using the **ESP-IDF: Get HTML Coverage Report for project** command.
 
 <p align="center">
-  <img src="../../media/coverage/html_report.png" alt="html report">
+  <img src="../../media/tutorials/coverage/html_report.png" alt="html report">
 </p>
 
 ## Troubleshooting
