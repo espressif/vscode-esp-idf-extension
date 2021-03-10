@@ -4,7 +4,7 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/console`
 
 1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
 
-2. A window will be open with a list a projects, go the **system** section and choose the `console`. You will see a **Create console project** button in the top and a description of the project below. Click **Create console project** button.
+2. A window will be open with a list a projects, go the **system** section and choose the `console`. You will see a **Create project using example console** button in the top and a description of the project below. Click the button and choose the containing directory. The project will be opened in a new window.
 
 <p align="center">
   <img src="../../media/partition_table/console-example.png" alt="System console example">
