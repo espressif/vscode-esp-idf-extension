@@ -38,8 +38,9 @@ Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/F
 - [Github Repository](https://github.com/espressif/vscode-esp-idf-extension)
 - [Github issues](https://github.com/espressif/vscode-esp-idf-extension/issues)
 - [How to use](#How-to-use)
-- [**See all features**](./docs/FEATURES.md)
+- [See all features](./docs/FEATURES.md)
 - [Setup process](./docs/SETUP.md)
+- [Tutorials](./docs/tutorial/toc.md)
 - [Releases](https://github.com/espressif/vscode-esp-idf-extension/releases)
 - [Working with multiple projects](./docs/MULTI_PROJECTS.md)
 
@@ -121,7 +122,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Remove Editor coverage                                  |                                        |                                           |
 
-The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). You can also use the **ESP-IDF: Create project from extension template** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
+The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). 
+
+You can also use the **ESP-IDF: Create project from extension template** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
 
 > **NOTE** Not all versions of ESP-IDF are supported. Make sure to check [Arduino-ESP32](https://github.com/espressif/arduino-esp32) to see if your ESP-IDF version is compatible.
 
@@ -143,15 +146,14 @@ as shown in the [debugging documentation](./DEBUGGING.md).
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
-- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `"-f interface/ftdi/esp32_devkitj_v1.cfg" -f board/esp32-wrover.cfg`.
+- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
 - `espIdf.getXtensaGcc`: Return the absolute path of the xtensa toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 - `espIdf.getXtensaGdb`: Return the absolute path of the xtensa toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 
 ## Available Tasks in tasks.json
 
-There is also some tasks defined in Tasks.json, which can be executed by running <kbd>F1</kbd> and writing `Tasks: Run task` and selecting one of
-the following:
+There is also some tasks defined in Tasks.json, which can be executed by running <kbd>F1</kbd> and writing `Tasks: Run task` and selecting one of the following:
 
 1. `Build` - Build Project
 2. `Set Target to esp32`
@@ -162,7 +164,7 @@ the following:
 7. `OpenOCD` - Start the openOCD server
 8. `BuildFlash` - Execute a build followed by a flash command.
 
-Note that for OpenOCD tasks you need to define OPENOCD_SCRIPTS in your system environment variables with openocd scripts folder path.
+Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system environment variables with openocd scripts folder path.
 
 ## Code of Conduct
 
