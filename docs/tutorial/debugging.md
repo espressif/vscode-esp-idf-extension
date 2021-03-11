@@ -5,7 +5,9 @@ This tutorial will show the user how to debug ESP-IDF projects using the Visual 
 > **NOTE:** If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
 
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
-2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device configuration** to manually set any value you desire the By default, when you used **ESP-IDF: Set Espressif device target** the following files are set:
+2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device configuration** to manually set any value you desire.
+
+When you use **ESP-IDF: Set Espressif device target** the following files are set:
 
 - Choosing esp32 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
 - Choosing esp32s2 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
@@ -18,13 +20,13 @@ This tutorial will show the user how to debug ESP-IDF projects using the Visual 
 
 Several steps will be automatically done for you but explained for clarity. You can skip to step 6 to continue the debug tutorial part.
 
-4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> OpenOCD. By default it will be launch using localhost for TCL host, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
+4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> OpenOCD. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
 
 > **NOTE:** The user can start or stop the openOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-5. The ESP-IDF Debug adapter server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a middle interface between Visual Studio Code, Xtensa's gdb and openOCD server. It will be launch at port 43474 by default. Please review [DEBUGGING](../DEBUGGING.md) for more information how to customize the debug behavior like application offset, logging level and set your own gdb commands.
+5. The ESP-IDF Debug adapter server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port 43474 by default. Please review [DEBUGGING](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
 
 6. The debug session will start after the debug adapter server is launched and ready.
 

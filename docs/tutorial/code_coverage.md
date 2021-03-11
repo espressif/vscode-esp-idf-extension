@@ -2,7 +2,7 @@
 
 ## Requirements
 
-This extension's code coverage uses `gcovr` python package which is included in the extension's requirements.txt and installed during [install tutorial](./install.md) as part of this extension ESP-IDF Debug Adapter Python requirements when following the **ESP-IDF: Configure ESP-IDF extension** command.
+This extension's code coverage feature uses the `gcovr` python package which is included in the extension's requirements.txt and installed during [install tutorial](./install.md) as part of this extension ESP-IDF Debug Adapter Python requirements when following the **ESP-IDF: Configure ESP-IDF extension** command.
 
 Your ESP-IDF project should be configured to generate `gcda/gcno` coverage files using `gcov`. Please read [GCOV Code coverage](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage) to learn more about code coverage with gcov in ESP-IDF projects.
 
@@ -10,7 +10,7 @@ Please take a look at [COVERAGE](../COVERAGE.md) for more information about code
 
 ## Steps to enable code coverage
 
-Let's use the ESP-IDF system's [gcov example](https://github.com/espressif/esp-idf/tree/master/examples/system/gcov) for this tutorial.
+Let's use the ESP-IDF [gcov example](https://github.com/espressif/esp-idf/tree/master/examples/system/gcov) for this tutorial.
 
 1. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
 
@@ -69,7 +69,7 @@ Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these conf
   <img src="../../media/tutorials/coverage/editor_coverage.png" alt="Editor coverage">
 </p>
 
-11. When finished, use the **ESP-IDF; Remove Editor coverage** command to remove the code coverage.
+11. When finished, use the **ESP-IDF: Remove Editor coverage** command to remove the code coverage.
 
 12. The user can generate a html report using the **ESP-IDF: Get HTML Coverage Report for project** command.
 
@@ -81,4 +81,4 @@ Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these conf
 
 Make sure you had properly configure xtensa toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `xtensa-esp32-elf-gcov` and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
 
-A easy way is to verify is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `xtensa-esp32-elf-gcov --version` and `gcovr --version`.
+An easy way is to verify this is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `xtensa-esp32-elf-gcov --version` and `gcovr --version`.

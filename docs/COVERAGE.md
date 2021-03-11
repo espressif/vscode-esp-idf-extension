@@ -1,6 +1,6 @@
 # Using **gcov** and **gcovr** to provide code coverage
 
-Source code coverage is data indicating the count and frequency of every program execution path that has been taken within a program’s runtime. [Gcov](https://en.wikipedia.org/wiki/Gcov) is a GCC tool that, when used in concert with the compiler, can generate log files indicating the execution count of each line of a source file. The [Gcovr](https://gcovr.com/) tool is utility for managing Gcov and generating summarized code coverage results.
+Source code coverage is data indicating the count and frequency of every program execution path that has been taken within a program’s runtime. [Gcov](https://en.wikipedia.org/wiki/Gcov) is a GCC tool that, when used in concert with the compiler, can generate log files indicating the execution count of each line of a source code. The [Gcovr](https://gcovr.com/) tool is utility for managing Gcov and generating summarized code coverage results.
 
 Please read [GCOV Code coverage](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage) to learn more about code coverage with gcov in ESP-IDf projects.
 
@@ -8,10 +8,9 @@ Please read [GCOV Code coverage](https://docs.espressif.com/projects/esp-idf/en/
 
 Your ESP-IDF project should be configured to generate gcda/gcno coverage files using gcov as shown in [GCOV Code coverage](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage). Please take a look at the [ESP-IDF gcov example](https://github.com/espressif/esp-idf/tree/master/examples/system/gcov) as example project.
 
-This extension requires `gcovr` to generate JSON and HTML reports from generated files. This is installed as part of this extension ESP-IDF Debug Adapter Python requirements when following the **ESP-IDF: Configure ESP-IDF extension** command.
-Please take a look at [SETUP](./SETUP.md) for more information.
+This extension requires `gcovr` to generate JSON and HTML reports from generated files. This is installed as part of this extension [SETUP](./SETUP.md).
 
-Make sure you had properly configure xtensa toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `xtensa-esp32-elf-gcov` (or the corresponding gcov for your IDF_TARGET) and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
+Make sure you had properly configure the toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing TOOLCHAIN_PREFIX for your IDF_TARGET toolchain prefix) and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
 
 ## Editor Coverage
 

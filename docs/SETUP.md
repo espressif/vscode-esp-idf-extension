@@ -93,7 +93,7 @@ where:
 - **DEVICE_PORT** is your device serial port (i.e. COM1, /dev/cu.usbserial-1433401 or /dev/ttyUSB1)
 - `idf.openOcdConfigs` are the config files used for OpenOCD for your device (relative paths to `OPENOCD_SCRIPTS` directory of OpenOCD-ESP32 tool).
 
-**DO NOT USE ~, $HOME OR %USERPROFILE%, ENVIRONMENT VARIABLES ARE NOT RESOLVED IN THIS CONFIGURATION SETTINGS. You must use ${env:HOME} instead of \$HOME (Linux/MacOS) or %HOME% (Windows).**
+**DO NOT USE ~, $HOME OR %USERPROFILE% ENVIRONMENT VARIABLES ARE NOT RESOLVED IN THIS CONFIGURATION SETTINGS. You must use ${env:HOME} instead of \$HOME (Linux/MacOS) or %HOME% (Windows).**
 
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
 
@@ -113,7 +113,7 @@ where EXTENSION_PATH is
 # UI Manual Configuration
 
 This is the same as [JSON Manual Configuration](#JSON-Manual-Configuration) but the name of each configuration setting is the description given in the [ESP-IDF Settings](./SETTINGS.md).
-You also need to install extension and debug adapter python packages requirements.txt.
+This method also need to install extension and debug adapter requirements.txt as shown in the previous section.
 
 # Example configuration setting values
 

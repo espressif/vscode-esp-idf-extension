@@ -25,7 +25,7 @@ For this tutorial we will use the get-started's blink example as configured in [
 
 We can observe when we re-open the file in a regular text-editor changes are reflected.
 
-3. Now let's create a new ESP-IDF in this project to modify its CMakeLists.txt. Click menu `View` -> `Command Palette`, type **ESP-IDF: Create new ESP-IDF Component** and enter the new component name.
+3. Now let's create a new ESP-IDF component in this project to modify its `CMakeLists.txt`. Click menu `View` -> `Command Palette`, type **ESP-IDF: Create new ESP-IDF Component** and enter the new component name.
 
 4. A new component will be created in `<project_path>/blink/components/<component_name>`. Opening in the regular text editor, the user will see an `idf_component_register` method with:
 
@@ -40,13 +40,13 @@ Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`
   <img src="../../media/tutorials/cmakelists_editor/components_editor.png" alt="CMakeLists.txt editor">
 </p>
 
-5. Observe that some fields are of array types such as **Component Sources (SRCS)** since we can several paths while other are just string input fields (as described in cmakeListsSchema.json).
+5. Observe that some fields are of array types such as **Component Sources (SRCS)** since we can add several paths while other are just string input fields (as described in cmakeListsSchema.json).
 
-> **NOTE:** While using this extension, source files are added and deleted automatically from the same directory CMakeLists.txt Component Sources (SRCS) without user intervention.
+> **NOTE:** While using this extension, source files are added and deleted automatically from the same directory where CMakeLists.txt is located without user intervention.
 
 6. Add a new element `Public component requirements for the component (REQUIRES)` and click the `add` button. A new array field will appear.
 
-7. As described in [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files), requires is used to list the component dependencies. Type `mbedtls` and click the `+` button (can also press enter on typing).
+7. As described in [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files), `REQUIRES` is used to list the component dependencies. Type `mbedtls` and click the `+` button (can also press enter on typing).
 
 8. Click on `save` button and close the CMakeLists.txt editor. If you open `<project_path>/blink/components/<component_name>/CMakeLists.txt` on a regular text editor, the user will see:
 

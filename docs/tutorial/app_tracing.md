@@ -1,6 +1,10 @@
 # Application tracing
 
-Let's open a ESP-IDF project. For this tutorial we will use the `system/app_trace_to_host` example.
+This feature allows to transfer arbitrary data between host and ESP32 via JTAG interface with small overhead on program execution.
+
+Developers can use this library to send application specific state of execution to the host and receive commands or other type of info in the opposite direction at runtime.
+
+Let's open a ESP-IDF project. For this tutorial we will use the [system/app_trace_to_host](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host) example.
 
 1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
 
