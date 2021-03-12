@@ -5,7 +5,7 @@
 # ESP-IDF VS Code Extension
 
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
-[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2-green)](./docs/HARDWARE_SUPPORT.md)
+[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2%20ESP32--S3%20ESP32--C3-green)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 
@@ -16,6 +16,17 @@ Develop, [build](./docs/FEATURES.md), [flash](./docs/FEATURES.md), [monitor](./d
     <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
   </p>
 </a>
+
+# Table of content
+
+1. [Quick links](#Quick-links)
+2. [Prerequisites](#Prerequisites)
+3. [How to use](#How-to-use)
+4. [Available commands](#Available-commands)
+5. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
+6. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
+7. [Code of Conduct](#Code-of-Conduct)
+8. [License](#License)
 
 ## Quick links
 
@@ -47,7 +58,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
 
-## How to use
+# How to use
 
 - Install this extension in your Visual Studio Code.
 - Then
@@ -70,7 +81,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
 - If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
 
-## Available commands
+# Available commands
 
 Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to see possible actions.
 
@@ -120,7 +131,7 @@ The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.
 
 The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
 
-### Commands for tasks.json and launch.json
+## Commands for tasks.json and launch.json
 
 We have implemented some utilities commands that can be used in tasks.json and launch.json like
 
