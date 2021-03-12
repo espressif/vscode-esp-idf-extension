@@ -31,7 +31,7 @@
 
       <div class="field install-btn">
         <div class="control">
-          <button @click.once="installEspIdf" class="button">Install</button>
+          <button @click="installEspIdf" class="button">Install</button>
         </div>
       </div>
     </div>

@@ -156,6 +156,10 @@ const cmdNotForWebIdeMsg = locDic.localize(
   "extension.cmdNotWebIDE",
   "Selected command is not available in WebIDE"
 );
+const cmdNotMinEspIdfMsg = locDic.localize(
+  "extension.cmdNotMinIdfVersion",
+  "Selected command needs later version of ESP-IDF"
+);
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
   openFolderMsg,
@@ -178,6 +182,15 @@ openOCDManager
     minOpenOCDVersion20201125[1] = `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currentVersion} version installed`;
   })
   .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
+
+const minIdfVersionCheck = async function (minVersion: string) {
+  const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
+  const currentVersion = await utils.getEspIdfVersion(espIdfPath);
+  return [
+    () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
+    `Selected command needs ESP-IDF v${minVersion} or higher`,
+  ] as utils.PreCheckInput;
+};
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -1033,8 +1046,9 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
 
-  registerIDFCommand("espIdf.menuconfig.start", () => {
-    PreCheck.perform([openFolderCheck], () => {
+  registerIDFCommand("espIdf.menuconfig.start", async () => {
+    const idfVersionCheck = await minIdfVersionCheck("4.0");
+    PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
       try {
         if (ConfserverProcess.exists()) {
           ConfserverProcess.loadExistingInstance();
@@ -1510,20 +1524,24 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.heaptrace", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const heapTraceLabel =
-        typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
-          ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
-          : appTraceTreeDataProvider.heapTraceButton.label.label.match(
-              /start/gi
-            );
-      if (heapTraceLabel) {
-        await heapTraceManager.start();
-      } else {
-        await heapTraceManager.stop();
+  registerIDFCommand("espIdf.heaptrace", async () => {
+    const idfVersionCheck = await minIdfVersionCheck("4.2");
+    PreCheck.perform(
+      [idfVersionCheck, webIdeCheck, openFolderCheck],
+      async () => {
+        const heapTraceLabel =
+          typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
+            ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
+            : appTraceTreeDataProvider.heapTraceButton.label.label.match(
+                /start/gi
+              );
+        if (heapTraceLabel) {
+          await heapTraceManager.start();
+        } else {
+          await heapTraceManager.stop();
+        }
       }
-    });
+    );
   });
 
   registerIDFCommand("espIdf.openOCDCommand", () => {

@@ -102,6 +102,20 @@ export class PreCheck {
       }
     };
   }
+  public static espIdfVersionValidator(
+    minVersion: string,
+    currentVersion: string
+  ) {
+    try {
+      return compareVersion(currentVersion, minVersion) !== -1;
+    } catch (error) {
+      Logger.error(
+        `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
+        error
+      );
+      return false;
+    }
+  }
 }
 
 export function spawn(
