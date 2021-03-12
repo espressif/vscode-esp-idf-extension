@@ -19,14 +19,30 @@ Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/F
 
 # Table of content
 
-1. [Quick links](#Quick-links)
-2. [Prerequisites](#Prerequisites)
-3. [How to use](#How-to-use)
-4. [Available commands](#Available-commands)
-5. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
-6. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
-7. [Code of Conduct](#Code-of-Conduct)
-8. [License](#License)
+1. [Tutorials](#Tutorials)
+2. [Quick links](#Quick-links)
+3. [Prerequisites](#Prerequisites)
+4. [How to use](#How-to-use)
+5. [Available commands](#Available-commands)
+6. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
+7. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
+8. [Code of Conduct](#Code-of-Conduct)
+9. [License](#License)
+
+## Tutorials
+
+1. [Install](./docs/tutorial/install.md) the extension and dependencies.
+2. [Basic usage](./docs/tutorial/basic_use.md)
+3. [Debug](./docs/tutorial/debugging.md)
+4. [Code coverage](./docs/tutorial/code_coverage.md)
+5. [Application tracing](./docs/tutorial/app_tracing.md)
+6. [Heap tracing and SystemView tracing](./docs/tutorial/heap_tracing.md)
+7. [Partition table editor](./docs/tutorial/partition_editor.md)
+8. [NVS Partition editor](./docs/tutorial/nvs_partition_editor.md)
+9. [CMakeLists.txt editor](./docs/tutorial/cmakelists_editor.md)
+10. [ESP-ADF, ESP-MDF and other frameworks](./docs/tutorial/additional_frameworks.md)
+11. [eFuse Explorer](./docs/tutorial/efuse.md)
+12. [Rainmaker](./docs/tutorial/rainmaker.md)
 
 ## Quick links
 
@@ -78,6 +94,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
+- Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command.
 - When you are ready, build your project. Then flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the activity in a Visual Studio Code terminal.
 - If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). To make sure you can debug your device, set the proper `idf.openOcdConfigs` settings in your settings.json or by pressing <kbd>F1</kbd> and typing **ESP-IDF: Device configuration**.
@@ -106,6 +123,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-ADF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
+| Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Monitor your device                                     | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
 | New Project                                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
 | Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
