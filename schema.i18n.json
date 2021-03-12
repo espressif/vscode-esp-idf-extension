@@ -76,6 +76,7 @@
     "espIdf.configDevice.title",
     "espIdf.menuconfig.start.title",
     "espIdf.cmakeListsEditor.start.title",
+    "espIdf.disposeConfserverProcess.title",
     "espIdf.newProject.start.title",
     "espIdf.setDefaultConfig.title",
     "espIdf.selectPort.title",

@@ -17,6 +17,21 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.0.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.1)
+
+### Features and enhancements
+
+- [Add remove CMakelists.txt elements](https://github.com/espressif/vscode-esp-idf-extension/pull/330)
+- [Add ESP32-S3 and ESP32-C3 idf targets](https://github.com/espressif/vscode-esp-idf-extension/pull/338)
+- [Add ESP-IDF validation for heap tracing and sdk configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/347)
+- [New Project Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/171)
+
+### Bug Fixes
+
+- [Fix WSL 1 Flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/331)
+- [Fix compiler in settings.json](https://github.com/espressif/vscode-esp-idf-extension/pull/334)
+- [Fix relative links in tasks output](https://github.com/espressif/vscode-esp-idf-extension/pull/337)
+
 ## [1.0.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.0)
 
 ### Features and enhancements
