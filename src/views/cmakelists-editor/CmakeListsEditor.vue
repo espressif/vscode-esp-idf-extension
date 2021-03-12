@@ -54,7 +54,7 @@
     </div>
     <div class="notification">
       <CMakeElem
-        v-for="elem in elements"
+        v-for="(elem, i) in elements"
         :key="elem.id"
         :el="elem"
         @delete="deleteElem(i)"
