@@ -59,16 +59,13 @@ export function parseCmakeListsText(
       if (resultStr && resultStr.length > 1 && resultStr[1].length > 1) {
         let newElement: CmakeListsElement = JSON.parse(JSON.stringify(element));
         newElement.value = [];
-        newElement.value =
-          element.type === "array"
-            ? resultStr[1].trim().replace(/\"/g, "").split(" ")
-            : [resultStr[1].trim()];
         switch (element.type) {
           case "array":
-            newElement.value = resultStr[1]
-              .trim()
-              .replace(/\"/g, "")
-              .split(" ");
+            const listStr = resultStr[1].trim().replace(/\"/g, "");
+            if (listStr) {
+              newElement.value =
+                listStr && listStr === " " ? [listStr] : listStr.split(" ");
+            }
             break;
           case "binary_data":
             if (resultStr[1]) {

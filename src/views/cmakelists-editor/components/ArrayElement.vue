@@ -54,8 +54,10 @@ export default class CMakeListsArrayElement extends Vue {
   }
 
   public addToArray() {
-    this.el.value.push(this.valueToPush);
-    this.valueToPush = "";
+    if (!!this.valueToPush) {
+      this.el.value.push(this.valueToPush);
+      this.valueToPush = "";
+    }
   }
 
   @Emit("delete")

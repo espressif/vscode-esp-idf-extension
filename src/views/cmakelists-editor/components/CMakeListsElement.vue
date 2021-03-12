@@ -1,17 +1,13 @@
 <template>
   <div>
-    <ArrayElement :el="el" v-if="el.type === 'array'" @delete="deleteElem(i)" />
+    <ArrayElement :el="el" v-if="el.type === 'array'" @delete="deleteElem" />
     <BinaryDataElement
       :el="el"
       v-if="el.type === 'binary_data'"
-      @delete="deleteElem(i)"
+      @delete="deleteElem"
     />
-    <SetElement :el="el" v-if="el.type === 'set'" @delete="deleteElem(i)" />
-    <StringElement
-      :el="el"
-      v-if="el.type === 'string'"
-      @delete="deleteElem(i)"
-    />
+    <SetElement :el="el" v-if="el.type === 'set'" @delete="deleteElem" />
+    <StringElement :el="el" v-if="el.type === 'string'" @delete="deleteElem" />
   </div>
 </template>
 
