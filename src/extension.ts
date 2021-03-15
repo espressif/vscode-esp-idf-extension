@@ -1047,8 +1047,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
-    const idfVersionCheck = await minIdfVersionCheck("4.0");
-    PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], () => {
       try {
         if (ConfserverProcess.exists()) {
           ConfserverProcess.loadExistingInstance();
