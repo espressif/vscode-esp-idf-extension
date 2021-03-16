@@ -91,6 +91,7 @@
     "espIdf.searchInEspIdfDocs.title",
     "espIdf.addArduinoAsComponentToCurFolder.title",
     "espIdf.size.title",
+    "espIdf.gcovDump.title",
     "espIdf.apptrace.title",
     "espIdf.heaptrace.title",
     "espIdf.openOCDCommand.title",

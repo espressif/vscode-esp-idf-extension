@@ -20,6 +20,7 @@
   "espIdf.buildFlashMonitor.title": "ESP-IDF：构建、烧写项目并启动监视器",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF：选择工作文件夹",
   "espIdf.size.title": "ESP-IDF：分析二进制文件的大小",
+  "espIdf.gcovDump.title": "ESP-IDF: 获取源代码覆盖率",
   "espIdf.apptrace.title": "ESP-IDF：跟踪应用程序",
   "espIdf.heaptrace.title": "ESP-IDF: 堆跟踪",
   "espIdf.openOCDCommand.title": "ESP-IDF：OpenOCD 管理器",

@@ -105,6 +105,7 @@ import { writeTextReport } from "./support/writeReport";
 import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
+import { CoverageManager } from "./coverage/coverageManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -243,6 +244,7 @@ export async function activate(context: vscode.ExtensionContext) {
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
+  const gcovManager = new CoverageManager();
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
@@ -1505,6 +1507,14 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.gcovDump", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      gcovManager.isRunning
+        ? await gcovManager.stop()
+        : await gcovManager.start();
     });
   });
 
