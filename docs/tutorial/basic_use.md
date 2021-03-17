@@ -32,14 +32,14 @@ You have several options to create a project:
 
 > **NOTE:** There is a `idf.notificationSilentMode` configuration setting if the user does not wants to see the output automatically. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify this configuration setting.
 
-<p align="center">
-  <img src="../../media/tutorials/basic_use/build.png" alt="Building">
+<p>
+  <img src="../../media/tutorials/basic_use/build.png" alt="Building" width="975">
 </p>
 
 8. (OPTIONAL) Use the **ESP-IDF: Size analysis of the binaries** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>S</kbd> keyboard shortcut) to review the application size information.
 
-<p align="center">
-  <img src="../../media/tutorials/basic_use/size.png" alt="Building">
+<p>
+  <img src="../../media/tutorials/basic_use/size.png" alt="Size" height="500">
 </p>
 
 8. Before flashing the project, the user needs to specify the serial port of the device with the **ESP-IDF: Select port to use** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>P</kbd> keyboard shortcut). You can choose between UART/JTAG flashing mode and then a list of serial ports will be shown for the user to select.
@@ -50,16 +50,16 @@ You have several options to create a project:
 
 > **NOTE:** There is an `idf.flashBaudRate` configuration settings to modify the flashing baud rate. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify this configuration setting.
 
-<p align="center">
-  <img src="../../media/tutorials/basic_use/flash.png" alt="Flashing">
+<p>
+  <img src="../../media/tutorials/basic_use/flash.png" alt="Flashing" width="975">
 </p>
 
 10. Now to start monitoring your device, use the **ESP-IDF: Monitor your device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>M</kbd> keyboard shortcut). The user will see a new terminal being launched with the `idf.py monitor` output.
 
 > **NOTE** The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify `idf.customExtraVars`.
 
-<p align="center">
-  <img src="../../media/tutorials/basic_use/monitor.png" alt="Monitor">
+<p>
+  <img src="../../media/tutorials/basic_use/monitor.png" alt="Monitor" width="975">
 </p>
 
 ## Next steps

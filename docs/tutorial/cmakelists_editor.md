@@ -17,8 +17,8 @@ For this tutorial we will use the get-started's blink example as configured in [
 
 1. Right click the `<project_path>/blink/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt editor` and select `Project CMakeLists.txt`.
 
-<p align="center">
-  <img src="../../media/tutorials/cmakelists_editor/cmakelists_editor.png" alt="CMakeLists.txt editor">
+<p>
+  <img src="../../media/tutorials/cmakelists_editor/cmakelists_editor.png" alt="CMakeLists.txt editor" width="950">
 </p>
 
 2. We can add new elements by selecting them from the `New Element` dropdown and clicking the `add` button. For simplicity we will just change the project name and save changes with the `Save` button.
@@ -36,8 +36,8 @@ idf_component_register(SRCS "my_component.c"
 
 Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt editor` and select `Component CMakeLists.txt`.
 
-<p align="center">
-  <img src="../../media/tutorials/cmakelists_editor/components_editor.png" alt="CMakeLists.txt editor">
+<p>
+  <img src="../../media/tutorials/cmakelists_editor/components_editor.png" alt="CMakeLists.txt editor" width="950">
 </p>
 
 5. Observe that some fields are of array types such as **Component Sources (SRCS)** since we can add several paths while other are just string input fields (as described in cmakeListsSchema.json).

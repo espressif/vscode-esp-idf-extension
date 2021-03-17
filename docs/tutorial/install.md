@@ -5,41 +5,41 @@
 3. Search the extension with any related keyword like `espressif`, `esp-idf`, `esp32`, `esp32s2`, etc.
 4. Install the extension.
 
-<p align="center">
+<p>
   <img src="../../media/tutorials/setup/install-extension.png" alt="Setup wizard">
 </p>
 
 5. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
 6. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
 
-<p align="center">
-  <img src="../../media/tutorials/setup/select-mode.png" alt="Select extension mode">
+<p>
+  <img src="../../media/tutorials/setup/select-mode.png" alt="Select extension mode" width="950">
 </p>
 
 7. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
 8. Then pick an ESP-IDF version to download (or search for an existing ESP-IDF directory in your system) and the python executable to create the virtual environment.
 
-<p align="center">
-  <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF">
+<p>
+  <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
 </p>
 
 9. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
 
-<p align="center">
-  <img src="../../media/tutorials/setup/install-status.png" alt="Install status">
+<p>
+  <img src="../../media/tutorials/setup/install-status.png" alt="Install status" width="950">
 </p>
 
 10. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, the next step is to choose the location for `IDF_TOOLS_PATH` (which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default) and select to download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
     > **NOTE:** Consider that `IDF_PATH` requires each ESP-IDF tool to be of the version described in `IDF_PATH`/tools/tools.json.
     > If it is desired to use a different ESP-IDF tool version, check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration)
 
-<p align="center">
-  <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools">
+<p>
+  <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools" width="950">
 </p>
 
 11. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
 
-<p align="center">
+<p>
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
 </p>
 
