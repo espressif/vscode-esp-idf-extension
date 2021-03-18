@@ -109,6 +109,18 @@ A common debugging tasks is checking the value of a program variable as the prog
   <img src="../../media/tutorials/debug/watch_set_program_vars.png" alt="Watch program variables" height="500">
 </p>
 
+# Setting conditional breakpoint
+
+You can also set a breakpoint to halt the program execution if a certain condition is satisfied. See [Visual Studio Code conditional breakpoints](https://code.visualstudio.com/docs/editor/debugging#_conditional-breakpoints).
+
+To set a new conditional breakpoint, go to the desired line and right click on the circle shown next to the line number (editor margin) and select `Add Conditional Breakpoint` action. You can also modify a breakpoint to add a condition in the list of breakpoints in the `Breakpoints` sub-window on the `Run` icon in the Activity Bar on the side of Visual Studio Code. Click the `pencil` icon on the breakpoint and set the breakpoint condition.
+
+For this example, go to line 79 and right click on the circle shown next to the line number (editor margin) and select `Add Conditional Breakpoint` action and set `i=2`. When you start the debug, it will stop on line 79 when `i` has value of 2.
+
+<p>
+  <img src="../../media/tutorials/debug/conditional_breakpoint.png" alt="Watch program variables" height="500">
+</p>
+
 # Next steps
 
 You can send any GDB commands in the Debug console with `--exec COMMAND`. You need to set `logLevel: 5` in the project's launch.json to see the command output.
