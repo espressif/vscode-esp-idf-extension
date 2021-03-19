@@ -82,6 +82,7 @@
     "onCommand:espIdf.createNewComponent",
     "onCommand:espIdf.ninja.summary",
     "onCommand:espIdf.newProject.start",
+    "onCommand:espIdf.setGcovConfig",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -865,6 +866,10 @@
       {
         "command": "espIdf.eraseFlash",
         "title": "%espIdf.eraseFlash.title%"
+      },
+      {
+        "command": "espIdf.setGcovConfig",
+        "title": "%espIdf.setGcovConfig.title%"
       }
     ],
     "breakpoints": [

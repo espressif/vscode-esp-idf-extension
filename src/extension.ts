@@ -99,6 +99,7 @@ import { uartFlashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createMonitorTerminal } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
+import { configureProjectWithGcov } from "./coverage/configureProject";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1544,6 +1545,16 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           }
         );
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.setGcovConfig", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        await configureProjectWithGcov(workspaceRoot);
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }

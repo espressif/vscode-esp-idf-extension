@@ -122,6 +122,10 @@ export class ConfserverProcess {
         newValueRequest = `{"version": 2, "set": { "${updatedValue.id}": ${updatedValue.value} }}\n`;
         break;
     }
+    ConfserverProcess.sendUpdatedValue(newValueRequest);
+  }
+
+  public static sendUpdatedValue(newValueRequest: string) {
     ConfserverProcess.instance.confServerChannel.appendLine(newValueRequest);
     ConfserverProcess.instance.confServerProcess.stdin.write(newValueRequest);
     ConfserverProcess.instance.areValuesSaved = false;

@@ -40,6 +40,7 @@
   "espIdf.ninja.summary.title": "ESP-IDF: Show ninja build summary",
   "espIdf.eraseFlash.title": "ESP-IDF: Erase flash memory from device",
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Dispose current SDK Configuration editor server process",
+  "espIdf.setGcovConfig.title": " ESP-IDF: Configure project for coverage",
   "debug.initConfig.name": "ESP-IDF: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
