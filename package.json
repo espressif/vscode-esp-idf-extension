@@ -957,13 +957,13 @@
             "type": "string",
             "description": "Command to be executed"
           }
-        }
+        },
+        "required": [
+          "type"
+        ]
       }
     ]
   },
-  "extensionDependencies": [
-    "ms-vscode.cpptools"
-  ],
   "scripts": {
     "vscode:prepublish": "gulp build && webpack --mode production",
     "lint": "prettier --check **/*.*",
