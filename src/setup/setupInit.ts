@@ -233,7 +233,11 @@ export async function isCurrentInstallValid() {
     path.join(toolsPath, "tools"),
     extraPaths
   );
-  const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
+  const failedToolsResult = toolsInfo.filter(
+    (tInfo) =>
+      tInfo.actual.indexOf("No match") !== -1 ||
+      tInfo.actual.indexOf("Error") !== -1
+  );
   return failedToolsResult.length === 0;
 }
 

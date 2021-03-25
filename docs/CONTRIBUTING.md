@@ -4,9 +4,28 @@
 
 There are many ways that you can contribute, and this document will provide you a bird eye view of how to get going about it.
 
+## Build from Source Code
+
+- Install [Node.js](https://nodejs.org/en/)
+- Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
+- Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
+- Install all the dependencies using `yarn`.
+- Open the project in Visual Studio Code and press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
+- Compile project with `yarn webpack` (optional for production)
+
+## Build vsix locally
+
+- Build the Visual Studio Code extension setup with `yarn package`.
+
+## Language contribution (i18N contribution)
+
+Currently we support `English`, `Chinese`, `Spanish` and `Russian` and planing to expand to many other languages.
+
+If you are willing to contribute a language translation, please read the [language contribution guideline](./LANG_CONTRIBUTE.md).
+
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [vscode@espressif.com](mailto:vscode@espressif.com).
+This project and everyone participating in it is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [vscode@espressif.com](mailto:vscode@espressif.com).
 
 ## Reporting Issues
 
@@ -18,7 +37,7 @@ If you find your issue or feature request is already filed then properly comment
 
 ### Issue not existing
 
-If you can't find the issue in the already opened issues then please make sure to file a bug report or feature request, while opening a issue or feature request please follow the templates presented to you.
+If you can't find the issue in the already opened issues then please make sure to file a [bug report or feature request](https://github.com/espressif/vscode-esp-idf-extension/issues), while opening a issue or feature request please follow the templates presented to you.
 
 ### Git Commit Messages
 
@@ -46,12 +65,6 @@ If you can't find the issue in the already opened issues then please make sure t
   - :heavy_minus_sign: `:heavy_minus_sign:` Removing a dependency.
   - :poop: `:poop:` Writing bad code that needs to be improved, just kidding please try to avoid this!
 
-## I18N related contributions
-
-Currently we support English and planing to expand to many other languages.
-
-If you are willing to contribute any language translation, please read the [language contribution guideline](LANG_CONTRIBUTE.md).
-
 ## Forum
 
-If you are lost at any point you can always ask question, help and suggestion in the [forum](https://spectrum.chat/espidf-vsc?tab=posts), apart from creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow [their suggested channel](https://esp32.com) of communications.
+If you are lost at any point you can always ask question, help and suggestion in the [ESP32 forum](https://esp32.com/viewforum.php?f=40), besides creating Github Issues. For all the [ESP-IDF](https://github.com/espressif/esp-idf) related concerns please follow [their suggested channel](https://esp32.com) of communications.
