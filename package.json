@@ -964,6 +964,9 @@
       }
     ]
   },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ],
   "scripts": {
     "vscode:prepublish": "gulp build && webpack --mode production",
     "lint": "prettier --check **/*.*",
