@@ -30,9 +30,8 @@ export function getConfigurationSettings(reportedResult: reportObj) {
     "idf.toolsPath" + winFlag,
   ];
   const settingsValues = {};
-  for (const conf of configurationSettings) {
-    const confValue = vscode.workspace.getConfiguration("").get(conf);
-    settingsValues[conf] = confValue;
+  for (let conf of configurationSettings) {
+    settingsValues[conf] = vscode.workspace.getConfiguration("").get(conf);
   }
   reportedResult.configurationSettings = {
     espIdfPath: vscode.workspace

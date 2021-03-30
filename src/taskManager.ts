@@ -46,7 +46,9 @@ export class TaskManager {
       execution,
       problemMatchers
     );
-    newTask.presentationOptions.reveal = revealTask;
+    newTask.presentationOptions = {
+      reveal: revealTask,
+    };
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {

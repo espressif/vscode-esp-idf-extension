@@ -957,7 +957,10 @@
             "type": "string",
             "description": "Command to be executed"
           }
-        }
+        },
+        "required": [
+          "type"
+        ]
       }
     ]
   },
