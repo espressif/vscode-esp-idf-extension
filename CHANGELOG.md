@@ -17,6 +17,18 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.0.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.2)
+
+### Features and enhancements
+
+- [Add monitor process kill timeout configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/358)
+
+### Bug Fixes
+
+- [Fix monitor shell executable path for monitor command](https://github.com/espressif/vscode-esp-idf-extension/pull/358)
+- [Tasks presentation options fixes](https://github.com/espressif/vscode-esp-idf-extension/pull/357)
+- [Remove IDF version validation](https://github.com/espressif/vscode-esp-idf-extension/pull/351)
+
 ## [1.0.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.1)
 
 ### Features and enhancements

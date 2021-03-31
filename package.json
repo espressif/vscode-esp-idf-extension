@@ -593,6 +593,12 @@
             "description": "%param.launchMonitorOnDebugSession.title%",
             "scope": "resource",
             "default": true
+          },
+          "idf.killMonitorTimeout": {
+            "type": "number",
+            "description": "%param.killMonitorTimeout.title%",
+            "scope": "resource",
+            "default": 1000
           }
         }
       }

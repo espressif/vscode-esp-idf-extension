@@ -65,6 +65,8 @@ You can follow [this](./HEAP_TRACING.md) quick step-by-step guide for heap traci
 
 **ESP-IDF: Monitor your device** is provided by this extension to start `idf.py monitor` terminal program in Visual Studio Code. Please take a look at the [IDF Monitor documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-monitor.html?highlight=monitor).
 
+In Visual Studio Code, for **ESP-IDF: Monitor your device** we use the shell executable given in `vscode.env.shell` which is override by `terminal.integrated.shell.*` in your Visual Studio Code Settings when using the `Terminal: Select Default Shell` command to update the shell or updating `terminal.integrated.shell.windows` for Windows, `terminal.integrated.shell.osx` for MacOS and `terminal.integrated.shell.linux` for Linux in VSCode Settings Preference menu (F1 -> Preferences: Open Settings (JSON)).
+
 ## SDK Configuration editor
 
 ### Prerequisites

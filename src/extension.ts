@@ -360,10 +360,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {
     const terminalPid = await terminal.processId;
-    const monitorTerminalPid = (await monitorTerminal?.processId) || -1;
+    const monitorTerminalPid = monitorTerminal
+      ? await monitorTerminal.processId
+      : -1;
     if (monitorTerminalPid === terminalPid) {
       monitorTerminal = undefined;
-      kill(monitorTerminalPid);
+      kill(monitorTerminalPid, "SIGKILL");
     }
   });
 
@@ -2426,8 +2428,10 @@ const flash = () => {
     }
 
     if (monitorTerminal) {
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
       monitorTerminal.dispose();
+      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
+      await utils.sleep(killTimeout);
+      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
     }
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
@@ -2555,8 +2559,10 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       return;
     }
     if (monitorTerminal) {
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
       monitorTerminal.dispose();
+      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
+      await utils.sleep(killTimeout);
+      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
     }
     const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
@@ -2731,13 +2737,12 @@ function createMonitor() {
         return reject(new Error("NOT_SELECTED_PORT"));
       }
       if (typeof monitorTerminal === "undefined") {
-        const shellExecutable = path.basename(vscode.env.shell);
         monitorTerminal = vscode.window.createTerminal({
           name: "ESP-IDF Monitor",
           env: modifiedEnv,
           cwd: workspaceRoot.fsPath,
           shellArgs: [],
-          shellPath: shellExecutable,
+          shellPath: vscode.env.shell,
           strictEnv: true,
         });
       }
