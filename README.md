@@ -99,6 +99,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Device configuration                                    |                                        |                                           |
 | Dispose current SDK Configuration editor server process |                                        |                                           |
 | Doctor command                                          |                                        |                                           |
+| Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
 | Flash your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Full clean project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
 | Get HTML Coverage Report for project                    |                                        |                                           |

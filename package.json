@@ -54,7 +54,7 @@
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
     "onCommand:espIdf.cleanProject",
-    "onCommand:espIdf.erase_flash",
+    "onCommand:espIdf.eraseFlash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.fullClean",
     "onCommand:espIdf.apptrace",
@@ -257,6 +257,11 @@
         "command": "espIdf.fullClean",
         "key": "ctrl+e x",
         "mac": "cmd+e x"
+      },
+      {
+        "command": "espIdf.eraseFlash",
+        "key": "ctrl+e r",
+        "mac": "cmd+e r"
       },
       {
         "command": "espIdf.buildDevice",
@@ -857,6 +862,10 @@
       {
         "command": "espIdf.newProject.start",
         "title": "%espIdf.newProject.start.title%"
+      },
+      {
+        "command": "espIdf.eraseFlash",
+        "title": "%espIdf.eraseFlash.title%"
       }
     ],
     "breakpoints": [
