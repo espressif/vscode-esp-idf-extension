@@ -11,7 +11,7 @@ There are many ways that you can contribute, and this document will provide you 
 - Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies using `yarn`.
 - Open the project in Visual Studio Code and press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
-- Compile project with `yarn webpack` (optional for production)
+- Compile project with `yarn package` to generate a [visual studio code installer (vsix)](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix).
 
 ## Build vsix locally
 
@@ -19,7 +19,7 @@ There are many ways that you can contribute, and this document will provide you 
 
 ## Language contribution (i18N contribution)
 
-Currently we support `English`, `Chinese`, `Spanish` and `Russian` and planing to expand to many other languages.
+Currently we support `Chinese`, `English`, `Spanish` and `Russian` and planning to add many other languages.
 
 If you are willing to contribute a language translation, please read the [language contribution guideline](./LANG_CONTRIBUTE.md).
 
