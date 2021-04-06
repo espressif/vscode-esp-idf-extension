@@ -18,15 +18,19 @@
 
 // tslint:disable: interface-name
 export interface FlashModel {
+  after: string;
   app: FlashSection;
   baudRate: string;
+  before: string;
   bootloader: FlashSection;
+  chip: string;
   flashSections: FlashSection[];
   frequency: string;
   mode: string;
   partitionTable: FlashSection;
   port: string;
   size: string;
+  stub: boolean;
 }
 export interface FlashSection {
   address: string;

@@ -30,6 +30,8 @@ export function createFlashModel(
         address: flashArgsJson.app.offset,
         binFilePath: flashArgsJson.app.file,
       } as FlashSection,
+      after: flashArgsJson.extra_esptool_args.after,
+      before: flashArgsJson.extra_esptool_args.before,
       bootloader: {
         address: flashArgsJson.bootloader.offset,
         binFilePath: flashArgsJson.bootloader.file,
@@ -39,11 +41,13 @@ export function createFlashModel(
         binFilePath: flashArgsJson.partition_table.file,
       } as FlashSection,
       baudRate,
-      port,
-      size: flashArgsJson.flash_settings.flash_size,
+      chip: flashArgsJson.extra_esptool_args.chip,
+      flashSections: [],
       frequency: flashArgsJson.flash_settings.flash_freq,
       mode: flashArgsJson.flash_settings.flash_mode,
-      flashSections: [],
+      port,
+      size: flashArgsJson.flash_settings.flash_size,
+      stub: flashArgsJson.extra_esptool_args.stub,
     };
     Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
       if (fileKey && flashArgsJson.flash_files[fileKey]) {
