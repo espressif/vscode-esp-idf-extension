@@ -82,10 +82,10 @@ export class BuildTask {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };
-    const compileExecution = this.getShellExecution(
-      ["-G", "Ninja", ".."],
-      options
-    );
+    const compilerArgs = (idfConf.readParameter(
+      "idf.cmakeCompilerArgs"
+    ) as Array<string>) || ["-G", "Ninja", ".."];
+    const compileExecution = this.getShellExecution(compilerArgs, options);
     const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Silent
@@ -98,7 +98,10 @@ export class BuildTask {
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
     );
-    const buildExecution = this.getShellExecution(["--build", "."], options);
+    const buildArgs = (idfConf.readParameter("idf.cmakeBuildArgs") as Array<
+      string
+    >) || ["--build", "."];
+    const buildExecution = this.getShellExecution(buildArgs, options);
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build" },
       vscode.TaskScope.Workspace,

@@ -54,6 +54,8 @@
   "param.exportPaths": "Пути, добавляемые к PATH",
   "param.exportVars": "Переменные, которые нужно добавить к системным переменным окружения",
   "param.useIDFKConfigStyle": "Включить/отключить проверки стиля ESP-IDF для файлов Kconfig",
+  "param.cmakeCompilerArgs": "Аргументы для задачи компиляции CMake",
+  "param.cmakeBuildArgs": "Аргументы для задачи сборки CMake",
   "param.coveredLightTheme": "Цвет фона для покрытых линий в светлой теме для покрытия кода ESP-IDF.",
   "param.coveredDarkTheme": "Цвет фона для покрытых линий в темной теме для покрытия кода ESP-IDF.",
   "param.partialLightTheme": "Цвет фона для частично покрытых линий в светлой теме для покрытия кода ESP-IDF.",

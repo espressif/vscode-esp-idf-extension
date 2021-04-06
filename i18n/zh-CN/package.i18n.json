@@ -54,6 +54,8 @@
   "param.espAdfPath": "ADF_PATH 的路径",
   "param.espMdfPath": "MDF_PATH 的路径",
   "param.useIDFKConfigStyle": "启用/禁用 ESP-IDF Kconfig 文件的样式验证",
+  "param.cmakeCompilerArgs": "CMake编译任务的参数",
+  "param.cmakeBuildArgs": "CMake生成任务的参数",
   "param.coveredLightTheme": "ESP-IDF覆盖的光主题覆盖线的背景色",
   "param.coveredDarkTheme": "用于ESP-IDF覆盖的深色主题覆盖线的背景色",
   "param.partialLightTheme": "ESP-IDF覆盖的光主题部分覆盖线的背景色.",

@@ -420,6 +420,25 @@
             "description": "%param.adapterTargetName%",
             "scope": "resource"
           },
+          "idf.cmakeCompilerArgs": {
+            "type": "array",
+            "default": [
+              "-G",
+              "Ninja",
+              ".."
+            ],
+            "description": "%param.cmakeCompilerArgs%",
+            "scope": "resource"
+          },
+          "idf.cmakeBuildArgs": {
+            "type": "array",
+            "default": [
+              "--build",
+              "."
+            ],
+            "description": "%param.cmakeBuildArgs%",
+            "scope": "resource"
+          },
           "idf.customAdapterTargetName": {
             "type": "string",
             "default": "",
