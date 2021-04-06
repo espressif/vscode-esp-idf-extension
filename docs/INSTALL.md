@@ -28,11 +28,11 @@ To install from `.vsix` file:
 - Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies, using `yarn`
 - Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
-- Compile project with `yarn webpack` (optional for production)
-
-#### Build vsix locally
-
 - Build the Visual Studio Code extension setup with `yarn package`.
+
+## Configure the extension
+
+- Please take a look at [SETUP](./SETUP.md) for details about extension configuration.
 
 ## Uninstalling the plugin
 
