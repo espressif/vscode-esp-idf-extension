@@ -38,15 +38,20 @@ export async function getConfigurationAccess(
     reportedResult.configurationSettings.pythonBinPath,
     constants.X_OK
   );
-  const toolPathsArray = reportedResult.configurationSettings.customExtraPaths.split(
-    delimiter
-  );
   reportedResult.configurationAccess.espIdfToolsPaths = {};
-  for (const tool of toolPathsArray) {
-    reportedResult.configurationAccess.espIdfToolsPaths[tool] = canAccessFile(
-      tool,
-      constants.R_OK
+  if (
+    reportedResult.configurationSettings.customExtraPaths &&
+    reportedResult.configurationSettings.customExtraPaths.length
+  ) {
+    const toolPathsArray = reportedResult.configurationSettings.customExtraPaths.split(
+      delimiter
     );
+    for (const tool of toolPathsArray) {
+      reportedResult.configurationAccess.espIdfToolsPaths[tool] = canAccessFile(
+        tool,
+        constants.R_OK
+      );
+    }
   }
   if (process.platform !== "win32") {
     const cmakePathInEnv = await execChildProcess(

@@ -20,19 +20,6 @@ import * as vscode from "vscode";
 
 export function getConfigurationSettings(reportedResult: reportObj) {
   const winFlag = process.platform === "win32" ? "Win" : "";
-  const configurationSettings: string[] = [
-    "idf.espIdfPath" + winFlag,
-    "idf.customExtraPaths",
-    "idf.customExtraVars",
-    "idf.pythonBinPath" + winFlag,
-    "idf.port" + winFlag,
-    "idf.openOcdConfigs",
-    "idf.toolsPath" + winFlag,
-  ];
-  const settingsValues = {};
-  for (let conf of configurationSettings) {
-    settingsValues[conf] = vscode.workspace.getConfiguration("").get(conf);
-  }
   reportedResult.configurationSettings = {
     espIdfPath: vscode.workspace
       .getConfiguration("")
@@ -47,7 +34,7 @@ export function getConfigurationSettings(reportedResult: reportObj) {
       .getConfiguration("")
       .get("idf.pythonBinPath" + winFlag),
     pythonPackages: [],
-    serialPort: vscode.workspace.getConfiguration("").get("idf.port"),
+    serialPort: vscode.workspace.getConfiguration("").get("idf.port" + winFlag),
     openOcdConfigs:
       vscode.workspace.getConfiguration("").get("idf.openOcdConfigs") || [],
     toolsPath: vscode.workspace
