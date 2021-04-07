@@ -105,6 +105,7 @@ import { writeTextReport } from "./support/writeReport";
 import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
+import { configureProjectWithGcov } from "./coverage/configureProject";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1503,6 +1504,16 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           }
         );
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.setGcovConfig", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        await configureProjectWithGcov(workspaceRoot);
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }

@@ -82,6 +82,7 @@
     "onCommand:espIdf.createNewComponent",
     "onCommand:espIdf.ninja.summary",
     "onCommand:espIdf.newProject.start",
+    "onCommand:espIdf.setGcovConfig",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -838,6 +839,10 @@
       {
         "command": "espIdf.newProject.start",
         "title": "%espIdf.newProject.start.title%"
+      },
+      {
+        "command": "espIdf.setGcovConfig",
+        "title": "%espIdf.setGcovConfig.title%"
       }
     ],
     "breakpoints": [
