@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
+    container:
+      image: espressif/idf
     strategy:
       matrix:
         node-version: [12.x]
