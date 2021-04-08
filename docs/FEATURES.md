@@ -8,7 +8,7 @@ This extension provides many features to ease development of ESP-IDF Projects.
 - GUI [SDK Configuration editor](#SDK-Configuration-editor) to configure your ESP-IDF project (esp-idf menuconfig).
 - [Partition table editor](./PARTITION_TABLE_EDITOR.md)
 - [NVS Partition editor](./NVS_PARTITION_EDITOR.md)
-- Easily [Build](#Build), [Flash](#Flash) and [Monitor](#Monitor) your code for ESP32 and ESP32 S2 chips.
+- Easily [Build](#Build), [Flash](#Flash) and [Monitor](#Monitor) your code with Espressif chips.
 - OpenOCD server within Visual Studio Code.
 - [DEBUGGING](./DEBUGGING.md) with [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter).
 - Size analysis of binaries with **ESP-IDF: Size analysis of the binaries**.
@@ -37,7 +37,7 @@ The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](
 
 Click <kbd>F5</kbd> to start debugging. To configure the debug behaviour, please review [DEBUGGING](./DEBUGGING.md).
 
-> **NOTE** For correct debug experience, first `build` your project, choose the right serial port, `flash` your device and define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md).
+> **NOTE** For correct debug experience, first define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md), `build` your project, choose the right serial port, `flash` the program to your device.
 
 ## CMakeLists.txt Editor
 
@@ -67,13 +67,17 @@ You can follow [this](./HEAP_TRACING.md) quick step-by-step guide for heap traci
 
 In Visual Studio Code, for **ESP-IDF: Monitor your device** we use the shell executable given in `vscode.env.shell` which is override by `terminal.integrated.shell.*` in your Visual Studio Code Settings when using the `Terminal: Select Default Shell` command to update the shell or updating `terminal.integrated.shell.windows` for Windows, `terminal.integrated.shell.osx` for MacOS and `terminal.integrated.shell.linux` for Linux in VSCode Settings Preference menu (F1 -> Preferences: Open Settings (JSON)).
 
+## OpenOCD Server
+
+The user can start or stop the openOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar. The output is shown in menu `View` -> `Output` -> `OpenOCD`. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
+
+Before using the OpenOCD server, you need to set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device configuration** to manually set any value you desire.
+
+> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+
 ## SDK Configuration editor
 
-### Prerequisites
-
-- ESP-IDF `>=v4.x`
-
-This plugin includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start the [ESP-IDF JSON configuration server](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=confserver#json-configuration-server) process (confserver.py in **\${ESP-IDF-DIRECTORYPATH}**/tools) that enables the user to redefine ESP-IDF project and board configuration.
+This extension includes a GUI menuconfig that reads your current project folder's sdkconfig file (if available, otherwise it would take default values) and start the [ESP-IDF JSON configuration server](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=confserver#json-configuration-server) process (confserver.py in **\${IDF_PATH}**/tools) that enables the user to redefine ESP-IDF project and board configuration.
 
 When the user modify a parameter value, the value is send to the `confserver.py` process, which return the new value and other values modified to GUI menuconfig and then update the values in the UI.
 
@@ -86,6 +90,13 @@ An IDF GUI Menuconfig log in Output (Menu View -> Output) is created to print al
 ## Set Espressif device target
 
 The **ESP-IDF: Set Espressif device target** allows the user to choose among Espressif different chips based on [idf.py set-target](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=target#selecting-idf-target).
+
+When you use this command, the following files are set:
+
+- Choosing `esp32` as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
+- Choosing `esp32s2` as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
+- Choosing `esp32s3` as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"]
+- Choosing `esp32c3` as IDF_TARGET will set `idf.openOCDConfigs` to ["board/esp32c3-builtin.cfg"] if using built-in usb jtag or ["board/esp32c3-ftdi.cfg"] if using ESP-PROG-JTAG.
 
 ## System View Tracing Viewer
 

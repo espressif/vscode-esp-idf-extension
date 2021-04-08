@@ -9,7 +9,7 @@ key1,data,u8,1
 key2,file,string,/path/to/file
 ```
 
-This is based on ESP-IDF [NVS Partition Generator Utility](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_partition_gen.html). Make sure `espIdfPath` configuration setting is defined for this to properly work.
+This is based on ESP-IDF [NVS Partition Generator Utility](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_partition_gen.html). Make sure `idf.espIdfPath` configuration setting is defined for this to work properly.
 
 ## Prerequisites
 
