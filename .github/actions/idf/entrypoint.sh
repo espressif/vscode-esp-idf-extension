@@ -12,3 +12,4 @@ yarn
 yarn lint
 Xvfb :99 & sleep 2
 yarn test
+cat testing.results.log
