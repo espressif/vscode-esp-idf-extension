@@ -70,4 +70,3 @@ jobs:
     steps:
       - name: Run test
         uses: ./.github/actions/idf
-        run: yarn test
