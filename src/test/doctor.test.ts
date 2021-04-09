@@ -48,20 +48,18 @@ suite("Doctor command tests", () => {
       getConfigurationAccess(reportObj, mockUpContext);
       assert.equal(reportObj.configurationAccess.espIdfPath, false);
     });
-    test("Check wrong version of ESP-IDF", async (done) => {
+    test("Check wrong version of ESP-IDF", async () => {
       reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
       await getEspIdfVersion(reportObj);
       assert.equal(reportObj.espIdfVersion.result, "Not found");
-      done();
     });
   });
 
   suite("Python", () => {
-    test("Check wrong python", async (done) => {
+    test("Check wrong python", async () => {
       reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
       await getPythonVersion(reportObj, mockUpContext);
       assert.equal(reportObj.pythonVersion.result, "Not found");
-      done();
     });
   });
 });
