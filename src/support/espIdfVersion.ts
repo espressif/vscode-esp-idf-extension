@@ -40,7 +40,7 @@ export async function getEspIdfVersion(reportedResult: reportObj) {
       reportedResult.espIdfVersion.result = "Not found";
     }
   } catch (error) {
-    reportedResult.pythonVersion.result = "Not found";
+    reportedResult.espIdfVersion.result = "Not found";
     reportedResult.latestError = error;
   }
 }
