@@ -2,6 +2,7 @@ FROM espressif/idf
 
 RUN apt-get update && apt-get install -y curl xvfb \
  libasound2 \
+ libgbm-dev \
  libgtk-3-0 \
  libnotify4 \
  libnss3 \
