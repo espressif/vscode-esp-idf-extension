@@ -5,4 +5,4 @@ set -e
 
 cd /github/workspace
 
-exec "$@"
+yarn test

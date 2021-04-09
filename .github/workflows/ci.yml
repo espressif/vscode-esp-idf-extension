@@ -75,5 +75,3 @@ jobs:
 
       - name: Run test
         uses: ./.github/actions/idf
-        with:
-          run: yarn test
