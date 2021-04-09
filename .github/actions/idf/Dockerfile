@@ -2,6 +2,10 @@ FROM espressif/idf
 
 RUN apt-get update && apt-get install -y curl xvfb
 
+RUN node --version
+
+RUN echo $GITHUB_WORKSPACE
+
 ENV NODE_VERSION=12.6.0
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
