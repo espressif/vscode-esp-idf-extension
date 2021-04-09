@@ -5,9 +5,6 @@ on: [push, pull_request]
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
 
     steps:
       - name: Clone Repository
@@ -15,10 +12,17 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Clone ESP-IDF
+        uses: actions/checkout@v2
+        with:
+          path: esp/idf
+          repository: espressif/esp-idf
+          submodules: "recursive"
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "12.x"
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
@@ -32,6 +36,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r esp_debug_adapter/requirements.txt
+
+      - name: Setting up ESP-IDF Tools
+        run: |
+          export IDF_PATH=$GITHUB_WORKSPACE/esp/idf
+          export IDF_TOOLS_PATH=$GITHUB_WORKSPACE/esp
+          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install required
+          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install cmake
+          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install ninja
+          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install-python-env
+          rm -rf $GITHUB_WORKSPACE/esp/dist
 
       - name: Lint Check
         run: yarn lint
@@ -57,7 +71,7 @@ jobs:
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
         with:
-          run: yarn test
+          run: yarn test >> testing.results.log
 
       - name: Upload testing.results.log
         uses: actions/upload-artifact@v1
@@ -65,13 +79,26 @@ jobs:
           name: testing.results.log
           path: testing.results.log
 
+      - name: Package .vsix
+        run: yarn package
+
+      - name: Upload .vsix File
+        uses: actions/upload-artifact@v1
+        with:
+          name: esp-idf-extension.vsix
+          path: esp-idf-extension.vsix
+
   extension_test:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
+        id: idftest
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
 
       - name: Run test
         uses: ./.github/actions/idf
+
+      - name: Get the test output
+        run: echo "${{ steps.idftest.outputs.result }}"

@@ -35,6 +35,7 @@ export function run(): Promise<void> {
         "test-results.xml"
       ),
       toConsole: true,
+      outputs: true,
     },
     useColors: true,
     inlineDiffs: true,

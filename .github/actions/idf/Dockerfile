@@ -1,6 +1,19 @@
 FROM espressif/idf
 
-RUN apt-get update && apt-get install -y curl xvfb
+RUN apt-get update && apt-get install -y curl xvfb \
+ libasound2 \
+ libgbm-dev \
+ libgtk-3-0 \
+ libnotify4 \
+ libnss3 \
+ libsecret-1-0 \
+ libxss1 \
+ libxtst6
+
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV DISPLAY=":99"
+ENV CODE_TESTS_PATH="out/test"
 
 ENV NODE_VERSION=12.6.0
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
