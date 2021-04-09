@@ -10,5 +10,5 @@ pip install -r esp_debug_adapter/requirements.txt
 
 yarn
 yarn lint
-xvfb :99 & sleep 2
+Xvfb :99 & sleep 2
 yarn test
