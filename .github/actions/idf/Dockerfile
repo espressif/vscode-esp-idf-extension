@@ -2,8 +2,6 @@ FROM espressif/idf
 
 RUN apt-get update && apt-get install -y curl xvfb
 
-RUN node --version
-
 RUN echo $GITHUB_WORKSPACE
 
 ENV NODE_VERSION=12.6.0
@@ -20,6 +18,5 @@ RUN npm install --global yarn
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY ../../ .
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["/bin/bash"]
