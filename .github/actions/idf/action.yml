@@ -1,0 +1,6 @@
+name: "ESP-IDF"
+description: "run tests on ESP-IDF docker image"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
