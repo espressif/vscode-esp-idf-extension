@@ -1,6 +1,12 @@
 name: "ESP-IDF"
 description: "run tests on ESP-IDF docker image"
 
+inputs:
+  run:
+    description: "command for docker image"
+    required: true
+    default: "echo 'some default text'"
+
 runs:
   using: "docker"
   image: "Dockerfile"
