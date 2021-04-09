@@ -75,3 +75,5 @@ jobs:
 
       - name: Run test
         uses: ./.github/actions/idf
+        with:
+          run: echo "something"
