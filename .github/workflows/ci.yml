@@ -68,5 +68,10 @@ jobs:
   extension_test:
     runs-on: ubuntu-latest
     steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
       - name: Run test
         uses: ./.github/actions/idf
