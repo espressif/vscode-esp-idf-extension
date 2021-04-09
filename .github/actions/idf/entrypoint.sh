@@ -3,4 +3,6 @@ set -e
 
 . $IDF_PATH/export.sh
 
-exec "$@"
+cd /github/workspace
+
+yarn test

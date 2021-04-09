@@ -5,8 +5,10 @@ inputs:
   run:
     description: "command for docker image"
     required: true
-    default: "echo 'some default text'"
+    default: echo "hello docker"
 
 runs:
   using: "docker"
   image: "Dockerfile"
+  args:
+    - ${{ inputs.run }}

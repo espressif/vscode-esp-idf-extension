@@ -16,6 +16,5 @@ RUN npm install --global yarn
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY ../../ .
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["/bin/bash"]
