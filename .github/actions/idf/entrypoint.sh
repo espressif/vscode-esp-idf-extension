@@ -3,4 +3,6 @@ set -e
 
 . $IDF_PATH/export.sh
 
+cd /github/workspace
+
 exec "$@"
