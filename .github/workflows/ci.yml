@@ -46,6 +46,7 @@ jobs:
           export IDF_TOOLS_PATH=$GITHUB_WORKSPACE/esp
           $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install required
           $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install cmake
+          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install ninja
           $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install-python-env
           rm -rf $GITHUB_WORKSPACE/esp/dist
 
