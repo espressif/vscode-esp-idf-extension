@@ -54,6 +54,17 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
 
+      - name: Setting up ESP-IDF
+        env:
+          IDF_PATH: /opt/esp/idf
+          IDF_TOOLS_PATH: /opt/esp
+        run: |
+          git clone --recursive master https://github.com/espressif/esp-idf.git $IDF_PATH
+          $IDF_PATH/tools/idf_tools.py --non-interactive install required
+          $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
+          $IDF_PATH/tools/idf_tools.py --non-interactive install-python-env
+          rm -rf $IDF_TOOLS_PATH/dist
+
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
         with:
