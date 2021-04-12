@@ -69,10 +69,10 @@ jobs:
           IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
           IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
         run: |
-          env.IDF_PATH/tools/idf_tools.py --non-interactive install required
-          env.IDF_PATH/tools/idf_tools.py --non-interactive install cmake
-          env.IDF_PATH/tools/idf_tools.py --non-interactive install-python-env
-          rm -rf env.IDF_TOOLS_PATH/dist
+          $IDF_PATH/tools/idf_tools.py --non-interactive install required
+          $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
+          $IDF_PATH/tools/idf_tools.py --non-interactive install-python-env
+          rm -rf $IDF_TOOLS_PATH/dist
 
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
