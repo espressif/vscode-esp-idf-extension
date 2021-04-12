@@ -66,8 +66,8 @@ jobs:
 
       - name: Setting up ESP-IDF Tools
         env:
-          IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
-          IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
+          IDF_PATH: $GITHUB_WORKSPACE/esp/idf
+          IDF_TOOLS_PATH: $GITHUB_WORKSPACE/esp
         run: |
           $IDF_PATH/tools/idf_tools.py --non-interactive install required
           $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
