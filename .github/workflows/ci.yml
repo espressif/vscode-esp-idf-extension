@@ -66,8 +66,8 @@ jobs:
 
       - name: Setting up ESP-IDF Tools
         env:
-          IDF_PATH: $GITHUB_WORKSPACE/esp/idf
-          IDF_TOOLS_PATH: $GITHUB_WORKSPACE/esp
+          IDF_PATH: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/esp/idf
+          IDF_TOOLS_PATH: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/esp
         run: |
           $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install required
           $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install cmake
