@@ -21,8 +21,9 @@ jobs:
           IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
           IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
         with:
-          repository: espressif/esp-idf
           path: esp/idf
+          repository: espressif/esp-idf
+          submodules: "recursive"
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -65,8 +66,8 @@ jobs:
 
       - name: Setting up ESP-IDF Tools
         env:
-          IDF_PATH: /opt/esp/idf
-          IDF_TOOLS_PATH: /opt/esp
+          IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
+          IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
         run: |
           $IDF_PATH/tools/idf_tools.py --non-interactive install required
           $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
