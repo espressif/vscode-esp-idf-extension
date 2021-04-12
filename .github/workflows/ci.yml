@@ -18,11 +18,11 @@ jobs:
       - name: Clone ESP-IDF
         uses: actions/checkout@v2
         env:
-          IDF_PATH: /opt/esp/idf
-          IDF_TOOLS_PATH: /opt/esp
+          IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
+          IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
         with:
           repository: espressif/esp-idf
-          path: env.IDF_PATH
+          path: esp/idf
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
