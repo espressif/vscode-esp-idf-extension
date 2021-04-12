@@ -15,6 +15,15 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Clone ESP-IDF
+        uses: actions/checkout@v2
+        env:
+          IDF_PATH: /opt/esp/idf
+          IDF_TOOLS_PATH: /opt/esp
+        with:
+          repository: https://github.com/espressif/esp-idf.git
+          path: env.IDF_PATH
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -54,12 +63,11 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
 
-      - name: Setting up ESP-IDF
+      - name: Setting up ESP-IDF Tools
         env:
           IDF_PATH: /opt/esp/idf
           IDF_TOOLS_PATH: /opt/esp
         run: |
-          git clone --recursive https://github.com/espressif/esp-idf.git env.IDF_PATH
           $IDF_PATH/tools/idf_tools.py --non-interactive install required
           $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
           $IDF_PATH/tools/idf_tools.py --non-interactive install-python-env
