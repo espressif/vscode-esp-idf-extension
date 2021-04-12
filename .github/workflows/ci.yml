@@ -5,9 +5,6 @@ on: [push, pull_request]
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
 
     steps:
       - name: Clone Repository
@@ -25,7 +22,7 @@ jobs:
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "12.x"
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1

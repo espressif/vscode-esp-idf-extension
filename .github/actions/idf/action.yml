@@ -6,6 +6,9 @@ inputs:
     description: "command for docker image"
     required: true
     default: echo "hello docker"
+outputs:
+  result:
+    description: "Docker test output"
 
 runs:
   using: "docker"

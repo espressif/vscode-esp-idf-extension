@@ -11,5 +11,6 @@ pip install -r esp_debug_adapter/requirements.txt
 yarn
 yarn lint
 Xvfb :99 & sleep 2
-yarn test >> testing.results.log
-cat testing.results.log
+tsc -p ./
+node ./out/test/runTest.js --VERBOSE >> testing.results.log
+echo ::set-output name=result::$(cat testing.results.log)
