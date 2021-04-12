@@ -21,7 +21,7 @@ jobs:
           IDF_PATH: /opt/esp/idf
           IDF_TOOLS_PATH: /opt/esp
         with:
-          repository: https://github.com/espressif/esp-idf.git
+          repository: espressif/esp-idf
           path: env.IDF_PATH
 
       - name: Setup Node.js ${{ matrix.node-version }}
