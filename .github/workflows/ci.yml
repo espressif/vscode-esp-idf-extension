@@ -66,13 +66,13 @@ jobs:
 
       - name: Setting up ESP-IDF Tools
         env:
-          IDF_PATH: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/esp/idf
-          IDF_TOOLS_PATH: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/esp
+          IDF_PATH: env.GITHUB_WORKSPACE/esp/idf
+          IDF_TOOLS_PATH: env.GITHUB_WORKSPACE/esp
         run: |
-          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install required
-          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install cmake
-          $GITHUB_WORKSPACE/esp/idf/tools/idf_tools.py --non-interactive install-python-env
-          rm -rf $GITHUB_WORKSPACE/esp/dist
+          $IDF_PATH/tools/idf_tools.py --non-interactive install required
+          $IDF_PATH/tools/idf_tools.py --non-interactive install cmake
+          $IDF_PATH/tools/idf_tools.py --non-interactive install-python-env
+          rm -rf $IDF_TOOLS_PATH/dist
 
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
