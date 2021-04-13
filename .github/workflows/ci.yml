@@ -76,8 +76,8 @@ jobs:
       - name: Upload testing.results.log
         uses: actions/upload-artifact@v1
         with:
-          name: testing.results.log
-          path: testing.results.log
+          name: tests-results.xml
+          path: out/results/tests-results.xml
 
       - name: Package .vsix
         run: yarn package
@@ -92,13 +92,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
-        id: idftest
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
 
       - name: Run test
         uses: ./.github/actions/idf
+        id: idftest
 
       - name: Get the test output
         run: echo "${{ steps.idftest.outputs.result }}"
