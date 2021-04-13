@@ -92,9 +92,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
+        id: idftest
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
 
       - name: Run test
         uses: ./.github/actions/idf
+
+      - name: Get the test output
+        run: echo "${{ steps.idftest.outputs.result }}"
