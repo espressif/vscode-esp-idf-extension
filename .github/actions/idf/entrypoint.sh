@@ -12,5 +12,5 @@ yarn
 yarn lint
 Xvfb :99 & sleep 2
 tsc -p ./
-node ./out/test/runTest.js --VERBOSE >> testing.results.log
-echo ::set-output name=result::$(cat testing.results.log)
+node ./out/test/runTest.js --VERBOSE
+echo ::set-output name=result::$(cat ./out/results/test-results.xml)
