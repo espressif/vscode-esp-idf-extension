@@ -42,24 +42,20 @@ suite("Doctor command tests", () => {
     done();
   });
 
-  suite("ESP-IDF", () => {
-    test("Check wrong access to ESP-IDF path", () => {
-      reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-      getConfigurationAccess(reportObj, mockUpContext);
-      assert.equal(reportObj.configurationAccess.espIdfPath, false);
-    });
-    test("Check wrong version of ESP-IDF", async () => {
-      reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-      await getEspIdfVersion(reportObj);
-      assert.equal(reportObj.espIdfVersion.result, "Not found");
-    });
+  test("Check wrong access to ESP-IDF path", () => {
+    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
+    getConfigurationAccess(reportObj, mockUpContext);
+    assert.equal(reportObj.configurationAccess.espIdfPath, false);
+  });
+  test("Check wrong version of ESP-IDF", async () => {
+    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
+    await getEspIdfVersion(reportObj);
+    assert.equal(reportObj.espIdfVersion.result, "Not found");
   });
 
-  suite("Python", () => {
-    test("Check wrong python", async () => {
-      reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-      await getPythonVersion(reportObj, mockUpContext);
-      assert.equal(reportObj.pythonVersion.result, "Not found");
-    });
+  test("Check wrong python", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await getPythonVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pythonVersion.result, "Not found");
   });
 });
