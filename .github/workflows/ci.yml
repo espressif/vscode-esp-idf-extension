@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: tests-results.xml
-          path: out/results/tests-results.xml
+          path: out/results/test-results.xml
 
       - name: Package .vsix
         run: yarn package
@@ -101,4 +101,10 @@ jobs:
         id: idftest
 
       - name: Get the test output
-        run: echo "${{ steps.idftest.outputs.result }}"
+        run: echo "${{ steps.idftest.outputs.result }}" >> result.xml
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v2
+        with:
+          report_paths: "result.xml"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
