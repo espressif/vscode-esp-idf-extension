@@ -506,6 +506,15 @@ export async function activate(context: vscode.ExtensionContext) {
             const arduinoComponentManager = new ArduinoComponentInstaller(
               workspaceRoot.fsPath
             );
+            const arduinoDirPath = path.join(
+              workspaceRoot.fsPath,
+              "components",
+              "arduino"
+            );
+            const arduinoDirExists = utils.dirExistPromise(arduinoDirPath);
+            if (arduinoDirExists) {
+              return Logger.infoNotify(`${arduinoDirPath} already exists.`);
+            }
             cancelToken.onCancellationRequested(() => {
               arduinoComponentManager.cancel();
             });

@@ -92,8 +92,7 @@ export class ArduinoComponentInstaller {
         ? majorMinorMatches[1]
         : "x.x";
     const results: { [key: string]: string } = {
-      "4.0": "idf-release/v4.0",
-      "4.2": "idf-release/v4.2",
+      "3.3": "idf-release/v3.3",
     };
     return results[espIdfVersion] || "master";
   }
