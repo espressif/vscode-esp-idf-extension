@@ -53,7 +53,9 @@ jobs:
         id: idftest
 
       - name: Get the test output
-        run: echo "${{ steps.idftest.outputs.result }}" | tee test-result.xml
+        run: |
+          sudo apt-get install libxml2-utils
+          echo "${{ steps.idftest.outputs.result }}" | xmllint --format - | tee test-result.xml
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
