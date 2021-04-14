@@ -1,0 +1,9 @@
+{
+  "idf.espIdfPath": "/test/esp-idf",
+  "idf.customExtraPaths": "/my/first/path:my/second/path",
+  "idf.customExtraVars": "{\"SOME_VAR\": \"value\"}",
+  "idf.port": "/serialport",
+  "idf.pythonBinPath": "/some/python/path",
+  "idf.openOcdConfigs": ["some", "path"],
+  "idf.toolsPath": "some/tools/path"
+}

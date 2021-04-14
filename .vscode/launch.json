@@ -24,14 +24,17 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index", 
-        "--VERBOSE 2>&1"
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+        "${workspaceFolder}/testFiles/testWorkspace",
+        "--VERBOSE",
+        "2>&1"
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "npm: compile",
       "env": {
         "VSCODE_EXTENSION_MODE": "development"
-      }
+      },
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }
