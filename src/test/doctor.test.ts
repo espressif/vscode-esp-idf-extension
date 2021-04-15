@@ -18,7 +18,7 @@
 
 import * as assert from "assert";
 import * as os from "os";
-import { join } from "path";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
 import { setExtensionContext } from "../utils";
@@ -30,26 +30,32 @@ import { getEspIdfVersion } from "../support/espIdfVersion";
 import { getPythonVersion } from "../support/pythonVersion";
 import { checkSystemInfo } from "../support/checkSystemInfo";
 import { getConfigurationSettings } from "../support/configurationSettings";
-import { readJSON } from "fs-extra";
+import { readFile, readJSON } from "fs-extra";
+import { getPipVersion } from "../support/pipVersion";
+import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
+import {
+  checkDebugAdapterRequirements,
+  checkExtensionRequirements,
+} from "../support/checkExtensionRequirements";
+import {
+  checkCCppPropertiesJson,
+  checkLaunchJson,
+} from "../support/checkVscodeFiles";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
-  const absPath = (filename) => join(__dirname, filename);
+  const absPath = (filename) => resolve(__dirname, "..", "..", filename);
   const mockUpContext: vscode.ExtensionContext = {
-    extensionPath: __dirname,
+    extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
   } as vscode.ExtensionContext;
-  let settingsJsonObj: any;
   setup(async () => {
     setExtensionContext(mockUpContext);
-    Logger.init(mockUpContext);
-    const output = OutputChannel.init();
-    settingsJsonObj = await readJSON(
-      join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
-    );
+    // Logger.init(mockUpContext);
+    // const output = OutputChannel.init();
   });
 
-  test("Check system information", () => {
+  test("System information", () => {
     checkSystemInfo(reportObj);
     assert.equal(reportObj.systemInfo.architecture, os.arch());
 
@@ -69,8 +75,84 @@ suite("Doctor command tests", () => {
     assert.equal(reportObj.systemInfo.vscodeVersion, vscode.version);
   });
 
-  test("Test configuration settings", () => {
-    console.log(settingsJsonObj);
+  test("Wrong access to ESP-IDF path", () => {
+    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
+    getConfigurationAccess(reportObj, mockUpContext);
+    assert.equal(reportObj.configurationAccess.espIdfPath, false);
+  });
+
+  test("Wrong version of ESP-IDF", async () => {
+    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
+    await getEspIdfVersion(reportObj);
+    assert.equal(reportObj.espIdfVersion.result, "Not found");
+  });
+
+  test("Wrong access to Python path", () => {
+    reportObj.configurationSettings.pythonBinPath = "/some/non-existing-path";
+    getConfigurationAccess(reportObj, mockUpContext);
+    assert.equal(reportObj.configurationAccess.pythonBinPath, false);
+  });
+
+  test("Wrong python", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await getPythonVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pythonVersion.result, "Not found");
+  });
+
+  test("Wrong pip", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await getPipVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pipVersion.result, "Not found");
+  });
+
+  test("wrong extension py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await checkExtensionRequirements(reportObj, mockUpContext);
+    assert.equal(reportObj.extensionRequirements.result, "Error");
+  });
+
+  test("Wrong debug adapter py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await checkDebugAdapterRequirements(reportObj, mockUpContext);
+    assert.equal(reportObj.debugAdapterRequirements.result, "Error");
+  });
+
+  test("Wrong esp-idf py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+    await checkEspIdfRequirements(reportObj, mockUpContext);
+    assert.equal(reportObj.idfCheckRequirements.result, "Error");
+  });
+
+  test("launch.json", async () => {
+    const templateLaunchJson = await readFile(
+      join(__dirname, "../../templates/.vscode/launch.json"),
+      "utf8"
+    );
+    await checkLaunchJson(
+      reportObj,
+      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
+    );
+    assert.equal(reportObj.launchJson, templateLaunchJson);
+  });
+
+  test("c_cpp_properties.json", async () => {
+    const templateLaunchJson = await readFile(
+      join(__dirname, "../../templates/.vscode/c_cpp_properties.json"),
+      "utf8"
+    );
+    await checkCCppPropertiesJson(
+      reportObj,
+      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
+    );
+    assert.equal(reportObj.cCppPropertiesJson, templateLaunchJson);
+  });
+
+  test("Test configuration settings", async () => {
+    const settingsJsonObj = await readJSON(
+      join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
+    );
+    console.log(`old path: ${process.env.OLD_PATH}`);
+    console.log(`env path: ${process.env.IDF_PYTHON_ENV_PATH}`);
     getConfigurationSettings(reportObj);
     assert.equal(
       reportObj.configurationSettings.espIdfPath,
@@ -100,29 +182,5 @@ suite("Doctor command tests", () => {
       reportObj.configurationSettings.toolsPath,
       settingsJsonObj["idf.toolsPath"]
     );
-  });
-
-  test("Check wrong access to ESP-IDF path", () => {
-    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
-    assert.equal(reportObj.configurationAccess.espIdfPath, false);
-  });
-
-  test("Check wrong version of ESP-IDF", async () => {
-    reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-    await getEspIdfVersion(reportObj);
-    assert.equal(reportObj.espIdfVersion.result, "Not found");
-  });
-
-  test("Check wrong access to Python path", () => {
-    reportObj.configurationSettings.pythonBinPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
-    assert.equal(reportObj.configurationAccess.pythonBinPath, false);
-  });
-
-  test("Check wrong python", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await getPythonVersion(reportObj, mockUpContext);
-    assert.equal(reportObj.pythonVersion.result, "Not found");
   });
 });

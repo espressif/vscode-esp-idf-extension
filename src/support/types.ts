@@ -71,7 +71,7 @@ export class reportObj {
   espIdfVersion: execResult;
   gitVersion: execResult;
   latestError: Error;
-  launchJson: any;
+  launchJson: string;
   cCppPropertiesJson: any;
   pipVersion: execResult;
   pythonVersion: execResult;
