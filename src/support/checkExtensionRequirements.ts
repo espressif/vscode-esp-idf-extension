@@ -24,30 +24,40 @@ export async function checkExtensionRequirements(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const requirementsPath = join(context.extensionPath, "requirements.txt");
-  const result = await checkRequirements(
-    context,
-    reportedResult,
-    requirementsPath
-  );
-  reportedResult.extensionRequirements.output = result;
-  reportedResult.extensionRequirements.result = result;
+  try {
+    const requirementsPath = join(context.extensionPath, "requirements.txt");
+    const result = await checkRequirements(
+      context,
+      reportedResult,
+      requirementsPath
+    );
+    reportedResult.extensionRequirements.output = result;
+    reportedResult.extensionRequirements.result = result;
+  } catch (error) {
+    reportedResult.extensionRequirements.result = "Error";
+    reportedResult.latestError = error;
+  }
 }
 
 export async function checkDebugAdapterRequirements(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const requirementsPath = join(
-    context.extensionPath,
-    "esp_debug_adapter",
-    "requirements.txt"
-  );
-  const result = await checkRequirements(
-    context,
-    reportedResult,
-    requirementsPath
-  );
-  reportedResult.debugAdapterRequirements.output = result;
-  reportedResult.debugAdapterRequirements.result = result;
+  try {
+    const requirementsPath = join(
+      context.extensionPath,
+      "esp_debug_adapter",
+      "requirements.txt"
+    );
+    const result = await checkRequirements(
+      context,
+      reportedResult,
+      requirementsPath
+    );
+    reportedResult.debugAdapterRequirements.output = result;
+    reportedResult.debugAdapterRequirements.result = result;
+  } catch (error) {
+    reportedResult.debugAdapterRequirements.result = "Error";
+    reportedResult.latestError = error;
+  }
 }
