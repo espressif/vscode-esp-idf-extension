@@ -55,13 +55,6 @@ jobs:
       - name: Get the test output
         run: echo "${{ steps.idftest.outputs.result }}" | tee test-result.xml
 
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
-        with:
-          fail_on_failure: true
-          report_paths: "**/test-results.xml"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Package .vsix
         run: yarn package
 

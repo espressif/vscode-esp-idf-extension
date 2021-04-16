@@ -18,12 +18,10 @@
 
 import * as assert from "assert";
 import * as os from "os";
-import { join, resolve } from "path";
+import { delimiter, join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
 import { setExtensionContext } from "../utils";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
 import { initializeReportObject } from "../support/initReportObj";
 import { getConfigurationAccess } from "../support/configurationAccess";
 import { getEspIdfVersion } from "../support/espIdfVersion";
@@ -41,6 +39,8 @@ import {
   checkCCppPropertiesJson,
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
+import { getPythonPackages } from "../support/pythonPackages";
+import { getGitVersion } from "../support/gitVersion";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
@@ -51,8 +51,6 @@ suite("Doctor command tests", () => {
   } as vscode.ExtensionContext;
   setup(async () => {
     setExtensionContext(mockUpContext);
-    // Logger.init(mockUpContext);
-    // const output = OutputChannel.init();
   });
 
   test("System information", () => {
@@ -151,8 +149,6 @@ suite("Doctor command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
-    console.log(`old path: ${process.env.OLD_PATH}`);
-    console.log(`env path: ${process.env.IDF_PYTHON_ENV_PATH}`);
     getConfigurationSettings(reportObj);
     assert.equal(
       reportObj.configurationSettings.espIdfPath,
@@ -188,8 +184,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkExtensionRequirements(reportObj, mockUpContext);
-    console.log(reportObj.extensionRequirements.result);
-    console.log(reportObj.latestError);
     assert.equal(
       reportObj.extensionRequirements.result,
       `Python requirements from ${join(
@@ -203,8 +197,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    console.log(reportObj.debugAdapterRequirements.result);
-    console.log(reportObj.latestError);
     assert.equal(
       reportObj.debugAdapterRequirements.result,
       `Python requirements from ${join(
@@ -218,10 +210,60 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkEspIdfRequirements(reportObj, mockUpContext);
-    console.log(reportObj.idfCheckRequirements.result);
     assert.equal(
       reportObj.idfCheckRequirements.result,
       `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
+    );
+  });
+
+  test("Good configuration access", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
+      delimiter + process.env.OLD_PATH,
+      ""
+    );
+    getConfigurationAccess(reportObj, mockUpContext);
+    assert.equal(reportObj.configurationAccess.pythonBinPath, true);
+    assert.equal(reportObj.configurationAccess.espIdfPath, true);
+    for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
+      assert.equal(
+        reportObj.configurationAccess.espIdfToolsPaths[toolPath],
+        true
+      );
+    }
+  });
+
+  test("Match git version", async () => {
+    await getGitVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.gitVersion.result, process.env.GIT_VERSION);
+  });
+
+  test("Match ESP-IDF version", async () => {
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    await getEspIdfVersion(reportObj);
+    assert.equal(reportObj.espIdfVersion.result, process.env.IDF_VERSION);
+  });
+
+  test("Match python version", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    await getPythonVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pythonVersion.result, process.env.PY_VERSION);
+  });
+
+  test("Match pip version", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    await getPipVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pipVersion.result, process.env.PIP_VERSION);
+  });
+
+  test("Match python packages", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
+    await getPythonPackages(reportObj, mockUpContext);
+    assert.deepEqual(
+      reportObj.configurationSettings.pythonPackages,
+      expectedPyPkgs
     );
   });
 });
