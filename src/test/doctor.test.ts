@@ -199,6 +199,8 @@ suite("Doctor command tests", () => {
   });
 
   test("Good debug adapter py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkDebugAdapterRequirements(reportObj, mockUpContext);
     console.log(reportObj.idfCheckRequirements.result);
     assert.equal(
@@ -211,6 +213,8 @@ suite("Doctor command tests", () => {
   });
 
   test("Good esp-idf py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkEspIdfRequirements(reportObj, mockUpContext);
     console.log(reportObj.idfCheckRequirements.result);
     assert.equal(
