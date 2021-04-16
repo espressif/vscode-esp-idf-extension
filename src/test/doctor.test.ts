@@ -184,11 +184,44 @@ suite("Doctor command tests", () => {
     );
   });
 
+  test("Good extension py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    await checkExtensionRequirements(reportObj, mockUpContext);
+    console.log(reportObj.idfCheckRequirements.result);
+    console.log(reportObj.latestError);
+    assert.equal(
+      reportObj.idfCheckRequirements.result,
+      `Python requirements from ${join(
+        __dirname,
+        "../../requirements.txt"
+      )} are satisfied.`
+    );
+  });
+
+  test("Good debug adapter py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    await checkDebugAdapterRequirements(reportObj, mockUpContext);
+    console.log(reportObj.idfCheckRequirements.result);
+    console.log(reportObj.latestError);
+    assert.equal(
+      reportObj.idfCheckRequirements.result,
+      `Python requirements from ${join(
+        __dirname,
+        "../../esp_debug_adapter/requirements.txt"
+      )} are satisfied.`
+    );
+  });
+
   test("Good esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkEspIdfRequirements(reportObj, mockUpContext);
     console.log(reportObj.idfCheckRequirements.result);
-    assert.equal(reportObj.idfCheckRequirements.result, "Error");
+    assert.equal(
+      reportObj.idfCheckRequirements.result,
+      `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
+    );
   });
 });
