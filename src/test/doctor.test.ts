@@ -189,6 +189,9 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkEspIdfRequirements(reportObj, mockUpContext);
     console.log(reportObj.idfCheckRequirements.result);
-    assert.equal(reportObj.idfCheckRequirements.result, "Error");
+    assert.equal(
+      reportObj.idfCheckRequirements.result,
+      `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
+    );
   });
 });
