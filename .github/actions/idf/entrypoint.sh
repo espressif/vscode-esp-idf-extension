@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-OLD_PATH=$PATH
+export OLD_PATH=$PATH
 
 . $IDF_PATH/export.sh
 
