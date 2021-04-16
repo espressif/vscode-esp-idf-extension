@@ -183,4 +183,12 @@ suite("Doctor command tests", () => {
       settingsJsonObj["idf.toolsPath"]
     );
   });
+
+  test("Good esp-idf py requirements", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    await checkEspIdfRequirements(reportObj, mockUpContext);
+    console.log(reportObj.idfCheckRequirements.result);
+    assert.equal(reportObj.idfCheckRequirements.result, "Error");
+  });
 });
