@@ -188,10 +188,10 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkExtensionRequirements(reportObj, mockUpContext);
-    console.log(reportObj.idfCheckRequirements.result);
+    console.log(reportObj.extensionRequirements.result);
     console.log(reportObj.latestError);
     assert.equal(
-      reportObj.idfCheckRequirements.result,
+      reportObj.extensionRequirements.result,
       `Python requirements from ${join(
         __dirname,
         "../../requirements.txt"
@@ -203,10 +203,10 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    console.log(reportObj.idfCheckRequirements.result);
+    console.log(reportObj.debugAdapterRequirements.result);
     console.log(reportObj.latestError);
     assert.equal(
-      reportObj.idfCheckRequirements.result,
+      reportObj.debugAdapterRequirements.result,
       `Python requirements from ${join(
         __dirname,
         "../../esp_debug_adapter/requirements.txt"
