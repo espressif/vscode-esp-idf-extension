@@ -1,6 +1,7 @@
 FROM espressif/idf
 
-RUN apt-get update && apt-get install -y curl xvfb \
+RUN apt-get update && apt-get install -y \
+ curl \
  libasound2 \
  libgbm-dev \
  libgtk-3-0 \
@@ -8,7 +9,8 @@ RUN apt-get update && apt-get install -y curl xvfb \
  libnss3 \
  libsecret-1-0 \
  libxss1 \
- libxtst6
+ libxtst6\
+ xvfb
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8

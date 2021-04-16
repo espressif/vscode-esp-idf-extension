@@ -151,6 +151,8 @@ suite("Doctor command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
+    console.log(`old path: ${process.env.OLD_PATH}`);
+    console.log(`env path: ${process.env.IDF_PYTHON_ENV_PATH}`);
     getConfigurationSettings(reportObj);
     assert.equal(
       reportObj.configurationSettings.espIdfPath,
