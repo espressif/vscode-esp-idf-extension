@@ -188,8 +188,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkExtensionRequirements(reportObj, mockUpContext);
-    console.log(reportObj.extensionRequirements.result);
-    console.log(reportObj.latestError);
     assert.equal(
       reportObj.extensionRequirements.result,
       `Python requirements from ${join(
@@ -203,8 +201,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    console.log(reportObj.debugAdapterRequirements.result);
-    console.log(reportObj.latestError);
     assert.equal(
       reportObj.debugAdapterRequirements.result,
       `Python requirements from ${join(
@@ -218,10 +214,29 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await checkEspIdfRequirements(reportObj, mockUpContext);
-    console.log(reportObj.idfCheckRequirements.result);
     assert.equal(
       reportObj.idfCheckRequirements.result,
       `Python requirements from ${process.env.IDF_PATH}/requirements.txt are satisfied.`
     );
+  });
+
+  test("Good configuration access", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
+      process.env.OLD_PATH,
+      ""
+    );
+    getConfigurationAccess(reportObj, mockUpContext);
+    assert.equal(reportObj.configurationAccess.pythonBinPath, false);
+    assert.equal(reportObj.configurationAccess.espIdfPath, false);
+    for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
+      console.log(toolPath);
+      console.log(reportObj.configurationAccess.espIdfToolsPaths[toolPath]);
+      assert.equal(
+        reportObj.configurationAccess.espIdfToolsPaths[toolPath],
+        false
+      );
+    }
   });
 });
