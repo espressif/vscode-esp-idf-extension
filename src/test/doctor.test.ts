@@ -191,7 +191,7 @@ suite("Doctor command tests", () => {
     console.log(reportObj.idfCheckRequirements.result);
     console.log(reportObj.latestError);
     assert.equal(
-      reportObj.idfCheckRequirements.result,
+      reportObj.extensionRequirements.result,
       `Python requirements from ${join(
         __dirname,
         "../../requirements.txt"
@@ -206,7 +206,7 @@ suite("Doctor command tests", () => {
     console.log(reportObj.idfCheckRequirements.result);
     console.log(reportObj.latestError);
     assert.equal(
-      reportObj.idfCheckRequirements.result,
+      reportObj.debugAdapterRequirements.result,
       `Python requirements from ${join(
         __dirname,
         "../../esp_debug_adapter/requirements.txt"
