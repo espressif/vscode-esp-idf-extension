@@ -227,6 +227,7 @@ suite("Doctor command tests", () => {
       process.env.OLD_PATH,
       ""
     );
+    console.log(reportObj.configurationSettings.customExtraPaths);
     getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
