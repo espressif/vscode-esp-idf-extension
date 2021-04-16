@@ -228,14 +228,14 @@ suite("Doctor command tests", () => {
       ""
     );
     getConfigurationAccess(reportObj, mockUpContext);
-    assert.equal(reportObj.configurationAccess.pythonBinPath, false);
-    assert.equal(reportObj.configurationAccess.espIdfPath, false);
+    assert.equal(reportObj.configurationAccess.pythonBinPath, true);
+    assert.equal(reportObj.configurationAccess.espIdfPath, true);
     for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
       console.log(toolPath);
       console.log(reportObj.configurationAccess.espIdfToolsPaths[toolPath]);
       assert.equal(
         reportObj.configurationAccess.espIdfToolsPaths[toolPath],
-        false
+        true
       );
     }
   });
