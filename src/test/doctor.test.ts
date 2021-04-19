@@ -18,7 +18,7 @@
 
 import * as assert from "assert";
 import * as os from "os";
-import { join, resolve } from "path";
+import { delimiter, join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
 import { setExtensionContext } from "../utils";
@@ -151,8 +151,6 @@ suite("Doctor command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
-    console.log(`old path: ${process.env.OLD_PATH}`);
-    console.log(`env path: ${process.env.IDF_PYTHON_ENV_PATH}`);
     getConfigurationSettings(reportObj);
     assert.equal(
       reportObj.configurationSettings.espIdfPath,
@@ -224,7 +222,7 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
-      process.env.OLD_PATH,
+      delimiter + process.env.OLD_PATH,
       ""
     );
     console.log(reportObj.configurationSettings.customExtraPaths);
