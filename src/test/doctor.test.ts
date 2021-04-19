@@ -40,6 +40,7 @@ import {
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
+import { getGitVersion } from "../support/gitVersion";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
@@ -50,8 +51,6 @@ suite("Doctor command tests", () => {
   } as vscode.ExtensionContext;
   setup(async () => {
     setExtensionContext(mockUpContext);
-    // Logger.init(mockUpContext);
-    // const output = OutputChannel.init();
   });
 
   test("System information", () => {
@@ -236,16 +235,11 @@ suite("Doctor command tests", () => {
   });
 
   test("Match git version", async () => {
-    await getPythonVersion(reportObj, mockUpContext);
+    await getGitVersion(reportObj, mockUpContext);
     assert.equal(reportObj.gitVersion.result, process.env.GIT_VERSION);
   });
 
   test("Match ESP-IDF version", async () => {
-    console.log(process.env.GIT_VERSION);
-    console.log(process.env.IDF_VERSION);
-    console.log(process.env.PY_VERSION);
-    console.log(process.env.PIP_VERSION);
-    console.log(process.env.PY_PKGS);
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     await getEspIdfVersion(reportObj);
     assert.equal(reportObj.espIdfVersion.result, process.env.IDF_VERSION);
@@ -267,7 +261,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
     await getPythonPackages(reportObj, mockUpContext);
-    console.log(JSON.stringify(reportObj.configurationSettings.pythonPackages));
     assert.deepEqual(
       reportObj.configurationSettings.pythonPackages,
       expectedPyPkgs
