@@ -14,7 +14,7 @@ export GIT_VERSION=$( echo "$a" | echo $(git --version) | sed -nre 's/^[^0-9]*((
 export IDF_VERSION=$( echo "$a" | echo $(idf.py --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
 export PY_VERSION=$( echo "$a" | echo $(python --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
 export PIP_VERSION=$( echo "$a" | echo $(python -m pip --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
-export PY_PKGS=$( echo "python -m pip list --format json")
+export PY_PKGS=$(python -m pip list --format json)
 
 yarn
 yarn lint

@@ -39,6 +39,7 @@ import {
   checkCCppPropertiesJson,
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
+import { getPythonPackages } from "../support/pythonPackages";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
@@ -234,7 +235,12 @@ suite("Doctor command tests", () => {
     }
   });
 
-  test("good version of ESP-IDF", async () => {
+  test("Match git version", async () => {
+    await getPythonVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.gitVersion.result, process.env.GIT_VERSION);
+  });
+
+  test("Match ESP-IDF version", async () => {
     console.log(process.env.GIT_VERSION);
     console.log(process.env.IDF_VERSION);
     console.log(process.env.PY_VERSION);
@@ -245,15 +251,26 @@ suite("Doctor command tests", () => {
     assert.equal(reportObj.espIdfVersion.result, process.env.IDF_VERSION);
   });
 
-  // test("Wrong python", async () => {
-  //   reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-  //   await getPythonVersion(reportObj, mockUpContext);
-  //   assert.equal(reportObj.pythonVersion.result, "Not found");
-  // });
+  test("Match python version", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    await getPythonVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pythonVersion.result, process.env.PY_VERSION);
+  });
 
-  // test("Wrong pip", async () => {
-  //   reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-  //   await getPipVersion(reportObj, mockUpContext);
-  //   assert.equal(reportObj.pipVersion.result, "Not found");
-  // });
+  test("Match pip version", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    await getPipVersion(reportObj, mockUpContext);
+    assert.equal(reportObj.pipVersion.result, process.env.PIP_VERSION);
+  });
+
+  test("Match python packages", async () => {
+    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
+    await getPythonPackages(reportObj, mockUpContext);
+    console.log(JSON.stringify(reportObj.configurationSettings.pythonPackages));
+    assert.deepEqual(
+      reportObj.configurationSettings.pythonPackages,
+      expectedPyPkgs
+    );
+  });
 });
