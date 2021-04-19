@@ -273,7 +273,19 @@ suite("Doctor command tests", () => {
       delimiter + process.env.OLD_PATH,
       ""
     );
-    let expectedOutput = `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
+    const processPathEnvVar =
+      process.platform === "win32" ? process.env.Path : process.env.PATH;
+    const extensionObj = vscode.extensions.getExtension(ESP.extensionID);
+    let expectedOutput = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${os.EOL}`;
+    expectedOutput += `OS ${os.platform()} ${os.arch()} ${os.release()} ${
+      os.EOL
+    }`;
+    expectedOutput += `System environment variable PATH ${os.EOL} ${processPathEnvVar} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
+    expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
+    expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${reportObj.configurationSettings.customExtraPaths}${os.EOL}`;
     expectedOutput += `Custom extra vars (idf.customExtraVars) ${customExtraPaths}${os.EOL}`;
@@ -290,8 +302,6 @@ suite("Doctor command tests", () => {
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
-    console.log(expectedOutput);
-    console.log(subReport);
     assert.equal(subReport, expectedOutput);
   });
 });
