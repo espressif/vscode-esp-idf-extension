@@ -287,8 +287,8 @@ suite("Doctor command tests", () => {
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
-    expectedOutput += `Custom extra paths (idf.customExtraPaths) ${reportObj.configurationSettings.customExtraPaths}${os.EOL}`;
-    expectedOutput += `Custom extra vars (idf.customExtraVars) ${customExtraPaths}${os.EOL}`;
+    expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
+    expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
     expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
