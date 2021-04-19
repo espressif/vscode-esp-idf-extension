@@ -41,6 +41,7 @@ import {
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
+import { writeTextReport } from "../support/writeReport";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
@@ -265,5 +266,44 @@ suite("Doctor command tests", () => {
       reportObj.configurationSettings.pythonPackages,
       expectedPyPkgs
     );
+  });
+
+  test("Match written report", async () => {
+    const customExtraPaths = process.env.PATH.replace(
+      delimiter + process.env.OLD_PATH,
+      ""
+    );
+    const processPathEnvVar =
+      process.platform === "win32" ? process.env.Path : process.env.PATH;
+    const extensionObj = vscode.extensions.getExtension(ESP.extensionID);
+    let expectedOutput = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${os.EOL}`;
+    expectedOutput += `OS ${os.platform()} ${os.arch()} ${os.release()} ${
+      os.EOL
+    }`;
+    expectedOutput += `System environment variable PATH ${os.EOL} ${processPathEnvVar} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
+    expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
+    expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
+    expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
+    expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
+    expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
+    expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
+    expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
+      process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
+    }${os.EOL}`;
+    expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;
+    expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
+    expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
+    const actualReport = await writeTextReport(reportObj, mockUpContext);
+    const subReport = actualReport.slice(
+      0,
+      actualReport.indexOf(
+        "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
+      )
+    );
+    console.log(subReport);
+    console.log(expectedOutput);
+    assert.equal(subReport, expectedOutput);
   });
 });
