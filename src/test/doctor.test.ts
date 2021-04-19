@@ -41,6 +41,7 @@ import {
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
+import { writeTextReport } from "../support/writeReport";
 
 suite("Doctor command tests", () => {
   const reportObj = initializeReportObject();
@@ -265,5 +266,11 @@ suite("Doctor command tests", () => {
       reportObj.configurationSettings.pythonPackages,
       expectedPyPkgs
     );
+  });
+
+  test("Match written report", async () => {
+    const actualReport = await writeTextReport(reportObj, mockUpContext);
+    console.log(actualReport);
+    assert.equal(actualReport, "my weird report");
   });
 });
