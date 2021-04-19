@@ -290,6 +290,8 @@ suite("Doctor command tests", () => {
         "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
       )
     );
+    console.log(expectedOutput);
+    console.log(subReport);
     assert.equal(subReport, expectedOutput);
   });
 });
