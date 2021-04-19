@@ -269,8 +269,27 @@ suite("Doctor command tests", () => {
   });
 
   test("Match written report", async () => {
+    const customExtraPaths = process.env.PATH.replace(
+      delimiter + process.env.OLD_PATH,
+      ""
+    );
+    let expectedOutput = `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
+    expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
+    expectedOutput += `Custom extra paths (idf.customExtraPaths) ${reportObj.configurationSettings.customExtraPaths}${os.EOL}`;
+    expectedOutput += `Custom extra vars (idf.customExtraVars) ${customExtraPaths}${os.EOL}`;
+    expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
+      process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
+    }${os.EOL}`;
+    expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;
+    expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
+    expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     const actualReport = await writeTextReport(reportObj, mockUpContext);
-    console.log(actualReport);
-    assert.equal(actualReport, "my weird report");
+    const subReport = actualReport.slice(
+      0,
+      actualReport.indexOf(
+        "-------------------------------------------------------- Configurations access -------------------------------------------------------------"
+      )
+    );
+    assert.equal(subReport, expectedOutput);
   });
 });
