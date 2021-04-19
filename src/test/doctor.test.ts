@@ -225,13 +225,12 @@ suite("Doctor command tests", () => {
       delimiter + process.env.OLD_PATH,
       ""
     );
-    console.log(reportObj.configurationSettings.customExtraPaths);
     getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
+    console.log(JSON.stringify(reportObj.configurationAccess.espIdfToolsPaths));
     for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
       console.log(toolPath);
-      console.log(reportObj.configurationAccess.espIdfToolsPaths[toolPath]);
       assert.equal(
         reportObj.configurationAccess.espIdfToolsPaths[toolPath],
         true
