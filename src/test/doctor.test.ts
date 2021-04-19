@@ -22,8 +22,6 @@ import { delimiter, join, resolve } from "path";
 import * as vscode from "vscode";
 import { ESP } from "../config";
 import { setExtensionContext } from "../utils";
-import { Logger } from "../logger/logger";
-import { OutputChannel } from "../logger/outputChannel";
 import { initializeReportObject } from "../support/initReportObj";
 import { getConfigurationAccess } from "../support/configurationAccess";
 import { getEspIdfVersion } from "../support/espIdfVersion";
@@ -228,13 +226,34 @@ suite("Doctor command tests", () => {
     getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
-    console.log(JSON.stringify(reportObj.configurationAccess.espIdfToolsPaths));
     for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
-      console.log(toolPath);
       assert.equal(
         reportObj.configurationAccess.espIdfToolsPaths[toolPath],
         true
       );
     }
   });
+
+  test("good version of ESP-IDF", async () => {
+    console.log(process.env.GIT_VERSION);
+    console.log(process.env.IDF_VERSION);
+    console.log(process.env.PY_VERSION);
+    console.log(process.env.PIP_VERSION);
+    console.log(process.env.PY_PKGS);
+    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    await getEspIdfVersion(reportObj);
+    assert.equal(reportObj.espIdfVersion.result, process.env.IDF_VERSION);
+  });
+
+  // test("Wrong python", async () => {
+  //   reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+  //   await getPythonVersion(reportObj, mockUpContext);
+  //   assert.equal(reportObj.pythonVersion.result, "Not found");
+  // });
+
+  // test("Wrong pip", async () => {
+  //   reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
+  //   await getPipVersion(reportObj, mockUpContext);
+  //   assert.equal(reportObj.pipVersion.result, "Not found");
+  // });
 });
