@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { writeFile, writeJson } from "fs-extra";
-import { EOL, release } from "os";
+import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
 import { reportObj } from "./types";
@@ -34,7 +34,9 @@ export async function writeTextReport(
   output += `Visual Studio Code shell ${reportedResult.systemInfo.shell} ${EOL}`;
   output += `ESP-IDF Extension version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
+  output += `ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
+  output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   output += `Custom extra vars (idf.customExtraVars) ${reportedResult.configurationSettings.customExtraVars}${EOL}`;
   output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
@@ -42,7 +44,9 @@ export async function writeTextReport(
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
+  output += `Access to ESP-ADF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
+  output += `Access to ESP-MDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;

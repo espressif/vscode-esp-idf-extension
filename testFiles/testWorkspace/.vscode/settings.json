@@ -1,5 +1,7 @@
 {
+  "idf.espAdfPath": "/test/esp-adf",
   "idf.espIdfPath": "/test/esp-idf",
+  "idf.espMdfPath": "/test/esp-mdf",
   "idf.customExtraPaths": "/my/first/path:my/second/path",
   "idf.customExtraVars": "{\"SOME_VAR\": \"value\"}",
   "idf.port": "/serialport",

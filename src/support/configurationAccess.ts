@@ -30,8 +30,16 @@ export async function getConfigurationAccess(
     reportedResult.configurationSettings.toolsPath,
     constants.R_OK
   );
+  reportedResult.configurationAccess.espAdfPath = canAccessFile(
+    reportedResult.configurationSettings.espAdfPath,
+    constants.R_OK
+  );
   reportedResult.configurationAccess.espIdfPath = canAccessFile(
     reportedResult.configurationSettings.espIdfPath,
+    constants.R_OK
+  );
+  reportedResult.configurationAccess.espMdfPath = canAccessFile(
+    reportedResult.configurationSettings.espMdfPath,
     constants.R_OK
   );
   reportedResult.configurationAccess.pythonBinPath = canAccessFile(

@@ -24,9 +24,15 @@ export function getConfigurationSettings(
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   reportedResult.configurationSettings = {
+    espAdfPath: vscode.workspace
+      .getConfiguration("", scope)
+      .get("idf.espAdfPath" + winFlag),
     espIdfPath: vscode.workspace
       .getConfiguration("", scope)
       .get("idf.espIdfPath" + winFlag),
+    espMdfPath: vscode.workspace
+      .getConfiguration("", scope)
+      .get("idf.espMdfPath" + winFlag),
     customExtraPaths: vscode.workspace
       .getConfiguration("", scope)
       .get("idf.customExtraPaths"),

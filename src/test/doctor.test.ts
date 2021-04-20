@@ -152,8 +152,16 @@ suite("Doctor command tests", () => {
     );
     getConfigurationSettings(reportObj);
     assert.equal(
+      reportObj.configurationSettings.espAdfPath,
+      settingsJsonObj["idf.espAdfPath"]
+    );
+    assert.equal(
       reportObj.configurationSettings.espIdfPath,
       settingsJsonObj["idf.espIdfPath"]
+    );
+    assert.equal(
+      reportObj.configurationSettings.espMdfPath,
+      settingsJsonObj["idf.espMdfPath"]
     );
     assert.equal(
       reportObj.configurationSettings.customExtraPaths,
@@ -286,7 +294,9 @@ suite("Doctor command tests", () => {
     expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
+    expectedOutput += `ESP-ADF Path (idf.espAdfPath) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
+    expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
     expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
     expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
