@@ -22,6 +22,8 @@ export function initializeReportObject() {
   report.configurationSettings = {
     systemEnvPath: undefined,
     espIdfPath: undefined,
+    espAdfPath: undefined,
+    espMdfPath: undefined,
     customExtraPaths: undefined,
     customExtraVars: undefined,
     pythonBinPath: undefined,
@@ -33,6 +35,8 @@ export function initializeReportObject() {
   report.cCppPropertiesJson = undefined;
   report.configurationAccess = {
     espIdfPath: undefined,
+    espAdfPath: undefined,
+    espMdfPath: undefined,
     espIdfToolsPaths: undefined,
     pythonBinPath: undefined,
     cmakeInEnv: undefined,
