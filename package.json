@@ -984,7 +984,8 @@
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN}",
     "clean": "gulp clean",
     "validateLocalization": "gulp validateLocalization",
-    "webpack": "webpack --mode production"
+    "webpack": "webpack --mode production",
+    "packageWithoutDependencies": "gulp noDepBuild && vsce package --yarn -o esp-idf-extension-open.vsix"
   },
   "devDependencies": {
     "@creativebulma/bulma-tooltip": "^1.2.0",
