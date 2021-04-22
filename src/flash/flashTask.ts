@@ -117,33 +117,7 @@ export class FlashTask {
       winWslRoot + this.flashScriptPath.replace(/\//g, "\\")
     ).replace(/\\/g, "\\\\");
 
-    const flasherArgs = [
-      toolPath,
-      "-p",
-      this.model.port,
-      "-b",
-      this.model.baudRate,
-      "--before",
-      this.model.before,
-      "--after",
-      this.model.after,
-      "--chip",
-      this.model.chip,
-      !this.model.stub ? "--no-stub" : "",
-      "write_flash",
-      "--flash_mode",
-      this.model.mode,
-      "--flash_freq",
-      this.model.frequency,
-      "--flash_size",
-      this.model.size,
-    ];
-    for (const flashFile of this.model.flashSections) {
-      flasherArgs.push(
-        flashFile.address,
-        flashFile.binFilePath.replace(/\//g, "\\")
-      );
-    }
+    const flasherArgs = this.getFlasherArgs(toolPath, true);
     const options: vscode.ShellExecutionOptions = {
       cwd: this.buildDir,
       env: modifiedEnv,
@@ -157,30 +131,7 @@ export class FlashTask {
   public _flashExecution() {
     this.flashing(true);
     const modifiedEnv = appendIdfAndToolsToPath();
-    const flasherArgs = [
-      this.flashScriptPath,
-      "-p",
-      this.model.port,
-      "-b",
-      this.model.baudRate,
-      "--before",
-      this.model.before,
-      "--after",
-      this.model.after,
-      "--chip",
-      this.model.chip,
-      !this.model.stub ? "--no-stub" : "",
-      "write_flash",
-      "--flash_mode",
-      this.model.mode,
-      "--flash_freq",
-      this.model.frequency,
-      "--flash_size",
-      this.model.size,
-    ];
-    for (const flashFile of this.model.flashSections) {
-      flasherArgs.push(flashFile.address, flashFile.binFilePath);
-    }
+    const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
     const options: vscode.ShellExecutionOptions = {
       cwd: this.buildDir,
       env: modifiedEnv,
@@ -190,5 +141,53 @@ export class FlashTask {
       `${pythonBinPath} ${flasherArgs.join(" ")}`,
       options
     );
+  }
+
+  public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {
+    const flasherArgs = [
+      toolPath,
+      "-p",
+      this.model.port,
+      "-b",
+      this.model.baudRate,
+      "--before",
+      this.model.before,
+      "--after",
+      this.model.after,
+    ];
+    if (this.model.chip) {
+      flasherArgs.push("--chip", this.model.chip);
+    }
+    if (!!this.model.stub && !this.model.stub) {
+      flasherArgs.push("--no-stub");
+    }
+    flasherArgs.push(
+      "write_flash",
+      "--flash_mode",
+      this.model.mode,
+      "--flash_freq",
+      this.model.frequency,
+      "--flash_size",
+      this.model.size
+    );
+    for (const flashFile of this.model.flashSections) {
+      let binPath = replacePathSep
+        ? flashFile.binFilePath.replace(/\//g, "\\")
+        : flashFile.binFilePath;
+      flasherArgs.push(flashFile.address, binPath);
+    }
+    if (
+      this.model.encryptedFlashSections &&
+      this.model.encryptedFlashSections.length
+    ) {
+      flasherArgs.push("--encrypt-files");
+    }
+    for (const flashFile of this.model.encryptedFlashSections) {
+      let binPath = replacePathSep
+        ? flashFile.binFilePath.replace(/\//g, "\\")
+        : flashFile.binFilePath;
+      flasherArgs.push(flashFile.address, binPath);
+    }
+    return flasherArgs;
   }
 }

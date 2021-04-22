@@ -24,6 +24,7 @@ export interface FlashModel {
   before: string;
   bootloader: FlashSection;
   chip: string;
+  encryptedFlashSections: FlashSection[];
   flashSections: FlashSection[];
   frequency: string;
   mode: string;
@@ -35,4 +36,5 @@ export interface FlashModel {
 export interface FlashSection {
   address: string;
   binFilePath: string;
+  encrypted: string;
 }
