@@ -776,6 +776,8 @@ export function appendIdfAndToolsToPath() {
   }
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
+  modifiedEnv.IDF_COMPONENT_MANAGER = "1";
+
   return modifiedEnv;
 }
 
