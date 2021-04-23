@@ -45,6 +45,15 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
 
+      - name: Package open .vsix
+        run: yarn packageWithoutDependencies
+
+      - name: Upload no dependencies .vsix File
+        uses: actions/upload-artifact@v1
+        with:
+          name: esp-idf-extension-open.vsix
+          path: esp-idf-extension-open.vsix
+
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
         with:
