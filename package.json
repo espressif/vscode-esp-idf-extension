@@ -54,7 +54,7 @@
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
     "onCommand:espIdf.cleanProject",
-    "onCommand:espIdf.erase_flash",
+    "onCommand:espIdf.eraseFlash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.fullClean",
     "onCommand:espIdf.apptrace",
@@ -259,6 +259,11 @@
         "mac": "cmd+e x"
       },
       {
+        "command": "espIdf.eraseFlash",
+        "key": "ctrl+e r",
+        "mac": "cmd+e r"
+      },
+      {
         "command": "espIdf.buildDevice",
         "key": "ctrl+e b",
         "mac": "cmd+e b"
@@ -418,6 +423,25 @@
               "custom"
             ],
             "description": "%param.adapterTargetName%",
+            "scope": "resource"
+          },
+          "idf.cmakeCompilerArgs": {
+            "type": "array",
+            "default": [
+              "-G",
+              "Ninja",
+              ".."
+            ],
+            "description": "%param.cmakeCompilerArgs%",
+            "scope": "resource"
+          },
+          "idf.cmakeBuildArgs": {
+            "type": "array",
+            "default": [
+              "--build",
+              "."
+            ],
+            "description": "%param.cmakeBuildArgs%",
             "scope": "resource"
           },
           "idf.customAdapterTargetName": {
@@ -838,6 +862,10 @@
       {
         "command": "espIdf.newProject.start",
         "title": "%espIdf.newProject.start.title%"
+      },
+      {
+        "command": "espIdf.eraseFlash",
+        "title": "%espIdf.eraseFlash.title%"
       }
     ],
     "breakpoints": [

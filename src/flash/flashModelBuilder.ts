@@ -29,30 +29,43 @@ export function createFlashModel(
       app: {
         address: flashArgsJson.app.offset,
         binFilePath: flashArgsJson.app.file,
+        encrypted: flashArgsJson.app.encrypted,
       } as FlashSection,
+      after: flashArgsJson.extra_esptool_args.after,
+      before: flashArgsJson.extra_esptool_args.before,
       bootloader: {
         address: flashArgsJson.bootloader.offset,
         binFilePath: flashArgsJson.bootloader.file,
+        encrypted: flashArgsJson.bootloader.encrypted,
       } as FlashSection,
       partitionTable: {
         address: flashArgsJson.partition_table.offset,
         binFilePath: flashArgsJson.partition_table.file,
+        encrypted: flashArgsJson.partition_table.encrypted,
       } as FlashSection,
       baudRate,
-      port,
-      size: flashArgsJson.flash_settings.flash_size,
+      chip: flashArgsJson.extra_esptool_args.chip,
+      encryptedFlashSections: [],
+      flashSections: [],
       frequency: flashArgsJson.flash_settings.flash_freq,
       mode: flashArgsJson.flash_settings.flash_mode,
-      flashSections: [],
+      port,
+      size: flashArgsJson.flash_settings.flash_size,
+      stub: flashArgsJson.extra_esptool_args.stub,
     };
-    Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
-      if (fileKey && flashArgsJson.flash_files[fileKey]) {
-        flashModel.flashSections.push({
-          address: fileKey,
-          binFilePath: flashArgsJson.flash_files[fileKey],
-        } as FlashSection);
-      }
-    });
+    flashModel.bootloader.encrypted &&
+    flashModel.bootloader.encrypted.indexOf("true") !== -1
+      ? flashModel.encryptedFlashSections.push(flashModel.bootloader)
+      : flashModel.flashSections.push(flashModel.bootloader);
+
+    flashModel.app.encrypted && flashModel.app.encrypted.indexOf("true") !== -1
+      ? flashModel.encryptedFlashSections.push(flashModel.app)
+      : flashModel.flashSections.push(flashModel.app);
+
+    flashModel.partitionTable.encrypted &&
+    flashModel.partitionTable.encrypted.indexOf("true") !== -1
+      ? flashModel.encryptedFlashSections.push(flashModel.partitionTable)
+      : flashModel.flashSections.push(flashModel.partitionTable);
     return flashModel;
   });
 }

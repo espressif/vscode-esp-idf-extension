@@ -483,7 +483,57 @@ export async function activate(context: vscode.ExtensionContext) {
         );
       }
 
-      await del(buildDir, { force: true });
+      try {
+        await del(buildDir, { force: true });
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.eraseFlash", async () => {
+    PreCheck.perform([webIdeCheck], async () => {
+      const pythonBinPath = idfConf.readParameter(
+        "idf.pythonBinPath"
+      ) as string;
+      const idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
+      const port = idfConf.readParameter("idf.port") as string;
+      const flashScriptPath = path.join(
+        idfPathDir,
+        "components",
+        "esptool_py",
+        "esptool",
+        "esptool.py"
+      );
+
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Erasing device flash memory (erase_flash)",
+        },
+        async (
+          progress: vscode.Progress<{
+            message: string;
+            increment: number;
+          }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const result = await utils.execChildProcess(
+              `${pythonBinPath} ${flashScriptPath} -p ${port} erase_flash`,
+              process.cwd(),
+              OutputChannel.init(),
+              null,
+              cancelToken
+            );
+            OutputChannel.appendLine(result);
+            Logger.infoNotify("Flash memory content has been erased.");
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
