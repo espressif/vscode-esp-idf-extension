@@ -277,6 +277,11 @@ export class SetupPanel {
         command: "setPyExecErrorStatus",
         errorMsg: error.message,
       });
+    } else if (errMsg.indexOf("ERROR_INVALID_PIP") !== -1) {
+      SetupPanel.postMessage({
+        command: "setPyExecErrorStatus",
+        errorMsg: error.message,
+      });
     } else {
       SetupPanel.postMessage({
         command: "setEspIdfErrorStatus",
