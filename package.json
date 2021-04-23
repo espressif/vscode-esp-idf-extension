@@ -57,6 +57,7 @@
     "onCommand:espIdf.eraseFlash",
     "onCommand:espIdf.size",
     "onCommand:espIdf.fullClean",
+    "onCommand:espIdf.gcovDump",
     "onCommand:espIdf.apptrace",
     "onCommand:espIdf.heaptrace",
     "onCommand:espIdf.openOCDCommand",
@@ -707,6 +708,10 @@
       {
         "command": "espIdf.size",
         "title": "%espIdf.size.title%"
+      },
+      {
+        "command": "espIdf.gcovDump",
+        "title": "%espIdf.gcovDump.title%"
       },
       {
         "command": "espIdf.apptrace",

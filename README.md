@@ -120,6 +120,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
 | Flash your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Full clean project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
+| Get coverage data                                       |                                        |                                           |
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |

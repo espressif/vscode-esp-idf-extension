@@ -20,6 +20,7 @@
   "espIdf.buildFlashMonitor.title": "ESP-IDF: Build, Flash and start a monitor on your device",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Pick a workspace folder",
   "espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
+  "espIdf.gcovDump.title": "ESP-IDF: Get coverage data",
   "espIdf.apptrace.title": "ESP-IDF: App Trace",
   "espIdf.heaptrace.title": "ESP-IDF: Heap Trace",
   "espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",

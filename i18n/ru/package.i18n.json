@@ -20,6 +20,7 @@
   "espIdf.buildFlashMonitor.title": "ESP-IDF: Сборка, прошивка и запуск мониторинга вашего устройства",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Выберите папку рабочего окружения",
   "espIdf.size.title": "ESP-IDF: Анализ размера двоичных файлов",
+  "espIdf.gcovDump.title": "ESP-IDF: Получите покрытие исходного кода",
   "espIdf.apptrace.title": "ESP-IDF: Трассировка приложения",
   "espIdf.heaptrace.title": "ESP-IDF: Трасировка динамической памяти",
   "espIdf.openOCDCommand.title": "ESP-IDF: Менеджер OpenOCD",
