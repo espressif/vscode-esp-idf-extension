@@ -29,10 +29,10 @@ export async function writeTextReport(
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
   output += `OS ${reportedResult.systemInfo.platform} ${reportedResult.systemInfo.architecture} ${reportedResult.systemInfo.systemName} ${EOL}`;
   output += `System environment variable PATH ${EOL} ${reportedResult.systemInfo.envPath} ${EOL}`;
-  output += `Visual Studio Code version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
+  output += `Visual Studio Code version ${reportedResult.systemInfo.vscodeVersion} ${EOL}`;
   output += `Visual Studio Code language ${reportedResult.systemInfo.language} ${EOL}`;
   output += `Visual Studio Code shell ${reportedResult.systemInfo.shell} ${EOL}`;
-  output += `ESP-IDF Extension version ${reportedResult.systemInfo.vscodeVersion} ${EOL}`;
+  output += `ESP-IDF Extension version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
