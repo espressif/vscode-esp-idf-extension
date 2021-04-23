@@ -1,2 +1,3 @@
 gcovr
+idf-component-manager
 websocket_client
