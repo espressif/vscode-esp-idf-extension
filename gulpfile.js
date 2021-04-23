@@ -110,14 +110,15 @@ function validateLocalizationFiles(done) {
   done();
 }
 
-async function rmExtensionDependencies(done) {
+async function addExtensionDependencies(done) {
   const packageJson = await readJSON("package.json");
-  delete packageJson.extensionDependencies;
-  await writeJSON("package.json", packageJson);
+  packageJson.extensionDependencies = ["ms-vscode.cpptools"];
+  await writeJSON("package.json", packageJson, { spaces: 2 });
   done();
 }
 
-const build = gulp.series(clean, addI18n, validateLocalizationFiles);
+const preBuild = gulp.series(clean, addI18n, validateLocalizationFiles);
+const build = gulp.series(preBuild, addExtensionDependencies);
 exports.clean = clean;
 exports.build = build;
 exports.validateLocalization = validateLocalizationFiles;
@@ -125,4 +126,4 @@ exports.publish = gulp.series(build, vscePublish);
 exports.vscePkg = gulp.series(build, vscePackage);
 exports.default = build;
 
-exports.noDepBuild = gulp.series(build, rmExtensionDependencies);
+exports.noDepBuild = preBuild;
