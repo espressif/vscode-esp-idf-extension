@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
-import { checkPythonPipExists } from "./installPyReqs";
+import { checkPythonExists, checkPipExists } from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import * as idfConf from "../idfConfiguration";
 import * as utils from "../utils";
@@ -38,9 +39,16 @@ export async function expressInstall(
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken
 ) {
-  const pyCheck = await checkPythonPipExists(pyPath, __dirname);
-  if (!pyCheck) {
+  const pyExists = pyPath === "python" ? true : await pathExists(pyPath);
+  const doesPythonExists = await checkPythonExists(pyPath, __dirname);
+  if (!(pyExists && doesPythonExists)) {
     const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
+    Logger.infoNotify(containerNotFoundMsg);
+    throw new Error(containerNotFoundMsg);
+  }
+  const doesPipExists = await checkPipExists(pyPath, __dirname);
+  if (!doesPipExists) {
+    const containerNotFoundMsg = `"${pyPath} -m pip" is not valid. (ERROR_INVALID_PIP)`;
     Logger.infoNotify(containerNotFoundMsg);
     throw new Error(containerNotFoundMsg);
   }

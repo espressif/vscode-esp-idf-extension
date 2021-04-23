@@ -29,9 +29,24 @@ export async function installPyReqs(
   progress.report({
     message: `Checking Python and pip exists...`,
   });
-  const canCheck = await checkPythonPipExists(sysPyBinPath, workingDir);
-  if (!canCheck) {
-    const msg = "Python or pip have not been found in your environment.";
+  const pyExists =
+    sysPyBinPath === "python" ? true : await pathExists(sysPyBinPath);
+  const doesPythonExists = await pythonManager.checkPythonExists(
+    sysPyBinPath,
+    workingDir
+  );
+  if (!(pyExists && doesPythonExists)) {
+    const msg = "Python have not been found in your environment.";
+    sendPyReqLog(msg);
+    OutputChannel.appendLine(msg);
+    return;
+  }
+  const doesPipExists = await pythonManager.checkPipExists(
+    sysPyBinPath,
+    workingDir
+  );
+  if (!doesPipExists) {
+    const msg = "Pip have not been found in your environment.";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
     return;
@@ -73,22 +88,6 @@ export async function installExtensionPyReqs(
     logTracker,
     OutputChannel.init()
   );
-}
-
-export async function checkPythonPipExists(
-  pyBinPath: string,
-  workingDir: string
-) {
-  const pyExists = pyBinPath === "python" ? true : await pathExists(pyBinPath);
-  const doesPythonExists = await pythonManager.checkPythonExists(
-    pyBinPath,
-    workingDir
-  );
-  const doesPipExists = await pythonManager.checkPipExists(
-    pyBinPath,
-    workingDir
-  );
-  return pyExists && doesPythonExists && doesPipExists;
 }
 
 export function sendPyReqLog(log: string) {
