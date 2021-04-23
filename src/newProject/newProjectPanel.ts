@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import marked from "marked";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -272,18 +271,32 @@ export class NewProjectPanel {
           const toolsDir = idfConf.readParameter("idf.toolsPath");
           const pyPath = idfConf.readParameter("idf.pythonBinPath");
           const isWin = process.platform === "win32" ? "Win" : "";
-          const modifiedEnv = utils.appendIdfAndToolsToPath();
-          const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-          settingsJson["idf.adapterTargetName"] = idfTarget;
-          settingsJson["idf.customExtraPaths"] = extraPaths;
-          settingsJson["idf.customExtraVars"] = extraVars;
-          settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
-          settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
-          settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
+          settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
+          if (extraPaths) {
+            settingsJson["idf.customExtraPaths"] = extraPaths;
+          }
+          if (extraVars) {
+            settingsJson["idf.customExtraVars"] = extraVars;
+          }
+          if (idfPathDir) {
+            settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
+          }
+          if (adfPathDir) {
+            settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
+          }
+          if (mdfPathDir) {
+            settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
+          }
           settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
-          settingsJson["idf.port" + isWin] = port;
-          settingsJson["idf.pythonBinPath" + isWin] = pyPath;
-          settingsJson["idf.toolsPath" + isWin] = toolsDir;
+          if (port.indexOf("no port") === -1) {
+            settingsJson["idf.port" + isWin] = port;
+          }
+          if (pyPath) {
+            settingsJson["idf.pythonBinPath" + isWin] = pyPath;
+          }
+          if (toolsDir) {
+            settingsJson["idf.toolsPath" + isWin] = toolsDir;
+          }
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:
               vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
