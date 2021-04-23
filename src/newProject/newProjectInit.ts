@@ -44,6 +44,21 @@ const defTargetList: IdfTarget[] = [
     name: "ESP32-S2",
     openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32s2.cfg",
   } as IdfTarget,
+  {
+    id: "esp32s3",
+    name: "ESP32-S3",
+    openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32s3.cfg",
+  } as IdfTarget,
+  {
+    id: "esp32c3",
+    name: "ESP32-C3 USB",
+    openOcdFiles: "board/esp32c3-builtin.cfg",
+  } as IdfTarget,
+  {
+    id: "esp32c3",
+    name: "ESP32-C3 PROG",
+    openOcdFiles: "board/esp32c3-ftdi.cfg",
+  } as IdfTarget,
 ];
 
 export async function getBoards() {
@@ -96,8 +111,18 @@ export async function getNewProjectArgs(
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
   progress.report({ increment: 10, message: "Loading serial ports..." });
-  const serialPortListDetails = await SerialPort.shared().getListArray();
-  const serialPortList = serialPortListDetails.map((p) => p.comName);
+  let serialPortList: Array<string>;
+  try {
+    const serialPortListDetails = await SerialPort.shared().getListArray();
+    serialPortList = serialPortListDetails.map((p) => p.comName);
+  } catch (error) {
+    const msg = error.message
+      ? error.message
+      : "Error looking for serial ports.";
+    Logger.infoNotify(msg);
+    Logger.error(msg, error);
+    serialPortList = ["no port"];
+  }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
   const espBoards = await getBoards();
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });

@@ -163,7 +163,7 @@ export const actions: ActionTree<IState, any> = {
       openOcdConfigFiles: context.state.openOcdConfigFiles,
       port: context.state.selectedPort,
       projectName: context.state.projectName,
-      target: context.state.target,
+      target: context.state.target.id,
       template: context.state.selectedTemplate,
     });
   },

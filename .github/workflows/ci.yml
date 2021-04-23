@@ -36,15 +36,6 @@ jobs:
       - name: Lint Check
         run: yarn lint
 
-      - name: Package .vsix
-        run: yarn package
-
-      - name: Upload .vsix File
-        uses: actions/upload-artifact@v1
-        with:
-          name: esp-idf-extension.vsix
-          path: esp-idf-extension.vsix
-
       - name: Package open .vsix
         run: yarn packageWithoutDependencies
 
@@ -53,6 +44,15 @@ jobs:
         with:
           name: esp-idf-extension-open.vsix
           path: esp-idf-extension-open.vsix
+
+      - name: Package .vsix
+        run: yarn package
+
+      - name: Upload .vsix File
+        uses: actions/upload-artifact@v1
+        with:
+          name: esp-idf-extension.vsix
+          path: esp-idf-extension.vsix
 
       - name: Extension Test
         uses: GabrielBB/xvfb-action@v1.2
