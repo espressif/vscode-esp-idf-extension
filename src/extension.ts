@@ -2487,10 +2487,9 @@ const flash = () => {
     }
 
     if (monitorTerminal) {
+      const CTRL_RBRACKET = "\u001D";
+      monitorTerminal.sendText(CTRL_RBRACKET);
       monitorTerminal.dispose();
-      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
-      await utils.sleep(killTimeout);
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
     }
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
@@ -2618,10 +2617,9 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       return;
     }
     if (monitorTerminal) {
+      const CTRL_RBRACKET = "\u001D";
+      monitorTerminal.sendText(CTRL_RBRACKET);
       monitorTerminal.dispose();
-      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
-      await utils.sleep(killTimeout);
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
     }
     const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
@@ -2866,6 +2864,8 @@ function createIdfTerminal() {
 export function deactivate() {
   Telemetry.dispose();
   if (monitorTerminal) {
+    const CTRL_RBRACKET = "\u001D";
+    monitorTerminal.sendText(CTRL_RBRACKET);
     monitorTerminal.dispose();
   }
   OutputChannel.end();

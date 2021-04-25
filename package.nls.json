@@ -78,7 +78,6 @@
   "param.saveScope": "Where to save configuration with ESP-IDF commands with number value as vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "ESP-Rainmaker cloud server URL",
   "param.launchMonitorOnDebugSession.title": "Start IDF Monitor along with ESP-IDF Debug Adapter session",
-  "param.killMonitorTimeout.title": "Timeout (milliseconds) for ESP-IDF monitor process kill",
   "esp.rainmaker.backend.sync.title": "Sync with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.connect.title": "Connect with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Account",

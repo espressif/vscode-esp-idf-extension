@@ -132,7 +132,6 @@
     "param.partialDarkTheme",
     "param.uncoveredLightTheme",
     "param.uncoveredDarkTheme",
-    "param.killMonitorTimeout.title",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",
