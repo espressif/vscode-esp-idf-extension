@@ -20,6 +20,7 @@ import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {
+  export const CTRL_RBRACKET = "\u001D";
   export const extensionID = "espressif.esp-idf-extension";
   export const HTTP_USER_AGENT =
     "vscode.extensions.espressif.esp-idf.extension/1.0.0 axios-client";

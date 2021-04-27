@@ -80,7 +80,6 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.useIDFKconfigStyle`          | Enable style validation for Kconfig files                         |
 | `idf.saveScope`                   | Where to save extension settings                                  |
 | `idf.launchMonitorOnDebugSession` | Launch ESP-IDF Monitor along with ESP-IDF Debug session           |
-| `idf.killMonitorTimeout`          | Timeout (milliseconds) for ESP-IDF monitor process kill           |
 
 The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
 

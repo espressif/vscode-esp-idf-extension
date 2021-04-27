@@ -2487,10 +2487,7 @@ const flash = () => {
     }
 
     if (monitorTerminal) {
-      monitorTerminal.dispose();
-      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
-      await utils.sleep(killTimeout);
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     }
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
@@ -2618,10 +2615,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       return;
     }
     if (monitorTerminal) {
-      monitorTerminal.dispose();
-      const killTimeout = idfConf.readParameter("idf.killMonitorTimeout");
-      await utils.sleep(killTimeout);
-      Logger.warnNotify("ESP-IDF Monitor was open. Closing it.");
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     }
     const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
@@ -2869,16 +2863,16 @@ export function deactivate() {
     monitorTerminal.dispose();
   }
   OutputChannel.end();
-
-  if (!kconfigLangClient) {
-    return undefined;
-  }
-  kconfigLangClient.stop();
   ConfserverProcess.dispose();
   for (const statusItem of statusBarItems) {
     statusItem.dispose();
   }
-  covRenderer.dispose();
+  if (covRenderer) {
+    covRenderer.dispose();
+  }
+  if (kconfigLangClient) {
+    kconfigLangClient.stop();
+  }
 }
 
 class IdfDebugConfigurationProvider
