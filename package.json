@@ -993,13 +993,13 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "gulp build && webpack --mode production",
+    "vscode:prepublish": "webpack --mode production",
     "lint": "prettier --check **/*.*",
     "debugPreTask": "webpack --mode development",
     "compile": "tsc -p ./",
     "watch": "webpack --watch --mode development",
     "test": "tsc -p ./ && node ./out/test/runTest.js --VERBOSE 2>&1 >> testing.results.log",
-    "package": "vsce package --yarn -o esp-idf-extension.vsix",
+    "package": "gulp build && vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN} --packagePath esp-idf-extension.vsix",
     "clean": "gulp clean",
     "validateLocalization": "gulp validateLocalization",
