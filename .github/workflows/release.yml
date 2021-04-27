@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Upload .vxis in release asset
+    name: Upload .vsix in release asset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,9 +20,6 @@ jobs:
 
       - name: Package open .vsix
         run: yarn run packageWithoutDependencies
-
-      - name: VSIX Package
-        run: yarn run package
 
       - name: Create Release
         id: create_release
@@ -48,17 +45,6 @@ jobs:
         id: version
         run: "echo ::set-output name=version::${GITHUB_REF:11}"
 
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./esp-idf-extension.vsix
-          asset_name: esp-idf-extension-${{ steps.version.outputs.version }}.vsix
-          asset_content_type: application/zip
-
       - name: Upload no dependencies release asset
         id: upload-open-release-asset
         uses: actions/upload-release-asset@v1.0.1
@@ -68,6 +54,20 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./esp-idf-extension-open.vsix
           asset_name: esp-idf-extension-open-${{ steps.version.outputs.version }}.vsix
+          asset_content_type: application/zip
+
+      - name: VSIX Package
+        run: yarn run package
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./esp-idf-extension.vsix
+          asset_name: esp-idf-extension-${{ steps.version.outputs.version }}.vsix
           asset_content_type: application/zip
 
       - name: Marketplace release
