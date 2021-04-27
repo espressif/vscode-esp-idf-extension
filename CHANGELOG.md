@@ -32,6 +32,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Fix New project wizard require serial ports, add esp32s3 esp32c3, release vsix without extension dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/378)
 - [Check arduino component directory exists, remove old arduino-esp32 cloning branches](hhttps://github.com/espressif/vscode-esp-idf-extension/pull/370)
 - [Remove IDF Tools exact match on extension activation](https://github.com/espressif/vscode-esp-idf-extension/pull/359)
+- [Fix device configuration target setting](https://github.com/espressif/vscode-esp-idf-extension/pull/384)
 
 ## [1.0.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.2)
 
