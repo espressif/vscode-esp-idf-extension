@@ -18,6 +18,8 @@
 
 export class ConfigurationAccess {
   espIdfPath: boolean;
+  espAdfPath: boolean;
+  espMdfPath: boolean;
   espIdfToolsPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   cmakeInEnv: boolean;
@@ -27,6 +29,8 @@ export class ConfigurationAccess {
 export class Configuration {
   systemEnvPath: string;
   espIdfPath: string;
+  espAdfPath: string;
+  espMdfPath: string;
   customExtraPaths: string;
   customExtraVars: string;
   pythonBinPath: string;
@@ -71,7 +75,7 @@ export class reportObj {
   espIdfVersion: execResult;
   gitVersion: execResult;
   latestError: Error;
-  launchJson: any;
+  launchJson: string;
   cCppPropertiesJson: any;
   pipVersion: execResult;
   pythonVersion: execResult;

@@ -1,0 +1,17 @@
+name: "ESP-IDF"
+description: "run tests on ESP-IDF docker image"
+
+inputs:
+  run:
+    description: "command for docker image"
+    required: true
+    default: echo "hello docker"
+outputs:
+  result:
+    description: "Docker test output"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.run }}

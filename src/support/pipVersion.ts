@@ -24,13 +24,18 @@ export async function getPipVersion(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const rawPipVersion = await execChildProcess(
-    `${reportedResult.configurationSettings.pythonBinPath} -m pip --version`,
-    context.extensionPath
-  );
-  reportedResult.pipVersion.output = rawPipVersion;
-  const match = rawPipVersion.match(PIP_VERSION_REGEX);
-  if (match && match.length) {
-    reportedResult.pipVersion.result = match[0].replace(/pip\s/, "");
+  try {
+    const rawPipVersion = await execChildProcess(
+      `${reportedResult.configurationSettings.pythonBinPath} -m pip --version`,
+      context.extensionPath
+    );
+    reportedResult.pipVersion.output = rawPipVersion;
+    const match = rawPipVersion.match(PIP_VERSION_REGEX);
+    if (match && match.length) {
+      reportedResult.pipVersion.result = match[0].replace(/pip\s/, "");
+    }
+  } catch (error) {
+    reportedResult.pipVersion.result = "Not found";
+    reportedResult.latestError = error;
   }
 }

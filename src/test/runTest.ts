@@ -30,11 +30,22 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, "./suite/index");
 
+    // Test workspace
+    const testWorkspace = path.resolve(
+      __dirname,
+      "../../testFiles/testWorkspace"
+    );
+
     // Download VS Code, unzip it and run the integration test
-    await runTests({ extensionDevelopmentPath, extensionTestsPath });
+    await runTests({
+      extensionDevelopmentPath,
+      extensionTestsPath,
+      launchArgs: [testWorkspace],
+    });
   } catch (err) {
     // tslint:disable-next-line: no-console
     console.error("Failed to run tests");
+    console.log(err);
     process.exit(1);
   }
 }

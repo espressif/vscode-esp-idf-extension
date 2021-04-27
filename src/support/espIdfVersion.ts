@@ -21,21 +21,26 @@ import { reportObj } from "./types";
 const ESP_IDF_VERSION_REGEX = /v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/;
 
 export async function getEspIdfVersion(reportedResult: reportObj) {
-  const rawEspIdfVersion = await execChildProcess(
-    "git describe --tags",
-    reportedResult.configurationSettings.espIdfPath
-  );
-  reportedResult.espIdfVersion.output = rawEspIdfVersion;
-  const espIdfVersionMatch = rawEspIdfVersion.match(ESP_IDF_VERSION_REGEX);
-  if (espIdfVersionMatch && espIdfVersionMatch.length) {
-    let espVersion: string = "";
-    for (let i = 1; i < espIdfVersionMatch.length; i++) {
-      if (espIdfVersionMatch[i]) {
-        espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+  try {
+    const rawEspIdfVersion = await execChildProcess(
+      "git describe --tags",
+      reportedResult.configurationSettings.espIdfPath
+    );
+    reportedResult.espIdfVersion.output = rawEspIdfVersion;
+    const espIdfVersionMatch = rawEspIdfVersion.match(ESP_IDF_VERSION_REGEX);
+    if (espIdfVersionMatch && espIdfVersionMatch.length) {
+      let espVersion: string = "";
+      for (let i = 1; i < espIdfVersionMatch.length; i++) {
+        if (espIdfVersionMatch[i]) {
+          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
+        }
       }
+      reportedResult.espIdfVersion.result = espVersion.substr(1);
+    } else {
+      reportedResult.espIdfVersion.result = "Not found";
     }
-    reportedResult.espIdfVersion.result = espVersion.substr(1);
-  } else {
+  } catch (error) {
     reportedResult.espIdfVersion.result = "Not found";
+    reportedResult.latestError = error;
   }
 }
