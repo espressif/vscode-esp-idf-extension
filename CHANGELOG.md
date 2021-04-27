@@ -17,6 +17,22 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.0.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.3)
+
+### Features and enhancements
+
+- [Separate Python Pip errors in extension setup](https://github.com/espressif/vscode-esp-idf-extension/pull/377)
+- [Add Component manager flag for build task](https://github.com/espressif/vscode-esp-idf-extension/pull/374)
+- [Package vsix without extension dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/372)
+- [Customize compiler and build tasks arguments, use esptool_extra_args and encrypted flags from build/flasher_args.json](https://github.com/espressif/vscode-esp-idf-extension/pull/363)
+
+### Bug Fixes
+
+- [Send Ctrl + \] signal to exit idf monitor on flash tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/382)
+- [Fix New project wizard require serial ports, add esp32s3 esp32c3, release vsix without extension dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/378)
+- [Check arduino component directory exists, remove old arduino-esp32 cloning branches](hhttps://github.com/espressif/vscode-esp-idf-extension/pull/370)
+- [Remove IDF Tools exact match on extension activation](https://github.com/espressif/vscode-esp-idf-extension/pull/359)
+
 ## [1.0.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.2)
 
 ### Features and enhancements
