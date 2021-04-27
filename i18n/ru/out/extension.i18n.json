@@ -16,7 +16,7 @@
   "extension.enterIdfPathMessage": "Введите путь IDF_PATH",
   "extension.enterIdfToolsPathMessage": "Введите путь IDF_TOOLS_PATH",
   "extension.enterDevicePortMessage": "Введите путь к порту устройства",
-  "extension.enterDeviceTargetMessage": "Выберите целевое устройство Espressif",
+  "extension.enterDeviceTargetMessage": "Введите имя цели (IDF_TARGET)",
   "extension.enterFlashBaudRateMessage": "Введите скорость загрузки прошивки",
   "extension.enterOpenOcdConfigMessage": "Введите список файлов конфигурации внутри каталога OpenOCD Scripts",
   "extension.enterCustomPathsMessage": "Введите дополнительные пути для добавления в PATH",

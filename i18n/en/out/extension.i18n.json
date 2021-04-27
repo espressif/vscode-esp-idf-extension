@@ -16,7 +16,7 @@
   "extension.enterIdfPathMessage": "Enter IDF_PATH Path",
   "extension.enterIdfToolsPathMessage": "Enter IDF_TOOLS_PATH path",
   "extension.enterDevicePortMessage": "Enter device port Path",
-  "extension.enterDeviceTargetMessage": "Enter Espressif device to use",
+  "extension.enterDeviceTargetMessage": "Enter target name (IDF_TARGET)",
   "extension.enterFlashBaudRateMessage": "Enter flash baud rate",
   "extension.enterOpenOcdConfigMessage": "Enter list of configuration files inside OpenOCD Scripts directory",
   "extension.enterCustomPathsMessage": "Enter extra paths to append to PATH",
