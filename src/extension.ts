@@ -725,17 +725,17 @@ export async function activate(context: vscode.ExtensionContext) {
       const option = await vscode.window.showQuickPick(
         [
           {
-            description: "Device target (esp32, esp32s2)",
+            description: "Target (IDF_TARGET)",
             label: "Device Target",
             target: "deviceTarget",
           },
           {
-            description: "Device port path",
+            description: "Serial port",
             label: "Device Port",
             target: "devicePort",
           },
           {
-            description: "Flash baud rate of device",
+            description: "Flash baud rate",
             label: "Flash Baud Rate",
             target: "flashBaudRate",
           },
@@ -761,12 +761,7 @@ export async function activate(context: vscode.ExtensionContext) {
       let paramName: string;
       switch (option.target) {
         case "deviceTarget":
-          msg = locDic.localize(
-            "extension.enterDeviceTargetMessage",
-            "Enter device target name"
-          );
-          paramName = "idf.adapterTargetName";
-          break;
+          return vscode.commands.executeCommand("espIdf.setTarget");
         case "devicePort":
           msg = locDic.localize(
             "extension.enterDevicePortMessage",
@@ -1158,7 +1153,7 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       const enterDeviceTargetMsg = locDic.localize(
         "extension.enterDeviceTargetMessage",
-        "Enter device target name"
+        "Enter target name (IDF_TARGET)"
       );
       const selectedTarget = await vscode.window.showQuickPick(
         [
@@ -1191,7 +1186,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const configurationTarget = idfConf.readParameter("idf.saveScope");
       if (selectedTarget.target === "custom") {
         const customIdfTarget = await vscode.window.showInputBox({
-          placeHolder: "Enter custom target name (IDF_TARGET)",
+          placeHolder: enterDeviceTargetMsg,
           value: "",
         });
         if (!customIdfTarget) {
