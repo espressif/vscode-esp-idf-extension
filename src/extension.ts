@@ -2487,9 +2487,7 @@ const flash = () => {
     }
 
     if (monitorTerminal) {
-      const CTRL_RBRACKET = "\u001D";
-      monitorTerminal.sendText(CTRL_RBRACKET);
-      monitorTerminal.dispose();
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     }
 
     const idfPathDir = idfConf.readParameter("idf.espIdfPath");
@@ -2617,9 +2615,7 @@ const buildFlashAndMonitor = (runMonitor: boolean = true) => {
       return;
     }
     if (monitorTerminal) {
-      const CTRL_RBRACKET = "\u001D";
-      monitorTerminal.sendText(CTRL_RBRACKET);
-      monitorTerminal.dispose();
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     }
     const buildTask = new BuildTask(workspaceRoot.fsPath);
     const buildPath = path.join(workspaceRoot.fsPath, "build");
@@ -2864,21 +2860,19 @@ function createIdfTerminal() {
 export function deactivate() {
   Telemetry.dispose();
   if (monitorTerminal) {
-    const CTRL_RBRACKET = "\u001D";
-    monitorTerminal.sendText(CTRL_RBRACKET);
     monitorTerminal.dispose();
   }
   OutputChannel.end();
-
-  if (!kconfigLangClient) {
-    return undefined;
-  }
-  kconfigLangClient.stop();
   ConfserverProcess.dispose();
   for (const statusItem of statusBarItems) {
     statusItem.dispose();
   }
-  covRenderer.dispose();
+  if (covRenderer) {
+    covRenderer.dispose();
+  }
+  if (kconfigLangClient) {
+    kconfigLangClient.stop();
+  }
 }
 
 class IdfDebugConfigurationProvider
