@@ -617,6 +617,11 @@
             "description": "%param.launchMonitorOnDebugSession.title%",
             "scope": "resource",
             "default": false
+          },
+          "idf.enableIdfComponentManager": {
+            "type": "boolean",
+            "description": "%param.enableIdfComponentManager.title%",
+            "default": false
           }
         }
       }
