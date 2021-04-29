@@ -37,7 +37,7 @@ const defTargetList: IdfTarget[] = [
   {
     id: "esp32",
     name: "ESP32",
-    openOcdFiles: "interface/ftdi/esp32_devkitjv1.cfg,target/esp32.cfg",
+    openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg",
   } as IdfTarget,
   {
     id: "esp32s2",
