@@ -64,6 +64,7 @@
   "param.uncoveredLightTheme": "ESP-IDF覆盖的光主题中未覆盖线条的背景色",
   "param.uncoveredDarkTheme": "ESP-IDF覆盖的深色主题中未覆盖线条的背景色",
   "param.launchMonitorOnDebugSession.title": "启动IDF监视器和ESP-IDF调试适配器会话",
+  "param.enableIdfComponentManager.title": "在生成任务中启用IDF组件管理器",
   "view.components.name": "项目组件",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "刷新跟踪归档列表",

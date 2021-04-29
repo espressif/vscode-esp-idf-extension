@@ -8,16 +8,17 @@ This extension contributes the following settings that can be later updated in s
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
-| Setting ID             | Description                                                                   |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| `idf.customExtraPaths` | Paths to be appended to \$PATH                                                |
-| `idf.customExtraVars`  | Variables to be added to system environment variables                         |
-| `idf.espIdfPath`       | Path to locate ESP-IDF framework (IDF_PATH)                                   |
-| `idf.espIdfPathWin`    | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
-| `idf.pythonBinPath`    | Python absolute binary path used to execute ESP-IDF Python Scripts            |
-| `idf.pythonBinPathWin` | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
-| `idf.toolsPath`        | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
-| `idf.toolsPathWin`     | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
+| Setting ID                      | Description                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                |
+| `idf.customExtraVars`           | Variables to be added to system environment variables                         |
+| `idf.espIdfPath`                | Path to locate ESP-IDF framework (IDF_PATH)                                   |
+| `idf.espIdfPathWin`             | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
+| `idf.pythonBinPath`             | Python absolute binary path used to execute ESP-IDF Python Scripts            |
+| `idf.pythonBinPathWin`          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
+| `idf.toolsPath`                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
+| `idf.toolsPathWin`              | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
+| `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                 |
 
 This is how the extension uses them:
 

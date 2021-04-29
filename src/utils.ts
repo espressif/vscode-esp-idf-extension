@@ -776,7 +776,13 @@ export function appendIdfAndToolsToPath() {
   }
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
-  modifiedEnv.IDF_COMPONENT_MANAGER = "1";
+  let enableComponentManager = idfConf.readParameter(
+    "idf.enableIdfComponentManager"
+  ) as boolean;
+
+  if (enableComponentManager) {
+    modifiedEnv.IDF_COMPONENT_MANAGER = "1";
+  }
 
   return modifiedEnv;
 }
