@@ -71,7 +71,7 @@ export class OpenOCDManager extends EventEmitter {
     if (!match) {
       return "failed+to+match+version";
     }
-    return match[0];
+    return match[0].replace("-dirty", "");
   }
 
   public statusBarItem(): vscode.StatusBarItem {
