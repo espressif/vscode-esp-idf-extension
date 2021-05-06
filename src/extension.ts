@@ -2444,6 +2444,7 @@ const build = () => {
             buildTask.building(false);
             const projDescPath = path.join(
               workspaceRoot.fsPath,
+              "build",
               "project_description.json"
             );
             updateIdfComponentsTree(projDescPath);
