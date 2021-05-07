@@ -21,7 +21,6 @@ import { join } from "path";
 import * as vscode from "vscode";
 import { FlashTask } from "./flashTask";
 import { BuildTask } from "../build/buildTask";
-import { ESP } from "../config";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
@@ -90,4 +89,5 @@ export async function verifyCanFlash(
       new Error("NOT_SELECTED_BAUD_RATE")
     );
   }
+  return true;
 }

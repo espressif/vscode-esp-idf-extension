@@ -258,7 +258,7 @@ export class ConfserverProcess {
 
     if (typeof this.confServerChannel === "undefined") {
       this.confServerChannel = vscode.window.createOutputChannel(
-        "ESP-IDF GUI Menuconfig"
+        "SDK Configuration Editor"
       );
     }
     process.env.IDF_TARGET = "esp32";
