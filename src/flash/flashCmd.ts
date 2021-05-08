@@ -32,6 +32,7 @@ export async function verifyCanFlash(
   port: string,
   workspace: vscode.Uri
 ) {
+  let continueFlag = true;
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
       "flash.waitProcessIsFinishedMessage",
@@ -78,5 +79,5 @@ export async function verifyCanFlash(
       new Error("NOT_SELECTED_BAUD_RATE")
     );
   }
-  return true;
+  return continueFlag;
 }

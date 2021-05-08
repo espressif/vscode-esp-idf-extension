@@ -30,6 +30,7 @@ export async function uartFlashCommand(
   port: string,
   workspace: vscode.Uri
 ) {
+  let continueFlag = true;
   const buildPath = join(workspace.fsPath, "build");
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
@@ -87,6 +88,8 @@ export async function uartFlashCommand(
       );
     }
     Logger.errorNotify("Failed to flash because of some unusual error", error);
-    FlashTask.isFlashing = false;
+    continueFlag = false;
   }
+  FlashTask.isFlashing = false;
+  return continueFlag;
 }

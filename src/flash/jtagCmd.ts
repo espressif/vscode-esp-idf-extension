@@ -24,6 +24,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 
 export async function jtagFlashCommand(buildPath: string) {
+  let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
     return Logger.warnNotify(
@@ -49,6 +50,8 @@ export async function jtagFlashCommand(buildPath: string) {
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
     Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+    continueFlag = false;
   }
   FlashTask.isFlashing = false;
+  return continueFlag;
 }

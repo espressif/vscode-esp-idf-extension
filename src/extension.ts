@@ -2411,12 +2411,18 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
-        await buildCommand(workspaceRoot, cancelToken);
+        let canContinue = await buildCommand(workspaceRoot, cancelToken);
+        if (!canContinue) {
+          return;
+        }
         progress.report({
           message: "Flashing project into device...",
           increment: 60,
         });
-        await selectFlashMethod(cancelToken);
+        canContinue = await selectFlashMethod(cancelToken);
+        if (!canContinue) {
+          return;
+        }
         if (runMonitor) {
           progress.report({
             message: "Launching monitor...",
@@ -2461,9 +2467,9 @@ async function selectFlashMethod(cancelToken) {
 
   if (flashType === "JTAG") {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
-    await jtagFlashCommand(buildPath);
+    return await jtagFlashCommand(buildPath);
   } else if (flashType === "UART") {
-    await uartFlashCommand(
+    return await uartFlashCommand(
       cancelToken,
       flashBaudRate,
       idfPathDir,

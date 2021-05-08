@@ -31,6 +31,7 @@ export async function buildCommand(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken
 ) {
+  let continueFlag = true;
   const buildTask = new BuildTask(workspace.fsPath);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
@@ -52,7 +53,6 @@ export async function buildCommand(
     await buildTask.build();
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
-      buildTask.building(false);
       const projDescPath = join(
         workspace.fsPath,
         "build",
@@ -73,6 +73,8 @@ export async function buildCommand(
       "Something went wrong while trying to build the project",
       error
     );
-    buildTask.building(false);
+    continueFlag = false;
   }
+  buildTask.building(false);
+  return continueFlag;
 }
