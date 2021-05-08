@@ -34,7 +34,7 @@ export async function buildCommand(
   const buildTask = new BuildTask(workspace.fsPath);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
-      "extension.waitProcessIsFinishedMessage",
+      "build.waitProcessIsFinishedMessage",
       "Wait for ESP-IDF build or flash to finish"
     );
     Logger.errorNotify(

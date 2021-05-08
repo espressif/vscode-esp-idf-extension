@@ -1,5 +1,10 @@
 {
   "out": {
+    "build": {
+      "buildCmd": [
+        "build.waitProcessIsFinishedMessage"
+      ]
+    },
     "espIdf": {
       "menuconfig": {
         "MenuconfigPanel": [
@@ -12,6 +17,11 @@
           "menuconfig.save",
           "menuconfig.discard",
           "menuconfig.returnGuiconfig"
+        ]
+      },
+      "monitor": {
+        "command": [
+          "monitor.waitProcessIsFinishedMessage"
         ]
       },
       "serial": {
@@ -33,6 +43,11 @@
         ]
       }
     },
+    "flash": {
+      "flashCmd": [
+        "flash.waitProcessIsFinishedMessage"
+      ]
+    },
     "extension": [
       "extension.defaultFoldersGeneratedMessage",
       "extension.openFolderFirst",
@@ -45,7 +60,6 @@
       "extension.noParamUpdatedMessage",
       "extension.defaultSdkconfigGeneratedMessage",
       "extension.openFolderSdkconfigMessage",
-      "extension.waitProcessIsFinishedMessage",
       "extension.elfNotFoundMessage",
       "extension.gdbNotFoundMessage",
       "extension.enterIdfPathMessage",
@@ -166,6 +180,7 @@
     "esp_idf.initGdbCommands.description",
     "esp_idf.debuggers.text.description",
     "esp_idf.gdbinitFile.description",
-    "param.launchMonitorOnDebugSession.title"
+    "param.launchMonitorOnDebugSession.title",
+    "param.enableIdfComponentManager.title"
   ]
 }

@@ -32,21 +32,10 @@ export async function verifyCanFlash(
   port: string,
   workspace: vscode.Uri
 ) {
-  if (BuildTask.isBuilding) {
+  if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
-      "extension.waitProcessIsFinishedMessage",
-      "Wait for ESP-IDF build to finish"
-    );
-    return Logger.errorNotify(
-      waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
-    );
-  }
-
-  if (FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = locDic.localize(
-      "extension.waitProcessIsFinishedMessage",
-      "Wait for ESP-IDF flash to finish"
+      "flash.waitProcessIsFinishedMessage",
+      "Wait for ESP-IDF task to finish"
     );
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,

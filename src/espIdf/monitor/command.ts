@@ -33,8 +33,8 @@ export async function createMonitorTerminal(
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
-      "extension.waitProcessIsFinishedMessage",
-      "Wait for ESP-IDF build or flash to finish"
+      "monitor.waitProcessIsFinishedMessage",
+      "Wait for ESP-IDF task to finish"
     );
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,
