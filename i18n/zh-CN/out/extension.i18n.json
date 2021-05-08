@@ -10,7 +10,6 @@
   "extension.noParamUpdatedMessage": "没有更新设备参数",
   "extension.defaultSdkconfigGeneratedMessage": "已还原默认的 sdkconfig 文件",
   "extension.openFolderSdkconfigMessage": "首先打开文件夹以生成 sdkconfig 文件",
-  "extension.waitProcessIsFinishedMessage": "等待 ESP-IDF 构建或烧写结束",
   "extension.elfNotFoundMessage": "找不到项目 ELF 文件",
   "extension.gdbNotFoundMessage": "找不到 GDB 路径",
   "extension.enterIdfPathMessage": "请输入 IDF_PATH 路径",

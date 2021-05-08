@@ -13,15 +13,8 @@
 // limitations under the License.
 
 "use strict";
-import { readdirSync } from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind,
-} from "vscode-languageclient";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
 import {
   DebugAdapterManager,
@@ -45,7 +38,6 @@ import {
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
-import { createFlashModel } from "./flash/flashModelBuilder";
 import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
@@ -73,7 +65,6 @@ import { WSServer } from "./espIdf/communications/ws";
 import { IDFMonitor } from "./espIdf/monitor";
 import { BuildTask } from "./build/buildTask";
 import { FlashTask } from "./flash/flashTask";
-import { TaskManager } from "./taskManager";
 import { ESPCoreDumpPyTool, InfoCoreFileFormat } from "./espIdf/core-dump";
 import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent";
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
@@ -83,8 +74,6 @@ import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
-import { TCLClient } from "./espIdf/openOcd/tcl/tclClient";
-import { JTAGFlash } from "./flash/jtag";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import { installReqs } from "./pythonManager";
@@ -95,7 +84,6 @@ import {
   DocSearchResult,
   DocSearchResultTreeDataProvider,
 } from "./espIdf/documentation/docResultsTreeView";
-import { release } from "os";
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
 import { getBoards } from "./espIdf/openOcd/boardConfiguration";
@@ -105,6 +93,12 @@ import { writeTextReport } from "./support/writeReport";
 import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
+import { buildCommand } from "./build/buildCmd";
+import { verifyCanFlash } from "./flash/flashCmd";
+import { uartFlashCommand } from "./flash/uartFlash";
+import { jtagFlashCommand } from "./flash/jtagCmd";
+import { createMonitorTerminal } from "./espIdf/monitor/command";
+import { KconfigLangClient } from "./kconfig";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -137,9 +131,6 @@ let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
 
-// Kconfig Language Client
-let kconfigLangClient: LanguageClient;
-
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
 const locDic = new LocDictionary(__filename);
@@ -155,10 +146,6 @@ const openFolderMsg = locDic.localize(
 const cmdNotForWebIdeMsg = locDic.localize(
   "extension.cmdNotWebIDE",
   "Selected command is not available in WebIDE"
-);
-const cmdNotMinEspIdfMsg = locDic.localize(
-  "extension.cmdNotMinIdfVersion",
-  "Selected command needs later version of ESP-IDF"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
@@ -231,7 +218,7 @@ export async function activate(context: vscode.ExtensionContext) {
   creatCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
-  startKconfigLangServer(context);
+  KconfigLangClient.startKconfigLangServer(context);
 
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
@@ -2150,89 +2137,38 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform(
       [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
       async () => {
-        let buildFolder = path.join(workspaceRoot.fsPath, "build");
-        if (!(await pathExists(buildFolder))) {
-          return Logger.warnNotify("First you need to build before flashing!!");
+        const port = idfConf.readParameter("idf.port");
+        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        if (monitorTerminal) {
+          monitorTerminal.sendText(ESP.CTRL_RBRACKET);
         }
-        if (!(await pathExists(path.join(buildFolder, "flasher_args.json")))) {
-          return Logger.warnNotify(
-            "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
-          );
-        }
-        const projectName = await getProjectName(workspaceRoot.fsPath);
-        if (!(await pathExists(path.join(buildFolder, `${projectName}.elf`)))) {
-          return Logger.warnNotify(
-            `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildFolder})`
-          );
-        }
-
-        const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
-        if (!isOpenOCDLaunched) {
-          return Logger.warnNotify(
-            "Can't perform JTag flash, because OpenOCD server is not running!!"
-          );
-        }
-
-        if (FlashTask.isFlashing) {
-          return Logger.errorNotify(
-            "Can't run JTAG & UART Flash together, UART flash is running",
-            new Error("One_Task_At_A_Time")
-          );
-        }
-        FlashTask.isFlashing = true;
-
-        vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            title: "Flashing your device using JTAG, please wait",
-          },
-          async () => {
-            const host = idfConf.readParameter("openocd.tcl.host");
-            const port = idfConf.readParameter("openocd.tcl.port");
-            const client = new TCLClient({ host, port });
-            const jtag = new JTAGFlash(client);
-            const forceUNIXPathSeparator = idfConf.readParameter(
-              "openocd.jtag.command.force_unix_path_separator"
-            );
-            if (forceUNIXPathSeparator === true) {
-              buildFolder = buildFolder.replace(/\\/g, "/");
-            }
-            try {
-              await jtag.flash(
-                `program_esp_bins ${buildFolder} flasher_args.json verify reset`
-              );
-              Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
-            } catch (msg) {
-              OpenOCDManager.init().showOutputChannel(true);
-              Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
-            }
-            FlashTask.isFlashing = false;
-          }
+        const canFlash = await verifyCanFlash(
+          flashBaudRate,
+          port,
+          workspaceRoot
         );
+        if (canFlash) {
+          const buildPath = path.join(workspaceRoot.fsPath, "build");
+          await jtagFlashCommand(buildPath);
+        }
       }
     );
   });
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      let flashType = idfConf.readParameter("idf.flashType");
-      if (!flashType) {
-        flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
-          ignoreFocusOut: true,
-          placeHolder:
-            "Select flash method, you can modify the choice later from settings 'idf.flashType'",
-        });
-        await idfConf.writeParameter(
-          "idf.flashType",
-          flashType,
-          vscode.ConfigurationTarget.Workspace
-        );
-      }
-
-      if (flashType === "JTAG") {
-        return vscode.commands.executeCommand("espIdf.jtag_flash");
-      } else if (flashType === "UART") {
-        return vscode.commands.executeCommand("espIdf.flashDevice");
-      }
+    PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Flashing Project",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          await selectFlashMethod(cancelToken);
+        }
+      );
     });
   });
   registerIDFCommand(
@@ -2409,20 +2345,8 @@ function createStatusBarItem(
 }
 
 const build = () => {
-  PreCheck.perform([openFolderCheck], () => {
-    const buildTask = new BuildTask(workspaceRoot.fsPath);
-    if (BuildTask.isBuilding || FlashTask.isFlashing) {
-      const waitProcessIsFinishedMsg = locDic.localize(
-        "extension.waitProcessIsFinishedMessage",
-        "Wait for ESP-IDF build or flash to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time")
-      );
-      return;
-    }
-    vscode.window.withProgress(
+  PreCheck.perform([openFolderCheck], async () => {
+    await vscode.window.withProgress(
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
@@ -2432,102 +2356,13 @@ const build = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        cancelToken.onCancellationRequested(() => {
-          TaskManager.cancelTasks();
-          TaskManager.disposeListeners();
-          buildTask.building(false);
-        });
-        try {
-          await buildTask.build();
-          await TaskManager.runTasks();
-          if (!cancelToken.isCancellationRequested) {
-            buildTask.building(false);
-            const projDescPath = path.join(
-              workspaceRoot.fsPath,
-              "build",
-              "project_description.json"
-            );
-            updateIdfComponentsTree(projDescPath);
-            Logger.infoNotify("Build Successfully");
-            TaskManager.disposeListeners();
-          }
-        } catch (error) {
-          if (error.message === "ALREADY_BUILDING") {
-            return Logger.errorNotify("Already a build is running!", error);
-          }
-          if (error.message === "BUILD_TERMINATED") {
-            return Logger.warnNotify(`Build is Terminated`);
-          }
-          Logger.errorNotify(
-            "Something went wrong while trying to build the project",
-            error
-          );
-          buildTask.building(false);
-        }
+        await buildCommand(workspaceRoot, cancelToken);
       }
     );
   });
 };
 const flash = () => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildTask.isBuilding || FlashTask.isFlashing) {
-      const waitProcessIsFinishedMsg = locDic.localize(
-        "extension.waitProcessIsFinishedMessage",
-        "Wait for ESP-IDF build or flash to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time")
-      );
-      return;
-    }
-
-    if (monitorTerminal) {
-      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-    }
-
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-    const port = idfConf.readParameter("idf.port");
-    const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
-
-    const buildPath = path.join(workspaceRoot.fsPath, "build");
-
-    if (!utils.canAccessFile(buildPath, constants.R_OK)) {
-      return Logger.errorNotify(
-        `Build is required before Flashing, ${buildPath} can't be accessed`,
-        new Error("BUILD_PATH_ACCESS_ERROR")
-      );
-    }
-    if (!port) {
-      try {
-        await vscode.commands.executeCommand("espIdf.selectPort");
-      } catch (error) {
-        Logger.error("Unable to execute the command: espIdf.selectPort", error);
-      }
-      return Logger.errorNotify(
-        "Select a serial port before flashing",
-        new Error("NOT_SELECTED_PORT")
-      );
-    }
-    if (!flashBaudRate) {
-      return Logger.errorNotify(
-        "Select a baud rate before flashing",
-        new Error("NOT_SELECTED_BAUD_RATE")
-      );
-    }
-
-    const binFiles = readdirSync(buildPath).filter(
-      (fileName) => fileName.endsWith(".bin") === true
-    );
-    if (binFiles.length === 0) {
-      return Logger.errorNotify(
-        `Build is required before Flashing, .bin file can't be accessed`,
-        new Error("BIN_FILE_ACCESS_ERROR")
-      );
-    }
-    const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
-    let flashTask: FlashTask;
-
     await vscode.window.withProgress(
       {
         cancellable: true,
@@ -2538,318 +2373,130 @@ const flash = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        cancelToken.onCancellationRequested(() => {
-          TaskManager.cancelTasks();
-          TaskManager.disposeListeners();
-        });
-        try {
-          const model = await createFlashModel(
-            flasherArgsJsonPath,
+        const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+        const port = idfConf.readParameter("idf.port");
+        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        if (monitorTerminal) {
+          monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+        }
+        const canFlash = await verifyCanFlash(
+          flashBaudRate,
+          port,
+          workspaceRoot
+        );
+        if (canFlash) {
+          await uartFlashCommand(
+            cancelToken,
+            flashBaudRate,
+            idfPathDir,
             port,
-            flashBaudRate
+            workspaceRoot
           );
-          flashTask = new FlashTask(buildPath, idfPathDir, model);
-          cancelToken.onCancellationRequested(() => {
-            flashTask.flashing(false);
-          });
-          await flashTask.flash();
-          await TaskManager.runTasks();
-          if (!cancelToken.isCancellationRequested) {
-            flashTask.flashing(false);
-            Logger.infoNotify("Flash Done ⚡️");
-          }
-          TaskManager.disposeListeners();
-        } catch (error) {
-          if (error.message === "ALREADY_FLASHING") {
-            return Logger.errorNotify(
-              "Already one flash process is running!",
-              error
-            );
-          }
-          if (error.message === "FLASH_TERMINATED") {
-            return Logger.errorNotify("Flashing has been stopped!", error);
-          }
-          if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
-            return Logger.errorNotify(
-              "Flash (.bin) files don't exists or can't be accessed!",
-              error
-            );
-          }
-          if (
-            error.code === "ENOENT" ||
-            error.message === "SCRIPT_PERMISSION_ERROR"
-          ) {
-            return Logger.errorNotify(
-              `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
-              error
-            );
-          }
-          Logger.errorNotify(
-            "Failed to flash because of some unusual error",
-            error
-          );
-          if (flashTask) {
-            flashTask.flashing(false);
-          }
         }
       }
     );
   });
 };
 
-const buildFlashAndMonitor = (runMonitor: boolean = true) => {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    if (BuildTask.isBuilding || FlashTask.isFlashing) {
-      const waitProcessIsFinishedMsg = locDic.localize(
-        "extension.waitProcessIsFinishedMessage",
-        "Wait for ESP-IDF build or flash to finish"
-      );
-      Logger.errorNotify(
-        waitProcessIsFinishedMsg,
-        new Error("One_Task_At_A_Time")
-      );
-      return;
-    }
-    if (monitorTerminal) {
-      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-    }
-    const buildTask = new BuildTask(workspaceRoot.fsPath);
-    const buildPath = path.join(workspaceRoot.fsPath, "build");
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-    const port = idfConf.readParameter("idf.port");
-    const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
-    if (!port) {
-      try {
-        await vscode.commands.executeCommand("espIdf.selectPort");
-      } catch (error) {
-        Logger.error("Unable to execute the command: espIdf.selectPort", error);
-      }
-      return Logger.errorNotify(
-        "Select a serial port before flashing",
-        new Error("NOT_SELECTED_PORT")
-      );
-    }
-    if (!flashBaudRate) {
-      return Logger.errorNotify(
-        "Select a baud rate before flashing",
-        new Error("NOT_SELECTED_BAUD_RATE")
-      );
-    }
-    const flasherArgsJsonPath = path.join(buildPath, "flasher_args.json");
-    let flashTask: FlashTask;
-
+const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
+  PreCheck.perform([openFolderCheck], async () => {
     await vscode.window.withProgress(
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: ",
+        title: "Building Project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        cancelToken.onCancellationRequested(() => {
-          TaskManager.cancelTasks();
-          TaskManager.disposeListeners();
-          buildTask.building(false);
+        progress.report({ message: "Building project...", increment: 20 });
+        let canContinue = await buildCommand(workspaceRoot, cancelToken);
+        if (!canContinue) {
+          return;
+        }
+        progress.report({
+          message: "Flashing project into device...",
+          increment: 60,
         });
-        try {
-          progress.report({ message: "Building project...", increment: 20 });
-          await buildTask.build().then(() => {
-            buildTask.building(false);
-          });
-          await TaskManager.runTasks();
+        canContinue = await selectFlashMethod(cancelToken);
+        if (!canContinue) {
+          return;
+        }
+        if (runMonitor) {
           progress.report({
-            message: "Flashing project into device...",
-            increment: 60,
+            message: "Launching monitor...",
+            increment: 10,
           });
-          const model = await createFlashModel(
-            flasherArgsJsonPath,
-            port,
-            flashBaudRate
-          );
-          flashTask = new FlashTask(buildPath, idfPathDir, model);
-          cancelToken.onCancellationRequested(() => {
-            flashTask.flashing(false);
-          });
-          await flashTask.flash();
-          await TaskManager.runTasks();
-          flashTask.flashing(false);
-          if (runMonitor) {
-            progress.report({
-              message: "Launching monitor...",
-              increment: 10,
-            });
-            await createMonitor();
-          }
-          TaskManager.disposeListeners();
-        } catch (error) {
-          switch (error.message) {
-            case "BUILD_TERMINATED":
-              return Logger.warnNotify(`Build is Terminated`);
-            case "ALREADY_BUILDING":
-              return Logger.errorNotify("Already a build is running!", error);
-            case "ALREADY_FLASHING":
-              return Logger.errorNotify(
-                "Already one flash process is running!",
-                error
-              );
-            case "BUILD_TOOL_NOT_ACCESSIBLE":
-              return Logger.errorNotify(
-                "IDF Path or IDF Tools path is invalid or not accessible",
-                error
-              );
-            case "ENOENT":
-              return Logger.errorNotify(
-                `Make sure you have the build tools installed and set in $PATH`,
-                error
-              );
-            case "SCRIPT_PERMISSION_ERROR":
-              return Logger.errorNotify(
-                `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
-                error
-              );
-            case "FLASH_TERMINATED":
-              return Logger.errorNotify("Flashing has been stopped!", error);
-            case "SECTION_BIN_FILE_NOT_ACCESSIBLE":
-              return Logger.errorNotify(
-                "Flash (.bin) files don't exists or can't be accessed!",
-                error
-              );
-            default:
-              break;
-          }
-          Logger.errorNotify(
-            "Something went wrong while trying to build the project",
-            error
-          );
-          buildTask.building(false);
-          if (flashTask) {
-            flashTask.flashing(false);
-          }
+          await createMonitor();
         }
       }
     );
   });
 };
 
-function createMonitor() {
-  return new Promise<void>((resolve, reject) => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (BuildTask.isBuilding || FlashTask.isFlashing) {
-        const waitProcessIsFinishedMsg = locDic.localize(
-          "extension.waitProcessIsFinishedMessage",
-          "Wait for ESP-IDF build or flash to finish"
-        );
-        Logger.errorNotify(
-          waitProcessIsFinishedMsg,
-          new Error("One_Task_At_A_Time")
-        );
-        return reject();
-      }
-
-      const idfPathDir =
-        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath"
-      ) as string;
-      const port = idfConf.readParameter("idf.port");
-      const idfPath = path.join(idfPathDir, "tools", "idf.py");
-      const modifiedEnv = utils.appendIdfAndToolsToPath();
-      if (
-        !utils.isBinInPath(pythonBinPath, workspaceRoot.fsPath, modifiedEnv)
-      ) {
-        Logger.errorNotify(
-          "Python binary path is not defined",
-          new Error("idf.pythonBinPath is not defined")
-        );
-      }
-      if (!idfPathDir) {
-        Logger.errorNotify(
-          "ESP-IDF Path is not defined",
-          new Error("idf.espIdfPath is not defined")
-        );
-      }
-      if (!port) {
-        try {
-          await vscode.commands.executeCommand("espIdf.selectPort");
-        } catch (error) {
-          Logger.error(
-            "Unable to execute the command: espIdf.selectPort",
-            error
-          );
-        }
-        Logger.errorNotify(
-          "Select a serial port before flashing",
-          new Error("NOT_SELECTED_PORT")
-        );
-        return reject(new Error("NOT_SELECTED_PORT"));
-      }
-      if (typeof monitorTerminal === "undefined") {
-        monitorTerminal = vscode.window.createTerminal({
-          name: "ESP-IDF Monitor",
-          env: modifiedEnv,
-          cwd: workspaceRoot.fsPath,
-          shellArgs: [],
-          shellPath: vscode.env.shell,
-          strictEnv: true,
-        });
-      }
-      monitorTerminal.show();
-      const osRelease = release();
-      const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
-      let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
-      if (kernelMatch && kernelMatch.length) {
-        isWsl2Kernel = utils.compareVersion(kernelMatch[1], "4.19");
-      }
-      if (
-        process.platform === "linux" &&
-        osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
-        isWsl2Kernel !== -1
-      ) {
-        const wslRoot = utils.extensionContext.extensionPath.replace(
-          /\//g,
-          "\\"
-        );
-        const wslCurrPath = await utils.execChildProcess(
-          `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
-          utils.extensionContext.extensionPath
-        );
-        const winWslRoot = wslCurrPath
-          .replace(wslRoot, "")
-          .replace(/[\r\n]+/g, "");
-        const toolPath = (
-          winWslRoot +
-          idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
-        ).replace(/\\/g, "\\\\");
-        monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
-        const elfFile = await utils.getElfFilePath(workspaceRoot);
-        monitorTerminal.sendText(
-          `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
-        );
-      } else {
-        monitorTerminal.sendText(
-          `${pythonBinPath} ${idfPath} -p ${port} monitor`
-        );
-      }
-      return resolve();
+async function selectFlashMethod(cancelToken) {
+  let flashType = idfConf.readParameter("idf.flashType");
+  if (!flashType) {
+    flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+      ignoreFocusOut: true,
+      placeHolder:
+        "Select flash method, you can modify the choice later from settings 'idf.flashType'",
     });
-  });
+    await idfConf.writeParameter(
+      "idf.flashType",
+      flashType,
+      vscode.ConfigurationTarget.Workspace
+    );
+  }
+
+  if (!flashType) {
+    return;
+  }
+
+  const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+  const port = idfConf.readParameter("idf.port");
+  const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+  if (monitorTerminal) {
+    monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+  }
+  const canFlash = await verifyCanFlash(flashBaudRate, port, workspaceRoot);
+  if (!canFlash) {
+    return;
+  }
+
+  if (flashType === "JTAG") {
+    const buildPath = path.join(workspaceRoot.fsPath, "build");
+    return await jtagFlashCommand(buildPath);
+  } else if (flashType === "UART") {
+    return await uartFlashCommand(
+      cancelToken,
+      flashBaudRate,
+      idfPathDir,
+      port,
+      workspaceRoot
+    );
+  }
 }
 
 function createIdfTerminal() {
   PreCheck.perform([webIdeCheck, openFolderCheck], () => {
     const modifiedEnv = utils.appendIdfAndToolsToPath();
-    const shellExecutable = path.basename(vscode.env.shell);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
       strictEnv: true,
       shellArgs: [],
-      shellPath: shellExecutable,
+      shellPath: vscode.env.shell,
     });
     espIdfTerminal.show();
+  });
+}
+
+function createMonitor() {
+  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    await createMonitorTerminal(monitorTerminal, workspaceRoot);
   });
 }
 
@@ -2866,9 +2513,7 @@ export function deactivate() {
   if (covRenderer) {
     covRenderer.dispose();
   }
-  if (kconfigLangClient) {
-    kconfigLangClient.stop();
-  }
+  KconfigLangClient.stopKconfigLangServer();
 }
 
 class IdfDebugConfigurationProvider
@@ -2902,41 +2547,4 @@ class IdfDebugConfigurationProvider
     config.elfFilePath = elfFilePath;
     return config;
   }
-}
-
-export function startKconfigLangServer(context: vscode.ExtensionContext) {
-  const serverModule =
-    __dirname.indexOf("out") > -1
-      ? context.asAbsolutePath(path.join("out", "kconfig", "server.js"))
-      : context.asAbsolutePath(path.join("dist", "kconfigServer.js"));
-
-  const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
-
-  const serverOptions: ServerOptions = {
-    debug: {
-      module: serverModule,
-      options: debugOptions,
-      transport: TransportKind.ipc,
-    },
-    run: { module: serverModule, transport: TransportKind.ipc },
-  };
-
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { scheme: "file", pattern: "**/Kconfig" },
-      { scheme: "file", pattern: "**/Kconfig.projbuild" },
-      { scheme: "file", pattern: "**/Kconfig.in" },
-    ],
-    synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher("**/.clientrc"),
-    },
-  };
-
-  kconfigLangClient = new LanguageClient(
-    "kconfigServer",
-    "Kconfig Language Server",
-    serverOptions,
-    clientOptions
-  );
-  kconfigLangClient.start();
 }

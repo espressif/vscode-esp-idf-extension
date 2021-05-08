@@ -269,7 +269,7 @@
         "mac": "cmd+e b"
       },
       {
-        "command": "espIdf.flashDevice",
+        "command": "espIdf.selectFlashMethodAndFlash.title",
         "key": "ctrl+e f",
         "mac": "cmd+e f"
       },

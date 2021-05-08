@@ -19,7 +19,7 @@
                 </span>
                 &nbsp; Build
               </a>
-              <a class="button" href="command:espIdf.flashDevice">
+              <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
                 <span class="icon is-small">
                   <iconify-icon icon="symbol-event" />
                 </span>

@@ -10,7 +10,6 @@
   "extension.noParamUpdatedMessage": "No device parameter has been updated",
   "extension.defaultSdkconfigGeneratedMessage": "Default sdkconfig file restored.",
   "extension.openFolderSdkconfigMessage": "Open a folder first to generate sdkconfig file.",
-  "extension.waitProcessIsFinishedMessage": "Wait for ESP-IDF build or flash to finish",
   "extension.elfNotFoundMessage": "Project ELF file cannot be found.",
   "extension.gdbNotFoundMessage": "GDB path cannot be found.",
   "extension.enterIdfPathMessage": "Enter IDF_PATH Path",

@@ -10,7 +10,6 @@
   "extension.noParamUpdatedMessage": "No se ha actualizado ningún parametro.",
   "extension.defaultSdkconfigGeneratedMessage": "Se ha restaurado el archivo sdkconfig por defecto.",
   "extension.openFolderSdkconfigMessage": "Abra una carpeta primero para generar el archivo sdkconfig.",
-  "extension.waitProcessIsFinishedMessage": "Espere que termine el proceso ESP-IDF",
   "extension.elfNotFoundMessage": "No se ha encontrado el archivo ELF de su proyecto.",
   "extension.gdbNotFoundMessage": "La ruta de GDB es incorrecta.",
   "extension.enterIdfPathMessage": "Introduzca la ruta IDF_PATH:",
