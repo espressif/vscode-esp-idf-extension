@@ -51,21 +51,70 @@ export function createFlashModel(
       mode: flashArgsJson.flash_settings.flash_mode,
       port,
       size: flashArgsJson.flash_settings.flash_size,
+      storage: {
+        address: flashArgsJson.storage
+          ? flashArgsJson.storage.offset
+          : undefined,
+        binFilePath: flashArgsJson.storage
+          ? flashArgsJson.storage.file
+          : undefined,
+        encrypted: flashArgsJson.storage
+          ? flashArgsJson.storage.encrypted
+          : undefined,
+      },
       stub: flashArgsJson.extra_esptool_args.stub,
     };
-    flashModel.bootloader.encrypted &&
-    flashModel.bootloader.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.bootloader)
-      : flashModel.flashSections.push(flashModel.bootloader);
 
-    flashModel.app.encrypted && flashModel.app.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.app)
-      : flashModel.flashSections.push(flashModel.app);
+    if (flashModel.app && flashModel.app.address) {
+      flashModel.app.encrypted &&
+      flashModel.app.encrypted.indexOf("true") !== -1
+        ? flashModel.encryptedFlashSections.push(flashModel.app)
+        : flashModel.flashSections.push(flashModel.app);
+    }
 
-    flashModel.partitionTable.encrypted &&
-    flashModel.partitionTable.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.partitionTable)
-      : flashModel.flashSections.push(flashModel.partitionTable);
+    if (flashModel.bootloader && flashModel.bootloader.address) {
+      flashModel.bootloader.encrypted &&
+      flashModel.bootloader.encrypted.indexOf("true") !== -1
+        ? flashModel.encryptedFlashSections.push(flashModel.bootloader)
+        : flashModel.flashSections.push(flashModel.bootloader);
+    }
+
+    if (flashModel.partitionTable && flashModel.partitionTable.address) {
+      flashModel.partitionTable.encrypted.indexOf("true") !== -1
+        ? flashModel.encryptedFlashSections.push(flashModel.partitionTable)
+        : flashModel.flashSections.push(flashModel.partitionTable);
+    }
+
+    if (flashModel.storage && flashModel.storage.address) {
+      flashModel.storage.encrypted &&
+      flashModel.storage.encrypted.indexOf("true") !== -1
+        ? flashModel.encryptedFlashSections.push(flashModel.storage)
+        : flashModel.flashSections.push(flashModel.storage);
+    }
+
+    Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
+      const existingFlashSection = flashModel.flashSections.length
+        ? flashModel.flashSections.filter(
+            (section) => section.address.indexOf(fileKey) !== -1
+          )
+        : [];
+      const existingEncryptedFlashSection = flashModel.encryptedFlashSections
+        .length
+        ? flashModel.encryptedFlashSections.filter(
+            (section) => section.address.indexOf(fileKey) !== -1
+          )
+        : [];
+      if (
+        fileKey &&
+        !existingEncryptedFlashSection.length &&
+        !existingFlashSection.length
+      ) {
+        flashModel.flashSections.push({
+          address: fileKey,
+          binFilePath: flashArgsJson.flash_files[fileKey],
+        } as FlashSection);
+      }
+    });
     return flashModel;
   });
 }
