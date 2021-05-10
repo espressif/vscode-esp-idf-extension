@@ -26,8 +26,9 @@ Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/F
 5. [Available commands](#Available-commands)
 6. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
 7. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
-8. [Code of Conduct](#Code-of-Conduct)
-9. [License](#License)
+8. [Troubleshooting](#Troubleshooting)
+9. [Code of Conduct](#Code-of-Conduct)
+10. [License](#License)
 
 ## Tutorials
 
@@ -64,12 +65,13 @@ Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/F
 
 There are few dependencies required in your system and available in environment variable PATH before installing this extension:
 
-| Linux                                                        | MacOS                                                        | Windows                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ |
-| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |
-| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                              |
-| [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                              |
+| Linux                                                                     | MacOS                                                                     | Windows                                                                  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+             |
+| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)|
+| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                     |
+| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                          |
+| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                          |
 
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
@@ -184,6 +186,23 @@ There is also some tasks defined in Tasks.json, which can be executed by running
 8. `BuildFlash` - Execute a build followed by a flash command.
 
 Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system environment variables with openocd scripts folder path.
+
+## Troubleshooting
+
+If something is not working please check for any error on one of these:
+
+1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF (or other related output like SDK Configuration Editor, OpenOCD, Debug Adapter, etc.)
+2. Use the `ESP-IDF: Doctor command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
+3. Check log file which can be obtained from:
+
+- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
+- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
+
+4. In Visual Studio Code, select menu "Help" -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
+
+If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
+
+If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).
 
 ## Code of Conduct
 
