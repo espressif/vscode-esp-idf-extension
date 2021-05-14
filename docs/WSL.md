@@ -19,6 +19,8 @@ Currently in WSL 2, there is no access to serial ports. Calling `powershell.exe`
 sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
 ```
 
+> **NOTE: ** The user might need to install pip in the virtual environment like: `$IDF_TOOLS_PATH/python_env/idf4.2_py3.8_env/bin/python ./get-pip.py`.
+
 2. Configure the extension as explained in [SETUP](./SETUP.md).
 
 3. Create an ESP-IDF project and use extension features.
