@@ -4,12 +4,15 @@
 
 # ESP-IDF VS Code Extension
 
-[![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
+[![Documentation](https://img.shields.io/badge/Documentation-blue)](./docs/ONBOARDING.md)
 [![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2%20ESP32--S3%20ESP32--C3-green)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
+[![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
 
 Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf)
+
+Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly use the extension.
 
 <a href="https://youtu.be/Lc6ausiKvQM">
   <p align="center">
@@ -19,63 +22,33 @@ Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/F
 
 # Table of content
 
-1. [Tutorials](#Tutorials)
-2. [Quick links](#Quick-links)
-3. [Prerequisites](#Prerequisites)
-4. [How to use](#How-to-use)
-5. [Available commands](#Available-commands)
-6. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
-7. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
-8. [Troubleshooting](#Troubleshooting)
-9. [Code of Conduct](#Code-of-Conduct)
-10. [License](#License)
+1. [Prerequisites](#Prerequisites)
+2. [How to use](#How-to-use)
+3. [Available commands](#Available-commands)
+4. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
+5. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
+6. [Troubleshooting](#Troubleshooting)
+7. [Code of Conduct](#Code-of-Conduct)
+8. [License](#License)
 
-## Tutorials
-
-1. [Install](./docs/tutorial/install.md) the extension and dependencies.
-2. [Basic usage](./docs/tutorial/basic_use.md)
-3. [Debug](./docs/tutorial/debugging.md)
-4. [Code coverage](./docs/tutorial/code_coverage.md)
-5. [Application tracing](./docs/tutorial/app_tracing.md)
-6. [Heap tracing and SystemView tracing](./docs/tutorial/heap_tracing.md)
-7. [Partition table editor](./docs/tutorial/partition_editor.md)
-8. [NVS Partition editor](./docs/tutorial/nvs_partition_editor.md)
-9. [CMakeLists.txt editor](./docs/tutorial/cmakelists_editor.md)
-10. [ESP-ADF, ESP-MDF and other frameworks](./docs/tutorial/additional_frameworks.md)
-11. [eFuse Explorer](./docs/tutorial/efuse.md)
-12. [Rainmaker](./docs/tutorial/rainmaker.md)
-
-## Quick links
-
-- [Build from source code and how to install](./docs/INSTALL.md)
-- [Configuration settings](./docs/SETTINGS.md)
-- [Chips and supported frameworks](./docs/HARDWARE_SUPPORT.md)
-- [Commands](#Available-commands)
-- [Contribute](./docs/CONTRIBUTING.md)
-- [Github Repository](https://github.com/espressif/vscode-esp-idf-extension)
-- [Github issues](https://github.com/espressif/vscode-esp-idf-extension/issues)
-- [How to use](#How-to-use)
-- [See all features](./docs/FEATURES.md)
-- [Setup process](./docs/SETUP.md)
-- [Tutorials](./docs/tutorial/toc.md)
-- [Releases](https://github.com/espressif/vscode-esp-idf-extension/releases)
-- [Working with multiple projects](./docs/MULTI_PROJECTS.md)
-
-## Prerequisites
+# Prerequisites
 
 There are few dependencies required in your system and available in environment variable PATH before installing this extension:
 
-| Linux                                                                     | MacOS                                                                     | Windows                                                                  |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+             |
-| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)|
-| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                     |
-| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                          |
-| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                          |
+| Linux                                                        | MacOS                                                        | Windows                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+                 |
+| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)                             |
+| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                                         |
+| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
+
 
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
+
+> **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the additional requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
 
 # How to use
 
@@ -84,9 +57,9 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
   - Either open Visual Studio Code and create a workspace folder.
   - Run `code ${YOUR_PROJECT_DIR}` from the command line.
 - Check you have installed the [Prerequisites](#Prerequisites)
-- Press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF and tools and configure the extension.
+- On the first time using the extension, press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF and tools and configure the extension.
 
-- Please take a look at [SETUP](./docs/SETUP.md) for details about extension configuration.
+  > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension configuration.
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Create project from extension template** to generate a template ESP-IDF project or **ESP-IDF: Show Examples Projects** to create from ESP-IDF examples.
 
@@ -143,27 +116,27 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Remove Editor coverage                                  |                                        |                                           |
 
-The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`). 
+# About commands
 
-You can also use the **ESP-IDF: Create project from extension template** command with `arduino-as-component` template to create a new project directory that includes Arduino-esp32 as an ESP-IDF component.
+1. The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`).
 
-> **NOTE** Not all versions of ESP-IDF are supported. Make sure to check [Arduino-ESP32](https://github.com/espressif/arduino-esp32) to see if your ESP-IDF version is compatible.
+   > **NOTE:** Not all versions of ESP-IDF are supported. Make sure to check [Arduino-ESP32](https://github.com/espressif/arduino-esp32) to see if your ESP-IDF version is compatible.
 
-The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
+2. You can also use the **ESP-IDF: Create project from extension template** command with `arduino-as-component` template to create a new project directory that includes Arduino-ESP32 as an ESP-IDF component.
 
-The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+3. The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 
-The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
+4. The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-## Commands for tasks.json and launch.json
+5. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
 
-We have implemented some utilities commands that can be used in tasks.json and launch.json like
+# Commands for tasks.json and launch.json
+
+We have implemented some utilities commands that can be used in tasks.json and launch.json that can be used like:
 
 ```json
 "miDebuggerPath": "${command:espIdf.getXtensaGdb}"
 ```
-
-as shown in the [debugging documentation](./DEBUGGING.md).
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
@@ -172,9 +145,11 @@ as shown in the [debugging documentation](./DEBUGGING.md).
 - `espIdf.getXtensaGcc`: Return the absolute path of the xtensa toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 - `espIdf.getXtensaGdb`: Return the absolute path of the xtensa toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 
-## Available Tasks in tasks.json
+See an example in the [debugging](./docs/DEBUGGING.md) documentation.
 
-There is also some tasks defined in Tasks.json, which can be executed by running <kbd>F1</kbd> and writing `Tasks: Run task` and selecting one of the following:
+# Available Tasks in tasks.json
+
+A template Tasks.json is included when creating a project using **ESP-IDF: Create project from extension template**. These tasks can be executed by running <kbd>F1</kbd>, writing `Tasks: Run task` and selecting one of the following:
 
 1. `Build` - Build Project
 2. `Set Target to esp32`
@@ -187,7 +162,7 @@ There is also some tasks defined in Tasks.json, which can be executed by running
 
 Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system environment variables with openocd scripts folder path.
 
-## Troubleshooting
+# Troubleshooting
 
 If something is not working please check for any error on one of these:
 
@@ -204,10 +179,10 @@ If there is any Python package error, please try to reinstall the required pytho
 
 If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).
 
-## Code of Conduct
+# Code of Conduct
 
 This project and everyone participating in it is governed by the [Code of Conduct](./docs/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [vscode@espressif.com](mailto:vscode@espressif.com).
 
-## License
+# License
 
 This extension is licensed under the Apache License 2.0. Please see the [LICENSE](./LICENSE) file for additional copyright notices and terms.

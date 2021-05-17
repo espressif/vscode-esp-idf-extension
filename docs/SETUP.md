@@ -8,17 +8,7 @@
 4. [ Extension manual configuration using **Preferences: Open Settings (UI)** ](#UI-Manual-Configuration) <br>
 5. [ Extension configuration example ](#Example-configuration-setting-values) <br>
 
-## Prerequisites
-
-There are few dependencies required in your system and available in environment variable PATH before installing this extension:
-
-| Linux                                                                     | MacOS                                                                     | Windows                                                                   |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              |
-| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) |
-| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      |
-| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                           |
-| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                           |
+> **NOTE:** Make sure to install the extension [prerequisites](../README.md#Prerequisites) and, if using WSL2, the required packages specified in [WSL Documentation](./WSL.md).
 
 # Extension activation self configuration
 
