@@ -18,40 +18,39 @@
 import { reportObj } from "./types";
 import * as vscode from "vscode";
 
-export function getConfigurationSettings(reportedResult: reportObj) {
+export function getConfigurationSettings(
+  reportedResult: reportObj,
+  scope?: vscode.ConfigurationScope
+) {
   const winFlag = process.platform === "win32" ? "Win" : "";
-  const configurationSettings: string[] = [
-    "idf.espIdfPath" + winFlag,
-    "idf.customExtraPaths",
-    "idf.customExtraVars",
-    "idf.pythonBinPath" + winFlag,
-    "idf.port" + winFlag,
-    "idf.openOcdConfigs",
-    "idf.toolsPath" + winFlag,
-  ];
-  const settingsValues = {};
-  for (let conf of configurationSettings) {
-    settingsValues[conf] = vscode.workspace.getConfiguration("").get(conf);
-  }
   reportedResult.configurationSettings = {
+    espAdfPath: vscode.workspace
+      .getConfiguration("", scope)
+      .get("idf.espAdfPath" + winFlag),
     espIdfPath: vscode.workspace
-      .getConfiguration("")
+      .getConfiguration("", scope)
       .get("idf.espIdfPath" + winFlag),
+    espMdfPath: vscode.workspace
+      .getConfiguration("", scope)
+      .get("idf.espMdfPath" + winFlag),
     customExtraPaths: vscode.workspace
-      .getConfiguration("")
+      .getConfiguration("", scope)
       .get("idf.customExtraPaths"),
     customExtraVars: vscode.workspace
-      .getConfiguration("")
+      .getConfiguration("", scope)
       .get("idf.customExtraVars"),
     pythonBinPath: vscode.workspace
-      .getConfiguration("")
+      .getConfiguration("", scope)
       .get("idf.pythonBinPath" + winFlag),
     pythonPackages: [],
-    serialPort: vscode.workspace.getConfiguration("").get("idf.port"),
+    serialPort: vscode.workspace
+      .getConfiguration("", scope)
+      .get("idf.port" + winFlag),
     openOcdConfigs:
-      vscode.workspace.getConfiguration("").get("idf.openOcdConfigs") || [],
+      vscode.workspace.getConfiguration("", scope).get("idf.openOcdConfigs") ||
+      [],
     toolsPath: vscode.workspace
-      .getConfiguration("")
+      .getConfiguration("", scope)
       .get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,

@@ -11,5 +11,5 @@
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node"
   },
-  "exclude": ["node_modules", ".vscode-test", "src/views"]
+  "exclude": [".vscode-test", "esp", "node_modules", "src/views"]
 }

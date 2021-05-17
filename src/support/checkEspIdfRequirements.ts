@@ -24,17 +24,22 @@ export async function checkEspIdfRequirements(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const requirementsPath = join(
-    reportedResult.configurationSettings.espIdfPath,
-    "requirements.txt"
-  );
-  const result = await checkRequirements(
-    context,
-    reportedResult,
-    requirementsPath
-  );
-  reportedResult.idfCheckRequirements.output = result;
-  reportedResult.idfCheckRequirements.result = result;
+  try {
+    const requirementsPath = join(
+      reportedResult.configurationSettings.espIdfPath,
+      "requirements.txt"
+    );
+    const result = await checkRequirements(
+      context,
+      reportedResult,
+      requirementsPath
+    );
+    reportedResult.idfCheckRequirements.output = result;
+    reportedResult.idfCheckRequirements.result = result;
+  } catch (error) {
+    reportedResult.idfCheckRequirements.result = "Error";
+    reportedResult.latestError = error;
+  }
 }
 
 export async function checkRequirements(

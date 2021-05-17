@@ -24,15 +24,20 @@ export async function getPythonVersion(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const rawPythonVersion = await execChildProcess(
-    `${reportedResult.configurationSettings.pythonBinPath} --version`,
-    context.extensionPath
-  );
-  reportedResult.pythonVersion.output = rawPythonVersion;
-  const match = rawPythonVersion.match(PYTHON_VERSION_REGEX);
-  if (match && match.length) {
-    reportedResult.pythonVersion.result = match[0].replace(/Python\s/g, "");
-  } else {
+  try {
+    const rawPythonVersion = await execChildProcess(
+      `${reportedResult.configurationSettings.pythonBinPath} --version`,
+      context.extensionPath
+    );
+    reportedResult.pythonVersion.output = rawPythonVersion;
+    const match = rawPythonVersion.match(PYTHON_VERSION_REGEX);
+    if (match && match.length) {
+      reportedResult.pythonVersion.result = match[0].replace(/Python\s/g, "");
+    } else {
+      reportedResult.pythonVersion.result = "Not found";
+    }
+  } catch (error) {
     reportedResult.pythonVersion.result = "Not found";
+    reportedResult.latestError = error;
   }
 }

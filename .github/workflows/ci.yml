@@ -5,9 +5,6 @@ on: [push, pull_request]
 jobs:
   extension_ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
 
     steps:
       - name: Clone Repository
@@ -15,23 +12,20 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Clone ESP-IDF
+        uses: actions/checkout@v2
+        with:
+          path: esp/idf
+          repository: espressif/esp-idf
+          submodules: "recursive"
+
+      - name: Setup Node.js 12.x
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.6
+          node-version: "12.x"
 
       - name: Install Node Dependencies
         run: yarn
-
-      - name: Install Python Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r esp_debug_adapter/requirements.txt
 
       - name: Lint Check
         run: yarn lint
@@ -54,13 +48,18 @@ jobs:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
 
-      - name: Extension Test
-        uses: GabrielBB/xvfb-action@v1.2
-        with:
-          run: yarn test
+      - name: Run test
+        uses: ./.github/actions/idf
+        id: idftest
 
-      - name: Upload testing.results.log
+      - name: Get the test output
+        run: echo "${{ steps.idftest.outputs.result }}" | tee test-result.xml
+
+      - name: Package .vsix
+        run: yarn package
+
+      - name: Upload .vsix File
         uses: actions/upload-artifact@v1
         with:
-          name: testing.results.log
-          path: testing.results.log
+          name: esp-idf-extension.vsix
+          path: esp-idf-extension.vsix
