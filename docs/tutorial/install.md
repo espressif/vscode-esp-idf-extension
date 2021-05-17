@@ -5,31 +5,41 @@
 3. Search the extension with any related keyword like `espressif`, `esp-idf`, `esp32`, `esp32s2`, etc.
 4. Install the extension.
 
+5. Install ESP-IDF Prerequisites as shown below:
+
+| Linux                                                                     | MacOS                                                                     | Windows                                                                  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+             |
+| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)|
+| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                     |
+| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                          |
+| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                          |
+
 <p>
   <img src="../../media/tutorials/setup/install-extension.png" alt="Setup wizard">
 </p>
 
-5. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
-6. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
+6. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
+7. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
 
 <p>
   <img src="../../media/tutorials/setup/select-mode.png" alt="Select extension mode" width="950">
 </p>
 
-7. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
-8. Then pick an ESP-IDF version to download (or search for an existing ESP-IDF directory in your system) and the python executable to create the virtual environment.
+8. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
+9. Then pick an ESP-IDF version to download (or search for an existing ESP-IDF directory in your system) and the python executable to create the virtual environment.
 
 <p>
   <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
 </p>
 
-9. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
+10. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
 
 <p>
   <img src="../../media/tutorials/setup/install-status.png" alt="Install status" width="950">
 </p>
 
-10. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, the next step is to choose the location for `IDF_TOOLS_PATH` (which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default) and select to download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
+11. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, the next step is to choose the location for `IDF_TOOLS_PATH` (which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default) and select to download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
     > **NOTE:** Consider that `IDF_PATH` requires each ESP-IDF tool to be of the version described in `IDF_PATH`/tools/tools.json.
     > If it is desired to use a different ESP-IDF tool version, check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration)
 
@@ -37,7 +47,7 @@
   <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools" width="950">
 </p>
 
-11. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
+12. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
 
 <p>
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
@@ -56,7 +66,7 @@ Now that the extension setup is finally done, check the [basic use](./basic_use.
 
 If something went wrong during the install please check for any error on one of these:
 
-1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF
+1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF (or other related output like SDK Configuration Editor, OpenOCD, Debug Adapter, etc.)
 2. Use the `ESP-IDF: Doctor command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
 3. Check log file which can be obtained from:
 

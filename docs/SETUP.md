@@ -8,6 +8,18 @@
 4. [ Extension manual configuration using **Preferences: Open Settings (UI)** ](#UI-Manual-Configuration) <br>
 5. [ Extension configuration example ](#Example-configuration-setting-values) <br>
 
+## Prerequisites
+
+There are few dependencies required in your system and available in environment variable PATH before installing this extension:
+
+| Linux                                                                     | MacOS                                                                     | Windows                                                                   |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              |
+| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) |
+| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      |
+| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                           |
+| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                           |
+
 # Extension activation self configuration
 
 When you start ESP-IDF extension, it will try to self-configure by looking for existing ESP-IDF directory in `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows. It will look for ESP-IDF Tools and ESP-IDF Python virtual environment in `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
@@ -98,17 +110,17 @@ where:
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
 
 ```
-PYTHON_INTERPRETER -m pip install -r EXTENSION_PATH/requirements.txt
+PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/requirements.txt
 ```
 
 ```
-PYTHON_INTERPRETER -m pip install -r EXTENSION_PATH/esp_debug_adapter/requirements.txt
+PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/esp_debug_adapter/requirements.txt
 ```
 
 where EXTENSION_PATH is
 
 - `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION` on Windows
-- `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION` on Linux/MacOS.
+- `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION` on Linux/MacOS
 
 # UI Manual Configuration
 
