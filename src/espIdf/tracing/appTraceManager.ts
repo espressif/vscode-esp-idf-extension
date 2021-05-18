@@ -148,9 +148,7 @@ export class AppTraceManager extends EventEmitter {
           ? vscode.workspace.workspaceFolders[0].uri
           : undefined;
         const workspacePath = workspace ? workspace.fsPath : "";
-        const fileName = vscode.Uri.file(
-          join(workspacePath, "trace", `trace_${new Date().getTime()}.trace`)
-        );
+        const fileName = join(workspacePath, "trace", `trace_${new Date().getTime()}.trace`);
         const pollPeriod = idfConf.readParameter("trace.poll_period");
         const traceSize = idfConf.readParameter("trace.trace_size");
         const stopTmo = idfConf.readParameter("trace.stop_tmo");
