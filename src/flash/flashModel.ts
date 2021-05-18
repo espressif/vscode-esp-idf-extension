@@ -31,6 +31,7 @@ export interface FlashModel {
   partitionTable: FlashSection;
   port: string;
   size: string;
+  storage: FlashSection;
   stub: boolean;
 }
 export interface FlashSection {

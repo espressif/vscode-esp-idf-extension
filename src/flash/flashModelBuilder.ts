@@ -27,21 +27,33 @@ export function createFlashModel(
   return readJSON(modelJsonPath).then((flashArgsJson) => {
     const flashModel: FlashModel = {
       app: {
-        address: flashArgsJson.app.offset,
-        binFilePath: flashArgsJson.app.file,
-        encrypted: flashArgsJson.app.encrypted,
+        address: flashArgsJson.app ? flashArgsJson.app.offset : undefined,
+        binFilePath: flashArgsJson.app ? flashArgsJson.app.file : undefined,
+        encrypted: flashArgsJson.app ? flashArgsJson.app.encrypted : undefined,
       } as FlashSection,
       after: flashArgsJson.extra_esptool_args.after,
       before: flashArgsJson.extra_esptool_args.before,
       bootloader: {
-        address: flashArgsJson.bootloader.offset,
-        binFilePath: flashArgsJson.bootloader.file,
-        encrypted: flashArgsJson.bootloader.encrypted,
+        address: flashArgsJson.bootloader
+          ? flashArgsJson.bootloader.offset
+          : undefined,
+        binFilePath: flashArgsJson.bootloader
+          ? flashArgsJson.bootloader.file
+          : undefined,
+        encrypted: flashArgsJson.bootloader
+          ? flashArgsJson.bootloader.encrypted
+          : undefined,
       } as FlashSection,
       partitionTable: {
-        address: flashArgsJson.partition_table.offset,
-        binFilePath: flashArgsJson.partition_table.file,
-        encrypted: flashArgsJson.partition_table.encrypted,
+        address: flashArgsJson.partition_table
+          ? flashArgsJson.partition_table.offset
+          : undefined,
+        binFilePath: flashArgsJson.partition_table
+          ? flashArgsJson.partition_table.file
+          : undefined,
+        encrypted: flashArgsJson.partition_table
+          ? flashArgsJson.partition_table.encrypted
+          : undefined,
       } as FlashSection,
       baudRate,
       chip: flashArgsJson.extra_esptool_args.chip,
@@ -51,21 +63,56 @@ export function createFlashModel(
       mode: flashArgsJson.flash_settings.flash_mode,
       port,
       size: flashArgsJson.flash_settings.flash_size,
+      storage: {
+        address: flashArgsJson.storage
+          ? flashArgsJson.storage.offset
+          : undefined,
+        binFilePath: flashArgsJson.storage
+          ? flashArgsJson.storage.file
+          : undefined,
+        encrypted: flashArgsJson.storage
+          ? flashArgsJson.storage.encrypted
+          : undefined,
+      },
       stub: flashArgsJson.extra_esptool_args.stub,
     };
-    flashModel.bootloader.encrypted &&
-    flashModel.bootloader.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.bootloader)
-      : flashModel.flashSections.push(flashModel.bootloader);
 
-    flashModel.app.encrypted && flashModel.app.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.app)
-      : flashModel.flashSections.push(flashModel.app);
+    addSectionToModel(flashModel.app, flashModel);
+    addSectionToModel(flashModel.bootloader, flashModel);
+    addSectionToModel(flashModel.partitionTable, flashModel);
+    addSectionToModel(flashModel.storage, flashModel);
 
-    flashModel.partitionTable.encrypted &&
-    flashModel.partitionTable.encrypted.indexOf("true") !== -1
-      ? flashModel.encryptedFlashSections.push(flashModel.partitionTable)
-      : flashModel.flashSections.push(flashModel.partitionTable);
+    Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
+      const existingFlashSection = flashModel.flashSections.length
+        ? flashModel.flashSections.filter(
+            (section) => section.address.indexOf(fileKey) !== -1
+          )
+        : [];
+      const existingEncryptedFlashSection = flashModel.encryptedFlashSections
+        .length
+        ? flashModel.encryptedFlashSections.filter(
+            (section) => section.address.indexOf(fileKey) !== -1
+          )
+        : [];
+      if (
+        fileKey &&
+        !existingEncryptedFlashSection.length &&
+        !existingFlashSection.length
+      ) {
+        flashModel.flashSections.push({
+          address: fileKey,
+          binFilePath: flashArgsJson.flash_files[fileKey],
+        } as FlashSection);
+      }
+    });
     return flashModel;
   });
+}
+
+function addSectionToModel(flashSection: FlashSection, model: FlashModel) {
+  if (flashSection && flashSection.address && flashSection.binFilePath) {
+    flashSection.encrypted && flashSection.encrypted.indexOf("true") !== -1
+      ? model.encryptedFlashSections.push(flashSection)
+      : model.flashSections.push(flashSection);
+  }
 }
