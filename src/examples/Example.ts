@@ -16,29 +16,69 @@ import * as path from "path";
 import * as utils from "../utils";
 
 export interface IExample {
-  category: string;
   name: string;
   path: string;
 }
 
-export function getExamplesList(targetFrameworkFolder: string): IExample[] {
-  const examplesPath = path.join(targetFrameworkFolder, "examples");
-  const exampleCategories = utils.getDirectories(examplesPath);
-  const examplesPathList = utils.getSubProjects(examplesPath);
+export interface IExampleCategory {
+  name: string;
+  examples: IExample[];
+  subcategories: IExampleCategory[];
+}
 
-  const examplesList = examplesPathList.map((examplePath) => {
-    const category =
-      exampleCategories.find((c) => examplePath.indexOf(c) > -1) || "";
-    const regexToUse =
-      process.platform === "win32" ? /([^\\]*)\\*$/ : /([^\/]*)\/*$/;
-    const exampleName = examplePath.match(regexToUse)[1] || "";
+export function getExamplesList(
+  targetFrameworkFolder: string
+): IExampleCategory {
+  const examplesRoot = path.join(targetFrameworkFolder, "examples");
+  const examplesPathList = utils.getSubProjects(examplesRoot);
+  const rootFolder: IExampleCategory = {
+    name: examplesRoot,
+    examples: [],
+    subcategories: [],
+  };
+  for (const examplePath of examplesPathList) {
+    const pathSegments = examplePath
+      .replace(examplesRoot + path.sep, "")
+      .split(path.sep);
+    addSubCategory(rootFolder, examplePath, pathSegments);
+  }
+  const getStarted = rootFolder.subcategories.findIndex((subCat) => subCat.name === "get-started");
+  rootFolder.subcategories.splice(0, 0, rootFolder.subcategories.splice(getStarted, 1)[0]);
+  return rootFolder;
+}
 
+export function addSubCategory(
+  parent: IExampleCategory,
+  path: string,
+  pathSegments: string[]
+) {
+  if (pathSegments.length === 1) {
     const example: IExample = {
-      category,
-      name: exampleName,
-      path: examplePath,
+      name: pathSegments[0],
+      path,
     };
-    return example;
-  });
-  return examplesList;
+    parent.examples.push(example);
+    return;
+  }
+  let nodeIndex = parent.subcategories.findIndex(
+    (subCat) => subCat.name === pathSegments[0]
+  );
+  if (nodeIndex !== -1) {
+    addSubCategory(
+      parent.subcategories[nodeIndex],
+      path,
+      pathSegments.slice(1)
+    );
+  } else {
+    parent.subcategories.push({
+      name: pathSegments[0],
+      subcategories: [],
+      examples: [],
+    } as IExampleCategory);
+    addSubCategory(
+      parent.subcategories[parent.subcategories.length - 1],
+      path,
+      pathSegments.slice(1)
+    );
+  }
 }

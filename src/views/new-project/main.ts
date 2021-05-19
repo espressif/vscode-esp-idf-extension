@@ -82,7 +82,6 @@ window.addEventListener("message", (event) => {
       }
       if (msg.templates) {
         store.commit("setTemplates", msg.templates);
-        store.commit("setSelectedTemplate", msg.templates[0]);
       }
       if (msg.openOcdConfigFiles) {
         store.commit("setOpenOcdConfigFiles", msg.openOcdConfigFiles);
@@ -94,6 +93,7 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "setExampleDetail":
+      console.log(msg.templateDetail);
       if (msg.templateDetail) {
         store.commit("setTemplateDetail", msg.templateDetail);
       }

@@ -2,20 +2,11 @@
   <div id="examples-window">
     <div id="sidenav" class="content">
       <ul>
-        <li v-for="category in templateCategories" :key="category">
-          <p class="category subtitle" v-text="category" />
-          <ul class="examples">
-            <li v-for="item in groups[category]" :key="item.path">
-              <p
-                @click="toggleExampleDetail(item)"
-                v-text="item.name"
-                :class="{
-                  selectedItem: storeSelectedExample.path === item.path,
-                }"
-              />
-            </li>
-          </ul>
-        </li>
+        <ExampleList
+          v-for="cat of exampleRootPath.subcategories"
+          :node="cat"
+          :key="cat.name"
+        />
       </ul>
     </div>
 
@@ -42,61 +33,30 @@
 import Vue from "vue";
 import { Component } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import { IExample } from "./store";
+import { IExample } from "../../examples/Example";
+import ExampleList from "./components/exampleList.vue";
 
-@Component
+@Component({
+  components: {
+    ExampleList,
+  },
+})
 export default class Examples extends Vue {
-  @State("examplesPaths") private storeExamplesPath;
-  @State("selectedExample") private storeSelectedExample;
-  @State("hasExampleDetail") private hasExampleDetail;
+  @State("exampleRootPath") private storeExampleRootPath;
   @State("exampleDetail") private storeExampleDetail;
+  @State("hasExampleDetail") private hasExampleDetail;
+  @State("selectedExample") private storeSelectedExample;
   @Action("openExample") private storeOpenExample;
   @Action private getExamplesList;
-  @Action private getExampleDetail;
-  @Mutation private showExampleDetail;
-  @Mutation private setSelectedExample;
-  @Mutation private setExampleDetail;
 
   get selectedExample() {
     return this.storeSelectedExample;
   }
-  get examplesPaths() {
-    return this.storeExamplesPath;
+  get exampleRootPath() {
+    return this.storeExampleRootPath;
   }
   get exampleDetail() {
     return this.storeExampleDetail;
-  }
-  get groups() {
-    return this.groupBy(this.storeExamplesPath, "category");
-  }
-  get templateCategories() {
-    const uniqueCategories = [
-      ...new Set(this.storeExamplesPath.map((t) => t.category)),
-    ];
-    const getStarted = uniqueCategories.indexOf("get-started");
-    uniqueCategories.splice(0, 0, uniqueCategories.splice(getStarted, 1)[0]);
-    return uniqueCategories;
-  }
-
-  public toggleExampleDetail(example: IExample) {
-    if (example.path !== this.storeSelectedExample.path) {
-      this.setSelectedExample(example);
-      this.setExampleDetail("No README.md available for this project.");
-      this.getExampleDetail({ pathToOpen: example.path });
-    } else {
-      this.showExampleDetail();
-    }
-  }
-
-  public groupBy(array: string[], key: string) {
-    const result = {};
-    array.forEach((item) => {
-      if (!result[item[key]]) {
-        result[item[key]] = [];
-      }
-      result[item[key]].push(item);
-    });
-    return result;
   }
 
   public openExample(selectedExample: IExample) {
