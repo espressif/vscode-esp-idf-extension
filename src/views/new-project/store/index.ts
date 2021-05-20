@@ -49,13 +49,14 @@ export interface IState {
   openOcdConfigFiles: string;
   projectName: string;
   selectedBoard: IdfBoard;
+  selectedFramework: string;
   selectedPort: string;
   selectedTemplate: IExample;
   serialPortList: string[];
   target: IdfTarget;
   targetList: IdfTarget[];
   templateDetail: string;
-  templatesRootPath: IExampleCategory;
+  templatesRootPath: { [key: string]: IExampleCategory };
 }
 
 const newProjectState: IState = {
@@ -67,13 +68,14 @@ const newProjectState: IState = {
   openOcdConfigFiles: "",
   projectName: "project-name",
   selectedBoard: null,
+  selectedFramework: "",
   selectedPort: "",
   selectedTemplate: { name: "", path: "" },
   serialPortList: [],
   target: null,
   targetList: [],
   templateDetail: "",
-  templatesRootPath: { name: "", examples: [], subcategories: [] },
+  templatesRootPath: {},
 };
 
 export const mutations: MutationTree<IState> = {
@@ -112,6 +114,11 @@ export const mutations: MutationTree<IState> = {
     newState.selectedBoard = board;
     state = { ...newState };
   },
+  setSelectedFramework(state, selectedFramework: string) {
+    const newState = state;
+    newState.selectedFramework = selectedFramework;
+    state = { ...newState };
+  },
   setSelectedPort(state, port: string) {
     const newState = state;
     newState.selectedPort = port;
@@ -144,7 +151,7 @@ export const mutations: MutationTree<IState> = {
     newState.hasTemplateDetail = true;
     state = { ...newState };
   },
-  setTemplates(state, templates: IExampleCategory) {
+  setTemplates(state, templates: { [key: string]: IExampleCategory }) {
     const newState = state;
     newState.templatesRootPath = templates;
     state = { ...newState };

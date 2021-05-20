@@ -1,12 +1,15 @@
 <template>
   <div id="templates-window">
     <div id="sidenav" class="content">
+      <div class="select">
+        <select v-model="selectedFramework">
+          <option v-for="f in frameworks" :key="f" :value="f">
+            {{ f }}
+          </option>
+        </select>
+      </div>
       <ul class="templates">
-        <TemplateList
-          v-for="cat of templates"
-          :node="cat"
-          :key="cat.name"
-        />
+        <TemplateList v-for="cat of templates" :node="cat" :key="cat.name" />
       </ul>
     </div>
 
@@ -37,15 +40,19 @@ import TemplateList from "./components/templateList.vue";
 
 @Component({
   components: {
-    TemplateList
-  }
+    TemplateList,
+  },
 })
 export default class Templates extends Vue {
-  @State("templatesRootPath") private storeTemplatesRootPath: IExampleCategory;
+  @Action private createProject;
+  @Mutation private setSelectedFramework;
+  @State("templatesRootPath") private storeTemplatesRootPath: {
+    [key: string]: IExampleCategory;
+  };
   @State("hasTemplateDetail") private storeHasTemplateDetail;
   @State("selectedTemplate") private storeSelectedTemplate: IExample;
   @State("templateDetail") private storeTemplateDetail;
-  @Action private createProject;
+  @State("selectedFramework") private storeSelectedFramework: string;
 
   get hasTemplateDetail() {
     return this.storeHasTemplateDetail;
@@ -56,20 +63,35 @@ export default class Templates extends Vue {
   }
 
   get templates() {
-    return this.storeTemplatesRootPath.subcategories;
+    if (
+      this.storeTemplatesRootPath &&
+      this.storeTemplatesRootPath[this.selectedFramework]
+    ) {
+      return this.storeTemplatesRootPath[this.selectedFramework].subcategories;
+    }
   }
 
-  // get templateCategories() {
-  //   const uniqueCategories = [
-  //     ...new Set(this.storeTemplates.map((t) => t.name)),
-  //   ];
-  //   const getStarted = uniqueCategories.indexOf("get-started");
-  //   uniqueCategories.splice(0, 0, uniqueCategories.splice(getStarted, 1)[0]);
-  //   return uniqueCategories;
-  // }
+  get frameworks() {
+    return Object.keys(this.storeTemplatesRootPath);
+  }
 
   get templateDetail() {
     return this.storeTemplateDetail;
+  }
+
+  get selectedFramework() {
+    return this.storeSelectedFramework;
+  }
+
+  set selectedFramework(framework: string) {
+    this.setSelectedFramework(framework);
+  }
+
+  created() {
+    if (this.storeTemplatesRootPath) {
+      const frameworks = Object.keys(this.storeTemplatesRootPath);
+      this.selectedFramework = frameworks.length ? frameworks[0] : "";
+    }
   }
 }
 </script>
