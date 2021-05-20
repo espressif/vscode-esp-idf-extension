@@ -61,7 +61,6 @@ export class SerialPort {
       if (kernelMatch && kernelMatch.length) {
         isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
       }
-      console.log(isWsl2Kernel);
       let portList: SerialPortDetails[];
       if (
         process.platform === "linux" &&

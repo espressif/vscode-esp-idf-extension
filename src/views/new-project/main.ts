@@ -93,7 +93,6 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "setExampleDetail":
-      console.log(msg.templateDetail);
       if (msg.templateDetail) {
         store.commit("setTemplateDetail", msg.templateDetail);
       }

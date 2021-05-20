@@ -54,7 +54,6 @@ export const mutations: MutationTree<IState> = {
     Object.assign(state, newState);
   },
   setSelectedExample(state, selectedExample: IExample) {
-    console.log(selectedExample);
     const newState = state;
     newState.selectedExample = selectedExample;
     Object.assign(state, newState);

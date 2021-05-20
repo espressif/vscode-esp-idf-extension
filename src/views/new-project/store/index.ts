@@ -136,7 +136,6 @@ export const mutations: MutationTree<IState> = {
   },
   setTarget(state, target: IdfTarget) {
     const newState = state;
-    console.log(target);
     state.target = target;
     state = { ...newState };
   },
