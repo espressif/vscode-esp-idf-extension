@@ -24,7 +24,7 @@ Let's use the ESP-IDF [gcov example](https://github.com/espressif/esp-idf/tree/m
 
 4. First the user should select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command. Default is `esp32` and the one used in this tutorial.
 
-5. Next configure your project using menuconfig. Use the **ESP-IDF: SDK Configuration editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
+5. Next configure your sdkconfig project with the **ESP-IDF: Configure project sdkconfig for coverage** command or by yourself using the **ESP-IDF: SDK Configuration editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 <p>
   <img src="../../media/tutorials/basic_use/gui_menuconfig.png" alt="GUI Menuconfig" height="500">
