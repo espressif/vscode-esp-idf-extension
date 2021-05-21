@@ -40,7 +40,7 @@
   "espIdf.ninja.summary.title": "ESP-IDF: Показать сводку сборки ninja",
   "espIdf.eraseFlash.title": "ESP-IDF: Стереть флеш-память с устройства",
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Удалить текущий процесс сервера редактора конфигурации SDK",
-  "espIdf.setGcovConfig.title": " ESP-IDF: Настроить проект для покрытия",
+  "espIdf.setGcovConfig.title": "ESP-IDF: Настроить проект sdkconfig для покрытия",
   "debug.initConfig.name": "ESP-IDF: Запустить",
   "debug.initConfig.description": "Новая конфигурация для запуска проектов ESP-IDF",
   "param.adapterTargetName": "Целевое устройство для адаптера отладки ESP-IDF",

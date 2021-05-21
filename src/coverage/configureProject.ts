@@ -16,16 +16,18 @@
  * limitations under the License.
  */
 
-import { extensionContext, getConfigValueFromSDKConfig } from "../utils";
+import { extensionContext, getConfigValueFromSDKConfig, getEspIdfVersion } from "../utils";
+import { readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
+  env,
   window,
   Uri,
   ProgressLocation,
   Progress,
   CancellationToken,
 } from "vscode";
-import { MenuConfigPanel } from "../espIdf/menuconfig/MenuconfigPanel";
+import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = getConfigValueFromSDKConfig(
@@ -66,9 +68,9 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
     appTracePendingDataSizeMax === "0" &&
     appTraceGcovEnable === "y";
 
-  // if (isGcovEnabled) {
-  //   return;
-  // }
+  if (isGcovEnabled) {
+    return window.showInformationMessage("Code coverage is already enabled in sdkconfig");
+  }
 
   if (!ConfserverProcess.exists()) {
     const response = await window.showInformationMessage(
@@ -100,9 +102,41 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
       }
     );
   }
-  const destTraxRequest = `{"version": 2, "set": { "APPTRACE_DEST_TRAX": true }}\n`;
-  const gcovEnableRequest = `{"version": 2, "set": { "APPTRACE_GCOV_ENABLE": true }}\n`;
-  ConfserverProcess.sendUpdatedValue(destTraxRequest);
+  const gcovEnableRequest = `{"version": 2, "set": { "APPTRACE_DEST_TRAX": true, "APPTRACE_GCOV_ENABLE": true }}\n`;
   ConfserverProcess.sendUpdatedValue(gcovEnableRequest);
   ConfserverProcess.saveGuiConfigValues();
+  await openCoverageUrl();
+}
+
+export async function openCoverageUrl() {
+  const docsVersions = await getDocsVersion();
+  const idfPath =
+    readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+  let idfVersion = "v" + (await getEspIdfVersion(idfPath));
+  let idfTarget = readParameter("idf.adapterTargetName");
+  if (idfTarget === "custom") {
+    idfTarget = readParameter("idf.customAdapterTargetName");
+  }
+  let docVersion = docsVersions.find(
+    (docVer) => docVer.name === idfVersion
+  );
+  let targetToUse: string = "esp32";
+  if (!docVersion) {
+    docVersion = docsVersions.find((docVer) => docVer.name === "latest");
+  }
+  if (
+    docVersion.supportedTargets &&
+    docVersion.supportedTargets.indexOf(idfTarget) !== -1
+  ) {
+    targetToUse = idfTarget;
+  }
+  const localeLang = getDocsLocaleLang();
+  const coverageDocUrl = `https://docs.espressif.com/projects/esp-idf/${localeLang}/${docVersion.name}/${targetToUse}/api-guides/app_trace.html#compiler-option`;
+  const option = await window.showInformationMessage(
+    "Your project sdkconfig has been configured. Make sure to compile the source file with the --coverage option.",
+    "See the docs"
+  );
+  if (option === "See the docs") {
+    env.openExternal(Uri.parse(coverageDocUrl));
+  }
 }

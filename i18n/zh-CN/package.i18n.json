@@ -40,7 +40,7 @@
   "espIdf.ninja.summary.title": "ESP-IDF: 显示ninja构建摘要",
   "espIdf.eraseFlash.title": "ESP-IDF: 从设备中擦除闪存",
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: 释放当前SDK配置编辑器服务器进程",
-  "espIdf.setGcovConfig.title": " ESP-IDF: 为覆盖范围配置项目",
+  "espIdf.setGcovConfig.title": "ESP-IDF: 为覆盖范围配置项目sdkconfig",
   "debug.initConfig.name": "ESP-IDF：启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF调试适配器的目标名称",
