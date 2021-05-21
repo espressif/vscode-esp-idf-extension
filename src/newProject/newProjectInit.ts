@@ -13,7 +13,7 @@
 // limitations under the License.
 import { join } from "path";
 import { Progress } from "vscode";
-import { getExamplesList, IExample } from "../examples/Example";
+import { getExamplesList, IExampleCategory } from "../examples/Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import * as idfConf from "../idfConfiguration";
 import { IdfBoard, IdfTarget } from "../views/new-project/store";
@@ -30,7 +30,7 @@ export interface INewProjectArgs {
   components: IComponent[];
   serialPortList: string[];
   targetList: IdfTarget[];
-  templates: IExample[];
+  templates: { [key: string]: IExampleCategory };
 }
 
 const defTargetList: IdfTarget[] = [
@@ -131,21 +131,21 @@ export async function getNewProjectArgs(
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
   const espMdfPath = idfConf.readParameter("idf.espMdfPath") as string;
-  let templates = [];
+  let templates: { [key:string]: IExampleCategory} = {};
   const idfExists = await dirExistPromise(espIdfPath);
   if (idfExists) {
     const idfTemplates = getExamplesList(espIdfPath);
-    templates = templates.concat(idfTemplates);
+    templates["ESP-IDF"] = idfTemplates;
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
     const adfTemplates = getExamplesList(espAdfPath);
-    templates = templates.concat(adfTemplates);
+    templates["ESP-ADF"] = adfTemplates;
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
     const mdfTemplates = getExamplesList(espMdfPath);
-    templates = templates.concat(mdfTemplates);
+    templates["ESP-MDF"] = mdfTemplates;
   }
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {

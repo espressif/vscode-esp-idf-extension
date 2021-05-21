@@ -40,7 +40,7 @@
         <div class="control">
           <div class="select">
             <select name="idf-target" id="idf-target" v-model="target">
-              <option v-for="t of targetList" :key="t.id" :value="t">{{
+              <option v-for="t of targetList" :key="t.name" :value="t">{{
                 t.name
               }}</option>
             </select>

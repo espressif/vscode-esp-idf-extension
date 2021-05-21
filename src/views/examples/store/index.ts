@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Vue from "vue";
+import { IExampleCategory, IExample } from "../../../examples/Example";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
 
 Vue.use(Vuex);
@@ -26,22 +27,16 @@ try {
   console.error(error);
 }
 
-export interface IExample {
-  path: string;
-  category: string;
-  name: string;
-}
-
 export interface IState {
-  examplesPaths: string[];
+  exampleRootPath: IExampleCategory;
   selectedExample: IExample;
   hasExampleDetail: boolean;
   exampleDetail: string;
 }
 
 export const examplesState: IState = {
-  examplesPaths: [],
-  selectedExample: { path: "", category: "", name: "" },
+  exampleRootPath: { name: "", examples: [], subcategories: [] },
+  selectedExample: { name: "", path: "" },
   hasExampleDetail: false,
   exampleDetail: "",
 };
@@ -55,7 +50,7 @@ export const mutations: MutationTree<IState> = {
   },
   setExamplesPath(state, exampleList) {
     const newState = state;
-    newState.examplesPaths = exampleList;
+    newState.exampleRootPath = exampleList;
     Object.assign(state, newState);
   },
   setSelectedExample(state, selectedExample: IExample) {

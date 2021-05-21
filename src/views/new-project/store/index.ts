@@ -15,7 +15,7 @@
 import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
 import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
-import { IExample } from "../../../examples/Example";
+import { IExample, IExampleCategory } from "../../../examples/Example";
 
 Vue.use(Vuex);
 
@@ -45,16 +45,18 @@ export interface IState {
   components: IComponent[];
   containerDirectory: string;
   currentComponentPath: string;
+  hasTemplateDetail: boolean;
   openOcdConfigFiles: string;
   projectName: string;
   selectedBoard: IdfBoard;
+  selectedFramework: string;
   selectedPort: string;
   selectedTemplate: IExample;
   serialPortList: string[];
   target: IdfTarget;
   targetList: IdfTarget[];
   templateDetail: string;
-  templates: IExample[];
+  templatesRootPath: { [key: string]: IExampleCategory };
 }
 
 const newProjectState: IState = {
@@ -62,16 +64,18 @@ const newProjectState: IState = {
   components: [],
   containerDirectory: "",
   currentComponentPath: "",
+  hasTemplateDetail: false,
   openOcdConfigFiles: "",
   projectName: "project-name",
   selectedBoard: null,
+  selectedFramework: "",
   selectedPort: "",
-  selectedTemplate: null,
+  selectedTemplate: { name: "", path: "" },
   serialPortList: [],
   target: null,
   targetList: [],
   templateDetail: "",
-  templates: [],
+  templatesRootPath: {},
 };
 
 export const mutations: MutationTree<IState> = {
@@ -110,6 +114,11 @@ export const mutations: MutationTree<IState> = {
     newState.selectedBoard = board;
     state = { ...newState };
   },
+  setSelectedFramework(state, selectedFramework: string) {
+    const newState = state;
+    newState.selectedFramework = selectedFramework;
+    state = { ...newState };
+  },
   setSelectedPort(state, port: string) {
     const newState = state;
     newState.selectedPort = port;
@@ -127,7 +136,6 @@ export const mutations: MutationTree<IState> = {
   },
   setTarget(state, target: IdfTarget) {
     const newState = state;
-    console.log(target);
     state.target = target;
     state = { ...newState };
   },
@@ -139,12 +147,18 @@ export const mutations: MutationTree<IState> = {
   setTemplateDetail(state, templateDetail: string) {
     const newState = state;
     newState.templateDetail = templateDetail;
+    newState.hasTemplateDetail = true;
     state = { ...newState };
   },
-  setTemplates(state, templates: IExample[]) {
+  setTemplates(state, templates: { [key: string]: IExampleCategory }) {
     const newState = state;
-    newState.templates = templates;
+    newState.templatesRootPath = templates;
     state = { ...newState };
+  },
+  showTemplateDetail(state) {
+    const newState = state;
+    newState.hasTemplateDetail = !newState.hasTemplateDetail;
+    Object.assign(state, newState);
   },
   removeComponent(state, component: IComponent) {
     const newState = state;

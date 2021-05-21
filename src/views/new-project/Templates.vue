@@ -1,26 +1,20 @@
 <template>
   <div id="templates-window">
     <div id="sidenav" class="content">
-      <ul>
-        <li v-for="category in templateCategories" :key="category">
-          <p class="category subtitle" v-text="category" />
-          <ul class="templates">
-            <li v-for="item in groups[category]" :key="item.path">
-              <p
-                @click="toggleTemplateDetail(item)"
-                v-text="item.name"
-                :class="{
-                  selectedItem: selectedTemplate.path === item.path,
-                }"
-              />
-            </li>
-          </ul>
-        </li>
+      <div class="select">
+        <select v-model="selectedFramework">
+          <option v-for="f in frameworks" :key="f" :value="f">
+            {{ f }}
+          </option>
+        </select>
+      </div>
+      <ul class="templates">
+        <TemplateList v-for="cat of templates" :node="cat" :key="cat.name" />
       </ul>
     </div>
 
     <div id="template-content" class="content">
-      <div v-if="isTemplateDetailVisible" class="has-text-centered">
+      <div v-if="hasTemplateDetail" class="has-text-centered">
         <button
           v-if="selectedTemplate.name !== ''"
           v-on:click="createProject"
@@ -30,7 +24,7 @@
         </button>
       </div>
       <div
-        v-if="isTemplateDetailVisible"
+        v-if="hasTemplateDetail"
         id="templateDetail"
         v-html="templateDetail"
       ></div>
@@ -41,63 +35,63 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import { IExample } from "../../examples/Example";
+import { IExample, IExampleCategory } from "../../examples/Example";
+import TemplateList from "./components/templateList.vue";
 
-@Component
+@Component({
+  components: {
+    TemplateList,
+  },
+})
 export default class Templates extends Vue {
-  @State("templates") private storeTemplates: IExample[];
+  @Action private createProject;
+  @Mutation private setSelectedFramework;
+  @State("templatesRootPath") private storeTemplatesRootPath: {
+    [key: string]: IExampleCategory;
+  };
+  @State("hasTemplateDetail") private storeHasTemplateDetail;
   @State("selectedTemplate") private storeSelectedTemplate: IExample;
   @State("templateDetail") private storeTemplateDetail;
-  @Action private createProject;
-  @Action private getTemplateDetail;
-  @Mutation private setSelectedTemplate;
-  @Mutation private setTemplateDetail;
-  private isTemplateDetailVisible = true;
+  @State("selectedFramework") private storeSelectedFramework: string;
 
-  public groupBy(array: IExample[]) {
-    const result = {};
-    array.forEach((item) => {
-      if (!result[item.category]) {
-        result[item.category] = [];
-      }
-      result[item.category].push(item);
-    });
-    return result;
-  }
-
-  get groups() {
-    return this.groupBy(this.storeTemplates);
+  get hasTemplateDetail() {
+    return this.storeHasTemplateDetail;
   }
 
   get selectedTemplate() {
     return this.storeSelectedTemplate;
   }
 
-  get templateCategories() {
-    const uniqueCategories = [
-      ...new Set(this.storeTemplates.map((t) => t.category)),
-    ];
-    const getStarted = uniqueCategories.indexOf("get-started");
-    uniqueCategories.splice(0, 0, uniqueCategories.splice(getStarted, 1)[0]);
-    return uniqueCategories;
+  get templates() {
+    if (
+      this.storeTemplatesRootPath &&
+      this.storeTemplatesRootPath[this.selectedFramework]
+    ) {
+      return this.storeTemplatesRootPath[this.selectedFramework].subcategories;
+    }
+  }
+
+  get frameworks() {
+    return Object.keys(this.storeTemplatesRootPath);
   }
 
   get templateDetail() {
     return this.storeTemplateDetail;
   }
 
-  public toggleTemplateDetail(template: IExample) {
-    if (template.path !== this.storeSelectedTemplate.path) {
-      this.setSelectedTemplate(template);
-      this.setTemplateDetail("No README.md available for this project.");
-      this.getTemplateDetail({ pathToOpen: template.path });
-    } else {
-      this.showTemplateDetail();
-    }
+  get selectedFramework() {
+    return this.storeSelectedFramework;
   }
 
-  showTemplateDetail() {
-    this.isTemplateDetailVisible = !this.isTemplateDetailVisible;
+  set selectedFramework(framework: string) {
+    this.setSelectedFramework(framework);
+  }
+
+  created() {
+    if (this.storeTemplatesRootPath) {
+      const frameworks = Object.keys(this.storeTemplatesRootPath);
+      this.selectedFramework = frameworks.length ? frameworks[0] : "";
+    }
   }
 }
 </script>
