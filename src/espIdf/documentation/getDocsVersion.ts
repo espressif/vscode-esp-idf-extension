@@ -59,7 +59,7 @@ export function getDocsBaseUrl(docVersion: string, idfTarget?: string) {
   }`;
 }
 
-function getDocsLocaleLang() {
+export function getDocsLocaleLang() {
   let localeLang: string = "en";
   try {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);

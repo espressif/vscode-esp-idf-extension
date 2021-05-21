@@ -12,6 +12,8 @@ This extension requires `gcovr` to generate JSON and HTML reports from generated
 
 Make sure you had properly configure the toolchain in `idf.customExtraPaths` or in your environment variable PATH since the gcov executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing TOOLCHAIN_PREFIX for your IDF_TARGET toolchain prefix) and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
 
+The **ESP-IDF: Configure project sdkconfig for coverage** command can set required values in your project sdkconfig to enable Code coverage.
+
 ## Editor Coverage
 
 For the text editor highlighting, the **ESP-IDF: Add Editor coverage** command execute a child process with `gcovr -r . --gcov-executable {TOOLCHAIN_PREFIX}-gcov --json`. You can remove the coverage highlight with **ESP-IDF; Remove Editor coverage**.
