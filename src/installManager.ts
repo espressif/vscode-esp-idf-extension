@@ -47,7 +47,19 @@ export class InstallManager {
           pkg.name,
           versionName,
         ]);
-        await del(absolutePath, { force: true });
+        const binDir = path.join(absolutePath, ...pkg.binaries);
+        const toolPathExists = await pathExists(binDir);
+        if (toolPathExists) {
+          const binVersion = await idfToolsManager.checkBinariesVersion(pkg, binDir);
+          const expectedVersion = idfToolsManager.getVersionToUse(pkg);
+          if (binVersion === expectedVersion) {
+            this.appendChannel(`Using existing ${pkg.description} in ${absolutePath}`);
+            progress.report({
+              message: `Installed ${count}/${packages.length}: ${pkg.description}...`,
+            });
+            return;
+          }
+        }
 
         progress.report({
           message: `Installing ${count}/${packages.length}: ${pkg.description}...`,
