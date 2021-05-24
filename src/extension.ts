@@ -76,7 +76,7 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
-import { installReqs } from "./pythonManager";
+import { installPythonEnvFromIdfTools } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
@@ -976,16 +976,26 @@ export async function activate(context: vscode.ExtensionContext) {
             const espIdfPath = idfConf.readParameter(
               "idf.espIdfPath"
             ) as string;
-            const toolsPath = idfConf.readParameter("idf.toolsPath") as string;
+            const containerPath =
+              process.platform === "win32"
+                ? process.env.USERPROFILE
+                : process.env.HOME;
+            const confToolsPath = idfConf.readParameter(
+              "idf.toolsPath"
+            ) as string;
+            const toolsPath =
+              confToolsPath ||
+              process.env.IDF_TOOLS_PATH ||
+              path.join(containerPath, ".espressif");
             const pyPath = idfConf.readParameter("idf.pythonBinPath") as string;
             progress.report({
               message: `Installing ESP-IDF Python Requirements...`,
             });
-            await installReqs(
+            await installPythonEnvFromIdfTools(
               espIdfPath,
-              pyPath,
               toolsPath,
               undefined,
+              pyPath,
               OutputChannel.init(),
               cancelToken
             );
