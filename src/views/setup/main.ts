@@ -236,6 +236,48 @@ window.addEventListener("message", (event) => {
         store.commit("setStatusPyVEnv", msg.status);
       }
       break;
+    case "updateIdfGitDownloadPercentage":
+      if (msg.id && msg.percentage) {
+        store.commit("setIdfGitPercentage", {
+          name: msg.id,
+          percentage: msg.percentage,
+        });
+      }
+      break;
+    case "updateIdfGitDownloadDetail":
+      if (msg.id && msg.detail) {
+        store.commit("setIdfGitDetail", {
+          name: msg.id,
+          detail: msg.detail,
+        });
+      }
+      break;
+    case "updateIdfPythonDownloadPercentage":
+      if (msg.id && msg.percentage) {
+        store.commit("setIdfPythonPercentage", {
+          name: msg.id,
+          percentage: msg.percentage,
+        });
+      }
+      break;
+    case "updateIdfPythonDownloadDetail":
+      if (msg.id && msg.detail) {
+        store.commit("setIdfPythonDetail", {
+          name: msg.id,
+          detail: msg.detail,
+        });
+      }
+      break;
+    case "updateIdfGitStatus":
+      if (msg.status) {
+        store.commit("setStatusIdfGit", msg.status);
+      }
+      break;
+    case "updateIdfPythonStatus":
+      if (msg.status) {
+        store.commit("setStatusIdfPython", msg.status);
+      }
+      break;
     default:
       break;
   }

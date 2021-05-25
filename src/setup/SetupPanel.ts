@@ -32,6 +32,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
+import { installIdfGit, installIdfPython } from "./embedGitPy";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -257,6 +258,11 @@ export class SetupPanel {
             });
           }
           break;
+        case "installGit":
+          if (message.toolsPath) {
+            await this.installEmbedGitPython(message.toolsPath);
+          }
+          break;
         default:
           break;
       }
@@ -437,6 +443,40 @@ export class SetupPanel {
             progress,
             cancelToken
           );
+        } catch (error) {
+          this.setupErrHandler(error);
+        }
+      }
+    );
+  }
+
+  private async installEmbedGitPython(toolsPath: string) {
+    return await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: Git and Python for Windows",
+        cancellable: true,
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment?: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
+          await installIdfGit(toolsPath, progress, cancelToken);
+          SetupPanel.postMessage({
+            command: "updateIdfGitStatus",
+            status: StatusType.installed,
+          });
+          await installIdfPython(toolsPath, progress, cancelToken);
+          SetupPanel.postMessage({
+            command: "updateIdfPythonStatus",
+            status: StatusType.installed,
+          });
         } catch (error) {
           this.setupErrHandler(error);
         }

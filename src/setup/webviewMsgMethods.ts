@@ -84,3 +84,41 @@ export function sendPkgDownloadFailed(pkgName: string, failedFlag: boolean) {
     hasFailed: failedFlag,
   });
 }
+
+export function sendIdfGitDownloadProgress(
+  id: string,
+  updatedPercentage: string
+) {
+  SetupPanel.postMessage({
+    command: "updateIdfGitDownloadPercentage",
+    id,
+    percentage: updatedPercentage,
+  });
+}
+
+export function sendIdfGitDownloadDetail(id: string, updatedDetail: string) {
+  SetupPanel.postMessage({
+    command: "updateIdfGitDownloadDetail",
+    detail: updatedDetail,
+    id,
+  });
+}
+
+export function sendIdfPythonDownloadProgress(
+  id: string,
+  updatedPercentage: string
+) {
+  SetupPanel.postMessage({
+    command: "updateIdfPythonDownloadPercentage",
+    id,
+    percentage: updatedPercentage,
+  });
+}
+
+export function sendIdfPythonDownloadDetail(id: string, updatedDetail: string) {
+  SetupPanel.postMessage({
+    command: "updateIdfPythonDownloadDetail",
+    detail: updatedDetail,
+    id,
+  });
+}

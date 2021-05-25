@@ -35,6 +35,8 @@ export interface IState {
   gitVersion: string;
   hasPrerequisites: boolean;
   idfDownloadStatus: IDownload;
+  idfGitDownloadStatus: IDownload;
+  idfPythonDownloadStatus: IDownload;
   idfVersion: string;
   isEspIdfValid: boolean;
   isIdfInstalling: boolean;
@@ -48,6 +50,8 @@ export interface IState {
   selectedIdfMirror: IdfMirror;
   selectedSysPython: string;
   setupMode: SetupMode;
+  statusIdfGit: StatusType;
+  statusIdfPython: StatusType;
   statusEspIdf: StatusType;
   statusEspIdfTools: StatusType;
   statusPyVEnv: StatusType;
@@ -66,6 +70,16 @@ export const setupState: IState = {
   gitVersion: "",
   hasPrerequisites: false,
   idfDownloadStatus: {
+    id: "",
+    progress: "",
+    progressDetail: "",
+  },
+  idfGitDownloadStatus: {
+    id: "",
+    progress: "",
+    progressDetail: "",
+  },
+  idfPythonDownloadStatus: {
     id: "",
     progress: "",
     progressDetail: "",
@@ -90,6 +104,8 @@ export const setupState: IState = {
   setupMode: SetupMode.express,
   statusEspIdf: StatusType.started,
   statusEspIdfTools: StatusType.pending,
+  statusIdfGit: StatusType.pending,
+  statusIdfPython: StatusType.pending,
   statusPyVEnv: StatusType.pending,
   toolsFolder: "",
   toolsResults: [],
@@ -191,6 +207,12 @@ export const actions: ActionTree<IState, any> = {
       command: "usePreviousSettings",
     });
   },
+  installGit(context) {
+    vscode.postMessage({
+      command: "installGit",
+      toolsPath: context.state.toolsFolder,
+    });
+  }
 };
 
 export const mutations: MutationTree<IState> = {
@@ -377,6 +399,44 @@ export const mutations: MutationTree<IState> = {
   setStatusPyVEnv(state, status: StatusType) {
     const newState = state;
     newState.statusPyVEnv = status;
+    Object.assign(state, newState);
+  },
+  setIdfGitPercentage(state, statusData: { name: string; percentage: string }) {
+    const newState = state;
+    newState.idfGitDownloadStatus.id = statusData.name;
+    newState.idfGitDownloadStatus.progress = statusData.percentage;
+    Object.assign(state, newState);
+  },
+  setIdfGitDetail(state, statusData: { name: string; detail: string }) {
+    const newState = state;
+    newState.idfGitDownloadStatus.progressDetail = statusData.detail;
+    Object.assign(state, newState);
+  },
+  setStatusIdfPython(state, status: StatusType) {
+    const newState = state;
+    newState.statusIdfPython = status;
+    if (status === StatusType.installed) {
+      newState.idfPythonDownloadStatus.progress = "100.00%";
+    }
+    Object.assign(state, newState);
+  },
+  setIdfPythonPercentage(state, statusData: { name: string; percentage: string }) {
+    const newState = state;
+    newState.idfPythonDownloadStatus.id = statusData.name;
+    newState.idfPythonDownloadStatus.progress = statusData.percentage;
+    Object.assign(state, newState);
+  },
+  setIdfPythonDetail(state, statusData: { name: string; detail: string }) {
+    const newState = state;
+    newState.idfPythonDownloadStatus.progressDetail = statusData.detail;
+    Object.assign(state, newState);
+  },
+  setStatusIdfGit(state, status: StatusType) {
+    const newState = state;
+    newState.statusIdfGit = status;
+    if (status === StatusType.installed) {
+      newState.idfGitDownloadStatus.progress = "100.00%";
+    }
     Object.assign(state, newState);
   },
 };

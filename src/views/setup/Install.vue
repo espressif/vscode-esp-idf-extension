@@ -3,6 +3,11 @@
     <div class="notification">
       <div class="field">
         <label>Git version: {{ gitVersion }}</label>
+        <div class="field install-btn">
+          <div class="control">
+            <button @click="installGit" class="button">Install git</button>
+          </div>
+        </div>
       </div>
 
       <selectEspIdf></selectEspIdf>
@@ -43,7 +48,6 @@ import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
-import { IEspIdfLink } from "./types";
 
 @Component({
   components: {
@@ -52,6 +56,7 @@ import { IEspIdfLink } from "./types";
   },
 })
 export default class Install extends Vue {
+  @Action installGit;
   @Action installEspIdf;
   @Action customInstallEspIdf;
   @Mutation setEspIdfErrorStatus;
