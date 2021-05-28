@@ -22,14 +22,15 @@ import * as treeKill from "tree-kill";
 import { join } from "path";
 import { ensureDir } from "fs-extra";
 import { OutputChannel } from "../../logger/outputChannel";
-import { Logger } from "../../logger/logger";
 import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {
   private readonly projectDir: string;
+  private gitBinPath: string;
   private cloneProcess: ChildProcess;
-  constructor(projectDir: string) {
+  constructor(projectDir: string, gitBinPath: string = "git") {
     this.projectDir = projectDir;
+    this.gitBinPath = gitBinPath;
   }
 
   public cancel() {
@@ -41,7 +42,7 @@ export class ArduinoComponentInstaller {
   }
 
   public async cloneArduinoInComponentsFolder(branchToUse: string) {
-    const gitVersion = await checkGitExists(this.projectDir);
+    const gitVersion = await checkGitExists(this.projectDir, this.gitBinPath);
     if (!gitVersion || gitVersion === "Not found") {
       return;
     }
@@ -49,7 +50,7 @@ export class ArduinoComponentInstaller {
     await ensureDir(componentsDir);
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
-        `git`,
+        this.gitBinPath,
         [
           "clone",
           "--recursive",

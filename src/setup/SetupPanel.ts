@@ -259,8 +259,23 @@ export class SetupPanel {
           }
           break;
         case "installGit":
-          if (message.toolsPath) {
-            await this.installEmbedGitPython(message.toolsPath);
+          if (
+            message.espIdfContainer &&
+            message.selectedEspIdfVersion &&
+            message.selectedPyPath &&
+            message.toolsPath &&
+            typeof message.manualEspIdfPath !== undefined &&
+            typeof message.mirror !== undefined &&
+            typeof message.setupMode !== undefined
+          ) {
+            await this.installEmbedGitPython(
+              message.toolsPath,
+              message.selectedEspIdfVersion,
+              message.manualEspIdfPath,
+              message.espIdfContainer,
+              message.mirror,
+              message.setupMode
+            );
           }
           break;
         default:
@@ -330,6 +345,7 @@ export class SetupPanel {
             idfContainerPath,
             mirror,
             setupMode,
+            "git",
             progress,
             cancelToken
           );
@@ -450,7 +466,14 @@ export class SetupPanel {
     );
   }
 
-  private async installEmbedGitPython(toolsPath: string) {
+  private async installEmbedGitPython(
+    toolsPath: string,
+    selectedIdfVersion: IEspIdfLink,
+    espIdfPath: string,
+    idfContainerPath: string,
+    mirror: IdfMirror,
+    setupMode: SetupMode
+  ) {
     return await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -467,16 +490,40 @@ export class SetupPanel {
             installing: true,
             page: "/status",
           });
-          await installIdfGit(toolsPath, progress, cancelToken);
+          const idfGitPath = await installIdfGit(
+            toolsPath,
+            progress,
+            cancelToken
+          );
           SetupPanel.postMessage({
             command: "updateIdfGitStatus",
             status: StatusType.installed,
           });
-          await installIdfPython(toolsPath, progress, cancelToken);
+          const idfPythonPath = await installIdfPython(
+            toolsPath,
+            progress,
+            cancelToken
+          );
           SetupPanel.postMessage({
             command: "updateIdfPythonStatus",
             status: StatusType.installed,
           });
+          await idfConf.writeParameter(
+            "idf.gitPath",
+            idfGitPath,
+            vscode.ConfigurationTarget.Global
+          );
+          await expressInstall(
+            selectedIdfVersion,
+            idfPythonPath,
+            espIdfPath,
+            idfContainerPath,
+            mirror,
+            setupMode,
+            idfGitPath,
+            progress,
+            cancelToken
+          );
         } catch (error) {
           this.setupErrHandler(error);
         }

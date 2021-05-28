@@ -162,7 +162,8 @@ export async function getSetupInitialValues(
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
   progress.report({ increment: 20, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  const gitVersion = await utils.checkGitExists(extensionPath);
+  const gitPath = await idfConf.readParameter("idf.gitPath") || "git";
+  const gitVersion = await utils.checkGitExists(extensionPath, gitPath);
 
   let hasPrerequisites = false;
   if (process.platform !== "win32") {

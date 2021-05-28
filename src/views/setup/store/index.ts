@@ -208,11 +208,22 @@ export const actions: ActionTree<IState, any> = {
     });
   },
   installGit(context) {
+    const pyPath =
+      context.state.selectedSysPython ===
+      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
+        ? context.state.manualPythonPath
+        : context.state.selectedSysPython;
     vscode.postMessage({
       command: "installGit",
       toolsPath: context.state.toolsFolder,
+      espIdfContainer: context.state.espIdfContainer,
+      manualEspIdfPath: context.state.espIdf,
+      mirror: context.state.selectedIdfMirror,
+      selectedEspIdfVersion: context.state.selectedEspIdfVersion,
+      selectedPyPath: pyPath,
+      setupMode: context.state.setupMode,
     });
-  }
+  },
 };
 
 export const mutations: MutationTree<IState> = {
@@ -420,7 +431,10 @@ export const mutations: MutationTree<IState> = {
     }
     Object.assign(state, newState);
   },
-  setIdfPythonPercentage(state, statusData: { name: string; percentage: string }) {
+  setIdfPythonPercentage(
+    state,
+    statusData: { name: string; percentage: string }
+  ) {
     const newState = state;
     newState.idfPythonDownloadStatus.id = statusData.name;
     newState.idfPythonDownloadStatus.progress = statusData.percentage;

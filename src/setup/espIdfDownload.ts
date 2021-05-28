@@ -32,8 +32,13 @@ import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
 
 export class EspIdfCloning extends AbstractCloning {
-  constructor(branchName: string) {
-    super("https://github.com/espressif/esp-idf.git", "ESP-IDF", branchName);
+  constructor(branchName: string, gitBinPath: string = "git") {
+    super(
+      "https://github.com/espressif/esp-idf.git",
+      "ESP-IDF",
+      branchName,
+      gitBinPath
+    );
   }
 }
 
@@ -41,6 +46,7 @@ export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
   destPath: string,
   mirror: IdfMirror,
+  gitPath?: string,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
@@ -76,7 +82,7 @@ export async function downloadInstallIdfVersion(
     if (progress) {
       progress.report({ message: downloadByCloneMsg });
     }
-    const espIdfCloning = new EspIdfCloning(idfVersion.filename);
+    const espIdfCloning = new EspIdfCloning(idfVersion.filename, gitPath);
     let cancelDisposable: Disposable;
     if (cancelToken) {
       cancelDisposable = cancelToken.onCancellationRequested(() => {

@@ -62,13 +62,14 @@ export async function installIdfGit(
     OutputChannel.appendLine(`Using existing ${idfGitZipPath}`);
   }
   const idfGitDestPath = join(idfToolsDir, "tools", "idf-git");
+  const resultGitPath = join(idfGitDestPath, "cmd", "git.exe");
   const gitPathExists = await pathExists(idfGitDestPath);
   if (gitPathExists) {
     const gitDirectory = join(idfGitDestPath, "cmd"); // to do: update with correct git --version
-    const binVersion = await checkGitExists(gitDirectory);
+    const binVersion = await checkGitExists(gitDirectory, resultGitPath);
     if (binVersion) {
       OutputChannel.appendLine(`Using existing ${idfGitDestPath}`);
-      return;
+      return resultGitPath;
     }
   }
   progress.report({ message: `Installing ${idfGitDestPath} ...` });
@@ -80,6 +81,7 @@ export async function installIdfGit(
   );
   progress.report({ message: `Extracted ${idfGitDestPath} ...` });
   OutputChannel.appendLine(`Extracted ${idfGitDestPath} ...`);
+  return resultGitPath;
 }
 
 export async function installIdfPython(
@@ -120,10 +122,11 @@ export async function installIdfPython(
     );
     if (binVersion) {
       OutputChannel.appendLine(`Using existing ${idfPyDestPath}`);
-      return;
+      return join(idfPyDestPath, "python.exe");
     }
   }
   await installManager.installZipFile(idfPyZipPath, idfPyDestPath, cancelToken);
   progress.report({ message: `Extracted ${idfPyDestPath} ...` });
   OutputChannel.appendLine(`Extracted ${idfPyDestPath} ...`);
+  return join(idfPyDestPath, "python.exe");
 }

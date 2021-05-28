@@ -12,14 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { AbstractCloning } from "../common/abstractCloning";
+import { readParameter } from "../idfConfiguration";
 
 export class AdfCloning extends AbstractCloning {
-  constructor() {
-    super("https://github.com/espressif/esp-adf.git", "ESP-ADF", "master");
+  constructor(gitBinPath: string = "git") {
+    super(
+      "https://github.com/espressif/esp-adf.git",
+      "ESP-ADF",
+      "master",
+      gitBinPath
+    );
   }
 }
 
 export async function getEspAdf() {
-  const adfInstaller = new AdfCloning();
+  const gitPath = await readParameter("idf.gitPath") || "git";
+  const adfInstaller = new AdfCloning(gitPath);
   await adfInstaller.getRepository("idf.espAdfPath");
 }

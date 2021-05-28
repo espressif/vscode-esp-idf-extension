@@ -419,8 +419,11 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             await utils.createSkeleton(resultFolder, selectedTemplate.target);
             if (selectedTemplate.label === "arduino-as-component") {
+              const gitPath =
+                (await idfConf.readParameter("idf.gitPath")) || "git";
               const arduinoComponentManager = new ArduinoComponentInstaller(
-                resultFolder
+                resultFolder,
+                gitPath
               );
               cancelToken.onCancellationRequested(() => {
                 arduinoComponentManager.cancel();
@@ -541,8 +544,11 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
+            const gitPath =
+              (await idfConf.readParameter("idf.gitPath")) || "git";
             const arduinoComponentManager = new ArduinoComponentInstaller(
-              workspaceRoot.fsPath
+              workspaceRoot.fsPath,
+              gitPath
             );
             const arduinoDirPath = path.join(
               workspaceRoot.fsPath,

@@ -38,6 +38,7 @@ export class Configuration {
   serialPort: string;
   openOcdConfigs: string[];
   toolsPath: string;
+  gitPath: string;
 }
 
 export class SystemInfo {

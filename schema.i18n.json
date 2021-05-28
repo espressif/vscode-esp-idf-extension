@@ -182,6 +182,7 @@
     "esp_idf.debuggers.text.description",
     "esp_idf.gdbinitFile.description",
     "param.launchMonitorOnDebugSession.title",
-    "param.enableIdfComponentManager.title"
+    "param.enableIdfComponentManager.title",
+    "param.gitPath.title"
   ]
 }
