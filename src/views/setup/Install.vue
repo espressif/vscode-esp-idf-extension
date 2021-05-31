@@ -1,13 +1,8 @@
 <template>
   <div id="install">
     <div class="notification">
-      <div class="field">
+      <div class="field" v-if="gitVersion">
         <label>Git version: {{ gitVersion }}</label>
-        <div class="field install-btn">
-          <div class="control">
-            <button @click="installGit" class="button">Install git</button>
-          </div>
-        </div>
       </div>
 
       <selectEspIdf></selectEspIdf>
@@ -56,9 +51,7 @@ import selectPyVersion from "./components/selectPyVersion.vue";
   },
 })
 export default class Install extends Vue {
-  @Action installGit;
   @Action installEspIdf;
-  @Action customInstallEspIdf;
   @Mutation setEspIdfErrorStatus;
   @Mutation setPyExecErrorStatus;
   @State("gitVersion") private storeGitVersion: string;

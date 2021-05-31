@@ -578,8 +578,11 @@ export function getSubProjects(dir: string): string[] {
 
 export async function getEspIdfVersion(workingDir: string) {
   try {
-    const gitPath = await idfConf.readParameter("idf.gitPath") || "git";
-    const canCheck = await checkGitExists(extensionContext.extensionPath, gitPath);
+    const gitPath = (await idfConf.readParameter("idf.gitPath")) || "git";
+    const canCheck = await checkGitExists(
+      extensionContext.extensionPath,
+      gitPath
+    );
     if (canCheck === "Not found") {
       Logger.errorNotify(
         "Git is not found in current environment",

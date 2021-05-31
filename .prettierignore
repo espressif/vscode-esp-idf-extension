@@ -11,6 +11,7 @@ yarn.lock
 kconfig.code-snippets
 espressif_icon.png
 get_serial_list.py
+wsl_get_serial_list.ps
 .yarnrc
 
 #dirs
@@ -23,3 +24,4 @@ templates/
 testFiles/
 media/
 esp_debug_adapter/
+external/

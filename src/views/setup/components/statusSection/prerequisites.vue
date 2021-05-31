@@ -1,5 +1,5 @@
 <template>
-  <div class="centerize notification">
+  <div class="centerize notification" v-if="isWinPlatform">
     <div class="control barText">
       <p class="label">Installing IDF Prerequisites...</p>
       <div class="icon is-large is-size-4">
@@ -80,6 +80,10 @@ export default class PrerequisitesStatus extends Vue {
 
   get toolsDestPath() {
     return `${this.storeIdfToolsPath}${this.storePathSep}tools${this.storePathSep}`;
+  }
+
+  get isWinPlatform() {
+    return this.storePathSep.indexOf("\\") !== -1;
   }
 }
 </script>

@@ -148,6 +148,7 @@ export const actions: ActionTree<IState, any> = {
       selectedEspIdfVersion: context.state.selectedEspIdfVersion,
       selectedPyPath: pyPath,
       setupMode: context.state.setupMode,
+      toolsPath: context.state.toolsFolder,
     });
   },
   installEspIdfTools(context) {
@@ -205,23 +206,6 @@ export const actions: ActionTree<IState, any> = {
   useDefaultSettings() {
     vscode.postMessage({
       command: "usePreviousSettings",
-    });
-  },
-  installGit(context) {
-    const pyPath =
-      context.state.selectedSysPython ===
-      context.state.pyVersionsList[context.state.pyVersionsList.length - 1]
-        ? context.state.manualPythonPath
-        : context.state.selectedSysPython;
-    vscode.postMessage({
-      command: "installGit",
-      toolsPath: context.state.toolsFolder,
-      espIdfContainer: context.state.espIdfContainer,
-      manualEspIdfPath: context.state.espIdf,
-      mirror: context.state.selectedIdfMirror,
-      selectedEspIdfVersion: context.state.selectedEspIdfVersion,
-      selectedPyPath: pyPath,
-      setupMode: context.state.setupMode,
     });
   },
 };
