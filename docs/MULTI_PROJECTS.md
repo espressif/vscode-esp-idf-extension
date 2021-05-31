@@ -4,12 +4,12 @@ For big projects, a user will typically have one or more projects to build, flas
 
 Configuration settings are overriden as:
 
-1) Workspace folder configuration settings in `${workspaceFolder}/.vscode/settings.json`
-2) Workspace configuration settings defined in the workspace's `<name>.code-workspace` file as shown below.
-3) User settings defined in
-   * **Windows** `%APPDATA%\Code\User\settings.json`
-   * **macOS** `$HOME/Library/Application Support/Code/User/settings.json`
-   * **Linux** `$HOME/.config/Code/User/settings.json`
+1. Workspace folder configuration settings in `${workspaceFolder}/.vscode/settings.json`
+2. Workspace configuration settings defined in the workspace's `<name>.code-workspace` file as shown below.
+3. User settings defined in
+   - **Windows** `%APPDATA%\Code\User\settings.json`
+   - **macOS** `$HOME/Library/Application Support/Code/User/settings.json`
+   - **Linux** `$HOME/.config/Code/User/settings.json`
 
 This extension uses the `idf.saveScope` configuration setting to determine where to save configuration settings in features such as the Setup Wizard.
 
