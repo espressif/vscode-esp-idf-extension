@@ -37,10 +37,10 @@ There are few dependencies required in your system and available in environment 
 
 | Linux                                                        | MacOS                                                        | Windows                                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+                 |
-| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)                             |
-| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                                         |
-| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             |                                                                              |
+| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |                                                                              |
+| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                                              |
 | [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
 
 

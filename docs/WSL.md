@@ -19,6 +19,7 @@ sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-
 > **NOTE:** The user might need to install/update pip in the virtual environment like: `$IDF_TOOLS_PATH/python_env/idfX.X_pyX.X_env/bin/python ./get-pip.py` where X.X are IDF and python major-minor versions respectively.
 
 2. Configure the extension as explained in [SETUP](./SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial.
+> **NOTE:** Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
 
 3. Create an ESP-IDF project and use extension features.
 
