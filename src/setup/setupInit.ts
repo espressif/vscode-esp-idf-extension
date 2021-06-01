@@ -23,6 +23,7 @@ import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
+import { getSelectedIdfInstalled } from "./espIdfJson";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
@@ -44,6 +45,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
 
   const confEspIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const confToolsPath = idfConf.readParameter("idf.toolsPath") as string;
+  const confPyPath = idfConf.readParameter("idf.pythonBinPath") as string;
   const toolsPath =
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
@@ -52,10 +54,21 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
     confEspIdfPath ||
     process.env.IDF_PATH ||
     path.join(containerPath, "esp", "esp-idf");
+  let pyEnvPath = confPyPath || process.env.PYTHON;
+
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
-    espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
-    idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
+    const idfInstalled = await getSelectedIdfInstalled(toolsPath);
+    espIdfPath = idfInstalled.path;
+    let isPyEnvValid = await checkPyVenv(pyEnvPath, espIdfPath);
+    if (!isPyEnvValid) {
+      pyEnvPath = idfInstalled.python;
+    }
+    idfPathVersion = await utils.getEspIdfVersion(idfInstalled.path);
+    if (idfPathVersion === "x.x") {
+      espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
+      idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
+    }
   }
   if (idfPathVersion === "x.x") {
     return {
@@ -97,13 +110,12 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
     };
   }
 
-  const pyVenvPath = await checkPyVersion(
-    pythonVersions,
-    espIdfPath,
-    toolsPath
-  );
+  let isPyEnvValid = await checkPyVenv(pyEnvPath, espIdfPath);
+  if (!isPyEnvValid) {
+    pyEnvPath = await checkPyVersion(pythonVersions, espIdfPath, toolsPath);
+  }
 
-  if (!pyVenvPath) {
+  if (!pyEnvPath) {
     return {
       espIdfPath,
       espIdfVersion: idfPathVersion,
@@ -120,7 +132,7 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
     espToolsPath: toolsPath,
     exportedToolsPaths,
     exportedVars,
-    pyVenvPath,
+    pyEnvPath,
     toolsInfo,
   };
 }
@@ -136,22 +148,29 @@ export async function checkPyVersion(
       process.platform === "win32"
         ? path.join(venvPyFolder, "Scripts", "python.exe")
         : path.join(venvPyFolder, "bin", "python");
-    const pyExists = await pathExists(pythonInEnv);
-    if (!pyExists) {
-      continue;
+    const isVenvValid = await checkPyVenv(pythonInEnv, espIdfPath);
+    if (isVenvValid) {
+      return pythonInEnv;
     }
-    const requirements = path.join(espIdfPath, "requirements.txt");
-    const reqsResults = await utils.startPythonReqsProcess(
-      pythonInEnv,
-      espIdfPath,
-      requirements
-    );
-    if (reqsResults.indexOf("are not satisfied") > -1) {
-      continue;
-    }
-    return pythonInEnv;
   }
   return;
+}
+
+export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
+  const pyExists = await pathExists(pyVenvPath);
+  if (!pyExists) {
+    return false;
+  }
+  const requirements = path.join(espIdfPath, "requirements.txt");
+  const reqsResults = await utils.startPythonReqsProcess(
+    pyVenvPath,
+    espIdfPath,
+    requirements
+  );
+  if (reqsResults.indexOf("are not satisfied") > -1) {
+    return false;
+  }
+  return true;
 }
 
 export async function getSetupInitialValues(
@@ -162,7 +181,7 @@ export async function getSetupInitialValues(
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
   progress.report({ increment: 20, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  const gitPath = await idfConf.readParameter("idf.gitPath") || "git";
+  const gitPath = idfConf.readParameter("idf.gitPath") || "git";
   const gitVersion = await utils.checkGitExists(extensionPath, gitPath);
 
   let hasPrerequisites = false;
@@ -205,7 +224,7 @@ export async function getSetupInitialValues(
       setupInitArgs.exportedPaths = prevInstall.exportedToolsPaths;
       setupInitArgs.exportedVars = prevInstall.exportedVars;
       setupInitArgs.toolsResults = prevInstall.toolsInfo;
-      setupInitArgs.pyBinPath = prevInstall.pyVenvPath;
+      setupInitArgs.pyBinPath = prevInstall.pyEnvPath;
     }
   } catch (error) {
     Logger.error(error.message, error);

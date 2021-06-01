@@ -17,6 +17,9 @@ import { StatusType } from "../views/setup/types";
 import { installPyReqs } from "./installPyReqs";
 import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
+import { getEspIdfVersion } from "../utils";
+import { addIdfPath } from "./espIdfJson";
+
 
 export async function createPyReqs(
   idfPath: string,
@@ -44,6 +47,8 @@ export async function createPyReqs(
     cancelToken
   );
   await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
+  let idfPathVersion = await getEspIdfVersion(idfPath);
+  await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath);
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
     status: StatusType.installed,

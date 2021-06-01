@@ -110,7 +110,6 @@ export class SetupPanel {
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
     const defaultEspIdfPathContainer = path.join(containerPath, "esp");
-    const toolsPath = idfConf.readParameter("idf.toolsPath");
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
@@ -186,7 +185,7 @@ export class SetupPanel {
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
             espIdf: espIdfPath || setupArgs.espIdfPath,
-            espToolsPath: toolsPath || setupArgs.espToolsPath,
+            espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersion: setupArgs.espIdfVersion,
@@ -321,7 +320,8 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          let idfPythonPath = pyPath, idfGitPath = "git";
+          let idfPythonPath = pyPath,
+            idfGitPath = "git";
           if (process.platform === "win32") {
             const embedPaths = await this.installEmbedPyGit(
               toolsPath,
