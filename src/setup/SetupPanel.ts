@@ -227,6 +227,14 @@ export class SetupPanel {
             setupArgs.exportedVars
           ) {
             this.panel.webview.postMessage({
+              command: "updateIdfGitStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateIdfPythonStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
               command: "updateEspIdfStatus",
               status: StatusType.installed,
             });
@@ -320,6 +328,11 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
           let idfPythonPath = pyPath,
             idfGitPath = "git";
           if (process.platform === "win32") {
@@ -411,6 +424,11 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
           await downloadIdfTools(
             idfPath,
             toolsPath,
@@ -443,6 +461,11 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
           await createPyReqs(
             idfPath,
             toolsPath,
@@ -464,11 +487,6 @@ export class SetupPanel {
     progress: vscode.Progress<{ message: string; increment?: number }>,
     cancelToken: vscode.CancellationToken
   ) {
-    SetupPanel.postMessage({
-      command: "goToCustomPage",
-      installing: true,
-      page: "/status",
-    });
     const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
     SetupPanel.postMessage({
       command: "updateIdfGitStatus",

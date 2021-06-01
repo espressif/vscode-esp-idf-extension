@@ -27,11 +27,6 @@ export async function downloadIdfTools(
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken
 ) {
-  SetupPanel.postMessage({
-    command: "goToCustomPage",
-    installing: true,
-    page: "/status",
-  });
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
   const exportPaths = await idfToolsManager.exportPathsInString(
     path.join(toolsPath, "tools")

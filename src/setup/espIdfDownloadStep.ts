@@ -53,11 +53,6 @@ export async function expressInstall(
     Logger.infoNotify(containerNotFoundMsg);
     throw new Error(containerNotFoundMsg);
   }
-  SetupPanel.postMessage({
-    command: "goToCustomPage",
-    installing: true,
-    page: "/status",
-  });
   let idfPath: string;
   if (selectedIdfVersion.filename === "manual") {
     idfPath = espIdfPath;

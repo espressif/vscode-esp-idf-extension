@@ -79,19 +79,15 @@ export async function addIdfPath(
     path: idfPath,
   };
   const idfId = getIdfMd5sum(idfPath);
-
   const espIdfObj = await loadEspIdfJson(toolsPath);
-
   espIdfObj["idfInstalled"][idfId] = newIdfPathObj;
   espIdfObj["idfSelectedId"] = idfId;
-
   const espIdfJsonPath = join(toolsPath, "esp_idf.json");
   await writeJson(espIdfJsonPath, espIdfObj, { spaces: 2 });
 }
 
 export async function getPropertyFromJson(toolsPath: string, property: string) {
-  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
-  const espIdfObj = await loadEspIdfJson(espIdfJsonPath);
+  const espIdfObj = await loadEspIdfJson(toolsPath);
   return Object.keys(espIdfObj).indexOf(property) !== -1
     ? espIdfObj[property]
     : undefined;
@@ -106,8 +102,7 @@ export async function getPropertyWithId(
   property: string,
   id: string
 ) {
-  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
-  const espIdfObj = await loadEspIdfJson(espIdfJsonPath);
+  const espIdfObj = await loadEspIdfJson(toolsPath);
   return espIdfObj["idfInstalled"][id][property];
 }
 
@@ -117,8 +112,7 @@ export async function getSelectedEspIdfPath(toolsPath: string) {
 }
 
 export async function getSelectedIdfInstalled(toolsPath: string) {
-  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
-  const espIdfObj = await loadEspIdfJson(espIdfJsonPath);
+  const espIdfObj = await loadEspIdfJson(toolsPath);
   const id = espIdfObj["idfSelectedId"];
   return espIdfObj["idfInstalled"][id];
 }

@@ -34,11 +34,6 @@ export async function createPyReqs(
     command: "updatePyVEnvStatus",
     status: StatusType.started,
   });
-  SetupPanel.postMessage({
-    command: "goToCustomPage",
-    installing: true,
-    page: "/status",
-  });
   const virtualEnvPath = await installPyReqs(
     idfPath,
     toolsPath,

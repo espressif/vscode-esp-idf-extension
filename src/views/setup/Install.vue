@@ -1,7 +1,7 @@
 <template>
   <div id="install">
     <div class="notification">
-      <div class="field" v-if="gitVersion">
+      <div class="field" v-if="isNotWinPlatform && gitVersion">
         <label>Git version: {{ gitVersion }}</label>
       </div>
 
@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <selectPyVersion></selectPyVersion>
+      <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
 
       <div
         class="notification is-danger error-message"
@@ -56,6 +56,7 @@ export default class Install extends Vue {
   @Mutation setPyExecErrorStatus;
   @State("gitVersion") private storeGitVersion: string;
   @State("espIdfErrorStatus") private storeErrorStatus: string;
+  @State("pathSep") private storePathSep: string;
   @State("pyExecErrorStatus") private storePyExecErrorStatus: string;
 
   get gitVersion() {
@@ -64,6 +65,10 @@ export default class Install extends Vue {
 
   get espIdfErrorStatus() {
     return this.storeErrorStatus;
+  }
+
+  get isNotWinPlatform() {
+    return this.storePathSep.indexOf("/") !== -1;
   }
 
   get pyExecErrorStatus() {

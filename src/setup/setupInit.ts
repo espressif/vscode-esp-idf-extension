@@ -59,12 +59,11 @@ export async function checkPreviousInstall(pythonVersions: string[]) {
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     const idfInstalled = await getSelectedIdfInstalled(toolsPath);
-    espIdfPath = idfInstalled.path;
-    let isPyEnvValid = await checkPyVenv(pyEnvPath, espIdfPath);
-    if (!isPyEnvValid) {
+    if (idfInstalled && idfInstalled.path && idfInstalled.python) {
+      espIdfPath = idfInstalled.path;
       pyEnvPath = idfInstalled.python;
+      idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
     }
-    idfPathVersion = await utils.getEspIdfVersion(idfInstalled.path);
     if (idfPathVersion === "x.x") {
       espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
       idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
