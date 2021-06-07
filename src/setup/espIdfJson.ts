@@ -53,7 +53,7 @@ export function getEspIdfJsonTemplate(toolsPath: string) {
 
 export function getIdfMd5sum(idfPath: string) {
   const md5Value = createHash("md5")
-    .update(idfPath.replace("\\", "/"))
+    .update(idfPath.replace(/\\/g, "/"))
     .digest("hex");
   return `esp-idf-${md5Value}`;
 }
