@@ -7,16 +7,7 @@
 3. Search the extension with any related keyword like `espressif`, `esp-idf`, `esp32`, `esp32s2`, etc.
 4. Install the extension.
 
-5. Install ESP-IDF Prerequisites as shown below:
-
-| Linux                                                                     | MacOS                                                                     | Windows                                                                  |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+              | [Python 3.5](https://www.python.org/download/releases/3.5/)+             |
-| [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip) | [Pip](https://pip.pypa.io/en/stable/installing/#do-i-need-to-install-pip)|
-| [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                      | [Git](https://git-scm.com/downloads)                                     |
-| [CMake](https://cmake.org/download)                                       | [CMake](https://cmake.org/download)                                       |                                                                          |
-| [Ninja-build](https://github.com/ninja-build/ninja/releases)              | [Ninja-build](https://github.com/ninja-build/ninja/releases)              |                                                                          |
-
+5. Install [ESP-IDF Prerequisites](../../README.md#Prerequisites).
 <p>
   <img src="../../media/tutorials/setup/install-extension.png" alt="Setup wizard">
 </p>
