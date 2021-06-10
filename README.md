@@ -110,6 +110,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
 | Select port to use                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
 | Select OpenOCD Board Configuration                      |                                        |                                           |
+| Select where to save configuration settings             |                                        |                                           |
 | Set default sdkconfig file in project                   |                                        |                                           |
 | Set Espressif device target                             |                                        |                                           |
 | Show Examples Projects                                  |                                        |                                           |

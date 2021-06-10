@@ -264,9 +264,11 @@ export async function saveSettings(
   espIdfPath: string,
   pythonBinPath: string,
   exportedPaths: string,
-  exportedVars: string,
-  confTarget: ConfigurationTarget = ConfigurationTarget.Global
+  exportedVars: string
 ) {
+  const confTarget = idfConf.readParameter(
+    "idf.saveScope"
+  ) as ConfigurationTarget;
   await idfConf.writeParameter("idf.espIdfPath", espIdfPath, confTarget);
   await idfConf.writeParameter("idf.pythonBinPath", pythonBinPath, confTarget);
   await idfConf.writeParameter(

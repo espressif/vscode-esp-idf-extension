@@ -501,10 +501,13 @@ export class SetupPanel {
       command: "updateIdfPythonStatus",
       status: StatusType.installed,
     });
+    const confTarget = idfConf.readParameter(
+      "idf.saveScope"
+    ) as vscode.ConfigurationTarget;
     await idfConf.writeParameter(
       "idf.gitPath",
       idfGitPath,
-      vscode.ConfigurationTarget.Global
+      confTarget
     );
     return { idfPythonPath, idfGitPath };
   }
