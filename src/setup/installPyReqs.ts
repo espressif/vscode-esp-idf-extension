@@ -55,7 +55,7 @@ export async function installPyReqs(
   progress.report({
     message: `Installing python virtualenv and ESP-IDF python requirements...`,
   });
-  const virtualEnvPyBin = await pythonManager.installPythonEnv(
+  const virtualEnvPyBin = await pythonManager.installPythonEnvFromIdfTools(
     espIdfPath,
     workingDir,
     logTracker,

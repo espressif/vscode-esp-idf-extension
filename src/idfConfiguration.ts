@@ -80,11 +80,7 @@ export async function chooseConfigurationTarget() {
   if (!confTarget) {
     return previousTarget || vscode.ConfigurationTarget.Global;
   }
-  await writeParameter(
-    "idf.saveScope",
-    confTarget.target,
-    vscode.ConfigurationTarget.Global
-  );
+  await writeParameter("idf.saveScope", confTarget.target, previousTarget);
   return confTarget.target;
 }
 

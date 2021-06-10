@@ -623,6 +623,11 @@
             "type": "boolean",
             "description": "%param.enableIdfComponentManager.title%",
             "default": false
+          },
+          "idf.gitPath": {
+            "type": "string",
+            "description": "%param.gitPath.title%",
+            "default": "git"
           }
         }
       }

@@ -21,7 +21,7 @@ import { EOL } from "os";
 import { Logger } from "./logger/logger";
 import path from "path";
 
-export async function installPythonEnv(
+export async function installPythonEnvFromIdfTools(
   espDir: string,
   idfToolsDir: string,
   pyTracker: PyReqLog,
@@ -29,140 +29,21 @@ export async function installPythonEnv(
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
-  const isInsideVirtualEnv = await utils.execChildProcess(
-    `"${pythonBinPath}" -c "import sys; print(hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"`,
+  const idfToolsPyPath = path.join(espDir, "tools", "idf_tools.py");
+  await execProcessWithLog(
+    `${pythonBinPath} ${idfToolsPyPath} install-python-env`,
     idfToolsDir,
-    channel
+    pyTracker,
+    channel,
+    undefined,
+    cancelToken
   );
-  if (isInsideVirtualEnv.replace(EOL, "") === "True") {
-    const inVenvMsg = `Using existing virtual environment ${pythonBinPath}. Installing Python requirements...`;
-    pyTracker.Log = inVenvMsg;
-    if (channel) {
-      channel.appendLine(inVenvMsg);
-    }
-    await installReqs(espDir, pythonBinPath, idfToolsDir, pyTracker, channel);
-    return pythonBinPath;
-  }
-
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
-
-  const creatEnvMsg = `Creating a new Python environment in ${pyEnvPath} ...\n`;
-
-  if (
-    pythonBinPath.indexOf(virtualEnvPython) < 0 &&
-    utils.fileExists(virtualEnvPython)
-  ) {
-    await installExtensionPyReqs(
-      virtualEnvPython,
-      idfToolsDir,
-      pyTracker,
-      channel,
-      cancelToken
-    );
-    return virtualEnvPython;
-  }
-
-  pyTracker.Log = creatEnvMsg;
-  if (channel) {
-    channel.appendLine(creatEnvMsg);
-  }
-
-  let envModule: string;
-  try {
-    const pythonVersion = (
-      await utils.execChildProcess(
-        `"${pythonBinPath}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
-        espDir,
-        channel,
-        undefined,
-        cancelToken
-      )
-    ).replace(/(\n|\r|\r\n)/gm, "");
-    envModule =
-      pythonVersion.localeCompare("3.3") !== -1 ? "venv" : "virtualenv";
-    if (envModule.indexOf("virtualenv") !== -1) {
-      const checkVirtualEnv = await utils.execChildProcess(
-        `"${pythonBinPath}" -c "import virtualenv"`,
-        idfToolsDir,
-        channel,
-        undefined,
-        cancelToken
-      );
-    }
-  } catch (error) {
-    if (error && error.message.indexOf("ModuleNotFoundError") !== -1) {
-      await execProcessWithLog(
-        `"${pythonBinPath}" -m pip install --user virtualenv`,
-        idfToolsDir,
-        pyTracker,
-        channel,
-        undefined,
-        cancelToken
-      );
-    }
-  }
-  await execProcessWithLog(
-    `"${pythonBinPath}" -m ${envModule} "${pyEnvPath}"`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    undefined,
-    cancelToken
-  );
-  await installReqs(
-    espDir,
-    virtualEnvPython,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    cancelToken
-  );
-  return virtualEnvPython;
-}
-
-export async function installReqs(
-  espDir: string,
-  virtualEnvPython: string,
-  idfToolsDir: string,
-  pyTracker?: PyReqLog,
-  channel?: OutputChannel,
-  cancelToken?: CancellationToken
-) {
-  const installPyPkgsMsg = `Installing ESP-IDF python packages in ${virtualEnvPython} ...\n`;
-  if (pyTracker) {
-    pyTracker.Log = installPyPkgsMsg;
-  }
-  await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install wheel`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    undefined,
-    cancelToken
-  );
-  const requirements = path.join(espDir, "requirements.txt");
-  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
-  if (!utils.canAccessFile(requirements, constants.R_OK)) {
-    Logger.warnNotify(requirements + reqDoesNotExists);
-    if (channel) {
-      channel.appendLine(requirements + reqDoesNotExists);
-    }
-    return;
-  }
-  const modifiedEnv = Object.assign({}, process.env);
-  modifiedEnv.IDF_PATH = espDir;
-  await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade --no-warn-script-location -r "${requirements}"`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    { env: modifiedEnv }
-  );
   await installExtensionPyReqs(
     virtualEnvPython,
     idfToolsDir,
@@ -170,6 +51,7 @@ export async function installReqs(
     channel,
     cancelToken
   );
+  return virtualEnvPython;
 }
 
 export async function installExtensionPyReqs(
@@ -203,7 +85,6 @@ export async function installExtensionPyReqs(
     }
     return;
   }
-  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {
     pyTracker.Log = installExtensionPyPkgsMsg;
@@ -219,6 +100,7 @@ export async function installExtensionPyReqs(
     undefined,
     cancelToken
   );
+  const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   if (pyTracker) {
     pyTracker.Log = installDAPyPkgsMsg;
   }

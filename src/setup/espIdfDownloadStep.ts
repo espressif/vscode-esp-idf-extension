@@ -36,6 +36,7 @@ export async function expressInstall(
   idfContainerPath: string,
   mirror: IdfMirror,
   setupMode: SetupMode,
+  gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken
 ) {
@@ -52,11 +53,6 @@ export async function expressInstall(
     Logger.infoNotify(containerNotFoundMsg);
     throw new Error(containerNotFoundMsg);
   }
-  SetupPanel.postMessage({
-    command: "goToCustomPage",
-    installing: true,
-    page: "/status",
-  });
   let idfPath: string;
   if (selectedIdfVersion.filename === "manual") {
     idfPath = espIdfPath;
@@ -65,6 +61,7 @@ export async function expressInstall(
       selectedIdfVersion,
       idfContainerPath,
       mirror,
+      gitPath,
       progress,
       cancelToken
     );

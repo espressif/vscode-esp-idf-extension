@@ -23,10 +23,10 @@ const GIT_VERSION_REGEX = /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)
 
 export async function getGitVersion(
   reportedResult: reportObj,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ) {
   const rawGitVersion = await execChildProcess(
-    "git --version",
+    `${reportedResult.configurationSettings.gitPath} --version`,
     context.extensionPath
   );
   reportedResult.gitVersion.output = rawGitVersion;

@@ -37,10 +37,10 @@ There are few dependencies required in your system and available in environment 
 
 | Linux                                                        | MacOS                                                        | Windows                                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+                 |
-| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)                             |
-| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                                         |
-| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             |                                                                              |
+| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |                                                                              |
+| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                                              |
 | [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
 
 
@@ -110,6 +110,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
 | Select port to use                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
 | Select OpenOCD Board Configuration                      |                                        |                                           |
+| Select where to save configuration settings             |                                        |                                           |
 | Set default sdkconfig file in project                   |                                        |                                           |
 | Set Espressif device target                             |                                        |                                           |
 | Show Examples Projects                                  |                                        |                                           |

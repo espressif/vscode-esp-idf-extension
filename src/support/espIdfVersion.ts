@@ -23,7 +23,7 @@ const ESP_IDF_VERSION_REGEX = /v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/;
 export async function getEspIdfVersion(reportedResult: reportObj) {
   try {
     const rawEspIdfVersion = await execChildProcess(
-      "git describe --tags",
+      `${reportedResult.configurationSettings.gitPath} describe --tags`,
       reportedResult.configurationSettings.espIdfPath
     );
     reportedResult.espIdfVersion.output = rawEspIdfVersion;

@@ -23,36 +23,22 @@ export function getConfigurationSettings(
   scope?: vscode.ConfigurationScope
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
+  const conf = vscode.workspace.getConfiguration("", scope);
   reportedResult.configurationSettings = {
-    espAdfPath: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.espAdfPath" + winFlag),
-    espIdfPath: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.espIdfPath" + winFlag),
-    espMdfPath: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.espMdfPath" + winFlag),
-    customExtraPaths: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.customExtraPaths"),
-    customExtraVars: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.customExtraVars"),
-    pythonBinPath: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.pythonBinPath" + winFlag),
+    espAdfPath: conf.get("idf.espAdfPath" + winFlag),
+    espIdfPath: conf.get("idf.espIdfPath" + winFlag),
+    espMdfPath: conf.get("idf.espMdfPath" + winFlag),
+    customExtraPaths: conf.get("idf.customExtraPaths"),
+    customExtraVars: conf.get("idf.customExtraVars"),
+    pythonBinPath: conf.get("idf.pythonBinPath" + winFlag),
     pythonPackages: [],
-    serialPort: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.port" + winFlag),
+    serialPort: conf.get("idf.port" + winFlag),
     openOcdConfigs:
-      vscode.workspace.getConfiguration("", scope).get("idf.openOcdConfigs") ||
+      conf.get("idf.openOcdConfigs") ||
       [],
-    toolsPath: vscode.workspace
-      .getConfiguration("", scope)
-      .get("idf.toolsPath" + winFlag),
+    toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
+    gitPath: conf.get("idf.gitPath")
   };
 }

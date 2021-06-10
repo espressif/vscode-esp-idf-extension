@@ -52,6 +52,7 @@
   "param.toolsPath": "IDF_TOOLS_PATH 的路径",
   "param.exportPaths": "导出到系统 PATH 环境变量的路径",
   "param.exportVars": "导出到系统中的环境变量",
+  "param.gitPath.title": "Git可执行路径",
   "param.espIdfPath": "IDF_PATH 的路径",
   "param.espAdfPath": "ADF_PATH 的路径",
   "param.espMdfPath": "MDF_PATH 的路径",

@@ -578,7 +578,11 @@ export function getSubProjects(dir: string): string[] {
 
 export async function getEspIdfVersion(workingDir: string) {
   try {
-    const canCheck = await checkGitExists(extensionContext.extensionPath);
+    const gitPath = (await idfConf.readParameter("idf.gitPath")) || "git";
+    const canCheck = await checkGitExists(
+      extensionContext.extensionPath,
+      gitPath
+    );
     if (canCheck === "Not found") {
       Logger.errorNotify(
         "Git is not found in current environment",
@@ -587,7 +591,7 @@ export async function getEspIdfVersion(workingDir: string) {
       return "x.x";
     }
     const rawEspIdfVersion = await execChildProcess(
-      "git describe --tags",
+      `${gitPath} describe --tags`,
       workingDir
     );
     const espIdfVersionMatch = rawEspIdfVersion.match(
@@ -610,8 +614,8 @@ export async function getEspIdfVersion(workingDir: string) {
   }
 }
 
-export async function checkGitExists(workingDir: string) {
-  return await execChildProcess("git --version", workingDir)
+export async function checkGitExists(workingDir: string, gitPath: string) {
+  return await execChildProcess(`${gitPath} --version`, workingDir)
     .then((result) => {
       if (result) {
         const match = result.match(
@@ -729,6 +733,12 @@ export function appendIdfAndToolsToPath() {
     path.dirname(modifiedEnv.PYTHON)
   );
 
+  const gitPath = idfConf.readParameter("idf.gitPath") as string;
+  let pathToGitDir;
+  if (gitPath && gitPath !== "git") {
+    pathToGitDir = gitPath.replace(path.sep + "git.exe", "");
+  }
+
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
@@ -756,6 +766,8 @@ export function appendIdfAndToolsToPath() {
     path.dirname(modifiedEnv.PYTHON) +
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
+    path.delimiter +
+    pathToGitDir +
     path.delimiter +
     modifiedEnv[pathNameInEnv];
 

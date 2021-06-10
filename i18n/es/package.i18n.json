@@ -52,6 +52,7 @@
   "param.toolsPath": "Ruta de las herramientas de ESP-IDF (IDF_TOOLS_PATH)",
   "param.exportPaths": "Rutas para agregar a PATH",
   "param.exportVars": "Variables para agregar a variables de sistema",
+  "param.gitPath.title": "Ruta del ejecutable Git",
   "param.espIdfPath": "Ruta del entorno de trabajo ESP-IDF (IDF_PATH)",
   "param.espAdfPath": "Ruta del entorno de trabajo ESP-ADF (ADF_PATH)",
   "param.espMdfPath": "Ruta del entorno de trabajo ESP-MDF (MDF_PATH)",

@@ -31,6 +31,7 @@ export function initializeReportObject() {
     serialPort: undefined,
     openOcdConfigs: undefined,
     toolsPath: undefined,
+    gitPath: undefined
   };
   report.cCppPropertiesJson = undefined;
   report.configurationAccess = {

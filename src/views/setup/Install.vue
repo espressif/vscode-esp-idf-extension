@@ -1,7 +1,7 @@
 <template>
   <div id="install">
     <div class="notification">
-      <div class="field">
+      <div class="field" v-if="isNotWinPlatform && gitVersion">
         <label>Git version: {{ gitVersion }}</label>
       </div>
 
@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <selectPyVersion></selectPyVersion>
+      <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
 
       <div
         class="notification is-danger error-message"
@@ -43,7 +43,6 @@ import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
-import { IEspIdfLink } from "./types";
 
 @Component({
   components: {
@@ -53,11 +52,11 @@ import { IEspIdfLink } from "./types";
 })
 export default class Install extends Vue {
   @Action installEspIdf;
-  @Action customInstallEspIdf;
   @Mutation setEspIdfErrorStatus;
   @Mutation setPyExecErrorStatus;
   @State("gitVersion") private storeGitVersion: string;
   @State("espIdfErrorStatus") private storeErrorStatus: string;
+  @State("pathSep") private storePathSep: string;
   @State("pyExecErrorStatus") private storePyExecErrorStatus: string;
 
   get gitVersion() {
@@ -66,6 +65,10 @@ export default class Install extends Vue {
 
   get espIdfErrorStatus() {
     return this.storeErrorStatus;
+  }
+
+  get isNotWinPlatform() {
+    return this.storePathSep.indexOf("/") !== -1;
   }
 
   get pyExecErrorStatus() {

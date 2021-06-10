@@ -1,0 +1,118 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Monday, 31st May 2021 7:18:37 pm
+ * Copyright 2021 Espressif Systems (Shanghai) CO LTD
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { createHash } from "crypto";
+import { pathExists, readJson, writeJson } from "fs-extra";
+import { join } from "path";
+
+export interface EspIdfJson {
+  $schema: string;
+  $id: string;
+  _comment: string;
+  _warning: string;
+  gitPath: string;
+  idfToolsPath: string;
+  idfSelectedId: string;
+  idfInstalled: { [key: string]: IdfInstalled };
+}
+
+export interface IdfInstalled {
+  version: string;
+  python: string;
+  path: string;
+}
+
+export function getEspIdfJsonTemplate(toolsPath: string) {
+  return {
+    $schema: "http://json-schema.org/schema#",
+    $id: "http://dl.espressif.com/dl/schemas/esp_idf",
+    _comment: "Configuration file for ESP-IDF IDEs.",
+    _warning:
+      "Use / or \\ when specifying path. Single backslash is not allowed by JSON format.",
+    gitPath: "",
+    idfToolsPath: toolsPath,
+    idfSelectedId: "",
+    idfInstalled: {},
+  } as EspIdfJson;
+}
+
+export function getIdfMd5sum(idfPath: string) {
+  const md5Value = createHash("md5")
+    .update(idfPath.replace(/\\/g, "/"))
+    .digest("hex");
+  return `esp-idf-${md5Value}`;
+}
+
+export async function loadEspIdfJson(toolsPath: string) {
+  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
+  const espIdfJsonExists = await pathExists(espIdfJsonPath);
+  if (espIdfJsonExists) {
+    return await readJson(espIdfJsonPath) as EspIdfJson;
+  }
+  return getEspIdfJsonTemplate(toolsPath);
+}
+
+export async function addIdfPath(
+  idfPath: string,
+  pythonPath: string,
+  version: string,
+  toolsPath: string
+) {
+  const newIdfPathObj: IdfInstalled = {
+    version,
+    python: pythonPath,
+    path: idfPath,
+  };
+  const idfId = getIdfMd5sum(idfPath);
+  const espIdfObj = await loadEspIdfJson(toolsPath);
+  espIdfObj["idfInstalled"][idfId] = newIdfPathObj;
+  espIdfObj["idfSelectedId"] = idfId;
+  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
+  await writeJson(espIdfJsonPath, espIdfObj, { spaces: 2 });
+}
+
+export async function getPropertyFromJson(toolsPath: string, property: string) {
+  const espIdfObj = await loadEspIdfJson(toolsPath);
+  return Object.keys(espIdfObj).indexOf(property) !== -1
+    ? espIdfObj[property]
+    : undefined;
+}
+
+export async function getSelectedEspIdfId(toolsPath: string) {
+  return await getPropertyFromJson(toolsPath, "idfSelectedId");
+}
+
+export async function getPropertyWithId(
+  toolsPath: string,
+  property: string,
+  id: string
+) {
+  const espIdfObj = await loadEspIdfJson(toolsPath);
+  return espIdfObj["idfInstalled"][id][property];
+}
+
+export async function getSelectedEspIdfPath(toolsPath: string) {
+  const selectedIdfId = await getSelectedEspIdfId(toolsPath);
+  return await getPropertyWithId(toolsPath, "path", selectedIdfId);
+}
+
+export async function getSelectedIdfInstalled(toolsPath: string) {
+  const espIdfObj = await loadEspIdfJson(toolsPath);
+  const id = espIdfObj["idfSelectedId"];
+  return espIdfObj["idfInstalled"][id];
+}

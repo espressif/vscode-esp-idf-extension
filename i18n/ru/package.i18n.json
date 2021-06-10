@@ -55,6 +55,7 @@
   "param.toolsPath": "Путь инструментов ESP-IDF (IDF_TOOLS_PATH)",
   "param.exportPaths": "Пути, добавляемые к PATH",
   "param.exportVars": "Переменные, которые нужно добавить к системным переменным окружения",
+  "param.gitPath.title": "Путь к исполняемому файлу Git",
   "param.useIDFKConfigStyle": "Включить/отключить проверки стиля ESP-IDF для файлов Kconfig",
   "param.cmakeCompilerArgs": "Аргументы для задачи компиляции CMake",
   "param.cmakeBuildArgs": "Аргументы для задачи сборки CMake",

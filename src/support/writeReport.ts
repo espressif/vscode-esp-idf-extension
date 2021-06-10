@@ -43,6 +43,7 @@ export async function writeTextReport(
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
+  output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
   output += `Access to ESP-ADF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;

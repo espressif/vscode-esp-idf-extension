@@ -27,142 +27,39 @@
       </li>
     </ul>
 
-    <div class="centerize notification">
-      <div class="control barText">
-        <p class="label">Installing ESP-IDF...</p>
-        <div class="icon is-large is-size-4">
-          <iconify-icon
-            :icon="
-              statusEspIdf === statusType.installed
-                ? 'check'
-                : statusEspIdf === statusType.failed
-                ? 'close'
-                : 'loading'
-            "
-            :class="{
-              gear:
-                statusEspIdf !== statusType.installed &&
-                statusEspIdf !== statusType.failed,
-            }"
-          />
-        </div>
-      </div>
-      <IdfDownload v-if="isInstalling" />
-      <div class="control barText" v-if="espIdfErrorStatus">
-        <p class="label">{{ espIdfErrorStatus }}</p>
-        <div class="icon is-large is-size-4">
-          <iconify-icon
-            :icon="
-              statusEspIdf === statusType.installed
-                ? 'check'
-                : statusEspIdf === statusType.failed
-                ? 'close'
-                : 'loading'
-            "
-            :class="{
-              gear:
-                statusEspIdf !== statusType.installed &&
-                statusEspIdf !== statusType.failed,
-            }"
-          />
-        </div>
-      </div>
-    </div>
+    <PrerequisitesStatus />
 
-    <div class="centerize notification">
-      <div class="control barText">
-        <p class="label">Installing ESP-IDF Tools...</p>
-        <div class="icon is-large is-size-4">
-          <iconify-icon
-            :icon="
-              statusEspIdfTools === statusType.installed
-                ? 'check'
-                : statusEspIdfTools === statusType.failed
-                ? 'close'
-                : 'loading'
-            "
-            :class="{
-              gear:
-                statusEspIdfTools !== statusType.installed &&
-                statusEspIdfTools !== statusType.failed,
-            }"
-          />
-        </div>
-      </div>
-      <div class="toolsSection" v-if="statusEspIdfTools !== statusType.pending">
-        <toolDownload
-          v-for="tool in toolsResults"
-          :key="tool.id"
-          :tool="tool"
-        />
-      </div>
-    </div>
+    <EspIdfStatus />
 
-    <div class="centerize notification">
-      <div class="control barText">
-        <p class="label">
-          Installing Python virtual environment for ESP-IDF...
-        </p>
-        <div class="icon is-large is-size-4">
-          <iconify-icon
-            :icon="
-              statusPyVEnv === statusType.installed
-                ? 'check'
-                : statusPyVEnv === statusType.failed
-                ? 'close'
-                : 'loading'
-            "
-            :class="{
-              gear:
-                statusPyVEnv !== statusType.installed &&
-                statusPyVEnv !== statusType.failed,
-            }"
-          />
-        </div>
-      </div>
-      <div
-        class="field"
-        v-if="pyReqsLog && statusPyVEnv !== statusType.installed"
-      >
-        <p id="python-log" class="notification">{{ pyReqsLog }}</p>
-      </div>
-    </div>
+    <EspIdfToolsStatus />
+
+    <PythonPkgsStatus />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { State } from "vuex-class";
-import { IEspIdfTool, StatusType } from "./types";
-import IdfDownload from "./components/IdfDownload.vue";
-import toolDownload from "./components/toolDownload.vue";
+import { StatusType } from "./types";
+import DownloadStatus from "./components/DownloadStatus.vue";
+import PrerequisitesStatus from "./components/statusSection/prerequisites.vue";
+import EspIdfStatus from "./components/statusSection/espIdf.vue";
+import EspIdfToolsStatus from "./components/statusSection/espIdfTools.vue";
+import PythonPkgsStatus from "./components/statusSection/pyPkgs.vue";
 
 @Component({
   components: {
-    IdfDownload,
-    toolDownload,
+    DownloadStatus,
+    EspIdfStatus,
+    EspIdfToolsStatus,
+    PythonPkgsStatus,
+    PrerequisitesStatus,
   },
 })
 export default class Status extends Vue {
-  @State("espIdfErrorStatus") private storeErrorStatus: string;
-  @State("isIdfInstalling") private storeIsInstalling: boolean;
-  @State("pyReqsLog") private storePyReqsLog: string;
   @State("statusEspIdf") private storeEspIdfStatus: StatusType;
   @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
   @State("statusPyVEnv") private storePyVenvStatus: StatusType;
-  @State("toolsResults") private storeToolsResults: IEspIdfTool[];
-
-  get espIdfErrorStatus() {
-    return this.storeErrorStatus;
-  }
-
-  get isInstalling() {
-    return this.storeIsInstalling;
-  }
-
-  get pyReqsLog() {
-    return this.storePyReqsLog;
-  }
 
   get statusEspIdf() {
     return this.storeEspIdfStatus;
@@ -179,14 +76,10 @@ export default class Status extends Vue {
   get statusType() {
     return StatusType;
   }
-
-  get toolsResults() {
-    return this.storeToolsResults;
-  }
 }
 </script>
 
-<style scoped>
+<style>
 #status {
   display: flex;
   width: 100%;
@@ -201,13 +94,6 @@ export default class Status extends Vue {
   align-items: center;
   justify-content: space-around;
   margin: 0.5em;
-}
-
-.barText {
-  display: flex;
-  align-items: center;
-  justify-items: center;
-  margin: 1em;
 }
 
 #python-log {
@@ -266,13 +152,12 @@ export default class Status extends Vue {
   background-color: var(--vscode-button-background);
 }
 
-.toolsSection {
+.barText {
   display: flex;
   align-items: center;
-  width: 100%;
-  flex-wrap: wrap;
+  justify-items: center;
+  margin: 1em;
 }
-
 .icon {
   margin-bottom: 0.5em;
 }

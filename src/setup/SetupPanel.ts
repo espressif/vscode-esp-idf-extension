@@ -32,6 +32,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
+import { installIdfGit, installIdfPython } from "./embedGitPy";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -109,7 +110,6 @@ export class SetupPanel {
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
     const defaultEspIdfPathContainer = path.join(containerPath, "esp");
-    const toolsPath = idfConf.readParameter("idf.toolsPath");
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
@@ -123,6 +123,7 @@ export class SetupPanel {
             message.espIdfContainer &&
             message.selectedEspIdfVersion &&
             message.selectedPyPath &&
+            message.toolsPath &&
             typeof message.manualEspIdfPath !== undefined &&
             typeof message.mirror !== undefined &&
             typeof message.setupMode !== undefined
@@ -131,6 +132,7 @@ export class SetupPanel {
               await ensureDir(defaultEspIdfPathContainer);
             }
             await this.autoInstall(
+              message.toolsPath,
               message.selectedEspIdfVersion,
               message.selectedPyPath,
               message.manualEspIdfPath,
@@ -183,7 +185,7 @@ export class SetupPanel {
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
             espIdf: espIdfPath || setupArgs.espIdfPath,
-            espToolsPath: toolsPath || setupArgs.espToolsPath,
+            espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersion: setupArgs.espIdfVersion,
@@ -224,6 +226,14 @@ export class SetupPanel {
             setupArgs.exportedPaths &&
             setupArgs.exportedVars
           ) {
+            this.panel.webview.postMessage({
+              command: "updateIdfGitStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateIdfPythonStatus",
+              status: StatusType.installed,
+            });
             this.panel.webview.postMessage({
               command: "updateEspIdfStatus",
               status: StatusType.installed,
@@ -299,6 +309,7 @@ export class SetupPanel {
   }
 
   private async autoInstall(
+    toolsPath: string,
     selectedIdfVersion: IEspIdfLink,
     pyPath: string,
     espIdfPath: string,
@@ -317,13 +328,30 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
+          let idfPythonPath = pyPath,
+            idfGitPath = "git";
+          if (process.platform === "win32") {
+            const embedPaths = await this.installEmbedPyGit(
+              toolsPath,
+              progress,
+              cancelToken
+            );
+            idfGitPath = embedPaths.idfGitPath;
+            idfPythonPath = embedPaths.idfPythonPath;
+          }
           await expressInstall(
             selectedIdfVersion,
-            pyPath,
+            idfPythonPath,
             espIdfPath,
             idfContainerPath,
             mirror,
             setupMode,
+            idfGitPath,
             progress,
             cancelToken
           );
@@ -396,6 +424,11 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
           await downloadIdfTools(
             idfPath,
             toolsPath,
@@ -428,6 +461,11 @@ export class SetupPanel {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          SetupPanel.postMessage({
+            command: "goToCustomPage",
+            installing: true,
+            page: "/status",
+          });
           await createPyReqs(
             idfPath,
             toolsPath,
@@ -442,6 +480,36 @@ export class SetupPanel {
         }
       }
     );
+  }
+
+  private async installEmbedPyGit(
+    toolsPath: string,
+    progress: vscode.Progress<{ message: string; increment?: number }>,
+    cancelToken: vscode.CancellationToken
+  ) {
+    const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
+    SetupPanel.postMessage({
+      command: "updateIdfGitStatus",
+      status: StatusType.installed,
+    });
+    const idfPythonPath = await installIdfPython(
+      toolsPath,
+      progress,
+      cancelToken
+    );
+    SetupPanel.postMessage({
+      command: "updateIdfPythonStatus",
+      status: StatusType.installed,
+    });
+    const confTarget = idfConf.readParameter(
+      "idf.saveScope"
+    ) as vscode.ConfigurationTarget;
+    await idfConf.writeParameter(
+      "idf.gitPath",
+      idfGitPath,
+      confTarget
+    );
+    return { idfPythonPath, idfGitPath };
   }
 
   private async openFolder() {

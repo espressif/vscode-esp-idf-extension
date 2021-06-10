@@ -24,11 +24,12 @@ import { PackageProgress } from "../PackageProgress";
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
   private readonly GITHUB_REPO: string;
-
+  
   constructor(
     githubRepository: string,
     private name: string,
-    private branchToUse: string
+    private branchToUse: string,
+    private gitBinPath: string = "git"
   ) {
     this.GITHUB_REPO = githubRepository;
   }
@@ -44,11 +45,11 @@ export class AbstractCloning {
   public downloadByCloning(
     installDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>
+    progress?: Progress<{ message?: string; increment?: number }>,
   ) {
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
-        "git",
+        this.gitBinPath,
         [
           "clone",
           "--recursive",
@@ -181,9 +182,9 @@ export class AbstractCloning {
         cancelToken: CancellationToken
       ) => {
         try {
-          const gitVersion = await checkGitExists(installDirPath);
+          const gitVersion = await checkGitExists(installDirPath, this.gitBinPath);
           if (!gitVersion || gitVersion === "Not found") {
-            throw new Error("Git is not found in PATH");
+            throw new Error("Git is not found in idf.gitPath or PATH");
           }
           cancelToken.onCancellationRequested((e) => {
             this.cancel();

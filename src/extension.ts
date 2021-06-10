@@ -76,7 +76,7 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
-import { installReqs } from "./pythonManager";
+import { installPythonEnvFromIdfTools } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
@@ -419,8 +419,11 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             await utils.createSkeleton(resultFolder, selectedTemplate.target);
             if (selectedTemplate.label === "arduino-as-component") {
+              const gitPath =
+                (await idfConf.readParameter("idf.gitPath")) || "git";
               const arduinoComponentManager = new ArduinoComponentInstaller(
-                resultFolder
+                resultFolder,
+                gitPath
               );
               cancelToken.onCancellationRequested(() => {
                 arduinoComponentManager.cancel();
@@ -541,8 +544,11 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
+            const gitPath =
+              (await idfConf.readParameter("idf.gitPath")) || "git";
             const arduinoComponentManager = new ArduinoComponentInstaller(
-              workspaceRoot.fsPath
+              workspaceRoot.fsPath,
+              gitPath
             );
             const arduinoDirPath = path.join(
               workspaceRoot.fsPath,
@@ -976,16 +982,26 @@ export async function activate(context: vscode.ExtensionContext) {
             const espIdfPath = idfConf.readParameter(
               "idf.espIdfPath"
             ) as string;
-            const toolsPath = idfConf.readParameter("idf.toolsPath") as string;
+            const containerPath =
+              process.platform === "win32"
+                ? process.env.USERPROFILE
+                : process.env.HOME;
+            const confToolsPath = idfConf.readParameter(
+              "idf.toolsPath"
+            ) as string;
+            const toolsPath =
+              confToolsPath ||
+              process.env.IDF_TOOLS_PATH ||
+              path.join(containerPath, ".espressif");
             const pyPath = idfConf.readParameter("idf.pythonBinPath") as string;
             progress.report({
               message: `Installing ESP-IDF Python Requirements...`,
             });
-            await installReqs(
+            await installPythonEnvFromIdfTools(
               espIdfPath,
-              pyPath,
               toolsPath,
               undefined,
+              pyPath,
               OutputChannel.init(),
               cancelToken
             );
@@ -2454,11 +2470,8 @@ async function selectFlashMethod(cancelToken) {
       placeHolder:
         "Select flash method, you can modify the choice later from settings 'idf.flashType'",
     });
-    await idfConf.writeParameter(
-      "idf.flashType",
-      flashType,
-      vscode.ConfigurationTarget.Workspace
-    );
+    const target = idfConf.readParameter("idf.saveScope");
+    await idfConf.writeParameter("idf.flashType", flashType, target);
   }
 
   if (!flashType) {
