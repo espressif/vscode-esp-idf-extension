@@ -17,6 +17,24 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.1.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.1.0)
+
+### Features and enhancements
+
+- [JTAG Flashing in Build, flash, monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/400) command
+- [Testing Docker image and doctor command testing](https://github.com/espressif/vscode-esp-idf-extension/pull/365)
+- [ESP-IDF Examples recursive subcategories shown in side menu](https://github.com/espressif/vscode-esp-idf-extension/pull/412)
+- Add [ESP-IDF: Configure project for coverage](https://github.com/espressif/vscode-esp-idf-extension/pull/354) to set sdkconfig values for Code coverage
+- Use [embed python and embed git for windows](https://github.com/espressif/vscode-esp-idf-extension/pull/416) in extension setup. 
+
+### Bug Fixes
+
+- [Fix remove package.json dependencies](https://github.com/espressif/vscode-esp-idf-extension/commit/2c34b8fa6704e28aef47b22bf00bbffb0481799c)
+- [Enable IDF Component manager configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/389)
+- [Fix openOCD default boards configuration files](https://github.com/espressif/vscode-esp-idf-extension/pull/391)
+- [Fix binaries included in flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/406)
+
+
 ## [1.0.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.3)
 
 ### Features and enhancements
