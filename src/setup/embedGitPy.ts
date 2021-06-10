@@ -31,18 +31,18 @@ import { OutputChannel } from "../logger/outputChannel";
 import { pathExists } from "fs-extra";
 import { checkGitExists } from "../utils";
 import { checkPythonExists } from "../pythonManager";
+import { ESP } from "../config";
 
 export async function installIdfGit(
   idfToolsDir: string,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
-  const idfGitUrl = `https://dl.espressif.com/dl/idf-git/idf-git-2.30.1-win64.zip`;
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const idfGitZipPath = join(idfToolsDir, "dist", basename(idfGitUrl));
+  const idfGitZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_GIT_URL));
   const pkgProgress = new PackageProgress(
-    basename(idfGitUrl),
+    basename(ESP.URL.IDF_EMBED_GIT_URL),
     sendIdfGitDownloadProgress,
     null,
     sendIdfGitDownloadDetail,
@@ -53,7 +53,7 @@ export async function installIdfGit(
     progress.report({ message: `Downloading ${idfGitZipPath}...` });
     OutputChannel.appendLine(`Downloading ${idfGitZipPath}...`);
     await downloadManager.downloadWithRetries(
-      idfGitUrl,
+      ESP.URL.IDF_EMBED_GIT_URL,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
@@ -89,12 +89,11 @@ export async function installIdfPython(
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
-  const idfPythonUrl = `https://dl.espressif.com/dl/idf-python/idf-python-3.8.7-embed-win64.zip`;
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const idfPyZipPath = join(idfToolsDir, "dist", basename(idfPythonUrl));
+  const idfPyZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_PYTHON_URL));
   const pkgProgress = new PackageProgress(
-    basename(idfPythonUrl),
+    basename(ESP.URL.IDF_EMBED_PYTHON_URL),
     sendIdfPythonDownloadProgress,
     null,
     sendIdfPythonDownloadDetail,
@@ -104,7 +103,7 @@ export async function installIdfPython(
   if (!pyZipPathExists) {
     progress.report({ message: `Downloading ${idfPyZipPath}...` });
     await downloadManager.downloadWithRetries(
-      idfPythonUrl,
+      ESP.URL.IDF_EMBED_PYTHON_URL,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
