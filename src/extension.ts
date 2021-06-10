@@ -2471,11 +2471,7 @@ async function selectFlashMethod(cancelToken) {
         "Select flash method, you can modify the choice later from settings 'idf.flashType'",
     });
     const target = idfConf.readParameter("idf.saveScope");
-    await idfConf.writeParameter(
-      "idf.flashType",
-      flashType,
-      target
-    );
+    await idfConf.writeParameter("idf.flashType", flashType, target);
   }
 
   if (!flashType) {
