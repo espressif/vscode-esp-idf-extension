@@ -18,7 +18,7 @@
 
 import { EventEmitter } from "events";
 import { mkdirSync } from "fs";
-import { join } from "path";
+import { join, sep } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -148,7 +148,11 @@ export class AppTraceManager extends EventEmitter {
           ? vscode.workspace.workspaceFolders[0].uri
           : undefined;
         const workspacePath = workspace ? workspace.fsPath : "";
-        const fileName = join(workspacePath, "trace", `trace_${new Date().getTime()}.trace`);
+        const fileName = `file:${sep}${sep}${join(
+          workspacePath,
+          "trace",
+          `trace_${new Date().getTime()}.trace`
+        )}`.replace(/\\/g, "/");
         const pollPeriod = idfConf.readParameter("trace.poll_period");
         const traceSize = idfConf.readParameter("trace.trace_size");
         const stopTmo = idfConf.readParameter("trace.stop_tmo");
