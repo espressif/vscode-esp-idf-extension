@@ -628,6 +628,11 @@
             "type": "string",
             "description": "%param.gitPath.title%",
             "default": "git"
+          },
+          "idf.enableUpdateSrcsToCMakeListsFile": {
+            "type": "boolean",
+            "description": "%param.enableUpdateSrcsToCMakeListsFile%",
+            "default": true
           }
         }
       }

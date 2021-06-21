@@ -65,6 +65,7 @@
   "param.partialDarkTheme": "Background color for partially covered lines in Dark theme for ESP-IDF Coverage.",
   "param.uncoveredLightTheme": "Background color for uncovered lines in Light theme for ESP-IDF Coverage.",
   "param.uncoveredDarkTheme": "Background color for uncovered lines in Dark theme for ESP-IDF Coverage.",
+  "param.enableUpdateSrcsToCMakeListsFile": "Enable update source files in CMakeLists.txt",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

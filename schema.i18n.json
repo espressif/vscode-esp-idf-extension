@@ -1,9 +1,7 @@
 {
   "out": {
     "build": {
-      "buildCmd": [
-        "build.waitProcessIsFinishedMessage"
-      ]
+      "buildCmd": ["build.waitProcessIsFinishedMessage"]
     },
     "espIdf": {
       "menuconfig": {
@@ -20,9 +18,7 @@
         ]
       },
       "monitor": {
-        "command": [
-          "monitor.waitProcessIsFinishedMessage"
-        ]
+        "command": ["monitor.waitProcessIsFinishedMessage"]
       },
       "serial": {
         "serialPort": [
@@ -44,9 +40,7 @@
       }
     },
     "flash": {
-      "flashCmd": [
-        "flash.waitProcessIsFinishedMessage"
-      ]
+      "flashCmd": ["flash.waitProcessIsFinishedMessage"]
     },
     "extension": [
       "extension.defaultFoldersGeneratedMessage",
@@ -183,6 +177,7 @@
     "esp_idf.gdbinitFile.description",
     "param.launchMonitorOnDebugSession.title",
     "param.enableIdfComponentManager.title",
-    "param.gitPath.title"
+    "param.gitPath.title",
+    "param.enableUpdateSrcsToCMakeListsFile"
   ]
 }
