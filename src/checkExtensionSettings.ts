@@ -65,7 +65,7 @@ export async function checkExtensionSettings(extensionPath: string) {
             setupArgs.pyBinPath,
             setupArgs.exportedPaths,
             setupArgs.exportedVars,
-            setupArgs.espToolsPath,
+            setupArgs.espToolsPath
           );
           const confTarget = readParameter(
             "idf.saveScope"
@@ -75,7 +75,9 @@ export async function checkExtensionSettings(extensionPath: string) {
           vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
         }
       } catch (error) {
-        const msg = error.message ? error.message : "Error loading initial configuration.";
+        const msg = error.message
+          ? error.message
+          : "Error loading initial configuration.";
         Logger.errorNotify(msg, error);
         vscode.commands.executeCommand("espIdf.setup.start");
       }
