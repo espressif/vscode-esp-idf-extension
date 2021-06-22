@@ -767,9 +767,12 @@ export function appendIdfAndToolsToPath() {
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +
-    pathToGitDir +
-    path.delimiter +
     modifiedEnv[pathNameInEnv];
+
+  if (pathToGitDir) {
+    modifiedEnv[pathNameInEnv] =
+      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+  }
 
   if (
     modifiedEnv[pathNameInEnv] &&

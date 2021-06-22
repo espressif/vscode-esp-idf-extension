@@ -24,6 +24,7 @@ import {
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { installExtensionPyReqs } from "./pythonManager";
+import { readParameter, writeParameter } from "./idfConfiguration";
 
 export async function checkExtensionSettings(extensionPath: string) {
   const isExtensionConfigured = await isCurrentInstallValid();
@@ -63,13 +64,19 @@ export async function checkExtensionSettings(extensionPath: string) {
             setupArgs.espIdfPath,
             setupArgs.pyBinPath,
             setupArgs.exportedPaths,
-            setupArgs.exportedVars
+            setupArgs.exportedVars,
+            setupArgs.espToolsPath,
           );
+          const confTarget = readParameter(
+            "idf.saveScope"
+          ) as vscode.ConfigurationTarget;
+          await writeParameter("idf.gitPath", setupArgs.gitPath, confTarget);
         } else if (typeof process.env.WEB_IDE === "undefined") {
           vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
         }
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        const msg = error.message ? error.message : "Error loading initial configuration.";
+        Logger.errorNotify(msg, error);
         vscode.commands.executeCommand("espIdf.setup.start");
       }
     }

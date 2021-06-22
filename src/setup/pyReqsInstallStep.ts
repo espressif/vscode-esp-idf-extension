@@ -41,7 +41,7 @@ export async function createPyReqs(
     progress,
     cancelToken
   );
-  await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
+  await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars, toolsPath);
   let idfPathVersion = await getEspIdfVersion(idfPath);
   await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath);
   SetupPanel.postMessage({

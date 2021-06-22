@@ -223,7 +223,8 @@ export class SetupPanel {
             setupArgs.espIdfPath &&
             setupArgs.pyBinPath &&
             setupArgs.exportedPaths &&
-            setupArgs.exportedVars
+            setupArgs.exportedVars &&
+            setupArgs.espToolsPath
           ) {
             this.panel.webview.postMessage({
               command: "updateIdfGitStatus",
@@ -258,8 +259,13 @@ export class SetupPanel {
               setupArgs.espIdfPath,
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
-              setupArgs.exportedVars
+              setupArgs.exportedVars,
+              setupArgs.espToolsPath,
             );
+            const confTarget = idfConf.readParameter(
+              "idf.saveScope"
+            ) as vscode.ConfigurationTarget;
+            await idfConf.writeParameter("idf.gitPath", setupArgs.gitPath, confTarget);
             this.panel.webview.postMessage({
               command: "setIsInstalled",
               isInstalled: true,

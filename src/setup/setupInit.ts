@@ -23,7 +23,7 @@ import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { getSelectedIdfInstalled } from "./espIdfJson";
+import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
@@ -32,6 +32,7 @@ export interface ISetupInitArgs {
   exportedPaths: string;
   exportedVars: string;
   espIdfVersionsList: IEspIdfLink[];
+  gitPath: string;
   gitVersion: string;
   hasPrerequisites: boolean;
   pythonVersions: string[];
@@ -58,22 +59,29 @@ export async function checkPreviousInstall(
     path.join(containerPath, "esp", "esp-idf");
   let pyEnvPath = confPyPath || process.env.PYTHON;
 
+  const espIdfJsonPath = path.join(toolsPath, "esp_idf.json");
+  const espIdfJsonExists = await pathExists(espIdfJsonPath);
+  let gitPath = idfConf.readParameter("idf.gitPath") || "git";
+  if (espIdfJsonExists) {
+    const idfInstalled = await getSelectedIdfInstalled(toolsPath);
+    if (idfInstalled && idfInstalled.path && idfInstalled.python) {
+      espIdfPath = idfInstalled.path;
+      pyEnvPath = idfInstalled.python;
+    }
+    const gitPathFromJson = (await getPropertyFromJson(
+      toolsPath,
+      "gitPath"
+    )) as string;
+    const gitPathExists = await pathExists(gitPathFromJson);
+    if (gitPathExists) {
+      gitPath = gitPathFromJson;
+    }
+  }
+
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
-  if (idfPathVersion === "x.x") {
-    const espIdfJsonPath = path.join(toolsPath, "esp_idf.json");
-    const espIdfJsonExists = await pathExists(espIdfJsonPath);
-    if (espIdfJsonExists) {
-      const idfInstalled = await getSelectedIdfInstalled(toolsPath);
-      if (idfInstalled && idfInstalled.path && idfInstalled.python) {
-        espIdfPath = idfInstalled.path;
-        pyEnvPath = idfInstalled.python;
-        idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
-      }
-    }
-    if (idfPathVersion === "x.x" && process.platform === "win32") {
-      espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
-      idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
-    }
+  if (idfPathVersion === "x.x" && process.platform === "win32") {
+    espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
+    idfPathVersion = await utils.getEspIdfVersion(espIdfPath);
   }
   if (idfPathVersion === "x.x") {
     return {
@@ -83,6 +91,7 @@ export async function checkPreviousInstall(
       exportedPaths: undefined,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      gitPath,
       gitVersion: undefined,
       hasPrerequisites: undefined,
       pythonVersions,
@@ -111,6 +120,7 @@ export async function checkPreviousInstall(
       exportedPaths: undefined,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      gitPath,
       gitVersion: undefined,
       hasPrerequisites: undefined,
       pythonVersions,
@@ -132,6 +142,7 @@ export async function checkPreviousInstall(
       toolsResults: toolsInfo,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      gitPath,
       gitVersion: undefined,
       hasPrerequisites: undefined,
       pythonVersions,
@@ -153,6 +164,7 @@ export async function checkPreviousInstall(
       exportedVars,
       toolsResults: toolsInfo,
       espIdfVersionsList: undefined,
+      gitPath,
       gitVersion: undefined,
       hasPrerequisites: undefined,
       pythonVersions,
@@ -169,6 +181,7 @@ export async function checkPreviousInstall(
     pyBinPath: pyEnvPath,
     toolsResults: toolsInfo,
     espIdfVersionsList: undefined,
+    gitPath,
     gitVersion: undefined,
     hasPrerequisites: undefined,
     pythonVersions,
@@ -265,6 +278,7 @@ export async function getSetupInitialValues(
       setupInitArgs.espToolsPath = prevInstall.espToolsPath;
       setupInitArgs.exportedPaths = prevInstall.exportedPaths;
       setupInitArgs.exportedVars = prevInstall.exportedVars;
+      setupInitArgs.gitPath = prevInstall.gitPath;
       setupInitArgs.toolsResults = prevInstall.toolsResults;
       setupInitArgs.pyBinPath = prevInstall.pyBinPath;
     }
@@ -311,13 +325,15 @@ export async function saveSettings(
   espIdfPath: string,
   pythonBinPath: string,
   exportedPaths: string,
-  exportedVars: string
+  exportedVars: string,
+  toolsPath: string
 ) {
   const confTarget = idfConf.readParameter(
     "idf.saveScope"
   ) as ConfigurationTarget;
   await idfConf.writeParameter("idf.espIdfPath", espIdfPath, confTarget);
   await idfConf.writeParameter("idf.pythonBinPath", pythonBinPath, confTarget);
+  await idfConf.writeParameter("idf.toolsPath", toolsPath, confTarget);
   await idfConf.writeParameter(
     "idf.customExtraPaths",
     exportedPaths,

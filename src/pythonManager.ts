@@ -20,6 +20,7 @@ import { constants, pathExists } from "fs-extra";
 import { EOL } from "os";
 import { Logger } from "./logger/logger";
 import path from "path";
+import { readParameter } from "./idfConfiguration";
 
 export async function installPythonEnvFromIdfTools(
   espDir: string,
@@ -35,6 +36,16 @@ export async function installPythonEnvFromIdfTools(
   );
   modifiedEnv.IDF_TOOLS_PATH = idfToolsDir;
   modifiedEnv.IDF_PATH = espDir;
+  if (process.platform === "win32") {
+    const gitPath = readParameter("idf.gitPath") as string;
+    let pathToGitDir;
+    if (gitPath && gitPath !== "git") {
+      pathToGitDir = gitPath.replace(path.sep + "git.exe", "");
+    }
+    if (pathToGitDir) {
+      modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
+    }
+  }
   await execProcessWithLog(
     `${pythonBinPath} ${idfToolsPyPath} install-python-env`,
     idfToolsDir,
@@ -220,7 +231,7 @@ export async function checkPipExists(pyBinPath: string, workingDir: string) {
 
 export async function getPythonBinList(workingDir: string) {
   if (process.platform === "win32") {
-    return await getPythonBinListWindows(workingDir);
+    return [];
   } else {
     return await getUnixPythonList(workingDir);
   }
@@ -240,67 +251,4 @@ export async function getUnixPythonList(workingDir: string) {
     Logger.errorNotify("Error looking for python in system", error);
     return ["Not found"];
   }
-}
-
-export async function getPythonBinListWindows(workingDir: string) {
-  const paths: string[] = [];
-  const registryRootLocations = [
-    "HKEY_CURRENT_USER\\SOFTWARE\\PYTHON",
-    "HKEY_LOCAL_MACHINE\\SOFTWARE\\PYTHON",
-    "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432NODE\\PYTHON",
-  ];
-  for (const root of registryRootLocations) {
-    try {
-      const rootResult = await utils.execChildProcess(
-        "reg query " + root,
-        workingDir
-      );
-      if (!rootResult.trim()) {
-        continue;
-      }
-      const companies = rootResult.trim().split("\r\n");
-      for (const company of companies) {
-        if (company.indexOf("PyLauncher") !== -1) {
-          continue;
-        }
-        const companyResult = await utils.execChildProcess(
-          "reg query " + company,
-          workingDir
-        );
-        if (!companyResult.trim()) {
-          continue;
-        }
-        const tags = companyResult.trim().split("\r\n");
-        const keyValues = await utils.execChildProcess(
-          "reg query " + tags[tags.length - 1],
-          workingDir
-        );
-        if (!keyValues.trim()) {
-          continue;
-        }
-        const values = keyValues.trim().split("\r\n");
-        for (const val of values) {
-          if (val.indexOf("InstallPath") !== -1) {
-            const installPaths = await utils.execChildProcess(
-              "reg query " + val,
-              workingDir
-            );
-            const binPaths = installPaths.trim().split("\r\n");
-            for (const iPath of binPaths) {
-              const trimPath = iPath.trim().split(/\s{2,}/);
-              if (trimPath[0] === "ExecutablePath") {
-                paths.push(trimPath[trimPath.length - 1]);
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      Logger.error("Error looking for python in windows", error);
-    }
-  }
-  if (paths.length === 0) {
-    return ["Not found"];
-  }
-  return paths;
 }
