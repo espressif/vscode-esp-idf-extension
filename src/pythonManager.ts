@@ -30,12 +30,17 @@ export async function installPythonEnvFromIdfTools(
   cancelToken?: CancellationToken
 ) {
   const idfToolsPyPath = path.join(espDir, "tools", "idf_tools.py");
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  modifiedEnv.IDF_TOOLS_PATH = idfToolsDir;
+  modifiedEnv.IDF_PATH = espDir;
   await execProcessWithLog(
     `${pythonBinPath} ${idfToolsPyPath} install-python-env`,
     idfToolsDir,
     pyTracker,
     channel,
-    undefined,
+    { env: modifiedEnv },
     cancelToken
   );
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);

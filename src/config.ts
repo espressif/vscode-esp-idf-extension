@@ -46,8 +46,14 @@ export namespace ESP {
   }
 
   export namespace URL {
-    export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-2.30.1-win64.zip`;
-    export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-3.8.7-embed-win64.zip`;
+    export namespace IDF_EMBED_GIT {
+      export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-2.30.1-win64.zip`;
+      export const VERSION = "2.30.1";
+    }
+    export namespace IDF_EMBED_PYTHON {
+      export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-3.8.7-embed-win64.zip`;
+      export const VERSION = "3.8.7";
+    }
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
     export const ARDUINO_ESP32_URL =

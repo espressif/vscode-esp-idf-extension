@@ -34,6 +34,7 @@ export async function expressInstall(
   pyPath: string,
   espIdfPath: string,
   idfContainerPath: string,
+  toolsPath: string,
   mirror: IdfMirror,
   setupMode: SetupMode,
   gitPath?: string,
@@ -98,10 +99,5 @@ export async function expressInstall(
     });
     return;
   }
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const toolsPath =
-    (idfConf.readParameter("idf.toolsPath") as string) ||
-    path.join(containerPath, ".espressif");
   await downloadIdfTools(idfPath, toolsPath, pyPath, progress, cancelToken);
 }

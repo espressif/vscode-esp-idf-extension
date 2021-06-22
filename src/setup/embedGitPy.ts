@@ -40,9 +40,9 @@ export async function installIdfGit(
 ) {
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const idfGitZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_GIT_URL));
+  const idfGitZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL));
   const pkgProgress = new PackageProgress(
-    basename(ESP.URL.IDF_EMBED_GIT_URL),
+    basename(ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL),
     sendIdfGitDownloadProgress,
     null,
     sendIdfGitDownloadDetail,
@@ -53,7 +53,7 @@ export async function installIdfGit(
     progress.report({ message: `Downloading ${idfGitZipPath}...` });
     OutputChannel.appendLine(`Downloading ${idfGitZipPath}...`);
     await downloadManager.downloadWithRetries(
-      ESP.URL.IDF_EMBED_GIT_URL,
+      ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
@@ -61,7 +61,7 @@ export async function installIdfGit(
   } else {
     OutputChannel.appendLine(`Using existing ${idfGitZipPath}`);
   }
-  const idfGitDestPath = join(idfToolsDir, "tools", "idf-git");
+  const idfGitDestPath = join(idfToolsDir, "tools", "idf-git", ESP.URL.IDF_EMBED_GIT.VERSION);
   const resultGitPath = join(idfGitDestPath, "cmd", "git.exe");
   const gitPathExists = await pathExists(idfGitDestPath);
   if (gitPathExists) {
@@ -91,9 +91,9 @@ export async function installIdfPython(
 ) {
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const idfPyZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_PYTHON_URL));
+  const idfPyZipPath = join(idfToolsDir, "dist", basename(ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL));
   const pkgProgress = new PackageProgress(
-    basename(ESP.URL.IDF_EMBED_PYTHON_URL),
+    basename(ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL),
     sendIdfPythonDownloadProgress,
     null,
     sendIdfPythonDownloadDetail,
@@ -103,7 +103,7 @@ export async function installIdfPython(
   if (!pyZipPathExists) {
     progress.report({ message: `Downloading ${idfPyZipPath}...` });
     await downloadManager.downloadWithRetries(
-      ESP.URL.IDF_EMBED_PYTHON_URL,
+      ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
@@ -111,7 +111,7 @@ export async function installIdfPython(
   } else {
     OutputChannel.appendLine(`Using existing ${idfPyZipPath}`);
   }
-  const idfPyDestPath = join(idfToolsDir, "tools", "idf-python");
+  const idfPyDestPath = join(idfToolsDir, "tools", "idf-python", ESP.URL.IDF_EMBED_PYTHON.VERSION);
   progress.report({ message: `Installing ${idfPyDestPath}...` });
   const pyPathExists = await pathExists(idfPyDestPath);
   if (pyPathExists) {

@@ -106,7 +106,6 @@ export class SetupPanel {
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
     const defaultEspIdfPathContainer = path.join(containerPath, "esp");
@@ -184,7 +183,7 @@ export class SetupPanel {
           this.panel.webview.postMessage({
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
-            espIdf: espIdfPath || setupArgs.espIdfPath,
+            espIdf: setupArgs.espIdfPath,
             espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
@@ -349,6 +348,7 @@ export class SetupPanel {
             idfPythonPath,
             espIdfPath,
             idfContainerPath,
+            toolsPath,
             mirror,
             setupMode,
             idfGitPath,
