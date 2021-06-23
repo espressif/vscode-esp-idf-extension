@@ -512,7 +512,7 @@
           },
           "idf.saveScope": {
             "type": "number",
-            "default": "1",
+            "default": 1,
             "enum": [
               1,
               2,

@@ -316,7 +316,7 @@ export class IdfToolsManager {
         doesToolExist: isToolVersionCorrect,
         env: pkgVars,
         expected: expectedVersions.join(","),
-        hashResult: false,
+        hashResult: isToolVersionCorrect,
         hasFailed: false,
         id: pkg.name,
         name: pkg.name,
