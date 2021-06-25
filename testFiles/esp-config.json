@@ -1,0 +1,108 @@
+{
+  "version" : "1.0",
+  "targets" : [
+      { "id": "esp32", "name": "ESP32" },
+      { "id": "esp32s2", "name": "ESP32-S2" },
+      { "id": "esp32s3", "name": "ESP32-S3" },
+      { "id": "esp32c3", "name": "ESP32-C3" }
+  ],
+  "boards" : [
+      {
+          "name": "ESP-WROVER-KIT 3.3V",
+          "description": "ESP-WROVER-KIT with 3.3V ESP32-WROVER-B module",
+          "target": "esp32",
+          "config_files": ["boards/esp32-wrover-kit-3.3v.cfg"]
+      },
+      {
+          "name": "ESP-WROVER-KIT 1.8V",
+          "description": "ESP-WROVER-KIT with 1.8V ESP32-WROVER-B module",
+          "target": "esp32",
+          "config_files": ["boards/esp32-wrover-kit-1.8v.cfg"]
+      },
+      {
+          "name": "ESP32-ETHERNET-KIT",
+          "description": "ESP32-ETHERNET-KIT with ESP32-WROVER-E module",
+          "target": "esp32",
+          "config_files": ["board/esp32-ethernet-kit-3.3v.cfg"]
+      },
+      {
+          "name": "ESP32 chip (via ESP-PROG)",
+          "description": "ESP32 used with ESP-PROG board",
+          "target": "esp32",
+          "config_files": [
+              "interface/ftdi/esp32_devkitjv1.cfg",
+              "target/esp32.cfg"
+          ]
+      },
+      {
+          "name": "ESP32-SOLO-1 module (via ESP-PROG)",
+          "description": "ESP32-SOLO-1 used with ESP-PROG board",
+          "target": "esp32",
+          "config_files": [
+              "interface/ftdi/esp32_devkitjv1.cfg",
+              "target/esp32-solo-1.cfg"
+          ]
+      },
+      {
+          "name": "ESP32-S2-KALUGA-1",
+          "description": "ESP32-S2-KALUGA-1 kit",
+          "target": "esp32s2",
+          "config_files": ["board/esp32s2-kaluga-1.cfg"]
+      },
+      {
+          "name": "ESP32-S2 chip (via ESP-PROG)",
+          "description": "ESP32-S2 used with ESP-PROG board",
+          "target": "esp32s2",
+          "config_files": [
+              "interface/ftdi/esp32_devkitjv1.cfg",
+              "target/esp32s2.cfg"
+          ]
+      },
+      {
+          "name": "ESP32-S3 chip (via ESP-PROG)",
+          "description": "ESP32-S3 used with ESP-PROG board",
+          "target": "esp32s3",
+          "config_files": [
+              "interface/ftdi/esp32_devkitjv1.cfg",
+              "target/esp32s3.cfg"
+          ]
+      },
+      {
+          "name": "ESP32-C3 chip (via ESP-PROG)",
+          "description": "ESP32-C3 used with ESP-PROG board",
+          "target": "esp32c3",
+          "config_files": [
+              "board/esp32c3-ftdi.cfg"
+          ]
+      },
+      {
+          "name": "ESP32-C3 chip (via builtin USB-JTAG)",
+          "description": "ESP32-C3 debugging via builtin USB-JTAG",
+          "target": "esp32c3",
+          "config_files": [
+              "board/esp32c3-builtin.cfg"
+          ]
+      }
+  ],
+  "options": [
+      {
+          "name": "ESP_FLASH_VOLTAGE",
+          "values": ["default", "3.3", "1.8"],
+          "description": "Flash voltage",
+          "type": "choice",
+          "targets": ["esp32"]
+      },
+      {
+          "name": "ESP_RTOS",
+          "values": ["default", "none", "FreeRTOS"],
+          "description": "RTOS support",
+          "type": "choice"
+      },
+      {
+          "name": "ESP_FLASH_SIZE",
+          "values": ["default", "0", "auto"],
+          "description": "Flash size",
+          "type": "choice_edit"
+      }
+  ]
+}

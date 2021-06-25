@@ -27,7 +27,7 @@ export interface IdfBoard {
   configFiles: string[];
 }
 
-const defaultBoards = [
+export const defaultBoards = [
   {
     name: "ESP32 module",
     description: "ESP32 used with ESP-PROG board",
@@ -42,7 +42,7 @@ const defaultBoards = [
   } as IdfBoard,
 ];
 
-export async function getBoards() {
+export function getOpenOcdScripts(): string {
   const customExtraVars = idfConf.readParameter("idf.customExtraVars");
   let openOcdScriptsPath: string;
   try {
@@ -58,6 +58,10 @@ export async function getBoards() {
       ? process.env.OPENOCD_SCRIPTS
       : undefined;
   }
+  return openOcdScriptsPath;
+}
+
+export async function getBoards(openOcdScriptsPath: string = "") {
   if (!openOcdScriptsPath) {
     return defaultBoards;
   }
