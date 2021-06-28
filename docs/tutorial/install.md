@@ -40,6 +40,13 @@
   <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools" width="950">
 </p>
 
+12. (OPTIONAL) If the user has chosen the **Advanced** mode and selected to manually provide each ESP-IDF tool absolute path, please enter the executable container directory for each binary as shown below:
+    > **NOTE:** Check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration) for more information.
+
+<p>
+  <img src="../../media/tutorials/setup/advanced-manual.png" alt="Enter ESP-IDF Tools paths manually" width="950">
+</p>
+
 12. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
 
 <p>
