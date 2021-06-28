@@ -51,7 +51,12 @@ export async function installPythonEnvFromIdfTools(
     { env: modifiedEnv },
     cancelToken
   );
-  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath, gitPath);
+  const pyEnvPath = await getPythonEnvPath(
+    espDir,
+    idfToolsDir,
+    pythonBinPath,
+    gitPath
+  );
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
@@ -157,7 +162,7 @@ export async function getPythonEnvPath(
   espIdfDir: string,
   idfToolsDir: string,
   pythonBin: string,
-  gitPath: string,
+  gitPath: string
 ) {
   const pythonVersion = (
     await utils.execChildProcess(
