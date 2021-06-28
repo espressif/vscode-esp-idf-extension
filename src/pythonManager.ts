@@ -15,18 +15,16 @@
 import { PyReqLog } from "./PyReqLog";
 import { CancellationToken, OutputChannel } from "vscode";
 import * as utils from "./utils";
-import * as del from "del";
-import { constants, pathExists } from "fs-extra";
-import { EOL } from "os";
+import { constants } from "fs-extra";
 import { Logger } from "./logger/logger";
 import path from "path";
-import { readParameter } from "./idfConfiguration";
 
 export async function installPythonEnvFromIdfTools(
   espDir: string,
   idfToolsDir: string,
   pyTracker: PyReqLog,
   pythonBinPath: string,
+  gitPath: string,
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
@@ -37,10 +35,9 @@ export async function installPythonEnvFromIdfTools(
   modifiedEnv.IDF_TOOLS_PATH = idfToolsDir;
   modifiedEnv.IDF_PATH = espDir;
   if (process.platform === "win32") {
-    const gitPath = readParameter("idf.gitPath") as string;
-    let pathToGitDir;
+    let pathToGitDir: string;
     if (gitPath && gitPath !== "git") {
-      pathToGitDir = gitPath.replace(path.sep + "git.exe", "");
+      pathToGitDir = path.dirname(gitPath);
     }
     if (pathToGitDir) {
       modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
@@ -54,7 +51,7 @@ export async function installPythonEnvFromIdfTools(
     { env: modifiedEnv },
     cancelToken
   );
-  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
+  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath, gitPath);
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
@@ -159,7 +156,8 @@ export async function execProcessWithLog(
 export async function getPythonEnvPath(
   espIdfDir: string,
   idfToolsDir: string,
-  pythonBin: string
+  pythonBin: string,
+  gitPath: string,
 ) {
   const pythonVersion = (
     await utils.execChildProcess(
@@ -167,7 +165,7 @@ export async function getPythonEnvPath(
       espIdfDir
     )
   ).replace(/(\n|\r|\r\n)/gm, "");
-  const fullEspIdfVersion = await utils.getEspIdfVersion(espIdfDir);
+  const fullEspIdfVersion = await utils.getEspIdfVersion(espIdfDir, gitPath);
   const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
   const espIdfVersion =
     majorMinorMatches && majorMinorMatches.length > 0

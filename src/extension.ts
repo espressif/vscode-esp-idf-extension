@@ -173,7 +173,8 @@ openOCDManager
 
 const minIdfVersionCheck = async function (minVersion: string) {
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-  const currentVersion = await utils.getEspIdfVersion(espIdfPath);
+  const gitPath = idfConf.readParameter("idf.gitPath") || "git";
+  const currentVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
@@ -420,7 +421,8 @@ export async function activate(context: vscode.ExtensionContext) {
             await utils.createSkeleton(resultFolder, selectedTemplate.target);
             if (selectedTemplate.label === "arduino-as-component") {
               const gitPath =
-                (await idfConf.readParameter("idf.gitPath")) || "git";
+                ((await idfConf.readParameter("idf.gitPath")) as string) ||
+                "git";
               const arduinoComponentManager = new ArduinoComponentInstaller(
                 resultFolder,
                 gitPath
@@ -982,6 +984,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const espIdfPath = idfConf.readParameter(
               "idf.espIdfPath"
             ) as string;
+            const gitPath =
+              (idfConf.readParameter("idf.gitPath") as string) || "git";
             const containerPath =
               process.platform === "win32"
                 ? process.env.USERPROFILE
@@ -1002,6 +1006,7 @@ export async function activate(context: vscode.ExtensionContext) {
               toolsPath,
               undefined,
               pyPath,
+              gitPath,
               OutputChannel.init(),
               cancelToken
             );

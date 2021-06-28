@@ -13,13 +13,6 @@
         </div>
       </div>
 
-      <folderOpen
-        propLabel="Enter ESP-IDF Tools directory"
-        :propModel.sync="toolsFolder"
-        :propMutate="setToolsFolder"
-        :openMethod="openEspIdfToolsFolder"
-      />
-
       <div v-if="selectedIdfTools === 'toolsDownload'">
         <ul>
           <li v-for="tool in toolsResults" :key="tool.id" class="label">
@@ -58,33 +51,27 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
-import folderOpen from "./components/folderOpen.vue";
 import toolManual from "./components/toolManual.vue";
 import { IEspIdfTool } from "./types";
 
 @Component({
   components: {
-    folderOpen,
     selectEspIdf,
     selectPyVersion,
     toolManual,
   },
 })
 export default class CustomSetup extends Vue {
-  private useExistingPyEnv: boolean = false;
   private selectedIdfTools = "toolsDownload";
   @Action checkEspIdfTools;
   @Action installEspIdfTools;
-  @Action openEspIdfToolsFolder;
   @Action saveCustomSettings;
   @Mutation setIsIdfInstalling;
-  @Mutation setToolsFolder;
   @Mutation setToolsResult;
-  @State("toolsFolder") private storeToolsFolder: string;
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
 
   get allToolsAreValid() {
@@ -92,10 +79,6 @@ export default class CustomSetup extends Vue {
       return !tool.doesToolExist;
     });
     return invalidTools.length === 0;
-  }
-
-  get toolsFolder() {
-    return this.storeToolsFolder;
   }
 
   get toolsResults() {

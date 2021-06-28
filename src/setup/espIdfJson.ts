@@ -73,7 +73,8 @@ export async function addIdfPath(
   idfPath: string,
   pythonPath: string,
   version: string,
-  toolsPath: string
+  toolsPath: string,
+  gitPath: string
 ) {
   const newIdfPathObj: IdfInstalled = {
     version,
@@ -85,7 +86,6 @@ export async function addIdfPath(
   espIdfObj["idfInstalled"][idfId] = newIdfPathObj;
   espIdfObj["idfSelectedId"] = idfId;
   if (!espIdfObj.gitPath) {
-    let gitPath = readParameter("idf.gitPath");
     if (gitPath === "git") {
       gitPath = await isBinInPath(gitPath, idfPath, process.env);
     }

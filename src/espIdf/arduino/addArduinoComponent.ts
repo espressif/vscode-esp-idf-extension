@@ -86,7 +86,8 @@ export class ArduinoComponentInstaller {
       espIdfPath =
         idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     }
-    const idfVersion = await getEspIdfVersion(espIdfPath);
+
+    const idfVersion = await getEspIdfVersion(espIdfPath, this.gitBinPath);
     const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
     const espIdfVersion =
       majorMinorMatches && majorMinorMatches.length > 0

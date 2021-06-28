@@ -38,9 +38,9 @@ export interface IEspIdfTool {
 }
 
 export class IdfToolsManager {
-  public static async createIdfToolsManager(idfPath: string) {
+  public static async createIdfToolsManager(idfPath: string, gitPath: string) {
     const platformInfo = await PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
+    const toolsJsonPath = await utils.getToolsJsonPath(idfPath, gitPath);
     const toolsObj = await readJSON(toolsJsonPath);
     const idfToolsManager = new IdfToolsManager(
       toolsObj,

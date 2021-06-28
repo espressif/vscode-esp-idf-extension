@@ -114,15 +114,19 @@ export class SetupPanel {
       switch (message.command) {
         case "checkEspIdfTools":
           if (message.espIdf && message.pyPath && message.toolsPath) {
-            await this.checkRequiredTools(message.espIdf, message.toolsPath);
+            await this.checkRequiredTools(
+              message.espIdf,
+              message.toolsPath,
+              setupArgs.gitPath
+            );
           }
           break;
         case "installEspIdf":
           if (
             message.espIdfContainer &&
             message.selectedEspIdfVersion &&
-            message.selectedPyPath &&
             message.toolsPath &&
+            typeof message.selectedPyPath !== undefined &&
             typeof message.manualEspIdfPath !== undefined &&
             typeof message.mirror !== undefined &&
             typeof message.setupMode !== undefined
@@ -146,7 +150,8 @@ export class SetupPanel {
             await this.installEspIdfTools(
               message.espIdf,
               message.pyPath,
-              message.toolsPath
+              message.toolsPath,
+              setupArgs.gitPath
             );
           }
           break;
@@ -214,7 +219,8 @@ export class SetupPanel {
               message.toolsPath,
               message.pyBinPath,
               exportedPaths,
-              exportedVars
+              exportedVars,
+              setupArgs.gitPath
             );
           }
           break;
@@ -260,12 +266,16 @@ export class SetupPanel {
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
               setupArgs.exportedVars,
-              setupArgs.espToolsPath,
+              setupArgs.espToolsPath
             );
             const confTarget = idfConf.readParameter(
               "idf.saveScope"
             ) as vscode.ConfigurationTarget;
-            await idfConf.writeParameter("idf.gitPath", setupArgs.gitPath, confTarget);
+            await idfConf.writeParameter(
+              "idf.gitPath",
+              setupArgs.gitPath,
+              confTarget
+            );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
               isInstalled: true,
@@ -368,8 +378,15 @@ export class SetupPanel {
     );
   }
 
-  private async checkRequiredTools(idfPath: string, toolsInfo: IEspIdfTool[]) {
-    const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
+  private async checkRequiredTools(
+    idfPath: string,
+    toolsInfo: IEspIdfTool[],
+    gitPath: string
+  ) {
+    const toolsManager = await IdfToolsManager.createIdfToolsManager(
+      idfPath,
+      gitPath
+    );
     const pathToVerify = toolsInfo
       .reduce((prev, curr, i) => {
         return prev + path.delimiter + curr.path;
@@ -417,7 +434,8 @@ export class SetupPanel {
   private async installEspIdfTools(
     idfPath: string,
     pyPath: string,
-    toolsPath: string
+    toolsPath: string,
+    gitPath: string
   ) {
     return await vscode.window.withProgress(
       {
@@ -439,6 +457,7 @@ export class SetupPanel {
             idfPath,
             toolsPath,
             pyPath,
+            gitPath,
             progress,
             cancelToken
           );
@@ -454,7 +473,8 @@ export class SetupPanel {
     toolsPath: string,
     pyPath: string,
     exportPaths: string,
-    exportVars: string
+    exportVars: string,
+    gitPath: string
   ) {
     return await vscode.window.withProgress(
       {
@@ -478,6 +498,7 @@ export class SetupPanel {
             pyPath,
             exportPaths,
             exportVars,
+            gitPath,
             progress,
             cancelToken
           );
@@ -510,11 +531,7 @@ export class SetupPanel {
     const confTarget = idfConf.readParameter(
       "idf.saveScope"
     ) as vscode.ConfigurationTarget;
-    await idfConf.writeParameter(
-      "idf.gitPath",
-      idfGitPath,
-      confTarget
-    );
+    await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
   }
 
