@@ -91,6 +91,10 @@ export async function expressInstall(
   });
   if (setupMode === SetupMode.advanced) {
     SetupPanel.postMessage({
+      command: "updatePythonPath",
+      selectedPyPath: pyPath,
+    });
+    SetupPanel.postMessage({
       command: "goToCustomPage",
       installing: false,
       page: "/custom",
