@@ -66,6 +66,7 @@
   "param.partialDarkTheme": "Color de fondo para lineas parcialmente cubiertas en temas oscuros por ESP-IDF Coverage.",
   "param.uncoveredLightTheme": "Color de fondo para lineas no cubiertas en temas claros por ESP-IDF Coverage.",
   "param.uncoveredDarkTheme": "Color de fondo para lineas no cubiertas en temas oscuros por ESP-IDF Coverage.",
+  "param.enableUpdateSrcsToCMakeListsFile": "Habilitar actualización de archivos fuente en CMakeLists.txt",
   "param.launchMonitorOnDebugSession.title": "Iniciar IDF Monitor junto a la sesión ESP-IDF Debug Adapter",
   "param.enableIdfComponentManager.title": "Habilitar IDF Component Manager en construccion de proyecto",
   "view.components.name": "Componentes de proyecto",

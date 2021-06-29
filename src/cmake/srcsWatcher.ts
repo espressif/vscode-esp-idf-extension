@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { exists, readFile, writeFile } from "fs";
+import { pathExists, readFile, writeFile } from "fs-extra";
 import { basename, dirname, join } from "path";
+import { Logger } from "../logger/logger";
+import { readParameter } from "../idfConfiguration";
 
 export enum srcOp {
   delete,
@@ -31,47 +33,60 @@ export class UpdateCmakeLists {
     const srcName = basename(srcPath);
     const cmakeListFile = join(dirName, "CMakeLists.txt");
 
-    UpdateCmakeLists.singletonPromise = new Promise((resolve, reject) => {
-      exists(cmakeListFile, (doesFileExists) => {
-        if (doesFileExists) {
-          readFile(cmakeListFile, "utf8", (err, content) => {
-            if (err) {
-              this.writeFinished();
-              reject(err);
-              return;
-            }
-            const isSrcIncluded = content.indexOf(`"${srcName}"`) > 0;
+    const isSrcUpdateEnabled = readParameter(
+      "idf.enableUpdateSrcsToCMakeListsFile"
+    ) as boolean;
+
+    if (!isSrcUpdateEnabled) {
+      return Promise.resolve();
+    }
+
+    UpdateCmakeLists.singletonPromise = new Promise<void>(
+      async (resolve, reject) => {
+        try {
+          const doesFileExists = await pathExists(cmakeListFile);
+          if (doesFileExists) {
+            const cmakeListFileContent = await readFile(cmakeListFile, "utf8");
+            const isSrcIncluded =
+              cmakeListFileContent.indexOf(`"${srcName}"`) > 0;
             if (isSrcIncluded && operation !== srcOp.delete) {
               this.writeFinished();
-              resolve();
-              return;
+              return resolve();
             }
-            const srcsMatch = content.match(/SRCS\s\"/g);
+            const srcsMatch = cmakeListFileContent.match(/SRCS\s\"/g);
             let newContent: string;
             if (
               operation !== srcOp.delete &&
               srcsMatch &&
               srcsMatch.length > 0
             ) {
-              newContent = this.addSrcFromCMakeLists(content, srcName);
+              newContent = this.addSrcFromCMakeLists(
+                cmakeListFileContent,
+                srcName
+              );
             } else if (isSrcIncluded && operation === srcOp.delete) {
-              newContent = this.deleteSrcFromCMakeLists(content, srcName);
+              newContent = this.deleteSrcFromCMakeLists(
+                cmakeListFileContent,
+                srcName
+              );
             }
 
             if (newContent) {
-              writeFile(cmakeListFile, newContent, (error) => {
-                if (error) {
-                  this.writeFinished();
-                  reject(error);
-                }
-              });
+              await writeFile(cmakeListFile, newContent);
             }
+
             this.writeFinished();
-            resolve();
-          });
+            return resolve();
+          }
+        } catch (error) {
+          const msg = error.message
+            ? error.message
+            : "Error updating srcs in CMakeLists.txt";
+          this.writeFinished();
+          Logger.error(msg, error);
         }
-      });
-    });
+      }
+    );
     return UpdateCmakeLists.singletonPromise;
   }
   private static addSrcFromCMakeLists(content: string, srcName: string) {
