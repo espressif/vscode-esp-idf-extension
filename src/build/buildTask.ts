@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ensureDir } from "fs-extra";
+import { ensureDir, pathExists } from "fs-extra";
 import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
@@ -75,29 +75,38 @@ export class BuildTask {
       this.curWorkspace,
       modifiedEnv
     );
+
+    const cmakeCachePath = join(this.curWorkspace, "CMakeCache.txt");
+    const cmakeCacheExists = await pathExists(cmakeCachePath);
+
     if (canAccessCMake === "" || canAccessNinja === "") {
       throw new Error("CMake or Ninja executables not found");
     }
+
     const options: vscode.ShellExecutionOptions = {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };
-    const compilerArgs = (idfConf.readParameter(
-      "idf.cmakeCompilerArgs"
-    ) as Array<string>) || ["-G", "Ninja", ".."];
-    const compileExecution = this.getShellExecution(compilerArgs, options);
     const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Silent
       : vscode.TaskRevealKind.Always;
-    TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF Compile" },
-      vscode.TaskScope.Workspace,
-      "ESP-IDF Compile",
-      compileExecution,
-      ["idfRelative", "idfAbsolute"],
-      showTaskOutput
-    );
+
+    if (!cmakeCacheExists) {
+      const compilerArgs = (idfConf.readParameter(
+        "idf.cmakeCompilerArgs"
+      ) as Array<string>) || ["-G", "Ninja", ".."];
+      const compileExecution = this.getShellExecution(compilerArgs, options);
+      TaskManager.addTask(
+        { type: "esp-idf", command: "ESP-IDF Compile" },
+        vscode.TaskScope.Workspace,
+        "ESP-IDF Compile",
+        compileExecution,
+        ["idfRelative", "idfAbsolute"],
+        showTaskOutput
+      );
+    }
+
     const buildArgs = (idfConf.readParameter("idf.cmakeBuildArgs") as Array<
       string
     >) || ["--build", "."];
