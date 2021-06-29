@@ -74,5 +74,10 @@ export namespace ESP {
       export const ViewType = "partition-table-editor";
       export const Title = "ESP-IDF Partition Table Editor";
     }
+
+    export namespace ComponentManagerUI {
+      export const ViewType = "component-manager-ui";
+      export const Title = "IDF Component Registry";
+    }
   }
 }
