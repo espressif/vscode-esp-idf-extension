@@ -24,8 +24,10 @@ import {
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { installExtensionPyReqs } from "./pythonManager";
+import { readParameter } from "./idfConfiguration";
 
 export async function checkExtensionSettings(extensionPath: string) {
+  const showSetupWindow = readParameter("idf.showOnboardingOnInit") as boolean;
   const isExtensionConfigured = await isCurrentInstallValid();
   if (isExtensionConfigured) {
     return;
@@ -47,11 +49,17 @@ export async function checkExtensionSettings(extensionPath: string) {
           setupArgs.espToolsPath &&
           setupArgs.pyBinPath &&
           setupArgs.exportedPaths &&
-          setupArgs.exportedVars
+          setupArgs.exportedVars &&
+          setupArgs.gitPath
         ) {
-          if (!setupArgs.hasPrerequisites) {
+          if (showSetupWindow && !setupArgs.hasPrerequisites) {
             vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
+            return;
           }
+          progress.report({
+            increment: 5,
+            message: "ESP-IDF and tools found, configuring the extension...",
+          });
           await installExtensionPyReqs(
             setupArgs.pyBinPath,
             setupArgs.espToolsPath,
@@ -63,14 +71,24 @@ export async function checkExtensionSettings(extensionPath: string) {
             setupArgs.espIdfPath,
             setupArgs.pyBinPath,
             setupArgs.exportedPaths,
-            setupArgs.exportedVars
+            setupArgs.exportedVars,
+            setupArgs.espToolsPath,
+            setupArgs.gitPath
           );
-        } else if (typeof process.env.WEB_IDE === "undefined") {
+        } else if (
+          typeof process.env.WEB_IDE === "undefined" &&
+          showSetupWindow
+        ) {
           vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
         }
       } catch (error) {
-        Logger.errorNotify(error.message, error);
-        vscode.commands.executeCommand("espIdf.setup.start");
+        const msg = error.message
+          ? error.message
+          : "Error loading initial configuration.";
+        Logger.errorNotify(msg, error);
+        if (showSetupWindow) {
+          vscode.commands.executeCommand("espIdf.setup.start");
+        }
       }
     }
   );

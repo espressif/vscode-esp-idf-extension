@@ -112,7 +112,8 @@ export async function openCoverageUrl() {
   const docsVersions = await getDocsVersion();
   const idfPath =
     readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  let idfVersion = "v" + (await getEspIdfVersion(idfPath));
+  const gitPath = readParameter("idf.gitPath") || "git";
+  let idfVersion = "v" + (await getEspIdfVersion(idfPath, gitPath));
   let idfTarget = readParameter("idf.adapterTargetName");
   if (idfTarget === "custom") {
     idfTarget = readParameter("idf.customAdapterTargetName");

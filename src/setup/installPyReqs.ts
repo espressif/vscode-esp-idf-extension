@@ -23,6 +23,7 @@ export async function installPyReqs(
   espIdfPath: string,
   workingDir: string,
   sysPyBinPath: string,
+  gitPath: string,
   progress: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
@@ -60,6 +61,7 @@ export async function installPyReqs(
     workingDir,
     logTracker,
     sysPyBinPath,
+    gitPath,
     OutputChannel.init(),
     cancelToken
   );

@@ -106,7 +106,6 @@ export class SetupPanel {
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
-    const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
     const containerPath =
       process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
     const defaultEspIdfPathContainer = path.join(containerPath, "esp");
@@ -115,15 +114,19 @@ export class SetupPanel {
       switch (message.command) {
         case "checkEspIdfTools":
           if (message.espIdf && message.pyPath && message.toolsPath) {
-            await this.checkRequiredTools(message.espIdf, message.toolsPath);
+            await this.checkRequiredTools(
+              message.espIdf,
+              message.toolsPath,
+              setupArgs.gitPath
+            );
           }
           break;
         case "installEspIdf":
           if (
             message.espIdfContainer &&
             message.selectedEspIdfVersion &&
-            message.selectedPyPath &&
             message.toolsPath &&
+            typeof message.selectedPyPath !== undefined &&
             typeof message.manualEspIdfPath !== undefined &&
             typeof message.mirror !== undefined &&
             typeof message.setupMode !== undefined
@@ -147,7 +150,8 @@ export class SetupPanel {
             await this.installEspIdfTools(
               message.espIdf,
               message.pyPath,
-              message.toolsPath
+              message.toolsPath,
+              setupArgs.gitPath
             );
           }
           break;
@@ -184,7 +188,7 @@ export class SetupPanel {
           this.panel.webview.postMessage({
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
-            espIdf: espIdfPath || setupArgs.espIdfPath,
+            espIdf: setupArgs.espIdfPath,
             espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
@@ -215,7 +219,8 @@ export class SetupPanel {
               message.toolsPath,
               message.pyBinPath,
               exportedPaths,
-              exportedVars
+              exportedVars,
+              setupArgs.gitPath
             );
           }
           break;
@@ -224,7 +229,8 @@ export class SetupPanel {
             setupArgs.espIdfPath &&
             setupArgs.pyBinPath &&
             setupArgs.exportedPaths &&
-            setupArgs.exportedVars
+            setupArgs.exportedVars &&
+            setupArgs.espToolsPath
           ) {
             this.panel.webview.postMessage({
               command: "updateIdfGitStatus",
@@ -259,7 +265,9 @@ export class SetupPanel {
               setupArgs.espIdfPath,
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
-              setupArgs.exportedVars
+              setupArgs.exportedVars,
+              setupArgs.espToolsPath,
+              setupArgs.gitPath
             );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
@@ -349,6 +357,7 @@ export class SetupPanel {
             idfPythonPath,
             espIdfPath,
             idfContainerPath,
+            toolsPath,
             mirror,
             setupMode,
             idfGitPath,
@@ -362,8 +371,15 @@ export class SetupPanel {
     );
   }
 
-  private async checkRequiredTools(idfPath: string, toolsInfo: IEspIdfTool[]) {
-    const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
+  private async checkRequiredTools(
+    idfPath: string,
+    toolsInfo: IEspIdfTool[],
+    gitPath: string
+  ) {
+    const toolsManager = await IdfToolsManager.createIdfToolsManager(
+      idfPath,
+      gitPath
+    );
     const pathToVerify = toolsInfo
       .reduce((prev, curr, i) => {
         return prev + path.delimiter + curr.path;
@@ -397,12 +413,12 @@ export class SetupPanel {
       }, "")
       .slice(1);
     const exportedVars = {};
-    for (const tool of toolsInfo) {
-      Object.keys(tool.env).forEach((key, index, arr) => {
-        if (Object.keys(exportedVars).indexOf(key) !== -1) {
-          exportedVars[key] = tool.env[key];
+    for (let tool of toolsInfo) {
+      for (let envKey of Object.keys(tool.env)) {
+        if (Object.keys(exportedVars).indexOf(envKey) === -1) {
+          exportedVars[envKey] = tool.env[envKey];
         }
-      });
+      }
     }
     const exportedVarsStr = JSON.stringify(exportedVars);
     return { exportedPaths, exportedVars: exportedVarsStr };
@@ -411,7 +427,8 @@ export class SetupPanel {
   private async installEspIdfTools(
     idfPath: string,
     pyPath: string,
-    toolsPath: string
+    toolsPath: string,
+    gitPath: string
   ) {
     return await vscode.window.withProgress(
       {
@@ -433,6 +450,7 @@ export class SetupPanel {
             idfPath,
             toolsPath,
             pyPath,
+            gitPath,
             progress,
             cancelToken
           );
@@ -448,7 +466,8 @@ export class SetupPanel {
     toolsPath: string,
     pyPath: string,
     exportPaths: string,
-    exportVars: string
+    exportVars: string,
+    gitPath: string
   ) {
     return await vscode.window.withProgress(
       {
@@ -472,6 +491,7 @@ export class SetupPanel {
             pyPath,
             exportPaths,
             exportVars,
+            gitPath,
             progress,
             cancelToken
           );
@@ -504,11 +524,7 @@ export class SetupPanel {
     const confTarget = idfConf.readParameter(
       "idf.saveScope"
     ) as vscode.ConfigurationTarget;
-    await idfConf.writeParameter(
-      "idf.gitPath",
-      idfGitPath,
-      confTarget
-    );
+    await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
   }
 

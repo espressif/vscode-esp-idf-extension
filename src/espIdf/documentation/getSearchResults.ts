@@ -41,7 +41,8 @@ export async function seachInEspDocs(searchString: string) {
   const docsVersions = await getDocsVersion();
   const idfPath =
     idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  let idfVersion = "v" + (await getEspIdfVersion(idfPath));
+  const gitPath = idfConf.readParameter("idf.gitPath") || "git";
+  let idfVersion = "v" + (await getEspIdfVersion(idfPath, gitPath));
   let idfTarget = idfConf.readParameter("idf.adapterTargetName");
   if (idfTarget === "custom") {
     idfTarget = idfConf.readParameter("idf.customAdapterTargetName");

@@ -57,6 +57,7 @@
   "param.exportVars": "Variables to be added to system environment variables",
   "param.gitPath.title": "Git executable path",
   "param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
+  "param.showOnboardingOnInit": "Show ESP-IDF Configuration window on extension activation",
   "param.cmakeCompilerArgs": "Arguments for CMake compilation task",
   "param.cmakeBuildArgs": "Arguments for CMake build task",
   "param.coveredLightTheme": "Background color for covered lines in Light theme for ESP-IDF Coverage.",

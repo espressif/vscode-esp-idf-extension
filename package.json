@@ -468,6 +468,12 @@
             "scope": "resource",
             "description": "%param.useIDFKConfigStyle%"
           },
+          "idf.showOnboardingOnInit": {
+            "type": "boolean",
+            "default": true,
+            "scope": "resource",
+            "description": "%param.showOnboardingOnInit%"
+          },
           "trace.poll_period": {
             "type": "string",
             "default": "1",
@@ -512,7 +518,7 @@
           },
           "idf.saveScope": {
             "type": "number",
-            "default": "1",
+            "default": 1,
             "enum": [
               1,
               2,

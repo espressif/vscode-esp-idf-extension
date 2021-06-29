@@ -57,6 +57,7 @@
   "param.exportVars": "Переменные, которые нужно добавить к системным переменным окружения",
   "param.gitPath.title": "Путь к исполняемому файлу Git",
   "param.useIDFKConfigStyle": "Включить/отключить проверки стиля ESP-IDF для файлов Kconfig",
+  "param.showOnboardingOnInit": "Показывать окно конфигурации ESP-IDF при активации расширения",
   "param.cmakeCompilerArgs": "Аргументы для задачи компиляции CMake",
   "param.cmakeBuildArgs": "Аргументы для задачи сборки CMake",
   "param.coveredLightTheme": "Цвет фона для покрытых линий в светлой теме для покрытия кода ESP-IDF.",

@@ -24,10 +24,14 @@ export async function downloadIdfTools(
   idfPath: string,
   toolsPath: string,
   pyPath: string,
+  gitPath: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken
 ) {
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    idfPath,
+    gitPath
+  );
   const exportPaths = await idfToolsManager.exportPathsInString(
     path.join(toolsPath, "tools")
   );
@@ -53,6 +57,7 @@ export async function downloadIdfTools(
     pyPath,
     exportPaths,
     exportVars,
+    gitPath,
     progress,
     cancelToken
   );

@@ -13,11 +13,9 @@
 // limitations under the License.
 
 import { pathExists } from "fs-extra";
-import * as path from "path";
 import * as vscode from "vscode";
 import { checkPythonExists, checkPipExists } from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
-import * as idfConf from "../idfConfiguration";
 import * as utils from "../utils";
 import {
   IdfMirror,
@@ -34,6 +32,7 @@ export async function expressInstall(
   pyPath: string,
   espIdfPath: string,
   idfContainerPath: string,
+  toolsPath: string,
   mirror: IdfMirror,
   setupMode: SetupMode,
   gitPath?: string,
@@ -66,7 +65,7 @@ export async function expressInstall(
       cancelToken
     );
   }
-  const idfVersion = await utils.getEspIdfVersion(idfPath);
+  const idfVersion = await utils.getEspIdfVersion(idfPath, gitPath);
   if (idfVersion === "x.x") {
     throw new Error("Invalid ESP-IDF");
   }
@@ -92,16 +91,22 @@ export async function expressInstall(
   });
   if (setupMode === SetupMode.advanced) {
     SetupPanel.postMessage({
+      command: "updatePythonPath",
+      selectedPyPath: pyPath,
+    });
+    SetupPanel.postMessage({
       command: "goToCustomPage",
       installing: false,
       page: "/custom",
     });
     return;
   }
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const toolsPath =
-    (idfConf.readParameter("idf.toolsPath") as string) ||
-    path.join(containerPath, ".espressif");
-  await downloadIdfTools(idfPath, toolsPath, pyPath, progress, cancelToken);
+  await downloadIdfTools(
+    idfPath,
+    toolsPath,
+    pyPath,
+    gitPath,
+    progress,
+    cancelToken
+  );
 }

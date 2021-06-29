@@ -20,13 +20,13 @@ import { saveSettings } from "./setupInit";
 import { getEspIdfVersion } from "../utils";
 import { addIdfPath } from "./espIdfJson";
 
-
 export async function createPyReqs(
   idfPath: string,
   toolsPath: string,
   pyPath: string,
   exportPaths: string,
   exportVars: string,
+  gitPath: string,
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken
 ) {
@@ -38,12 +38,20 @@ export async function createPyReqs(
     idfPath,
     toolsPath,
     pyPath,
+    gitPath,
     progress,
     cancelToken
   );
-  await saveSettings(idfPath, virtualEnvPath, exportPaths, exportVars);
-  let idfPathVersion = await getEspIdfVersion(idfPath);
-  await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath);
+  await saveSettings(
+    idfPath,
+    virtualEnvPath,
+    exportPaths,
+    exportVars,
+    toolsPath,
+    gitPath
+  );
+  let idfPathVersion = await getEspIdfVersion(idfPath, gitPath);
+  await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath, gitPath);
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
     status: StatusType.installed,

@@ -438,8 +438,8 @@ export function getToolPackagesPath(toolPackage: string[]) {
   return path.resolve(idfToolsPath, ...toolPackage);
 }
 
-export async function getToolsJsonPath(newIdfPath: string) {
-  const espIdfVersion = await getEspIdfVersion(newIdfPath);
+export async function getToolsJsonPath(newIdfPath: string, gitPath: string) {
+  const espIdfVersion = await getEspIdfVersion(newIdfPath, gitPath);
   let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
   await pathExists(jsonToUse).then((exists) => {
     if (!exists) {
@@ -576,9 +576,8 @@ export function getSubProjects(dir: string): string[] {
   }
 }
 
-export async function getEspIdfVersion(workingDir: string) {
+export async function getEspIdfVersion(workingDir: string, gitPath: string) {
   try {
-    const gitPath = (await idfConf.readParameter("idf.gitPath")) || "git";
     const canCheck = await checkGitExists(
       extensionContext.extensionPath,
       gitPath
@@ -736,7 +735,7 @@ export function appendIdfAndToolsToPath() {
   const gitPath = idfConf.readParameter("idf.gitPath") as string;
   let pathToGitDir;
   if (gitPath && gitPath !== "git") {
-    pathToGitDir = gitPath.replace(path.sep + "git.exe", "");
+    pathToGitDir = path.dirname(gitPath);
   }
 
   let IDF_ADD_PATHS_EXTRAS = path.join(
@@ -767,9 +766,12 @@ export function appendIdfAndToolsToPath() {
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +
-    pathToGitDir +
-    path.delimiter +
     modifiedEnv[pathNameInEnv];
+
+  if (pathToGitDir) {
+    modifiedEnv[pathNameInEnv] =
+      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+  }
 
   if (
     modifiedEnv[pathNameInEnv] &&

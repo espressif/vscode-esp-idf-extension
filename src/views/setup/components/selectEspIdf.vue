@@ -34,7 +34,7 @@
       </div>
     </div>
     <folderOpen
-      propLabel="Enter ESP-IDF directory"
+      propLabel="Enter ESP-IDF directory (IDF_PATH)"
       :propModel.sync="espIdf"
       :propMutate="setEspIdfPath"
       :openMethod="openEspIdfFolder"
@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import { IdfMirror, IEspIdfLink } from "../types";
 import { State, Action, Mutation } from "vuex-class";
 import folderOpen from "./folderOpen.vue";

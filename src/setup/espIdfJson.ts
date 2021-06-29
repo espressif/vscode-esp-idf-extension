@@ -19,6 +19,8 @@
 import { createHash } from "crypto";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { join } from "path";
+import { readParameter } from "../idfConfiguration";
+import { isBinInPath } from "../utils";
 
 export interface EspIdfJson {
   $schema: string;
@@ -62,7 +64,7 @@ export async function loadEspIdfJson(toolsPath: string) {
   const espIdfJsonPath = join(toolsPath, "esp_idf.json");
   const espIdfJsonExists = await pathExists(espIdfJsonPath);
   if (espIdfJsonExists) {
-    return await readJson(espIdfJsonPath) as EspIdfJson;
+    return (await readJson(espIdfJsonPath)) as EspIdfJson;
   }
   return getEspIdfJsonTemplate(toolsPath);
 }
@@ -71,7 +73,8 @@ export async function addIdfPath(
   idfPath: string,
   pythonPath: string,
   version: string,
-  toolsPath: string
+  toolsPath: string,
+  gitPath: string
 ) {
   const newIdfPathObj: IdfInstalled = {
     version,
@@ -82,6 +85,12 @@ export async function addIdfPath(
   const espIdfObj = await loadEspIdfJson(toolsPath);
   espIdfObj["idfInstalled"][idfId] = newIdfPathObj;
   espIdfObj["idfSelectedId"] = idfId;
+  if (!espIdfObj.gitPath) {
+    if (gitPath === "git") {
+      gitPath = await isBinInPath(gitPath, idfPath, process.env);
+    }
+    espIdfObj.gitPath = gitPath;
+  }
   const espIdfJsonPath = join(toolsPath, "esp_idf.json");
   await writeJson(espIdfJsonPath, espIdfObj, { spaces: 2 });
 }
@@ -111,8 +120,19 @@ export async function getSelectedEspIdfPath(toolsPath: string) {
   return await getPropertyWithId(toolsPath, "path", selectedIdfId);
 }
 
-export async function getSelectedIdfInstalled(toolsPath: string) {
+export async function getSelectedIdfInstalled(
+  toolsPath: string
+): Promise<IdfInstalled> {
   const espIdfObj = await loadEspIdfJson(toolsPath);
-  const id = espIdfObj["idfSelectedId"];
-  return espIdfObj["idfInstalled"][id];
+  const emptyIDfInstalled = {
+    version: "",
+    python: "",
+    path: "",
+  };
+  return espIdfObj &&
+    espIdfObj.idfSelectedId &&
+    espIdfObj.idfInstalled &&
+    espIdfObj.idfInstalled[espIdfObj.idfSelectedId]
+    ? espIdfObj.idfInstalled[espIdfObj.idfSelectedId]
+    : emptyIDfInstalled;
 }
