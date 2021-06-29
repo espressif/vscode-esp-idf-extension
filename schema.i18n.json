@@ -139,6 +139,7 @@
     "param.exportPaths",
     "param.exportVars",
     "param.useIDFKConfigStyle",
+    "param.showOnboardingOnInit",
     "param.cmakeCompilerArgs",
     "param.cmakeBuildArgs",
     "param.coveredLightTheme",

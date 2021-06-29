@@ -266,15 +266,8 @@ export class SetupPanel {
               setupArgs.pyBinPath,
               setupArgs.exportedPaths,
               setupArgs.exportedVars,
-              setupArgs.espToolsPath
-            );
-            const confTarget = idfConf.readParameter(
-              "idf.saveScope"
-            ) as vscode.ConfigurationTarget;
-            await idfConf.writeParameter(
-              "idf.gitPath",
-              setupArgs.gitPath,
-              confTarget
+              setupArgs.espToolsPath,
+              setupArgs.gitPath
             );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
@@ -420,12 +413,12 @@ export class SetupPanel {
       }, "")
       .slice(1);
     const exportedVars = {};
-    for (const tool of toolsInfo) {
-      Object.keys(tool.env).forEach((key, index, arr) => {
-        if (Object.keys(exportedVars).indexOf(key) !== -1) {
-          exportedVars[key] = tool.env[key];
+    for (let tool of toolsInfo) {
+      for (let envKey of Object.keys(tool.env)) {
+        if (Object.keys(exportedVars).indexOf(envKey) === -1) {
+          exportedVars[envKey] = tool.env[envKey];
         }
-      });
+      }
     }
     const exportedVarsStr = JSON.stringify(exportedVars);
     return { exportedPaths, exportedVars: exportedVarsStr };

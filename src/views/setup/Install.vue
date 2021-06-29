@@ -18,7 +18,7 @@
       </div>
 
       <folderOpen
-        propLabel="Enter ESP-IDF Tools directory"
+        propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH)"
         :propModel.sync="toolsFolder"
         :propMutate="setToolsFolder"
         :openMethod="openEspIdfToolsFolder"

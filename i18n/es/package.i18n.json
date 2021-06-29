@@ -59,6 +59,7 @@
   "param.cmakeCompilerArgs": "Argumentos para la tarea de compilación CMake",
   "param.cmakeBuildArgs": "Argumentos para la tarea de construcción CMake",
   "param.useIDFKConfigStyle": "Habilitar/Deshabilitar validación de estilo ESP-IDF para archivos Kconfig",
+  "param.showOnboardingOnInit": "Mostrar ventana de configuración ESP-IDF al activar la extensión",
   "param.coveredLightTheme": "Color de fondo para lineas cubiertas en temas claros por ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Color de fondo para lineas cubiertas en temas oscuros por ESP-IDF Coverage.",
   "param.partialLightTheme": "Color de fondo para lineas parcialmente cubiertas en temas claros por ESP-IDF Coverage.",

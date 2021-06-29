@@ -15,12 +15,21 @@
 6. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
 7. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
 
+> **NOTE**: **Use existing setup** setup mode option is only shown if:
+>
+> - `esp-idf.json` is found in the current `idf.toolsPath` (MacOS/Linux users) or `idf.toolsPathWin` (Windows users). This file is generated when you install ESP-IDF with the [IDF Windows installer](https://github.com/espressif/idf-installer) or using [IDF-ENV](https://github.com/espressif/idf-env).
+> - ESP-IDF is found in `idf.espIdfPath` or `idf.espIdfPathWin`, `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows.
+> - ESP-IDF Tools and ESP-IDF Python virtual environment for the previos ESP-IDF are found in `idf.toolsPath` or`idf.toolsPathWin`, `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
+
 <p>
   <img src="../../media/tutorials/setup/select-mode.png" alt="Select extension mode" width="950">
 </p>
 
 8. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
-9. Then pick an ESP-IDF version to download (or search for an existing ESP-IDF directory in your system) and the python executable to create the virtual environment.
+9. If you choose **Express** setup mode:
+    - Pick an ESP-IDF version to download (or find ESP-IDF in your system) and the python executable to create the virtual environment.
+    - Choose the location for ESP-IDF Tools and python virtual environment (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
+    > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
 
 <p>
   <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
@@ -32,7 +41,7 @@
   <img src="../../media/tutorials/setup/install-status.png" alt="Install status" width="950">
 </p>
 
-11. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, the next step is to choose the location for `IDF_TOOLS_PATH` (which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default) and select to download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
+11. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, select to either download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
     > **NOTE:** Consider that `IDF_PATH` requires each ESP-IDF tool to be of the version described in `IDF_PATH`/tools/tools.json.
     > If it is desired to use a different ESP-IDF tool version, check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration)
 
@@ -46,12 +55,7 @@
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
 </p>
 
-> **NOTE**: **Use existing setup** is only shown if:
->
-> - ESP-IDF is found in `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows.
-> - ESP-IDF Tools and ESP-IDF Python virtual environment for the previos ESP-IDF are found in `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
-
-> **NOTE**: The advance mode allows the user to choose where to install ESP-IDF Tools and virtual environment if downloading ESP-IDF tools, or to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path.
+> **NOTE**: The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path.
 
 Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 

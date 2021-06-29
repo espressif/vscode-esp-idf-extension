@@ -47,7 +47,8 @@ export async function createPyReqs(
     virtualEnvPath,
     exportPaths,
     exportVars,
-    toolsPath
+    toolsPath,
+    gitPath
   );
   let idfPathVersion = await getEspIdfVersion(idfPath, gitPath);
   await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath, gitPath);

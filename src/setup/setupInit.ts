@@ -338,7 +338,8 @@ export async function saveSettings(
   pythonBinPath: string,
   exportedPaths: string,
   exportedVars: string,
-  toolsPath: string
+  toolsPath: string,
+  gitPath: string
 ) {
   const confTarget = idfConf.readParameter(
     "idf.saveScope"
@@ -352,5 +353,6 @@ export async function saveSettings(
     confTarget
   );
   await idfConf.writeParameter("idf.customExtraVars", exportedVars, confTarget);
+  await idfConf.writeParameter("idf.gitPath", gitPath, confTarget);
   window.showInformationMessage("ESP-IDF has been configured");
 }
