@@ -239,7 +239,8 @@ export function chooseTemplateDir() {
   const templatesAvailable = fs.readdirSync(templateDir).filter((file) => {
     return (
       fs.statSync(path.join(templateDir, file)).isDirectory() &&
-      file !== ".vscode"
+      file !== ".vscode" &&
+      file !== ".devcontainer"
     );
   });
   const templates = [];
