@@ -84,6 +84,7 @@
     "onCommand:espIdf.newProject.start",
     "onCommand:espIdf.setGcovConfig",
     "onCommand:esp.component-manager.ui.show",
+    "onCommand:espIdf.launchQemu",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -906,7 +907,11 @@
       },
       {
         "command": "espIdf.copyOpenOcdRules",
-        "title": "%espIdf.copyOpenOcdRules.title%",
+        "title": "%espIdf.copyOpenOcdRules.title%"
+      },
+      {
+        "command": "espIdf.launchQemu",
+        "title": "Launch QEMU",
         "category": "ESP-IDF"
       }
     ],

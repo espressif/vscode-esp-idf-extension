@@ -106,6 +106,7 @@ import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
+import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1132,6 +1133,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
+  registerIDFCommand("espIdf.launchQemu", launchInQemu);
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
@@ -2532,6 +2534,33 @@ const flash = () => {
             port,
             workspaceRoot
           );
+        }
+      }
+    );
+  });
+};
+
+const launchInQemu = async () => {
+  PreCheck.perform([openFolderCheck], async () => {
+    await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: vscode.ProgressLocation.Notification,
+        title: "QEMU",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          progress.report({
+            message: "Merging binaries for flashing",
+            increment: 10,
+          });
+          await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
+        } catch (error) {
+          const errMsg = error.message ? error.message : "Error launching QEMU";
+          Logger.errorNotify(errMsg, error);
         }
       }
     );

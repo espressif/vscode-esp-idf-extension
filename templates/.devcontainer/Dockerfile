@@ -1,8 +1,8 @@
-ARG VERSION
-FROM espressif/idf:VERSION
+FROM espressif/idf:latest
 
 RUN apt-get update \
   && apt install -y -q \
+  git \
   libglib2.0-0 \
   libnuma1 \
   libpixman-1-0
@@ -21,3 +21,10 @@ RUN wget --no-verbose ${QEMU_URL} \
   && rm ${QEMU_DIST}
 
 ENV PATH=/opt/qemu/bin:${PATH}
+
+RUN echo $($IDF_PATH/tools/idf_tools.py export) >> /etc/bash.bashrc
+
+RUN useradd -m vscodeuser
+USER vscodeuser
+
+CMD ["/bin/bash"]

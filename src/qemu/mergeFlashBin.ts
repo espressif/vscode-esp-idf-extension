@@ -17,23 +17,71 @@
  */
 
 import { constants } from "fs";
+import { pathExists, readdir } from "fs-extra";
 import { join } from "path";
 import {
+  CancellationToken,
   ShellExecution,
   ShellExecutionOptions,
   TaskRevealKind,
   TaskScope,
 } from "vscode";
 import { FlashModel } from "../flash/flashModel";
+import { createFlashModel } from "../flash/flashModelBuilder";
 import { readParameter } from "../idfConfiguration";
+import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 
-export function mergeFlashBinaries(
-  buildDir: string,
-  idfPath: string,
+export async function validateReqs(
+  buildDirPath: string,
+  esptoolPath: string,
+  flasherArgsJsonPath: string,
   flashModel: FlashModel
 ) {
+  if (!canAccessFile(esptoolPath, constants.R_OK)) {
+    throw new Error("SCRIPT_PERMISSION_ERROR");
+  }
+  const buildFiles = await readdir(buildDirPath);
+  const binFiles = buildFiles.filter(
+    (fileName) => fileName.endsWith(".bin") === true
+  );
+  if (binFiles.length === 0) {
+    return Logger.errorNotify(
+      `Build is required before merging .bin file can't be accessed`,
+      new Error("BIN_FILE_ACCESS_ERROR")
+    );
+  }
+  const flasherArgsJsonExists = await pathExists(flasherArgsJsonPath);
+  if (!flasherArgsJsonExists) {
+    return Logger.warnNotify(
+      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+    );
+  }
+  for (const flashFile of flashModel.flashSections) {
+    if (
+      !canAccessFile(join(buildDirPath, flashFile.binFilePath), constants.R_OK)
+    ) {
+      throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
+    }
+  }
+}
+
+export async function mergeFlashBinaries(wsFolder: string, cancelToken: CancellationToken) {
+  cancelToken.onCancellationRequested(() => {
+    TaskManager.cancelTasks();
+    TaskManager.disposeListeners();
+  });
+  const idfPath = readParameter("idf.espIdfPath");
+  const port = readParameter("idf.port");
+  const flashBaudRate = readParameter("idf.flashBaudRate");
+  const buildDir = join(wsFolder, "build");
+  const flasherArgsJsonPath = join(buildDir, "flasher_args.json");
+  const flashModel = await createFlashModel(
+    flasherArgsJsonPath,
+    port,
+    flashBaudRate
+  );
   const esptoolPath = join(
     idfPath,
     "components",
@@ -42,14 +90,8 @@ export function mergeFlashBinaries(
     "esptool.py"
   );
 
-  if (!canAccessFile(esptoolPath, constants.R_OK)) {
-    throw new Error("SCRIPT_PERMISSION_ERROR");
-  }
-  for (const flashFile of flashModel.flashSections) {
-    if (!canAccessFile(join(buildDir, flashFile.binFilePath), constants.R_OK)) {
-      throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
-    }
-  }
+  await validateReqs(buildDir, esptoolPath, flasherArgsJsonPath, flashModel);
+
   const isSilentMode = readParameter("idf.notificationSilentMode");
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Silent
@@ -67,6 +109,11 @@ export function mergeFlashBinaries(
     ["idfRelative", "idfAbsolute"],
     showTaskOutput
   );
+  await TaskManager.runTasks();
+  if (!cancelToken.isCancellationRequested) {
+    Logger.infoNotify("Merge binaries is done ⚡️");
+  }
+  TaskManager.disposeListeners();
 }
 
 export function getMergeExecution(
@@ -81,10 +128,7 @@ export function getMergeExecution(
     env: modifiedEnv,
   };
   const pythonBinPath = readParameter("idf.pythonBinPath") as string;
-  return new ShellExecution(
-    `${pythonBinPath} ${mergeArgs.join(" ")}`,
-    options
-  );
+  return new ShellExecution(`${pythonBinPath} ${mergeArgs.join(" ")}`, options);
 }
 
 export function getMergeArgs(toolPath: string, model: FlashModel) {
@@ -94,7 +138,7 @@ export function getMergeArgs(toolPath: string, model: FlashModel) {
     "esp32",
     "merge_bin",
     "-o",
-    "merged_flash.bin",
+    "merged_qemu.bin",
     "--flash_mode",
     "dout",
     "--flash_size",
