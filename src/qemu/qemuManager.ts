@@ -227,7 +227,7 @@ export class QemuManager extends EventEmitter {
       1005
     );
     this._statusBarItem.text = "[ESP-IDF QEMU]";
-    this._statusBarItem.command = "espIdf.openOCDCommand";
+    this._statusBarItem.command = "espIdf.qemuCommand";
     this._statusBarItem.show();
   }
 }

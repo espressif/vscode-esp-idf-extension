@@ -36,38 +36,35 @@ import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 export async function validateReqs(
   buildDirPath: string,
   esptoolPath: string,
-  flasherArgsJsonPath: string,
-  flashModel: FlashModel
+  flasherArgsJsonPath: string
 ) {
   if (!canAccessFile(esptoolPath, constants.R_OK)) {
     throw new Error("SCRIPT_PERMISSION_ERROR");
   }
+  const buildDirExists = await pathExists(buildDirPath);
+  if (!buildDirExists) {
+    throw new Error(`Build folder doesn't exist. Build first.`);
+  }
+
   const buildFiles = await readdir(buildDirPath);
   const binFiles = buildFiles.filter(
     (fileName) => fileName.endsWith(".bin") === true
   );
   if (binFiles.length === 0) {
-    return Logger.errorNotify(
-      `Build is required before merging .bin file can't be accessed`,
-      new Error("BIN_FILE_ACCESS_ERROR")
-    );
+    throw new Error("BIN_FILE_ACCESS_ERROR");
   }
   const flasherArgsJsonExists = await pathExists(flasherArgsJsonPath);
   if (!flasherArgsJsonExists) {
-    return Logger.warnNotify(
+    throw new Error(
       "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
     );
   }
-  for (const flashFile of flashModel.flashSections) {
-    if (
-      !canAccessFile(join(buildDirPath, flashFile.binFilePath), constants.R_OK)
-    ) {
-      throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
-    }
-  }
 }
 
-export async function mergeFlashBinaries(wsFolder: string, cancelToken: CancellationToken) {
+export async function mergeFlashBinaries(
+  wsFolder: string,
+  cancelToken: CancellationToken
+) {
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
     TaskManager.disposeListeners();
@@ -75,13 +72,8 @@ export async function mergeFlashBinaries(wsFolder: string, cancelToken: Cancella
   const idfPath = readParameter("idf.espIdfPath");
   const port = readParameter("idf.port");
   const flashBaudRate = readParameter("idf.flashBaudRate");
-  const buildDir = join(wsFolder, "build");
-  const flasherArgsJsonPath = join(buildDir, "flasher_args.json");
-  const flashModel = await createFlashModel(
-    flasherArgsJsonPath,
-    port,
-    flashBaudRate
-  );
+  const buildDirPath = join(wsFolder, "build");
+  const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const esptoolPath = join(
     idfPath,
     "components",
@@ -89,15 +81,28 @@ export async function mergeFlashBinaries(wsFolder: string, cancelToken: Cancella
     "esptool",
     "esptool.py"
   );
+  await validateReqs(buildDirPath, esptoolPath, flasherArgsJsonPath);
 
-  await validateReqs(buildDir, esptoolPath, flasherArgsJsonPath, flashModel);
+  const flashModel = await createFlashModel(
+    flasherArgsJsonPath,
+    port,
+    flashBaudRate
+  );
+
+  for (const flashFile of flashModel.flashSections) {
+    if (
+      !canAccessFile(join(buildDirPath, flashFile.binFilePath), constants.R_OK)
+    ) {
+      throw new Error("SECTION_BIN_FILE_NOT_ACCESSIBLE");
+    }
+  }
 
   const isSilentMode = readParameter("idf.notificationSilentMode");
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Silent
     : TaskRevealKind.Always;
   const mergeExecution: ShellExecution = getMergeExecution(
-    buildDir,
+    buildDirPath,
     esptoolPath,
     flashModel
   );

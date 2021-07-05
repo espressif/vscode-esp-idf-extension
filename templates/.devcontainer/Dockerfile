@@ -2,12 +2,13 @@ FROM espressif/idf:latest
 
 RUN apt-get update \
   && apt install -y -q \
+  cmake \
   git \
   libglib2.0-0 \
   libnuma1 \
   libpixman-1-0
 
-RUN . $IDF_PATH/export.sh && pip install --no-cache-dir idf-component-manager
+RUN . ${IDF_PATH}/export.sh && pip install --no-cache-dir idf-component-manager
 
 # QEMU
 ENV QEMU_REL=esp-develop-20210220
@@ -23,8 +24,5 @@ RUN wget --no-verbose ${QEMU_URL} \
 ENV PATH=/opt/qemu/bin:${PATH}
 
 RUN echo $($IDF_PATH/tools/idf_tools.py export) >> /etc/bash.bashrc
-
-RUN useradd -m vscodeuser
-USER vscodeuser
 
 CMD ["/bin/bash"]

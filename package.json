@@ -642,6 +642,23 @@
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
             "default": true
           },
+          "idf.qemuLaunchOptions": {
+            "type": "array",
+            "description": "QEMU arguments",
+            "default": [
+              "-nographic",
+              "-machine",
+              "esp32",
+              "-drive",
+              "file=merged_qemu.bin,if=mtd,format=raw",
+              "-global driver=esp32.gpio,property=strap_mode,value=0x0f"
+            ]
+          },
+          "idf.qemuTcpPort": {
+            "type": "number",
+            "description": "QEMU tcp port for serial communication",
+            "default": 5555
+          },
           "esp.component-manager.url": {
             "type": "string",
             "description": "%esp.component-manager.url.description%",
@@ -907,11 +924,22 @@
       },
       {
         "command": "espIdf.copyOpenOcdRules",
-        "title": "%espIdf.copyOpenOcdRules.title%"
+        "title": "%espIdf.copyOpenOcdRules.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.qemuCommand",
+        "title": "QEMU Manager",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.launchQemu",
         "title": "Launch QEMU",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.createDevContainer",
+        "title": "Add container configuration",
         "category": "ESP-IDF"
       }
     ],

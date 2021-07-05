@@ -107,6 +107,7 @@ import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
+import { QemuManager } from "./qemu/qemuManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -117,6 +118,7 @@ let covRenderer: CoverageRenderer;
 const statusBarItems: vscode.StatusBarItem[] = [];
 
 const openOCDManager = OpenOCDManager.init();
+const qemuManager = QemuManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 let isMonitorLaunchedByDebug: boolean = false;
@@ -239,6 +241,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
+
+  registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(status);
@@ -1106,6 +1110,21 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createDevContainer", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        await utils.createDevContainer(workspaceRoot.fsPath);
+        Logger.infoNotify(
+          "ESP-IDF container files have been added to the project."
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating .devcontainer folder";
+        Logger.errorNotify(errMsg, error);
+        return;
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.createNewComponent", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
@@ -1724,6 +1743,13 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform(
       [webIdeCheck, openFolderCheck],
       openOCDManager.commandHandler
+    );
+  });
+
+  registerIDFCommand("espIdf.qemuCommand", () => {
+    PreCheck.perform(
+      [webIdeCheck, openFolderCheck],
+      qemuManager.commandHandler
     );
   });
 
@@ -2403,6 +2429,11 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBarItem);
 }
 
+function registerQemuStatusBarItem(context: vscode.ExtensionContext) {
+  const statusBarItem = qemuManager.statusBarItem();
+  context.subscriptions.push(statusBarItem);
+}
+
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
@@ -2553,11 +2584,24 @@ const launchInQemu = async () => {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
+          if (BuildTask.isBuilding || FlashTask.isFlashing) {
+            return Logger.warnNotify(
+              `There is a build or flash task running. Wait for it to finish.`
+            );
+          }
           progress.report({
             message: "Merging binaries for flashing",
             increment: 10,
           });
           await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
+          progress.report({
+            message: "Merging binaries for flashing",
+            increment: 10,
+          });
+          const isQemuLaunched = await QemuManager.init().promptToQemuLaunch();
+          if (!isQemuLaunched) {
+            return;
+          }
         } catch (error) {
           const errMsg = error.message ? error.message : "Error launching QEMU";
           Logger.errorNotify(errMsg, error);
