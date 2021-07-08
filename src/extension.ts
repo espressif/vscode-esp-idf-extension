@@ -157,20 +157,17 @@ const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
-const minOpenOCDVersion20201125 = [
-  PreCheck.openOCDVersionValidator("v0.10.0-esp32-20201125", ""),
-  `Minimum OpenOCD version v0.10.0-esp32-20201125 is required`,
-] as utils.PreCheckInput;
-openOCDManager
-  .version()
-  .then((currentVersion) => {
-    minOpenOCDVersion20201125[0] = PreCheck.openOCDVersionValidator(
+
+const minOpenOcdVersionCheck = async function () {
+  const currOpenOcdVersion = await openOCDManager.version();
+  return [
+    PreCheck.openOCDVersionValidator(
       "v0.10.0-esp32-20201125",
-      currentVersion
-    );
-    minOpenOCDVersion20201125[1] = `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currentVersion} version installed`;
-  })
-  .catch((err) => Logger.error(`Failed to fetch openocd version`, err));
+      currOpenOcdVersion
+    ),
+    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`,
+  ] as utils.PreCheckInput;
+};
 
 const minIdfVersionCheck = async function (minVersion: string) {
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
@@ -2166,9 +2163,10 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.jtag_flash", () => {
+  registerIDFCommand("espIdf.jtag_flash", async () => {
+    const openOcdMinCheck = await minOpenOcdVersionCheck();
     PreCheck.perform(
-      [openFolderCheck, webIdeCheck, minOpenOCDVersion20201125],
+      [openFolderCheck, webIdeCheck, openOcdMinCheck],
       async () => {
         const port = idfConf.readParameter("idf.port");
         const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
