@@ -157,7 +157,7 @@ export class MenuConfigPanel {
               {
                 cancellable: true,
                 location: vscode.ProgressLocation.Notification,
-                title: "ESP-IDF: Menuconfig",
+                title: "ESP-IDF: SDK Configuration editor",
               },
               async (
                 progress: vscode.Progress<{
@@ -166,7 +166,10 @@ export class MenuConfigPanel {
                 }>
               ) => {
                 try {
-                  await ConfserverProcess.setDefaultValues(progress);
+                  await ConfserverProcess.setDefaultValues(
+                    extensionPath,
+                    progress
+                  );
                 } catch (error) {
                   Logger.errorNotify(error.message, error);
                 }
