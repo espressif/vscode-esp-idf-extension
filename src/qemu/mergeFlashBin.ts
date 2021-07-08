@@ -21,8 +21,8 @@ import { pathExists, readdir } from "fs-extra";
 import { join } from "path";
 import {
   CancellationToken,
-  ShellExecution,
-  ShellExecutionOptions,
+  ProcessExecution,
+  ProcessExecutionOptions,
   TaskRevealKind,
   TaskScope,
 } from "vscode";
@@ -101,7 +101,7 @@ export async function mergeFlashBinaries(
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Silent
     : TaskRevealKind.Always;
-  const mergeExecution: ShellExecution = getMergeExecution(
+  const mergeExecution = getMergeExecution(
     buildDirPath,
     esptoolPath,
     flashModel
@@ -116,7 +116,7 @@ export async function mergeFlashBinaries(
   );
   await TaskManager.runTasks();
   if (!cancelToken.isCancellationRequested) {
-    Logger.infoNotify("Merge binaries is done ⚡️");
+    Logger.infoNotify("Merge binaries task is done ⚡️");
   }
   TaskManager.disposeListeners();
 }
@@ -128,12 +128,12 @@ export function getMergeExecution(
 ) {
   const modifiedEnv = appendIdfAndToolsToPath();
   const mergeArgs = getMergeArgs(esptoolPath, model);
-  const options: ShellExecutionOptions = {
+  const options: ProcessExecutionOptions = {
     cwd: buildDir,
     env: modifiedEnv,
   };
   const pythonBinPath = readParameter("idf.pythonBinPath") as string;
-  return new ShellExecution(`${pythonBinPath} ${mergeArgs.join(" ")}`, options);
+  return new ProcessExecution(pythonBinPath, mergeArgs, options);
 }
 
 export function getMergeArgs(toolPath: string, model: FlashModel) {

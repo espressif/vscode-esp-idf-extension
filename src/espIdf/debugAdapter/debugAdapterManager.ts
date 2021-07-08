@@ -42,6 +42,7 @@ export interface IDebugAdapterConfig {
   gdbinitFilePath?: string;
   initGdbCommands?: string[];
   isPostMortemDebugMode: boolean;
+  isOocdDisabled: boolean;
   logLevel?: number;
   target?: string;
 }
@@ -67,6 +68,7 @@ export class DebugAdapterManager extends EventEmitter {
   private gdbinitFilePath: string;
   private initGdbCommands: string[];
   private isPostMortemDebugMode: boolean;
+  private isOocdDisabled: boolean;
   private logLevel: number;
   private port: number;
   private target: string;
@@ -149,6 +151,8 @@ export class DebugAdapterManager extends EventEmitter {
       }
       if (this.coreDumpFile) {
         adapterArgs.push("-c", this.coreDumpFile);
+      }
+      if (this.isOocdDisabled) {
         adapterArgs.push("-om", "without_oocd");
       }
       const resultGdbInitFile = this.gdbinitFilePath
@@ -237,6 +241,9 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
+    if (config.isOocdDisabled) {
+      this.isOocdDisabled = config.isOocdDisabled;
+    }
     this.appOffset = config.appOffset;
   }
 
@@ -254,6 +261,7 @@ export class DebugAdapterManager extends EventEmitter {
       "debug_adapter_main.py"
     );
     this.isPostMortemDebugMode = false;
+    this.isOocdDisabled = false;
     this.port = 43474;
     this.logLevel = 0;
     let idfTarget = idfConf.readParameter("idf.adapterTargetName");

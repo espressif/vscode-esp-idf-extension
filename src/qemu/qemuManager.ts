@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import { ChildProcess, spawn } from "child_process";
 import { EventEmitter } from "events";
 import {
-  OutputChannel,
+  env,
   StatusBarAlignment,
   StatusBarItem,
+  Terminal,
   window,
   workspace,
 } from "vscode";
+import { ESP } from "../config";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
@@ -35,22 +36,21 @@ export interface IQemuOptions {
 }
 
 export class QemuManager extends EventEmitter {
-  public static init(config?: IQemuOptions): QemuManager {
+  public static init(): QemuManager {
     if (!QemuManager.instance) {
-      QemuManager.instance = new QemuManager(config);
+      QemuManager.instance = new QemuManager();
     }
     return QemuManager.instance;
   }
   private static instance: QemuManager;
   private execString = "qemu-system-xtensa";
-  private server: ChildProcess;
-  private chan: OutputChannel;
+  private qemuTerminal: Terminal;
   private options: IQemuOptions;
   private _statusBarItem: StatusBarItem;
 
-  private constructor(config?: IQemuOptions) {
+  private constructor() {
     super();
-    this.configure(config);
+    this.configureWithDefValues();
   }
 
   public statusBarItem(): StatusBarItem {
@@ -98,22 +98,35 @@ export class QemuManager extends EventEmitter {
   }
 
   public configure(config: IQemuOptions) {
-    if (config) {
-      this.options = config;
-    } else {
-      const qemuLaunchOptions = readParameter("idf.qemuLaunchOptions");
-      const qemuTcpPort = readParameter("idf.qemuTcpPort");
-      this.options = {
-        launchArgs: qemuLaunchOptions,
-        tcpPort: qemuTcpPort,
-      } as IQemuOptions;
+    if (!this.options) {
+      this.options = {} as IQemuOptions;
     }
-    this.chan = window.createOutputChannel("ESP-IDF: QEMU");
-    this.registerOpenOCDStatusBarItem();
+    if (config.launchArgs) {
+      this.options.launchArgs = config.launchArgs;
+    }
+    if (config.tcpPort) {
+      this.options.tcpPort = config.tcpPort;
+    }
+    this.registerQemuStatusBarItem();
+  }
+
+  public configureWithDefValues() {
+    const qemuTcpPort = readParameter("idf.qemuTcpPort");
+    const defOptions = {
+      launchArgs: [
+        "-nographic",
+        "-machine",
+        "esp32",
+        "-drive",
+        "file=build/merged_qemu.bin,if=mtd,format=raw",
+      ],
+      tcpPort: qemuTcpPort,
+    } as IQemuOptions;
+    this.configure(defOptions);
   }
 
   public isRunning(): boolean {
-    return this.server && !this.server.killed;
+    return !!this.qemuTerminal;
   }
 
   public async promptToQemuLaunch(): Promise<boolean> {
@@ -158,76 +171,58 @@ export class QemuManager extends EventEmitter {
       throw new Error("No QEMU tcp port for serial port was found.");
     }
 
-    const qemuArgs = [];
+    const qemuArgs: string[] = [];
     this.options.launchArgs.forEach((arg) => {
       qemuArgs.push(arg);
     });
-    qemuArgs.push(`-serial tcp::${this.options.tcpPort},server,nowait`);
+    qemuArgs.push(
+      `-serial tcp::${this.options.tcpPort.toString()},server,nowait`
+    );
 
-    this.server = spawn(this.execString, qemuArgs, {
-      cwd: wsFolder,
-      env: modifiedEnv,
-    });
-
-    this.server.stderr.on("data", (data) => {
-      const regex = /Error:.*/i;
-      const errStr = data.toString();
-      const matchArr = errStr.match(regex);
-      if (!matchArr) {
-        this.emit("data", this.chan);
-      } else {
-        const errorMsg = `OpenOCD server failed to start because of ${matchArr.join(
-          " "
-        )}`;
-        const err = new Error(errorMsg);
-        this.chan.append(`❌ ${errStr}`);
-        this.emit("error", err, this.chan);
-      }
-      this.chan.append(errStr);
-    });
-
-    this.server.stdout.on("data", (data) => {
-      this.chan.append(data.toString());
-      this.emit("data", this.chan);
-    });
-    this.server.on("error", (error) => {
-      this.emit("error", error, this.chan);
-      this.stop();
-    });
-    this.server.on("close", (code: number, signal: string) => {
-      if (!signal && code && code !== 0) {
-        Logger.errorNotify(
-          `QEMU Exit with non-zero error code ${code}`,
-          new Error("Spawn exit with non-zero" + code)
-        );
-      }
-      this.stop();
-    });
+    if (typeof this.qemuTerminal === "undefined") {
+      this.qemuTerminal = window.createTerminal({
+        name: "ESP-IDF QEMU",
+        env: modifiedEnv,
+        cwd: wsFolder || modifiedEnv.IDF_PATH || process.cwd(),
+        shellArgs: [],
+        shellPath: env.shell,
+        strictEnv: true,
+      });
+      window.onDidCloseTerminal((e) => {
+        if (e.name === "ESP-IDF QEMU") {
+          this.stop();
+        }
+      });
+    }
+    this.qemuTerminal.sendText(`${this.execString} ${qemuArgs.join(" ")}`);
+    this.qemuTerminal.show(true);
     this.updateStatusText("❇️ QEMU Server (Running)");
-    this.chan.clear();
-    this.chan.show(true);
   }
 
   public stop() {
-    if (this.server && !this.server.killed) {
-      this.server.kill("SIGKILL");
-      this.server = undefined;
-      this.updateStatusText("❌ QEMU Server (Stopped)");
-      this.chan.appendLine("[Stopped] : QEMU Server");
+    if (!!this.qemuTerminal) {
+      this.qemuTerminal.sendText(ESP.CTRL_RBRACKET);
+      this.qemuTerminal.dispose();
+      this.qemuTerminal = undefined;
     }
+    this.updateStatusText("❌ QEMU Server (Stopped)");
   }
 
   public showOutputChannel(preserveFocus?: boolean) {
-    this.chan.show(preserveFocus);
+    if (this.qemuTerminal) {
+      this.qemuTerminal.show(preserveFocus);
+    }
   }
 
-  private registerOpenOCDStatusBarItem() {
-    this._statusBarItem = window.createStatusBarItem(
-      StatusBarAlignment.Right,
-      1005
-    );
-    this._statusBarItem.text = "[ESP-IDF QEMU]";
-    this._statusBarItem.command = "espIdf.qemuCommand";
-    this._statusBarItem.show();
+  private registerQemuStatusBarItem() {
+    if (!this._statusBarItem) {
+      this._statusBarItem = window.createStatusBarItem(
+        StatusBarAlignment.Right,
+        1005
+      );
+      this._statusBarItem.text = "[ESP-IDF QEMU]";
+      this._statusBarItem.command = "espIdf.qemuCommand";
+      this._statusBarItem.show();
+    }
   }
 }

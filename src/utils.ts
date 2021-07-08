@@ -264,9 +264,7 @@ export async function createSkeleton(
   await copyFromSrcProject(templateDirToUse, curWorkspacePath);
 }
 
-export async function createDevContainer(
-  curWorkspaceFsPath: string
-) {
+export async function createDevContainer(curWorkspaceFsPath: string) {
   const containerDir = path.join(curWorkspaceFsPath, ".devcontainer");
   const vscodeTemplateFolder = path.join(templateDir, ".devcontainer");
   await ensureDir(containerDir);

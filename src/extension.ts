@@ -107,7 +107,7 @@ import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
-import { QemuManager } from "./qemu/qemuManager";
+import { IQemuOptions, QemuManager } from "./qemu/qemuManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -118,10 +118,12 @@ let covRenderer: CoverageRenderer;
 const statusBarItems: vscode.StatusBarItem[] = [];
 
 const openOCDManager = OpenOCDManager.init();
-const qemuManager = QemuManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 let isMonitorLaunchedByDebug: boolean = false;
+
+// QEMU
+const qemuManager = QemuManager.init();
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -823,7 +825,6 @@ export async function activate(context: vscode.ExtensionContext) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs"
       );
-
       const openOCDConfig: IOpenOCDConfig = {
         openOcdConfigFilesList,
       } as IOpenOCDConfig;
@@ -835,6 +836,10 @@ export async function activate(context: vscode.ExtensionContext) {
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     } else if (e.affectsConfiguration("idf.espIdfPath")) {
       ESP.URL.Docs.IDF_INDEX = undefined;
+    } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
+      qemuManager.configure({
+        tcpPort: idfConf.readParameter("idf.qemuTcpPort"),
+      } as IQemuOptions);
     }
   });
 
@@ -851,10 +856,21 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.configuration.sessionID !== "core-dump.debug.session.ws"
+          session.configuration.sessionID !== "core-dump.debug.session.ws" &&
+          session.configuration.sessionID !== "qemu.debug.session"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
+        }
+        if (session.configuration.sessionID === "qemu.debug.session") {
+          const debugAdapterConfig = {
+            appOffset: session.configuration.appOffset,
+            elfFile: session.configuration.elfFilePath,
+            debugAdapterPort: portToUse,
+            logLevel: session.configuration.logLevel,
+          } as IDebugAdapterConfig;
+          debugAdapterManager.configureAdapter(debugAdapterConfig);
+          await debugAdapterManager.start();
         }
         if (
           session.configuration.sessionID === "core-dump.debug.session.ws" ||
@@ -871,6 +887,7 @@ export async function activate(context: vscode.ExtensionContext) {
             gdbinitFilePath: session.configuration.gdbinitFile,
             initGdbCommands: session.configuration.initGdbCommands || [],
             isPostMortemDebugMode: false,
+            isOocdDisabled: false,
             logLevel: session.configuration.logLevel,
           } as IDebugAdapterConfig;
           debugAdapterManager.configureAdapter(debugAdapterConfig);
@@ -1152,7 +1169,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
-  registerIDFCommand("espIdf.launchQemu", launchInQemu);
+  registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
@@ -1747,10 +1764,79 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.qemuCommand", () => {
-    PreCheck.perform(
-      [webIdeCheck, openFolderCheck],
-      qemuManager.commandHandler
-    );
+    PreCheck.perform([openFolderCheck], async () => {
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Starting ESP-IDF QEMU",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const qemuBinExists = await pathExists(
+              path.join(workspaceRoot.fsPath, "build", "merged_qemu.bin")
+            );
+            if (!qemuBinExists) {
+              progress.report({
+                message: "Merging binaries for flashing",
+                increment: 10,
+              });
+              await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
+            }
+            await qemuManager.commandHandler();
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : "Error merging binaries for QEMU";
+            Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.qemuDebug", async () => {
+    if (qemuManager.isRunning()) {
+      qemuManager.stop();
+    }
+    qemuManager.configure({
+      launchArgs: [
+        "-nographic",
+        "-s",
+        "-S",
+        "-machine",
+        "esp32",
+        "-drive",
+        "file=build/merged_qemu.bin,if=mtd,format=raw",
+      ],
+    } as IQemuOptions);
+    await qemuManager.start();
+    const debugAdapterConfig = {
+      initGdbCommands: [
+        "target remote :1234",
+        "monitor system_reset",
+        "tb app_main",
+        "c",
+      ],
+      isPostMortemDebugMode: false,
+      isOocdDisabled: true,
+      target: "qemu",
+    } as IDebugAdapterConfig;
+    debugAdapterManager.configureAdapter(debugAdapterConfig);
+    await vscode.debug.startDebugging(undefined, {
+      name: "GDB QEMU",
+      type: "espidf",
+      request: "launch",
+      sessionID: "qemu.debug.session",
+    });
+    vscode.debug.onDidTerminateDebugSession(async (session) => {
+      if (session.configuration.sessionID === "qemu.debug.session") {
+        qemuManager.stop();
+      }
+    });
   });
 
   registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
@@ -2117,6 +2203,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   isPostMortemDebugMode: true,
                   elfFile: resp.prog,
                   coreDumpFile: coreElfFilePath,
+                  isOocdDisabled: true,
                 });
                 await vscode.debug.startDebugging(undefined, {
                   name: "Core Dump Debug",
@@ -2571,45 +2658,18 @@ const flash = () => {
   });
 };
 
-const launchInQemu = async () => {
+function createQemuMonitor() {
   PreCheck.perform([openFolderCheck], async () => {
-    await vscode.window.withProgress(
-      {
-        cancellable: true,
-        location: vscode.ProgressLocation.Notification,
-        title: "QEMU",
-      },
-      async (
-        progress: vscode.Progress<{ message: string; increment: number }>,
-        cancelToken: vscode.CancellationToken
-      ) => {
-        try {
-          if (BuildTask.isBuilding || FlashTask.isFlashing) {
-            return Logger.warnNotify(
-              `There is a build or flash task running. Wait for it to finish.`
-            );
-          }
-          progress.report({
-            message: "Merging binaries for flashing",
-            increment: 10,
-          });
-          await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
-          progress.report({
-            message: "Merging binaries for flashing",
-            increment: 10,
-          });
-          const isQemuLaunched = await QemuManager.init().promptToQemuLaunch();
-          if (!isQemuLaunched) {
-            return;
-          }
-        } catch (error) {
-          const errMsg = error.message ? error.message : "Error launching QEMU";
-          Logger.errorNotify(errMsg, error);
-        }
-      }
-    );
+    const isQemuLaunched = await qemuManager.isRunning();
+    if (!isQemuLaunched) {
+      vscode.window.showInformationMessage("QEMU is not running. Run first.");
+      return;
+    }
+    const qemuTcpPort = idfConf.readParameter("idf.qemuTcpPort") as number;
+    const serialPort = `socket://localhost:${qemuTcpPort}`;
+    await createMonitorTerminal(monitorTerminal, workspaceRoot, serialPort);
   });
-};
+}
 
 const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
   PreCheck.perform([openFolderCheck], async () => {
