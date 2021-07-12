@@ -11,13 +11,13 @@
           "name": "ESP-WROVER-KIT 3.3V",
           "description": "ESP-WROVER-KIT with 3.3V ESP32-WROVER-B module",
           "target": "esp32",
-          "config_files": ["boards/esp32-wrover-kit-3.3v.cfg"]
+          "config_files": ["board/esp32-wrover-kit-3.3v.cfg"]
       },
       {
           "name": "ESP-WROVER-KIT 1.8V",
           "description": "ESP-WROVER-KIT with 1.8V ESP32-WROVER-B module",
           "target": "esp32",
-          "config_files": ["boards/esp32-wrover-kit-1.8v.cfg"]
+          "config_files": ["board/esp32-wrover-kit-1.8v.cfg"]
       },
       {
           "name": "ESP32-ETHERNET-KIT",
