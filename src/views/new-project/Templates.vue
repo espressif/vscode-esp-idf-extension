@@ -67,7 +67,7 @@ export default class Templates extends Vue {
       this.storeTemplatesRootPath &&
       this.storeTemplatesRootPath[this.selectedFramework]
     ) {
-      return this.storeTemplatesRootPath[this.selectedFramework].subcategories;
+      return [this.storeTemplatesRootPath[this.selectedFramework]];
     }
   }
 
