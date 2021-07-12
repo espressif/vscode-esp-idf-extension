@@ -22,6 +22,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
 import {
   appendIdfAndToolsToPath,
   delConfigFile,
@@ -156,12 +157,14 @@ export class ConfserverProcess {
     }
   }
 
-  public static setDefaultValues(
+  public static async setDefaultValues(
+    extensionPath: string,
     progress: vscode.Progress<{ message: string; increment: number }>
   ) {
     progress.report({ increment: 10, message: "Deleting current values..." });
     ConfserverProcess.instance.areValuesSaved = true;
-    delConfigFile(ConfserverProcess.instance.workspaceFolder);
+    const currWorkspace = ConfserverProcess.instance.workspaceFolder;
+    delConfigFile(currWorkspace);
     const guiconfigEspPath =
       idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
@@ -169,12 +172,7 @@ export class ConfserverProcess {
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     const getSdkconfigProcess = spawn(
       pythonBinPath,
-      [
-        idfPyPath,
-        "-C",
-        ConfserverProcess.instance.workspaceFolder.fsPath,
-        "reconfigure",
-      ],
+      [idfPyPath, "-C", currWorkspace.fsPath, "reconfigure"],
       { env: modifiedEnv }
     );
 
@@ -183,22 +181,20 @@ export class ConfserverProcess {
     return new Promise<void>((resolve, reject) => {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
-          ConfserverProcess.instance.printError(data.toString());
+          OutputChannel.appendLine(data.toString());
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
-        ConfserverProcess.instance.confServerChannel.appendLine(
-          data.toString()
-        );
+        OutputChannel.appendLine(data.toString());
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
-          ConfserverProcess.instance.printError(
+          OutputChannel.appendLine(
             `When loading default values received exit signal: ${signal}, code : ${code}`
           );
         }
-        ConfserverProcess.loadGuiConfigValues();
+        ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
         const loadMessage = "Loaded default settings in GUI menuconfig";
         Logger.infoNotify(loadMessage);
@@ -208,7 +204,9 @@ export class ConfserverProcess {
   }
 
   public static areValuesSaved() {
-    return ConfserverProcess.instance.areValuesSaved;
+    return ConfserverProcess.instance
+      ? ConfserverProcess.instance.areValuesSaved
+      : true;
   }
 
   public static dispose() {
