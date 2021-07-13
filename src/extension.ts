@@ -1573,6 +1573,80 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.importProject", async () => {
+    const srcFolder = await vscode.window.showOpenDialog({
+      canSelectFolders: true,
+      canSelectFiles: false,
+      canSelectMany: false,
+    });
+    if (!srcFolder || !srcFolder.length) {
+      return;
+    }
+    const isIdfProject = utils.checkIsProjectCmakeLists(srcFolder[0].fsPath);
+    if (!isIdfProject) {
+      Logger.infoNotify(`${srcFolder[0].fsPath} is not an ESP-IDF project.`);
+      return;
+    }
+    const items = [
+      { label: "Choose a container directory...", target: "another" },
+    ];
+    if (workspaceRoot) {
+      items.push({
+        label: `Use current folder (${workspaceRoot.fsPath})`,
+        target: "current",
+      });
+    }
+    const projectDirOption = await vscode.window.showQuickPick(items, {
+      placeHolder: "Select a directory to use",
+    });
+    if (!projectDirOption) {
+      return;
+    }
+    let destFolder: string;
+    if (projectDirOption.target === "another") {
+      const newFolder = await vscode.window.showOpenDialog({
+        canSelectFolders: true,
+        canSelectFiles: false,
+        canSelectMany: false,
+      });
+      if (!newFolder || !newFolder.length) {
+        return;
+      }
+      destFolder = newFolder[0].fsPath;
+    } else if (workspaceRoot) {
+      destFolder = workspaceRoot.fsPath;
+    }
+    if (!destFolder) {
+      return;
+    }
+    const projectName = await vscode.window.showInputBox({
+      placeHolder: "Enter project name",
+      value: "",
+    });
+    if (!projectName) {
+      return;
+    }
+    destFolder = path.join(destFolder, projectName);
+    const doesProjectExists = await pathExists(destFolder);
+    if (doesProjectExists) {
+      Logger.infoNotify(`${destFolder} already exists.`);
+      return;
+    }
+    await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
+    await utils.updateProjectNameInCMakeLists(destFolder, projectName);
+    const opt = await vscode.window.showInformationMessage(
+      "Project has been imported",
+      "Open"
+    );
+    if (opt === "Open") {
+      vscode.commands.executeCommand(
+        "vscode.openFolder",
+        vscode.Uri.file(destFolder),
+        true
+      );
+    }
+  });
+
   registerIDFCommand("espIdf.setGcovConfig", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {

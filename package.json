@@ -898,6 +898,11 @@
         "command": "esp.component-manager.ui.show",
         "title": "%esp.component-manager.ui.show.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.importProject",
+        "title": "%espIdf.importProject.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

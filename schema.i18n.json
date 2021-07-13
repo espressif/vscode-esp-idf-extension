@@ -117,6 +117,7 @@
     "espIdf.doctorCommand.title",
     "espIdf.ninja.summary.title",
     "espIdf.setGcovConfig.title",
+    "espIdf.importProject.title",
     "espIdf.eraseFlash.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
