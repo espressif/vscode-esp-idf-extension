@@ -2531,7 +2531,7 @@ function createIdfTerminal() {
 
 function createMonitor() {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    await createMonitorTerminal(monitorTerminal, workspaceRoot);
+    monitorTerminal = await createMonitorTerminal(monitorTerminal, workspaceRoot);
   });
 }
 
