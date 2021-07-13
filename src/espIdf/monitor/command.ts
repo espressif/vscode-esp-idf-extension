@@ -36,10 +36,11 @@ export async function createMonitorTerminal(
       "monitor.waitProcessIsFinishedMessage",
       "Wait for ESP-IDF task to finish"
     );
-    return Logger.errorNotify(
+    Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time")
     );
+    return;
   }
 
   const idfPathDir = readParameter("idf.espIdfPath") || process.env.IDF_PATH;
@@ -52,12 +53,14 @@ export async function createMonitorTerminal(
       "Python binary path is not defined",
       new Error("idf.pythonBinPath is not defined")
     );
+    return;
   }
   if (!idfPathDir) {
     Logger.errorNotify(
       "ESP-IDF Path is not defined",
       new Error("idf.espIdfPath is not defined")
     );
+    return;
   }
   if (!port) {
     try {
@@ -65,10 +68,11 @@ export async function createMonitorTerminal(
     } catch (error) {
       Logger.error("Unable to execute the command: espIdf.selectPort", error);
     }
-    return Logger.errorNotify(
+    Logger.errorNotify(
       "Select a serial port before flashing",
       new Error("NOT_SELECTED_PORT")
     );
+    return;
   }
   if (typeof monitorTerminal === "undefined") {
     monitorTerminal = window.createTerminal({
@@ -110,4 +114,5 @@ export async function createMonitorTerminal(
   } else {
     monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
   }
+  return monitorTerminal;
 }
