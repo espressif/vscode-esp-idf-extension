@@ -106,6 +106,7 @@ export async function getBoards() {
 }
 
 export async function getNewProjectArgs(
+  extensionPath: string,
   progress: Progress<{ message: string; increment: number }>
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
@@ -131,7 +132,8 @@ export async function getNewProjectArgs(
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
   const espMdfPath = idfConf.readParameter("idf.espMdfPath") as string;
-  let templates: { [key:string]: IExampleCategory} = {};
+  let templates: { [key: string]: IExampleCategory } = {};
+  templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(espIdfPath);
   if (idfExists) {
     const idfTemplates = getExamplesList(espIdfPath);

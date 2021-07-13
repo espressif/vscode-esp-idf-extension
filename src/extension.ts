@@ -1443,7 +1443,10 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const newProjectArgs = await getNewProjectArgs(progress);
+          const newProjectArgs = await getNewProjectArgs(
+            context.extensionPath,
+            progress
+          );
           if (!newProjectArgs || !newProjectArgs.targetList) {
             throw new Error("Could not find ESP-IDF Targets");
           }

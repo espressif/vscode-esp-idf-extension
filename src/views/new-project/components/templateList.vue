@@ -1,7 +1,10 @@
 <template>
   <li>
     <h3 class="category is-3" v-text="node.name"></h3>
-    <ul class="subcategories">
+    <ul
+      class="subcategories"
+      v-if="node.subcategories && node.subcategories.length"
+    >
       <TemplateList
         v-for="nodeSubCat in node.subcategories"
         :key="nodeSubCat.name"
