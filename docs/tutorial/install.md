@@ -1,13 +1,13 @@
 # Installation
 
-> **NOTE:** Make sure to install the extension [prerequisites](../../README.md#Prerequisites) and, if using WSL2, the required packages specified in [WSL Documentation](../WSL.md).
+  > **NOTE:** [troubleshooting](../../README.md#Troubleshooting)
 
 1. Download and install [Visual Studio Code](https://code.visualstudio.com/).
 2. Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of Visual Studio Code or the **View: Extensions** command <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd>.
 3. Search the extension with any related keyword like `espressif`, `esp-idf`, `esp32`, `esp32s2`, etc.
 4. Install the extension.
 
-5. Install [ESP-IDF Prerequisites](../../README.md#Prerequisites).
+5. Install [ESP-IDF Prerequisites](../../README.md#Prerequisites) and, if using WSL2, the required packages specified in [WSL Documentation](../WSL.md).
 <p>
   <img src="../../media/tutorials/setup/install-extension.png" alt="Setup wizard">
 </p>
@@ -67,20 +67,3 @@
 13. Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 
   > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review [vscode settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
-
-# Troubleshooting
-
-If something went wrong during the install please check for any error on one of these:
-
-1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF (or other related output like SDK Configuration Editor, OpenOCD, Debug Adapter, etc.)
-2. Use the `ESP-IDF: Doctor command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
-3. Check log file which can be obtained from:
-
-- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
-- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
-
-4. In Visual Studio Code, select menu "Help" -> Toggle Developer Tools and copy any error in the Console tab related to this extension.
-
-If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
-
-If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).

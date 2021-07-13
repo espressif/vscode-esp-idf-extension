@@ -14,20 +14,22 @@
 
 When you start ESP-IDF extension, it will try to self-configure by looking for existing ESP-IDF directory in `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows. It will look for ESP-IDF Tools and ESP-IDF Python virtual environment in `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
 
-If ESP-IDF and corresponding ESP-IDF tools are found, these paths will be saved as Visual Studio Code Configuration settings, which are located in `press F1 -> type Preferences: Open Settings (UI)` or `press F1 -> type Preferences: Open Settings (JSON)`.
+If ESP-IDF and corresponding ESP-IDF tools are found, these paths will be saved as Visual Studio Code Configuration settings, which are located in Command Palette (F1 or View Menu -> Command Palette) and type `Preferences: Open Settings (UI)` or Command Palette (F1 or View Menu -> Command Palette) and type `Preferences: Open Settings (JSON)`.
 
-These settings, as described in [ESP-IDF Specific Settings](./SETTINGS.md#ESP-IDF-Specific-Settings), are
+These settings, as described in [ESP-IDF Specific Settings](./SETTINGS.md#ESP-IDF-Specific-Settings), are:
 
 - `idf.espIdfPath` for IDF_PATH,
 - `idf.customExtraPaths` for ESP-IDF Tools paths to be appended to environment variable PATH,
 - `idf.pythonBinPath` for absolute virtual environment python path and
 - `idf.customExtraVars` for additional environment variables from ESP-IDF tools such as OPENOCD_SCRIPTS.
 
-If ESP-IDF and ESP-IDF tools are not available, you can use the [Setup Wizard](#Setup-Wizard) to download them and configure the extension for you or manually configure the extension as explained in [JSON Manual Configuration](#JSON-Manual-Configuration) or [Settings UI Manual Configuration](#UI-Manual-Configuration).
+> **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review the [visual studio code settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
+
+If ESP-IDF and ESP-IDF tools are not available, you can use the [ Setup Wizard ](#Setup-Wizard) to download them and configure the extension for you or manually configure the extension as explained in [JSON Manual Configuration](#JSON-Manual-Configuration) or [ Settings UI Manual Configuration ](#UI-Manual-Configuration).
 
 # Setup Wizard
 
-In Visual Studio Code press **F1** and type **ESP-IDF: Configure ESP-IDF extension**.
+With Visual Studio Code Command Palette (F1 or View Menu -> Command Palette) and type **ESP-IDF: Configure ESP-IDF extension**.
 
 Setup wizard provides 3 choices:
 
@@ -41,18 +43,20 @@ Setup wizard provides 3 choices:
       - Choose directory for ESP-IDF Tools and install ESP-IDF Tools. This step will update the existing value in `idf.toolsPath` or `idf.toolsPathWin`.
       - Specify directory than contains executable for each required ESP-IDF tool with matching version.
   3.  Create python virtual environment with required packages in chosen ESP-IDF Tools directory.
-- **Use existing setup**: If ESP-IDF is found in `idf.espIdfPath` (or `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows) and valid ESP-IDF tools in `idf.toolsPath` (or `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` in Windows) then this option is shown to use an existing setup. This option will additionally install extension and ESP-IDF debug adapter python packages requirements.
-  > **NOTE:** ESP-IDF Tools will be installed on the path specified in `idf.toolsPath` on MacOS/Linux or `idf.toolsPathWin` in Windows, which has a default path value of in `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows, respectively.
+- **Use existing setup**: This option will use an existing setup if:
+  1. `esp-idf.json` is found in the current `idf.toolsPath` (MacOS/Linux users) or `idf.toolsPathWin` (Windows users). This file is generated when you install ESP-IDF with the [IDF Windows installer](https://github.com/espressif/idf-installer) or using [IDF-ENV](https://github.com/espressif/idf-env).
+  2. ESP-IDF is found in `idf.espIdfPath` or `idf.espIdfPathWin`, `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows.
+  3. ESP-IDF Tools and ESP-IDF Python virtual environment for the previos ESP-IDF are found in `idf.toolsPath` or `idf.toolsPathWin`, `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
 
 After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
 
-If you have any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Go to menu View -> Command Palette and search for the former command.
+> **NOTE:** Check the [troubleshooting](../../README.md#Troubleshooting) section if you have any issue.
 
 # JSON Manual Configuration
 
 The user can manually configure the extension by setting the following configuration settings with corresponding values. Please take a look at [Configuration settings](./docs/SETTINGS.md) for more information.
 
-1. In Visual Studio Code press **F1** and type **Preferences: Open Settings (JSON)**. This will open the user global settings for Visual Studio Code.
+1. With Visual Studio Code Command Palette (F1 or View Menu -> Command Palette) and type **Preferences: Open Settings (JSON)**. This will open the user global settings for Visual Studio Code.
    > **NOTE:** The user could choose to modify its workspace settings.json for a workspace limited configuration or a project limited configuration in the project's `.vscode/settings.json`. Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md).
 2. Your settings.json should look like:
 
@@ -124,7 +128,9 @@ An example ESP-IDF path is to set `idf.espIdfPath` to `/home/myUser/to/esp-idf` 
 An example python path for `idf.pythonBinPath` (MacOS/Linux) is
 
 - `/home/myUser/.espressif/python_env/idf4.0_py3.5_env/bin/python`
-  An example python path for `idf.pythonBinPathWin` (Windows) is
+
+An example python path for `idf.pythonBinPathWin` (Windows) is
+
 - `C:\Users\myUser\.espressif\python_env\idf4.0_py3.5_env\Scripts\python.exe`
 
 For example if required ESP-IDF Tools are:
