@@ -86,7 +86,10 @@ import {
 } from "./espIdf/documentation/docResultsTreeView";
 import del from "del";
 import { NVSPartitionTable } from "./espIdf/nvs/partitionTable/panel";
-import { getBoards } from "./espIdf/openOcd/boardConfiguration";
+import {
+  getBoards,
+  getOpenOcdScripts,
+} from "./espIdf/openOcd/boardConfiguration";
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
@@ -1479,7 +1482,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
     try {
-      const boards = await getBoards();
+      const openOcdScriptsPath = getOpenOcdScripts();
+      const boards = await getBoards(openOcdScriptsPath);
       const choices = boards.map((b) => {
         return {
           description: `${b.description} (${b.configFiles})`,
