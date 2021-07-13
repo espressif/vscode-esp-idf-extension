@@ -17,6 +17,24 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.1.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.1.1)
+
+### Features and enhancements
+
+- [Enable or disable CMakeLists srcs auto update](https://github.com/espressif/vscode-esp-idf-extension/pull/443)
+- [Run Cmake configure only when CMakeCache.txt does not exists](https://github.com/espressif/vscode-esp-idf-extension/pull/442)
+- [Add Component manager to add ESP-IDF components to project](https://github.com/espressif/vscode-esp-idf-extension/pull/273)
+- [Import ESP-IDF Project command](https://github.com/espressif/vscode-esp-idf-extension/pull/464)
+- [Add board select testing](https://github.com/espressif/vscode-esp-idf-extension/pull/446)
+
+### Bug Fixes
+
+- [Fix app trace file path](https://github.com/espressif/vscode-esp-idf-extension/pull/431)
+- [Fix setup on Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/444)
+- [Fix reset values on SDK Configuration editor and openOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/459)
+- [Add extension templates in new project](https://github.com/espressif/vscode-esp-idf-extension/pull/461)
+- [Fix monitor closing before flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/463)
+
 ## [1.1.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.1.0)
 
 ### Features and enhancements
