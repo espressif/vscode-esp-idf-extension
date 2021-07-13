@@ -43,6 +43,8 @@ There are few dependencies required in your system and available in environment 
 | [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                                              |
 | [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
 
+Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites).
+
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
 > Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
@@ -168,7 +170,7 @@ Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system 
 
 If something is not working please check for any error on one of these:
 
-1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF (or other related output like SDK Configuration Editor, OpenOCD, Debug Adapter, etc.)
+1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor.
 2. Use the `ESP-IDF: Doctor command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
 3. Check log file which can be obtained from:
 
@@ -176,6 +178,8 @@ If something is not working please check for any error on one of these:
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
 4. In Visual Studio Code, select menu "Help" -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
+
+5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and WorkspaceFolder. The doctor command might give the values from user settings instead of the workspace folder settings.
 
 If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
 

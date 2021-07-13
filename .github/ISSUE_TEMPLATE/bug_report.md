@@ -33,6 +33,12 @@ If applicable, add screenshots to help explain your problem.
 
 > **NOTE**: You can use the `ESP-IDF: Doctor command` to generate a report of your configuration.
 
+**Output**
+
+Click the menu `View` and select `Output`. This extension uses several output channels: ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor.
+
+Please share the output of the channel related to your issue. For example ESP-IDF is used mostly for the extension setup process.
+
 **Logs**
 If applicable, please share the log file which can be obtained from
 
@@ -40,7 +46,7 @@ If applicable, please share the log file which can be obtained from
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
 **Extension Configuration settings**
-Open Command Palette (F1) and type `Preferences: Open Settings (JSON)` or use `{CURRENT_PROJECT}/.vscode/settings.json` to get the following extension configuration settings value:
+Open Command Palette (F1 or View Menu -> Command Palette) and type `Preferences: Open Settings (JSON)` or use `{CURRENT_PROJECT}/.vscode/settings.json` to get the following extension configuration settings value:
 
 - `idf.espIdfPath` (MacOS or Linux) or `idf.espIdfPathWin` (Windows) also called `Path to locate ESP-IDF framework (IDF_PATH)` in `Preferences: Open Settings (UI)`.
 - `idf.pythonBinPath` (MacOS or Linux) or `idf.pythonBinPathWin` (Windows) also called `Python absolute binary path used to execute ESP-IDF Python Scripts` in `Preferences: Open Settings (UI)`.
