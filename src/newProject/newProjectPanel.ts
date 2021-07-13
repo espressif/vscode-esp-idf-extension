@@ -255,6 +255,10 @@ export class NewProjectPanel {
             );
             await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
           }
+          await utils.updateProjectNameInCMakeLists(
+            newProjectPath,
+            projectName
+          );
           const settingsJsonPath = path.join(
             newProjectPath,
             ".vscode",

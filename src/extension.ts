@@ -1633,6 +1633,7 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
     await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
+    await utils.updateProjectNameInCMakeLists(destFolder, projectName);
     const opt = await vscode.window.showInformationMessage(
       "Project has been imported",
       "Open"

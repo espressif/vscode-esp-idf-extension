@@ -560,6 +560,24 @@ export function checkIsProjectCmakeLists(dir: string) {
   return false;
 }
 
+export async function updateProjectNameInCMakeLists(
+  dirPath: string,
+  newProjectName: string
+) {
+  const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
+  if (fileExists(cmakeListFile)) {
+    let content = await readFile(cmakeListFile, "utf-8");
+    const projectMatches = content.match(/(project\(.*?\))/g);
+    if (projectMatches && projectMatches.length) {
+      content = content.replace(
+        /(project\(.*?\))/g,
+        `project(${newProjectName})`
+      );
+      await writeFile(cmakeListFile, content);
+    }
+  }
+}
+
 export function getSubProjects(dir: string): string[] {
   const subDirs = getDirectories(dir);
   if (checkIsProjectCmakeLists(dir)) {
