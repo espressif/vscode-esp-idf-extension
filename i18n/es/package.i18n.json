@@ -41,6 +41,7 @@
   "espIdf.eraseFlash.title": "ESP-IDF: Borrar memoria flash del dispositivo",
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Cerrar proceso de servidor de editor de Configuración SDK",
   "espIdf.setGcovConfig.title": "ESP-IDF: Configurar sdkconfig del proyecto para cobertura de codigo fuente",
+  "espIdf.importProject.title": "Importar proyecto ESP-IDF",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
