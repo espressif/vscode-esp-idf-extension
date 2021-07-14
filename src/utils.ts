@@ -779,17 +779,16 @@ export function appendIdfAndToolsToPath() {
   } else {
     pathNameInEnv = "PATH";
   }
+  if (pathToGitDir) {
+    modifiedEnv[pathNameInEnv] =
+      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+  }
   modifiedEnv[pathNameInEnv] =
     path.dirname(modifiedEnv.PYTHON) +
     path.delimiter +
     path.join(modifiedEnv.IDF_PATH, "tools") +
     path.delimiter +
     modifiedEnv[pathNameInEnv];
-
-  if (pathToGitDir) {
-    modifiedEnv[pathNameInEnv] =
-      pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
-  }
 
   if (
     modifiedEnv[pathNameInEnv] &&
