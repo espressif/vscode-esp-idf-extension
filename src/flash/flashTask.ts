@@ -84,7 +84,7 @@ export class FlashTask {
     if (kernelMatch && kernelMatch.length) {
       isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
     }
-    let flashExecution: vscode.ShellExecution;
+    let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
     if (
       process.platform === "linux" &&
       osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
@@ -137,10 +137,7 @@ export class FlashTask {
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    return new vscode.ShellExecution(
-      `${pythonBinPath} ${flasherArgs.join(" ")}`,
-      options
-    );
+    return new vscode.ProcessExecution(pythonBinPath, flasherArgs, options);
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {
