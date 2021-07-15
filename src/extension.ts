@@ -1076,7 +1076,9 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     try {
       await copyOpenOcdRules();
-      vscode.window.showInformationMessage("openOCD rules file has been copied");
+      vscode.window.showInformationMessage(
+        "openOCD rules file has been copied"
+      );
     } catch (error) {
       const msg = error.message
         ? error.message
