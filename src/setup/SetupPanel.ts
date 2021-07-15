@@ -112,6 +112,9 @@ export class SetupPanel {
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
+        case "copyOpenOCDRules":
+          vscode.commands.executeCommand("espIdf.copyOpenOcdRules");
+          break;
         case "checkEspIdfTools":
           if (message.espIdf && message.pyPath && message.toolsPath) {
             await this.checkRequiredTools(
@@ -195,6 +198,7 @@ export class SetupPanel {
             idfVersion: setupArgs.espIdfVersion,
             idfVersions: setupArgs.espIdfVersionsList,
             pathSep,
+            platform: process.platform,
             pyBinPath: setupArgs.pyBinPath,
             pyVersionList: setupArgs.pythonVersions,
             toolsResults: setupArgs.toolsResults,

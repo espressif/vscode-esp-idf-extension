@@ -43,6 +43,7 @@ export interface IState {
   isIdfInstalled: boolean;
   manualPythonPath: string;
   pathSep: string;
+  platform: string;
   pyExecErrorStatus: string;
   pyReqsLog: string;
   pyVersionsList: string[];
@@ -90,6 +91,7 @@ export const setupState: IState = {
   isIdfInstalled: false,
   manualPythonPath: "",
   pathSep: "/",
+  platform: "",
   pyExecErrorStatus: "",
   pyReqsLog: "",
   pyVersionsList: [],
@@ -121,6 +123,11 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
+  copyOpenOCDRules() {
+    vscode.postMessage({
+      command: "copyOpenOCDRules",
+    });
+  },
   checkEspIdfTools(context) {
     const pyPath =
       context.state.selectedSysPython ===
@@ -287,6 +294,11 @@ export const mutations: MutationTree<IState> = {
   setPathSep(state, pathSep: string) {
     const newState = state;
     newState.pathSep = pathSep;
+    Object.assign(state, newState);
+  },
+  setPlatform(state, platform: string) {
+    const newState = state;
+    newState.platform = platform;
     Object.assign(state, newState);
   },
   setPyExecErrorStatus(state, errorStatus: string) {

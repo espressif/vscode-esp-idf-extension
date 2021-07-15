@@ -104,6 +104,7 @@ import { createMonitorTerminal } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
+import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1067,6 +1068,21 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
     });
+  });
+
+  registerIDFCommand("espIdf.copyOpenOcdRules", async () => {
+    if (process.platform !== "linux") {
+      return Logger.infoNotify("This command is for linux users.");
+    }
+    try {
+      await copyOpenOcdRules();
+      vscode.window.showInformationMessage("openOCD rules file has been copied");
+    } catch (error) {
+      const msg = error.message
+        ? error.message
+        : "Error copying openOCD rules file";
+      return Logger.errorNotify(msg, error);
+    }
   });
 
   registerIDFCommand("espIdf.createVsCodeFolder", () => {

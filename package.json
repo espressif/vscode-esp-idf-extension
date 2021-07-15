@@ -903,6 +903,11 @@
         "command": "espIdf.importProject",
         "title": "%espIdf.importProject.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.copyOpenOcdRules",
+        "title": "%espIdf.copyOpenOcdRules.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

@@ -60,23 +60,47 @@
       <h2 class="subtitle">
         All settings have been configured. You can close this window.
       </h2>
+
+      <div v-if="isLinuxPlatform">
+        <div class="field centerize">
+          <p>
+            For Linux users, OpenOCD needs to add 60-openocd.rules for
+            permission delegation in USB devices to be added in
+            <span class="span-path">/etc/udev/rules.d/</span>.
+          </p>
+        </div>
+
+        <div class="field centerize">
+          <div class="control">
+            <a class="button" @click="copyOpenOCDRules"
+              >Add OpenOCD dev rules</a
+            >
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
+import { Component, Vue } from "vue-property-decorator";
+import { Action, State } from "vuex-class";
 
 @Component
 export default class App extends Vue {
+  @Action copyOpenOCDRules: Function;
   @State("isIdfInstalled") private storeIsInstalled: boolean;
+  @State("platform") private storePlatform: string;
   get isInstalled() {
     return this.storeIsInstalled;
   }
 
   get currentRoute() {
     return this.$route.path;
+  }
+
+  get isLinuxPlatform() {
+    return this.storePlatform.indexOf("linux") !== -1;
   }
 }
 </script>
@@ -118,5 +142,9 @@ export default class App extends Vue {
   height: 10px;
   width: 0%;
   align-self: flex-start;
+}
+
+.span-path {
+  color: var(--vscode-button-hoverBackground);
 }
 </style>
