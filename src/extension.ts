@@ -105,6 +105,7 @@ import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
+import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2565,7 +2566,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
             message: "Launching monitor...",
             increment: 10,
           });
-          await createMonitor();
+          createMonitor();
         }
       }
     );
@@ -2660,28 +2661,40 @@ class IdfDebugConfigurationProvider
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): Promise<vscode.DebugConfiguration> {
-    const elfFilePath = path.join(
-      workspaceRoot.fsPath,
-      "build",
-      (await getProjectName(workspaceRoot.fsPath.toString())) + ".elf"
-    );
-    const elfFileExists = await pathExists(elfFilePath);
-    if (!elfFileExists) {
-      const elfErr = new Error(
-        `${elfFilePath} doesn't exist. Build this project first.`
+    try {
+      const projectName = await getProjectName(workspaceRoot.fsPath);
+      const elfFilePath = path.join(
+        workspaceRoot.fsPath,
+        "build",
+        `${projectName}.elf`
       );
-      Logger.errorNotify(elfErr.message, elfErr);
-      const startBuild = await vscode.window.showInformationMessage(
-        elfErr.message,
-        "Yes",
-        "No"
-      );
-      if (startBuild === "Yes") {
-        buildFlashAndMonitor(false);
+      const elfFileExists = await pathExists(elfFilePath);
+      if (!elfFileExists) {
+        throw new Error(
+          `${elfFilePath} doesn't exist. Build this project first.`
+        );
       }
-      return;
+      const isSameAppBinary = await verifyAppBinary(workspaceRoot.fsPath);
+      if (!isSameAppBinary) {
+        throw new Error(
+          `Current app binary is different from your project. Flash first.`
+        );
+      }
+      config.elfFilePath = elfFilePath;
+    } catch (error) {
+      const msg = error.message
+        ? error.message
+        : "Some build files doesn't exist. Build this project first.";
+      Logger.error(error.message, error);
+      const startBuild = await vscode.window.showInformationMessage(
+        msg,
+        "Build"
+      );
+      if (startBuild === "Build") {
+        await buildFlashAndMonitor(false);
+        return;
+      }
     }
-    config.elfFilePath = elfFilePath;
     return config;
   }
 }
