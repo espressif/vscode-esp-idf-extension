@@ -47,6 +47,8 @@
   "espIdf.monitorQemu.title": "Monitor QEMU device",
   "espIdf.qemuDebug.title": "Launch QEMU debug session",
   "espIdf.createDevContainer.title": "Add docker container configuration",
+  "espIdf.partition.table.refresh.title": "Refresh partition table",
+  "espIdf.flashBinaryToPartition.title": "Flash binary to partition...",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "ESP-IDF: Launch",

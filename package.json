@@ -145,7 +145,7 @@
         },
         {
           "id": "idfPartitionExplorer",
-          "name": "IDF Partition Explorer"
+          "name": "Device Partition Explorer"
         },
         {
           "id": "idfAppTracer",
@@ -175,12 +175,17 @@
       {
         "view": "idfSearchResults",
         "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in documentation to get matching results here.\n\nResults are based on your current vscode language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
+      },
+      {
+        "view": "idfPartitionExplorer",
+        "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "espIdf.partition.table.refresh",
+          "group": "navigation",
           "when": "view == idfPartitionExplorer"
         },
         {
@@ -766,13 +771,13 @@
       },
       {
         "command": "espIdf.partition.table.refresh",
-        "title": "Refresh partition table",
+        "title": "%espIdf.partition.table.refresh.title%",
         "icon": "$(refresh)"
       },
       {
         "command": "espIdf.flashBinaryToPartition",
         "category": "ESP-IDF",
-        "title": "Flash binary to partition..."
+        "title": "%espIdf.flashBinaryToPartition.title%"
       },
       {
         "command": "espIdf.apptrace.archive.refresh",
@@ -1204,5 +1209,8 @@
     "insight": {
       "key": "912cbb4e-e606-4c4f-9a00-1731acb15117"
     }
-  }
+  },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ]
 }

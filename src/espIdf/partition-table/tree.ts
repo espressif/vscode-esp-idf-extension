@@ -59,8 +59,6 @@ export class PartitionTreeDataProvider
   public partitionItems: PartitionItem[];
   private readonly PARTITION_TABLE_SIZE = "0xC00";
 
-  constructor() {}
-
   public registerDataProvider(treeName: string): Disposable {
     return window.registerTreeDataProvider(treeName, this);
   }

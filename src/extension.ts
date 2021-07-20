@@ -1866,7 +1866,7 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       let items = [];
-      for (const devicePartition of partitionsInDevice) {
+      for (let devicePartition of partitionsInDevice) {
         const item = {
           label: devicePartition.name,
           target: devicePartition.offset,

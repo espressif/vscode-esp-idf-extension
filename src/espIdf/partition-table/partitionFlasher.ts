@@ -34,11 +34,10 @@ export async function flashBinaryToPartition(offset: string, binPath: string) {
         const workspaceFolder = PreCheck.isWorkspaceFolderOpen()
           ? workspace.workspaceFolders[0].uri.fsPath
           : "";
-
         const modifiedEnv = appendIdfAndToolsToPath();
         const serialPort = readParameter("idf.port");
 
-        const cmdResult = await spawn(
+        await spawn(
           "esptool.py",
           ["-p", serialPort, "write_flash", offset, binPath],
           {
