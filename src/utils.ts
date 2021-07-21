@@ -21,6 +21,7 @@ import {
   mkdirp,
   move,
   pathExists,
+  readdir,
   readFile,
   readJSON,
   writeFile,
@@ -40,8 +41,6 @@ import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 
-const extensionName = __dirname.replace(path.sep + "dist", "");
-const templateDir = path.join(extensionName, "templates");
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
   "utils.currentFolder",
@@ -49,8 +48,13 @@ const currentFolderMsg = locDic.localize(
 );
 
 export let extensionContext: vscode.ExtensionContext;
+let templateDir: string = path.join(
+  vscode.extensions.getExtension(ESP.extensionID).extensionPath,
+  "templates"
+);
 export function setExtensionContext(context: vscode.ExtensionContext): void {
   extensionContext = context;
+  // templateDir = path.join(extensionContext.extensionPath, "templates");
 }
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
@@ -192,48 +196,42 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
   await ensureDir(settingsDir);
 
-  return new Promise<void>((resolve, reject) => {
-    fs.readdir(vscodeTemplateFolder, async (err, files) => {
-      if (err) {
-        return reject(err);
-      }
-      for (const f of files) {
-        const fPath = path.join(settingsDir, f);
-        const fSrcPath = path.join(vscodeTemplateFolder, f);
-        const fExists = await pathExists(fPath);
-        if (!fExists) {
-          await copy(fSrcPath, fPath);
-        }
-      }
-      const cCppPropertiesJsonPath = path.join(
-        curWorkspaceFsPath,
-        ".vscode",
-        "c_cpp_properties.json"
-      );
-      const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
-      const modifiedEnv = appendIdfAndToolsToPath();
-      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-      const gccTool =
-        idfTarget === "esp32c3"
-          ? "riscv32-esp-elf-gcc"
-          : `xtensa-${idfTarget}-elf-gcc`;
-      const compilerPath = await isBinInPath(
-        gccTool,
-        curWorkspaceFsPath,
-        modifiedEnv
-      );
-      if (
-        cCppPropertiesJson &&
-        cCppPropertiesJson.configurations &&
-        cCppPropertiesJson.configurations.length
-      ) {
-        cCppPropertiesJson.configurations[0].compilerPath = compilerPath;
-      }
-      await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
-        spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
-      });
-      return resolve();
-    });
+  const files = await readdir(vscodeTemplateFolder);
+
+  for (const f of files) {
+    const fPath = path.join(settingsDir, f);
+    const fSrcPath = path.join(vscodeTemplateFolder, f);
+    const fExists = await pathExists(fPath);
+    if (!fExists) {
+      await copy(fSrcPath, fPath);
+    }
+  }
+  const cCppPropertiesJsonPath = path.join(
+    curWorkspaceFsPath,
+    ".vscode",
+    "c_cpp_properties.json"
+  );
+  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
+  const modifiedEnv = appendIdfAndToolsToPath();
+  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+  const gccTool =
+    idfTarget === "esp32c3"
+      ? "riscv32-esp-elf-gcc"
+      : `xtensa-${idfTarget}-elf-gcc`;
+  const compilerPath = await isBinInPath(
+    gccTool,
+    curWorkspaceFsPath,
+    modifiedEnv
+  );
+  if (
+    cCppPropertiesJson &&
+    cCppPropertiesJson.configurations &&
+    cCppPropertiesJson.configurations.length
+  ) {
+    cCppPropertiesJson.configurations[0].compilerPath = compilerPath;
+  }
+  await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
+    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
   });
 }
 
