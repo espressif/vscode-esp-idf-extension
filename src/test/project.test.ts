@@ -19,7 +19,7 @@ import * as assert from "assert";
 import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext } from "vscode";
-import { createVscodeFolder, setExtensionContext } from "../utils";
+import { createVscodeFolder, isBinInPath, setExtensionContext } from "../utils";
 
 suite("Project tests", () => {
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
@@ -69,7 +69,12 @@ suite("Project tests", () => {
     const templateCCppPropertiesJsonJson = await readJson(
       join(templateFolder, "c_cpp_properties.json")
     );
-    templateCCppPropertiesJsonJson.configurations[0].compilerPath = "";
+    const compilerPath = await isBinInPath(
+      "xtensa-esp32-elf-gcc",
+      targetFolder,
+      process.env
+    );
+    templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerPath;
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
