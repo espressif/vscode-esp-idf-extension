@@ -558,6 +558,17 @@ export function checkIsProjectCmakeLists(dir: string) {
   return false;
 }
 
+export function readProjectCMakeLists(dirPath: string) {
+  const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
+  if (fileExists(cmakeListFile)) {
+    const content = fs.readFileSync(cmakeListFile, "utf-8");
+    const projectMatches = content.match(/(project\(.*?\))/g);
+    if (projectMatches && projectMatches.length > 0) {
+      return projectMatches;
+    }
+  }
+}
+
 export async function updateProjectNameInCMakeLists(
   dirPath: string,
   newProjectName: string
