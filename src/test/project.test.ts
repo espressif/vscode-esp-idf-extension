@@ -150,9 +150,11 @@ suite("Project tests", () => {
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg",
       "no port"
     );
-    console.log(newSettingsJson);
+    console.log(newSettingsJson["idf.customExtraVars"]);
     assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
-    assert.equal(newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"], process.env.OPENOCD_SCRIPTS);
+    const newSettingsJsonVars = JSON.parse(newSettingsJson["idf.customExtraVars"]);
+    console.log(newSettingsJsonVars);
+    assert.equal(newSettingsJsonVars["OPENOCD_SCRIPTS"], process.env.OPENOCD_SCRIPTS);
     assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.pythonBinPath"], "python");
   });
