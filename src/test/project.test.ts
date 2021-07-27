@@ -20,6 +20,7 @@ import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
 import { ExtensionContext } from "vscode";
 import { getExamplesList } from "../examples/Example";
+import { setCurrentSettingsInTemplate } from "../newProject/utils";
 import {
   copyFromSrcProject,
   createVscodeFolder,
@@ -119,8 +120,7 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = await getExamplesList(mockUpContext.extensionPath, "templates");
-    console.log(JSON.stringify(templatesCategories));
+    const templatesCategories = getExamplesList(mockUpContext.extensionPath, "templates");
     assert.notEqual(templatesCategories, undefined);
     assert.notEqual(templatesCategories.examples, undefined);
     assert.notEqual(templatesCategories.examples.length, 0);
@@ -128,11 +128,32 @@ suite("Project tests", () => {
   });
 
   test("get examples projects", async () => {
-    const examplesCategories = await getExamplesList(process.env.IDF_PATH);
+    const examplesCategories = getExamplesList(process.env.IDF_PATH);
     assert.notEqual(examplesCategories, undefined);
     assert.notEqual(examplesCategories.subcategories, undefined);
     assert.notEqual(examplesCategories.subcategories.length, 0);
     assert.equal(examplesCategories.subcategories[0].name, "get-started");
+  });
+
+  test("Set current settings in template", async () => {
+    const projectPath = join(wsFolder, "new-project");
+    const settingsJsonPath = join(
+      projectPath,
+      ".vscode",
+      "settings.json"
+    );
+    const settingsJson = await readJson(settingsJsonPath);
+    assert.equal(settingsJson["idf.espIdfPath"], undefined);
+    const newSettingsJson = await setCurrentSettingsInTemplate(
+      settingsJsonPath,
+      "esp32",
+      "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg",
+      "no port"
+    );
+    assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
+    assert.equal(newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"], process.env.OPENOCD_SCRIPTS);
+    assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
+    assert.equal(newSettingsJson["idf.pythonBinPath"], "python");
   });
 
   suiteTeardown(async () => {

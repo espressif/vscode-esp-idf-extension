@@ -16,6 +16,7 @@ import Vue from "vue";
 import Vuex, { ActionTree, MutationTree, StoreOptions } from "vuex";
 import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
 import { IExample, IExampleCategory } from "../../../examples/Example";
+import { IdfBoard } from "../../../espIdf/openOcd/boardConfiguration";
 
 Vue.use(Vuex);
 
@@ -25,19 +26,6 @@ try {
   vscode = acquireVsCodeApi();
 } catch (error) {
   console.error(error);
-}
-
-export interface IdfBoard {
-  name: string;
-  description: string;
-  target: string;
-  configFiles: string;
-}
-
-export interface IdfTarget {
-  id: string;
-  name: string;
-  openOcdFiles: string;
 }
 
 export interface IState {
@@ -53,8 +41,8 @@ export interface IState {
   selectedPort: string;
   selectedTemplate: IExample;
   serialPortList: string[];
-  target: IdfTarget;
-  targetList: IdfTarget[];
+  target: IdfBoard;
+  targetList: IdfBoard[];
   templateDetail: string;
   templatesRootPath: { [key: string]: IExampleCategory };
 }
@@ -134,12 +122,12 @@ export const mutations: MutationTree<IState> = {
     newState.serialPortList = serialPortList;
     state = { ...newState };
   },
-  setTarget(state, target: IdfTarget) {
+  setTarget(state, target: IdfBoard) {
     const newState = state;
     state.target = target;
     state = { ...newState };
   },
-  setTargetList(state, targetList: IdfTarget[]) {
+  setTargetList(state, targetList: IdfBoard[]) {
     const newState = state;
     newState.targetList = targetList;
     state = { ...newState };
@@ -177,7 +165,7 @@ export const actions: ActionTree<IState, any> = {
       openOcdConfigFiles: context.state.openOcdConfigFiles,
       port: context.state.selectedPort,
       projectName: context.state.projectName,
-      target: context.state.target.id,
+      target: context.state.target.target,
       template: context.state.selectedTemplate,
     });
   },

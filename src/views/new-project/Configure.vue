@@ -100,7 +100,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import folderOpen from "./components/folderOpen.vue";
 import IdfComponents from "./components/IdfComponents.vue";
-import { IdfBoard, IdfTarget } from "./store";
+import { IdfBoard } from "../../espIdf/openOcd/boardConfiguration";
 
 @Component({
   components: {
@@ -124,8 +124,8 @@ export default class Configure extends Vue {
   @State("selectedBoard") private storeSelectedBoard: IdfBoard;
   @State("selectedPort") private storeSelectedPort;
   @State("serialPortList") private storeSerialPortList: string[];
-  @State("targetList") private storeTargetList: IdfTarget[];
-  @State("target") private storeTarget: IdfTarget;
+  @State("targetList") private storeTargetList: IdfBoard[];
+  @State("target") private storeTarget: IdfBoard;
 
   get boards() {
     return this.storeBoards;
@@ -159,10 +159,10 @@ export default class Configure extends Vue {
   set selectedBoard(board: IdfBoard) {
     this.setSelectedBoard(board);
     const selectedTarget = this.storeTargetList.find(
-      (idfTarget) => idfTarget.id === board.target
+      (idfTarget) => idfTarget.target === board.target
     );
     this.setTarget(selectedTarget);
-    this.setOpenOcdConfigFiles(board.configFiles);
+    this.setOpenOcdConfigFiles(board.configFiles.join(","));
   }
 
   get selectedPort() {
@@ -186,9 +186,9 @@ export default class Configure extends Vue {
   get target() {
     return this.storeTarget;
   }
-  set target(newVal: IdfTarget) {
+  set target(newVal: IdfBoard) {
     this.setTarget(newVal);
-    this.setOpenOcdConfigFiles(newVal.openOcdFiles);
+    this.setOpenOcdConfigFiles(newVal.configFiles.join(","));
   }
   private mounted() {
     this.requestInitialValues();
