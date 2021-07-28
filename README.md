@@ -83,6 +83,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | ------------------------------------------------------- | -------------------------------------- | ----------------------------------------- |
 | Add Arduino ESP32 as ESP-IDF Component                  |                                        |                                           |
 | Add Editor coverage                                     |                                        |                                           |
+| Add OpenOCD rules file (For Linux users)                |                                        |                                           |
 | Add vscode configuration folder                         |                                        |                                           |
 | Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Build your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |

@@ -42,6 +42,7 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: 释放当前SDK配置编辑器服务器进程",
   "espIdf.setGcovConfig.title": "ESP-IDF: 为覆盖范围配置项目sdkconfig",
   "espIdf.importProject.title": "导入ESP-IDF项目",
+  "espIdf.copyOpenOcdRules.title": "添加OpenOCD规则文件",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "ESP-IDF：启动",

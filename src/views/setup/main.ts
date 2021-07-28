@@ -110,6 +110,9 @@ window.addEventListener("message", (event) => {
       if (msg.pathSep) {
         store.commit("setPathSep", msg.pathSep);
       }
+      if (msg.platform) {
+        store.commit("setPlatform", msg.platform);
+      }
       break;
     case "setEspIdfErrorStatus":
       if (typeof msg.errorMsg !== "undefined") {

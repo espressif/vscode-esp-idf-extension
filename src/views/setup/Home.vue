@@ -200,8 +200,4 @@ export default class Home extends Vue {
 div.notification.is-danger {
   background-color: var(--vscode-editorGutter-deletedBackground);
 }
-
-.span-path {
-  color: var(--vscode-button-hoverBackground);
-}
 </style>

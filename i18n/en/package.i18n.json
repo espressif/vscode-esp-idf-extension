@@ -42,6 +42,7 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Dispose current SDK Configuration editor server process",
   "espIdf.setGcovConfig.title": "ESP-IDF: Configure project sdkconfig for coverage",
   "espIdf.importProject.title": "Import ESP-IDF Project",
+  "espIdf.copyOpenOcdRules.title": "Add OpenOCD rules file",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "ESP-IDF: Launch",

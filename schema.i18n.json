@@ -119,6 +119,7 @@
     "espIdf.setGcovConfig.title",
     "espIdf.importProject.title",
     "espIdf.eraseFlash.title",
+    "espIdf.copyOpenOcdRules.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

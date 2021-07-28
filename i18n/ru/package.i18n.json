@@ -42,6 +42,7 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Удалить текущий процесс сервера редактора конфигурации SDK",
   "espIdf.setGcovConfig.title": "ESP-IDF: Настроить проект sdkconfig для покрытия",
   "espIdf.importProject.title": "Импортировать проект ESP-IDF",
+  "espIdf.copyOpenOcdRules.title": "Добавить файл правил OpenOCD",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "ESP-IDF: Запустить",
