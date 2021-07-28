@@ -561,7 +561,9 @@ export async function activate(context: vscode.ExtensionContext) {
               "components",
               "arduino"
             );
-            const arduinoDirExists = await utils.dirExistPromise(arduinoDirPath);
+            const arduinoDirExists = await utils.dirExistPromise(
+              arduinoDirPath
+            );
             if (arduinoDirExists) {
               return Logger.infoNotify(`${arduinoDirPath} already exists.`);
             }
