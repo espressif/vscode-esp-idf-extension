@@ -120,7 +120,10 @@ suite("Project tests", () => {
   });
 
   test("get templates projects", async () => {
-    const templatesCategories = getExamplesList(mockUpContext.extensionPath, "templates");
+    const templatesCategories = getExamplesList(
+      mockUpContext.extensionPath,
+      "templates"
+    );
     assert.notEqual(templatesCategories, undefined);
     assert.notEqual(templatesCategories.examples, undefined);
     assert.notEqual(templatesCategories.examples.length, 0);
@@ -137,24 +140,31 @@ suite("Project tests", () => {
 
   test("Set current settings in template", async () => {
     const projectPath = join(wsFolder, "new-project");
-    const settingsJsonPath = join(
-      projectPath,
-      ".vscode",
-      "settings.json"
-    );
+    const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
     assert.equal(settingsJson["idf.espIdfPath"], undefined);
+    const openOcdConfigs =
+      "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
       "esp32",
-      "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg",
+      openOcdConfigs,
       "no port"
     );
     assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
-    const newSettingsJsonVars = JSON.parse(newSettingsJson["idf.customExtraVars"]);
-    assert.equal(newSettingsJsonVars["OPENOCD_SCRIPTS"], process.env.OPENOCD_SCRIPTS);
+    assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
+    assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
     assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.pythonBinPath"], "python");
+    assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
+    assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
+    const newSettingsJsonVars = JSON.parse(
+      newSettingsJson["idf.customExtraVars"]
+    );
+    assert.equal(
+      newSettingsJsonVars["OPENOCD_SCRIPTS"],
+      process.env.OPENOCD_SCRIPTS
+    );
   });
 
   suiteTeardown(async () => {
