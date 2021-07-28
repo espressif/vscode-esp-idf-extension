@@ -554,18 +554,20 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot.fsPath,
               gitPath
             );
+            cancelToken.onCancellationRequested(() => {
+              arduinoComponentManager.cancel();
+            });
             const arduinoDirPath = path.join(
               workspaceRoot.fsPath,
               "components",
               "arduino"
             );
-            const arduinoDirExists = utils.dirExistPromise(arduinoDirPath);
+            const arduinoDirExists = await utils.dirExistPromise(
+              arduinoDirPath
+            );
             if (arduinoDirExists) {
               return Logger.infoNotify(`${arduinoDirPath} already exists.`);
             }
-            cancelToken.onCancellationRequested(() => {
-              arduinoComponentManager.cancel();
-            });
             await arduinoComponentManager.addArduinoAsComponent();
           } catch (error) {
             Logger.errorNotify(error.message, error);
