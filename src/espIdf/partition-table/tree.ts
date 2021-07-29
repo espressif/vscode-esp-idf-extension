@@ -83,10 +83,40 @@ export class PartitionTreeDataProvider
     try {
       const modifiedEnv = appendIdfAndToolsToPath();
       const serialPort = readParameter("idf.port") as string;
-      const partitionTableOffset = getConfigValueFromSDKConfig(
-        "CONFIG_PARTITION_TABLE_OFFSET",
-        workspaceFolder
+      const partitionTableOffsetOption = await window.showQuickPick(
+        [
+          {
+            label: `Use sdkconfig offset`,
+            target: "sdkconfig",
+          },
+          {
+            label: `Specify partition table offset`,
+            target: "custom",
+          },
+        ],
+        { placeHolder: "Select partition table offset to use" }
       );
+      if (!partitionTableOffsetOption) {
+        return;
+      }
+      let partitionTableOffset = "";
+      if (partitionTableOffsetOption.target.indexOf("sdkconfig") !== -1) {
+        partitionTableOffset = getConfigValueFromSDKConfig(
+          "CONFIG_PARTITION_TABLE_OFFSET",
+          workspaceFolder
+        );
+      } else if (partitionTableOffsetOption.target.indexOf("custom") !== -1) {
+        partitionTableOffset = await window.showInputBox({
+          placeHolder: "Enter custom partition table offset",
+          value: "",
+          validateInput: (text) => {
+            return /^[0-9A-Fa-f]+$/i.test(text)
+              ? null
+              : "The value is not a valid hexadecimal number";
+          },
+        });
+      }
+
       ensureDir(join(workspaceFolder, "partition_table"));
       const partTableBin = join(
         workspaceFolder,
