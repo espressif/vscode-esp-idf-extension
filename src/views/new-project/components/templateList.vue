@@ -30,7 +30,11 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { IExampleCategory, IExample } from "../../../examples/Example";
 import { Action, Mutation, State } from "vuex-class";
 
-@Component
+@Component({
+  components: {
+    TemplateList: () => import("./templateList.vue"),
+  },
+})
 export default class TemplateList extends Vue {
   @Action private getTemplateDetail;
   @Mutation private setSelectedTemplate;
