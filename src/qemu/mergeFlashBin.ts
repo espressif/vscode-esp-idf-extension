@@ -63,12 +63,14 @@ export async function validateReqs(
 
 export async function mergeFlashBinaries(
   wsFolder: string,
-  cancelToken: CancellationToken
+  cancelToken?: CancellationToken
 ) {
-  cancelToken.onCancellationRequested(() => {
-    TaskManager.cancelTasks();
-    TaskManager.disposeListeners();
-  });
+  if (cancelToken) {
+    cancelToken.onCancellationRequested(() => {
+      TaskManager.cancelTasks();
+      TaskManager.disposeListeners();
+    });
+  }
   const idfPath = readParameter("idf.espIdfPath");
   const port = readParameter("idf.port");
   const flashBaudRate = readParameter("idf.flashBaudRate");
@@ -115,7 +117,7 @@ export async function mergeFlashBinaries(
     showTaskOutput
   );
   await TaskManager.runTasks();
-  if (!cancelToken.isCancellationRequested) {
+  if (cancelToken && !cancelToken.isCancellationRequested) {
     Logger.infoNotify("Merge binaries task is done ⚡️");
   }
   TaskManager.disposeListeners();

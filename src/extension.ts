@@ -867,7 +867,6 @@ export async function activate(context: vscode.ExtensionContext) {
             appOffset: session.configuration.appOffset,
             elfFile: session.configuration.elfFilePath,
             debugAdapterPort: portToUse,
-            logLevel: session.configuration.logLevel,
           } as IDebugAdapterConfig;
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
@@ -902,7 +901,7 @@ export async function activate(context: vscode.ExtensionContext) {
           useMonitorWithDebug
         ) {
           isMonitorLaunchedByDebug = true;
-          await createMonitor();
+          createMonitor();
         }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
@@ -1798,44 +1797,52 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.qemuDebug", async () => {
-    if (qemuManager.isRunning()) {
-      qemuManager.stop();
-    }
-    qemuManager.configure({
-      launchArgs: [
-        "-nographic",
-        "-s",
-        "-S",
-        "-machine",
-        "esp32",
-        "-drive",
-        "file=build/merged_qemu.bin,if=mtd,format=raw",
-      ],
-    } as IQemuOptions);
-    await qemuManager.start();
-    const debugAdapterConfig = {
-      initGdbCommands: [
-        "target remote :1234",
-        "monitor system_reset",
-        "tb app_main",
-        "c",
-      ],
-      isPostMortemDebugMode: false,
-      isOocdDisabled: true,
-      target: "qemu",
-    } as IDebugAdapterConfig;
-    debugAdapterManager.configureAdapter(debugAdapterConfig);
-    await vscode.debug.startDebugging(undefined, {
-      name: "GDB QEMU",
-      type: "espidf",
-      request: "launch",
-      sessionID: "qemu.debug.session",
-    });
-    vscode.debug.onDidTerminateDebugSession(async (session) => {
-      if (session.configuration.sessionID === "qemu.debug.session") {
+  registerIDFCommand("espIdf.qemuDebug", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (qemuManager.isRunning()) {
         qemuManager.stop();
       }
+      const qemuBinExists = await pathExists(
+        path.join(workspaceRoot.fsPath, "build", "merged_qemu.bin")
+      );
+      if (!qemuBinExists) {
+        await mergeFlashBinaries(workspaceRoot.fsPath);
+      }
+      qemuManager.configure({
+        launchArgs: [
+          "-nographic",
+          "-gdb tcp::3333",
+          "-S",
+          "-machine",
+          "esp32",
+          "-drive",
+          "file=build/merged_qemu.bin,if=mtd,format=raw",
+        ],
+      } as IQemuOptions);
+      await qemuManager.start();
+      const debugAdapterConfig = {
+        initGdbCommands: [
+          "target remote localhost:3333",
+          "monitor system_reset",
+          "tb app_main",
+          "c",
+        ],
+        isPostMortemDebugMode: false,
+        isOocdDisabled: true,
+        logLevel: 5,
+      } as IDebugAdapterConfig;
+      debugAdapterManager.configureAdapter(debugAdapterConfig);
+      await vscode.debug.startDebugging(undefined, {
+        name: "GDB QEMU",
+        type: "espidf",
+        request: "launch",
+        sessionID: "qemu.debug.session",
+      });
+      vscode.debug.onDidTerminateDebugSession(async (session) => {
+        if (session.configuration.sessionID === "qemu.debug.session") {
+          qemuManager.stop();
+        }
+      });
     });
   });
 

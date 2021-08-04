@@ -34,6 +34,7 @@ import { createFlashModel } from "../../flash/flashModelBuilder";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
+  tmoScaleFactor?: number;
   coreDumpFile?: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
@@ -67,6 +68,7 @@ export class DebugAdapterManager extends EventEmitter {
   private env;
   private gdbinitFilePath: string;
   private initGdbCommands: string[];
+  private tmoScaleFactor?: number;
   private isPostMortemDebugMode: boolean;
   private isOocdDisabled: boolean;
   private logLevel: number;
@@ -95,7 +97,11 @@ export class DebugAdapterManager extends EventEmitter {
           new Error("Invalid OpenOCD bin path or access is denied for the user")
         );
       }
-      if (this.env && typeof this.env.OPENOCD_SCRIPTS === "undefined") {
+      if (
+        this.env &&
+        !this.isOocdDisabled &&
+        typeof this.env.OPENOCD_SCRIPTS === "undefined"
+      ) {
         return reject(
           new Error(
             "Invalid OpenOCD script path or access is denied for the user"
@@ -160,6 +166,9 @@ export class DebugAdapterManager extends EventEmitter {
         : await this.makeGdbinitFile();
       if (resultGdbInitFile) {
         adapterArgs.push("-x", resultGdbInitFile);
+      }
+      if (this.tmoScaleFactor) {
+        adapterArgs.push("-tsf", this.tmoScaleFactor.toString());
       }
       this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
@@ -244,6 +253,7 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.isOocdDisabled) {
       this.isOocdDisabled = config.isOocdDisabled;
     }
+    this.tmoScaleFactor = config.tmoScaleFactor;
     this.appOffset = config.appOffset;
   }
 
