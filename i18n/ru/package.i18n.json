@@ -107,5 +107,6 @@
   "esp_idf.appOffset.description": "Отменить смещение начального адреса программы сборки (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "Одна или несколько команд GDB для настройки отладчика. Пример: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "Путь к файлу gdbinit для адаптера отладки ESP-IDF",
-  "esp_idf.debuggers.text.description": "Команда для выполнения"
+  "esp_idf.debuggers.text.description": "Команда для выполнения",
+  "esp_idf.skipVerifyAppBinBeforeDebug.description": "Пропустить проверку двоичных файлов приложения перед отладкой"
 }

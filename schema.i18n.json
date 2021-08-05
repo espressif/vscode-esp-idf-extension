@@ -181,6 +181,7 @@
     "esp_idf.initGdbCommands.description",
     "esp_idf.debuggers.text.description",
     "esp_idf.gdbinitFile.description",
+    "esp_idf.skipVerifyAppBinBeforeDebug.description",
     "param.launchMonitorOnDebugSession.title",
     "param.enableIdfComponentManager.title",
     "param.gitPath.title",

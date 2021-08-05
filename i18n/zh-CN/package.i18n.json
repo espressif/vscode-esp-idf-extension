@@ -107,5 +107,6 @@
   "esp_idf.appOffset.description": "重写生成程序开始地址偏移量 (ESP32_APP_FLASH_OFF)",
   "esp_idf.initGdbCommands.description": "要执行的一个或多个GDB命令，以便设置底层调试器。例子: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"].",
   "esp_idf.gdbinitFile.description": "ESP-IDF调试适配器的gdbinit文件路径",
-  "esp_idf.debuggers.text.description": "要执行的命令"
+  "esp_idf.debuggers.text.description": "要执行的命令",
+  "esp_idf.skipVerifyAppBinBeforeDebug.description": "调试前跳过验证应用程序二进制文件"
 }
