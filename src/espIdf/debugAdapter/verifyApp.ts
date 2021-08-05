@@ -52,10 +52,10 @@ export async function verifyAppBinary(workspaceFolder: string) {
         env: modifiedEnv,
       }
     );
-    console.log(cmdResult);
-    if (cmdResult.indexOf("verify FAILED (digest mismatch)") !== -1) {
+    Logger.info(cmdResult.toString());
+    if (cmdResult.toString().indexOf("verify FAILED (digest mismatch)") !== -1) {
       return false;
-    } else if (cmdResult.indexOf("verify OK (digest matched)") !== -1) {
+    } else if (cmdResult.toString().indexOf("verify OK (digest matched)") !== -1) {
       return true;
     }
     return false;

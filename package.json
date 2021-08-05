@@ -975,6 +975,11 @@
                 "type": "string",
                 "description": "%esp_idf.gdbinitFile.description%",
                 "default": ""
+              },
+              "skipVerifyAppBinBeforeDebug": {
+                "type": "boolean",
+                "description": "%esp_idf.skipVerifyAppBinBeforeDebug.description%",
+                "default": false
               }
             }
           }

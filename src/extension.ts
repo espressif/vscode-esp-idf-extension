@@ -2674,11 +2674,13 @@ class IdfDebugConfigurationProvider
           `${elfFilePath} doesn't exist. Build this project first.`
         );
       }
-      const isSameAppBinary = await verifyAppBinary(workspaceRoot.fsPath);
-      if (!isSameAppBinary) {
-        throw new Error(
-          `Current app binary is different from your project. Flash first.`
-        );
+      if (!config.skipVerifyAppBinBeforeDebug) {
+        const isSameAppBinary = await verifyAppBinary(workspaceRoot.fsPath);
+        if (!isSameAppBinary) {
+          throw new Error(
+            `Current app binary is different from your project. Flash first.`
+          );
+        }
       }
       config.elfFilePath = elfFilePath;
     } catch (error) {
