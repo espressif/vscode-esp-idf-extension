@@ -89,9 +89,9 @@ The `idf.saveScope` allows the user to specify where to save settings when using
 
 ### QEMU specific settings
 
-| Setting ID                             | Description                                                       |
-| -------------------------------------- | ----------------------------------------------------------------- |
-| `idf.qemuTcpPort`                      | QEMU tcp port for serial communication                            |
+| Setting ID        | Description                            |
+| ----------------- | -------------------------------------- |
+| `idf.qemuTcpPort` | QEMU tcp port for serial communication |
 
 ### Log Tracing Specific Settings
 

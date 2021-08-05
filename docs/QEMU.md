@@ -7,8 +7,8 @@ When you create a project using this extension commands, there is Dockerfile whi
 Development steps:
 
 1. Prepare a project folder in a container based on the dockerfile in the templates `.devcontainer` directory in this repository. For this you can:
-    - Create a project using `New Project`, `ESP-IDF: Show Examples Projects` or `ESP-IDF: Create project from extension template` command which will include the `.devcontainer` directory.
-    - Use the `Add docker container configuration` command to add the `.devcontainer` files to the currently opened project directory.
+   - Create a project using `New Project`, `ESP-IDF: Show Examples Projects` or `ESP-IDF: Create project from extension template` command which will include the `.devcontainer` directory.
+   - Use the `Add docker container configuration` command to add the `.devcontainer` files to the currently opened project directory.
 2. Use the `Remote Containers: Open folder in container..` command to open the folder within the container.
 3. The `Remote Containers` will build the container from the Dockerfile (if it has not been created before) and install this extension on the container.
 4. The extension should be self configured, otherwise run the setup wizard.
