@@ -13,15 +13,15 @@
 // limitations under the License.
 import * as path from "path";
 import * as vscode from "vscode";
-import * as idfConf from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
-import { copy, ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
+import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
+import { setCurrentSettingsInTemplate } from "./utils";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
 
@@ -121,7 +121,7 @@ export class NewProjectPanel {
             this.createProject(
               message.components,
               message.target,
-              message.openOcdCfgs,
+              message.openOcdConfigFiles,
               message.port,
               message.containerFolder,
               message.projectName,
@@ -167,7 +167,7 @@ export class NewProjectPanel {
             const defConfigFiles =
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles
-                : newProjectArgs.targetList[0].openOcdFiles;
+                : newProjectArgs.targetList[0].configFiles;
             this.panel.webview.postMessage({
               boards: newProjectArgs.boards,
               command: "initialLoad",
@@ -264,43 +264,12 @@ export class NewProjectPanel {
             ".vscode",
             "settings.json"
           );
-          const settingsJson = await readJSON(settingsJsonPath);
-          const idfPathDir = idfConf.readParameter("idf.espIdfPath");
-          const adfPathDir = idfConf.readParameter("idf.espAdfPath");
-          const mdfPathDir = idfConf.readParameter("idf.espMdfPath");
-          const extraPaths = idfConf.readParameter("idf.customExtraPaths");
-          const extraVars = idfConf.readParameter(
-            "idf.customExtraVars"
-          ) as string;
-          const toolsDir = idfConf.readParameter("idf.toolsPath");
-          const pyPath = idfConf.readParameter("idf.pythonBinPath");
-          const isWin = process.platform === "win32" ? "Win" : "";
-          settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
-          if (extraPaths) {
-            settingsJson["idf.customExtraPaths"] = extraPaths;
-          }
-          if (extraVars) {
-            settingsJson["idf.customExtraVars"] = extraVars;
-          }
-          if (idfPathDir) {
-            settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
-          }
-          if (adfPathDir) {
-            settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
-          }
-          if (mdfPathDir) {
-            settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
-          }
-          settingsJson["idf.openOcdConfigs"] = openOcdConfigs;
-          if (port.indexOf("no port") === -1) {
-            settingsJson["idf.port" + isWin] = port;
-          }
-          if (pyPath) {
-            settingsJson["idf.pythonBinPath" + isWin] = pyPath;
-          }
-          if (toolsDir) {
-            settingsJson["idf.toolsPath" + isWin] = toolsDir;
-          }
+          const settingsJson = await setCurrentSettingsInTemplate(
+            settingsJsonPath,
+            idfTarget,
+            openOcdConfigs,
+            port
+          );
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:
               vscode.workspace.getConfiguration().get("editor.tabSize") || 2,

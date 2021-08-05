@@ -11,16 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { join } from "path";
 import { Progress } from "vscode";
 import { getExamplesList, IExampleCategory } from "../examples/Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import * as idfConf from "../idfConfiguration";
-import { IdfBoard, IdfTarget } from "../views/new-project/store";
 import { SerialPort } from "../espIdf/serial/serialPort";
 import { dirExistPromise } from "../utils";
-import { readJSON } from "fs-extra";
 import { Logger } from "../logger/logger";
+import { defaultBoards, getBoards, getOpenOcdScripts, IdfBoard } from "../espIdf/openOcd/boardConfiguration";
 
 export interface INewProjectArgs {
   espIdfPath: string;
@@ -29,80 +27,8 @@ export interface INewProjectArgs {
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
-  targetList: IdfTarget[];
+  targetList: IdfBoard[];
   templates: { [key: string]: IExampleCategory };
-}
-
-const defTargetList: IdfTarget[] = [
-  {
-    id: "esp32",
-    name: "ESP32",
-    openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg",
-  } as IdfTarget,
-  {
-    id: "esp32s2",
-    name: "ESP32-S2",
-    openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32s2.cfg",
-  } as IdfTarget,
-  {
-    id: "esp32s3",
-    name: "ESP32-S3",
-    openOcdFiles: "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32s3.cfg",
-  } as IdfTarget,
-  {
-    id: "esp32c3",
-    name: "ESP32-C3 USB",
-    openOcdFiles: "board/esp32c3-builtin.cfg",
-  } as IdfTarget,
-  {
-    id: "esp32c3",
-    name: "ESP32-C3 PROG",
-    openOcdFiles: "board/esp32c3-ftdi.cfg",
-  } as IdfTarget,
-];
-
-export async function getBoards() {
-  const customExtraVars = idfConf.readParameter("idf.customExtraVars");
-  let openOcdScriptsPath: string;
-  try {
-    const jsonDict = JSON.parse(customExtraVars);
-    openOcdScriptsPath = jsonDict.hasOwnProperty("OPENOCD_SCRIPTS")
-      ? jsonDict.OPENOCD_SCRIPTS
-      : process.env.OPENOCD_SCRIPTS
-      ? process.env.OPENOCD_SCRIPTS
-      : undefined;
-  } catch (error) {
-    Logger.error(error.message, error);
-    openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
-      ? process.env.OPENOCD_SCRIPTS
-      : undefined;
-  }
-  if (!openOcdScriptsPath) {
-    return;
-  }
-  const openOcdEspConfig = join(openOcdScriptsPath, "esp-config.json");
-  try {
-    const openOcdEspConfigObj = await readJSON(openOcdEspConfig);
-    const espBoards: IdfBoard[] = openOcdEspConfigObj.boards.map((b) => {
-      return {
-        name: b.name,
-        description: b.description,
-        target: b.target,
-        configFiles: b.config_files,
-      } as IdfBoard;
-    });
-    const emptyBoard = {
-      name: "Custom board",
-      description: "No board selected",
-      target: defTargetList[0].id,
-      configFiles: defTargetList[0].openOcdFiles,
-    } as IdfBoard;
-    espBoards.push(emptyBoard);
-    return espBoards;
-  } catch (error) {
-    Logger.error(error.message, error);
-    return;
-  }
 }
 
 export async function getNewProjectArgs(
@@ -125,9 +51,10 @@ export async function getNewProjectArgs(
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
-  const espBoards = await getBoards();
+  const openOcdScriptsPath = getOpenOcdScripts();
+  const espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
-  const targetList = defTargetList;
+  const targetList = defaultBoards;
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
   const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;

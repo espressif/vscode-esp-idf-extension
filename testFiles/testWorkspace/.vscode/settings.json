@@ -1,11 +1,11 @@
 {
   "idf.espAdfPath": "/test/esp-adf",
-  "idf.espIdfPath": "/test/esp-idf",
+  "idf.espIdfPath": "${env:IDF_PATH}",
   "idf.espMdfPath": "/test/esp-mdf",
-  "idf.customExtraPaths": "/my/first/path:my/second/path",
-  "idf.customExtraVars": "{\"SOME_VAR\": \"value\"}",
+  "idf.customExtraPaths": "${env:PATH}",
+  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\"}",
   "idf.port": "/serialport",
-  "idf.pythonBinPath": "/some/python/path",
+  "idf.pythonBinPath": "python",
   "idf.openOcdConfigs": ["some", "path"],
-  "idf.toolsPath": "some/tools/path"
+  "idf.toolsPath": "${env:IDF_TOOLS_PATH}"
 }
