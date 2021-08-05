@@ -932,7 +932,7 @@
       },
       {
         "command": "espIdf.qemuDebug",
-        "title": "QEMU debug",
+        "title": "%espIdf.qemuDebug.title%",
         "category": "ESP-IDF"
       }
     ],

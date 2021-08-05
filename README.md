@@ -83,6 +83,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Command Description                                     | Keyboard Shortcuts (Mac)               | Keyboard Shortcuts (Windows/ Linux)       |
 | ------------------------------------------------------- | -------------------------------------- | ----------------------------------------- |
 | Add Arduino ESP32 as ESP-IDF Component                  |                                        |                                           |
+| Add docker container configuration                      |                                        |                                           |
 | Add Editor coverage                                     |                                        |                                           |
 | Add OpenOCD rules file (For Linux users)                |                                        |                                           |
 | Add vscode configuration folder                         |                                        |                                           |
@@ -105,9 +106,12 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
-| Monitor your device                                     | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
-| New Project                                             | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
-| Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
+| Launch QEMU server                                      |                                        |                                           |
+| Launch QEMU debug session                               |                                        |                                           |
+| Monitor your device                                     | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
+| Monitor QEMU device                                     |                                        |                                           |
+| New Project                                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
+| Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Open NVS Partition Editor                               |                                        |                                           |
 | Pick a workspace folder                                 |                                        |                                           |
 | SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |

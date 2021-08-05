@@ -87,7 +87,13 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
 
-## Log Tracing Specific Settings
+### QEMU specific settings
+
+| Setting ID                             | Description                                                       |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| `idf.qemuTcpPort`                      | QEMU tcp port for serial communication                            |
+
+### Log Tracing Specific Settings
 
 These settings are specific to [Application Log Tracing](./HEAP_TRACING.md).
 

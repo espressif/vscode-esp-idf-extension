@@ -122,6 +122,8 @@
     "espIdf.copyOpenOcdRules.title",
     "espIdf.setGcovConfig.title",
     "espIdf.monitorQemu.title",
+    "espIdf.launchQemu.title",
+    "espIdf.qemuDebug.title",
     "espIdf.createDevContainer.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
