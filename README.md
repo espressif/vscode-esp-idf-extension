@@ -58,6 +58,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
   - Either open Visual Studio Code and create a workspace folder.
   - Run `code ${YOUR_PROJECT_DIR}` from the command line.
 - Check you have installed the [Prerequisites](#Prerequisites)
+- (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md) for more information. Default is User settings.
 - On the first time using the extension, press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF and tools and configure the extension.
 
   > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension configuration.

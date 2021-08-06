@@ -1,10 +1,10 @@
-## ESP IDF Settings
+# ESP IDF Settings
 
 This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu (menu View -> Command Palette -> Preferences: Open Settings (UI)).
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
-### ESP-IDF Specific Settings
+## ESP-IDF Specific Settings
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
@@ -32,7 +32,7 @@ This is how the extension uses them:
 
 > **NOTE**: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We use a modified process environment in all of this extension tasks and child processes which should not affect any other system process or extension. Please review the content of `idf.customExtraPaths` and `idf.customExtraVars` in case you have issues with other extensions.
 
-### Board/ Chip Specific Settings
+## Board/ Chip Specific Settings
 
 These settings are specific to the ESP32 Chip/ Board
 
@@ -58,7 +58,7 @@ This is how the extension uses them:
 4. `idf.openOcdConfigs` is used to store an array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 5. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
 
-### Code coverage Specific Settings
+## Code coverage Specific Settings
 
 These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
@@ -73,7 +73,7 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.uncoveredLightTheme` | Background color for uncovered lines in light theme for gcov coverage         |
 | `idf.uncoveredDarkTheme`  | Background color for uncovered lines in dark theme for gcov coverage          |
 
-### Extension Behaviour Settings
+## Extension Behaviour Settings
 
 | Setting ID                             | Description                                                       |
 | -------------------------------------- | ----------------------------------------------------------------- |
@@ -85,11 +85,11 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session           |
 | `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)     |
 
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
 
-### Log Tracing Specific Settings
+## Log Tracing Specific Settings
 
-These settings are specific to the Log Tracing
+These settings are specific to [Application Log Tracing](./HEAP_TRACING.md).
 
 | Setting             | Description                              |
 | ------------------- | ---------------------------------------- |
@@ -99,7 +99,7 @@ These settings are specific to the Log Tracing
 | `trace.wait4halt`   | wait4halt will be set for the apptrace   |
 | `trace.skip_size`   | skip_size will be set for the apptrace   |
 
-### Other frameworks Specific Settings
+## Other frameworks Specific Settings
 
 These settings allow to support additional frameworks together with ESP-IDF
 
@@ -115,7 +115,7 @@ The **Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`id
 
 The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are set.
 
-### Use of environment variables in ESP-IDF settings.json and tasks.json
+## Use of environment variables in ESP-IDF settings.json and tasks.json
 
 Environment (env) variables and other ESP-IDF settings (config) current values strings can be used in other ESP-IDF setting as `${env:VARNAME}` and `${config:ESPIDFSETTING}`, respectively.
 

@@ -12,8 +12,9 @@
   <img src="../../media/tutorials/setup/install-extension.png" alt="Setup wizard">
 </p>
 
-6. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
-7. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
+6. (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md) for more information. Default is User settings.
+7. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
+8. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
 
 > **NOTE**: **Use existing setup** setup mode option is only shown if:
 >
@@ -25,8 +26,8 @@
   <img src="../../media/tutorials/setup/select-mode.png" alt="Select extension mode" width="950">
 </p>
 
-8. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
-9. If you choose **Express** setup mode:
+9. Choose **Express** for the fastest option (or **Use existing setup** if ESP-IDF is already installed)
+10. If you choose **Express** setup mode:
     - Pick an ESP-IDF version to download (or find ESP-IDF in your system) and the python executable to create the virtual environment.
     - Choose the location for ESP-IDF Tools and python virtual environment (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
     > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
@@ -35,13 +36,13 @@
   <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
 </p>
 
-10. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
+11. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
 
 <p>
   <img src="../../media/tutorials/setup/install-status.png" alt="Install status" width="950">
 </p>
 
-11. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, select to either download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
+12. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, select to either download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
     > **NOTE:** Consider that `IDF_PATH` requires each ESP-IDF tool to be of the version described in `IDF_PATH`/tools/tools.json.
     > If it is desired to use a different ESP-IDF tool version, check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration)
 
@@ -49,14 +50,14 @@
   <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools" width="950">
 </p>
 
-12. (OPTIONAL) If the user has chosen the **Advanced** mode and selected to manually provide each ESP-IDF tool absolute path, please enter the executable container directory for each binary as shown below:
+13. (OPTIONAL) If the user has chosen the **Advanced** mode and selected to manually provide each ESP-IDF tool absolute path, please enter the executable container directory for each binary as shown below:
     > **NOTE:** Check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration) for more information.
 
 <p>
   <img src="../../media/tutorials/setup/advanced-manual.png" alt="Enter ESP-IDF Tools paths manually" width="950">
 </p>
 
-12. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
+14. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
 
 <p>
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
@@ -64,6 +65,6 @@
 
 > **NOTE**: The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path.
 
-13. Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
+15. Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 
   > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review [vscode settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
