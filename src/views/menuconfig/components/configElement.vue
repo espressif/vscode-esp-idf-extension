@@ -13,7 +13,11 @@
         <div class="field">
           <div class="control">
             <div class="select is-small">
-              <select v-model="config.value" @change="onChange">
+              <select
+                v-model="config.value"
+                @change="onChange"
+                :data-config-id="config.id"
+              >
                 <option
                   v-for="option in config.children"
                   :key="option.id"
@@ -34,6 +38,7 @@
           v-model="config.value"
           type="checkbox"
           class="switch_1"
+          :data-config-id="config.id"
           @change="onChange"
         />
         <div class="field has-addons">
@@ -59,6 +64,7 @@
         <div class="control">
           <input
             v-model="config.value"
+            :data-config-id="config.id"
             type="number"
             class="input is-small"
             placeholder="0"
@@ -69,7 +75,7 @@
     </div>
     <div v-if="config.type === 'string'" class="form-group">
       <div class="field has-addons">
-        <label v-text="config.title" />
+        <label v-text="config.title" :data-config-id="config.id" />
         <div class="info-icon" @click="toggleHelp">
           <iconify-icon icon="info" />
         </div>
@@ -108,6 +114,7 @@
             }"
             class="input is-small"
             @change.native="onChange"
+            :data-config-id="config.id"
           />
         </div>
       </div>

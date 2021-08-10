@@ -11,7 +11,7 @@
       />
     </div>
     <div class="control">
-      <button class="button" @click="saveConfChanges">
+      <button class="button" @click="saveConfChanges" id="searchbar-save">
         {{ save }}
       </button>
     </div>

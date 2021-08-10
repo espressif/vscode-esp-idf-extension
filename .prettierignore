@@ -13,6 +13,8 @@ espressif_icon.png
 get_serial_list.py
 wsl_get_serial_list.ps
 .yarnrc
+*.vsix
+
 
 #dirs
 .vscode
@@ -25,3 +27,4 @@ testFiles/
 media/
 esp_debug_adapter/
 external/
+test-resources/
