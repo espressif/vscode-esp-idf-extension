@@ -86,40 +86,40 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Add Editor coverage                                     |                                        |                                           |
 | Add OpenOCD rules file (For Linux users)                |                                        |                                           |
 | Add vscode configuration folder                         |                                        |                                           |
-| Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
-| Build your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
+| Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
+| Build your project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
 | Configure ESP-IDF extension                             |                                        |                                           |
 | Configure Paths                                         |                                        |                                           |
 | Configure project sdkconfig for coverage                |                                        |                                           |
-| Create project from extension template                  | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
+| Create project from extension template                  | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Create new ESP-IDF Component                            |                                        |                                           |
 | Device configuration                                    |                                        |                                           |
 | Dispose current SDK Configuration editor server process |                                        |                                           |
 | Doctor command                                          |                                        |                                           |
-| Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
-| Flash your project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
-| Full clean project                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
+| Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
+| Flash your project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
+| Full clean project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
-| Monitor your device                                     | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
-| New Project                                             | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
-| Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
+| Monitor your device                                     | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
+| New Project                                             | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
+| Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
 | Open NVS Partition Editor                               |                                        |                                           |
 | Pick a workspace folder                                 |                                        |                                           |
-| SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
-| Search in documentation...                              | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
-| Select port to use                                      | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
+| SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
+| Search in documentation...                              | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
+| Select port to use                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
 | Select OpenOCD Board Configuration                      |                                        |                                           |
 | Select where to save configuration settings             |                                        |                                           |
 | Set default sdkconfig file in project                   |                                        |                                           |
 | Set Espressif device target                             |                                        |                                           |
 | Show Examples Projects                                  |                                        |                                           |
 | Show ninja build summary                                |                                        |                                           |
-| Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>E</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
+| Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Remove Editor coverage                                  |                                        |                                           |
 
 # About commands
