@@ -253,7 +253,7 @@
       {
         "command": "espIdf.createFiles",
         "key": "ctrl+e c",
-        "mac": "cmd+e c"
+        "mac": "cmd+i c"
       },
       {
         "command": "espIdf.fullClean",
@@ -263,57 +263,57 @@
       {
         "command": "espIdf.eraseFlash",
         "key": "ctrl+e r",
-        "mac": "cmd+e r"
+        "mac": "cmd+i r"
       },
       {
         "command": "espIdf.buildDevice",
         "key": "ctrl+e b",
-        "mac": "cmd+e b"
+        "mac": "cmd+i b"
       },
       {
         "command": "espIdf.selectFlashMethodAndFlash.title",
         "key": "ctrl+e f",
-        "mac": "cmd+e f"
+        "mac": "cmd+i f"
       },
       {
         "command": "espIdf.monitorDevice",
         "key": "ctrl+e m",
-        "mac": "cmd+e m"
+        "mac": "cmd+i m"
       },
       {
         "command": "espIdf.newProject.start",
         "key": "ctrl+e n",
-        "mac": "cmd+e n"
+        "mac": "cmd+i n"
       },
       {
         "command": "espIdf.createIdfTerminal",
         "key": "ctrl+e t",
-        "mac": "cmd+e t"
+        "mac": "cmd+i t"
       },
       {
         "command": "espIdf.selectPort",
         "key": "ctrl+e p",
-        "mac": "cmd+e p"
+        "mac": "cmd+i p"
       },
       {
         "command": "espIdf.buildFlashMonitor",
         "key": "ctrl+e d",
-        "mac": "cmd+e d"
+        "mac": "cmd+i d"
       },
       {
         "command": "espIdf.menuconfig.start",
         "key": "ctrl+e g",
-        "mac": "cmd+e g"
+        "mac": "cmd+i g"
       },
       {
         "command": "espIdf.size",
         "key": "ctrl+e s",
-        "mac": "cmd+e s"
+        "mac": "cmd+i s"
       },
       {
         "command": "espIdf.searchInEspIdfDocs",
         "key": "ctrl+e q",
-        "mac": "cmd+e q"
+        "mac": "cmd+i q"
       }
     ],
     "configuration": [
@@ -1081,7 +1081,7 @@
     "file-loader": "^4.0.0",
     "glob": "^7.1.4",
     "gulp": "^4.0.2",
-    "gulp-cli": "^2.0.3",
+    "gulp-cli": "^2.3.0",
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^6.0.0",
@@ -1089,11 +1089,11 @@
     "mocha": "^7.1.1",
     "mocha-junit-reporter": "^1.23.3",
     "nock": "^10.0.6",
-    "node-sass": "^4.13.0",
+    "node-sass": "^6.0.1",
     "prettier": "2.0.2",
     "pretty-quick": "^2.0.1",
     "reflect-metadata": "^0.1.13",
-    "sass-loader": "^7.1.0",
+    "sass-loader": "^10",
     "style-loader": "^0.23.1",
     "ts-loader": "^7.0.5",
     "tslint": "^5.18.0",

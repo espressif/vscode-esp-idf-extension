@@ -1,5 +1,7 @@
 FROM espressif/idf
 
+ARG DEBIAN_FRONTEND=nointeractive
+
 RUN apt-get update && apt-get install -y \
  curl \
  libasound2 \
