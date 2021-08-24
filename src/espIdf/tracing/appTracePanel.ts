@@ -17,7 +17,7 @@
  */
 
 // tslint:disable: variable-name
-import * as AnsiToHtml from "ansi-to-html";
+import AnsiToHtml from "ansi-to-html";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
