@@ -66,6 +66,7 @@
     "onCommand:espIdf.getExtensionPath",
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:espIdf.genCoverage",
+    "onCommand:espIdf.partition.table.refresh",
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
@@ -87,6 +88,7 @@
     "onCommand:espIdf.monitorQemu",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
+    "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
     "workspaceContains:**/project_description.json",
@@ -142,6 +144,10 @@
           "name": "ESP-IDF Docs search results"
         },
         {
+          "id": "idfPartitionExplorer",
+          "name": "Device Partition Explorer"
+        },
+        {
           "id": "idfAppTracer",
           "name": "IDF App Tracer"
         },
@@ -169,10 +175,19 @@
       {
         "view": "idfSearchResults",
         "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in documentation to get matching results here.\n\nResults are based on your current vscode language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
+      },
+      {
+        "view": "idfPartitionExplorer",
+        "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "espIdf.partition.table.refresh",
+          "group": "navigation",
+          "when": "view == idfPartitionExplorer"
+        },
         {
           "command": "espIdf.apptrace.customize",
           "when": "view == idfAppTracer"
@@ -232,6 +247,11 @@
           "when": "resourceFilename == sdkconfig",
           "command": "espIdf.menuconfig.start",
           "group": "navigation"
+        },
+        {
+          "when": "resourceExtname == .bin",
+          "group": "navigation",
+          "command": "espIdf.flashBinaryToPartition"
         },
         {
           "when": "resourceExtname == .csv",
@@ -750,6 +770,17 @@
         "title": "%espIdf.openOCDCommand.title%"
       },
       {
+        "command": "espIdf.partition.table.refresh",
+        "title": "%espIdf.partition.table.refresh.title%",
+        "category": "ESP-IDF",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.flashBinaryToPartition",
+        "category": "ESP-IDF",
+        "title": "%espIdf.flashBinaryToPartition.title%"
+      },
+      {
         "command": "espIdf.apptrace.archive.refresh",
         "title": "%espIdf.apptrace.archive.refresh.title%",
         "icon": "$(refresh)"
@@ -1179,5 +1210,8 @@
     "insight": {
       "key": "912cbb4e-e606-4c4f-9a00-1731acb15117"
     }
-  }
+  },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ]
 }

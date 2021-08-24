@@ -47,6 +47,8 @@
   "espIdf.monitorQemu.title": "监控QEMU设备",
   "espIdf.qemuDebug.title": "启动QEMU调试会话",
   "espIdf.createDevContainer.title": "添加docker容器配置",
+  "espIdf.partition.table.refresh.title": "刷新分区表",
+  "espIdf.flashBinaryToPartition.title": "将二进制文件闪存到分区",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF：启动",

@@ -47,6 +47,8 @@
   "espIdf.monitorQemu.title": "Монитор устройства QEMU",
   "espIdf.qemuDebug.title": "Запустить сеанс отладки QEMU",
   "espIdf.createDevContainer.title": "Добавить конфигурацию контейнера докеров",
+  "espIdf.partition.table.refresh.title": "Обновить таблицу разделов",
+  "espIdf.flashBinaryToPartition.title": "Прошить двоичный файл для раздела ...",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "ESP-IDF: Запустить",

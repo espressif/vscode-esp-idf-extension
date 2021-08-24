@@ -108,6 +108,11 @@ import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
 import { IQemuOptions, QemuManager } from "./qemu/qemuManager";
+import {
+  PartitionItem,
+  PartitionTreeDataProvider,
+} from "./espIdf/partition-table/tree";
+import { flashBinaryToPartition } from "./espIdf/partition-table/partitionFlasher";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -133,6 +138,9 @@ let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
 let heapTraceManager: HeapTraceManager;
+
+// Partition table
+let partitionTableTreeDataProvider: PartitionTreeDataProvider;
 
 // ESP-IDF Search results
 let idfSearchResults: vscode.TreeView<DocSearchResult>;
@@ -1846,6 +1854,85 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand(
+    "espIdf.flashBinaryToPartition",
+    async (binPath: vscode.Uri) => {
+      if (!binPath) {
+        return;
+      }
+      const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
+      if (!partitionsInDevice) {
+        vscode.window.showInformationMessage("No partition found");
+        return;
+      }
+      let items = [];
+      for (let devicePartition of partitionsInDevice) {
+        const item = {
+          label: devicePartition.name,
+          target: devicePartition.offset,
+          description: devicePartition.description,
+        };
+        items.push(item);
+      }
+      const partitionAction = await vscode.window.showQuickPick(items, {
+        placeHolder: "Select a partition to use",
+      });
+      if (!partitionAction) {
+        return;
+      }
+      await flashBinaryToPartition(partitionAction.target, binPath.fsPath);
+    }
+  );
+
+  registerIDFCommand(
+    "espIdf.partition.actions",
+    (partitionNode: PartitionItem) => {
+      if (!partitionNode) {
+        return;
+      }
+      PreCheck.perform([openFolderCheck], async () => {
+        const partitionAction = await vscode.window.showQuickPick(
+          [
+            {
+              label: `Flash binary to this partition`,
+              target: "flashBinaryToPartition",
+            },
+            {
+              label: "Open partition table editor",
+              target: "openPartitionTableEditor",
+            },
+          ],
+          { placeHolder: "Select an action to use" }
+        );
+        if (!partitionAction) {
+          return;
+        }
+        if (partitionAction.target === "openPartitionTableEditor") {
+          vscode.commands.executeCommand("esp.webview.open.partition-table");
+        } else if (partitionAction.target === "flashBinaryToPartition") {
+          const selectedFile = await vscode.window.showOpenDialog({
+            canSelectFolders: false,
+            canSelectFiles: true,
+            canSelectMany: false,
+            filters: { Binaries: ["bin"] },
+          });
+          if (selectedFile && selectedFile.length > 0) {
+            await flashBinaryToPartition(
+              partitionNode.offset,
+              selectedFile[0].fsPath
+            );
+          }
+        }
+      });
+    }
+  );
+
+  registerIDFCommand("espIdf.partition.table.refresh", () => {
+    PreCheck.perform([openFolderCheck], () => {
+      partitionTableTreeDataProvider.populatePartitionItems();
+    });
+  });
+
   registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
     PreCheck.perform([openFolderCheck], () => {
       appTraceArchiveTreeDataProvider.populateArchiveTree();
@@ -2546,13 +2633,16 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 
   eFuseExplorer = new ESPEFuseTreeDataProvider();
 
+  partitionTableTreeDataProvider = new PartitionTreeDataProvider();
+
   context.subscriptions.push(
     appTraceTreeDataProvider.registerDataProviderForTree("idfAppTracer"),
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
     ),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
-    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer")
+    eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
+    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
   );
 }
 
