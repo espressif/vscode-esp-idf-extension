@@ -106,6 +106,8 @@ import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { copyOpenOcdRules } from "./setup/addOpenOcdRules";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
+import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
+import { IQemuOptions, QemuManager } from "./qemu/qemuManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -119,6 +121,9 @@ const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 let isMonitorLaunchedByDebug: boolean = false;
+
+// QEMU
+const qemuManager = QemuManager.init();
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -238,6 +243,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
+
+  registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(status);
@@ -818,7 +825,6 @@ export async function activate(context: vscode.ExtensionContext) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs"
       );
-
       const openOCDConfig: IOpenOCDConfig = {
         openOcdConfigFilesList,
       } as IOpenOCDConfig;
@@ -830,6 +836,10 @@ export async function activate(context: vscode.ExtensionContext) {
       debugAdapterManager.configureAdapter(debugAdapterConfig);
     } else if (e.affectsConfiguration("idf.espIdfPath")) {
       ESP.URL.Docs.IDF_INDEX = undefined;
+    } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
+      qemuManager.configure({
+        tcpPort: idfConf.readParameter("idf.qemuTcpPort"),
+      } as IQemuOptions);
     }
   });
 
@@ -846,10 +856,20 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.configuration.sessionID !== "core-dump.debug.session.ws"
+          session.configuration.sessionID !== "core-dump.debug.session.ws" &&
+          session.configuration.sessionID !== "qemu.debug.session"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
+        }
+        if (session.configuration.sessionID === "qemu.debug.session") {
+          const debugAdapterConfig = {
+            appOffset: session.configuration.appOffset,
+            elfFile: session.configuration.elfFilePath,
+            debugAdapterPort: portToUse,
+          } as IDebugAdapterConfig;
+          debugAdapterManager.configureAdapter(debugAdapterConfig);
+          await debugAdapterManager.start();
         }
         if (
           session.configuration.sessionID === "core-dump.debug.session.ws" ||
@@ -866,6 +886,7 @@ export async function activate(context: vscode.ExtensionContext) {
             gdbinitFilePath: session.configuration.gdbinitFile,
             initGdbCommands: session.configuration.initGdbCommands || [],
             isPostMortemDebugMode: false,
+            isOocdDisabled: false,
             logLevel: session.configuration.logLevel,
           } as IDebugAdapterConfig;
           debugAdapterManager.configureAdapter(debugAdapterConfig);
@@ -880,7 +901,7 @@ export async function activate(context: vscode.ExtensionContext) {
           useMonitorWithDebug
         ) {
           isMonitorLaunchedByDebug = true;
-          await createMonitor();
+          createMonitor();
         }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
@@ -1105,6 +1126,21 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.createDevContainer", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        await utils.createDevContainer(workspaceRoot.fsPath);
+        Logger.infoNotify(
+          "ESP-IDF container files have been added to the project."
+        );
+      } catch (error) {
+        const errMsg = error.message || "Error creating .devcontainer folder";
+        Logger.errorNotify(errMsg, error);
+        return;
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.createNewComponent", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
@@ -1132,6 +1168,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
+  registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
@@ -1725,6 +1762,90 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
+  registerIDFCommand("espIdf.qemuCommand", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "Starting ESP-IDF QEMU",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const qemuBinExists = await pathExists(
+              path.join(workspaceRoot.fsPath, "build", "merged_qemu.bin")
+            );
+            if (!qemuBinExists) {
+              progress.report({
+                message: "Merging binaries for flashing",
+                increment: 10,
+              });
+              await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
+            }
+            await qemuManager.commandHandler();
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : "Error merging binaries for QEMU";
+            Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.qemuDebug", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      if (qemuManager.isRunning()) {
+        qemuManager.stop();
+      }
+      const qemuBinExists = await pathExists(
+        path.join(workspaceRoot.fsPath, "build", "merged_qemu.bin")
+      );
+      if (!qemuBinExists) {
+        await mergeFlashBinaries(workspaceRoot.fsPath);
+      }
+      qemuManager.configure({
+        launchArgs: [
+          "-nographic",
+          "-gdb tcp::3333",
+          "-S",
+          "-machine",
+          "esp32",
+          "-drive",
+          "file=build/merged_qemu.bin,if=mtd,format=raw",
+        ],
+      } as IQemuOptions);
+      await qemuManager.start();
+      const debugAdapterConfig = {
+        initGdbCommands: [
+          "target remote localhost:3333",
+          "monitor system_reset",
+          "tb app_main",
+          "c",
+        ],
+        isPostMortemDebugMode: false,
+        isOocdDisabled: true,
+        logLevel: 5,
+      } as IDebugAdapterConfig;
+      debugAdapterManager.configureAdapter(debugAdapterConfig);
+      await vscode.debug.startDebugging(undefined, {
+        name: "GDB QEMU",
+        type: "espidf",
+        request: "launch",
+        sessionID: "qemu.debug.session",
+      });
+      vscode.debug.onDidTerminateDebugSession(async (session) => {
+        if (session.configuration.sessionID === "qemu.debug.session") {
+          qemuManager.stop();
+        }
+      });
+    });
+  });
+
   registerIDFCommand("espIdf.apptrace.archive.refresh", () => {
     PreCheck.perform([openFolderCheck], () => {
       appTraceArchiveTreeDataProvider.populateArchiveTree();
@@ -2089,6 +2210,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   isPostMortemDebugMode: true,
                   elfFile: resp.prog,
                   coreDumpFile: coreElfFilePath,
+                  isOocdDisabled: true,
                 });
                 await vscode.debug.startDebugging(undefined, {
                   name: "Core Dump Debug",
@@ -2401,6 +2523,11 @@ function registerOpenOCDStatusBarItem(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBarItem);
 }
 
+function registerQemuStatusBarItem(context: vscode.ExtensionContext) {
+  const statusBarItem = qemuManager.statusBarItem();
+  context.subscriptions.push(statusBarItem);
+}
+
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
@@ -2537,6 +2664,19 @@ const flash = () => {
     );
   });
 };
+
+function createQemuMonitor() {
+  PreCheck.perform([openFolderCheck], async () => {
+    const isQemuLaunched = await qemuManager.isRunning();
+    if (!isQemuLaunched) {
+      vscode.window.showInformationMessage("QEMU is not running. Run first.");
+      return;
+    }
+    const qemuTcpPort = idfConf.readParameter("idf.qemuTcpPort") as number;
+    const serialPort = `socket://localhost:${qemuTcpPort}`;
+    await createMonitorTerminal(monitorTerminal, workspaceRoot, serialPort);
+  });
+}
 
 const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
   PreCheck.perform([openFolderCheck], async () => {

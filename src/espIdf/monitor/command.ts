@@ -29,7 +29,8 @@ const locDic = new LocDictionary(__filename);
 
 export async function createMonitorTerminal(
   monitorTerminal: Terminal,
-  workspace: Uri
+  workspace: Uri,
+  serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
@@ -45,7 +46,7 @@ export async function createMonitorTerminal(
 
   const idfPathDir = readParameter("idf.espIdfPath") || process.env.IDF_PATH;
   const pythonBinPath = readParameter("idf.pythonBinPath") as string;
-  const port = readParameter("idf.port");
+  const port = serialPort ? serialPort : readParameter("idf.port");
   const idfPath = join(idfPathDir, "tools", "idf.py");
   const modifiedEnv = utils.appendIdfAndToolsToPath();
   if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {

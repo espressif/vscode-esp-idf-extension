@@ -1,0 +1,29 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.183.0/containers/ubuntu
+{
+	"name": "ESP-IDF QEMU",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "bash",
+		"idf.espIdfPath": "${env:IDF_PATH}",
+		"idf.customExtraPaths": "${env:PATH}",
+		"idf.pythonBinPath": "python",
+		"idf.toolsPath": "${env:IDF_TOOLS_PATH}"
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-vscode.cpptools",
+		"espressif.esp-idf-extension"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "bash /opt/esp/entrypoint.sh",
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscodeuser"
+}

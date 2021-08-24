@@ -34,6 +34,7 @@ import { createFlashModel } from "../../flash/flashModelBuilder";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
+  tmoScaleFactor?: number;
   coreDumpFile?: string;
   currentWorkspace?: vscode.Uri;
   debugAdapterPort?: number;
@@ -42,6 +43,7 @@ export interface IDebugAdapterConfig {
   gdbinitFilePath?: string;
   initGdbCommands?: string[];
   isPostMortemDebugMode: boolean;
+  isOocdDisabled: boolean;
   logLevel?: number;
   target?: string;
 }
@@ -66,7 +68,9 @@ export class DebugAdapterManager extends EventEmitter {
   private env;
   private gdbinitFilePath: string;
   private initGdbCommands: string[];
+  private tmoScaleFactor?: number;
   private isPostMortemDebugMode: boolean;
+  private isOocdDisabled: boolean;
   private logLevel: number;
   private port: number;
   private target: string;
@@ -93,7 +97,11 @@ export class DebugAdapterManager extends EventEmitter {
           new Error("Invalid OpenOCD bin path or access is denied for the user")
         );
       }
-      if (this.env && typeof this.env.OPENOCD_SCRIPTS === "undefined") {
+      if (
+        this.env &&
+        !this.isOocdDisabled &&
+        typeof this.env.OPENOCD_SCRIPTS === "undefined"
+      ) {
         return reject(
           new Error(
             "Invalid OpenOCD script path or access is denied for the user"
@@ -149,6 +157,8 @@ export class DebugAdapterManager extends EventEmitter {
       }
       if (this.coreDumpFile) {
         adapterArgs.push("-c", this.coreDumpFile);
+      }
+      if (this.isOocdDisabled) {
         adapterArgs.push("-om", "without_oocd");
       }
       const resultGdbInitFile = this.gdbinitFilePath
@@ -156,6 +166,9 @@ export class DebugAdapterManager extends EventEmitter {
         : await this.makeGdbinitFile();
       if (resultGdbInitFile) {
         adapterArgs.push("-x", resultGdbInitFile);
+      }
+      if (this.tmoScaleFactor) {
+        adapterArgs.push("-tsf", this.tmoScaleFactor.toString());
       }
       this.adapter = spawn(pythonBinPath, adapterArgs, { env: this.env });
 
@@ -237,6 +250,10 @@ export class DebugAdapterManager extends EventEmitter {
     if (config.target) {
       this.target = config.target;
     }
+    if (config.isOocdDisabled) {
+      this.isOocdDisabled = config.isOocdDisabled;
+    }
+    this.tmoScaleFactor = config.tmoScaleFactor;
     this.appOffset = config.appOffset;
   }
 
@@ -254,6 +271,7 @@ export class DebugAdapterManager extends EventEmitter {
       "debug_adapter_main.py"
     );
     this.isPostMortemDebugMode = false;
+    this.isOocdDisabled = false;
     this.port = 43474;
     this.logLevel = 0;
     let idfTarget = idfConf.readParameter("idf.adapterTargetName");

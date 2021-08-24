@@ -45,9 +45,9 @@ export async function writeTextReport(
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
-  output += `Access to ESP-ADF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
+  output += `Access to ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
-  output += `Access to ESP-MDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
+  output += `Access to ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;

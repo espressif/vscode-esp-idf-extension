@@ -84,6 +84,7 @@
     "onCommand:espIdf.newProject.start",
     "onCommand:espIdf.setGcovConfig",
     "onCommand:esp.component-manager.ui.show",
+    "onCommand:espIdf.monitorQemu",
     "onView:idfAppTracer",
     "onView:idfAppTraceArchive",
     "onView:espRainmaker",
@@ -641,6 +642,11 @@
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
             "default": true
           },
+          "idf.qemuTcpPort": {
+            "type": "number",
+            "description": "%param.qemuTcpPort%",
+            "default": 5555
+          },
           "esp.component-manager.url": {
             "type": "string",
             "description": "%esp.component-manager.url.description%",
@@ -907,6 +913,26 @@
       {
         "command": "espIdf.copyOpenOcdRules",
         "title": "%espIdf.copyOpenOcdRules.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.qemuCommand",
+        "title": "QEMU Manager",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.createDevContainer",
+        "title": "%espIdf.createDevContainer.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.monitorQemu",
+        "title": "%espIdf.monitorQemu.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.qemuDebug",
+        "title": "%espIdf.qemuDebug.title%",
         "category": "ESP-IDF"
       }
     ],
