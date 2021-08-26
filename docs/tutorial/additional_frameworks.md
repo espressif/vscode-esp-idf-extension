@@ -1,10 +1,13 @@
 # Additional frameworks in this extension
 
+> **NOTE:** Consider that if you are using other Espressif frameworks for your projects, not all ESP-IDF versions are compatible with an specific framework. For example, ESP-ADF might not work with the current ESP-IDF master branch. It is recommended that you configure the extension to use the ESP-IDF within the framework (most frameworks include compatible ESP-IDF as subdirectory) in the setup wizard or JSON Configuration as shown in [SETUP](../SETUP.md) documentation or [Install](./install.md) tutorial.
+
 Besides ESP-IDF, you can install other frameworks to extend the extension functionality. Please look at [HARDWARE Support](../HARDWARE_SUPPORT.md) for a list of supported frameworks and Espressif chips.
 
 1. [Espressif Audio Development Framework (ESP-ADF)](https://github.com/espressif/esp-adf) with this extension using the **Install ESP-ADF** command, which will clone ESP-ADF to the selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 
 2. [Espressif Mesh Development Framework (ESP-MDF)](https://github.com/espressif/esp-mdf) with this extension using the **Install ESP-MDF** command, which will clone ESP-MDF to the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+
 
 > **NOTE:** You can also just set each configuration setting with the framework directory path if you already have them. For example, on Visual Studio Code menu `View` -> `Command Palette..`. -> type `Preferences: Open Settings (UI)` and search for ESP-ADF to manually set this path.
 

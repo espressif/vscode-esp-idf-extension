@@ -48,6 +48,8 @@ Setup wizard provides 3 choices:
   2. ESP-IDF is found in `idf.espIdfPath` or `idf.espIdfPathWin`, `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows.
   3. ESP-IDF Tools and ESP-IDF Python virtual environment for the previos ESP-IDF are found in `idf.toolsPath` or `idf.toolsPathWin`, `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
 
+> **NOTE:** Make sure that `IDF_PATH` and `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues.
+
 After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
 
 > **NOTE:** Check the [troubleshooting](../../README.md#Troubleshooting) section if you have any issue.
@@ -100,6 +102,8 @@ where:
 - `idf.openOcdConfigs` are the config files used for OpenOCD for your device (relative paths to `OPENOCD_SCRIPTS` directory of OpenOCD-ESP32 tool).
 
 **DO NOT USE ~, $HOME OR %USERPROFILE% ENVIRONMENT VARIABLES ARE NOT RESOLVED IN THIS CONFIGURATION SETTINGS. You must use ${env:HOME} instead of \$HOME (Linux/MacOS) or %HOME% (Windows).**
+
+> **NOTE:** Make sure that your configurations settings doesn't have any spaces to avoid any build issues.
 
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
 
