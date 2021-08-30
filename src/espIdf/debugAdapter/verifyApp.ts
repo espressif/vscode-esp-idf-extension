@@ -26,6 +26,15 @@ export async function verifyAppBinary(workspaceFolder: string) {
   const modifiedEnv = appendIdfAndToolsToPath();
   const serialPort = readParameter("idf.port");
   const flashBaudRate = readParameter("idf.flashBaudRate");
+  const idfPath = readParameter("idf.espIdfPath");
+  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+  const esptoolPath = join(
+    idfPath,
+    "components",
+    "esptool_py",
+    "esptool",
+    "esptool.py"
+  );
   const flasherArgsJsonPath = join(
     workspaceFolder,
     "build",
@@ -39,8 +48,9 @@ export async function verifyAppBinary(workspaceFolder: string) {
 
   try {
     const cmdResult = await spawn(
-      "esptool.py",
+      pythonBinPath,
       [
+        esptoolPath,
         "-p",
         serialPort,
         "verify_flash",
@@ -53,9 +63,13 @@ export async function verifyAppBinary(workspaceFolder: string) {
       }
     );
     Logger.info(cmdResult.toString());
-    if (cmdResult.toString().indexOf("verify FAILED (digest mismatch)") !== -1) {
+    if (
+      cmdResult.toString().indexOf("verify FAILED (digest mismatch)") !== -1
+    ) {
       return false;
-    } else if (cmdResult.toString().indexOf("verify OK (digest matched)") !== -1) {
+    } else if (
+      cmdResult.toString().indexOf("verify OK (digest matched)") !== -1
+    ) {
       return true;
     }
     return false;

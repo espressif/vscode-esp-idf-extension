@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { basename } from "path";
+import { basename, join } from "path";
 import { Progress, ProgressLocation, window, workspace } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -36,10 +36,19 @@ export async function flashBinaryToPartition(offset: string, binPath: string) {
           : "";
         const modifiedEnv = appendIdfAndToolsToPath();
         const serialPort = readParameter("idf.port");
+        const idfPath = readParameter("idf.espIdfPath");
+        const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+        const esptoolPath = join(
+          idfPath,
+          "components",
+          "esptool_py",
+          "esptool",
+          "esptool.py"
+        );
 
         await spawn(
-          "esptool.py",
-          ["-p", serialPort, "write_flash", offset, binPath],
+          pythonBinPath,
+          [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
           {
             cwd: workspaceFolder,
             env: modifiedEnv,

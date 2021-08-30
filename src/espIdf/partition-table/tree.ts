@@ -83,6 +83,8 @@ export class PartitionTreeDataProvider
     try {
       const modifiedEnv = appendIdfAndToolsToPath();
       const serialPort = readParameter("idf.port") as string;
+      const idfPath = readParameter("idf.espIdfPath");
+      const pythonBinPath = readParameter("idf.pythonBinPath") as string;
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {
@@ -129,9 +131,25 @@ export class PartitionTreeDataProvider
         "partitionTable.csv"
       );
 
+      const esptoolPath = join(
+        idfPath,
+        "components",
+        "esptool_py",
+        "esptool",
+        "esptool.py"
+      );
+
+      const genEsp32PartPath = join(
+        idfPath,
+        "components",
+        "partition_table",
+        "gen_esp32part.py"
+      );
+
       await spawn(
-        "esptool.py",
+        pythonBinPath,
         [
+          esptoolPath,
           "-p",
           serialPort,
           "read_flash",
@@ -145,10 +163,14 @@ export class PartitionTreeDataProvider
         }
       );
 
-      await spawn("gen_esp32part.py", [partTableBin, partTableCsv], {
-        cwd: workspaceFolder,
-        env: modifiedEnv,
-      });
+      await spawn(
+        pythonBinPath,
+        [genEsp32PartPath, partTableBin, partTableCsv],
+        {
+          cwd: workspaceFolder,
+          env: modifiedEnv,
+        }
+      );
       const csvData = await readFile(partTableCsv);
       let csvItems = this.CSV2JSON(csvData.toString());
       this.partitionItems = this.createPartitionItemNode(csvItems);
