@@ -212,24 +212,23 @@ export class PartitionTreeDataProvider
   public CSV2JSON(csv: String): PartitionItem[] {
     const rows = new Array<PartitionItem>();
     const lines = csv.split(EOL);
-    const comment = lines.shift();
-    if (!comment.includes("# ESP-IDF Partition Table")) {
+    const matches = csv.match(/#\s*Name,\s*Type,\s*SubType,\s*Offset,\s*Size,\s*Flags/g);
+    if (!matches || !matches.length) {
       console.log("Not a partition table csv, skipping...");
       return rows;
     }
-    const headers = lines.shift();
     lines.forEach((line) => {
-      if (line === "") {
+      if (line === "" || line.startsWith("#")) {
         return;
       }
       const cols = line.split(",");
       rows.push({
-        name: cols.shift(),
-        type: cols.shift(),
-        subtype: cols.shift(),
-        offset: cols.shift(),
-        size: cols.shift(),
-        flag: cols.shift() === "encrypted" ? true : false,
+        name: cols.shift().trim(),
+        type: cols.shift().trim(),
+        subtype: cols.shift().trim(),
+        offset: cols.shift().trim(),
+        size: cols.shift().trim(),
+        flag: cols.shift().trim() === "encrypted" ? true : false,
         error: undefined,
       });
     });
