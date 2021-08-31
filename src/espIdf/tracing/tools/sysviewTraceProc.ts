@@ -43,7 +43,7 @@ export class SysviewTraceProc extends AbstractTracingToolManager {
     }
     return await this.parseInternal(
       "python",
-      ["sysviewtrace_proc.py", "-j", this.traceFilePath],
+      ["sysviewtrace_proc.py", "-j", `file://${this.traceFilePath}`],
       {
         cwd: this.appTraceToolsPath(),
       }
