@@ -766,9 +766,9 @@ export function appendIdfAndToolsToPath() {
     `${process.env.PYTHON}` ||
     `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
 
-  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
-    path.dirname(modifiedEnv.PYTHON)
-  ) || process.env.IDF_PYTHON_ENV_PATH;
+  modifiedEnv.IDF_PYTHON_ENV_PATH =
+    path.dirname(path.dirname(modifiedEnv.PYTHON)) ||
+    process.env.IDF_PYTHON_ENV_PATH;
 
   const gitPath = idfConf.readParameter("idf.gitPath") as string;
   let pathToGitDir;
