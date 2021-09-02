@@ -31,7 +31,7 @@ export function initializeReportObject() {
     serialPort: undefined,
     openOcdConfigs: undefined,
     toolsPath: undefined,
-    gitPath: undefined
+    gitPath: undefined,
   };
   report.cCppPropertiesJson = undefined;
   report.configurationAccess = {
@@ -82,7 +82,9 @@ export function initializeReportObject() {
   };
   report.systemInfo = {
     architecture: undefined,
+    envIdfPythonEnvPath: undefined,
     envPath: undefined,
+    envPython: undefined,
     extensionVersion: undefined,
     language: undefined,
     shell: undefined,

@@ -1845,6 +1845,7 @@ export async function activate(context: vscode.ExtensionContext) {
         type: "espidf",
         request: "launch",
         sessionID: "qemu.debug.session",
+        skipVerifyAppBinBeforeDebug: true,
       });
       vscode.debug.onDidTerminateDebugSession(async (session) => {
         if (session.configuration.sessionID === "qemu.debug.session") {
