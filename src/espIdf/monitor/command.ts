@@ -92,10 +92,16 @@ export async function createMonitorTerminal(
   if (kernelMatch && kernelMatch.length) {
     isWsl2Kernel = utils.compareVersion(kernelMatch[1], "4.19");
   }
+  const isPowerShellInPath = await utils.isBinInPath(
+    "powershell.exe",
+    workspace.fsPath,
+    modifiedEnv
+  );
   if (
     process.platform === "linux" &&
     osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
-    isWsl2Kernel !== -1
+    isWsl2Kernel !== -1 &&
+    isPowerShellInPath !== ""
   ) {
     const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
     const wslCurrPath = await utils.execChildProcess(

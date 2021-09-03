@@ -288,7 +288,9 @@ suite("Doctor command tests", () => {
     expectedOutput += `OS ${os.platform()} ${os.arch()} ${os.release()} ${
       os.EOL
     }`;
+    expectedOutput += `System environment variable IDF_PYTHON_ENV_PATH ${os.EOL} ${process.env.IDF_PYTHON_ENV_PATH} ${os.EOL}`;
     expectedOutput += `System environment variable PATH ${os.EOL} ${processPathEnvVar} ${os.EOL}`;
+    expectedOutput += `System environment variable PYTHON ${os.EOL} ${process.env.PYTHON} ${os.EOL}`;
     expectedOutput += `Visual Studio Code version ${vscode.version} ${os.EOL}`;
     expectedOutput += `Visual Studio Code language ${vscode.env.language} ${os.EOL}`;
     expectedOutput += `Visual Studio Code shell ${vscode.env.shell} ${os.EOL}`;
