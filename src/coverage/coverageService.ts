@@ -61,15 +61,24 @@ export async function getGcovFilterPaths() {
 
   const idfExists = await dirExistPromise(espIdfPath);
   if (idfExists) {
-    pathsToFilter.push("--filter", join(espIdfPath, "components").replace(/\\/g, "/"));
+    pathsToFilter.push(
+      "--filter",
+      join(espIdfPath, "components").replace(/\\/g, "/")
+    );
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
-    pathsToFilter.push("--filter", join(espAdfPath, "components").replace(/\\/g, "/"));
+    pathsToFilter.push(
+      "--filter",
+      join(espAdfPath, "components").replace(/\\/g, "/")
+    );
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
-    pathsToFilter.push("--filter", join(espMdfPath, "components").replace(/\\/g, "/"));
+    pathsToFilter.push(
+      "--filter",
+      join(espMdfPath, "components").replace(/\\/g, "/")
+    );
   }
   return pathsToFilter;
 }
@@ -91,7 +100,7 @@ export async function buildJson(dirPath: string) {
     ],
     dirPath.replace(/\\/g, "/")
   );
-  return JSON.parse(result); 
+  return JSON.parse(result);
 }
 
 export async function buildHtml(dirPath: string) {
@@ -155,8 +164,12 @@ export async function generateCoverageForEditors(
       for (const gcovFile of gcovJsonObj.files) {
         const gcovFilePath = gcovFile.file as string;
         if (
-          gcovFilePath.toLowerCase() === gcovObjFilePath.toLowerCase() ||
-          gcovFilePath.toLowerCase() === editor.document.fileName.replace(/\\/g, "/").toLowerCase()
+          gcovObjFilePath.toLowerCase().indexOf(gcovFilePath.toLowerCase()) !==
+            -1 ||
+          editor.document.fileName
+            .replace(/\\/g, "/")
+            .toLowerCase()
+            .indexOf(gcovFilePath.toLowerCase()) !== -1
         ) {
           const coveredEditor: textEditorWithCoverage = {
             allLines: [],
