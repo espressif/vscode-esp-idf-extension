@@ -61,15 +61,24 @@ export async function getGcovFilterPaths() {
 
   const idfExists = await dirExistPromise(espIdfPath);
   if (idfExists) {
-    pathsToFilter.push("--filter", join(espIdfPath, "components"));
+    pathsToFilter.push(
+      "--filter",
+      join(espIdfPath, "components").replace(/\\/g, "/")
+    );
   }
   const adfExists = await dirExistPromise(espAdfPath);
   if (adfExists) {
-    pathsToFilter.push("--filter", join(espAdfPath, "components"));
+    pathsToFilter.push(
+      "--filter",
+      join(espAdfPath, "components").replace(/\\/g, "/")
+    );
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
-    pathsToFilter.push("--filter", join(espMdfPath, "components"));
+    pathsToFilter.push(
+      "--filter",
+      join(espMdfPath, "components").replace(/\\/g, "/")
+    );
   }
   return pathsToFilter;
 }
@@ -83,13 +92,13 @@ export async function buildJson(dirPath: string) {
     "gcovr",
     [
       "--filter",
-      ".",
+      ".*",
       ...componentsDir,
       "--gcov-executable",
       gcovTool,
       "--json",
     ],
-    dirPath
+    dirPath.replace(/\\/g, "/")
   );
   return JSON.parse(result);
 }
@@ -141,20 +150,26 @@ export async function generateCoverageForEditors(
         if (fileParts && fileParts.length > 1) {
           const fileName = fileParts.pop();
           gcovObjFilePath = join(
+            dirPath,
             "build",
             "esp-idf",
             fileParts[fileParts.length - 1],
             "CMakeFiles",
             `__idf_${fileParts[fileParts.length - 1]}.dir`,
             fileName
-          );
+          ).replace(/\\/g, "/");
         }
       }
 
       for (const gcovFile of gcovJsonObj.files) {
+        const gcovFilePath = gcovFile.file as string;
         if (
-          gcovFile.file === gcovObjFilePath ||
-          gcovFile.file === editor.document.fileName
+          gcovObjFilePath.toLowerCase().indexOf(gcovFilePath.toLowerCase()) !==
+            -1 ||
+          editor.document.fileName
+            .replace(/\\/g, "/")
+            .toLowerCase()
+            .indexOf(gcovFilePath.toLowerCase()) !== -1
         ) {
           const coveredEditor: textEditorWithCoverage = {
             allLines: [],
