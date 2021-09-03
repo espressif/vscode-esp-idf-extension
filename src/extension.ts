@@ -30,7 +30,7 @@ import { IDFSize } from "./espIdf/size/idfSize";
 import { IDFSizePanel } from "./espIdf/size/idfSizePanel";
 import { AppTraceManager } from "./espIdf/tracing/appTraceManager";
 import { AppTracePanel } from "./espIdf/tracing/appTracePanel";
-import { HeapTraceManager } from "./espIdf/tracing/heapTraceManager";
+import { GdbHeapTraceManager } from "./espIdf/tracing/gdbHeapTraceManager";
 import {
   AppTraceArchiveTreeDataProvider,
   AppTraceArchiveItems,
@@ -137,7 +137,7 @@ let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
 let appTraceTreeDataProvider: AppTraceTreeDataProvider;
 let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
-let heapTraceManager: HeapTraceManager;
+let gdbHeapTraceManager: GdbHeapTraceManager;
 
 // Partition table
 let partitionTableTreeDataProvider: PartitionTreeDataProvider;
@@ -244,7 +244,7 @@ export async function activate(context: vscode.ExtensionContext) {
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
-  heapTraceManager = new HeapTraceManager(
+  gdbHeapTraceManager = new GdbHeapTraceManager(
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
@@ -1755,9 +1755,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 /start/gi
               );
         if (heapTraceLabel) {
-          await heapTraceManager.start();
+          await gdbHeapTraceManager.start();
         } else {
-          await heapTraceManager.stop();
+          await gdbHeapTraceManager.stop();
         }
       }
     );
