@@ -138,17 +138,15 @@ export function spawn(
     child.stdout.on("data", sendToOutputChannel);
     child.stderr.on("data", sendToOutputChannel);
 
-    child.on("error", (error) => reject({ error }));
+    child.on("error", (error) => reject(error));
 
     child.on("exit", (code) => {
       if (code === 0) {
         resolve(buff);
       } else {
-        const msg = "non zero exit code " + code + EOL + EOL + buff;
-        Logger.error(msg, new Error(msg));
-        reject({
-          error: new Error("non zero exit code " + code + "\n\n" + buff),
-        });
+        const err = new Error("non zero exit code " + code + EOL + EOL + buff);
+        Logger.error(err.message, err);
+        reject(err);
       }
     });
   });
@@ -614,8 +612,13 @@ export function getSubProjects(dir: string): string[] {
 
 export async function getEspIdfVersion(workingDir: string, gitPath: string) {
   try {
+    const doesWorkingDirExists = await pathExists(workingDir);
+    if (!doesWorkingDirExists) {
+      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`);
+      return "x.x";
+    }
     const canCheck = await checkGitExists(
-      extensionContext.extensionPath,
+      workingDir,
       gitPath
     );
     if (canCheck === "Not found") {

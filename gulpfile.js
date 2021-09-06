@@ -117,13 +117,22 @@ async function addExtensionDependencies(done) {
   done();
 }
 
+async function removeExtensionDependencies(done) {
+  const packageJson = await readJSON("package.json");
+  if (packageJson.extensionDependencies) {
+    packageJson.extensionDependencies = undefined;
+    await writeJSON("package.json", packageJson, { spaces: 2});
+  }
+  done();
+}
+
 const preBuild = gulp.series(clean, addI18n, validateLocalizationFiles);
 const build = gulp.series(preBuild, addExtensionDependencies);
-exports.clean = clean;
+exports.clean = gulp.series(clean, removeExtensionDependencies);
 exports.build = build;
 exports.validateLocalization = validateLocalizationFiles;
 exports.publish = gulp.series(build, vscePublish);
 exports.vscePkg = gulp.series(build, vscePackage);
 exports.default = build;
 
-exports.noDepBuild = preBuild;
+exports.noDepBuild = gulp.series(preBuild, removeExtensionDependencies);
