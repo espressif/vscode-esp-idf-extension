@@ -617,10 +617,7 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
       Logger.info(`${workingDir} does not exists to get ESP-IDF version.`);
       return "x.x";
     }
-    const canCheck = await checkGitExists(
-      workingDir,
-      gitPath
-    );
+    const canCheck = await checkGitExists(workingDir, gitPath);
     if (canCheck === "Not found") {
       Logger.errorNotify(
         "Git is not found in current environment",
