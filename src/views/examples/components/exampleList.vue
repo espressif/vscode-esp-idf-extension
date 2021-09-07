@@ -27,7 +27,11 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { IExampleCategory, IExample } from "../../../examples/Example";
 import { Action, Mutation, State } from "vuex-class";
 
-@Component
+@Component({
+  components: {
+    ExampleList: () => import("./exampleList.vue"),
+  },
+})
 export default class ExampleList extends Vue {
   @Action private getExampleDetail;
   @Mutation private showExampleDetail;
