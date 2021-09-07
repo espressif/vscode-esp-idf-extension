@@ -106,6 +106,7 @@ export async function expressInstall(
     toolsPath,
     pyPath,
     gitPath,
+    mirror,
     progress,
     cancelToken
   );

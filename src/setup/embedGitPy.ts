@@ -64,7 +64,7 @@ export async function installIdfGit(
   if (gitPathExists) {
     const gitDirectory = join(idfGitDestPath, "cmd");
     const binVersion = await checkGitExists(gitDirectory, resultGitPath);
-    if (binVersion) {
+    if (!binVersion || binVersion === "Not found") {
       OutputChannel.appendLine(`Using existing ${idfGitDestPath}`);
       return resultGitPath;
     }

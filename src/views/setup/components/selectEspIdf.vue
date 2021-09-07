@@ -1,9 +1,6 @@
 <template>
   <div id="select-esp-idf-version">
-    <div
-      class="field"
-      v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
-    >
+    <div class="field">
       <label for="idf-mirror-select" class="label"
         >Select download server:</label
       >
