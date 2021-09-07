@@ -167,6 +167,7 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "installEspIdfTools",
       espIdf: context.state.espIdf,
+      mirror: context.state.selectedIdfMirror,
       pyPath,
       toolsPath: context.state.toolsFolder,
     });

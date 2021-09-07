@@ -21,6 +21,7 @@ import * as utils from "./utils";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { readJSON } from "fs-extra";
+import { ESP } from "./config";
 
 export interface IEspIdfTool {
   actual: string;
@@ -149,6 +150,13 @@ export class IdfToolsManager {
         ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
         : undefined;
     return linkInfo;
+  }
+
+  public applyGithubAssetsMapping(urlToReplace: string) {
+    return urlToReplace.replace(
+      /https:\/\/github.com/g,
+      ESP.URL.IDF_GITHUB_ASSETS
+    );
   }
 
   public getVersionToUse(pkg: IPackage): string {

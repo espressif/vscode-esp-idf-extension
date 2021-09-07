@@ -149,12 +149,18 @@ export class SetupPanel {
           }
           break;
         case "installEspIdfTools":
-          if (message.espIdf && message.pyPath && message.toolsPath) {
+          if (
+            message.espIdf &&
+            message.pyPath &&
+            message.toolsPath &&
+            typeof message.mirror !== undefined
+          ) {
             await this.installEspIdfTools(
               message.espIdf,
               message.pyPath,
               message.toolsPath,
-              setupArgs.gitPath
+              setupArgs.gitPath,
+              message.mirror
             );
           }
           break;
@@ -432,7 +438,8 @@ export class SetupPanel {
     idfPath: string,
     pyPath: string,
     toolsPath: string,
-    gitPath: string
+    gitPath: string,
+    mirror: IdfMirror
   ) {
     return await vscode.window.withProgress(
       {
@@ -455,6 +462,7 @@ export class SetupPanel {
             toolsPath,
             pyPath,
             gitPath,
+            mirror,
             progress,
             cancelToken
           );
