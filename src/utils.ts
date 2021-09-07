@@ -867,6 +867,14 @@ export function appendIdfAndToolsToPath() {
     modifiedEnv.IDF_COMPONENT_MANAGER = "1";
   }
 
+  let enableCCache = idfConf.readParameter(
+    "idf.enableCCache"
+  ) as boolean;
+
+  if (enableCCache) {
+    modifiedEnv.IDF_CCACHE_ENABLE = "1";
+  }
+
   return modifiedEnv;
 }
 

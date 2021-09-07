@@ -79,6 +79,7 @@
   "param.enableUpdateSrcsToCMakeListsFile": "启用CMakeLists.txt中的更新源文件",
   "param.launchMonitorOnDebugSession.title": "启动IDF监视器和ESP-IDF调试适配器会话",
   "param.enableIdfComponentManager.title": "在生成任务中启用IDF组件管理器",
+  "param.enableCCache.title": "在生成任务中启用 CCache",
   "param.qemuTcpPort": "用于串行通信的QEMU tcp端口",
   "view.components.name": "项目组件",
   "configuration.title": "ESP-IDF",

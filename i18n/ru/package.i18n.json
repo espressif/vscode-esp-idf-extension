@@ -79,6 +79,7 @@
   "param.enableUpdateSrcsToCMakeListsFile": "Включить файлы источников обновлений в CMakeLists.txt",
   "param.launchMonitorOnDebugSession.title": "Запустите IDF Monitor вместе с сеансом ESP-IDF Debug Adapter.",
   "param.enableIdfComponentManager.title": "Включить менеджер компонентов IDF в задаче сборки",
+  "param.enableCCache.title": "Включить CCache в задаче сборки",
   "param.qemuTcpPort": "QEMU tcp порт для последовательной связи",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",

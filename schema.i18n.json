@@ -191,6 +191,7 @@
     "esp_idf.skipVerifyAppBinBeforeDebug.description",
     "param.launchMonitorOnDebugSession.title",
     "param.enableIdfComponentManager.title",
+    "param.enableCCache.title",
     "param.gitPath.title",
     "param.enableUpdateSrcsToCMakeListsFile",
     "param.qemuTcpPort"
