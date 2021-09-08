@@ -51,7 +51,7 @@ export async function validateReqs(
     (fileName) => fileName.endsWith(".bin") === true
   );
   if (binFiles.length === 0) {
-    throw new Error("BIN_FILE_ACCESS_ERROR");
+    throw new Error(`Build is required, .bin files can't be accessed`);
   }
   const flasherArgsJsonExists = await pathExists(flasherArgsJsonPath);
   if (!flasherArgsJsonExists) {
