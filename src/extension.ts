@@ -832,9 +832,11 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
     } else if (e.affectsConfiguration("idf.adapterTargetName")) {
-      let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+      let idfTarget = idfConf.readParameter("idf.adapterTargetName") as string;
       if (idfTarget === "custom") {
-        idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+        idfTarget = idfConf.readParameter(
+          "idf.customAdapterTargetName"
+        ) as string;
       }
       const debugAdapterConfig = {
         target: idfTarget,
@@ -850,6 +852,18 @@ export async function activate(context: vscode.ExtensionContext) {
     } else if (e.affectsConfiguration("idf.port")) {
       statusBarItems["port"].text =
         "$(plug) " + idfConf.readParameter("idf.port");
+    } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
+      let idfTarget = idfConf.readParameter("idf.adapterTargetName") as string;
+      if (idfTarget === "custom") {
+        idfTarget = idfConf.readParameter(
+          "idf.customAdapterTargetName"
+        ) as string;
+        const debugAdapterConfig = {
+          target: idfTarget,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      }
     }
   });
 
@@ -1263,9 +1277,10 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       const configurationTarget = idfConf.readParameter("idf.saveScope");
       if (selectedTarget.target === "custom") {
+        const currentValue = idfConf.readParameter("idf.customAdapterTargetName") as string;
         const customIdfTarget = await vscode.window.showInputBox({
           placeHolder: enterDeviceTargetMsg,
-          value: "",
+          value: currentValue,
         });
         if (!customIdfTarget) {
           return;
