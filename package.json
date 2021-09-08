@@ -677,6 +677,26 @@
             "description": "%esp.component-manager.url.description%",
             "scope": "resource",
             "default": "https://components.espressif.com"
+          },
+          "idf.openOcdDebugLevel": {
+            "type": "number",
+            "default": 2,
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "enumDescriptions": [
+              "Error",
+              "Warning",
+              "Info",
+              "Debug",
+              "Verbose"
+            ],
+            "scope": "resource",
+            "description": "%param.openOcdDebugLevel%"
           }
         }
       }

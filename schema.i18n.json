@@ -194,6 +194,7 @@
     "param.enableCCache.title",
     "param.gitPath.title",
     "param.enableUpdateSrcsToCMakeListsFile",
-    "param.qemuTcpPort"
+    "param.qemuTcpPort",
+    "param.openOcdDebugLevel"
   ]
 }

@@ -2656,7 +2656,7 @@ function creatCmdsStatusBarItems() {
   );
   createStatusBarItem(
     "$(gear)",
-    "ESP-IDF Launch GUI Configuration tool",
+    "ESP-IDF SDK Configuration Editor",
     "espIdf.menuconfig.start",
     100
   );

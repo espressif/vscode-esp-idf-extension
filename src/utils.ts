@@ -619,15 +619,7 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
     }
     const gitVersion = await checkGitExists(workingDir, gitPath);
     if (!gitVersion || gitVersion === "Not found") {
-      const espIdfVersionFromCmake = await getEspIdfFromCMake(workingDir);
-      if (espIdfVersionFromCmake) {
-        return espIdfVersionFromCmake;
-      }
-      Logger.errorNotify(
-        "Git is not found in current environment",
-        Error("git is not found")
-      );
-      return "x.x";
+      throw new Error("Git is not found in current environment");
     }
     const rawEspIdfVersion = await execChildProcess(
       `${gitPath} describe --tags`,
@@ -648,6 +640,10 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
       return "x.x";
     }
   } catch (error) {
+    const espIdfVersionFromCmake = await getEspIdfFromCMake(workingDir);
+    if (espIdfVersionFromCmake) {
+      return espIdfVersionFromCmake;
+    }
     Logger.info(error);
     return "x.x";
   }

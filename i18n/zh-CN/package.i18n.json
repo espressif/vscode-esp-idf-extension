@@ -81,6 +81,7 @@
   "param.enableIdfComponentManager.title": "在生成任务中启用IDF组件管理器",
   "param.enableCCache.title": "在生成任务中启用 CCache",
   "param.qemuTcpPort": "用于串行通信的QEMU tcp端口",
+  "param.openOcdDebugLevel": "OpenOCD 服务器调试级别",
   "view.components.name": "项目组件",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "刷新跟踪归档列表",
