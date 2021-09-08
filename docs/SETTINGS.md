@@ -43,9 +43,10 @@ These settings are specific to the ESP32 Chip/ Board
 | `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                        |
 | `idf.flashBaudRate`                              | Flash Baud rate                                                     |
 | `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
 | `idf.port`                                       | Path of selected device port                                        |
 | `idf.portWin`                                    | Path of selected device port in Windows                             |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
 
 This is how the extension uses them:
 

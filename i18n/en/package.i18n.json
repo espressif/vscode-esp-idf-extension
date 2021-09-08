@@ -78,6 +78,7 @@
   "param.uncoveredDarkTheme": "Background color for uncovered lines in Dark theme for ESP-IDF Coverage.",
   "param.enableUpdateSrcsToCMakeListsFile": "Enable update source files in CMakeLists.txt",
   "param.qemuTcpPort": "QEMU tcp port for serial communication",
+  "param.openOcdDebugLevel": "OpenOCD Server debug level",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
