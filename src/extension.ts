@@ -120,7 +120,7 @@ const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
-const statusBarItems: vscode.StatusBarItem[] = [];
+let statusBarItems: { [key: string]: vscode.StatusBarItem };
 
 const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
@@ -225,15 +225,9 @@ export async function activate(context: vscode.ExtensionContext) {
   ESP.Rainmaker.store = RainmakerStore.init(context);
 
   // Create a status bar item with current workspace
-  const status = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    1000000
-  );
-  statusBarItems.push(status);
-  context.subscriptions.push(status);
 
   // Status Bar Item with common commands
-  creatCmdsStatusBarItems();
+  statusBarItems = creatCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
@@ -255,7 +249,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
-    workspaceRoot = initSelectedWorkspace(status);
+    workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     const coverageOptions = getCoverageOptions();
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -304,14 +298,14 @@ export async function activate(context: vscode.ExtensionContext) {
     if (PreCheck.isWorkspaceFolderOpen()) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
-          workspaceRoot = initSelectedWorkspace(status);
+          workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
           const coverageOptions = getCoverageOptions();
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
         }
       }
       if (typeof workspaceRoot === undefined) {
-        workspaceRoot = initSelectedWorkspace(status);
+        workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
         const coverageOptions = getCoverageOptions();
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
@@ -631,7 +625,7 @@ export async function activate(context: vscode.ExtensionContext) {
           currentWorkSpace: option.name,
           tooltip: option.uri.fsPath,
         };
-        utils.updateStatus(status, workspaceFolderInfo);
+        utils.updateStatus(statusBarItems["workspace"], workspaceFolderInfo);
         const debugAdapterConfig = {
           currentWorkspace: workspaceRoot,
         } as IDebugAdapterConfig;
@@ -838,16 +832,24 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
     } else if (e.affectsConfiguration("idf.adapterTargetName")) {
+      let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+      if (idfTarget === "custom") {
+        idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+      }
       const debugAdapterConfig = {
-        target: idfConf.readParameter("idf.adapterTargetName"),
+        target: idfTarget,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
+      statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
     } else if (e.affectsConfiguration("idf.espIdfPath")) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
       qemuManager.configure({
         tcpPort: idfConf.readParameter("idf.qemuTcpPort"),
       } as IQemuOptions);
+    } else if (e.affectsConfiguration("idf.port")) {
+      statusBarItems["port"].text =
+        "$(plug) " + idfConf.readParameter("idf.port");
     }
   });
 
@@ -2648,43 +2650,74 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 }
 
 function creatCmdsStatusBarItems() {
-  createStatusBarItem(
-    "$(plug)",
-    "ESP-IDF Select device port",
+  const port = idfConf.readParameter("idf.port");
+  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  if (idfTarget === "custom") {
+    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+  }
+  const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
+
+  statusBarItems["port"] = createStatusBarItem(
+    "$(plug) " + port,
+    "ESP-IDF Select port to use (COM, tty, usbserial)",
     "espIdf.selectPort",
-    101
-  );
-  createStatusBarItem(
-    "$(gear)",
-    "ESP-IDF SDK Configuration Editor",
-    "espIdf.menuconfig.start",
     100
   );
-  createStatusBarItem("$(trash)", "ESP-IDF Full Clean", "espIdf.fullClean", 99);
-  createStatusBarItem(
+  statusBarItems["target"] = createStatusBarItem(
+    "$(circuit-board) " + idfTarget,
+    "ESP-IDF Set Espressif device target",
+    "espIdf.setTarget",
+    99
+  );
+  statusBarItems["workspace"] = createStatusBarItem(
+    "$(file-submodule)",
+    "ESP-IDF: Current Project",
+    "espIdf.pickAWorkspaceFolder",
+    98
+  );
+  statusBarItems["menuconfig"] = createStatusBarItem(
+    "$(gear)",
+    "ESP-IDF SDK Configuration Editor (menuconfig)",
+    "espIdf.menuconfig.start",
+    97
+  );
+  statusBarItems["clean"] = createStatusBarItem(
+    "$(trash)",
+    "ESP-IDF Full Clean",
+    "espIdf.fullClean",
+    96
+  );
+  statusBarItems["build"] = createStatusBarItem(
     "$(database)",
     "ESP-IDF Build project",
     "espIdf.buildDevice",
-    98
+    95
   );
-  createStatusBarItem(
+  statusBarItems["flash"] = createStatusBarItem(
     "$(zap)",
     "ESP-IDF Flash device",
     "espIdf.selectFlashMethodAndFlash",
-    97
+    94
   );
-  createStatusBarItem(
+  statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
     "ESP-IDF Monitor device",
     "espIdf.monitorDevice",
-    96
+    93
   );
-  createStatusBarItem(
+  statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
     "ESP-IDF Build, Flash and Monitor",
     "espIdf.buildFlashMonitor",
-    95
+    92
   );
+  statusBarItems["terminal"] = createStatusBarItem(
+    "$(terminal)",
+    "ESP-IDF: Open ESP-IDF Terminal",
+    "espIdf.createIdfTerminal",
+    91
+  );
+  return statusBarItems;
 }
 
 function createStatusBarItem(
@@ -2699,7 +2732,7 @@ function createStatusBarItem(
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
   statusBarItem.show();
-  statusBarItems.push(statusBarItem);
+  return statusBarItem;
 }
 
 const build = () => {
@@ -2878,8 +2911,8 @@ export function deactivate() {
   }
   OutputChannel.end();
   ConfserverProcess.dispose();
-  for (const statusItem of statusBarItems) {
-    statusItem.dispose();
+  for (const item in statusBarItems) {
+    statusBarItems[item].dispose();
   }
   if (covRenderer) {
     covRenderer.dispose();
