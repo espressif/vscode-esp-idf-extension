@@ -154,8 +154,8 @@ export class QemuManager extends EventEmitter {
     const wsFolder = PreCheck.isWorkspaceFolderOpen()
       ? workspace.workspaceFolders[0].uri.fsPath
       : "";
-
-    if (!isBinInPath(this.execString, wsFolder, modifiedEnv)) {
+    const isQemuBinInPath = await isBinInPath(this.execString, wsFolder, modifiedEnv);
+    if (!isQemuBinInPath) {
       throw new Error("qemu-system-xtensa is not in PATH or access is denied");
     }
     if (typeof this.options === "undefined") {
