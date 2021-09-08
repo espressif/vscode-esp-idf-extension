@@ -1277,7 +1277,9 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       const configurationTarget = idfConf.readParameter("idf.saveScope");
       if (selectedTarget.target === "custom") {
-        const currentValue = idfConf.readParameter("idf.customAdapterTargetName") as string;
+        const currentValue = idfConf.readParameter(
+          "idf.customAdapterTargetName"
+        ) as string;
         const customIdfTarget = await vscode.window.showInputBox({
           placeHolder: enterDeviceTargetMsg,
           value: currentValue,
