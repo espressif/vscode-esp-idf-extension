@@ -652,6 +652,11 @@
             "description": "%param.enableIdfComponentManager.title%",
             "default": false
           },
+          "idf.enableCCache": {
+            "type": "boolean",
+            "description": "%param.enableCCache.title%",
+            "default": false
+          },
           "idf.gitPath": {
             "type": "string",
             "description": "%param.gitPath.title%",
