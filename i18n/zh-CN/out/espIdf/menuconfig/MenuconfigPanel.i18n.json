@@ -1,11 +1,11 @@
 {
   "menuconfig.panelName": "ESP-IDF 项目配置菜单",
-  "menuconfig.saveValues": "保存 SDK Configuration editor 中更改",
-  "menuconfig.discardValues": "丢弃 SDK Configuration editor 中的更改",
-  "menuconfig.wrongIdfPath": "工作区中 IDF_PATH 的设置是错误的，你想要设置它吗？",
+  "menuconfig.saveValues": "保存 SDK 配置编辑器中更改",
+  "menuconfig.discardValues": "丢弃 SDK 配置编辑器中的更改",
+  "menuconfig.wrongIdfPath": "工作区中 IDF_PATH 的设置存在错误，是否要设置？",
   "menuconfig.enterIdfPath": "输入 IDF_PATH 的路径",
-  "menuconfig.changesNotSaved": "SDK Configuration editor 中的更改尚未保存，你想要保存吗？",
+  "menuconfig.changesNotSaved": "SDK 配置编辑器中的更改尚未保存，是否要保存？",
   "menuconfig.save": "保存",
   "menuconfig.discard": "不保存",
-  "menuconfig.returnGuiconfig": "返回到 SDK Configuration editor"
+  "menuconfig.returnGuiconfig": "返回到 SDK 配置编辑器"
 }
