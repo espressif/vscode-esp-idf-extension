@@ -172,6 +172,11 @@ export class OpenOCDManager extends EventEmitter {
     }
 
     const openOcdArgs = [];
+    const openOcdDebugLevel = idfConf.readParameter(
+      "idf.openOcdDebugLevel"
+    ) as string;
+    openOcdArgs.push(`-d${openOcdDebugLevel}`);
+
     this.openOcdConfigFilesList.forEach((configFile) => {
       openOcdArgs.push("-f");
       openOcdArgs.push(configFile);

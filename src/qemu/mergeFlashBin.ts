@@ -51,7 +51,7 @@ export async function validateReqs(
     (fileName) => fileName.endsWith(".bin") === true
   );
   if (binFiles.length === 0) {
-    throw new Error("BIN_FILE_ACCESS_ERROR");
+    throw new Error(`Build is required, .bin files can't be accessed`);
   }
   const flasherArgsJsonExists = await pathExists(flasherArgsJsonPath);
   if (!flasherArgsJsonExists) {
@@ -103,7 +103,7 @@ export async function mergeFlashBinaries(
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Silent
     : TaskRevealKind.Always;
-  const mergeExecution = getMergeExecution(
+  const mergeExecution = await getMergeExecution(
     buildDirPath,
     esptoolPath,
     flashModel
@@ -123,7 +123,7 @@ export async function mergeFlashBinaries(
   TaskManager.disposeListeners();
 }
 
-export function getMergeExecution(
+export async function getMergeExecution(
   buildDir: string,
   esptoolPath: string,
   model: FlashModel
@@ -135,6 +135,12 @@ export function getMergeExecution(
     env: modifiedEnv,
   };
   const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+  const pythonBinExists = await pathExists(pythonBinPath);
+  if (!pythonBinExists) {
+    throw new Error(
+      `idf.pythonBinPath doesn't exist. Configure the extension first.`
+    );
+  }
   return new ProcessExecution(pythonBinPath, mergeArgs, options);
 }
 

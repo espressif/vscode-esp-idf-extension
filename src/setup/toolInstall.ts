@@ -25,10 +25,12 @@ import {
   sendPkgDownloadFailed,
 } from "./webviewMsgMethods";
 import { CancellationToken, Progress } from "vscode";
+import { IdfMirror } from "../views/setup/types";
 
 export async function downloadEspIdfTools(
   installDir: string,
   idfToolsManager: IdfToolsManager,
+  mirror: IdfMirror,
   progress: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
@@ -55,6 +57,7 @@ export async function downloadEspIdfTools(
   await downloadManager.downloadPackages(
     idfToolsManager,
     progress,
+    mirror,
     pkgProgress,
     cancelToken
   );

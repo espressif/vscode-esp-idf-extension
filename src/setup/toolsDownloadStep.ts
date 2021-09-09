@@ -17,7 +17,7 @@ import * as vscode from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
 import { SetupPanel } from "./SetupPanel";
 import { downloadEspIdfTools } from "./toolInstall";
-import { StatusType } from "../views/setup/types";
+import { IdfMirror, StatusType } from "../views/setup/types";
 import { createPyReqs } from "./pyReqsInstallStep";
 
 export async function downloadIdfTools(
@@ -25,6 +25,7 @@ export async function downloadIdfTools(
   toolsPath: string,
   pyPath: string,
   gitPath: string,
+  mirror: IdfMirror,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken
 ) {
@@ -46,7 +47,7 @@ export async function downloadIdfTools(
     command: "setRequiredToolsInfo",
     toolsInfo: requiredTools,
   });
-  await downloadEspIdfTools(toolsPath, idfToolsManager, progress, cancelToken);
+  await downloadEspIdfTools(toolsPath, idfToolsManager, mirror, progress, cancelToken);
   SetupPanel.postMessage({
     command: "updateEspIdfToolsStatus",
     status: StatusType.installed,

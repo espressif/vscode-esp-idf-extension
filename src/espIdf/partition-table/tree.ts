@@ -83,6 +83,8 @@ export class PartitionTreeDataProvider
     try {
       const modifiedEnv = appendIdfAndToolsToPath();
       const serialPort = readParameter("idf.port") as string;
+      const idfPath = readParameter("idf.espIdfPath");
+      const pythonBinPath = readParameter("idf.pythonBinPath") as string;
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {
@@ -129,9 +131,25 @@ export class PartitionTreeDataProvider
         "partitionTable.csv"
       );
 
+      const esptoolPath = join(
+        idfPath,
+        "components",
+        "esptool_py",
+        "esptool",
+        "esptool.py"
+      );
+
+      const genEsp32PartPath = join(
+        idfPath,
+        "components",
+        "partition_table",
+        "gen_esp32part.py"
+      );
+
       await spawn(
-        "esptool.py",
+        pythonBinPath,
         [
+          esptoolPath,
           "-p",
           serialPort,
           "read_flash",
@@ -145,10 +163,14 @@ export class PartitionTreeDataProvider
         }
       );
 
-      await spawn("gen_esp32part.py", [partTableBin, partTableCsv], {
-        cwd: workspaceFolder,
-        env: modifiedEnv,
-      });
+      await spawn(
+        pythonBinPath,
+        [genEsp32PartPath, partTableBin, partTableCsv],
+        {
+          cwd: workspaceFolder,
+          env: modifiedEnv,
+        }
+      );
       const csvData = await readFile(partTableCsv);
       let csvItems = this.CSV2JSON(csvData.toString());
       this.partitionItems = this.createPartitionItemNode(csvItems);
@@ -190,24 +212,23 @@ export class PartitionTreeDataProvider
   public CSV2JSON(csv: String): PartitionItem[] {
     const rows = new Array<PartitionItem>();
     const lines = csv.split(EOL);
-    const comment = lines.shift();
-    if (!comment.includes("# ESP-IDF Partition Table")) {
+    const matches = csv.match(/#\s*Name,\s*Type,\s*SubType,\s*Offset,\s*Size,\s*Flags/g);
+    if (!matches || !matches.length) {
       console.log("Not a partition table csv, skipping...");
       return rows;
     }
-    const headers = lines.shift();
     lines.forEach((line) => {
-      if (line === "") {
+      if (line === "" || line.startsWith("#")) {
         return;
       }
       const cols = line.split(",");
       rows.push({
-        name: cols.shift(),
-        type: cols.shift(),
-        subtype: cols.shift(),
-        offset: cols.shift(),
-        size: cols.shift(),
-        flag: cols.shift() === "encrypted" ? true : false,
+        name: cols.shift().trim(),
+        type: cols.shift().trim(),
+        subtype: cols.shift().trim(),
+        offset: cols.shift().trim(),
+        size: cols.shift().trim(),
+        flag: cols.shift().trim() === "encrypted" ? true : false,
         error: undefined,
       });
     });

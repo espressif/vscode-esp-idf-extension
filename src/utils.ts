@@ -138,17 +138,15 @@ export function spawn(
     child.stdout.on("data", sendToOutputChannel);
     child.stderr.on("data", sendToOutputChannel);
 
-    child.on("error", (error) => reject({ error }));
+    child.on("error", (error) => reject(error));
 
     child.on("exit", (code) => {
       if (code === 0) {
         resolve(buff);
       } else {
-        const msg = "non zero exit code " + code + EOL + EOL + buff;
-        Logger.error(msg, new Error(msg));
-        reject({
-          error: new Error("non zero exit code " + code + "\n\n" + buff),
-        });
+        const err = new Error("non zero exit code " + code + EOL + EOL + buff);
+        Logger.error(err.message, err);
+        reject(err);
       }
     });
   });
@@ -614,16 +612,14 @@ export function getSubProjects(dir: string): string[] {
 
 export async function getEspIdfVersion(workingDir: string, gitPath: string) {
   try {
-    const canCheck = await checkGitExists(
-      extensionContext.extensionPath,
-      gitPath
-    );
-    if (canCheck === "Not found") {
-      Logger.errorNotify(
-        "Git is not found in current environment",
-        Error("git is not found")
-      );
+    const doesWorkingDirExists = await pathExists(workingDir);
+    if (!doesWorkingDirExists) {
+      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`);
       return "x.x";
+    }
+    const gitVersion = await checkGitExists(workingDir, gitPath);
+    if (!gitVersion || gitVersion === "Not found") {
+      throw new Error("Git is not found in current environment");
     }
     const rawEspIdfVersion = await execChildProcess(
       `${gitPath} describe --tags`,
@@ -644,33 +640,65 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
       return "x.x";
     }
   } catch (error) {
+    const espIdfVersionFromCmake = await getEspIdfFromCMake(workingDir);
+    if (espIdfVersionFromCmake) {
+      return espIdfVersionFromCmake;
+    }
     Logger.info(error);
     return "x.x";
   }
 }
 
+export async function getEspIdfFromCMake(espIdfPath: string) {
+  const versionFilePath = path.join(
+    espIdfPath,
+    "tools",
+    "cmake",
+    "version.cmake"
+  );
+  const doesVersionFileExists = await pathExists(versionFilePath);
+  if (!doesVersionFileExists) {
+    Logger.info(`${versionFilePath} does not exist to get ESP-IDF version.`);
+    return "x.x";
+  }
+  const versionFileContent = await readFile(versionFilePath, "utf8");
+  let versionMatches: RegExpExecArray;
+  let espVersion = {};
+  const cmakeVersionRegex = new RegExp(
+    /\s*set\s*\(\s*IDF_VERSION_([A-Z]{5})\s+(\d+)/gm
+  );
+  while ((versionMatches = cmakeVersionRegex.exec(versionFileContent))) {
+    espVersion[versionMatches[1]] = versionMatches[2];
+  }
+  if (Object.keys(espVersion).length) {
+    return `${espVersion["MAJOR"]}.${espVersion["MINOR"]}.${espVersion["PATCH"]}`;
+  } else {
+    return "x.x";
+  }
+}
+
 export async function checkGitExists(workingDir: string, gitPath: string) {
-  return await execChildProcess(`${gitPath} --version`, workingDir)
-    .then((result) => {
-      if (result) {
-        const match = result.match(
-          /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g
-        );
-        if (match && match.length > 0) {
-          return match[0].replace("git version ", "");
-        } else {
-          Logger.errorNotify(
-            "Git is not found in current environment",
-            Error("")
-          );
-          return "Not found";
-        }
-      }
-    })
-    .catch((err) => {
-      Logger.errorNotify("Git is not found in current environment", err);
+  try {
+    const gitBinariesExists = await pathExists(gitPath);
+    if (!gitBinariesExists) {
       return "Not found";
-    });
+    }
+    const gitRawVersion = await execChildProcess(
+      `${gitPath} --version`,
+      workingDir
+    );
+    const match = gitRawVersion.match(
+      /(?:git\sversion\s)(\d+)(.\d+)?(.\d+)?(?:.windows.\d+)?/g
+    );
+    if (match && match.length) {
+      return match[0].replace("git version ", "");
+    } else {
+      return "Not found";
+    }
+  } catch (error) {
+    Logger.errorNotify("Git is not found in current environment", error);
+    return "Not found";
+  }
 }
 
 export function buildPromiseChain<TItem, TPromise>(
@@ -762,11 +790,13 @@ export function appendIdfAndToolsToPath() {
   modifiedEnv.MDF_PATH = mdfPathDir || process.env.MDF_PATH;
 
   modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath")}` || `${process.env.PYTHON}`;
+    `${idfConf.readParameter("idf.pythonBinPath")}` ||
+    `${process.env.PYTHON}` ||
+    `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
 
-  modifiedEnv.IDF_PYTHON_ENV_PATH = path.dirname(
-    path.dirname(modifiedEnv.PYTHON)
-  );
+  modifiedEnv.IDF_PYTHON_ENV_PATH =
+    path.dirname(path.dirname(modifiedEnv.PYTHON)) ||
+    process.env.IDF_PYTHON_ENV_PATH;
 
   const gitPath = idfConf.readParameter("idf.gitPath") as string;
   let pathToGitDir;
@@ -831,6 +861,12 @@ export function appendIdfAndToolsToPath() {
 
   if (enableComponentManager) {
     modifiedEnv.IDF_COMPONENT_MANAGER = "1";
+  }
+
+  let enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+
+  if (enableCCache) {
+    modifiedEnv.IDF_CCACHE_ENABLE = "1";
   }
 
   return modifiedEnv;

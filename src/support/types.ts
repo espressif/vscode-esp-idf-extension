@@ -43,7 +43,9 @@ export class Configuration {
 
 export class SystemInfo {
   architecture: string;
+  envIdfPythonEnvPath: string;
   envPath: string;
+  envPython: string;
   extensionVersion: string;
   language: string;
   shell: string;

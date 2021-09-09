@@ -12,14 +12,15 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | ------------------------------- | ----------------------------------------------------------------------------- |
 | `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                |
 | `idf.customExtraVars`           | Variables to be added to system environment variables                         |
+| `idf.gitPath`                   | Path to git executable                                                        |
+| `idf.enableCCache`              | Enable CCache on build task (make sure CCache is in PATH)                     |
+| `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                 |
 | `idf.espIdfPath`                | Path to locate ESP-IDF framework (IDF_PATH)                                   |
 | `idf.espIdfPathWin`             | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
 | `idf.pythonBinPath`             | Python absolute binary path used to execute ESP-IDF Python Scripts            |
 | `idf.pythonBinPathWin`          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
 | `idf.toolsPath`                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
 | `idf.toolsPathWin`              | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
-| `idf.gitPath`                   | Path to git executable                                                        |
-| `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                 |
 
 This is how the extension uses them:
 
@@ -42,6 +43,7 @@ These settings are specific to the ESP32 Chip/ Board
 | `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                        |
 | `idf.flashBaudRate`                              | Flash Baud rate                                                     |
 | `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |
 | `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
 | `idf.port`                                       | Path of selected device port                                        |
 | `idf.portWin`                                    | Path of selected device port in Windows                             |
