@@ -17,6 +17,33 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.2.0)
+
+### Features and enhancements
+
+- [Add ESP-IDF QEMU integration](https://github.com/espressif/vscode-esp-idf-extension/pull/451) to monitor and debug on emulated ESP32.
+- [Add openOCD rules command and button on setup wizard end for Linux users](https://github.com/espressif/vscode-esp-idf-extension/pull/470)
+- [Add verify matching binary before debug](https://github.com/espressif/vscode-esp-idf-extension/pull/472)
+- [Heap tracing using gdbinit file](https://github.com/espressif/vscode-esp-idf-extension/pull/467)
+- [Partition tree from target device and flash bin to partition](https://github.com/espressif/vscode-esp-idf-extension/pull/478)
+- [Project creation unit testing](https://github.com/espressif/vscode-esp-idf-extension/pull/479)
+- [Update debug adapter to latest commit](https://github.com/espressif/vscode-esp-idf-extension/pull/481)
+- [Use Espressif mirrors for ESP-IDF tools download in setup wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/514)
+- Add CCache [enable setting](https://github.com/espressif/vscode-esp-idf-extension/pull/517) into [build task](https://github.com/espressif/vscode-esp-idf-extension/pull/523)
+- [Add serial port and IDF_TARGET to status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/519)
+
+### Bug Fixes
+
+- [Add git executable before venv](https://github.com/espressif/vscode-esp-idf-extension/pull/468)
+- [Add openOCD debug level configuration setting and fix ESP-IDF version without git history](https://github.com/espressif/vscode-esp-idf-extension/pull/518)
+- [Add save scope reference in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/489)
+- [Chinese localization fixes](https://github.com/espressif/vscode-esp-idf-extension/pull/507) Thanks @larryli !
+- [Fix arduino as component cloning promise await if directory exists](https://github.com/espressif/vscode-esp-idf-extension/pull/481)
+- Fix recursive examples not rendering in production in [new project wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/486) and [show examples](https://github.com/espressif/vscode-esp-idf-extension/pull/513)
+- [Fix multiple projects documentation link](https://github.com/espressif/vscode-esp-idf-extension/pull/503)
+- [Update MacOS default keyboard shortcuts](https://github.com/espressif/vscode-esp-idf-extension/pull/493)
+- [Use process execution instead of shell for flashing task](https://github.com/espressif/vscode-esp-idf-extension/pull/469)
+- Windows fixes for [gcovr](https://github.com/espressif/vscode-esp-idf-extension/pull/509) and [qemu](https://github.com/espressif/vscode-esp-idf-extension/pull/510)
 ## [1.1.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.1.1)
 
 ### Features and enhancements

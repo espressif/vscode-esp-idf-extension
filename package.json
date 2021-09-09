@@ -279,7 +279,7 @@
       {
         "command": "espIdf.fullClean",
         "key": "ctrl+e x",
-        "mac": "cmd+e x"
+        "mac": "cmd+i x"
       },
       {
         "command": "espIdf.eraseFlash",
