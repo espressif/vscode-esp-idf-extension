@@ -280,9 +280,10 @@ export async function copyFromSrcProject(
 
 export function getConfigValueFromSDKConfig(
   key: string,
-  workspacePath: string
+  workspacePath: string,
+  sdkconfigFileName: string = "sdkconfig"
 ): string {
-  const sdkconfigFilePath = path.join(workspacePath, "sdkconfig");
+  const sdkconfigFilePath = path.join(workspacePath, sdkconfigFileName);
   if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
@@ -861,12 +862,6 @@ export function appendIdfAndToolsToPath() {
 
   if (enableComponentManager) {
     modifiedEnv.IDF_COMPONENT_MANAGER = "1";
-  }
-
-  let enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
-
-  if (enableCCache) {
-    modifiedEnv.IDF_CCACHE_ENABLE = "1";
   }
 
   return modifiedEnv;

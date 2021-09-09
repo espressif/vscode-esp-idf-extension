@@ -95,7 +95,20 @@ export class BuildTask {
     if (!cmakeCacheExists) {
       const compilerArgs = (idfConf.readParameter(
         "idf.cmakeCompilerArgs"
-      ) as Array<string>) || ["-G", "Ninja", ".."];
+      ) as Array<string>) || [
+        "-G",
+        "Ninja",
+        "-DPYTHON_DEPS_CHECKED=1",
+        "-DESP_PLATFORM=1",
+        "..",
+      ];
+      const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+      if (enableCCache && compilerArgs && compilerArgs.length) {
+        const indexOfCCache = compilerArgs.indexOf("-DCCACHE_ENABLE=1");
+        if (indexOfCCache === -1) {
+          compilerArgs.splice(compilerArgs.length - 1, 0, "-DCCACHE_ENABLE=1");
+        }
+      }
       const compileExecution = this.getShellExecution(compilerArgs, options);
       TaskManager.addTask(
         { type: "esp-idf", command: "ESP-IDF Compile" },

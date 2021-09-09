@@ -453,6 +453,8 @@
             "default": [
               "-G",
               "Ninja",
+              "-DPYTHON_DEPS_CHECKED=1",
+              "-DESP_PLATFORM=1",
               ".."
             ],
             "description": "%param.cmakeCompilerArgs%",

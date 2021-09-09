@@ -13,9 +13,11 @@
 // limitations under the License.
 
 import * as fs from "fs";
+import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
+import { readParameter, writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
@@ -80,4 +82,36 @@ export function getProjectName(workspacePath: string): Promise<string> {
       return reject(error);
     }
   });
+}
+
+export async function getIdfTargetFromSdkconfig(
+  workspacePath: string,
+  statusItem: vscode.StatusBarItem
+) {
+  const doesSdkconfigExists = await pathExists(
+    path.join(workspacePath, "sdkconfig")
+  );
+  const doesSdkconfigDefaultExists = await pathExists(
+    path.join(workspacePath, "sdkconfig.defaults")
+  );
+  if (!doesSdkconfigExists && !doesSdkconfigDefaultExists) {
+    return;
+  }
+  let sdkconfigToUse: string = doesSdkconfigExists
+    ? "sdkconfig"
+    : doesSdkconfigDefaultExists
+    ? "sdkconfig.defaults"
+    : "";
+  if (sdkconfigToUse) {
+    const idfTarget = utils
+      .getConfigValueFromSDKConfig(
+        "CONFIG_IDF_TARGET",
+        workspacePath,
+        sdkconfigToUse
+      )
+      .replace(/\"/g, "");
+    const target = readParameter("idf.saveScope");
+    await writeParameter("idf.adapterTargetName", idfTarget, target);
+    statusItem.text = "$(circuit-board) " + idfTarget;
+  }
 }

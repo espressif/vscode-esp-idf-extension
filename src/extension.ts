@@ -45,6 +45,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
+  getIdfTargetFromSdkconfig,
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
@@ -250,6 +251,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+    await getIdfTargetFromSdkconfig(
+      workspaceRoot.fsPath,
+      statusBarItems["target"]
+    );
     const coverageOptions = getCoverageOptions();
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -299,6 +304,10 @@ export async function activate(context: vscode.ExtensionContext) {
       for (const ws of e.removed) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+          await getIdfTargetFromSdkconfig(
+            workspaceRoot.fsPath,
+            statusBarItems["target"]
+          );
           const coverageOptions = getCoverageOptions();
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -306,6 +315,10 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       if (typeof workspaceRoot === undefined) {
         workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+        await getIdfTargetFromSdkconfig(
+          workspaceRoot.fsPath,
+          statusBarItems["target"]
+        );
         const coverageOptions = getCoverageOptions();
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       }
@@ -614,6 +627,10 @@ export async function activate(context: vscode.ExtensionContext) {
           return;
         }
         workspaceRoot = option.uri;
+        await getIdfTargetFromSdkconfig(
+          workspaceRoot.fsPath,
+          statusBarItems["target"]
+        );
         const projDescPath = path.join(
           workspaceRoot.fsPath,
           "build",
@@ -823,6 +840,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.workspace.onDidChangeConfiguration((e) => {
+    const winFlag = process.platform === "win32" ? "Win" : "";
     if (e.affectsConfiguration("idf.openOcdConfigs")) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs"
@@ -843,13 +861,13 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
       statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
-    } else if (e.affectsConfiguration("idf.espIdfPath")) {
+    } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
       qemuManager.configure({
         tcpPort: idfConf.readParameter("idf.qemuTcpPort"),
       } as IQemuOptions);
-    } else if (e.affectsConfiguration("idf.port")) {
+    } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       statusBarItems["port"].text =
         "$(plug) " + idfConf.readParameter("idf.port");
     } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
