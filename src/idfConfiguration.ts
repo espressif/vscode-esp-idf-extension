@@ -56,7 +56,6 @@ export function readParameter(
 }
 
 export async function chooseConfigurationTarget() {
-  const previousTarget = readParameter("idf.saveScope");
   const confTarget = await vscode.window.showQuickPick(
     [
       {
@@ -78,9 +77,13 @@ export async function chooseConfigurationTarget() {
     { placeHolder: "Where to save the configuration?" }
   );
   if (!confTarget) {
-    return previousTarget || vscode.ConfigurationTarget.Global;
+    return;
   }
-  await writeParameter("idf.saveScope", confTarget.target, previousTarget);
+  await writeParameter(
+    "idf.saveScope",
+    confTarget.target,
+    vscode.ConfigurationTarget.Global
+  );
   return confTarget.target;
 }
 
@@ -148,7 +151,13 @@ export async function updateConfParameter(
     Logger.warnNotify(noWsOpenMSg);
     throw new Error(noWsOpenMSg);
   }
-  await writeParameter(confParamName, valueToWrite, target);
+  let workspaceFolder: vscode.WorkspaceFolder;
+  if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
+    workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+      placeHolder: `Pick Workspace Folder to which settings should be applied`,
+    });
+  }
+  await writeParameter(confParamName, valueToWrite, target, workspaceFolder);
   const updateMessage = locDic.localize(
     "idfConfiguration.hasBeenUpdated",
     " has been updated"

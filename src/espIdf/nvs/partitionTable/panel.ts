@@ -17,7 +17,7 @@
  */
 import { basename, dirname, join } from "path";
 import * as vscode from "vscode";
-import { constants, readFile, writeFile } from "fs-extra";
+import { constants, pathExists, readFile, writeFile } from "fs-extra";
 import { Logger } from "../../../logger/logger";
 import * as idfConf from "../../../idfConfiguration";
 import { canAccessFile, execChildProcess } from "../../../utils";
@@ -93,6 +93,10 @@ export class NVSPartitionTable {
 
   private async getCSVFromFile(filePath: string) {
     try {
+      const fileExists = await pathExists(filePath);
+      if (!fileExists) {
+        return;
+      }
       let csvContent: string = "";
       if (filePath && filePath.endsWith(".csv")) {
         csvContent = await readFile(filePath, "utf-8");

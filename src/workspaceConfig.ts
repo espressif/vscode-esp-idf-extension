@@ -110,6 +110,9 @@ export async function getIdfTargetFromSdkconfig(
         sdkconfigToUse
       )
       .replace(/\"/g, "");
+    if (!idfTarget) {
+      return;
+    }
     const target = readParameter("idf.saveScope");
     await writeParameter("idf.adapterTargetName", idfTarget, target);
     statusItem.text = "$(circuit-board) " + idfTarget;
