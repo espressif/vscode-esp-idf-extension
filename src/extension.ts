@@ -2342,7 +2342,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   type: "espidf",
                   request: "launch",
                   sessionID: "core-dump.debug.session.ws",
-                  skipVerifyAppBinBeforeDebug: true
+                  skipVerifyAppBinBeforeDebug: true,
                 });
                 vscode.debug.onDidTerminateDebugSession((session) => {
                   if (
@@ -2381,7 +2381,7 @@ export async function activate(context: vscode.ExtensionContext) {
             type: "espidf",
             request: "launch",
             sessionID: "gdbstub.debug.session.ws",
-            skipVerifyAppBinBeforeDebug: true
+            skipVerifyAppBinBeforeDebug: true,
           });
           vscode.debug.onDidTerminateDebugSession((session) => {
             if (
