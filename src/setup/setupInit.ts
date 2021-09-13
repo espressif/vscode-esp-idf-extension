@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConfigurationTarget, Progress, window } from "vscode";
+import { ConfigurationTarget, Progress, window, WorkspaceFolder } from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfVersions } from "./espIdfVersionList";
@@ -344,15 +344,47 @@ export async function saveSettings(
   const confTarget = idfConf.readParameter(
     "idf.saveScope"
   ) as ConfigurationTarget;
-  await idfConf.writeParameter("idf.espIdfPath", espIdfPath, confTarget);
-  await idfConf.writeParameter("idf.pythonBinPath", pythonBinPath, confTarget);
-  await idfConf.writeParameter("idf.toolsPath", toolsPath, confTarget);
+  let workspaceFolder: WorkspaceFolder;
+  if (confTarget === ConfigurationTarget.WorkspaceFolder) {
+    workspaceFolder = await window.showWorkspaceFolderPick({
+      placeHolder: `Pick Workspace Folder to which settings should be applied`,
+    });
+  }
+  await idfConf.writeParameter(
+    "idf.espIdfPath",
+    espIdfPath,
+    confTarget,
+    workspaceFolder
+  );
+  await idfConf.writeParameter(
+    "idf.pythonBinPath",
+    pythonBinPath,
+    confTarget,
+    workspaceFolder
+  );
+  await idfConf.writeParameter(
+    "idf.toolsPath",
+    toolsPath,
+    confTarget,
+    workspaceFolder
+  );
   await idfConf.writeParameter(
     "idf.customExtraPaths",
     exportedPaths,
-    confTarget
+    confTarget,
+    workspaceFolder
   );
-  await idfConf.writeParameter("idf.customExtraVars", exportedVars, confTarget);
-  await idfConf.writeParameter("idf.gitPath", gitPath, confTarget);
+  await idfConf.writeParameter(
+    "idf.customExtraVars",
+    exportedVars,
+    confTarget,
+    workspaceFolder
+  );
+  await idfConf.writeParameter(
+    "idf.gitPath",
+    gitPath,
+    confTarget,
+    workspaceFolder
+  );
   window.showInformationMessage("ESP-IDF has been configured");
 }

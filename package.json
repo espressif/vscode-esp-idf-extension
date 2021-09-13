@@ -553,7 +553,6 @@
               "Workspace",
               "WorkspaceFolder"
             ],
-            "scope": "resource",
             "description": "%param.saveScope%"
           },
           "idf.telemetry": {
@@ -652,26 +651,31 @@
           "idf.enableIdfComponentManager": {
             "type": "boolean",
             "description": "%param.enableIdfComponentManager.title%",
+            "scope": "resource",
             "default": false
           },
           "idf.enableCCache": {
             "type": "boolean",
             "description": "%param.enableCCache.title%",
+            "scope": "resource",
             "default": false
           },
           "idf.gitPath": {
             "type": "string",
             "description": "%param.gitPath.title%",
+            "scope": "resource",
             "default": "git"
           },
           "idf.enableUpdateSrcsToCMakeListsFile": {
             "type": "boolean",
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
+            "scope": "resource",
             "default": true
           },
           "idf.qemuTcpPort": {
             "type": "number",
             "description": "%param.qemuTcpPort%",
+            "scope": "resource",
             "default": 5555
           },
           "esp.component-manager.url": {
@@ -1063,7 +1067,7 @@
               "skipVerifyAppBinBeforeDebug": {
                 "type": "boolean",
                 "description": "%esp_idf.skipVerifyAppBinBeforeDebug.description%",
-                "default": false
+                "default": true
               }
             }
           }
