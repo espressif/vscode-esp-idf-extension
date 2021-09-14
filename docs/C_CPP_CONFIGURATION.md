@@ -41,7 +41,7 @@ An example configuration that should work with most projects is shown below.
 }
 ```
 
-  > **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create project from extension template` or you add the configuration files to an existing project using the `Add vscode configuration folder`, this file is created with the compilerPath of the configured toolchain for your current `idf.adapterTargetName`.
+> **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create project from extension template` or you add the configuration files to an existing project using the `Add vscode configuration folder`, this file is created with the compilerPath of the configured toolchain for your current `idf.adapterTargetName`.
 
 ## Configuration with compile_commands.json
 
