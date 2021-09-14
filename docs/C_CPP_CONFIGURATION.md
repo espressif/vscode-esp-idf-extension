@@ -18,7 +18,7 @@ An example configuration that should work with most projects is shown below.
 {
   "configurations": [
     {
-      "name": "Linux",
+      "name": "ESP-IDF",
       "cStandard": "c11",
       "cppStandard": "c++17",
       "includePath": [
@@ -33,12 +33,15 @@ An example configuration that should work with most projects is shown below.
           "${workspaceFolder}"
         ],
         "limitSymbolsToIncludedHeaders": false
-      }
+      },
+      "compilerPath": "/path/to/toolchain-gcc"
     }
   ],
   "version": 4
 }
 ```
+
+  > **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create project from extension template` or you add the configuration files to an existing project using the `Add vscode configuration folder`, this file is created with the compilerPath of the configured toolchain for your current `idf.adapterTargetName`.
 
 ## Configuration with compile_commands.json
 
@@ -48,7 +51,7 @@ For this configuration, you must build your project beforehand in order to gener
 {
   "configurations": [
     {
-      "name": "Linux",
+      "name": "ESP-IDF",
       "cStandard": "c11",
       "cppStandard": "c++17",
       "compileCommands": "${workspaceFolder}/build/compile_commands.json"

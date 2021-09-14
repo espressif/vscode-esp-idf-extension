@@ -1,6 +1,6 @@
 # Language contribution guidelines
 
-Make sure you install the source code version of this extension by following [Source Mode](README.md#Source-Mode).
+Make sure you install the source code version of this extension by following [Source Mode](./INSTALL.md#Build-from-Source-Code).
 
 Inside i18n folder, create a sub-directory using the language code name as specified by [ISO 639-3](https://en.wikipedia.org/wiki/ISO_639-3) convention.
 
@@ -37,4 +37,4 @@ Test your contribution by changing Visual Studio Code locale:
 - Pressing F1 and run the `Configure Display Language` command.
 - Or manually modify `locale.json` in your Visual Studio Code User Settings.
 
-Make a pull request with your contribution, please follow the [Code of Conduct](CODE_OF_CONDUCT.md) while creating a pull request.
+Make a pull request with your contribution, please follow the [Code of Conduct](./CODE_OF_CONDUCT.md) while creating a pull request.

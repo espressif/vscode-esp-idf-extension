@@ -33,17 +33,16 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 # Prerequisites
 
-There are few dependencies required in your system and available in environment variable PATH before installing this extension:
+There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites) documentation.
 
 | Linux                                                        | MacOS                                                        | Windows                                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [Python 3.5](https://www.python.org/download/releases/3.5/)+ | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
-| [PIP](https://pip.pypa.io/en/stable/installing/)             | [PIP](https://pip.pypa.io/en/stable/installing/)             |                                                                              |
+| [Python 3.5](https://www.python.org/downloads/)+             | [Python 3.5](https://www.python.org/downloads/)+             | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
+| [PIP](https://pip.pypa.io/en/stable/installation/)           | [PIP](https://pip.pypa.io/en/stable/installation/)           |                                                                              |
 | [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |                                                                              |
 | [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                                              |
 | [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
 
-Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites).
 
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
