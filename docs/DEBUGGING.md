@@ -69,7 +69,7 @@ Example launch.json for ESP-IDF Debug Adapter:
       "debugPort": 9998,
       "logLevel": 2,
       "mode": "manual",
-      "skipVerifyAppBinBeforeDebug": false,
+      "skipVerifyAppBinBeforeDebug": true,
       "initGdbCommands": [
         "target remote :3333",
         "symbol-file /path/to/program.elf",
