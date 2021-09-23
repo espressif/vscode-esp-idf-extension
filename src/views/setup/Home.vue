@@ -20,7 +20,21 @@
     </div>
     <div class="centerize notification" v-if="hasPrerequisites">
       <div class="control centerize home-title">
-        <h1 class="title is-spaced">Welcome to the extension setup</h1>
+        <h1 class="title is-spaced">Welcome.</h1>
+        <p v-if="platform !== 'win32'">
+          First, install the
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
+            v-if="platform === 'darwin'"
+            >ESP-IDF Prerequisites for MacOS</a
+          >
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
+            v-if="platform === 'linux'"
+            >ESP-IDF Prerequisites for Linux</a
+          >,
+        </p>
+        <p>restart Visual Studio Code and run this setup again.</p>
         <h2 class="subtitle">Choose a setup mode.</h2>
       </div>
       <div
@@ -83,6 +97,7 @@ export default class Home extends Vue {
   @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
   @State("pathSep") private storePathSep: string;
+  @State("platform") private storePlatform: string;
 
   get espIdf() {
     return this.storeEspIdf;
@@ -94,6 +109,11 @@ export default class Home extends Vue {
 
   get idfVersion() {
     return this.storeIdfVersion;
+  }
+
+  get platform() {
+    console.log(this.storePlatform);
+    return this.storePlatform;
   }
 
   get isNotWinPlatform() {

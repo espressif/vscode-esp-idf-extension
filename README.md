@@ -35,14 +35,9 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites) documentation.
 
-| Linux                                                        | MacOS                                                        | Windows                                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| [Python 3.5](https://www.python.org/downloads/)+             | [Python 3.5](https://www.python.org/downloads/)+             | [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) |
-| [PIP](https://pip.pypa.io/en/stable/installation/)           | [PIP](https://pip.pypa.io/en/stable/installation/)           |                                                                              |
-| [Git](https://git-scm.com/downloads)                         | [Git](https://git-scm.com/downloads)                         |                                                                              |
-| [CMake](https://cmake.org/download)                          | [CMake](https://cmake.org/download)                          |                                                                              |
-| [Ninja-build](https://github.com/ninja-build/ninja/releases) | [Ninja-build](https://github.com/ninja-build/ninja/releases) |                                                                              |
-
+* Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
+* Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
+* For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
 
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
@@ -62,10 +57,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 
   > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension configuration.
 
-- Press <kbd>F1</kbd> and type 
-  * **ESP-IDF: Show Examples Projects** to create from ESP-IDF examples.
-  * **ESP-IDF: Create project from extension template** to generate a template ESP-IDF project
-  * **ESP-IDF: New Project** to open the new project wizard and choose one of the examples as template or a boilerplate project.
+- Press <kbd>F1</kbd> and type **ESP-IDF: Show Examples Projects** to create a new project from ESP-IDF examples.
 
 - Configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md). There is a default configuration that should work but you might want to modify it to your needs.
 
@@ -78,7 +70,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 - Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). 
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly).
 
 # Available commands
 
