@@ -78,7 +78,7 @@ export async function checkPreviousInstall(
     }
   }
 
-  const gitVersion = await utils.checkGitExists(toolsPath, gitPath);
+  const gitVersion = await utils.checkGitExists(containerPath, gitPath);
 
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {

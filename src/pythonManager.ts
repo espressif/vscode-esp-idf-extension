@@ -44,7 +44,7 @@ export async function installPythonEnvFromIdfTools(
     }
   }
   await execProcessWithLog(
-    `${pythonBinPath} ${idfToolsPyPath} install-python-env`,
+    `"${pythonBinPath}" "${idfToolsPyPath}" install-python-env`,
     idfToolsDir,
     pyTracker,
     channel,
