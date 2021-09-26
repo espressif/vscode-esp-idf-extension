@@ -95,7 +95,6 @@ export default class Home extends Vue {
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
   @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
-  @State("pathSep") private storePathSep: string;
   @State("platform") private storePlatform: string;
 
   get espIdf() {
@@ -111,12 +110,7 @@ export default class Home extends Vue {
   }
 
   get platform() {
-    console.log(this.storePlatform);
     return this.storePlatform;
-  }
-
-  get isNotWinPlatform() {
-    return this.storePathSep.indexOf("/") !== -1;
   }
 
   get isPreviousSetupValid() {
