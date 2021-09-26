@@ -61,7 +61,7 @@ export async function checkPreviousInstall(
 
   const espIdfJsonPath = path.join(toolsPath, "esp_idf.json");
   const espIdfJsonExists = await pathExists(espIdfJsonPath);
-  let gitPath = idfConf.readParameter("idf.gitPath") || "git";
+  let gitPath = idfConf.readParameter("idf.gitPath") || "/usr/bin/git";
   if (espIdfJsonExists) {
     const idfInstalled = await getSelectedIdfInstalled(toolsPath);
     if (idfInstalled && idfInstalled.path && idfInstalled.python) {
@@ -78,7 +78,7 @@ export async function checkPreviousInstall(
     }
   }
 
-  const gitVersion = await utils.checkGitExists(toolsPath, gitPath);
+  const gitVersion = await utils.checkGitExists(containerPath, gitPath);
 
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
@@ -274,11 +274,12 @@ export async function getSetupInitialValues(
         process.env
       );
       setupInitArgs.hasPrerequisites =
-        prevInstall.gitVersion !== "" &&
+        prevInstall.gitVersion !== "Not found" &&
         canAccessCMake !== "" &&
-        canAccessNinja !== "";
+        canAccessNinja !== "" &&
+        pythonVersions && pythonVersions.length > 0;
     } else {
-      setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "";
+      setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "Not found";
     }
     progress.report({ increment: 20, message: "Preparing setup view..." });
     if (prevInstall) {

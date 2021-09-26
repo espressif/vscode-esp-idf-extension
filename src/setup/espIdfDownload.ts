@@ -106,7 +106,7 @@ export async function downloadInstallIdfVersion(
       pkgProgress,
       cancelToken
     );
-    const downloadedMsg = `Downloaded ${idfVersion.name}.\n`;
+    const downloadedMsg = `Downloaded ${idfVersion.name}. Extracting...\n`;
     OutputChannel.appendLine(downloadedMsg);
     Logger.info(downloadedMsg);
     sendDownloadedZip(downloadedZipPath);

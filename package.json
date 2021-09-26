@@ -664,7 +664,7 @@
             "type": "string",
             "description": "%param.gitPath.title%",
             "scope": "resource",
-            "default": "git"
+            "default": "/usr/bin/git"
           },
           "idf.enableUpdateSrcsToCMakeListsFile": {
             "type": "boolean",
