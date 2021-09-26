@@ -21,7 +21,7 @@
       <div class="control centerize home-title">
         <h1 class="title is-spaced">Welcome.</h1>
         <p v-if="platform !== 'win32'">
-          First, install the
+          Make sure that
           <a
             href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
             v-if="platform === 'darwin'"
@@ -31,9 +31,9 @@
             href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
             v-if="platform === 'linux'"
             >ESP-IDF Prerequisites for Linux</a
-          >,
+          >
         </p>
-        <p>restart Visual Studio Code and run this wizard again.</p>
+        <p>are installed before choosing the setup mode.</p>
         <h2 class="subtitle">Choose a setup mode.</h2>
       </div>
       <div
