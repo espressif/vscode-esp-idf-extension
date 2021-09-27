@@ -1,26 +1,39 @@
 <template>
   <div id="home">
     <div class="centerize" v-if="!hasPrerequisites">
-      <p>
-        Before using this extension,
-        <a href="https://git-scm.com/downloads">Git</a>
-        and
-        <a href="https://www.python.org/downloads">Python</a> are required.
-        <br />Please read
-        <a
-          href="https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html#step-1-install-prerequisites"
-          >ESP-IDF Prerequisites.</a
-        >
-      </p>
-      <p v-if="isNotWinPlatform">
-        <a href="https://cmake.org/download/">CMake</a> and
-        <a href="https://github.com/ninja-build/ninja/releases">Ninja</a> are
-        required in environment PATH.
-      </p>
+      <h1 class="title is-spaced">Welcome.</h1>
+        <p v-if="platform !== 'win32'">
+          First, install the
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
+            v-if="platform === 'darwin'"
+            >ESP-IDF Prerequisites for MacOS</a
+          >
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
+            v-if="platform === 'linux'"
+            >ESP-IDF Prerequisites for Linux</a
+          >,
+        </p>
+        <p>restart Visual Studio Code and run this wizard again.</p>
     </div>
     <div class="centerize notification" v-if="hasPrerequisites">
       <div class="control centerize home-title">
-        <h1 class="title is-spaced">Welcome to the extension setup</h1>
+        <h1 class="title is-spaced">Welcome.</h1>
+        <p v-if="platform !== 'win32'">
+          Make sure that
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
+            v-if="platform === 'darwin'"
+            >ESP-IDF Prerequisites for MacOS</a
+          >
+          <a
+            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
+            v-if="platform === 'linux'"
+            >ESP-IDF Prerequisites for Linux</a
+          >
+        </p>
+        <p>are installed before choosing the setup mode.</p>
         <h2 class="subtitle">Choose a setup mode.</h2>
       </div>
       <div
@@ -82,7 +95,7 @@ export default class Home extends Vue {
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];
   @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
-  @State("pathSep") private storePathSep: string;
+  @State("platform") private storePlatform: string;
 
   get espIdf() {
     return this.storeEspIdf;
@@ -96,8 +109,8 @@ export default class Home extends Vue {
     return this.storeIdfVersion;
   }
 
-  get isNotWinPlatform() {
-    return this.storePathSep.indexOf("/") !== -1;
+  get platform() {
+    return this.storePlatform;
   }
 
   get isPreviousSetupValid() {

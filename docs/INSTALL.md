@@ -25,7 +25,7 @@ To install from `.vsix` file:
 
 - Install [Node.js](https://nodejs.org/en/)
 - Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
-- Clone this repository `git clone https://github.com/espressif/vscode-esp-idf-extension.git`
+- Clone this repository `git clone --recursive https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies, using `yarn`
 - Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
 - Build the Visual Studio Code extension setup with `yarn package`.
@@ -42,7 +42,7 @@ To install from `.vsix` file:
 - Click Uninstall.
 - Go to your `${VSCODE_EXTENSION_DIR}` and make sure to delete the Espressif IDF plugin folder
 
-`${VSCODE_EXTENSION_DIR}` is the location of the extension
+`${VSCODE_EXTENSION_DIR}` is the location of the extension:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/`

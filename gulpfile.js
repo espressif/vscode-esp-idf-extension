@@ -40,6 +40,8 @@ function clean(done) {
     "report.json",
     "report.txt",
     "testing.results.log",
+    "esp_idf_vsc_ext.log",
+    "esp_idf_docs_*.json"
   ]);
   done();
 }

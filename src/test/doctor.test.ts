@@ -83,7 +83,7 @@ suite("Doctor command tests", () => {
   test("Wrong version of ESP-IDF", async () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
     await getEspIdfVersion(reportObj);
-    assert.equal(reportObj.espIdfVersion.result, "Not found");
+    assert.equal(reportObj.espIdfVersion.result, "x.x");
   });
 
   test("Wrong access to Python path", () => {

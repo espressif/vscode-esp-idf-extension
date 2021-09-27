@@ -24,9 +24,9 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 > **NOTE:** The user can start or stop the openOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
-> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-5. The ESP-IDF Debug adapter server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port 43474 by default. Please review [DEBUGGING](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
+5. The [ESP-IDF Debug adapter](https://github.com/espressif/esp-debug-adapter) server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port `43474` by default. Please review [DEBUGGING](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
 
 6. The debug session will start after the debug adapter server is launched and ready.
 

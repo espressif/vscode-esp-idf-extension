@@ -52,14 +52,14 @@ Setup wizard provides 3 choices:
 
 After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
 
-> **NOTE:** Check the [troubleshooting](../../README.md#Troubleshooting) section if you have any issue.
+> **NOTE:** Check the [troubleshooting](../README.md#Troubleshooting) section if you have any issue.
 
 # JSON Manual Configuration
 
-The user can manually configure the extension by setting the following configuration settings with corresponding values. Please take a look at [Configuration settings](./docs/SETTINGS.md) for more information.
+The user can manually configure the extension by setting the following configuration settings with corresponding values. Please take a look at [Configuration settings](./SETTINGS.md) for more information.
 
 1. With Visual Studio Code Command Palette (F1 or View Menu -> Command Palette) and type **Preferences: Open Settings (JSON)**. This will open the user global settings for Visual Studio Code.
-   > **NOTE:** The user could choose to modify its workspace settings.json for a workspace limited configuration or a project limited configuration in the project's `.vscode/settings.json`. Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md).
+   > **NOTE:** The user could choose to modify its workspace settings.json for a workspace limited configuration or a project limited configuration in the project's `.vscode/settings.json`. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
 2. Your settings.json should look like:
 
 MacOS/Linux

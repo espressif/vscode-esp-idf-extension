@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getEspIdfFromCMake } from "../utils";
 import { execChildProcess } from "./execChildProcess";
 import { reportObj } from "./types";
 
@@ -40,6 +41,11 @@ export async function getEspIdfVersion(reportedResult: reportObj) {
       reportedResult.espIdfVersion.result = "Not found";
     }
   } catch (error) {
+    const espIdfVersionFromCmake = await getEspIdfFromCMake(reportedResult.configurationSettings.espIdfPath);
+    if (espIdfVersionFromCmake) {
+      reportedResult.espIdfVersion.result = espIdfVersionFromCmake;
+      return;
+    }
     reportedResult.espIdfVersion.result = "Not found";
     reportedResult.latestError = error;
   }

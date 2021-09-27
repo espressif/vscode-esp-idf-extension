@@ -9,7 +9,7 @@ You need to choose which kind of CMakeLists.txt file (project or component) to e
 
 > **NOTE:** All inputs are described in the [CMakeLists.txt schema](../../cmakeListsSchema.json).
 
-> **NOTE** This editor doesn't support all CMake functions and syntaxes. This editor should only be used for simple CMakeLists.txt options such as component registration (using idf_component_register) and basic project elements. If you need more customization or advanced CMakeLists.txt, consider reviewing [ESP-IDF Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html). Also review [CMakeLists.txt editor schema](../cmakeListsSchema.json) for a list of supported code.
+> **NOTE** This editor doesn't support all CMake functions and syntaxes. This editor should only be used for simple CMakeLists.txt options such as component registration (using idf_component_register) and basic project elements. If you need more customization or advanced CMakeLists.txt, consider reviewing [ESP-IDF Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html). Also review [CMakeLists.txt editor schema](../../cmakeListsSchema.json) for a list of supported code.
 
 **THIS WILL OVERRIDE ANY EXISTING CODE IN THE FILE WITH THE ONE GENERATED IN THE EDITOR. IF YOU HAVE ANY CODE NOT INCLUDED IN THE [SCHEMA](../../cmakeListsSchema.json) (OR SINGLE LINE COMMENTS) USE A REGULAR TEXT EDITOR INSTEAD**
 

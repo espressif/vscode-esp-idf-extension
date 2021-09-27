@@ -1618,6 +1618,11 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.configFiles,
         target
       );
+      await idfConf.writeParameter(
+        "idf.adapterTargetName",
+        selectedBoard.target.target,
+        target
+      );
       Logger.infoNotify("OpenOCD Board configuration files are updated.");
     } catch (error) {
       const errMsg =
