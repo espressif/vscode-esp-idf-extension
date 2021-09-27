@@ -26,7 +26,7 @@ export async function getPipVersion(
 ) {
   try {
     const rawPipVersion = await execChildProcess(
-      `${reportedResult.configurationSettings.pythonBinPath} -m pip --version`,
+      `"${reportedResult.configurationSettings.pythonBinPath}" -m pip --version`,
       context.extensionPath
     );
     reportedResult.pipVersion.output = rawPipVersion;
