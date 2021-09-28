@@ -75,7 +75,7 @@ export async function installPythonEnvFromIdfTools(
     { env: modifiedEnv },
     cancelToken
   );
-  
+
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
