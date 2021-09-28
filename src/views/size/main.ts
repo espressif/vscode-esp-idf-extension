@@ -106,7 +106,7 @@ const app = new Vue({
       });
     },
     convertToKB(byte: number) {
-      return Math.round(byte / 1024);
+      return byte === 0 ? 0 : Math.round(byte / 1024);
     },
     convertToSpacedString(byte: number) {
       return byte.toLocaleString("en-US").replace(/,/g, " ");
