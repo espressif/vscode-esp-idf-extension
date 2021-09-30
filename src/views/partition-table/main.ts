@@ -18,7 +18,7 @@
 
 import Vue from "vue";
 import App from "./App.vue";
-import store from "./store";
+import store, { PartitionTable } from "./store";
 import { CSV2JSON } from "./util";
 import IconifyIcon from "@iconify/vue";
 import tools from "@iconify-icons/codicon/tools";
@@ -43,7 +43,7 @@ window.addEventListener("message", (event) => {
   switch (message.command) {
     case "loadInitialData":
       if (message.csv) {
-        const rows = CSV2JSON(message.csv);
+        const rows = CSV2JSON<PartitionTable.Row>(message.csv);
         store.commit("SET_ROWS", rows);
       }
       break;
