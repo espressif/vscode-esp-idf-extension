@@ -27,6 +27,7 @@ import search from "@iconify-icons/codicon/search";
 import fileZip from "@iconify-icons/codicon/file-zip";
 import chevronDown from "@iconify-icons/codicon/chevron-down";
 import chevronUp from "@iconify-icons/codicon/chevron-up";
+import { isNumber } from "util";
 IconifyIcon.addIcon("symbol-event", symbolEvent);
 IconifyIcon.addIcon("refresh", refresh);
 IconifyIcon.addIcon("server", server);
@@ -106,7 +107,7 @@ const app = new Vue({
       });
     },
     convertToKB(byte: number) {
-      return byte === 0 ? 0 : Math.round(byte / 1024);
+      return isNumber(byte) ? Math.round(byte / 1024) : 0;
     },
     convertToSpacedString(byte: number) {
       return byte.toLocaleString("en-US").replace(/,/g, " ");

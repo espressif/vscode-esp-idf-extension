@@ -150,8 +150,7 @@
                   class="column is-3-mobile is-2-tablet is-2-desktop is-size-7-tablet is-size-7-mobile"
                 >
                   {{convertToKB(overviewData.used_dram)}}KB /
-                  {{convertToKB(overviewData.used_dram +
-                  overviewData.available_dram)}}KB
+                  {{convertToKB(overviewData.dram_total)}}KB
                 </div>
               </div>
             </div>
@@ -178,8 +177,7 @@
                   class="column is-3-mobile is-2-tablet is-2-desktop is-size-7-tablet is-size-7-mobile"
                 >
                   {{convertToKB(overviewData.used_iram)}}KB /
-                  {{convertToKB(overviewData.used_iram +
-                  overviewData.available_iram)}}KB
+                  {{convertToKB(overviewData.iram_total)}}KB
                 </div>
               </div>
             </div>
