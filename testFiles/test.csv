@@ -1,0 +1,4 @@
+# Name, Type, SubType, Offset, Size, Flags
+ncs,data,nvs,0x9000,24K,false
+phy_init,data,phy,0xf000,4K,false
+factory,app,factory,0x10000,1M,encrypted
