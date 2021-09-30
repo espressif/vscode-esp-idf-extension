@@ -89,7 +89,7 @@ suite("PartitionTable Suite", () => {
     }));
   });
 
-  test("Type field input string value > 254 validation", async () => {
+  test("Type field input string value bigger than 254 validation", async () => {
     let invalidRow = [{
       "name": "ncs",
       "type": "255",
@@ -106,7 +106,7 @@ suite("PartitionTable Suite", () => {
     }));
   });
 
-  test("Type field input string value < 0 validation", async () => {
+  test("Type field input string value smaller than 0 validation", async () => {
     let invalidRow = [{
       "name": "ncs",
       "type": "-1",
