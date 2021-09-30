@@ -35,30 +35,44 @@ export function isValidJSON(
     if (!row.type) {
       return "Type is required";
     }
-    const typeErrorStr =
-      "Partition type field can be specified as app (0x00) or data (0x01). Or it can be a number 0-254 (or as hex 0x00-0xFE). Types 0x00-0x3F are reserved for ESP-IDF core functions.";
-    if (!row.type.match(/^(app|data)$/)) {
-      try {
-        const typeInt = parseInt(row.type);
-        if ((typeInt > 1 && typeInt < 64) || typeInt > 254) {
-          return typeErrorStr;
-        }
-      } catch (error) {
-        return typeErrorStr;
-      }
+    if (!row.type.match(/^(0x00|0x01|app|data)$|^((0x)((([4-9a-e]|[A-E])[0-9a-fA-F])|([fF]([0-9a-e]|[A-E]))))$|^([01][0-9][0-9]|2[0-4][0-9]|25[0-4])$/)) {
+      return "Partition type field can be specified as app (0x00) or data (0x01). Or it can be a number 0-254 (or as hex 0x00-0xFE). Types 0x00-0x3F are reserved for ESP-IDF core functions.";
     }
 
     // SubType
     if (!row.subtype) {
       return "SubType is required";
     }
+        // For type "app"
+    if(row.type.match(/^(0x00|app)$/)) {
+      if(!row.subtype.match(/^(factory|test|ota_[0-9]|ota_1[0-5]|test|0x00)$|^(0x)(([1][0-9a-fA-F])|[2][0])$/)) {
+        return "When type is \"app\", the subtype field can only be specified as \"factory\" (0x00), \"ota_0\" (0x10) … \"ota_15\" (0x1F) or \"test\" (0x20)";
+      }
+    }
+        // For type "data"
+    if(row.type.match(/^(0x01|data)$/)) {
+      if(!row.subtype.match(/^(ota|phy|nvs|nvs_keys)$|^(0x)(([0][0-6])|[8][0-2])$/)) {
+        return "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)";
+      }
+    }
+        // For custom type
+    if(row.type.match(/^((0x)[4-9a-fA-F]([0-9a-e]|[A-E]))$/)) {
+      if(!row.subtype.match(/^((0x)[0-9a-fA-F]([0-9a-e]|[A-E]))$/)) {
+        return "If the partition type is any application-defined value (range 0x40-0xFE), then subtype field can be any value chosen by the application (range 0x00-0xFE).";
+      }
+    }
+
+    // Offset
+    if(row.offset !== "" && !row.offset.match(/(^((0x)[0-9a-fA-F]*)$)|^([0-9]*)$|([0-9]*((K|M)$))/)) {
+      return "Offsets can be specified as decimal numbers, hex numbers with the prefix 0x, size multipliers K or M (1024 and 1024*1024 bytes) or left empty."
+    }
 
     // Size
     if (!row.size) {
       return "Size is required";
     }
-    if (!row.size.match(/^(0[xX][0-9a-fA-F]+)|([0-9]+[KM]?)$/)) {
-      return "Size can be either hex number with 0x or decimal number which might end with M or K";
+    if (!row.size.match(/(^((0x)[0-9a-fA-F]*)$)|^([0-9]*)$|([0-9]*((K|M)$))/)) {
+      return "Size can be specified as decimal numbers, hex numbers with the prefix 0x, or size multipliers K or M (1024 and 1024*1024 bytes).";
     }
 
     return undefined;
@@ -100,8 +114,8 @@ export function JSON2CSV(rows: PartitionTable.Row[]): String {
   return csv;
 }
 
-export function CSV2JSON(csv: String): PartitionTable.Row[] {
-  const rows = new Array<PartitionTable.Row>();
+export function CSV2JSON<T>(csv: String): T[] {
+  const rows = [];
   const lines = csv.split(EOL);
   const matches = csv.match(
     /#\s*Name,\s*Type,\s*SubType,\s*Offset,\s*Size,\s*Flags/g
