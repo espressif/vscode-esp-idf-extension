@@ -48,6 +48,29 @@ export function validateRows(rows: NvsPartitionTable.IRow[]) {
   return validationResults;
 }
 
+export const numberTypes = ["u8", "i8", "u16", "i16", "u32", "i32", "u64", "i64"];
+
+export const minValues = {
+  u8: 0,
+  i8: -128,
+  u16: 0,
+  i16: -32768,
+  u32: 0,
+  i32: -2147483648,
+  u64: 0,
+  i64: -9223372036854775808,
+};
+export const maxValues = {
+  u8: 255,
+  i8: 127,
+  u16: 65535,
+  i16: 32767,
+  u32: 4294967295,
+  i32: 2147483647,
+  u64: 18446744073709551615,
+  i64: 9223372036854775807,
+};
+
 export function isInValidRow(row: NvsPartitionTable.IRow): string {
   if (!row.key) {
     return "Key field is required";
@@ -84,7 +107,6 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     return;
   }
 
-  const numberTypes = ["u8", "i8", "u16", "i16", "u32", "i32", "u64", "i64"];
   if (numberTypes.indexOf(row.encoding) !== -1) {
     if (!/^-?\d+$/.test(row.value)) {
       return "Value is not a valid number";
@@ -92,26 +114,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     const typeInt = parseInt(row.value);
 
     let minValue: number, maxValue: number;
-    const minValues = {
-      u8: 0,
-      i8: -128,
-      u16: 0,
-      i16: -32768,
-      u32: 0,
-      i32: -2147483648,
-      u64: 0,
-      i64: -9223372036854775808,
-    };
-    const maxValues = {
-      u8: 255,
-      i8: 127,
-      u16: 65535,
-      i16: 32767,
-      u32: 4294967295,
-      i32: 2147483647,
-      u64: 18446744073709551615,
-      i64: 9223372036854775807,
-    };
+    
     minValue = minValues[row.encoding];
     maxValue = maxValues[row.encoding];
     if (
