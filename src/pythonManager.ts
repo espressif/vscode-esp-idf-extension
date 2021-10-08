@@ -58,6 +58,7 @@ export async function installPythonEnvFromIdfTools(
     cancelToken
   );
 
+  modifiedEnv.PYTHONNOUSERSITE = "1";
   await execProcessWithLog(
     `"${pythonBinPath}" -m virtualenv "${pyEnvPath}" -p "${pythonBinPath}"`,
     idfToolsDir,
