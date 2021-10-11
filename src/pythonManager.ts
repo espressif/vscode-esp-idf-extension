@@ -42,6 +42,7 @@ export async function installPythonEnvFromIdfTools(
     if (pathToGitDir) {
       modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
     }
+    modifiedEnv.PYTHONNOUSERSITE = "1";
   }
   const pyEnvPath = await getPythonEnvPath(
     espDir,
@@ -58,7 +59,6 @@ export async function installPythonEnvFromIdfTools(
     cancelToken
   );
 
-  modifiedEnv.PYTHONNOUSERSITE = "1";
   await execProcessWithLog(
     `"${pythonBinPath}" -m virtualenv "${pyEnvPath}" -p "${pythonBinPath}"`,
     idfToolsDir,
