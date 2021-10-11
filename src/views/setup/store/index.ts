@@ -42,6 +42,7 @@ export interface IState {
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
   manualPythonPath: string;
+  openOCDRulesPath: string;
   pathSep: string;
   platform: string;
   pyExecErrorStatus: string;
@@ -90,6 +91,7 @@ export const setupState: IState = {
   isIdfInstalling: false,
   isIdfInstalled: false,
   manualPythonPath: "",
+  openOCDRulesPath: "",
   pathSep: "/",
   platform: "",
   pyExecErrorStatus: "",
@@ -123,11 +125,6 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
-  copyOpenOCDRules() {
-    vscode.postMessage({
-      command: "copyOpenOCDRules",
-    });
-  },
   checkEspIdfTools(context) {
     const pyPath =
       context.state.selectedSysPython ===
@@ -290,6 +287,11 @@ export const mutations: MutationTree<IState> = {
   setManualPyPath(state, manualPyPath) {
     const newState = state;
     newState.manualPythonPath = manualPyPath;
+    Object.assign(state, newState);
+  },
+  setOpenOcdRulesPath(state, openOCDRulesPath: string) {
+    const newState = state;
+    newState.openOCDRulesPath = openOCDRulesPath;
     Object.assign(state, newState);
   },
   setPathSep(state, pathSep: string) {

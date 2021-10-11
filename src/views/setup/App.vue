@@ -49,9 +49,7 @@
         </svg>
         ESPRESSIF
       </h1>
-      <h2 class="subtitle">
-        ESP-IDF Extension for Visual Studio Code
-      </h2>
+      <h2 class="subtitle">ESP-IDF Extension for Visual Studio Code</h2>
     </div>
     <transition name="fade" mode="out-in" v-if="!isInstalled">
       <router-view></router-view>
@@ -68,14 +66,10 @@
             permission delegation in USB devices to be added in
             <span class="span-path">/etc/udev/rules.d/</span>.
           </p>
+          <p>Run this command in a terminal with sudo privileges:</p>
         </div>
-
-        <div class="field centerize">
-          <div class="control">
-            <a class="button" @click="copyOpenOCDRules"
-              >Add OpenOCD dev rules</a
-            >
-          </div>
+        <div class="notification" v-if="openOCDRulesPath">
+          {{ openOCDRulesPath }}
         </div>
       </div>
     </div>
@@ -88,8 +82,8 @@ import { Action, State } from "vuex-class";
 
 @Component
 export default class App extends Vue {
-  @Action copyOpenOCDRules: Function;
   @State("isIdfInstalled") private storeIsInstalled: boolean;
+  @State("openOCDRulesPath") storeOpenOCDRulesPath: string;
   @State("platform") private storePlatform: string;
   get isInstalled() {
     return this.storeIsInstalled;
@@ -101,6 +95,10 @@ export default class App extends Vue {
 
   get isLinuxPlatform() {
     return this.storePlatform.indexOf("linux") !== -1;
+  }
+
+  get openOCDRulesPath() {
+    return `sudo cp ${this.storeOpenOCDRulesPath} /etc/udev/rules.d`;
   }
 }
 </script>

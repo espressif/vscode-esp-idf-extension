@@ -135,6 +135,11 @@ window.addEventListener("message", (event) => {
         store.commit("setIsIdfInstalled", msg.isInstalled);
       }
       break;
+    case "setOpenOcdRulesPath":
+      if (msg.openOCDRulesPath) {
+        store.commit("setOpenOcdRulesPath", msg.openOCDRulesPath);
+      }
+      break;
     case "setPyExecErrorStatus":
       if (msg.errorMsg) {
         store.commit("setPyExecErrorStatus", msg.errorMsg);

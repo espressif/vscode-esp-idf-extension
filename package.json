@@ -973,11 +973,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.copyOpenOcdRules",
-        "title": "%espIdf.copyOpenOcdRules.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.qemuCommand",
         "title": "QEMU Manager",
         "category": "ESP-IDF"

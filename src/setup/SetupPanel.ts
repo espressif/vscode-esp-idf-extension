@@ -33,6 +33,7 @@ import { Logger } from "../logger/logger";
 import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
+import { getOpenOcdRules } from "./addOpenOcdRules";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -112,9 +113,6 @@ export class SetupPanel {
 
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
-        case "copyOpenOCDRules":
-          vscode.commands.executeCommand("espIdf.copyOpenOcdRules");
-          break;
         case "checkEspIdfTools":
           if (message.espIdf && message.pyPath && message.toolsPath) {
             await this.checkRequiredTools(
@@ -283,6 +281,7 @@ export class SetupPanel {
               command: "setIsInstalled",
               isInstalled: true,
             });
+            await this.getOpenOcdRulesPath();
           }
           break;
         default:
@@ -538,6 +537,14 @@ export class SetupPanel {
     ) as vscode.ConfigurationTarget;
     await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
+  }
+
+  private async getOpenOcdRulesPath() {
+    try {
+      await getOpenOcdRules();
+    } catch (error) {
+      this.setupErrHandler(error);
+    }
   }
 
   private async openFolder() {
