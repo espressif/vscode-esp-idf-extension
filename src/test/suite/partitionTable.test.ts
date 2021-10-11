@@ -1,19 +1,17 @@
 import * as assert from "assert";
 import { isValidJSON, JSON2CSV } from "../../views/partition-table/util";
 import { CSV2JSON } from "../../views/partition-table/util";
-// You can import and use all API from the "vscode" module
-// as well as import your extension to test it
 import * as vscode from "vscode";
 import { stringify } from "querystring";
 import { PartitionTable } from "../../views/partition-table/store";
+import { resolve } from "path";
 import * as fse from "fs-extra";
-// import * as myExtension from "../extension";
 
 suite("PartitionTable Suite", () => {
 
   test("CSV2JSON mockdata test", async () => {
-    const urlCSV = __dirname + "/../../../testFiles/test.csv";
-    const urlJSON = __dirname + "/../../../testFiles/test.json";
+    const urlCSV = resolve(__dirname, "..", "..", "test.csv");
+    const urlJSON = resolve(__dirname, "..", "..", "test.json");
     let dataCSV = await fse.readFile(urlCSV,"utf-8");
     let dataJSON = await fse.readFile(urlJSON, "utf-8");
     await assert.equal(JSON.stringify(CSV2JSON<PartitionTable.Row>(dataCSV)), JSON.stringify(JSON.parse((dataJSON))));
