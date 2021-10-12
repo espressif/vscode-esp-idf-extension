@@ -110,7 +110,9 @@ const app = new Vue({
       return isNumber(byte) ? Math.round(byte / 1024) : 0;
     },
     convertToSpacedString(byte: number) {
-      return byte.toLocaleString("en-US").replace(/,/g, " ");
+      return isNumber(byte)
+        ? byte.toLocaleString("en-US").replace(/,/g, " ")
+        : 0;
     },
   },
   computed: {

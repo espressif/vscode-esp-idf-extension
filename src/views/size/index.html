@@ -86,7 +86,7 @@
                   <div>
                     <p class="heading is-size-7-mobile">.data</p>
                     <p class="title is-size-5-mobile">
-                      {{convertToKB(overviewData.dram_data)}}KB
+                      {{convertToKB(overviewData.dram_data + overviewData.diram_data)}}KB
                     </p>
                   </div>
                 </div>
@@ -94,15 +94,15 @@
                   <div>
                     <p class="heading is-size-7-mobile">.bss</p>
                     <p class="title is-size-5-mobile">
-                      {{convertToKB(overviewData.dram_bss)}}KB
+                      {{convertToKB(overviewData.dram_bss + overviewData.diram_bss)}}KB
                     </p>
                   </div>
                 </div>
                 <div class="level-item has-text-centered">
                   <div>
-                    <p class="heading is-size-7-mobile">Total</p>
+                    <p class="heading is-size-7-mobile">Text</p>
                     <p class="title is-size-5-mobile">
-                      {{convertToKB(overviewData.total_size)}}KB
+                      {{convertToKB(overviewData.diram_text)}}KB
                     </p>
                   </div>
                 </div>
@@ -127,7 +127,34 @@
             <!-- End of .Sections and other Data -->
 
             <!-- Progress Bar Zone -->
-            <div class="notification is-clipped">
+            <div class="notification is-clipped" v-if="overviewData.used_diram">
+              <div class="columns is-vcentered has-text-centered is-mobile">
+                <div class="column is-1-tablet is-2-mobile is-clipped">
+                  <div>
+                    <span class="icon is-large is-hidden-mobile">
+                      <iconify-icon icon="server" class="is-size-3" />
+                    </span>
+                    <strong style="vertical-align: super;">D/IRAM</strong>
+                  </div>
+                </div>
+                <div class="column">
+                  <progress
+                    class="progress"
+                    v-bind:class="progressBarColorClass(overviewData.used_dram_ratio)"
+                    v-bind:title="Math.round((overviewData.used_dram_ratio + overviewData.used_diram_ratio)*100)+'%'"
+                    v-bind:value="overviewData.used_dram + overviewData.used_diram"
+                    v-bind:max="overviewData.dram_total + overviewData.diram_total"
+                  ></progress>
+                </div>
+                <div
+                  class="column is-3-mobile is-2-tablet is-2-desktop is-size-7-tablet is-size-7-mobile"
+                >
+                  {{convertToKB(overviewData.used_diram)}}KB /
+                  {{convertToKB(overviewData.diram_total)}}KB
+                </div>
+              </div>
+            </div>
+            <div class="notification is-clipped" v-if="overviewData.used_dram">
               <div class="columns is-vcentered has-text-centered is-mobile">
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
@@ -141,9 +168,9 @@
                   <progress
                     class="progress"
                     v-bind:class="progressBarColorClass(overviewData.used_dram_ratio)"
-                    v-bind:title="Math.round(overviewData.used_dram_ratio*100)+'%'"
-                    v-bind:value="overviewData.used_dram"
-                    v-bind:max="overviewData.used_dram + overviewData.available_dram"
+                    v-bind:title="Math.round((overviewData.used_dram_ratio + overviewData.used_diram_ratio)*100)+'%'"
+                    v-bind:value="overviewData.used_dram + overviewData.used_diram"
+                    v-bind:max="overviewData.dram_total + overviewData.diram_total"
                   ></progress>
                 </div>
                 <div
@@ -154,7 +181,7 @@
                 </div>
               </div>
             </div>
-            <div class="notification is-clipped">
+            <div class="notification is-clipped"  v-if="overviewData.used_iram">
               <div class="columns is-vcentered has-text-centered is-mobile">
                 <div class="column is-1-tablet is-2-mobile is-clipped">
                   <div>
@@ -170,7 +197,7 @@
                     v-bind:class="progressBarColorClass(overviewData.used_iram_ratio)"
                     v-bind:title="Math.round(overviewData.used_iram_ratio*100)+'%'"
                     v-bind:value="overviewData.used_iram"
-                    v-bind:max="overviewData.used_iram + overviewData.available_iram"
+                    v-bind:max="overviewData.iram_total"
                   ></progress>
                 </div>
                 <div
@@ -227,7 +254,7 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.data)}}<span
+                    {{convertToKB(archiveInfo[".dram0.data"])}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
@@ -238,7 +265,7 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.bss)}}<span
+                    {{convertToKB(archiveInfo[".dram0.bss"])}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
@@ -249,7 +276,7 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.iram)}}<span
+                    {{convertToKB(archiveInfo[".iram0.text"])}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
@@ -260,7 +287,7 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.flash_text)}}<span
+                    {{convertToKB(archiveInfo[".flash.text"])}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
@@ -271,7 +298,7 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.flash_rodata)}}<span
+                    {{convertToKB(archiveInfo[".flash.rodata"])}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
@@ -282,12 +309,23 @@
                   <p
                     class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
                   >
-                    {{convertToKB(archiveInfo.total)}}<span
+                    {{convertToKB(archiveInfo.flash_total)}}<span
                       class="has-text-weight-light is-uppercase"
                       >kb</span
                     >
                   </p>
-                  <p class="heading">total</p>
+                  <p class="heading">Flash total</p>
+                </div>
+                <div class="column is-hidden-mobile">
+                  <p
+                    class="is-size-7-mobile is-size-6-tablet is-size-5-desktop"
+                  >
+                    {{convertToKB(archiveInfo.ram_st_total)}}<span
+                      class="has-text-weight-light is-uppercase"
+                      >kb</span
+                    >
+                  </p>
+                  <p class="heading">RAM ST total</p>
                 </div>
                 <div v-if="archiveInfo.files" class="column">
                   <div v-if="!archiveInfo.isFileInfoVisible">
@@ -334,6 +372,7 @@
                         <td class="has-text-right">
                           <abbr title="Flash Rodata">rodata (B)</abbr>
                         </td>
+                        <td class="has-text-right">RAM ST Total</td>
                         <td class="has-text-right">Total</td>
                       </tr>
                     </thead>
@@ -342,22 +381,25 @@
                         <!-- <td>{{count}}</td> -->
                         <td class="has-text-right">{{fileName}}</td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.data)}}
+                          {{fileInfo[".dram0.data"] ? convertToSpacedString(fileInfo[".dram0.data"]) : convertToSpacedString(0)}}
                         </td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.bss)}}
+                          {{fileInfo[".dram0.bss"] ? convertToSpacedString(fileInfo[".dram0.bss"]) : convertToSpacedString(0)}}
                         </td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.iram)}}
+                          {{fileInfo[".iram0.text"] ? convertToSpacedString(fileInfo[".iram0.text"]) : convertToSpacedString(0)}}
                         </td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.flash_text)}}
+                          {{fileInfo[".flash.text"] ? convertToSpacedString(fileInfo[".flash.text"]) : convertToSpacedString(0)}}
                         </td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.flash_rodata)}}
+                          {{fileInfo[".flash.rodata"] ? convertToSpacedString(fileInfo[".flash.rodata"]) : convertToSpacedString(0)}}
                         </td>
                         <td class="has-text-right">
-                          {{convertToSpacedString(fileInfo.total)}}
+                          {{fileInfo.ram_st_total ? convertToSpacedString(fileInfo.ram_st_total) : convertToSpacedString(0)}}
+                        </td>
+                        <td class="has-text-right">
+                          {{fileInfo.flash_total ? convertToSpacedString(fileInfo.flash_total) : convertToSpacedString(0)}}
                         </td>
                       </tr>
                     </tbody>
