@@ -23,7 +23,7 @@ suite("NVS PartitionTable Suite", () => {
     const urlJSON = resolve(__dirname,"..", "..", "..", "testFiles", "nvs-test.json");
     let dataCSV = await fse.readFile(urlCSV,"utf-8");
     let dataJSON = await fse.readFile(urlJSON, "utf-8");
-    await assert.equal(csv2Json(dataCSV), JSON.parse(dataJSON));
+    await assert.equal(JSON.stringify(csv2Json(dataCSV)), JSON.stringify(JSON.parse(dataJSON)));
   });
 
   test("JSON2CSV mockdata test", async () => {
