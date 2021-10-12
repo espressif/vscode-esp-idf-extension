@@ -23,7 +23,7 @@ import { SetupPanel } from "./SetupPanel";
 
 export async function getOpenOcdRules() {
   if (process.platform !== "linux") {
-    throw new Error("This is not a Linux machine.");
+    return;
   }
   const modifiedEnv = appendIdfAndToolsToPath();
   if (!modifiedEnv.OPENOCD_SCRIPTS) {
