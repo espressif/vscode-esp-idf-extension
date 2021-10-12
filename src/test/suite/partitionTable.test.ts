@@ -10,8 +10,8 @@ import * as fse from "fs-extra";
 suite("PartitionTable Suite", () => {
 
   test("CSV2JSON mockdata test", async () => {
-    const urlCSV = resolve(__dirname, "..", "..", "test.csv");
-    const urlJSON = resolve(__dirname, "..", "..", "test.json");
+    const urlCSV = resolve(__dirname,"..", "..", "..", "testFiles", "test.csv");
+    const urlJSON = resolve(__dirname,"..", "..", "..", "testFiles", "test.json");
     let dataCSV = await fse.readFile(urlCSV,"utf-8");
     let dataJSON = await fse.readFile(urlJSON, "utf-8");
     await assert.equal(JSON.stringify(CSV2JSON<PartitionTable.Row>(dataCSV)), JSON.stringify(JSON.parse((dataJSON))));
