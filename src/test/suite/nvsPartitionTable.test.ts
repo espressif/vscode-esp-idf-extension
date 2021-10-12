@@ -14,20 +14,21 @@ import * as vscode from "vscode";
 import { stringify } from "querystring";
 import { NvsPartitionTable } from "../../views/nvs-partition-table/store/index";
 import * as fse from "fs-extra";
+import { resolve } from "path";
 
 suite("NVS PartitionTable Suite", () => {
 
   test("CSV2JSON mockdata test", async () => {
-    const urlCSV = __dirname + "/../../../testFiles/nvs-test.csv";
-    const urlJSON = __dirname + "/../../../testFiles/nvs-test.json";
+    const urlCSV = resolve(__dirname,"..", "..", "..", "testFiles", "nvs-test.csv");
+    const urlJSON = resolve(__dirname,"..", "..", "..", "testFiles", "nvs-test.json");
     let dataCSV = await fse.readFile(urlCSV,"utf-8");
     let dataJSON = await fse.readFile(urlJSON, "utf-8");
     await assert.equal(csv2Json(dataCSV), JSON.parse(dataJSON));
   });
 
   test("JSON2CSV mockdata test", async () => {
-    const urlCSV = __dirname + "/../../../testFiles/nvs-test.csv";
-    const urlJSON = __dirname + "/../../../testFiles/nvs-test.json";
+    const urlCSV = resolve(__dirname,"..", "..", "..", "testFiles", "nvs-test.csv");
+    const urlJSON = resolve(__dirname,"..", "..", "..", "testFiles", "nvs-test.json");
     let dataCSV = await fse.readFile(urlCSV,"utf-8");
     let dataJSON = await fse.readFile(urlJSON, "utf-8");
     await assert.equal(JSON2CSV(JSON.parse(dataJSON)), dataCSV);
