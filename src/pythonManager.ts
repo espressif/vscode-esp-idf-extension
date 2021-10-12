@@ -42,7 +42,32 @@ export async function installPythonEnvFromIdfTools(
     if (pathToGitDir) {
       modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
     }
+    modifiedEnv.PYTHONNOUSERSITE = "1";
   }
+  const pyEnvPath = await getPythonEnvPath(
+    espDir,
+    idfToolsDir,
+    pythonBinPath,
+    gitPath
+  );
+  await execProcessWithLog(
+    `"${pythonBinPath}" -m pip install --user virtualenv`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    { env: modifiedEnv },
+    cancelToken
+  );
+
+  await execProcessWithLog(
+    `"${pythonBinPath}" -m virtualenv "${pyEnvPath}" -p "${pythonBinPath}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    { env: modifiedEnv },
+    cancelToken
+  );
+
   await execProcessWithLog(
     `"${pythonBinPath}" "${idfToolsPyPath}" install-python-env`,
     idfToolsDir,
@@ -51,12 +76,7 @@ export async function installPythonEnvFromIdfTools(
     { env: modifiedEnv },
     cancelToken
   );
-  const pyEnvPath = await getPythonEnvPath(
-    espDir,
-    idfToolsDir,
-    pythonBinPath,
-    gitPath
-  );
+
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
