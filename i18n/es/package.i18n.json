@@ -42,7 +42,6 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Cerrar proceso de servidor de editor de Configuración SDK",
   "espIdf.setGcovConfig.title": "ESP-IDF: Configurar sdkconfig del proyecto para cobertura de codigo fuente",
   "espIdf.importProject.title": "Importar proyecto ESP-IDF",
-  "espIdf.copyOpenOcdRules.title": "Agregar archivo de reglas OpenOCD",
   "espIdf.launchQemu.title": "Lanzar servidor QEMU",
   "espIdf.monitorQemu.title": "Monitorear dispositivo QEMU",
   "espIdf.qemuDebug.title": "Lanzar sesión de depurador para QEMU",

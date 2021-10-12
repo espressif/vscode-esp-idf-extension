@@ -19,6 +19,7 @@ import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
 import { getEspIdfVersion } from "../utils";
 import { addIdfPath } from "./espIdfJson";
+import { getOpenOcdRules } from "./addOpenOcdRules";
 
 export async function createPyReqs(
   idfPath: string,
@@ -64,4 +65,5 @@ export async function createPyReqs(
     command: "setIsIdfInstalling",
     installing: false,
   });
+  await getOpenOcdRules();
 }

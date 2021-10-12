@@ -42,7 +42,6 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: 释放当前 SDK 配置编辑器服务器进程",
   "espIdf.setGcovConfig.title": "ESP-IDF: 为覆盖范围配置项目 sdkconfig",
   "espIdf.importProject.title": "导入 ESP-IDF 项目",
-  "espIdf.copyOpenOcdRules.title": "添加 OpenOCD 规则文件",
   "espIdf.launchQemu.title": "启动 QEMU 服务器",
   "espIdf.monitorQemu.title": "监控 QEMU 设备",
   "espIdf.qemuDebug.title": "启动 QEMU 调试会话",

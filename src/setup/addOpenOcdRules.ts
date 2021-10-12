@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { copyFile, pathExists } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { dirname, join } from "path";
 import { appendIdfAndToolsToPath } from "../utils";
+import { SetupPanel } from "./SetupPanel";
 
-export async function copyOpenOcdRules() {
+export async function getOpenOcdRules() {
   if (process.platform !== "linux") {
-    throw new Error("This is not a Linux machine.");
+    return;
   }
   const modifiedEnv = appendIdfAndToolsToPath();
   if (!modifiedEnv.OPENOCD_SCRIPTS) {
@@ -32,7 +33,10 @@ export async function copyOpenOcdRules() {
   const doesRulesPathExists = await pathExists(openOCDRulesPath);
   if (!doesRulesPathExists) {
     throw new Error(`${openOCDRulesPath} doesn't exists.`);
-    
+
   }
-  await copyFile(openOCDRulesPath, "/etc/udev/rules.d/");
+  SetupPanel.postMessage({
+    command: "setOpenOcdRulesPath",
+    openOCDRulesPath,
+  });
 }

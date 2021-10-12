@@ -119,7 +119,6 @@
     "espIdf.setGcovConfig.title",
     "espIdf.importProject.title",
     "espIdf.eraseFlash.title",
-    "espIdf.copyOpenOcdRules.title",
     "espIdf.setGcovConfig.title",
     "espIdf.monitorQemu.title",
     "espIdf.launchQemu.title",

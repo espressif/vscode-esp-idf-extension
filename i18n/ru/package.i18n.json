@@ -42,7 +42,6 @@
   "espIdf.disposeConfserverProcess.title": "ESP-IDF: Удалить текущий процесс сервера редактора конфигурации SDK",
   "espIdf.setGcovConfig.title": "ESP-IDF: Настроить проект sdkconfig для покрытия",
   "espIdf.importProject.title": "Импортировать проект ESP-IDF",
-  "espIdf.copyOpenOcdRules.title": "Добавить файл правил OpenOCD",
   "espIdf.launchQemu.title": "Запустить сервер QEMU",
   "espIdf.monitorQemu.title": "Монитор устройства QEMU",
   "espIdf.qemuDebug.title": "Запустить сеанс отладки QEMU",
