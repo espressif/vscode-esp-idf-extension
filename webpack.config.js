@@ -168,11 +168,6 @@ const webViewConfig = {
       files: ["./*.ts"],
     }),
     new HtmlWebpackPlugin({
-      chunks: ["size"],
-      filename: "size.html",
-      template: path.join(__dirname, "src", "views", "size", "index.html"),
-    }),
-    new HtmlWebpackPlugin({
       chunks: ["tracing"],
       filename: "tracing.html",
       template: path.join(__dirname, "src", "views", "tracing", "index.html"),

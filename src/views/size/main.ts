@@ -18,6 +18,9 @@
 import "./index.scss";
 
 import Vue from "vue";
+import { store } from "./store";
+// @ts-ignore
+import App from "./App.vue";
 import IconifyIcon from "@iconify/vue";
 import symbolEvent from "@iconify-icons/codicon/symbol-event";
 import refresh from "@iconify-icons/codicon/refresh";
@@ -38,19 +41,11 @@ IconifyIcon.addIcon("chevron-down", chevronDown);
 IconifyIcon.addIcon("chevron-up", chevronUp);
 Vue.component("iconify-icon", IconifyIcon);
 
-const SEC = 1000;
-declare var acquireVsCodeApi: any;
-let vscode: any;
-try {
-  vscode = acquireVsCodeApi();
-} catch (error) {
-  // tslint:disable-next-line: no-console
-  console.error(error);
-}
-
 // Vue App
 const app = new Vue({
   el: "#app",
+  components: { App },
+  template: "<App />",
   data: {
     archives: {},
     files: {},
@@ -63,24 +58,6 @@ const app = new Vue({
     title: "<strong>ESP-IDF</strong>&nbsp;Size Analysis",
   },
   methods: {
-    retryClicked() {
-      if (vscode) {
-        vscode.postMessage({
-          command: "retry",
-        });
-      }
-    },
-    flashClicked() {
-      if (vscode) {
-        this.isFlashing = true;
-        setTimeout(() => {
-          this.isFlashing = false;
-        }, 10 * SEC);
-        vscode.postMessage({
-          command: "flash",
-        });
-      }
-    },
     progressBarColorClass(ratio: number) {
       if (ratio <= 0.3) {
         return { "is-success": true };
@@ -152,13 +129,20 @@ const app = new Vue({
       return {};
     },
   },
+  store,
 });
 
 // Message Receiver
 declare var window: any;
 window.addEventListener("message", (m: any) => {
   const msg = m.data;
-  app.overviewData = msg.overview || {};
-  app.archives = msg.archives || {};
-  app.files = msg.files || {};
+  switch (msg.command) {
+    case "initialLoad":
+      store.commit("setArchive", msg.archives);
+      store.commit("setOverviewData", msg.overview);
+      store.commit("setFiles", msg.files);
+      break;
+    default:
+      break;
+  }
 });
