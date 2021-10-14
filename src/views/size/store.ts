@@ -90,6 +90,11 @@ export const mutations: MutationTree<IState> = {
     newState.overviewData = overview;
     Object.assign(state, newState);
   },
+  setSearchText(state, text: string) {
+    const newState = state;
+    newState.searchText = text;
+    Object.assign(state, newState);
+  },
   toggleOverviewAndDetails(state) {
     const newState = state;
     newState.isOverviewEnabled = !state.isOverviewEnabled;
