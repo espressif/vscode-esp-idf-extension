@@ -51,12 +51,5 @@ export default class ProgressBar extends Vue {
     }
     return { "is-danger": true };
   }
-
-  mounted() {
-    console.log(this.usedData);
-    console.log(this.usedRatioData);
-    console.log(this.totalData);
-    console.log(this.name);
-  }
 }
 </script>

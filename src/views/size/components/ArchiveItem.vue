@@ -18,13 +18,13 @@
       </p>
     </div>
 
-    <div class="column" v-for="(value, key) in archiveInfo" :key="key">
-      <p class="is-size-7-mobile is-size-6-tablet is-size-5-desktop">
-        {{ convertToKB(value)
-        }}<span class="has-text-weight-light is-uppercase">kb</span>
-      </p>
-      <p class="heading">{{ key }}</p>
-    </div>
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName=".dram.data" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName=".dram0.bss" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName=".iram0.text" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName=".flash.text" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName=".flash.rodata" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName="ram_st_total" />
+    <ArchiveItemColumn :archiveInfo="archiveInfo" propName="flash_total" />
 
     <div v-if="archiveInfo.files" class="column">
       <div v-if="!archiveInfo.isFileInfoVisible">
@@ -48,19 +48,19 @@
 </template>
 
 <script lang="ts">
-import { isNumber } from "util";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { State } from "vuex-class";
+import ArchiveItemColumn from "./ArchiveItemColumn.vue";
 
-@Component
+@Component({
+  components: {
+    ArchiveItemColumn,
+  },
+})
 export default class ArchiveItem extends Vue {
   @Prop() archiveInfo;
   @Prop() archiveName: string;
   @State("archives") storeArchives;
-
-  convertToKB(byte: number) {
-    return isNumber(byte) ? Math.round(byte / 1024) : 0;
-  }
 
   toggleArchiveFileInfoTable(archiveName: string) {
     Object.keys(this.storeArchives).forEach((archive) => {
@@ -68,7 +68,11 @@ export default class ArchiveItem extends Vue {
       if (archive === archiveName) {
         toggleVisibility = !this.storeArchives[archive].isFileInfoVisible;
       }
-      this.$set(this.storeArchives[archive], "isFileInfoVisible", toggleVisibility);
+      this.$set(
+        this.storeArchives[archive],
+        "isFileInfoVisible",
+        toggleVisibility
+      );
     });
   }
 }

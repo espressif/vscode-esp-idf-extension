@@ -27,12 +27,26 @@
       <tr v-for="(fileInfo, fileName) in archiveInfo.files" :key="fileName">
         <!-- <td>{{count}}</td> -->
         <td class="has-text-right">{{ fileName }}</td>
-        <td
-          class="has-text-right"
-          v-for="(fileInfoValue, fileInfoKey) in fileInfo"
-          :key="fileInfoKey"
-        >
-          {{ convertToSpacedString(fileInfoValue) }}
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo[".dram0.data"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo[".dram0.bss"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo[".iram0.text"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo[".flash.text"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo[".flash.rodata"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo["ram_st_total"]) }}
+        </td>
+        <td class="has-text-right">
+          {{ convertToSpacedString(fileInfo["flash_total"]) }}
         </td>
       </tr>
     </tbody>

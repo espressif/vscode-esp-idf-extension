@@ -22,7 +22,6 @@ import Vuex from "vuex";
 
 export interface IState {
   archives: {};
-  files: {};
   isFlashing: boolean;
   isOverviewEnabled: boolean;
   overviewData: {};
@@ -31,7 +30,6 @@ export interface IState {
 
 export const sizeState: IState = {
   archives: {},
-  files: {},
   isFlashing: false,
   isOverviewEnabled: true,
   overviewData: {},
@@ -82,7 +80,18 @@ export const mutations: MutationTree<IState> = {
   },
   setFiles(state, files) {
     const newState = state;
-    newState.files = files;
+    Object.keys(files).forEach((file) => {
+      const archiveFileName = file.split(":");
+      const archiveName = archiveFileName[0];
+      const fileName = archiveFileName[1];
+      if (newState.archives[archiveName] && !newState.archives[archiveName].files) {
+        Vue.set(newState.archives[archiveName], "files", {});
+      }
+      Vue.set(newState.archives[archiveName].files, fileName, files[file]);
+    });
+    Object.keys(newState.archives).forEach((archive) => {
+      Vue.set(newState.archives[archive], "isFileInfoVisible", false);
+    });
     Object.assign(state, newState);
   },
   setOverviewData(state, overview) {
