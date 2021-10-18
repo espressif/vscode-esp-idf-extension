@@ -18,6 +18,7 @@
 
 import { EOL } from "os";
 import { NvsPartitionTable } from "./store";
+import BigNumber from "bignumber.js";
 
 export interface IRowValidationResult {
   errorMsg: string;
@@ -58,7 +59,7 @@ export const minValues = {
   u32: 0,
   i32: -2147483648,
   u64: 0,
-  i64: -9223372036854775808,
+  i64: new BigNumber('-9223372036854775808'),
 };
 export const maxValues = {
   u8: 255,
@@ -67,8 +68,8 @@ export const maxValues = {
   i16: 32767,
   u32: 4294967295,
   i32: 2147483647,
-  u64: 18446744073709551615,
-  i64: 9223372036854775807,
+  u64: new BigNumber('18446744073709551615'),
+  i64: new BigNumber('9223372036854775807'),
 };
 
 export function isInValidRow(row: NvsPartitionTable.IRow): string {
@@ -111,16 +112,16 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     if (!/^-?\d+$/.test(row.value)) {
       return "Value is not a valid number";
     }
-    const typeInt = parseInt(row.value);
+    const typeInt = new BigNumber(row.value);
 
-    let minValue: number, maxValue: number;
+    let minValue: number | BigNumber, maxValue: number | BigNumber;
     
     minValue = minValues[row.encoding];
     maxValue = maxValues[row.encoding];
     if (
       typeof minValue !== "undefined" &&
       maxValue &&
-      (typeInt < minValue || typeInt > maxValue)
+      (typeInt.isLessThan(minValue) || typeInt.isGreaterThan(maxValue))
     ) {
       return `Out of range for ${row.encoding}`;
     }

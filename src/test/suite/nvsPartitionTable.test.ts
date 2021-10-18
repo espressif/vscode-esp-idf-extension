@@ -168,6 +168,7 @@ suite("NVS PartitionTable Suite", () => {
   });
 
   let no64Types = numberTypes.filter(element => element !== 'u64' && element !== 'i64')
+  let just64Types = numberTypes.filter(element => element == 'u64' || element == 'i64')
 
   no64Types.forEach( i => {
     test(`Value field invalid numbers for ${i}`, async() => {
@@ -212,4 +213,49 @@ suite("NVS PartitionTable Suite", () => {
         await assert.equal(isInValidRow(validRow2), undefined);
       });
   });
+
+  just64Types.forEach( i => {
+    test(`Value field invalid numbers for ${i}`, async() => {
+      let invalidRow1 = {
+        key: "0123456789abcde",
+        type: "test",
+        encoding: `${i}`,
+        value: `${minValues[i] === 0 ? minValues[i] - 1 : (minValues[i]).minus(1)}`,
+        error: ""
+      };
+      let invalidRow2 = {
+        key: "0123456789abcde",
+        type: "test",
+        encoding: `${i}`,
+        value: `${(maxValues[i]).plus(1)}`,
+        error: ""
+      };
+       
+      await assert.equal(isInValidRow(invalidRow1), `Out of range for ${i}`);
+      await assert.equal(isInValidRow(invalidRow2), `Out of range for ${i}`);
+    });
+  });
+
+  just64Types.forEach( i => {
+      test(`Value field testing min and max number for ${i} encoding`, async() => {
+        let validRow1 = {
+          key: "0123456789abcde",
+          type: "test",
+          encoding: `${i}`,
+          value: `${minValues[i]}`,
+          error: ""
+        };
+        let validRow2 = {
+          key: "0123456789abcde",
+          type: "test",
+          encoding: `${i}`,
+          value: `${maxValues[i]}`,
+          error: ""
+        };
+        
+        await assert.equal(isInValidRow(validRow1), undefined);
+        await assert.equal(isInValidRow(validRow2), undefined);
+      });
+  });
 });
+
