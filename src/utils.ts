@@ -878,6 +878,8 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     curWorkspace
   ) as string;
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
+  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  modifiedEnv.ESP_MATTER_PATH = matterPathDir || process.env.ESP_MATTER_PATH;
 
   modifiedEnv.PYTHON =
     `${idfConf.readParameter("idf.pythonBinPath", curWorkspace)}` ||

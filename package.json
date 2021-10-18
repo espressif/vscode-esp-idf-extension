@@ -77,6 +77,7 @@
     "onCommand:esp.rainmaker.backend.sync",
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
+    "onCommand:espIdf.getEspMatter",
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
@@ -363,6 +364,12 @@
             "description": "%param.espMdfPath%",
             "scope": "resource"
           },
+          "idf.espMatterPath": {
+            "type": "string",
+            "default": "${env:ESP_MATTER_PATH}",
+            "description": "%param.espMatterPath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
@@ -385,6 +392,12 @@
             "type": "string",
             "default": "${env:MDF_PATH}",
             "description": "%param.espMdfPath%",
+            "scope": "resource"
+          },
+          "idf.espMatterPathWin": {
+            "type": "string",
+            "default": "${env:ESP_MATTER_PATH}",
+            "description": "%param.espMatterPath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
@@ -972,6 +985,10 @@
       {
         "command": "espIdf.getEspMdf",
         "title": "%espIdf.getEspMdf.title%"
+      },
+      {
+        "command": "espIdf.getEspMatter",
+        "title": "%espIdf.getEspMatter.title%"
       },
       {
         "command": "espIdf.installPyReqs",

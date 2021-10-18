@@ -34,6 +34,7 @@ export namespace ESP {
   export const platformDepConfigurations: string[] = [
     "idf.espIdfPath",
     "idf.espAdfPath",
+    "idf.espMatterPath",
     "idf.espMdfPath",
     "idf.gitPath",
     "idf.pythonBinPath",

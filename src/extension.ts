@@ -118,6 +118,7 @@ import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { selectDfuDevice } from "./flash/dfu";
+import { getEspMatter } from "./espMatter/espMatterDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -658,6 +659,8 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.getEspAdf", async () => getEspAdf(workspaceRoot));
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
+
+  registerIDFCommand("espIdf.getEspMatter", getEspMatter);
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
