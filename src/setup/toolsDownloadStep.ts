@@ -27,27 +27,31 @@ export async function downloadIdfTools(
   gitPath: string,
   mirror: IdfMirror,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
-  cancelToken?: vscode.CancellationToken
+  cancelToken?: vscode.CancellationToken,
+  onReqPkgs?: string[]
 ) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     idfPath,
     gitPath
   );
   const exportPaths = await idfToolsManager.exportPathsInString(
-    path.join(toolsPath, "tools")
+    path.join(toolsPath, "tools"),
+    onReqPkgs
   );
   const exportVars = await idfToolsManager.exportVars(
-    path.join(toolsPath, "tools")
+    path.join(toolsPath, "tools"),
+    onReqPkgs
   );
   const requiredTools = await idfToolsManager.getRequiredToolsInfo(
     toolsPath,
-    exportPaths
+    exportPaths,
+    onReqPkgs
   );
   SetupPanel.postMessage({
     command: "setRequiredToolsInfo",
     toolsInfo: requiredTools,
   });
-  await downloadEspIdfTools(toolsPath, idfToolsManager, mirror, progress, cancelToken);
+  await downloadEspIdfTools(toolsPath, idfToolsManager, mirror, progress, cancelToken, onReqPkgs);
   SetupPanel.postMessage({
     command: "updateEspIdfToolsStatus",
     status: StatusType.installed,

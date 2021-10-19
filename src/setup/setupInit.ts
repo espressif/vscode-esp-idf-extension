@@ -41,6 +41,7 @@ export interface ISetupInitArgs {
   gitPath: string;
   gitVersion: string;
   hasPrerequisites: boolean;
+  onReqPkgs?: string[];
   pythonVersions: string[];
   toolsResults: IEspIdfTool[];
   pyBinPath: string;
@@ -283,8 +284,11 @@ export async function getSetupInitialValues(
         prevInstall.gitVersion !== "Not found" &&
         canAccessCMake !== "" &&
         canAccessNinja !== "" &&
-        pythonVersions &&
-        pythonVersions.length > 0;
+        pythonVersions && pythonVersions.length > 0;
+
+      if (canAccessCMake !== "" && canAccessNinja !== "") {
+        setupInitArgs.onReqPkgs = ["cmake", "ninja"];
+      }
     } else {
       setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "Not found";
     }

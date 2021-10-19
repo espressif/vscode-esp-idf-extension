@@ -36,9 +36,10 @@ export class InstallManager {
   public async installPackages(
     idfToolsManager: IdfToolsManager,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
-    cancelToken?: vscode.CancellationToken
+    cancelToken?: vscode.CancellationToken,
+    onReqPkgs?: string[]
   ): Promise<void> {
-    return idfToolsManager.getPackageList().then((packages) => {
+    return idfToolsManager.getPackageList(onReqPkgs).then((packages) => {
       let count: number = 1;
       return utils.buildPromiseChain(packages, async (pkg) => {
         const versionName = idfToolsManager.getVersionToUse(pkg);

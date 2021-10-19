@@ -252,9 +252,9 @@ export class IdfToolsManager {
     return exportedPaths;
   }
 
-  public async getListOfReqEnvVars() {
+  public async getListOfReqEnvVars(onReqPkgs?: string[]) {
     const exportedVarDict = {};
-    const pkgs = await this.getPackageList();
+    const pkgs = await this.getPackageList(onReqPkgs);
     for (const pkg of pkgs) {
       Object.keys(pkg.export_vars).forEach((key) => {
         if (Object.keys(exportedVarDict).indexOf(key) === -1) {
@@ -292,12 +292,12 @@ export class IdfToolsManager {
     return exportedVars;
   }
 
-  public async getRequiredToolsInfo(basePath?: string, pathToVerify?: string) {
+  public async getRequiredToolsInfo(basePath?: string, pathToVerify?: string, onReqPkgs?: string[]) {
     let versions: { [key: string]: string } = {};
     if (pathToVerify) {
       versions = await this.verifyPackages(pathToVerify);
     }
-    const packages = await this.getPackageList();
+    const packages = await this.getPackageList(onReqPkgs);
     const idfToolsList = packages.map((pkg) => {
       const pkgVersionsForPlatform = pkg.versions.filter((version) => {
         return (

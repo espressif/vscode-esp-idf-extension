@@ -45,9 +45,10 @@ export class DownloadManager {
     progress: vscode.Progress<{ message?: string; increment?: number }>,
     mirror: IdfMirror,
     pkgsProgress?: PackageProgress[],
-    cancelToken?: vscode.CancellationToken
+    cancelToken?: vscode.CancellationToken,
+    onReqPkgs?: string[]
   ): Promise<void> {
-    return idfToolsManager.getPackageList().then((packages) => {
+    return idfToolsManager.getPackageList(onReqPkgs).then((packages) => {
       let count: number = 1;
       return utils.buildPromiseChain(
         packages,
