@@ -114,14 +114,19 @@ export async function checkPreviousInstall(
   );
 
   const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-    path.join(toolsPath, "tools")
+    path.join(toolsPath, "tools"),
+    ["cmake", "ninja"]
   );
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
-    exportedToolsPaths
+    exportedToolsPaths,
+    ["cmake", "ninja"]
   );
 
-  const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
+  const failedToolsResult = toolsInfo.filter(
+    (tInfo) =>
+      !tInfo.doesToolExist && ["cmake", "ninja"].indexOf(tInfo.name) === -1
+  );
   if (failedToolsResult.length > 0) {
     return {
       espIdfPath,
@@ -284,9 +289,26 @@ export async function getSetupInitialValues(
         prevInstall.gitVersion !== "Not found" &&
         canAccessCMake !== "" &&
         canAccessNinja !== "" &&
-        pythonVersions && pythonVersions.length > 0;
+        pythonVersions &&
+        pythonVersions.length > 0;
 
-      if (canAccessCMake !== "" && canAccessNinja !== "") {
+      const cmakeFromToolsIndex = prevInstall.toolsResults.findIndex(
+        (t) => t.name.indexOf("cmake") !== -1 && !t.doesToolExist
+      );
+
+      const ninjaFromToolsIndex = prevInstall.toolsResults.findIndex(
+        (t) => t.name.indexOf("ninja") !== -1 && !t.doesToolExist
+      );
+
+      if (cmakeFromToolsIndex !== -1 && canAccessCMake !== "") {
+        prevInstall.toolsResults.splice(cmakeFromToolsIndex, 1);
+      } else {
+        setupInitArgs.onReqPkgs = ["cmake", "ninja"];
+      }
+      
+      if (ninjaFromToolsIndex !== -1 && canAccessNinja !== "") {
+        prevInstall.toolsResults.splice(ninjaFromToolsIndex, 1);
+      } else {
         setupInitArgs.onReqPkgs = ["cmake", "ninja"];
       }
     } else {
@@ -335,7 +357,8 @@ export async function isCurrentInstallValid() {
   );
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
-    extraPaths
+    extraPaths,
+    ["cmake", "ninja"]
   );
   const failedToolsResult = toolsInfo.filter(
     (tInfo) =>

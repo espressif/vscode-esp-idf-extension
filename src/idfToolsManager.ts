@@ -292,10 +292,14 @@ export class IdfToolsManager {
     return exportedVars;
   }
 
-  public async getRequiredToolsInfo(basePath?: string, pathToVerify?: string, onReqPkgs?: string[]) {
+  public async getRequiredToolsInfo(
+    basePath?: string,
+    pathToVerify?: string,
+    onReqPkgs?: string[]
+  ) {
     let versions: { [key: string]: string } = {};
     if (pathToVerify) {
-      versions = await this.verifyPackages(pathToVerify);
+      versions = await this.verifyPackages(pathToVerify, onReqPkgs);
     }
     const packages = await this.getPackageList(onReqPkgs);
     const idfToolsList = packages.map((pkg) => {
