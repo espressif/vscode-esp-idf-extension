@@ -1203,6 +1203,7 @@
   "dependencies": {
     "ansi-to-html": "^0.6.11",
     "axios": "^0.21.2",
+    "bignumber.js": "^9.0.1",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.13.0",

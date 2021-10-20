@@ -1,0 +1,20 @@
+[
+  {
+    "key": "namespace_name",
+    "type": "namespace",
+    "encoding": "",
+    "value": ""
+  },
+  {
+    "key": "key1",
+    "type": "data",
+    "encoding": "u8",
+    "value": "1"
+  },
+  {
+    "key": "key2",
+    "type": "file",
+    "encoding": "string",
+    "value": "/path/to/file"
+  }
+]
