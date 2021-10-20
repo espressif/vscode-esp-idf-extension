@@ -37,6 +37,7 @@ import {
   PreCheck,
   spawn,
 } from "../../utils";
+import { CSV2JSON } from "../../views/partition-table/util";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -172,7 +173,7 @@ export class PartitionTreeDataProvider
         }
       );
       const csvData = await readFile(partTableCsv);
-      let csvItems = this.CSV2JSON(csvData.toString());
+      let csvItems = CSV2JSON<PartitionItem>(csvData.toString());
       this.partitionItems = this.createPartitionItemNode(csvItems);
     } catch (error) {
       let msg = error.message
@@ -207,31 +208,5 @@ export class PartitionTreeDataProvider
       partitionItems.push(partitionTableNode);
     }
     return partitionItems;
-  }
-
-  public CSV2JSON(csv: String): PartitionItem[] {
-    const rows = new Array<PartitionItem>();
-    const lines = csv.split(EOL);
-    const matches = csv.match(/#\s*Name,\s*Type,\s*SubType,\s*Offset,\s*Size,\s*Flags/g);
-    if (!matches || !matches.length) {
-      console.log("Not a partition table csv, skipping...");
-      return rows;
-    }
-    lines.forEach((line) => {
-      if (line === "" || line.startsWith("#")) {
-        return;
-      }
-      const cols = line.split(",");
-      rows.push({
-        name: cols.shift().trim(),
-        type: cols.shift().trim(),
-        subtype: cols.shift().trim(),
-        offset: cols.shift().trim(),
-        size: cols.shift().trim(),
-        flag: cols.shift().trim() === "encrypted" ? true : false,
-        error: undefined,
-      });
-    });
-    return rows;
   }
 }
