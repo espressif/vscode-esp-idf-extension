@@ -1,5 +1,7 @@
 # Debugging
 
+> **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
+
 This tutorial shows the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
 
 > **NOTE:** If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
