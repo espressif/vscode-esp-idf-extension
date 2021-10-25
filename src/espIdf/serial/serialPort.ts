@@ -96,13 +96,18 @@ export class SerialPort {
   }
 
   private async updatePortListStatus(l: string) {
-    const target = idfConf.readParameter("idf.saveScope");
-    await idfConf.writeParameter("idf.port", l, target);
+    const settingsSavedLocation = await idfConf.writeParameter(
+      "idf.port",
+      l,
+      vscode.ConfigurationTarget.WorkspaceFolder
+    );
     const portHasBeenSelectedMsg = this.locDic.localize(
       "serial.portHasBeenSelectedMessage",
       "Port has been updated to "
     );
-    Logger.infoNotify(portHasBeenSelectedMsg + l);
+    Logger.infoNotify(
+      `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`
+    );
   }
 
   private list(): Thenable<SerialPortDetails[]> {

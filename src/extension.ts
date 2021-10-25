@@ -250,10 +250,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
-    await getIdfTargetFromSdkconfig(
-      workspaceRoot.fsPath,
-      statusBarItems["target"]
-    );
+    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+    const winFlag = process.platform === "win32" ? "Win" : "";
+    statusBarItems["port"].text =
+      "$(plug) " + idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
     const coverageOptions = getCoverageOptions();
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -304,9 +304,13 @@ export async function activate(context: vscode.ExtensionContext) {
         if (workspaceRoot && ws.uri === workspaceRoot) {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
           await getIdfTargetFromSdkconfig(
-            workspaceRoot.fsPath,
+            workspaceRoot,
             statusBarItems["target"]
           );
+          const winFlag = process.platform === "win32" ? "Win" : "";
+          statusBarItems["port"].text =
+            "$(plug) " +
+            idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
           const coverageOptions = getCoverageOptions();
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -315,7 +319,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (typeof workspaceRoot === undefined) {
         workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
         await getIdfTargetFromSdkconfig(
-          workspaceRoot.fsPath,
+          workspaceRoot,
           statusBarItems["target"]
         );
         const coverageOptions = getCoverageOptions();
@@ -491,12 +495,12 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (!doesCmakeCacheExists) {
         return Logger.warnNotify(
-          `There is no build directory to clean, exiting!`
+          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
         );
       }
       if (BuildTask.isBuilding || FlashTask.isFlashing) {
         return Logger.warnNotify(
-          `There is a build or flash task running. Wait for it to finish or cancel before clean.`
+          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
         );
       }
 
@@ -604,7 +608,10 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.getEspMdf", getEspMdf);
 
   registerIDFCommand("espIdf.selectPort", () => {
-    PreCheck.perform([webIdeCheck], SerialPort.shared().promptUserToSelect);
+    PreCheck.perform(
+      [webIdeCheck, openFolderCheck],
+      SerialPort.shared().promptUserToSelect
+    );
   });
 
   registerIDFCommand("espIdf.pickAWorkspaceFolder", () => {
@@ -627,9 +634,13 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         workspaceRoot = option.uri;
         await getIdfTargetFromSdkconfig(
-          workspaceRoot.fsPath,
+          workspaceRoot,
           statusBarItems["target"]
         );
+        const winFlag = process.platform === "win32" ? "Win" : "";
+        statusBarItems["port"].text =
+          "$(plug) " +
+          idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
         const projDescPath = path.join(
           workspaceRoot.fsPath,
           "build",
@@ -842,17 +853,22 @@ export async function activate(context: vscode.ExtensionContext) {
     const winFlag = process.platform === "win32" ? "Win" : "";
     if (e.affectsConfiguration("idf.openOcdConfigs")) {
       const openOcdConfigFilesList = idfConf.readParameter(
-        "idf.openOcdConfigs"
+        "idf.openOcdConfigs",
+        workspaceRoot
       );
       const openOCDConfig: IOpenOCDConfig = {
         openOcdConfigFilesList,
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
     } else if (e.affectsConfiguration("idf.adapterTargetName")) {
-      let idfTarget = idfConf.readParameter("idf.adapterTargetName") as string;
+      let idfTarget = idfConf.readParameter(
+        "idf.adapterTargetName",
+        workspaceRoot
+      ) as string;
       if (idfTarget === "custom") {
         idfTarget = idfConf.readParameter(
-          "idf.customAdapterTargetName"
+          "idf.customAdapterTargetName",
+          workspaceRoot
         ) as string;
       }
       const debugAdapterConfig = {
@@ -864,16 +880,20 @@ export async function activate(context: vscode.ExtensionContext) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
       qemuManager.configure({
-        tcpPort: idfConf.readParameter("idf.qemuTcpPort"),
+        tcpPort: idfConf.readParameter("idf.qemuTcpPort", workspaceRoot),
       } as IQemuOptions);
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       statusBarItems["port"].text =
-        "$(plug) " + idfConf.readParameter("idf.port");
+        "$(plug) " + idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
     } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
-      let idfTarget = idfConf.readParameter("idf.adapterTargetName") as string;
+      let idfTarget = idfConf.readParameter(
+        "idf.adapterTargetName",
+        workspaceRoot
+      ) as string;
       if (idfTarget === "custom") {
         idfTarget = idfConf.readParameter(
-          "idf.customAdapterTargetName"
+          "idf.customAdapterTargetName",
+          workspaceRoot
         ) as string;
         const debugAdapterConfig = {
           target: idfTarget,
@@ -1275,7 +1295,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!selectedTarget) {
         return;
       }
-      const configurationTarget = idfConf.readParameter("idf.saveScope");
+      const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
       if (selectedTarget.target === "custom") {
         const currentValue = idfConf.readParameter(
           "idf.customAdapterTargetName"
@@ -1357,9 +1377,13 @@ export async function activate(context: vscode.ExtensionContext) {
           progress: vscode.Progress<{ message: string; increment: number }>
         ) => {
           try {
+            if (ConfserverProcess.exists()) {
+              ConfserverProcess.dispose();
+            }
             const idfPathDir = idfConf.readParameter("idf.espIdfPath");
             const idfPy = path.join(idfPathDir, "tools", "idf.py");
             const modifiedEnv = utils.appendIdfAndToolsToPath();
+            modifiedEnv.IDF_TARGET = undefined;
             const pythonBinPath = idfConf.readParameter(
               "idf.pythonBinPath"
             ) as string;
@@ -2674,10 +2698,13 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 }
 
 function creatCmdsStatusBarItems() {
-  const port = idfConf.readParameter("idf.port");
-  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  const port = idfConf.readParameter("idf.port", workspaceRoot);
+  let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+    idfTarget = idfConf.readParameter(
+      "idf.customAdapterTargetName",
+      workspaceRoot
+    );
   }
   const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
 

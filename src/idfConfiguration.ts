@@ -91,28 +91,33 @@ export async function writeParameter(
   param: string,
   newValue,
   target: vscode.ConfigurationTarget,
-  wsFolder: vscode.WorkspaceFolder = undefined
+  wsFolderUri?: vscode.Uri
 ) {
   const paramValue = addWinIfRequired(param);
-  if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
-    if (wsFolder) {
-      return await vscode.workspace
-        .getConfiguration("", wsFolder.uri)
-        .update(paramValue, newValue, target);
-    } else {
-      const workspaceFolder = await vscode.window.showWorkspaceFolderPick({
-        placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
-      });
-      if (workspaceFolder) {
-        return await vscode.workspace
-          .getConfiguration("", workspaceFolder.uri)
-          .update(paramValue, newValue, target);
-      }
-    }
-  } else {
-    return await vscode.workspace
+  if (target !== vscode.ConfigurationTarget.WorkspaceFolder) {
+    await vscode.workspace
       .getConfiguration()
       .update(paramValue, newValue, target);
+    return target === vscode.ConfigurationTarget.Global
+      ? "User settings"
+      : "Workspace settings";
+  } else {
+    if (
+      typeof vscode.workspace.workspaceFolders === "undefined" ||
+      !vscode.workspace.workspaceFolders.length
+    ) {
+      return;
+    }
+    if (!wsFolderUri) {
+      let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+        placeHolder: `Pick Workspace Folder to which ${param} should be applied`,
+      });
+      wsFolderUri = workspaceFolder.uri;
+    }
+    await vscode.workspace
+      .getConfiguration("", wsFolderUri)
+      .update(paramValue, newValue, target);
+    return wsFolderUri.fsPath;
   }
 }
 
@@ -157,7 +162,12 @@ export async function updateConfParameter(
       placeHolder: `Pick Workspace Folder to which settings should be applied`,
     });
   }
-  await writeParameter(confParamName, valueToWrite, target, workspaceFolder);
+  await writeParameter(
+    confParamName,
+    valueToWrite,
+    target,
+    workspaceFolder.uri
+  );
   const updateMessage = locDic.localize(
     "idfConfiguration.hasBeenUpdated",
     " has been updated"

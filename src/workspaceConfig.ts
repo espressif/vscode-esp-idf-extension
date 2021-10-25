@@ -85,14 +85,14 @@ export function getProjectName(workspacePath: string): Promise<string> {
 }
 
 export async function getIdfTargetFromSdkconfig(
-  workspacePath: string,
+  workspacePath: vscode.Uri,
   statusItem: vscode.StatusBarItem
 ) {
   const doesSdkconfigExists = await pathExists(
-    path.join(workspacePath, "sdkconfig")
+    path.join(workspacePath.fsPath, "sdkconfig")
   );
   const doesSdkconfigDefaultExists = await pathExists(
-    path.join(workspacePath, "sdkconfig.defaults")
+    path.join(workspacePath.fsPath, "sdkconfig.defaults")
   );
   if (!doesSdkconfigExists && !doesSdkconfigDefaultExists) {
     return;
@@ -106,15 +106,19 @@ export async function getIdfTargetFromSdkconfig(
     const idfTarget = utils
       .getConfigValueFromSDKConfig(
         "CONFIG_IDF_TARGET",
-        workspacePath,
+        workspacePath.fsPath,
         sdkconfigToUse
       )
       .replace(/\"/g, "");
     if (!idfTarget) {
       return;
     }
-    const target = readParameter("idf.saveScope");
-    await writeParameter("idf.adapterTargetName", idfTarget, target);
+    await writeParameter(
+      "idf.adapterTargetName",
+      idfTarget,
+      vscode.ConfigurationTarget.WorkspaceFolder,
+      workspacePath
+    );
     statusItem.text = "$(circuit-board) " + idfTarget;
   }
 }
