@@ -113,6 +113,7 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
       "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
       "setupCommands": [
         { "text": "target remote :3333" },
+        { "text": "set remote hardware-watchpoint-limit 2"},
         { "text": "mon reset halt" },
         { "text": "thb app_main" },
         { "text": "flushregs" }
