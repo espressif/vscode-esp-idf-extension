@@ -1271,7 +1271,18 @@ export async function activate(context: vscode.ExtensionContext) {
         [
           { description: "ESP32", label: "ESP32", target: "esp32" },
           { description: "ESP32-S2", label: "ESP32-S2", target: "esp32s2" },
-          { description: "ESP32-S3", label: "ESP32-S3", target: "esp32s3" },
+          {
+            description: "ESP32-S3 (Built-in USB JTAG)",
+            label: "ESP32-S3 (Built-in USB JTAG)",
+            target: "esp32s3",
+            type: "usb",
+          },
+          {
+            description: "ESP32-S3 (ESP-PROG JTAG)",
+            label: "ESP32-S3 (ESP-PROG JTAG)",
+            target: "esp32s3",
+            type: "prog",
+          },
           {
             description: "ESP32-C3 (Built-in USB JTAG)",
             label: "ESP32-C3 (Built-in USB JTAG)",
@@ -1296,6 +1307,12 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+      let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+        placeHolder: `Pick Workspace Folder to which settings should be applied`,
+      });
+      if (!workspaceFolder) {
+        return;
+      }
       if (selectedTarget.target === "custom") {
         const currentValue = idfConf.readParameter(
           "idf.customAdapterTargetName"
@@ -1310,12 +1327,14 @@ export async function activate(context: vscode.ExtensionContext) {
         await idfConf.writeParameter(
           "idf.adapterTargetName",
           selectedTarget.target,
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
         await idfConf.writeParameter(
           "idf.customAdapterTargetName",
           customIdfTarget,
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
         return Logger.infoNotify(
           `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`
@@ -1324,27 +1343,45 @@ export async function activate(context: vscode.ExtensionContext) {
       await idfConf.writeParameter(
         "idf.adapterTargetName",
         selectedTarget.target,
-        configurationTarget
+        configurationTarget,
+        workspaceFolder.uri
       );
       if (selectedTarget.target === "esp32") {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
       }
       if (selectedTarget.target === "esp32s2") {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
       }
-      if (selectedTarget.target === "esp32s3") {
+      if (
+        selectedTarget.target === "esp32s3" &&
+        selectedTarget.type === "prog"
+      ) {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"],
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
+        );
+      }
+      if (
+        selectedTarget.target === "esp32s3" &&
+        selectedTarget.type === "usb"
+      ) {
+        await idfConf.writeParameter(
+          "idf.openOcdConfigs",
+          ["board/esp32s3-builtin.cfg"],
+          configurationTarget,
+          workspaceFolder.uri
         );
       }
       if (
@@ -1354,7 +1391,8 @@ export async function activate(context: vscode.ExtensionContext) {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["board/esp32c3-builtin.cfg"],
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
       }
       if (
@@ -1364,7 +1402,8 @@ export async function activate(context: vscode.ExtensionContext) {
         await idfConf.writeParameter(
           "idf.openOcdConfigs",
           ["board/esp32c3-ftdi.cfg"],
-          configurationTarget
+          configurationTarget,
+          workspaceFolder.uri
         );
       }
       await vscode.window.withProgress(
