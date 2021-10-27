@@ -20,7 +20,7 @@ import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 import { ESP } from "../config";
-import { getExamplesList } from "./Example";
+import { getExamplesList, IExampleCategory } from "./Example";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -171,15 +171,23 @@ export class ExamplesPlanel {
   }
 
   private async obtainExamplesList(targetFrameworkFolder: string) {
-    const exampleListInfo = getExamplesList(targetFrameworkFolder);
+    const exampleListInfo: IExampleCategory = getExamplesList(
+      targetFrameworkFolder
+    );
     this.panel.webview.postMessage({
       command: "set_examples_path",
       example_list: exampleListInfo,
     });
 
+    const selectedExample = exampleListInfo.examples.length
+      ? exampleListInfo.examples[0]
+      : exampleListInfo.subcategories.length
+      ? exampleListInfo.subcategories[0]
+      : undefined;
+
     this.panel.webview.postMessage({
       command: "set_initial_example",
-      selected_example: exampleListInfo[0],
+      selected_example: selectedExample,
     });
   }
 }
