@@ -68,7 +68,7 @@
   "param.useIDFKConfigStyle": "启用/禁用 ESP-IDF Kconfig 文件的样式验证",
   "param.showOnboardingOnInit": "在扩展激活时显示 ESP-IDF 配置窗口",
   "param.cmakeCompilerArgs": "CMake 编译任务的参数",
-  "param.cmakeBuildArgs": "CMake 构建任务的参数",
+  "param.ninjaArgs": "Ninja 构建任务的参数",
   "param.coveredLightTheme": "ESP-IDF 覆盖浅色主题覆盖线的背景色",
   "param.coveredDarkTheme": "ESP-IDF 覆盖深色主题覆盖线的背景色",
   "param.partialLightTheme": "ESP-IDF 覆盖浅色主题部分覆盖线的背景色.",

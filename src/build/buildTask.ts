@@ -50,6 +50,13 @@ export class BuildTask {
     return new vscode.ShellExecution(`cmake ${args.join(" ")}`, options);
   }
 
+  public getNinjaShellExecution(
+    args: string[],
+    options?: vscode.ShellExecutionOptions
+  ) {
+    return new vscode.ShellExecution(`ninja ${args.join(" ")}`, options);
+  }
+
   public async build() {
     try {
       await this.saveBeforeBuild();
@@ -120,10 +127,10 @@ export class BuildTask {
       );
     }
 
-    const buildArgs = (idfConf.readParameter("idf.cmakeBuildArgs") as Array<
+    const buildArgs = (idfConf.readParameter("idf.ninjaArgs") as Array<
       string
-    >) || ["--build", "."];
-    const buildExecution = this.getShellExecution(buildArgs, options);
+    >) || [];
+    const buildExecution = this.getNinjaShellExecution(buildArgs, options);
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build" },
       vscode.TaskScope.Workspace,
