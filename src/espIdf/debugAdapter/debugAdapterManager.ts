@@ -137,6 +137,11 @@ export class DebugAdapterManager extends EventEmitter {
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath"
       ) as string;
+
+      const toolchainPrefix =
+        this.target === "esp32c3"
+          ? "riscv32-esp-elf-"
+          : `xtensa-${this.target}-elf-`;
       const adapterArgs = [
         this.debugAdapterPath,
         "-d",
@@ -151,6 +156,8 @@ export class DebugAdapterManager extends EventEmitter {
         this.target,
         "-a",
         this.appOffset,
+        "-t",
+        toolchainPrefix,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");

@@ -31,7 +31,7 @@ The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](
 
 ## Build
 
-**ESP-IDF: Build your project** is provided by this extension to build your project using `CMake` and `Ninja-build` as explained in [ESP-IDF Build system using Cmake directly](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#using-cmake-directly).
+**ESP-IDF: Build your project** is provided by this extension to build your project using `CMake` and `Ninja-build` as explained in [ESP-IDF Build system using Cmake directly](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#using-cmake-directly). You could modify the behavior of the build task with `idf.cmakeCompilerArgs` for Cmake configure step and `idf.ninjaArgs` for Ninja step. For example, using `[-j N]` where N is the number of jobs run in parallel.
 
 ## Debugging
 

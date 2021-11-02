@@ -460,13 +460,10 @@
             "description": "%param.cmakeCompilerArgs%",
             "scope": "resource"
           },
-          "idf.cmakeBuildArgs": {
+          "idf.ninjaArgs": {
             "type": "array",
-            "default": [
-              "--build",
-              "."
-            ],
-            "description": "%param.cmakeBuildArgs%",
+            "default": [],
+            "description": "%param.ninjaArgs%",
             "scope": "resource"
           },
           "idf.customAdapterTargetName": {

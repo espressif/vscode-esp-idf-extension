@@ -67,7 +67,7 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | Setting ID                | Description                                                                   |
 | ------------------------- | ----------------------------------------------------------------------------- |
 | `idf.cmakeCompilerArgs`   | Arguments for CMake compilation task                                          |
-| `idf.cmakeBuildArgs`      | Arguments for CMake build task                                                |
+| `idf.ninjaArgs`           | Arguments for Ninja build task                                                |
 | `idf.coveredLightTheme`   | Background color for covered lines in light theme for gcov coverage           |
 | `idf.coveredDarkTheme`    | Background color for covered lines in dark theme for gcov coverage            |
 | `idf.partialLightTheme`   | Background color for partially covered lines in light theme for gcov coverage |

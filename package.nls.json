@@ -68,7 +68,7 @@
   "param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
   "param.showOnboardingOnInit": "Show ESP-IDF Configuration window on extension activation",
   "param.cmakeCompilerArgs": "Arguments for CMake compilation task",
-  "param.cmakeBuildArgs": "Arguments for CMake build task",
+  "param.ninjaArgs": "Arguments for Ninja build task",
   "param.coveredLightTheme": "Background color for covered lines in Light theme for ESP-IDF Coverage.",
   "param.coveredDarkTheme": "Background color for covered lines in Dark theme for ESP-IDF Coverage.",
   "param.partialLightTheme": "Background color for partially covered lines in Light theme for ESP-IDF Coverage.",
