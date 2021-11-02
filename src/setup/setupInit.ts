@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConfigurationTarget, Progress, window, WorkspaceFolder } from "vscode";
+import {
+  ConfigurationTarget,
+  Progress,
+  window,
+  workspace,
+  WorkspaceFolder,
+} from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfVersions } from "./espIdfVersionList";
@@ -277,7 +283,8 @@ export async function getSetupInitialValues(
         prevInstall.gitVersion !== "Not found" &&
         canAccessCMake !== "" &&
         canAccessNinja !== "" &&
-        pythonVersions && pythonVersions.length > 0;
+        pythonVersions &&
+        pythonVersions.length > 0;
     } else {
       setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "Not found";
     }
@@ -355,37 +362,37 @@ export async function saveSettings(
     "idf.espIdfPath",
     espIdfPath,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   await idfConf.writeParameter(
     "idf.pythonBinPath",
     pythonBinPath,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   await idfConf.writeParameter(
     "idf.toolsPath",
     toolsPath,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   await idfConf.writeParameter(
     "idf.customExtraPaths",
     exportedPaths,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   await idfConf.writeParameter(
     "idf.customExtraVars",
     exportedVars,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   await idfConf.writeParameter(
     "idf.gitPath",
     gitPath,
     confTarget,
-    workspaceFolder
+    workspaceFolder ? workspaceFolder.uri : undefined
   );
   window.showInformationMessage("ESP-IDF has been configured");
 }
