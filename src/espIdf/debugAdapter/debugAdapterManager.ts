@@ -140,8 +140,8 @@ export class DebugAdapterManager extends EventEmitter {
 
       const toolchainPrefix =
         this.target === "esp32c3"
-          ? "riscv32-esp-elf-gcc"
-          : `xtensa-${this.target}-elf-gcc`;
+          ? "riscv32-esp-elf-"
+          : `xtensa-${this.target}-elf-`;
       const adapterArgs = [
         this.debugAdapterPath,
         "-d",
@@ -157,7 +157,7 @@ export class DebugAdapterManager extends EventEmitter {
         "-a",
         this.appOffset,
         "-t",
-        toolchainPrefix
+        toolchainPrefix,
       ];
       if (this.isPostMortemDebugMode) {
         adapterArgs.push("-pm");
