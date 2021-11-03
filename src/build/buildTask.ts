@@ -118,7 +118,7 @@ export class BuildTask {
       }
       const compileExecution = this.getShellExecution(compilerArgs, options);
       TaskManager.addTask(
-        { type: "esp-idf", command: "ESP-IDF Compile" },
+        { type: "esp-idf", command: "ESP-IDF Compile", taskId: "idf-compile-task" },
         vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
@@ -132,7 +132,7 @@ export class BuildTask {
     >) || [];
     const buildExecution = this.getNinjaShellExecution(buildArgs, options);
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF Build" },
+      { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,

@@ -21,6 +21,7 @@ import { ESP } from "./config";
 
 export interface IdfTaskDefinition extends vscode.TaskDefinition {
   command?: string;
+  taskId: string;
 }
 
 export class TaskManager {
@@ -28,7 +29,7 @@ export class TaskManager {
   private static disposables: vscode.Disposable[] = [];
 
   public static addTask(
-    taskDefinition: vscode.TaskDefinition,
+    taskDefinition: IdfTaskDefinition,
     scope: vscode.TaskScope,
     name: string,
     execution:
@@ -52,7 +53,11 @@ export class TaskManager {
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {
-        if (e.execution.task.name === newTask.name) {
+        if (
+          e.execution.task.definition.taskId.indexOf(
+            newTask.definition.taskId
+          ) !== -1
+        ) {
           return resolve();
         }
       });
@@ -69,7 +74,7 @@ export class TaskManager {
   public static cancelTasks() {
     for (const task of TaskManager.tasks) {
       const execution = vscode.tasks.taskExecutions.find((t) => {
-        return t.task.name === task.name;
+        return t.task.definition.taskId.indexOf(task.definition.taskId) !== -1;
       });
       if (execution) {
         execution.terminate();
@@ -89,7 +94,9 @@ export class TaskManager {
           const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
             if (
               TaskManager.tasks.length > 0 &&
-              e.execution.task.name === lastTask.name
+              e.execution.task.definition.taskId.indexOf(
+                lastTask.definition.taskId
+              ) !== -1
             ) {
               if (e.exitCode !== 0) {
                 this.cancelTasks();
@@ -101,8 +108,10 @@ export class TaskManager {
                 );
               }
               if (
-                e.execution.task.name ===
-                TaskManager.tasks[TaskManager.tasks.length - 1].name
+                e.execution.task.definition.taskId.indexOf(
+                  TaskManager.tasks[TaskManager.tasks.length - 1].definition
+                    .taskId
+                ) !== -1
               ) {
                 TaskManager.tasks = [];
                 e.execution.terminate();
@@ -123,7 +132,11 @@ export class TaskManager {
         );
         let lastTask = lastExecution.task;
         const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
-          if (e.execution.task.name === lastTask.name) {
+          if (
+            e.execution.task.definition.taskId.indexOf(
+              lastTask.definition.taskId
+            ) !== -1
+          ) {
             if (e.exitCode !== 0) {
               this.cancelTasks();
               this.disposeListeners();

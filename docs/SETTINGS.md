@@ -10,6 +10,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 
 | Setting ID                      | Description                                                                   |
 | ------------------------------- | ----------------------------------------------------------------------------- |
+| `idf.cmakeCompilerArgs`         | Arguments for CMake compilation task                                          |
 | `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                |
 | `idf.customExtraVars`           | Variables to be added to system environment variables                         |
 | `idf.gitPath`                   | Path to git executable                                                        |
@@ -17,6 +18,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                 |
 | `idf.espIdfPath`                | Path to locate ESP-IDF framework (IDF_PATH)                                   |
 | `idf.espIdfPathWin`             | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
+| `idf.ninjaArgs`                 | Arguments for Ninja build task                                                |
 | `idf.pythonBinPath`             | Python absolute binary path used to execute ESP-IDF Python Scripts            |
 | `idf.pythonBinPathWin`          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
 | `idf.toolsPath`                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
@@ -66,8 +68,6 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 | Setting ID                | Description                                                                   |
 | ------------------------- | ----------------------------------------------------------------------------- |
-| `idf.cmakeCompilerArgs`   | Arguments for CMake compilation task                                          |
-| `idf.ninjaArgs`           | Arguments for Ninja build task                                                |
 | `idf.coveredLightTheme`   | Background color for covered lines in light theme for gcov coverage           |
 | `idf.coveredDarkTheme`    | Background color for covered lines in dark theme for gcov coverage            |
 | `idf.partialLightTheme`   | Background color for partially covered lines in light theme for gcov coverage |
