@@ -1229,6 +1229,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
 
+  registerIDFCommand("espIdf.flashDFU", flash(false));
   registerIDFCommand("espIdf.flashDevice", flash);
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -2896,7 +2897,7 @@ const build = () => {
     );
   });
 };
-const flash = () => {
+const flash = (isUart: Boolean = true) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
     await vscode.window.withProgress(
       {
@@ -2920,13 +2921,24 @@ const flash = () => {
           workspaceRoot
         );
         if (canFlash) {
-          await uartFlashCommand(
-            cancelToken,
-            flashBaudRate,
-            idfPathDir,
-            port,
-            workspaceRoot
-          );
+          if(isUart) {
+            await uartFlashCommand(
+              cancelToken,
+              flashBaudRate,
+              idfPathDir,
+              port,
+              workspaceRoot
+            );
+          } else {
+            await uartFlashCommand(
+              cancelToken,
+              flashBaudRate,
+              idfPathDir,
+              port,
+              workspaceRoot,
+              false
+            );
+          }
         }
       }
     );
@@ -2986,7 +2998,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
 async function selectFlashMethod(cancelToken) {
   let flashType = idfConf.readParameter("idf.flashType");
   if (!flashType) {
-    flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+    flashType = await vscode.window.showQuickPick(["JTAG", "UART", "DFU"], {
       ignoreFocusOut: true,
       placeHolder:
         "Select flash method, you can modify the choice later from settings 'idf.flashType'",
@@ -3020,6 +3032,15 @@ async function selectFlashMethod(cancelToken) {
       idfPathDir,
       port,
       workspaceRoot
+    );
+  } else if (flashType === "DFU") {
+    return await uartFlashCommand(
+      cancelToken,
+      flashBaudRate,
+      idfPathDir,
+      port,
+      workspaceRoot,
+      false
     );
   }
 }

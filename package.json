@@ -50,6 +50,7 @@
     "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
     "onCommand:espIdf.flashDevice",
+    "onCommand:espIdf.flashDFU",
     "onCommand:espIdf.monitorDevice",
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
@@ -624,7 +625,8 @@
             "type": "string",
             "enum": [
               "UART",
-              "JTAG"
+              "JTAG",
+              "DFU"
             ],
             "description": "%idf.flashType.description%",
             "scope": "resource"
@@ -810,6 +812,10 @@
       {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%"
+      },
+      {
+        "command": "espIdf.flashDFU",
+        "title": "%espIdf.flashDFU.title%"
       },
       {
         "command": "espIdf.monitorDevice",
@@ -1296,5 +1302,8 @@
     "insight": {
       "key": "912cbb4e-e606-4c4f-9a00-1731acb15117"
     }
-  }
+  },
+  "extensionDependencies": [
+    "ms-vscode.cpptools"
+  ]
 }

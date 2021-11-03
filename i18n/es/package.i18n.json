@@ -14,6 +14,7 @@
   "espIdf.selectPort.title": "ESP-IDF: Seleccionar puerto a utilizar (COM, tty, usbserial)",
   "espIdf.buildDevice.title": "ESP-IDF: Construir el proyecto",
   "espIdf.flashDevice.title": "ESP-IDF: Programar (UART) el dispositivo",
+  "espIdf.flashDFU.title": "ESP-IDF: Programar (DFU) el dispositivo",
   "espIdf.monitorDevice.title": "ESP-IDF: Monitorear el dispositivo",
   "espIdf.setup.title": "ESP-IDF: Configurar la extension ESP-IDF",
   "espIdf.examples.title": "ESP-IDF: Mostrar ejemplos de proyectos",
