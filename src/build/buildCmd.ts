@@ -53,6 +53,7 @@ export async function buildCommand(
   });
   try {
     await buildTask.build();
+    await TaskManager.runTasks();
     await sizeTask.getSizeInfo();
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {

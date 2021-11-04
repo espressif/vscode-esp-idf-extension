@@ -32,16 +32,20 @@ import { getProjectName } from "../../workspaceConfig";
 export class IdfSizeTask {
   private curWorkspace: string;
   private pythonBinPath: string;
+  private idfSizePath: string;
 
   constructor(workspacePath: string) {
     this.curWorkspace = workspacePath;
     this.pythonBinPath = readParameter("idf.pythonBinPath") as string;
+    const idfPathDir = readParameter("idf.espIdfPath") as string;
+    this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {
     const mapFilePath = await this.mapFilePath();
     return new ShellExecution(
-      `${this.pythonBinPath} idf_size.py ${mapFilePath}`
+      `${this.pythonBinPath} ${this.idfSizePath} ${mapFilePath}`,
+      options
     );
   }
 
@@ -57,7 +61,7 @@ export class IdfSizeTask {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };
-    const sizeExecution = this.getShellExecution(options);
+    const sizeExecution = await this.getShellExecution(options);
     const isSilentMode = readParameter("idf.notificationSilentMode");
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Silent
