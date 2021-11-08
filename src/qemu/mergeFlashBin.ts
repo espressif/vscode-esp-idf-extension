@@ -109,7 +109,7 @@ export async function mergeFlashBinaries(
     flashModel
   );
   TaskManager.addTask(
-    { type: "esp-idf", command: "Merge flash binaries" },
+    { type: "esp-idf", command: "Merge flash binaries", taskId: "idf-mergeBin-task" },
     TaskScope.Workspace,
     "Merge flash binaries",
     mergeExecution,

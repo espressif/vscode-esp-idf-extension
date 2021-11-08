@@ -24,6 +24,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { join } from "path";
 import { updateIdfComponentsTree } from "../workspaceConfig";
+import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 
 const locDic = new LocDictionary(__filename);
 
@@ -33,6 +34,7 @@ export async function buildCommand(
 ) {
   let continueFlag = true;
   const buildTask = new BuildTask(workspace.fsPath);
+  const sizeTask = new IdfSizeTask(workspace.fsPath);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
       "build.waitProcessIsFinishedMessage",
@@ -51,6 +53,8 @@ export async function buildCommand(
   });
   try {
     await buildTask.build();
+    await TaskManager.runTasks();
+    await sizeTask.getSizeInfo();
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       const projDescPath = join(

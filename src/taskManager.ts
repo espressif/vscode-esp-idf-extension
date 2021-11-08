@@ -21,6 +21,7 @@ import { ESP } from "./config";
 
 export interface IdfTaskDefinition extends vscode.TaskDefinition {
   command?: string;
+  taskId: string;
 }
 
 export class TaskManager {
@@ -28,7 +29,7 @@ export class TaskManager {
   private static disposables: vscode.Disposable[] = [];
 
   public static addTask(
-    taskDefinition: vscode.TaskDefinition,
+    taskDefinition: IdfTaskDefinition,
     scope: vscode.TaskScope,
     name: string,
     execution:
@@ -48,11 +49,16 @@ export class TaskManager {
     );
     newTask.presentationOptions = {
       reveal: revealTask,
+      showReuseMessage: false,
     };
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {
-        if (e.execution.task.name === newTask.name) {
+        if (
+          e.execution.task.definition.taskId.indexOf(
+            newTask.definition.taskId
+          ) !== -1
+        ) {
           return resolve();
         }
       });
@@ -69,7 +75,7 @@ export class TaskManager {
   public static cancelTasks() {
     for (const task of TaskManager.tasks) {
       const execution = vscode.tasks.taskExecutions.find((t) => {
-        return t.task.name === task.name;
+        return t.task.definition.taskId.indexOf(task.definition.taskId) !== -1;
       });
       if (execution) {
         execution.terminate();
@@ -80,65 +86,34 @@ export class TaskManager {
 
   public static async runTasks() {
     return new Promise<void>(async (resolve, reject) => {
-      if (TaskManager.tasks && TaskManager.tasks.length > 1) {
-        let lastExecution = await vscode.tasks.executeTask(
-          TaskManager.tasks[0]
-        );
-        let lastTask = lastExecution.task;
-        for (let i = 1; i < TaskManager.tasks.length; i++) {
-          const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
-            if (
-              TaskManager.tasks.length > 0 &&
-              e.execution.task.name === lastTask.name
-            ) {
-              if (e.exitCode !== 0) {
-                this.cancelTasks();
-                this.disposeListeners();
-                return reject(
-                  new Error(
-                    `Task ${lastTask.name} exited with code ${e.exitCode}`
-                  )
-                );
-              }
-              if (
-                e.execution.task.name ===
-                TaskManager.tasks[TaskManager.tasks.length - 1].name
-              ) {
-                TaskManager.tasks = [];
-                e.execution.terminate();
-                return resolve();
-              } else {
-                lastExecution = await vscode.tasks.executeTask(
-                  TaskManager.tasks[i]
-                );
-                lastTask = lastExecution.task;
-              }
-            }
-          });
-          TaskManager.disposables.push(taskDisposable);
-        }
-      } else if (TaskManager.tasks && TaskManager.tasks.length === 1) {
-        let lastExecution = await vscode.tasks.executeTask(
-          TaskManager.tasks[0]
-        );
-        let lastTask = lastExecution.task;
-        const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
-          if (e.execution.task.name === lastTask.name) {
-            if (e.exitCode !== 0) {
-              this.cancelTasks();
-              this.disposeListeners();
-              return reject(
-                new Error(
-                  `Task ${lastTask.name} exited with code ${e.exitCode}`
-                )
-              );
-            }
-            TaskManager.tasks = [];
-            return resolve();
+      let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
+      const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
+        if (
+          e.execution.task.definition.taskId.indexOf(
+            lastExecution.task.definition.taskId
+          ) !== -1
+        ) {
+          if (e.exitCode !== 0) {
+            this.cancelTasks();
+            this.disposeListeners();
+            return reject(
+              new Error(
+                `Task ${lastExecution.task.name} exited with code ${e.exitCode}`
+              )
+            );
           }
-        });
-        TaskManager.disposables.push(taskDisposable);
-      }
+          e.execution.terminate();
+          TaskManager.tasks.splice(0, 1);
+          if (TaskManager.tasks.length === 0) {
+            return resolve();
+          } else {
+            lastExecution = await vscode.tasks.executeTask(
+              TaskManager.tasks[0]
+            );
+          }
+        }
+      });
+      TaskManager.disposables.push(taskDisposable);
     });
   }
 }

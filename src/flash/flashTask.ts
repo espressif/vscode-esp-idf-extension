@@ -102,7 +102,7 @@ export class FlashTask {
       flashExecution = this._flashExecution();
     }
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF Flash" },
+      { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
