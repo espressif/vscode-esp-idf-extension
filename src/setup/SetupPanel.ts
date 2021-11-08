@@ -118,7 +118,8 @@ export class SetupPanel {
             await this.checkRequiredTools(
               message.espIdf,
               message.toolsPath,
-              setupArgs.gitPath
+              setupArgs.gitPath,
+              setupArgs.onReqPkgs
             );
           }
           break;
@@ -142,7 +143,8 @@ export class SetupPanel {
               message.manualEspIdfPath,
               message.espIdfContainer,
               message.mirror,
-              message.setupMode
+              message.setupMode,
+              setupArgs.onReqPkgs
             );
           }
           break;
@@ -158,7 +160,8 @@ export class SetupPanel {
               message.pyPath,
               message.toolsPath,
               setupArgs.gitPath,
-              message.mirror
+              message.mirror,
+              setupArgs.onReqPkgs
             );
           }
           break;
@@ -332,7 +335,8 @@ export class SetupPanel {
     espIdfPath: string,
     idfContainerPath: string,
     mirror: IdfMirror,
-    setupMode: SetupMode
+    setupMode: SetupMode,
+    onReqPkgs?: string[]
   ) {
     return await vscode.window.withProgress(
       {
@@ -371,7 +375,8 @@ export class SetupPanel {
             setupMode,
             idfGitPath,
             progress,
-            cancelToken
+            cancelToken,
+            onReqPkgs
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -383,7 +388,8 @@ export class SetupPanel {
   private async checkRequiredTools(
     idfPath: string,
     toolsInfo: IEspIdfTool[],
-    gitPath: string
+    gitPath: string,
+    onReqPkgs?: string[]
   ) {
     const toolsManager = await IdfToolsManager.createIdfToolsManager(
       idfPath,
@@ -395,7 +401,7 @@ export class SetupPanel {
       }, "")
       .slice(1);
 
-    const foundVersions = await toolsManager.verifyPackages(pathToVerify);
+    const foundVersions = await toolsManager.verifyPackages(pathToVerify, onReqPkgs);
     const updatedToolsInfo = toolsInfo.map((tool) => {
       const isToolVersionCorrect =
         tool.expected.indexOf(foundVersions[tool.name]) > -1;
@@ -438,7 +444,8 @@ export class SetupPanel {
     pyPath: string,
     toolsPath: string,
     gitPath: string,
-    mirror: IdfMirror
+    mirror: IdfMirror,
+    onReqPkgs?: string[]
   ) {
     return await vscode.window.withProgress(
       {
@@ -463,7 +470,8 @@ export class SetupPanel {
             gitPath,
             mirror,
             progress,
-            cancelToken
+            cancelToken,
+            onReqPkgs
           );
         } catch (error) {
           this.setupErrHandler(error);

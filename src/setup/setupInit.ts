@@ -41,6 +41,7 @@ export interface ISetupInitArgs {
   gitPath: string;
   gitVersion: string;
   hasPrerequisites: boolean;
+  onReqPkgs?: string[];
   pythonVersions: string[];
   toolsResults: IEspIdfTool[];
   pyBinPath: string;
@@ -113,14 +114,19 @@ export async function checkPreviousInstall(
   );
 
   const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-    path.join(toolsPath, "tools")
+    path.join(toolsPath, "tools"),
+    ["cmake", "ninja"]
   );
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
-    exportedToolsPaths
+    exportedToolsPaths,
+    ["cmake", "ninja"]
   );
 
-  const failedToolsResult = toolsInfo.filter((tInfo) => !tInfo.doesToolExist);
+  const failedToolsResult = toolsInfo.filter(
+    (tInfo) =>
+      !tInfo.doesToolExist && ["cmake", "ninja"].indexOf(tInfo.name) === -1
+  );
   if (failedToolsResult.length > 0) {
     return {
       espIdfPath,
@@ -269,22 +275,40 @@ export async function getSetupInitialValues(
     // Get initial paths
     const prevInstall = await checkPreviousInstall(pythonVersions);
     if (process.platform !== "win32") {
-      const canAccessCMake = await utils.isBinInPath(
-        "cmake",
-        extensionPath,
-        process.env
-      );
-      const canAccessNinja = await utils.isBinInPath(
-        "ninja",
-        extensionPath,
-        process.env
-      );
       setupInitArgs.hasPrerequisites =
         prevInstall.gitVersion !== "Not found" &&
-        canAccessCMake !== "" &&
-        canAccessNinja !== "" &&
         pythonVersions &&
         pythonVersions.length > 0;
+
+      const cmakeFromToolsIndex = prevInstall.toolsResults.findIndex(
+        (t) =>
+          t.name.indexOf("cmake") !== -1 &&
+          t.actual.indexOf("No match") === -1 &&
+          t.actual.indexOf("Error") === -1
+      );
+
+      if (cmakeFromToolsIndex !== -1) {
+        prevInstall.toolsResults.splice(cmakeFromToolsIndex, 1);
+      } else {
+        setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
+          ? [...setupInitArgs.onReqPkgs, "cmake"]
+          : ["cmake"];
+      }
+
+      const ninjaFromToolsIndex = prevInstall.toolsResults.findIndex(
+        (t) =>
+          t.name.indexOf("ninja") !== -1 &&
+          t.actual.indexOf("No match") === -1 &&
+          t.actual.indexOf("Error") === -1
+      );
+
+      if (ninjaFromToolsIndex !== -1) {
+        prevInstall.toolsResults.splice(ninjaFromToolsIndex, 1);
+      } else {
+        setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
+          ? [...setupInitArgs.onReqPkgs, "ninja"]
+          : ["ninja"];
+      }
     } else {
       setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "Not found";
     }
@@ -329,13 +353,33 @@ export async function isCurrentInstallValid() {
     espIdfPath,
     gitPath
   );
+  let extraReqPaths = [];
+  if (process.platform !== "win32") {
+    const canAccessCMake = await utils.isBinInPath(
+      "cmake",
+      containerPath,
+      process.env
+    );
+    if (!canAccessCMake) {
+      extraReqPaths.push("cmake");
+    }
+    const canAccessNinja = await utils.isBinInPath(
+      "ninja",
+      containerPath,
+      process.env
+    );
+    if (!canAccessNinja) {
+      extraReqPaths.push("ninja");
+    }
+  }
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
-    extraPaths
+    extraPaths,
+    extraReqPaths
   );
   const failedToolsResult = toolsInfo.filter(
     (tInfo) =>
-      tInfo.actual.indexOf("No match") !== -1 ||
+      tInfo.actual.indexOf("No match") !== -1 &&
       tInfo.actual.indexOf("Error") !== -1
   );
   return failedToolsResult.length === 0;

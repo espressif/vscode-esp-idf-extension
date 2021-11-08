@@ -32,7 +32,8 @@ export async function downloadEspIdfTools(
   idfToolsManager: IdfToolsManager,
   mirror: IdfMirror,
   progress: Progress<{ message: string; increment?: number }>,
-  cancelToken?: CancellationToken
+  cancelToken?: CancellationToken,
+  onReqPkgs?: string[]
 ) {
   const manyPathsInInstallDir = installDir.split(delimiter);
   if (manyPathsInInstallDir.length > 1) {
@@ -42,7 +43,7 @@ export async function downloadEspIdfTools(
   const downloadManager = new DownloadManager(installDir);
   const installManager = new InstallManager(installDir);
 
-  const packages = await idfToolsManager.getPackageList();
+  const packages = await idfToolsManager.getPackageList(onReqPkgs);
   const pkgProgress = packages.map((p) => {
     return new PackageProgress(
       p.name,
@@ -59,11 +60,12 @@ export async function downloadEspIdfTools(
     progress,
     mirror,
     pkgProgress,
-    cancelToken
+    cancelToken,
+    onReqPkgs
   );
   OutputChannel.appendLine("");
   Logger.info("");
-  await installManager.installPackages(idfToolsManager, progress, cancelToken);
+  await installManager.installPackages(idfToolsManager, progress, cancelToken, onReqPkgs);
   OutputChannel.appendLine("");
   Logger.info("");
 }
