@@ -700,7 +700,11 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
-      return "Not found";
+      const gitInPath = await isBinInPath("git", workingDir, process.env);
+      if (!gitInPath) {
+        return "Not found";
+      }
+      gitPath = gitInPath;
     }
     const gitRawVersion = await execChildProcess(
       `"${gitPath}" --version`,
