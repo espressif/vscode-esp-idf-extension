@@ -251,7 +251,7 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private configureServerWithDefaultParam() {
-    const openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs");
+    const openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs") as string[];
     const host = idfConf.readParameter("openocd.tcl.host");
     const port = idfConf.readParameter("openocd.tcl.port");
 
