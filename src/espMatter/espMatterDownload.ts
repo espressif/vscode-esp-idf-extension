@@ -77,7 +77,7 @@ export class EspMatterCloning extends AbstractCloning {
       : TaskRevealKind.Always;
 
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-Matter Bootstrap" },
+      { type: "esp-idf", command: "ESP-Matter Bootstrap", taskId: "idf-bootstrap-task" },
       TaskScope.Workspace,
       "ESP-Matter Bootstrap",
       buildGnExec,
