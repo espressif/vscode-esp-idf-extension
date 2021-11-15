@@ -69,7 +69,7 @@ export class FlashTask {
     }
   }
 
-  public async flash(isUart: boolean) {
+  public async flash(flashType) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
@@ -89,9 +89,9 @@ export class FlashTask {
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
     if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
       flashExecution = await this._wslFlashExecution();
-    } else if (isUart) {
+    } else if (flashType === "UART") {
       flashExecution = this._flashExecution();
-    } else if(!isUart) {
+    } else if (flashType === "DFU") {
       flashExecution = this._dfuFlashing();
     }
     TaskManager.addTask(
@@ -142,14 +142,7 @@ export class FlashTask {
 
   public _dfuFlashing() {
     this.flashing(true);
-    const modifiedEnv = appendIdfAndToolsToPath();
-    const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
-    const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDir,
-      env: modifiedEnv,
-    };
-    const dfuBinPath = idfConf.readParameter("dfu-util") as string;
-    return new vscode.ProcessExecution(dfuBinPath, flasherArgs, options);
+    return new vscode.ShellExecution(`dfu-util -D ${this.buildDir}/dfu.bin`);
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {

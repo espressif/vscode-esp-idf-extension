@@ -24,13 +24,13 @@ import { FlashTask } from "./flashTask";
 import { createFlashModel } from "./flashModelBuilder";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 
-export async function uartFlashCommand(
+export async function flashCommand(
   cancelToken: vscode.CancellationToken,
   flashBaudRate: string,
   idfPathDir: string,
   port: string,
   workspace: vscode.Uri,
-  isUart: boolean = true
+  flashType: string
 ) {
   let continueFlag = true;
   const buildPath = join(workspace.fsPath, "build");
@@ -62,7 +62,7 @@ export async function uartFlashCommand(
       FlashTask.isFlashing = false;
     });
     customTask.addCustomTask(CustomTaskType.PreFlash);
-    await flashTask.flash(isUart);
+    await flashTask.flash(flashType);
     customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
