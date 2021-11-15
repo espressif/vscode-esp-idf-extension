@@ -2993,7 +2993,6 @@ enum selectedFlashType {
 }
 
 async function selectFlashMethod(cancelToken) {
-  // let flashType = idfConf.readParameter("idf.flashType");
   let flashType = await vscode.window.showQuickPick(
     Object.keys(selectedFlashType),
     {
