@@ -32,5 +32,7 @@
         "limitations under the License."
       ]
     }
-  ]
+  ],
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "workbench.editor.enablePreview": true
 }

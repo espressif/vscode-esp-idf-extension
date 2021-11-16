@@ -24,6 +24,7 @@ package-lock.json
 report.txt
 report.json
 src/**
+test-resources/**
 testFiles/**
 tsconfig.json
 tslint.json

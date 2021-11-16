@@ -35,6 +35,25 @@
         "VSCODE_EXTENSION_MODE": "development"
       },
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Run UI Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vscode-extension-tester/out/cli.js",
+      "args": [
+        "setup-and-run",
+        "${workspaceFolder}/out/ui-test/*.js",
+        "-o",
+        "${workspaceFolder}/settings.json",
+        "--mocha_config",
+        "${workspaceFolder}/src/ui-test/.mocharc-debug.js",
+        "--yarn",
+        "-u",
+        "-i"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

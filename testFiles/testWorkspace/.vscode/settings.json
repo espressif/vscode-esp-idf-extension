@@ -2,10 +2,14 @@
   "idf.espAdfPath": "/test/esp-adf",
   "idf.espIdfPath": "${env:IDF_PATH}",
   "idf.espMdfPath": "/test/esp-mdf",
-  "idf.customExtraPaths": "${env:PATH}",
-  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\"}",
   "idf.port": "/serialport",
-  "idf.pythonBinPath": "python",
-  "idf.openOcdConfigs": ["some", "path"],
-  "idf.toolsPath": "${env:IDF_TOOLS_PATH}"
+  "idf.pythonBinPath": "/opt/esp/python_env/idf4.4_py3.8_env/bin/python",
+  "idf.openOcdConfigs": [
+      "board/esp32-wrover-kit-3.3v.cfg"
+  ],
+  "idf.toolsPath": "${env:IDF_TOOLS_PATH}",
+  "files.simpleDialog.enable": true,
+  "window.dialogStyle": "custom",
+  "idf.customExtraPaths": "${env:PATH}",
+  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\" }"
 }

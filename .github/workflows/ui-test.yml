@@ -1,0 +1,32 @@
+name: UI Test
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  ui_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Run ui test
+        uses: ./.github/actions/idf
+        id: idfuitest
+        with:
+          run: /ui-entrypoint.sh
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with: 
+          name: screenshots
+          path: screenshots/*.png
