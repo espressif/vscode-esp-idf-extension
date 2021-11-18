@@ -928,6 +928,7 @@ export async function activate(context: vscode.ExtensionContext) {
             appOffset: session.configuration.appOffset,
             elfFile: session.configuration.elfFilePath,
             debugAdapterPort: portToUse,
+            tmoScaleFactor: session.configuration.tmoScaleFactor,
           } as IDebugAdapterConfig;
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
@@ -946,6 +947,7 @@ export async function activate(context: vscode.ExtensionContext) {
             env: session.configuration.env,
             gdbinitFilePath: session.configuration.gdbinitFile,
             initGdbCommands: session.configuration.initGdbCommands || [],
+            tmoScaleFactor: session.configuration.tmoScaleFactor,
             isPostMortemDebugMode: false,
             isOocdDisabled: false,
             logLevel: session.configuration.logLevel,
@@ -966,7 +968,10 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
-        const errMsg = error.message || "Error starting ESP-IDF Debug Adapter";
+        const errMsg =
+          error && error.message
+            ? error.message
+            : "Error starting ESP-IDF Debug Adapter";
         return Logger.errorNotify(errMsg, error);
       }
     },
@@ -1932,7 +1937,6 @@ export async function activate(context: vscode.ExtensionContext) {
         type: "espidf",
         request: "launch",
         sessionID: "qemu.debug.session",
-        skipVerifyAppBinBeforeDebug: true,
       });
       vscode.debug.onDidTerminateDebugSession(async (session) => {
         if (session.configuration.sessionID === "qemu.debug.session") {
@@ -2392,7 +2396,6 @@ export async function activate(context: vscode.ExtensionContext) {
                   type: "espidf",
                   request: "launch",
                   sessionID: "core-dump.debug.session.ws",
-                  skipVerifyAppBinBeforeDebug: true,
                 });
                 vscode.debug.onDidTerminateDebugSession((session) => {
                   if (
@@ -2420,9 +2423,11 @@ export async function activate(context: vscode.ExtensionContext) {
       .on("gdb-stub-detected", async (resp) => {
         const setupCmd = [`target remote ${resp.port}`];
         const debugAdapterConfig = {
-          initGdbCommands: setupCmd,
-          isPostMortemDebugMode: true,
           elfFile: resp.prog,
+          initGdbCommands: setupCmd,
+          isOocdDisabled: false,
+          isPostMortemDebugMode: true,
+          logLevel: 5,
         } as IDebugAdapterConfig;
         try {
           debugAdapterManager.configureAdapter(debugAdapterConfig);
@@ -2431,7 +2436,6 @@ export async function activate(context: vscode.ExtensionContext) {
             type: "espidf",
             request: "launch",
             sessionID: "gdbstub.debug.session.ws",
-            skipVerifyAppBinBeforeDebug: true,
           });
           vscode.debug.onDidTerminateDebugSession((session) => {
             if (
@@ -3030,7 +3034,7 @@ class IdfDebugConfigurationProvider
           `${elfFilePath} doesn't exist. Build this project first.`
         );
       }
-      if (!config.skipVerifyAppBinBeforeDebug) {
+      if (config.verifyAppBinBeforeDebug) {
         const isSameAppBinary = await verifyAppBinary(workspaceRoot.fsPath);
         if (!isSameAppBinary) {
           throw new Error(

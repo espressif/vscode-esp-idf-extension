@@ -78,7 +78,8 @@ export function getProjectName(workspacePath: string): Promise<string> {
         }
       });
     } catch (error) {
-      Logger.error(error.message, error);
+      const errMsg = error && error.message ? error.message : error;
+      Logger.error(errMsg, error);
       return reject(error);
     }
   });

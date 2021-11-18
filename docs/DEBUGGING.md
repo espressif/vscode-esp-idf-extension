@@ -45,7 +45,8 @@ The ESP-IDF Debug Adapter settings for launch.json are:
   > **NOTE:** If set to `manual`, openOCD and ESP-IDF Debug Adapter have to be manually executed by the user and the extension will just try to connect to existing servers at configured ports.
 - `name`: The name of the debug launch configuration. This will be shown in the Run view (Menu View -> Run).
 - `type`: Type of debug configuration. It **must** be `espidf`.
-- `skipVerifyAppBinBeforeDebug`: (Default `true`) If disabled the extension will verify that the current workspace folder `build/${project-name}.bin` is the same of the target device application. `${project-name}` is the name of the project (i.e blink) and is obtained from the `build/project_description.json`. Set this to `false` to add application binary validation before debug session.
+- `verifyAppBinBeforeDebug`: (Default `false`) If enabled the extension will verify that the current workspace folder `build/${project-name}.bin` is the same of the target device application. `${project-name}` is the name of the project (i.e blink) and is obtained from the `build/project_description.json`. Set this to `true` to add application binary validation before debug session.
+- `tmoScaleFactor`: Scale factor for gdb timeout. Default: 1.
 
 If `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
 
@@ -71,7 +72,8 @@ Example launch.json for ESP-IDF Debug Adapter:
       "debugPort": 9998,
       "logLevel": 2,
       "mode": "manual",
-      "skipVerifyAppBinBeforeDebug": true,
+      "verifyAppBinBeforeDebug": false,
+      "tmoScaleFactor": 1,
       "initGdbCommands": [
         "target remote :3333",
         "symbol-file /path/to/program.elf",

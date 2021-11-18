@@ -1056,10 +1056,15 @@
                 "description": "%esp_idf.gdbinitFile.description%",
                 "default": ""
               },
-              "skipVerifyAppBinBeforeDebug": {
+              "verifyAppBinBeforeDebug": {
                 "type": "boolean",
-                "description": "%esp_idf.skipVerifyAppBinBeforeDebug.description%",
-                "default": true
+                "description": "%esp_idf.verifyAppBinBeforeDebug.description%",
+                "default": false
+              },
+              "tmoScaleFactor": {
+                "type": "number",
+                "description": "%esp_idf.tmoScaleFactor.description%",
+                "default": 1
               }
             }
           }
