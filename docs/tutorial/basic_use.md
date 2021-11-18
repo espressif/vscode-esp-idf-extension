@@ -46,7 +46,10 @@ You have several options to create a project:
 
 > **NOTE:** Please take a look at [ESP-PROG board the instructions](https://docs.espressif.com/projects/espressif-esp-iot-solution/en/latest/hw-reference/ESP-Prog_guide.html#step-by-step-instruction) or [Configuring ESP32 Target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/index.html#configuring-esp32-target) your Espressif device and JTAG interface to your computer.
 
-9. Now to flash the project, use the **ESP-IDF: Flash your project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>F</kbd> keyboard shortcut). Choose UART flash mode ([Configure JTAG flashing](#About-JTAG-flashing)) and the flashing will start. The user will see a new terminal being launched with the flash output and a notification bar with Flashing Project message until it is done then a Flash done message when finished.
+9. Now to flash the project, use the **ESP-IDF: Flash your project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>F</kbd> keyboard shortcut). Choose `UART` or `JTAG` flash mode ([Configure JTAG flashing](#About-JTAG-flashing)) and then flashing will start in the previously selected serial port. The user can also use the **ESP-IDF: Flash (UART) your project** or **ESP-IDF: Flash (with JTag)** directly.
+  > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
+
+The user will see a new terminal being launched with the flash output and a notification bar with `Flashing Project` message until it is done then a Flash done message when finished.
 
 > **NOTE:** There is an `idf.flashBaudRate` configuration settings to modify the flashing baud rate. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify this configuration setting.
 
