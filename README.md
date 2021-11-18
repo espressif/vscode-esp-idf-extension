@@ -35,9 +35,9 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites) documentation.
 
-* Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
-* Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
-* For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
+- Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
+- Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
+- For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
 
 All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
@@ -67,7 +67,8 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
 - Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command. If you are using one of our boards, use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
 - When you are ready, build your project by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**.
-- Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Flash your device** then selecting Flash allows you to flash the device.
+- Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method and Flash** to select either UART or JTAG. You can also use the **ESP-IDF: Flash (UART) your project** or **ESP-IDF: Flash (with JTag)** directly.
+  > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
 - If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly).
@@ -94,7 +95,8 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Dispose current SDK Configuration editor server process |                                        |                                           |
 | Doctor command                                          |                                        |                                           |
 | Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
-| Flash your project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
+| Flash (UART) your project                               |                                        |                                           |
+| Flash (with JTag)                                       |                                        |                                           |
 | Full clean project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
@@ -112,6 +114,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Pick a workspace folder                                 |                                        |                                           |
 | SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
+| Select Flash Method and Flash                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>F</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>F</kbd> |
 | Select port to use                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>P</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd> |
 | Select OpenOCD Board Configuration                      |                                        |                                           |
 | Select where to save configuration settings             |                                        |                                           |

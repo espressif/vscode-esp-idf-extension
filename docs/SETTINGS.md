@@ -79,6 +79,7 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 | Setting ID                             | Description                                                       |
 | -------------------------------------- | ----------------------------------------------------------------- |
+| `idf.flashType`                        | Preferred flash method. UART or JTAG                              |
 | `idf.notificationSilentMode`           | Silent all notifications messages (excluding error notifications) |
 | `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)        |
 | `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation         |
