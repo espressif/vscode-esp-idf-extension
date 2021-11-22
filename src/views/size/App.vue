@@ -17,15 +17,27 @@
             name="DRAM"
             :usedData="overviewData.used_dram"
             :usedRatioData="overviewData.used_dram_ratio"
-            :totalData="overviewData.dram_total"
-            v-if="overviewData.dram_total"
+            :totalData="
+              overviewData.dram_total ||
+              overviewData.used_dram + overviewData.available_dram
+            "
+            v-if="
+              overviewData.dram_total ||
+              overviewData.used_dram + overviewData.available_dram
+            "
           />
           <ProgressBar
             name="IRAM"
             :usedData="overviewData.used_iram"
             :usedRatioData="overviewData.used_iram_ratio"
-            :totalData="overviewData.iram_total"
-            v-if="overviewData.iram_total"
+            :totalData="
+              overviewData.iram_total ||
+              overviewData.used_iram + overviewData.available_iram
+            "
+            v-if="
+              overviewData.iram_total ||
+              overviewData.used_iram + overviewData.available_iram
+            "
           />
         </div>
         <div v-else>
