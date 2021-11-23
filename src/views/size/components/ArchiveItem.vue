@@ -18,15 +18,42 @@
       </p>
     </div>
 
-    <ArchiveItemColumn :archiveInfo="archiveInfo" :propName="archiveData" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" :propName="archiveBss" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" :propName="archiveIram" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" :propName="flashText" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" :propName="flashRodata" />
-    
-    <ArchiveItemColumn :archiveInfo="archiveInfo" propName="ram_st_total" v-if="archiveInfo.ram_st_total" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" propName="flash_total" v-if="archiveInfo.flash_total" />
-    <ArchiveItemColumn :archiveInfo="archiveInfo" propName="total" v-if="archiveInfo.total" />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      :propName="getArchiveProp('.dram0.data', 'data')"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      :propName="getArchiveProp('.dram0.bss', 'bss')"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      :propName="getArchiveProp('.iram0.text', 'iram')"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      :propName="getArchiveProp('.flash.text', 'flash_text')"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      :propName="getArchiveProp('.flash.rodata', 'flash_rodata')"
+    />
+
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      propName="ram_st_total"
+      v-if="archiveInfo.ram_st_total"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      propName="flash_total"
+      v-if="archiveInfo.flash_total"
+    />
+    <ArchiveItemColumn
+      :archiveInfo="archiveInfo"
+      propName="total"
+      v-if="archiveInfo.total"
+    />
 
     <div v-if="archiveInfo.files" class="column">
       <div v-if="!archiveInfo.isFileInfoVisible">
@@ -78,34 +105,8 @@ export default class ArchiveItem extends Vue {
     });
   }
 
-  get archiveData() {
-    return this.archiveInfo[".dram.data"]
-      ? ".dram.data"
-      : "data";
-  }
-
-  get archiveBss() {
-    return this.archiveInfo[".dram0.bss"]
-      ? ".dram0.bss"
-      : "bss";
-  }
-
-  get archiveIram() {
-    return this.archiveInfo[".iram0.text"]
-    ? ".iram0.text"
-    : "iram";
-  }
-
-  get flashText() {
-    return this.archiveInfo[".flash.text"]
-    ? ".flash.text"
-    : "flash_text";
-  }
-
-  get flashRodata() {
-    return this.archiveInfo[".flash.rodata"]
-    ? ".flash.rodata"
-    : "flash_rodata";
+  getArchiveProp(prop1: string, prop2: string) {
+    return Object.keys(this.archiveInfo).indexOf(prop1) !== -1 ? prop1 : prop2;
   }
 }
 </script>
