@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import "./index.scss";
-
 import Vue from "vue";
 import { store } from "./store";
 // @ts-ignore

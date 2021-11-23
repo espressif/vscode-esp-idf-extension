@@ -150,4 +150,6 @@ export default class App extends Vue {
 }
 </script>
 
-<style></style>
+<style lang="scss">
+@import "../commons/espCommons.scss";
+</style>
