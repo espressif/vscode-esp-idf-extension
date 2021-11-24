@@ -5,7 +5,7 @@
         <div>
           <p class="heading is-size-7-mobile">.data</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewDramData) }}KB
+            {{ convertToKB(this.getArchiveProp("diram_data", "dram_data")) }}KB
           </p>
         </div>
       </div>
@@ -13,7 +13,7 @@
         <div>
           <p class="heading is-size-7-mobile">.bss</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewDramBss) }}KB
+            {{ convertToKB(this.getArchiveProp("diram_bss", "dram_bss")) }}KB
           </p>
         </div>
       </div>
@@ -21,7 +21,7 @@
         <div>
           <p class="heading is-size-7-mobile">Text</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewDramText) }}KB
+            {{ convertToKB(this.getArchiveProp("diram_text", "dram_text")) }}KB
           </p>
         </div>
       </div>
@@ -70,22 +70,10 @@ export default class Overview extends Vue {
     return this.storeOverviewData;
   }
 
-  get overviewDramData() {
-    return this.storeOverviewData.dram_data
-      ? this.storeOverviewData.dram_data
-      : this.storeOverviewData.diram_data;
-  }
-
-  get overviewDramBss() {
-    return this.storeOverviewData.dram_bss
-      ? this.storeOverviewData.dram_bss
-      : this.storeOverviewData.diram_bss;
-  }
-
-  get overviewDramText() {
-    return this.storeOverviewData.dram_text
-      ? this.storeOverviewData.dram_text
-      : this.storeOverviewData.diram_text;
+  getArchiveProp(prop1: string, prop2: string) {
+    return Object.keys(this.storeOverviewData).indexOf(prop1) !== -1
+      ? this.storeOverviewData[prop1]
+      : this.storeOverviewData[prop2];
   }
 }
 </script>
