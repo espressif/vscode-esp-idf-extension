@@ -1230,6 +1230,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
 
   registerIDFCommand("espIdf.flashDFU", flash);
+  registerIDFCommand("espIdf.buildDFU", build);
   registerIDFCommand("espIdf.flashDevice", flash);
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -2892,7 +2893,8 @@ const build = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        await buildCommand(workspaceRoot, cancelToken);
+        const buildType = idfConf.readParameter("idf.flashType");
+        await buildCommand(workspaceRoot, cancelToken, buildType);
       }
     );
   });
@@ -2962,7 +2964,12 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
-        let canContinue = await buildCommand(workspaceRoot, cancelToken);
+        const buildType = idfConf.readParameter("idf.flashType");
+        let canContinue = await buildCommand(
+          workspaceRoot,
+          cancelToken,
+          buildType
+        );
         if (!canContinue) {
           return;
         }

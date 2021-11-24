@@ -17,7 +17,7 @@
  */
 
 import { ensureDir, pathExists } from "fs-extra";
-import { join } from "path";
+import { join, dirname } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -27,9 +27,15 @@ import { TaskManager } from "../taskManager";
 export class BuildTask {
   public static isBuilding: boolean;
   private curWorkspace: string;
+  private idfPathDir: string;
+  private adapterTargetName: string;
 
   constructor(workspace: string) {
     this.curWorkspace = join(workspace, "build");
+    this.idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
+    this.adapterTargetName = idfConf.readParameter(
+      "idf.adapterTargetName"
+    ) as string;
   }
 
   public building(flag: boolean) {
@@ -55,6 +61,30 @@ export class BuildTask {
     options?: vscode.ShellExecutionOptions
   ) {
     return new vscode.ShellExecution(`ninja ${args.join(" ")}`, options);
+  }
+
+  public dfuShellExecution(options?: vscode.ShellExecutionOptions) {
+    return new vscode.ShellExecution(
+      `${join(this.idfPathDir, "tools", "mkdfu.py")} write -o ${join(
+        this.curWorkspace,
+        "dfu.bin"
+      )} --json ${join(
+        this.curWorkspace,
+        "flasher_args.json"
+      )} --pid ${this.selectedAdapterId(this.adapterTargetName)}`,
+      options
+    );
+  }
+
+  public selectedAdapterId(target) {
+    switch (target) {
+      case "esp32s2":
+        return 2;
+      case "esp32s3":
+        return 3;
+      default:
+        return;
+    }
   }
 
   public async build() {
@@ -141,6 +171,32 @@ export class BuildTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
+      ["idfRelative", "idfAbsolute"],
+      showTaskOutput
+    );
+  }
+
+  public async buildDfu() {
+    this.building(true);
+    const modifiedEnv = appendIdfAndToolsToPath();
+    await ensureDir(this.curWorkspace);
+
+    const options: vscode.ShellExecutionOptions = {
+      cwd: dirname(this.curWorkspace),
+      env: modifiedEnv,
+    };
+
+    const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
+    const showTaskOutput = isSilentMode
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
+
+    const writeExecution = this.dfuShellExecution(options);
+    TaskManager.addTask(
+      { type: "esp-idf", command: "ESP-IDF Write DFU.bin", taskId: "idf-dfu-write-task" },
+      vscode.TaskScope.Workspace,
+      "ESP-IDF Write DFU Bin",
+      writeExecution,
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
     );

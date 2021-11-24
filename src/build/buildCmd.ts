@@ -31,7 +31,8 @@ const locDic = new LocDictionary(__filename);
 
 export async function buildCommand(
   workspace: vscode.Uri,
-  cancelToken: vscode.CancellationToken
+  cancelToken: vscode.CancellationToken,
+  buildType: string
 ) {
   let continueFlag = true;
   const buildTask = new BuildTask(workspace.fsPath);
@@ -60,6 +61,10 @@ export async function buildCommand(
     await sizeTask.getSizeInfo();
     customTask.addCustomTask(CustomTaskType.PostBuild);
     await TaskManager.runTasks();
+    if (buildType === "DFU") {
+      await buildTask.buildDfu();
+      await TaskManager.runTasks();
+    }
     if (!cancelToken.isCancellationRequested) {
       const projDescPath = join(
         workspace.fsPath,
