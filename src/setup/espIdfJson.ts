@@ -63,10 +63,16 @@ export function getIdfMd5sum(idfPath: string) {
 export async function loadEspIdfJson(toolsPath: string) {
   const espIdfJsonPath = join(toolsPath, "esp_idf.json");
   const espIdfJsonExists = await pathExists(espIdfJsonPath);
-  if (espIdfJsonExists) {
-    return (await readJson(espIdfJsonPath)) as EspIdfJson;
+  let espIdfJson: EspIdfJson;
+  try {
+    if (!espIdfJsonExists) {
+      throw new Error(`${espIdfJsonPath} doesn't exists.`);
+    }
+    espIdfJson = await readJson(espIdfJsonPath);
+  } catch (error) {
+    espIdfJson = getEspIdfJsonTemplate(toolsPath);
   }
-  return getEspIdfJsonTemplate(toolsPath);
+  return espIdfJson;
 }
 
 export async function addIdfPath(
