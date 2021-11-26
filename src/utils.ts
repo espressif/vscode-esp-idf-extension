@@ -353,10 +353,10 @@ export function readComponentsDirs(filePath): IdfComponent[] {
     const idfCommand = stats.isDirectory()
       ? void 0
       : {
-          arguments: [vscode.Uri.file(path.join(filePath, file))],
-          command: "espIdf.openIdfDocument",
-          title: openComponentMsg,
-        };
+        arguments: [vscode.Uri.file(path.join(filePath, file))],
+        command: "espIdf.openIdfDocument",
+        title: openComponentMsg,
+      };
     const component = new IdfComponent(
       file,
       isCollapsable,
@@ -388,9 +388,9 @@ export function execChildProcess(
   const execOpts: childProcess.ExecOptions = opts
     ? opts
     : {
-        cwd: workingDirectory,
-        maxBuffer: 500 * 1024,
-      };
+      cwd: workingDirectory,
+      maxBuffer: 500 * 1024,
+    };
   return new Promise<string>((resolve, reject) => {
     childProcess.exec(
       processStr,
@@ -914,6 +914,10 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   );
 }
 
+export function isRunningInWsl() {
+  return typeof process.env.WSL_DISTRO_NAME === "string" && process.env.WSL_DISTRO_NAME !== "";
+}
+
 export async function createNewComponent(
   name: string,
   currentDirectory: string
@@ -971,8 +975,8 @@ export function compareVersion(v1: string, v2: string) {
   return v1Parts.length === v2Parts.length
     ? 0
     : v1Parts.length < v2Parts.length
-    ? -1
-    : 1;
+      ? -1
+      : 1;
 }
 
 /**
@@ -1017,9 +1021,8 @@ export function markdownToWebviewHtml(
     const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
     const absPath = `<img src="${panel.webview.asWebviewUri(
       vscode.Uri.file(path.resolve(projectPath, pathToResolve[1]))
-    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
-      width && width.length > 0 ? `width="${width[1]}"` : ""
-    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${width && width.length > 0 ? `width="${width[1]}"` : ""
+      } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
     contentStr = contentStr.replace(encodedMatch[0], absPath);
   }
   contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");

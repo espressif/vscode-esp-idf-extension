@@ -25,6 +25,7 @@ import {
   compareVersion,
   execChildProcess,
   extensionContext,
+  isRunningInWsl,
   spawn,
 } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
@@ -55,7 +56,7 @@ export class SerialPort {
     );
 
     try {
-      let isWsl2Kernel = process.env.WSL_DISTRO_NAME !== "";
+      let isWsl2Kernel = isRunningInWsl();
       let portList: SerialPortDetails[];
       if (
         process.platform === "linux" &&

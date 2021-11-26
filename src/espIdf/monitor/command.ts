@@ -86,7 +86,7 @@ export async function createMonitorTerminal(
     });
   }
   monitorTerminal.show();
-  let isWsl2Kernel = process.env.WSL_DISTRO_NAME !== "";
+  let isWsl2Kernel = utils.isRunningInWsl();
   const isPowerShellInPath = await utils.isBinInPath(
     "powershell.exe",
     workspace.fsPath,
@@ -94,8 +94,7 @@ export async function createMonitorTerminal(
   );
   if (
     process.platform === "linux" &&
-    (port.indexOf("COM") !== -1 ||
-      isWsl2Kernel) &&
+    isWsl2Kernel &&
     isPowerShellInPath !== ""
   ) {
     const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");

@@ -29,6 +29,7 @@ import {
   execChildProcess,
   extensionContext,
   isBinInPath,
+  isRunningInWsl,
 } from "../utils";
 import { TaskManager } from "../taskManager";
 
@@ -79,7 +80,7 @@ export class FlashTask {
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Silent
       : vscode.TaskRevealKind.Always;
-    let isWsl2Kernel = process.env.WSL_DISTRO_NAME !== "";
+    let isWsl2Kernel = isRunningInWsl();
     const powershellPath = await isBinInPath(
       "powershell.exe",
       this.buildDir,
