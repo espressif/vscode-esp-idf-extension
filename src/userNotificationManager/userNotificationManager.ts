@@ -40,7 +40,7 @@ export default class UserNotificationManagerTransport extends winston.Transport 
         vscode.window.showInformationMessage(message);
       } else if (level === "warn" && !isSilentMode) {
         vscode.window.showWarningMessage(message);
-      } else if (level === "error") {
+      } else if (level === "error" && !isSilentMode) {
         vscode.window
           .showErrorMessage(message, "Report", "Cancel")
           .then((item) => {
