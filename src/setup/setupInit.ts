@@ -280,11 +280,9 @@ export async function getSetupInitialValues(
         pythonVersions &&
         pythonVersions.length > 0;
 
-      const cmakeFromToolsIndex = prevInstall.toolsResults.findIndex(
-        (t) =>
-          t.name.indexOf("cmake") !== -1 &&
-          t.actual.indexOf("No match") === -1 &&
-          t.actual.indexOf("Error") === -1
+      const cmakeFromToolsIndex = getToolIndex(
+        "cmake",
+        prevInstall.toolsResults
       );
 
       if (cmakeFromToolsIndex !== -1) {
@@ -295,11 +293,9 @@ export async function getSetupInitialValues(
           : ["cmake"];
       }
 
-      const ninjaFromToolsIndex = prevInstall.toolsResults.findIndex(
-        (t) =>
-          t.name.indexOf("ninja") !== -1 &&
-          t.actual.indexOf("No match") === -1 &&
-          t.actual.indexOf("Error") === -1
+      const ninjaFromToolsIndex = getToolIndex(
+        "ninja",
+        prevInstall.toolsResults
       );
 
       if (ninjaFromToolsIndex !== -1) {
@@ -328,6 +324,17 @@ export async function getSetupInitialValues(
     Logger.error(error.message, error);
   }
   return setupInitArgs;
+}
+
+function getToolIndex(toolName: string, toolsResults: IEspIdfTool[]) {
+  return toolsResults && toolsResults.length
+    ? toolsResults.findIndex(
+        (t) =>
+          t.name.indexOf(toolName) !== -1 &&
+          t.actual.indexOf("No match") === -1 &&
+          t.actual.indexOf("Error") === -1
+      )
+    : -1;
 }
 
 export async function isCurrentInstallValid() {
