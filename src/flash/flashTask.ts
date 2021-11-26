@@ -29,6 +29,7 @@ import {
   execChildProcess,
   extensionContext,
   isBinInPath,
+  isRunningInWsl,
 } from "../utils";
 import { TaskManager } from "../taskManager";
 
@@ -79,24 +80,14 @@ export class FlashTask {
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Silent
       : vscode.TaskRevealKind.Always;
-    const osRelease = release();
-    const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
-    let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
-    if (kernelMatch && kernelMatch.length) {
-      isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
-    }
+    let isWsl2Kernel = isRunningInWsl();
     const powershellPath = await isBinInPath(
       "powershell.exe",
       this.buildDir,
       process.env
     );
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
-    if (
-      process.platform === "linux" &&
-      osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
-      isWsl2Kernel !== -1 &&
-      powershellPath !== ""
-    ) {
+    if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
       flashExecution = await this._wslFlashExecution();
     } else {
       flashExecution = this._flashExecution();

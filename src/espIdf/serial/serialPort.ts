@@ -25,6 +25,7 @@ import {
   compareVersion,
   execChildProcess,
   extensionContext,
+  isRunningInWsl,
   spawn,
 } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
@@ -55,17 +56,11 @@ export class SerialPort {
     );
 
     try {
-      const osRelease = release();
-      const kernelMatch = osRelease.toLowerCase().match(/(.*)-(.*)-(.*)/);
-      let isWsl2Kernel: number = -1; // WSL 2 is implemented on Microsoft Linux Kernel >=4.19
-      if (kernelMatch && kernelMatch.length) {
-        isWsl2Kernel = compareVersion(kernelMatch[1], "4.19");
-      }
+      let isWsl2Kernel = isRunningInWsl();
       let portList: SerialPortDetails[];
       if (
         process.platform === "linux" &&
-        osRelease.toLowerCase().indexOf("microsoft") !== -1 &&
-        isWsl2Kernel !== -1
+        isWsl2Kernel
       ) {
         portList = await this.wslList();
       } else {
