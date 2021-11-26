@@ -87,12 +87,7 @@ export class FlashTask {
       process.env
     );
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
-    if (
-      process.platform === "linux" &&
-      (this.model.port.indexOf("COM") !== -1 ||
-        isWsl2Kernel) &&
-      powershellPath !== ""
-    ) {
+    if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
       flashExecution = await this._wslFlashExecution();
     } else {
       flashExecution = this._flashExecution();
