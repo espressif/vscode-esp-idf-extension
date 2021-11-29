@@ -70,6 +70,7 @@
     "onCommand:espIdf.removeCoverage",
     "onCommand:espIdf.searchInEspIdfDocs",
     "onCommand:espIdf.setup.start",
+    "onCommand:espIdf.welcome.start",
     "onCommand:espIdf.examples.start",
     "onCommand:esp.rainmaker.backend.connect",
     "onCommand:esp.rainmaker.backend.sync",
@@ -1033,6 +1034,11 @@
       {
         "command": "espIdf.customTask",
         "title": "%espIdf.customTask.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.welcome.start",
+        "title": "%espIdf.welcome.title%",
         "category": "ESP-IDF"
       }
     ],
