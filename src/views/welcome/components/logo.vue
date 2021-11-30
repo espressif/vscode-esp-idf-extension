@@ -49,4 +49,8 @@ export default class Logo extends Vue {
 .cls-1 {
   fill: var(--vscode-editorGutter-deletedBackground);
 }
+
+svg {
+  margin: 0.5em;
+}
 </style>

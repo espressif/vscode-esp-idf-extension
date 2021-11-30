@@ -17,7 +17,16 @@
  */
 
 import { join } from "path";
-import { commands, Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+import {
+  commands,
+  ConfigurationTarget,
+  Disposable,
+  Uri,
+  ViewColumn,
+  WebviewPanel,
+  window,
+} from "vscode";
+import { writeParameter } from "../idfConfiguration";
 import { LocDictionary } from "../localizationDictionary";
 import { IWelcomeArgs } from "./welcomeInit";
 
@@ -26,7 +35,10 @@ const locDic = new LocDictionary("WelcomePanel");
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
 
-  public static createOrShow(extensionPath: string, welcomeArgs?: IWelcomeArgs) {
+  public static createOrShow(
+    extensionPath: string,
+    welcomeArgs?: IWelcomeArgs
+  ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : ViewColumn.One;
@@ -69,7 +81,9 @@ export class WelcomePanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [Uri.file(join(this.extensionPath, "dist", "views"))],
+        localResourceRoots: [
+          Uri.file(join(this.extensionPath, "dist", "views")),
+        ],
       }
     );
 
@@ -78,7 +92,9 @@ export class WelcomePanel {
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
-      Uri.file(join(this.extensionPath, "dist", "views", "welcomePage-bundle.js"))
+      Uri.file(
+        join(this.extensionPath, "dist", "views", "welcomePage-bundle.js")
+      )
     );
 
     this.panel.webview.html = this.createWelcomePageHtml(scriptPath);
@@ -87,8 +103,8 @@ export class WelcomePanel {
       switch (msg.command) {
         case "requestInitialValues":
           this.panel.webview.postMessage({
-            "command": "initialLoad",
-            ...welcomeArgs
+            command: "initialLoad",
+            ...welcomeArgs,
           });
           break;
         case "configureExtension":
@@ -106,7 +122,14 @@ export class WelcomePanel {
         case "exploreComponents":
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
-      
+        case "updateShowOnboardingOnInit":
+          if (msg.showOnInit) {
+            await writeParameter(
+              "idf.showOnboardingOnInit",
+              msg.showOnInit,
+              ConfigurationTarget.Global
+            );
+          }
         default:
           break;
       }

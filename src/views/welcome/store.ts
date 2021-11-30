@@ -22,11 +22,13 @@ import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 export interface IState {
   espIdf: string;
   extensionVersion: string;
+  showOnInit: boolean;
 }
 
 export const welcomeState: IState = {
   espIdf: "",
   extensionVersion: "",
+  showOnInit: true,
 };
 
 declare var acquireVsCodeApi: any;
@@ -44,6 +46,12 @@ export const actions: ActionTree<IState, any> = {
       command: "requestInitialValues",
     });
   },
+  updateShowOnboardingOnInit() {
+    vscode.postMessage({
+      command: "",
+      
+    })
+  }
 };
 
 export const mutations: MutationTree<IState> = {
@@ -57,6 +65,11 @@ export const mutations: MutationTree<IState> = {
     newState.extensionVersion = extensionVersion;
     Object.assign(state, newState);
   },
+  setShowOnInit(state, showOnInit) {
+    const newState = state;
+    newState.showOnInit = showOnInit;
+    Object.assign(state, newState);
+  }
 };
 
 export const welcomeStore: StoreOptions<IState> = {

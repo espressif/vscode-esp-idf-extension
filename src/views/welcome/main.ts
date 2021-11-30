@@ -24,10 +24,18 @@ import App from "./App.vue";
 import IconifyIcon from "@iconify/vue";
 import comment from "@iconify-icons/codicon/comment-discussion";
 import folder from "@iconify-icons/codicon/folder";
+import folderOpened from "@iconify-icons/codicon/folder-opened";
 import github from "@iconify-icons/codicon/github";
+import newFolder from "@iconify-icons/codicon/new-folder";
+import gear from "@iconify-icons/codicon/gear";
+import beaker from "@iconify-icons/codicon/beaker";
+IconifyIcon.addIcon("beaker", beaker);
 IconifyIcon.addIcon("comment", comment);
 IconifyIcon.addIcon("folder", folder);
+IconifyIcon.addIcon("folder-opened", folderOpened);
+IconifyIcon.addIcon("gear", gear);
 IconifyIcon.addIcon("github", github);
+IconifyIcon.addIcon("new-folder", newFolder);
 Vue.component("iconify-icon", IconifyIcon);
 
 const app = new Vue({
@@ -47,6 +55,9 @@ window.addEventListener("message", (event) => {
       }
       if (msg.espIdf) {
         store.commit("setEspIdf", msg.espIdf);
+      }
+      if (msg.showOnInit) {
+        store.commit("setShowOnInit", msg.showOnInit);
       }
       break;
 
