@@ -29,6 +29,7 @@ import github from "@iconify-icons/codicon/github";
 import newFolder from "@iconify-icons/codicon/new-folder";
 import gear from "@iconify-icons/codicon/gear";
 import beaker from "@iconify-icons/codicon/beaker";
+import typeHierarchy from "@iconify-icons/codicon/type-hierarchy";
 IconifyIcon.addIcon("beaker", beaker);
 IconifyIcon.addIcon("comment", comment);
 IconifyIcon.addIcon("folder", folder);
@@ -36,6 +37,7 @@ IconifyIcon.addIcon("folder-opened", folderOpened);
 IconifyIcon.addIcon("gear", gear);
 IconifyIcon.addIcon("github", github);
 IconifyIcon.addIcon("new-folder", newFolder);
+IconifyIcon.addIcon("type-hierarchy", typeHierarchy);
 Vue.component("iconify-icon", IconifyIcon);
 
 const app = new Vue({

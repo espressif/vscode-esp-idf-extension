@@ -123,7 +123,7 @@ export class WelcomePanel {
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
         case "updateShowOnboardingOnInit":
-          if (msg.showOnInit) {
+          if (typeof msg.showOnInit !== "undefined") {
             await writeParameter(
               "idf.showOnboardingOnInit",
               msg.showOnInit,

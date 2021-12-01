@@ -41,17 +41,42 @@ try {
 }
 
 export const actions: ActionTree<IState, any> = {
+  exploreComponents() {
+    vscode.postMessage({
+      command: "exploreComponents",
+    });
+  },
+  openImportProject() {
+    vscode.postMessage({
+      command: "importProject",
+    });
+  },
+  openNewProjectPanel() {
+    vscode.postMessage({
+      command: "newProject",
+    });
+  },
+  openSetupPanel() {
+    vscode.postMessage({
+      command: "configureExtension",
+    });
+  },
+  openShowExamplesPanel() {
+    vscode.postMessage({
+      command: "showExamples",
+    });
+  },
   requestInitValues() {
     vscode.postMessage({
       command: "requestInitialValues",
     });
   },
-  updateShowOnboardingOnInit() {
+  updateShowOnboardingOnInit(context) {
     vscode.postMessage({
-      command: "",
-      
-    })
-  }
+      command: "updateShowOnboardingOnInit",
+      showOnInit: context.state.showOnInit,
+    });
+  },
 };
 
 export const mutations: MutationTree<IState> = {
@@ -69,7 +94,7 @@ export const mutations: MutationTree<IState> = {
     const newState = state;
     newState.showOnInit = showOnInit;
     Object.assign(state, newState);
-  }
+  },
 };
 
 export const welcomeStore: StoreOptions<IState> = {
