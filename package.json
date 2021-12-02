@@ -706,6 +706,30 @@
             ],
             "scope": "resource",
             "description": "%param.openOcdDebugLevel%"
+          },
+          "idf.preBuildTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.preBuildTask%"
+          },
+          "idf.postBuildTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.postBuildTask%"
+          },
+          "idf.preFlashTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.preFlashTask%"
+          },
+          "idf.postFlashTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.postFlashTask%"
           }
         }
       }
