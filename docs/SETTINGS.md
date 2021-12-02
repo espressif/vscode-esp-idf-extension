@@ -93,12 +93,12 @@ The `idf.saveScope` allows the user to specify where to save settings when using
 
 ## Custom tasks for build and flash tasks
 
-| Setting ID               | Description                                  |
-| ------------------------ | -------------------------------------------- |
-| `idf.preBuildTask`       | Command string to execute before build task  |
-| `idf.postBuildTask`      | Command string to execute after build task   |
-| `idf.preFlashTask`       | Command string to execute before flash task  |
-| `idf.postFlashTask`      | Command string to execute after flash task   |
+| Setting ID          | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `idf.preBuildTask`  | Command string to execute before build task |
+| `idf.postBuildTask` | Command string to execute after build task  |
+| `idf.preFlashTask`  | Command string to execute before flash task |
+| `idf.postFlashTask` | Command string to execute after flash task  |
 
 ### QEMU specific settings
 
