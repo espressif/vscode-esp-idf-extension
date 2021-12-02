@@ -74,6 +74,9 @@ export class CustomTask {
       default:
         break;
     }
+    if (!cmd) {
+      return;
+    }
     const modifiedEnv = appendIdfAndToolsToPath();
     const options: ShellExecutionOptions = {
       cwd: this.currentWorkspace,
