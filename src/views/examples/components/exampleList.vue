@@ -16,6 +16,7 @@
           :class="{
             selectedItem: storeSelectedExample.path === item.path,
           }"
+          :data-example-id="item.name"
         />
       </li>
     </ul>

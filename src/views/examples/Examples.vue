@@ -16,6 +16,7 @@
           v-if="selectedExample.name !== ''"
           v-on:click="openExample(selectedExample)"
           class="button"
+          id="create-button"
         >
           Create project using example {{ selectedExample.name }}
         </button>
