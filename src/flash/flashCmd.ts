@@ -18,6 +18,7 @@
 
 import { pathExists } from "fs-extra";
 import { join } from "path";
+import * as idfConf from "../idfConfiguration";
 import * as vscode from "vscode";
 import { FlashTask } from "./flashTask";
 import { BuildTask } from "../build/buildTask";
@@ -26,6 +27,10 @@ import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
 
 const locDic = new LocDictionary(__filename);
+
+async function listDfuDevices() {
+  return new vscode.ShellExecution("dfu-util --list");
+}
 
 export async function verifyCanFlash(
   flashBaudRate: string,
@@ -78,6 +83,15 @@ export async function verifyCanFlash(
       "Select a baud rate before flashing",
       new Error("NOT_SELECTED_BAUD_RATE")
     );
+  }
+  const selectedFlashType = idfConf.readParameter("idf.flashType");
+  if (selectedFlashType === "DFU") {
+    if (!(await listDfuDevices())) {
+      return Logger.errorNotify(
+        "No DFU capable USB device available found",
+        new Error("NO_DFU_DEVICES_FOUND")
+      );
+    }
   }
   return continueFlag;
 }

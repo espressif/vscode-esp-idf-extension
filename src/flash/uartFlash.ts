@@ -74,6 +74,13 @@ export async function flashCommand(
     if (error.message === "ALREADY_FLASHING") {
       return Logger.errorNotify("Already one flash process is running!", error);
     }
+    if (error.message === "Task ESP-IDF Flash exited with code 74") {
+      FlashTask.isFlashing = false;
+      return Logger.errorNotify(
+        "No DFU capable USB device available found",
+        error
+      );
+    }
     if (error.message === "FLASH_TERMINATED") {
       return Logger.errorNotify("Flashing has been stopped!", error);
     }

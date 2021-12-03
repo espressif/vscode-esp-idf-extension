@@ -962,6 +962,22 @@ export async function createNewComponent(
 }
 
 /**
+ * Select IDF target PID for DFU flashing
+ * @param {string} chip - String to identify the chip (IDF_TARGET)
+ * @returns {number} PID Number for DFU
+ */
+export function selectedAdapterId(chip) {
+  switch (chip) {
+    case "esp32s2":
+      return 2;
+    case "esp32s3":
+      return 9;
+    default:
+      return;
+  }
+}
+
+/**
  * Compare two version strings based on semantic versioning.
  * @param {string} v1 - String containing dot-separated numbers.
  * @param {string} v2 - String containing dot-separated numbers.
