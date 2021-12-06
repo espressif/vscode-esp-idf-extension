@@ -90,10 +90,17 @@ export class FlashTask {
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
     if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
       flashExecution = await this._wslFlashExecution();
-    } else if (flashType === "UART") {
-      flashExecution = this._flashExecution();
-    } else if (flashType === "DFU") {
-      flashExecution = this._dfuFlashing();
+    } else {
+      switch (flashType) {
+        case "UART":
+          flashExecution = this._flashExecution();
+          break;
+        case "DFU":
+          flashExecution = this._dfuFlashing();
+          break;
+        default:
+          break;
+      }
     }
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
