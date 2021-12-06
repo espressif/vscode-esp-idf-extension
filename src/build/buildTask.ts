@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 27th September 2019 9:59:57 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -186,9 +186,13 @@ export class BuildTask {
 
     const writeExecution = this.dfuShellExecution(options);
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF Write DFU.bin", taskId: "idf-dfu-write-task" },
+      {
+        type: "esp-idf",
+        command: "ESP-IDF Write DFU.bin",
+        taskId: "idf-write-dfu-task",
+      },
       vscode.TaskScope.Workspace,
-      "ESP-IDF Write DFU Bin",
+      "ESP-IDF Write DFU.bin",
       writeExecution,
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
