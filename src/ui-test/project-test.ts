@@ -19,13 +19,7 @@
 import { expect } from "chai";
 import { pathExists } from "fs-extra";
 import { resolve } from "path";
-import {
-  By,
-  EditorView,
-  InputBox,
-  WebView,
-  Workbench,
-} from "vscode-extension-tester";
+import { By, InputBox, WebView, Workbench } from "vscode-extension-tester";
 
 describe("Example Create testing", async () => {
   let view: WebView;
@@ -33,22 +27,11 @@ describe("Example Create testing", async () => {
   before(async function () {
     this.timeout(10000);
     await new Workbench().executeCommand("espIdf.examples.start");
-    await new Promise((res) => setTimeout(res, 2000));
-    await new Promise((res) => setTimeout(res, 1000));
-    const input = await InputBox.create();
-    await input.selectQuickPick(0);
+    const inputBox = await InputBox.create();
+    await inputBox.selectQuickPick(0);
     await new Promise((res) => setTimeout(res, 2000));
     view = new WebView();
     await view.switchToFrame();
-  });
-
-  after(async function () {
-    this.timeout(10000);
-    if (view) {
-      await view.switchBack();
-    }
-    await new EditorView().closeAllEditors();
-    await new Promise((res) => setTimeout(res, 5000));
   });
 
   it("find the example", async () => {
@@ -63,19 +46,44 @@ describe("Example Create testing", async () => {
     expect(await createProjectButton.getText()).has.string(
       "Create project using example"
     );
-    // await createProjectButton.click();
-    // await new Promise((res) => setTimeout(res, 2000));
-    // const resultFolderInput = await DialogHandler.getOpenDialog();
-    // const containerPath = resolve(__dirname, "..", "..", "testFiles");
-    // console.log(containerPath);
-    // await resultFolderInput.selectPath(containerPath);
-    // await resultFolderInput.confirm();
-    // await new Promise((res) => setTimeout(res, 5000));
-    // const resultBlinkPath = resolve(
-    //   containerPath,
-    //   "blink"
-    // );
-    // const binExists = await pathExists(resultBlinkPath);
-    // expect(binExists).to.be.true;
-  }).timeout(10000);
+
+    const containerPath = resolve(__dirname, "..", "..", "testFiles");
+    await createProjectButton.click();
+    if (view) {
+      await view.switchBack();
+    }
+    const inputBox = await InputBox.create();
+    await inputBox.setText(containerPath);
+    await inputBox.confirm();
+    await new Promise((res) => setTimeout(res, 1000));
+    const resultBlinkPath = resolve(containerPath, "blink");
+    const binExists = await pathExists(resultBlinkPath);
+    expect(binExists).to.be.true;
+  }).timeout(20000);
+
+  it("Create a test component", async function () {
+    this.timeout(12000);
+    await new Workbench().executeCommand("espIdf.createNewComponent");
+    await new Promise((res) => setTimeout(res, 1000));
+    const inputBox = await InputBox.create();
+    const componentName = "testComponent";
+    await inputBox.setText(componentName);
+    await inputBox.confirm();
+    const componentPath = resolve(
+      __dirname,
+      "..",
+      "..",
+      "testFiles",
+      "blink",
+      "components",
+      componentName
+    );
+    await new Promise((res) => setTimeout(res, 3000));
+    const componentPathExists = await pathExists(componentPath);
+    expect(componentPathExists).to.be.true;
+    const componentSrcPathExists = await pathExists(
+      resolve(componentPath, `${componentName}.c`)
+    );
+    expect(componentSrcPathExists).to.be.true;
+  });
 });

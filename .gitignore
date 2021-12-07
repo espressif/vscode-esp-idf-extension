@@ -8,8 +8,9 @@ node_modules
 *.vsix
 !i18n/*/out
 package.nls.*.json
-testFiles/tools
+testFiles/blink
 !testFiles/dist
+testFiles/tools
 testFiles/testWorkspace/build
 testFiles/testWorkspace/sdkconfig.*
 *.log

@@ -23,10 +23,13 @@ jobs:
         id: idfuitest
         with:
           run: /ui-entrypoint.sh
+      
+      - name: Copy screenshots
+        run: ls test-resources/screenshots 
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v2
         if: failure()
         with: 
           name: screenshots
-          path: screenshots/*.png
+          path: test-resources/screenshots/*.png

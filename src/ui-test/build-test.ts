@@ -40,7 +40,7 @@ describe("Build testing", async () => {
     panel = new BottomBarPanel();
     await new Promise((res) => setTimeout(res, 2000));
     const terminalView = await panel.openTerminalView();
-    await new Promise((res) => setTimeout(res, 100000));
+    await new Promise((res) => setTimeout(res, 150000));
     await terminalView.getCurrentChannel();
     const text = await terminalView.getText();
     console.log(text);

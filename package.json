@@ -1138,7 +1138,7 @@
     "validateLocalization": "gulp validateLocalization",
     "webpack": "webpack --mode production",
     "packageWithoutDependencies": "gulp noDepBuild && vsce package --yarn -o esp-idf-extension-open.vsix",
-    "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/settings.json 'out/ui-test/*-test.js'",
+    "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
     "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -l DEBUG"
   },
   "devDependencies": {

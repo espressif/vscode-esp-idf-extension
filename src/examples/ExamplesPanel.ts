@@ -88,11 +88,17 @@ export class ExamplesPlanel {
       switch (message.command) {
         case "openExampleProject":
           if (message.project_path && message.name) {
-            const selectedFolder = await vscode.window.showOpenDialog({
-              canSelectFolders: true,
-              canSelectFiles: false,
-              canSelectMany: false,
-            });
+            let selectedFolder: vscode.Uri[];
+            if (process.env.CODE_TESTS_PATH) {
+              const folderPath = await vscode.window.showInputBox();
+              selectedFolder = [].concat(vscode.Uri.file(folderPath));
+            } else {
+              selectedFolder = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+              });
+            }
             if (!selectedFolder) {
               return;
             }
