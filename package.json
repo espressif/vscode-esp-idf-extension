@@ -1302,8 +1302,5 @@
     "insight": {
       "key": "912cbb4e-e606-4c4f-9a00-1731acb15117"
     }
-  },
-  "extensionDependencies": [
-    "ms-vscode.cpptools"
-  ]
+  }
 }

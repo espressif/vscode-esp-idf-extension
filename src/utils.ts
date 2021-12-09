@@ -966,7 +966,7 @@ export async function createNewComponent(
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
-export function selectedAdapterId(chip) {
+export function selectedDFUAdapterId(chip) {
   switch (chip) {
     case "esp32s2":
       return 2;

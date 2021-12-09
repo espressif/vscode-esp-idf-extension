@@ -28,7 +28,7 @@ import {
   extensionContext,
   isBinInPath,
   isRunningInWsl,
-  selectedAdapterId,
+  selectedDFUAdapterId,
 } from "../utils";
 import { TaskManager } from "../taskManager";
 
@@ -151,9 +151,9 @@ export class FlashTask {
   public _dfuFlashing() {
     this.flashing(true);
     return new vscode.ShellExecution(
-      `dfu-util -d 303a:${selectedAdapterId(this.model.chip)} -D ${
-        this.buildDir
-      }/dfu.bin`
+      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${
+        join(this.buildDir, "dfu.bin")
+      }`
     );
   }
 
