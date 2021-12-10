@@ -116,5 +116,6 @@
   "esp_idf.initGdbCommands.description": "配置底层调试器。顺序执行一个或多个 GDB 命令，例如: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"].",
   "esp_idf.gdbinitFile.description": "ESP-IDF 调试适配器 gdbinit 文件路径",
   "esp_idf.debuggers.text.description": "执行命令",
-  "esp_idf.skipVerifyAppBinBeforeDebug.description": "调试前不验证程序二进制文件"
+  "esp_idf.verifyAppBinBeforeDebug.description": "调试前验证应用程序二进制文件",
+  "esp_idf.tmoScaleFactor.description": "gdb超时的比例因子[默认值：1]"
 }

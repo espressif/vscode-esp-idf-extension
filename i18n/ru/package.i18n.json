@@ -116,5 +116,6 @@
   "esp_idf.initGdbCommands.description": "Одна или несколько команд GDB для настройки отладчика. Пример: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "Путь к файлу gdbinit для адаптера отладки ESP-IDF",
   "esp_idf.debuggers.text.description": "Команда для выполнения",
-  "esp_idf.skipVerifyAppBinBeforeDebug.description": "Пропустить проверку двоичных файлов приложения перед отладкой"
+  "esp_idf.verifyAppBinBeforeDebug.description": "Проверьте двоичные файлы приложения перед отладкой",
+  "esp_idf.tmoScaleFactor.description": "Коэффициент масштабирования для тайм-аута GDB [по умолчанию: 1]"
 }

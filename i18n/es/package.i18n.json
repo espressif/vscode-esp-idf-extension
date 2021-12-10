@@ -116,5 +116,6 @@
   "esp_idf.initGdbCommands.description": "Uno o varios comandos GDB a ejecutar para iniciar el depurador. Ejemplo: \"initGdbCommands\": [ \"target remote /dev/ttyUSB0\"]",
   "esp_idf.gdbinitFile.description": "ruta del archivo gdbinit para el ESP-IDF Debug Adapter",
   "esp_idf.debuggers.text.description": "Comando a ejecutar",
-  "esp_idf.skipVerifyAppBinBeforeDebug.description": "Saltar verificación de binarios antes de depurar la aplicación"
+  "esp_idf.verifyAppBinBeforeDebug.description": "Verificar binarios antes de depurar la aplicación",
+  "esp_idf.tmoScaleFactor.description": "Factor de escala para gdb timeout [defecto:1]"
 }
