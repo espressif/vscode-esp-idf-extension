@@ -27,6 +27,7 @@ import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath } from "../utils";
 
 export enum CustomTaskType {
+  Custom = "custom",
   PreBuild = "prebuild",
   PostBuild = "postbuild",
   PreFlash = "preflash",
@@ -71,6 +72,9 @@ export class CustomTask {
         cmd = readParameter("idf.postFlashTask");
         taskName = "Post Flash";
         break;
+      case CustomTaskType.Custom:
+        cmd = readParameter("idf.customTask");
+        taskName = "Custom task";
       default:
         break;
     }

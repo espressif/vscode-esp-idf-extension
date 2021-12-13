@@ -95,6 +95,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Dispose current SDK Configuration editor server process |                                        |                                           |
 | Doctor command                                          |                                        |                                           |
 | Erase flash memory from device                          | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>R</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>R</kbd> |
+| Execute custom task                                     | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>J</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>J</kbd> |
 | Flash (UART) your project                               |                                        |                                           |
 | Flash (with JTag)                                       |                                        |                                           |
 | Full clean project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |

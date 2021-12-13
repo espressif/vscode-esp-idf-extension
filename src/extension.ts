@@ -113,6 +113,8 @@ import {
   PartitionTreeDataProvider,
 } from "./espIdf/partition-table/tree";
 import { flashBinaryToPartition } from "./espIdf/partition-table/partitionFlasher";
+import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
+import { TaskManager } from "./taskManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -612,6 +614,18 @@ export async function activate(context: vscode.ExtensionContext) {
       [webIdeCheck, openFolderCheck],
       SerialPort.shared().promptUserToSelect
     );
+  });
+
+  registerIDFCommand("espIdf.customTask", async () => {
+    try {
+      const customTask = new CustomTask(workspaceRoot.fsPath);
+      customTask.addCustomTask(CustomTaskType.Custom);
+      await TaskManager.runTasks();
+    } catch (error) {
+      const errMsg =
+        error && error.message ? error.message : "Error at custom task";
+      Logger.errorNotify(errMsg, error);
+    }
   });
 
   registerIDFCommand("espIdf.pickAWorkspaceFolder", () => {
@@ -2810,6 +2824,12 @@ function creatCmdsStatusBarItems() {
     "ESP-IDF: Open ESP-IDF Terminal",
     "espIdf.createIdfTerminal",
     91
+  );
+  statusBarItems["espIdf.customTask"] = createStatusBarItem(
+    "$(diff-renamed)",
+    "ESP-IDF: Execute custom task",
+    "espIdf.customTask",
+    90
   );
   return statusBarItems;
 }

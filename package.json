@@ -335,6 +335,11 @@
         "command": "espIdf.searchInEspIdfDocs",
         "key": "ctrl+e q",
         "mac": "cmd+i q"
+      }, 
+      {
+        "command": "espIdf.customTask",
+        "key": "ctrl+e j",
+        "mac": "cmd+i j"
       }
     ],
     "configuration": [
@@ -730,6 +735,12 @@
             "default": "",
             "scope": "resource",
             "description": "%param.postFlashTask%"
+          },
+          "idf.customTask": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.customTask%"
           }
         }
       }
@@ -1017,6 +1028,11 @@
       {
         "command": "espIdf.qemuDebug",
         "title": "%espIdf.qemuDebug.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.customTask",
+        "title": "%espIdf.customTask.title%",
         "category": "ESP-IDF"
       }
     ],
