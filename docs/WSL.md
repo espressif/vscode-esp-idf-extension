@@ -6,7 +6,7 @@ Please review [Debugging using WSL](https://code.visualstudio.com/api/advanced-t
 
 This extension was tested in Windows 10 Build 19041 with the Microsoft's Ubuntu 20.04 distribution for WSL 2.
 
-Currently in WSL 2, there is no access to serial ports. Calling `powershell.exe` from distribution's shell we obtain serial ports and perform flash and monitor tasks when `WSL_DISTRO_NAME` environment variable is defined.
+Currently in WSL 2, there is no access to serial ports. Calling `powershell.exe` from distribution's shell we obtain serial ports and perform flash and monitor tasks when `WSL_DISTRO_NAME` environment variable is defined and `idf.wslEnable` is true.
 
 ## WSL 2 extension setup
 
