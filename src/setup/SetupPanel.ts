@@ -133,7 +133,11 @@ export class SetupPanel {
             typeof message.mirror !== undefined &&
             typeof message.setupMode !== undefined
           ) {
-            if (message.espIdfContainer === defaultEspIdfPathContainer) {
+            if (
+              message.selectedEspIdfVersion &&
+              message.selectedEspIdfVersion.filename !== "manual" &&
+              message.espIdfContainer === defaultEspIdfPathContainer
+            ) {
               await ensureDir(defaultEspIdfPathContainer);
             }
             await this.autoInstall(
@@ -401,7 +405,10 @@ export class SetupPanel {
       }, "")
       .slice(1);
 
-    const foundVersions = await toolsManager.verifyPackages(pathToVerify, onReqPkgs);
+    const foundVersions = await toolsManager.verifyPackages(
+      pathToVerify,
+      onReqPkgs
+    );
     const updatedToolsInfo = toolsInfo.map((tool) => {
       const isToolVersionCorrect =
         tool.expected.indexOf(foundVersions[tool.name]) > -1;
