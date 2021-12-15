@@ -46,9 +46,9 @@ These settings are specific to the ESP32 Chip/ Board
 | `idf.flashBaudRate`                              | Flash Baud rate                                                     |
 | `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
 | `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
 | `idf.port`                                       | Path of selected device port                                        |
 | `idf.portWin`                                    | Path of selected device port in Windows                             |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
 
 This is how the extension uses them:
 
@@ -77,16 +77,17 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ## Extension Behaviour Settings
 
-| Setting ID                             | Description                                                       |
-| -------------------------------------- | ----------------------------------------------------------------- |
-| `idf.flashType`                        | Preferred flash method. UART or JTAG                              |
-| `idf.notificationSilentMode`           | Silent all notifications messages (excluding error notifications) |
-| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)        |
-| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation         |
-| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                         |
-| `idf.saveScope`                        | Where to save extension settings                                  |
-| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session           |
-| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)     |
+| Setting ID                             | Description                                                            |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)          |
+| `idf.flashType`                        | Preferred flash method. UART or JTAG                                   |
+| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                |
+| `idf.notificationSilentMode`           | Silent all notifications messages (excluding error notifications)      |
+| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation              |
+| `idf.saveScope`                        | Where to save extension settings                                       |
+| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)             |
+| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                              |
+| `idf.wslEnable`                        | Enable use of powershell executable for flash and monitor tasks in WSL |
 
 The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
 

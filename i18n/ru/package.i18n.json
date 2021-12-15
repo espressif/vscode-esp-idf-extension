@@ -80,6 +80,7 @@
   "param.enableIdfComponentManager.title": "Включить менеджер компонентов IDF в задаче сборки",
   "param.enableCCache.title": "Включить CCache в задаче сборки",
   "param.qemuTcpPort": "QEMU tcp порт для последовательной связи",
+  "param.wslEnable": "Включение использования PowerShell для WSL flash и задач мониторинга",
   "param.openOcdDebugLevel": "Уровень отладки OpenOCD Server",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",

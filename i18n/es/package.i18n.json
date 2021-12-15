@@ -80,6 +80,7 @@
   "param.enableIdfComponentManager.title": "Habilitar IDF Component Manager en construccion de proyecto",
   "param.enableCCache.title": "Habilitar CCache en construccion de proyecto",
   "param.qemuTcpPort": "QEMU tcp port para comunicación serial",
+  "param.wslEnable": "Habilitar el uso de powershell para tareas de flash y monitoreo en WSL",
   "param.openOcdDebugLevel": "Nivel de depuracion para servidor OpenOCD",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",

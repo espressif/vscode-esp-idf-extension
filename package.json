@@ -681,6 +681,12 @@
             "scope": "resource",
             "default": "https://components.espressif.com"
           },
+          "idf.wslEnable": {
+            "type": "boolean",
+            "description": "%param.wslEnable%",
+            "scope": "resource",
+            "default": true
+          },
           "idf.openOcdDebugLevel": {
             "type": "number",
             "default": 2,
