@@ -115,6 +115,8 @@ import {
 import { flashBinaryToPartition } from "./espIdf/partition-table/partitionFlasher";
 import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
 import { TaskManager } from "./taskManager";
+import { WelcomePanel } from "./welcome/panel";
+import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1596,6 +1598,34 @@ export async function activate(context: vscode.ExtensionContext) {
       });
     }
   );
+
+  registerIDFCommand("espIdf.welcome.start", async () => {
+    if (WelcomePanel.isCreatedAndHidden()) {
+      WelcomePanel.createOrShow(context.extensionPath);
+      return;
+    }
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: "ESP-IDF: Welcome Page",
+      },
+      async (
+        progress: vscode.Progress<{ increment: number; message: string }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const welcomeArgs = await getWelcomePageInitialValues(progress);
+          if (!welcomeArgs) {
+            throw new Error("Error getting welcome page initial values");
+          }
+          WelcomePanel.createOrShow(context.extensionPath, welcomeArgs);
+        } catch (error) {
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
+  });
 
   registerIDFCommand("espIdf.newProject.start", () => {
     if (NewProjectPanel.isCreatedAndHidden()) {

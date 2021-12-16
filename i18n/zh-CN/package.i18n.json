@@ -49,6 +49,7 @@
   "espIdf.partition.table.refresh.title": "刷新分区表",
   "espIdf.flashBinaryToPartition.title": "烧录二进制文件到分区",
   "espIdf.customTask.title": "执行自定义任务",
+  "espIdf.welcome.title": "欢迎",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF：启动",

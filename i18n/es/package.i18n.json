@@ -51,6 +51,7 @@
   "espIdf.partition.table.refresh.title": "Actualizar tabla de particiones",
   "espIdf.flashBinaryToPartition.title": "Programar binarios a la partición...",
   "espIdf.customTask.title": "Ejecutar tarea personalizada",
+  "espIdf.welcome.title": "Bienvenido/a",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

@@ -49,6 +49,7 @@
   "espIdf.partition.table.refresh.title": "Обновить таблицу разделов",
   "espIdf.flashBinaryToPartition.title": "Прошить двоичный файл для раздела ...",
   "espIdf.customTask.title": "Выполнить настраиваемую задачу",
+  "espIdf.welcome.title": "Добро пожаловать",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "ESP-IDF: Запустить",
