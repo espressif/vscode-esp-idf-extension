@@ -126,6 +126,7 @@
     "espIdf.createDevContainer.title",
     "espIdf.partition.table.refresh.title",
     "espIdf.flashBinaryToPartition.title",
+    "espIdf.customTask.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
@@ -196,6 +197,11 @@
     "param.enableUpdateSrcsToCMakeListsFile",
     "param.qemuTcpPort",
     "param.wslEnable",
-    "param.openOcdDebugLevel"
+    "param.openOcdDebugLevel",
+    "param.customTask",
+    "param.preBuildTask",
+    "param.postBuildTask",
+    "param.preFlashTask",
+    "param.postFlashTask"
   ]
 }

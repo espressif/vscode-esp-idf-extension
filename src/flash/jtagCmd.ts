@@ -22,6 +22,8 @@ import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
 import { readParameter } from "../idfConfiguration";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
+import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
+import { TaskManager } from "../taskManager";
 
 export async function jtagFlashCommand(buildPath: string) {
   let continueFlag = true;
@@ -39,13 +41,18 @@ export async function jtagFlashCommand(buildPath: string) {
   const forceUNIXPathSeparator = readParameter(
     "openocd.jtag.command.force_unix_path_separator"
   );
+  const customTask = new CustomTask(buildPath);
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
   try {
+    customTask.addCustomTask(CustomTaskType.PreFlash);
+    await TaskManager.runTasks();
     await jtag.flash(
       `program_esp_bins ${buildPath} flasher_args.json verify reset`
     );
+    customTask.addCustomTask(CustomTaskType.PostFlash);
+    await TaskManager.runTasks();
     Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);

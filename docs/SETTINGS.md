@@ -91,6 +91,16 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
 
+## Custom tasks for build and flash tasks
+
+| Setting ID          | Description                                                |
+| ------------------- | ---------------------------------------------------------- |
+| `idf.customTask`    | Custom task to execute with `ESP-IDF: Execute custom task` |
+| `idf.preBuildTask`  | Command string to execute before build task                |
+| `idf.postBuildTask` | Command string to execute after build task                 |
+| `idf.preFlashTask`  | Command string to execute before flash task                |
+| `idf.postFlashTask` | Command string to execute after flash task                 |
+
 ### QEMU specific settings
 
 | Setting ID        | Description                            |

@@ -22,6 +22,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { FlashTask } from "./flashTask";
 import { createFlashModel } from "./flashModelBuilder";
+import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 
 export async function uartFlashCommand(
   cancelToken: vscode.CancellationToken,
@@ -55,10 +56,13 @@ export async function uartFlashCommand(
       flashBaudRate
     );
     flashTask = new FlashTask(buildPath, idfPathDir, model);
+    const customTask = new CustomTask(workspace.fsPath);
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
     });
+    customTask.addCustomTask(CustomTaskType.PreFlash);
     await flashTask.flash();
+    customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;
