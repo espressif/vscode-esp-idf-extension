@@ -2,15 +2,19 @@
   <div id="app">
     <div class="centerize">
       <logo class="m-1" />
-      <h1 class="title is-spaced mbottom">Welcome to ESP-IDF extension</h1>
+      <h1 class="title is-spaced mbottom">Welcome to Espressif IDF extension</h1>
     </div>
     <div class="level">
       <div class="level-left columns">
         <div class="column mleft">
-          <p class="subtitle">Version: {{ extensionVersion }}</p>
+          Version: {{ extensionVersion }}
+          <br />
+          <div class="link">
+            <a :href="whatsNewLink">See what's new</a>
+          </div>
           <label class="checkbox is-small">
             <input type="checkbox" v-model="showOnInit" />
-            Show on extension start?
+            Show Welcome on extension startup
           </label>
         </div>
       </div>
@@ -252,6 +256,10 @@ export default class App extends Vue {
     return this.storeExtensionVersion;
   }
 
+  get whatsNewLink() {
+    return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${this.storeExtensionVersion}`;
+  }
+
   get showOnInit() {
     return this.storeShowOnInit;
   }
@@ -298,6 +306,10 @@ export default class App extends Vue {
 
 .mright {
   margin-right: 1.5em;
+}
+
+.checkbox:hover {
+  color: var(--vscode-button-background);
 }
 
 .link {
