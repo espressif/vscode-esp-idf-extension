@@ -2,20 +2,20 @@
   <div id="home">
     <div class="centerize" v-if="!hasPrerequisites">
       <h1 class="title is-spaced">Welcome.</h1>
-        <p v-if="platform !== 'win32'">
-          First, install the
-          <a
-            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
-            v-if="platform === 'darwin'"
-            >ESP-IDF Prerequisites for MacOS</a
-          >
-          <a
-            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
-            v-if="platform === 'linux'"
-            >ESP-IDF Prerequisites for Linux</a
-          >,
-        </p>
-        <p>restart Visual Studio Code and run this wizard again.</p>
+      <p v-if="platform !== 'win32'">
+        First, install the
+        <a
+          href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
+          v-if="platform === 'darwin'"
+          >ESP-IDF Prerequisites for MacOS</a
+        >
+        <a
+          href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
+          v-if="platform === 'linux'"
+          >ESP-IDF Prerequisites for Linux</a
+        >,
+      </p>
+      <p>restart Visual Studio Code and run this wizard again.</p>
     </div>
     <div class="centerize notification" v-if="hasPrerequisites">
       <div class="control centerize home-title">
@@ -39,8 +39,11 @@
       <div
         class="notification install-choice"
         @click="goTo('/autoinstall', setupMode.express)"
+        id="express-install-btn"
       >
-        <label for="express" class="subtitle">EXPRESS</label>
+        <label for="express" class="subtitle" data-config-id="express"
+          >EXPRESS</label
+        >
         <p name="express">
           Fastest option. Choose ESP-IDF version and python version to create
           ESP-IDF python virtual environment. ESP-IDF Tools will be installed in
@@ -52,7 +55,9 @@
         class="notification install-choice"
         @click="goTo('/autoinstall', setupMode.advanced)"
       >
-        <label for="advanced" class="subtitle">ADVANCED</label>
+        <label for="advanced" class="subtitle" data-config-id="advanced"
+          >ADVANCED</label
+        >
         <p name="advanced">
           Configurable option. Choose ESP-IDF version and python version to
           create ESP-IDF python virtual environment. Choose ESP-IDF Tools
@@ -64,7 +69,9 @@
         @click.once="useDefaultSettings"
         v-if="isPreviousSetupValid"
       >
-        <label for="existing" class="subtitle"> USE EXISTING SETUP</label>
+        <label for="existing" class="subtitle" data-config-id="existing-setup"
+          >USE EXISTING SETUP</label
+        >
         <p>
           We have found ESP-IDF version: {{ idfVersion }} @<span
             class="span-path"

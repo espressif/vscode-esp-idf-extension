@@ -2,7 +2,7 @@
   <div id="install">
     <div class="notification">
       <div class="field" v-if="isNotWinPlatform && gitVersion">
-        <label>Git version: {{ gitVersion }}</label>
+        <label data-config-id="git-version">Git version: {{ gitVersion }}</label>
       </div>
 
       <selectEspIdf></selectEspIdf>

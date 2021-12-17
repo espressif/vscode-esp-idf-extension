@@ -5,7 +5,7 @@
       v-if="!isInstalled && currentRoute !== '/' && currentRoute !== '/status'"
     >
       <div class="icon is-large is-size-4">
-        <router-link to="/" class="button">
+        <router-link to="/" class="button" id="home-button">
           <iconify-icon icon="home" />
         </router-link>
       </div>

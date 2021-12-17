@@ -19,7 +19,11 @@
       >
       <div class="control">
         <div class="select">
-          <select v-model="selectedIdfVersion" @change="clearIDfErrorStatus">
+          <select
+            v-model="selectedIdfVersion"
+            @change="clearIDfErrorStatus"
+            id="select-esp-idf"
+          >
             <option
               v-for="ver in idfVersionList"
               :key="ver.name"
