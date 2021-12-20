@@ -41,6 +41,7 @@
       :openMethod="openEspIdfFolder"
       :onChangeMethod="clearIDfErrorStatus"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
+      data-config-id="manual-idf-directory"
     />
     <folderOpen
       propLabel="Enter ESP-IDF container directory"

@@ -2,7 +2,9 @@
   <div id="install">
     <div class="notification">
       <div class="field" v-if="isNotWinPlatform && gitVersion">
-        <label data-config-id="git-version">Git version: {{ gitVersion }}</label>
+        <label data-config-id="git-version"
+          >Git version: {{ gitVersion }}</label
+        >
       </div>
 
       <selectEspIdf></selectEspIdf>
@@ -38,7 +40,13 @@
 
       <div class="field install-btn">
         <div class="control">
-          <button @click="installEspIdf" class="button">Install</button>
+          <button
+            @click="installEspIdf"
+            class="button"
+            data-config-id="start-install-btn"
+          >
+            Install
+          </button>
         </div>
       </div>
     </div>
