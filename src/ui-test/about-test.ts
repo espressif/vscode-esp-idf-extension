@@ -61,18 +61,15 @@ describe("Configure extension", () => {
       By.id("express-install-btn")
     );
     await expressElement.click();
-    await new Promise((res) => setTimeout(res, 3000));
+    await new Promise((res) => setTimeout(res, 1000));
     const gitVersionElement = await view.findWebElement(
       By.xpath(`.//label[@data-config-id='git-version']`)
     );
     const gitVersionMsg = await gitVersionElement.getText();
-    console.log(gitVersionMsg);
     expect(gitVersionMsg).to.match(/Git version:.*/g);
-    await new Promise((res) => setTimeout(res, 3000));
     const selectEspIdfElement = await view.findWebElement(
       By.id("select-esp-idf")
     );
-    await new Promise((res) => setTimeout(res, 1000));
     const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
     expect(idfChoices).to.be.an("array");
     // idfChoices.map(async (idfChoice) => {
@@ -81,14 +78,16 @@ describe("Configure extension", () => {
     // });
     await idfChoices[idfChoices.length - 1].click();
 
-    // "manual-idf-directory"
+    // Find ESP-IDF in the system
     const manualIdfDirectory = await view.findWebElement(
       By.xpath(
         `.//div[@data-config-id='manual-idf-directory']//input[@type='text']`
       )
     );
     const defaultIdfDirectory = await manualIdfDirectory.getAttribute("value");
-    const expectedDir = join(process.env.HOME, "esp", "esp-idf");
+    const expectedDir = process.env.IDF_PATH
+      ? process.env.IDF_PATH
+      : join(process.env.HOME, "esp", "esp-idf");
     expect(defaultIdfDirectory).to.be.equal(expectedDir);
 
     const selectPythonElement = await view.findWebElement(
@@ -96,34 +95,108 @@ describe("Configure extension", () => {
     );
     await new Promise((res) => setTimeout(res, 1000));
     const pyChoices = await selectPythonElement.findElements(By.css("option"));
-    pyChoices.map(async (choice) => {
-      const optionTxt = await choice.getText();
-      console.log(optionTxt);
-      if (optionTxt.indexOf("python3") !== -1) {
-        choice.click();
+    for (const pyChoice of pyChoices) {
+      const pyText = await pyChoice.getText();
+      console.log(pyText);
+      if (pyText.indexOf("python3") !== -1) {
+        await pyChoice.click();
+        break;
       }
-    });
+    }
     // Start setup install
     const startInstallBtn = await view.findWebElement(
       By.xpath(`.//button[@data-config-id='start-install-btn']`)
     );
     await startInstallBtn.click();
     await new Promise((res) => setTimeout(res, 3000));
-    // esp-idf-download-status
+    // Status windows is loaded
     const espIdfInstalledPath = await view.findWebElement(
-      By.xpath(
-        `.//p[@data-config-id='esp-idf-download-status']`
-      )
+      By.xpath(`.//p[@data-config-id='esp-idf-download-status']`)
     );
     const espIdfDestPathMsg = await espIdfInstalledPath.getText();
-    console.log(espIdfDestPathMsg);
     const expectedEspIdfDestPath = `ESP-IDF is installed in ${expectedDir}`;
     expect(espIdfDestPathMsg).to.be.equal(expectedEspIdfDestPath);
 
-    await new Promise((res) => setTimeout(res, 30000));
+    await new Promise((res) => setTimeout(res, 20000));
+
+    // Show setup has finished
+    const setupFinishedElement = await view.findWebElement(
+      By.xpath(`.//h2[@data-config-id='setup-is-finished']`)
+    );
+    const setupFinishedText = await setupFinishedElement.getText();
+    expect(setupFinishedText).to.be.equal(
+      "All settings have been configured. You can close this window."
+    );
+    if (view) {
+      await view.switchBack();
+      await new EditorView().closeAllEditors();
+    }
+  }).timeout(60000);
+
+  it("Configure using Advanced", async () => {
+    await new Workbench().executeCommand("espIdf.setup.start");
+    await new Promise((res) => setTimeout(res, 12000));
+    view = new WebView();
+    await view.switchToFrame();
+    await new Promise((res) => setTimeout(res, 1000));
+    const advancedElement = await view.findWebElement(
+      By.id("advanced-install-btn")
+    );
+    await advancedElement.click();
+    await new Promise((res) => setTimeout(res, 1000));
+    const selectEspIdfElement = await view.findWebElement(
+      By.id("select-esp-idf")
+    );
+    const gitVersionElement = await view.findWebElement(
+      By.xpath(`.//label[@data-config-id='git-version']`)
+    );
+    const gitVersionMsg = await gitVersionElement.getText();
+    expect(gitVersionMsg).to.match(/Git version:.*/g);
+    const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
+    expect(idfChoices).to.be.an("array");
+    await idfChoices[idfChoices.length - 1].click();
+
+    // Find ESP-IDF in the system
+    const manualIdfDirectory = await view.findWebElement(
+      By.xpath(
+        `.//div[@data-config-id='manual-idf-directory']//input[@type='text']`
+      )
+    );
+    const defaultIdfDirectory = await manualIdfDirectory.getAttribute("value");
+    const expectedDir = process.env.IDF_PATH
+      ? process.env.IDF_PATH
+      : join(process.env.HOME, "esp", "esp-idf");
+    expect(defaultIdfDirectory).to.be.equal(expectedDir);
+
+    const selectPythonElement = await view.findWebElement(
+      By.id("python-version-select")
+    );
+    await new Promise((res) => setTimeout(res, 1000));
+    const pyChoices = await selectPythonElement.findElements(By.css("option"));
+    for (const pyChoice of pyChoices) {
+      const pyText = await pyChoice.getText();
+      console.log(pyText);
+      if (pyText.indexOf("python3") !== -1) {
+        await pyChoice.click();
+        break;
+      }
+    }
+    // Start setup install
+    const startInstallBtn = await view.findWebElement(
+      By.xpath(`.//button[@data-config-id='start-install-btn']`)
+    );
+    await startInstallBtn.click();
+    await new Promise((res) => setTimeout(res, 3000));
+
+    // select-esp-idf-tools
+    const idfToolSelect = await view.findWebElement(
+      By.xpath(`.//select[@data-config-id='select-esp-idf-tools']`)
+    );
+    const idfToolsSelectChoices = await idfToolSelect.findElements(By.css("option"));
+    await idfToolsSelectChoices[idfToolsSelectChoices.length - 1].click();
 
     if (view) {
       await view.switchBack();
     }
-  }).timeout(60000);
+  }).timeout(80000);
 });

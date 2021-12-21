@@ -54,6 +54,7 @@
       <div
         class="notification install-choice"
         @click="goTo('/autoinstall', setupMode.advanced)"
+        id="advanced-install-btn"
       >
         <label for="advanced" class="subtitle" data-config-id="advanced"
           >ADVANCED</label
@@ -68,6 +69,7 @@
         class="notification install-choice"
         @click.once="useDefaultSettings"
         v-if="isPreviousSetupValid"
+        id="existing-install-btn"
       >
         <label for="existing" class="subtitle" data-config-id="existing-setup"
           >USE EXISTING SETUP</label
