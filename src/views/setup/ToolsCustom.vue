@@ -37,6 +37,7 @@
               class="button"
               @click="saveCustomSettings"
               v-if="allToolsAreValid"
+              data-config-id="save-existing-tools"
             >
               Save Settings
             </button>

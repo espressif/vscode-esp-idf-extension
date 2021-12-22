@@ -17,7 +17,10 @@
  */
 
 import { expect } from "chai";
-import { join } from "path";
+import { spawn } from "child_process";
+import { readJSON } from "fs-extra";
+import { EOL } from "os";
+import { delimiter, join, sep } from "path";
 import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
 
 describe("Configure extension", () => {
@@ -31,6 +34,40 @@ describe("Configure extension", () => {
     view = new WebView();
     await view.switchToFrame();
   });
+
+  async function isBinInPath(
+    binaryName: string,
+    workDirectory: string,
+    env: NodeJS.ProcessEnv
+  ) {
+    const cmd = process.platform === "win32" ? "where" : "which";
+
+    return new Promise<string>((resolve, reject) => {
+      const options = {
+        cwd: workDirectory,
+        env,
+      };
+      const child = spawn(cmd, [binaryName], options);
+      let buff = Buffer.alloc(0);
+      const sendToBuffer = (data: Buffer) => {
+        buff = Buffer.concat([buff, data]);
+      };
+
+      child.stdout.on("data", sendToBuffer);
+      child.stderr.on("data", sendToBuffer);
+
+      child.on("exit", (code) => {
+        if (code !== 0) {
+          const err = new Error(
+            `non zero exit code ${code}. ${EOL + EOL + buff}`
+          );
+          console.error(err.message);
+          return reject(err);
+        }
+        return resolve(buff.toString());
+      });
+    });
+  }
 
   // after(async () => {
   //   if (view) {
@@ -117,7 +154,7 @@ describe("Configure extension", () => {
     const expectedEspIdfDestPath = `ESP-IDF is installed in ${expectedDir}`;
     expect(espIdfDestPathMsg).to.be.equal(expectedEspIdfDestPath);
 
-    await new Promise((res) => setTimeout(res, 20000));
+    await new Promise((res) => setTimeout(res, 40000));
 
     // Show setup has finished
     const setupFinishedElement = await view.findWebElement(
@@ -192,8 +229,58 @@ describe("Configure extension", () => {
     const idfToolSelect = await view.findWebElement(
       By.xpath(`.//select[@data-config-id='select-esp-idf-tools']`)
     );
-    const idfToolsSelectChoices = await idfToolSelect.findElements(By.css("option"));
+    const idfToolsSelectChoices = await idfToolSelect.findElements(
+      By.css("option")
+    );
     await idfToolsSelectChoices[idfToolsSelectChoices.length - 1].click();
+
+    // Get current settings
+    const settingsJsonObj = await readJSON(
+      join(__dirname, "../../test-resources/settings/User/settings.json")
+    );
+    const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+      Object.assign({}, process.env)
+    );
+    modifiedEnv.PATH = `${settingsJsonObj["idf.customExtraPaths"]}${delimiter}${modifiedEnv.PATH}`;
+    // openOCD-esp32
+    const openOCDPath = await isBinInPath("openocd", __dirname, modifiedEnv);
+    const openOcdTool = await view.findWebElement(By.id("openocd-esp32"));
+    const expectedOpenOcdPath = openOCDPath
+      .trim()
+      .replace(sep + "bin" + sep + "openocd", sep + "bin");
+    const actualOpenOcdPath = await openOcdTool.getAttribute("value");
+    expect(expectedOpenOcdPath).to.be.equal(actualOpenOcdPath);
+    // xtensa-esp32-elf/
+    const xtensaEsp32Path = await isBinInPath(
+      "xtensa-esp32-elf-gcc",
+      __dirname,
+      modifiedEnv
+    );
+    const xtensaEsp32Tool = await view.findWebElement(
+      By.id("xtensa-esp32-elf")
+    );
+    const expectedXtensaEsp32Path = xtensaEsp32Path
+      .trim()
+      .replace(sep + "bin" + sep + "xtensa-esp32-elf-gcc", sep + "bin");
+    const actualXtensaEsp32Path = await xtensaEsp32Tool.getAttribute("value");
+    expect(expectedXtensaEsp32Path).to.be.equal(actualXtensaEsp32Path);
+
+    // save-existing-tools
+    const saveExistingToolsBtn = await view.findWebElement(
+      By.xpath(`.//button[@data-config-id='save-existing-tools']`)
+    );
+    await saveExistingToolsBtn.click();
+
+    await new Promise((res) => setTimeout(res, 40000));
+
+    // Show setup has finished
+    const setupFinishedElement = await view.findWebElement(
+      By.xpath(`.//h2[@data-config-id='setup-is-finished']`)
+    );
+    const setupFinishedText = await setupFinishedElement.getText();
+    expect(setupFinishedText).to.be.equal(
+      "All settings have been configured. You can close this window."
+    );
 
     if (view) {
       await view.switchBack();
