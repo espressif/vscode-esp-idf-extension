@@ -276,12 +276,11 @@ export async function getUnixPythonList(workingDir: string) {
   }
 }
 
-export async function checkIfNotVirtualEnv(pythonBinPath: string) {
+export async function checkIfNotVirtualEnv(pythonBinPath: string, workDir: string) {
   try {
-    const isVirtualEnvBuffer = await utils.spawn(
-      `"${pythonBinPath}" -c "import sys; print(sys.prefix == sys.base_prefix)"`,
-      [],
-      { env: process.env }
+    const isVirtualEnvBuffer = await utils.execChildProcess(
+      `"${pythonBinPath}" -c "import sys; print('{}'.format(sys.prefix == sys.base_prefix))"`,
+      workDir
     );
     return isVirtualEnvBuffer.toString().indexOf("True") !== -1 ? true : false;
   } catch (error) {
