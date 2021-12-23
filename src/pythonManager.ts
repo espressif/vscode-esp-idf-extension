@@ -276,7 +276,10 @@ export async function getUnixPythonList(workingDir: string) {
   }
 }
 
-export async function checkIfNotVirtualEnv(pythonBinPath: string, workDir: string) {
+export async function checkIfNotVirtualEnv(
+  pythonBinPath: string,
+  workDir: string
+) {
   try {
     const isVirtualEnvBuffer = await utils.execChildProcess(
       `"${pythonBinPath}" -c "import sys; print('{}'.format(sys.prefix == sys.base_prefix))"`,
