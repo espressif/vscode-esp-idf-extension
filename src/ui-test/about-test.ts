@@ -154,7 +154,7 @@ describe("Configure extension", () => {
     const expectedEspIdfDestPath = `ESP-IDF is installed in ${expectedDir}`;
     expect(espIdfDestPathMsg).to.be.equal(expectedEspIdfDestPath);
 
-    await new Promise((res) => setTimeout(res, 40000));
+    await new Promise((res) => setTimeout(res, 60000));
 
     // Show setup has finished
     const setupFinishedElement = await view.findWebElement(
@@ -168,7 +168,7 @@ describe("Configure extension", () => {
       await view.switchBack();
       await new EditorView().closeAllEditors();
     }
-  }).timeout(60000);
+  }).timeout(80000);
 
   it("Configure using Advanced", async () => {
     await new Workbench().executeCommand("espIdf.setup.start");
