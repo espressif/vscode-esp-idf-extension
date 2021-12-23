@@ -127,6 +127,11 @@ describe("Configure extension", () => {
       : join(process.env.HOME, "esp", "esp-idf");
     expect(defaultIdfDirectory).to.be.equal(expectedDir);
 
+    const settingsJsonObj = await readJSON(
+      join(__dirname, "../../test-resources/settings/User/settings.json")
+    );
+    console.log(settingsJsonObj["idf.pythonBinPath"]);
+
     const selectPythonElement = await view.findWebElement(
       By.id("python-version-select")
     );
@@ -135,7 +140,7 @@ describe("Configure extension", () => {
     for (const pyChoice of pyChoices) {
       const pyText = await pyChoice.getText();
       console.log(pyText);
-      if (pyText.indexOf("python3") !== -1) {
+      if (pyText.indexOf("/usr/bin/python") !== -1) {
         await pyChoice.click();
         break;
       }
@@ -213,7 +218,7 @@ describe("Configure extension", () => {
     for (const pyChoice of pyChoices) {
       const pyText = await pyChoice.getText();
       console.log(pyText);
-      if (pyText.indexOf("python3") !== -1) {
+      if (pyText.indexOf("/usr/bin/python") !== -1) {
         await pyChoice.click();
         break;
       }

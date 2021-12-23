@@ -275,3 +275,17 @@ export async function getUnixPythonList(workingDir: string) {
     return ["Not found"];
   }
 }
+
+export async function checkIfNotVirtualEnv(pythonBinPath: string) {
+  try {
+    const isVirtualEnvBuffer = await utils.spawn(
+      `"${pythonBinPath}" -c "import sys; print(sys.prefix == sys.base_prefix)"`,
+      [],
+      { env: process.env }
+    );
+    return isVirtualEnvBuffer.toString().indexOf("True") !== -1 ? true : false;
+  } catch (error) {
+    Logger.errorNotify("Error checking Python is virtualenv", error);
+    return false;
+  }
+}
