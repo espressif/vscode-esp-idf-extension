@@ -140,7 +140,7 @@ describe("Configure extension", () => {
     for (const pyChoice of pyChoices) {
       const pyText = await pyChoice.getText();
       console.log(pyText);
-      if (pyText.indexOf("/usr/bin/python") !== -1) {
+      if (pyText.indexOf("/usr/bin/python3") !== -1) {
         await pyChoice.click();
         break;
       }
@@ -159,7 +159,7 @@ describe("Configure extension", () => {
     const expectedEspIdfDestPath = `ESP-IDF is installed in ${expectedDir}`;
     expect(espIdfDestPathMsg).to.be.equal(expectedEspIdfDestPath);
 
-    await new Promise((res) => setTimeout(res, 60000));
+    await new Promise((res) => setTimeout(res, 100000));
 
     // Show setup has finished
     const setupFinishedElement = await view.findWebElement(
@@ -173,7 +173,7 @@ describe("Configure extension", () => {
       await view.switchBack();
       await new EditorView().closeAllEditors();
     }
-  }).timeout(80000);
+  }).timeout(120000);
 
   it("Configure using Advanced", async () => {
     await new Workbench().executeCommand("espIdf.setup.start");
@@ -218,7 +218,7 @@ describe("Configure extension", () => {
     for (const pyChoice of pyChoices) {
       const pyText = await pyChoice.getText();
       console.log(pyText);
-      if (pyText.indexOf("/usr/bin/python") !== -1) {
+      if (pyText.indexOf("/usr/bin/python3") !== -1) {
         await pyChoice.click();
         break;
       }
@@ -276,7 +276,7 @@ describe("Configure extension", () => {
     );
     await saveExistingToolsBtn.click();
 
-    await new Promise((res) => setTimeout(res, 40000));
+    await new Promise((res) => setTimeout(res, 100000));
 
     // Show setup has finished
     const setupFinishedElement = await view.findWebElement(
@@ -290,5 +290,5 @@ describe("Configure extension", () => {
     if (view) {
       await view.switchBack();
     }
-  }).timeout(80000);
+  }).timeout(120000);
 });
