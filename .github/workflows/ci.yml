@@ -18,13 +18,6 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Clone ESP-IDF
-        uses: actions/checkout@v2
-        with:
-          path: esp/idf
-          repository: espressif/esp-idf
-          submodules: "recursive"
-
       - name: Run test
         uses: ./.github/actions/idf
         id: idftest
