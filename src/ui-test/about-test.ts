@@ -286,9 +286,47 @@ describe("Configure extension", () => {
     expect(setupFinishedText).to.be.equal(
       "All settings have been configured. You can close this window."
     );
+    if (view) {
+      await view.switchBack();
+      await new EditorView().closeAllEditors();
+    }
+  }).timeout(130000);
+
+  it("Configure using existing setup", async () => {
+    await new Workbench().executeCommand("espIdf.setup.start");
+    await new Promise((res) => setTimeout(res, 12000));
+    view = new WebView();
+    await view.switchToFrame();
+    await new Promise((res) => setTimeout(res, 1000));
+    const existingSetupElement = await view.findWebElement(
+      By.id("existing-install-btn")
+    );
+    await existingSetupElement.click();
+    await new Promise((res) => setTimeout(res, 1000));
+    // Status windows is loaded
+    const espIdfInstalledPath = await view.findWebElement(
+      By.xpath(`.//span[@data-config-id='download-status-installed']`)
+    );
+    const espIdfDestPathMsg = await espIdfInstalledPath.getText();
+    const expectedDir = process.env.IDF_PATH
+      ? process.env.IDF_PATH
+      : join(process.env.HOME, "esp", "esp-idf");
+    const expectedEspIdfDestPath = `Installed in ${expectedDir}`;
+    expect(espIdfDestPathMsg).to.be.equal(expectedEspIdfDestPath);
+
+    await new Promise((res) => setTimeout(res, 60000));
+
+    // Show setup has finished
+    const setupFinishedElement = await view.findWebElement(
+      By.xpath(`.//h2[@data-config-id='setup-is-finished']`)
+    );
+    const setupFinishedText = await setupFinishedElement.getText();
+    expect(setupFinishedText).to.be.equal(
+      "All settings have been configured. You can close this window."
+    );
 
     if (view) {
       await view.switchBack();
     }
-  }).timeout(120000);
+  }).timeout(100000);
 });
