@@ -25,6 +25,9 @@ import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
 
 describe("Configure extension", () => {
   let view: WebView;
+  const expectedDir = process.env.IDF_PATH
+    ? process.env.IDF_PATH
+    : join(process.env.HOME, "esp", "esp-idf");
 
   before(async function () {
     this.timeout(100000);
@@ -69,12 +72,53 @@ describe("Configure extension", () => {
     });
   }
 
-  // after(async () => {
-  //   if (view) {
-  //     await view.switchBack();
-  //   }
-  //   await new EditorView().closeAllEditors();
-  // });
+  async function selectEspIdfVersion(view: WebView) {
+    const selectEspIdfElement = await view.findWebElement(
+      By.id("select-esp-idf")
+    );
+    const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
+    expect(idfChoices).to.be.an("array");
+    await idfChoices[idfChoices.length - 1].click();
+  }
+
+  async function checkGitVersion(view: WebView) {
+    const gitVersionElement = await view.findWebElement(
+      By.xpath(`.//label[@data-config-id='git-version']`)
+    );
+    const gitVersionMsg = await gitVersionElement.getText();
+    expect(gitVersionMsg).to.match(/Git version:.*/g);
+  }
+
+  async function checkManualEspIdfPath(view: WebView) {
+    const manualIdfDirectory = await view.findWebElement(
+      By.xpath(
+        `.//div[@data-config-id='manual-idf-directory']//input[@type='text']`
+      )
+    );
+    const defaultIdfDirectory = await manualIdfDirectory.getAttribute("value");
+    expect(defaultIdfDirectory).to.be.equal(expectedDir);
+  }
+
+  async function selectPythonExecutable(view: WebView) {
+    const selectPythonElement = await view.findWebElement(
+      By.id("python-version-select")
+    );
+    await new Promise((res) => setTimeout(res, 1000));
+    const pyChoices = await selectPythonElement.findElements(By.css("option"));
+    for (const pyChoice of pyChoices) {
+      const pyText = await pyChoice.getText();
+      if (pyText.indexOf("/usr/bin/python3") !== -1) {
+        await pyChoice.click();
+        break;
+      }
+    }
+    // Start setup install
+    const startInstallBtn = await view.findWebElement(
+      By.xpath(`.//button[@data-config-id='start-install-btn']`)
+    );
+    await startInstallBtn.click();
+    await new Promise((res) => setTimeout(res, 3000));
+  }
 
   it("Find install options", async () => {
     const expressElement = await view.findWebElement(
@@ -99,58 +143,12 @@ describe("Configure extension", () => {
     );
     await expressElement.click();
     await new Promise((res) => setTimeout(res, 1000));
-    const gitVersionElement = await view.findWebElement(
-      By.xpath(`.//label[@data-config-id='git-version']`)
-    );
-    const gitVersionMsg = await gitVersionElement.getText();
-    expect(gitVersionMsg).to.match(/Git version:.*/g);
-    const selectEspIdfElement = await view.findWebElement(
-      By.id("select-esp-idf")
-    );
-    const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
-    expect(idfChoices).to.be.an("array");
-    // idfChoices.map(async (idfChoice) => {
-    //   const optionTxt = await idfChoice.getText();
-    //   console.log(optionTxt);
-    // });
-    await idfChoices[idfChoices.length - 1].click();
 
-    // Find ESP-IDF in the system
-    const manualIdfDirectory = await view.findWebElement(
-      By.xpath(
-        `.//div[@data-config-id='manual-idf-directory']//input[@type='text']`
-      )
-    );
-    const defaultIdfDirectory = await manualIdfDirectory.getAttribute("value");
-    const expectedDir = process.env.IDF_PATH
-      ? process.env.IDF_PATH
-      : join(process.env.HOME, "esp", "esp-idf");
-    expect(defaultIdfDirectory).to.be.equal(expectedDir);
+    await checkGitVersion(view);
+    await selectEspIdfVersion(view);
+    await checkManualEspIdfPath(view);
+    await selectPythonExecutable(view);
 
-    const settingsJsonObj = await readJSON(
-      join(__dirname, "../../test-resources/settings/User/settings.json")
-    );
-    console.log(settingsJsonObj["idf.pythonBinPath"]);
-
-    const selectPythonElement = await view.findWebElement(
-      By.id("python-version-select")
-    );
-    await new Promise((res) => setTimeout(res, 1000));
-    const pyChoices = await selectPythonElement.findElements(By.css("option"));
-    for (const pyChoice of pyChoices) {
-      const pyText = await pyChoice.getText();
-      console.log(pyText);
-      if (pyText.indexOf("/usr/bin/python3") !== -1) {
-        await pyChoice.click();
-        break;
-      }
-    }
-    // Start setup install
-    const startInstallBtn = await view.findWebElement(
-      By.xpath(`.//button[@data-config-id='start-install-btn']`)
-    );
-    await startInstallBtn.click();
-    await new Promise((res) => setTimeout(res, 3000));
     // Status windows is loaded
     const espIdfInstalledPath = await view.findWebElement(
       By.xpath(`.//p[@data-config-id='esp-idf-download-status']`)
@@ -186,49 +184,13 @@ describe("Configure extension", () => {
     );
     await advancedElement.click();
     await new Promise((res) => setTimeout(res, 1000));
-    const selectEspIdfElement = await view.findWebElement(
-      By.id("select-esp-idf")
-    );
-    const gitVersionElement = await view.findWebElement(
-      By.xpath(`.//label[@data-config-id='git-version']`)
-    );
-    const gitVersionMsg = await gitVersionElement.getText();
-    expect(gitVersionMsg).to.match(/Git version:.*/g);
-    const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
-    expect(idfChoices).to.be.an("array");
-    await idfChoices[idfChoices.length - 1].click();
+    await selectEspIdfVersion(view);
 
-    // Find ESP-IDF in the system
-    const manualIdfDirectory = await view.findWebElement(
-      By.xpath(
-        `.//div[@data-config-id='manual-idf-directory']//input[@type='text']`
-      )
-    );
-    const defaultIdfDirectory = await manualIdfDirectory.getAttribute("value");
-    const expectedDir = process.env.IDF_PATH
-      ? process.env.IDF_PATH
-      : join(process.env.HOME, "esp", "esp-idf");
-    expect(defaultIdfDirectory).to.be.equal(expectedDir);
+    await checkGitVersion(view);
 
-    const selectPythonElement = await view.findWebElement(
-      By.id("python-version-select")
-    );
-    await new Promise((res) => setTimeout(res, 1000));
-    const pyChoices = await selectPythonElement.findElements(By.css("option"));
-    for (const pyChoice of pyChoices) {
-      const pyText = await pyChoice.getText();
-      console.log(pyText);
-      if (pyText.indexOf("/usr/bin/python3") !== -1) {
-        await pyChoice.click();
-        break;
-      }
-    }
-    // Start setup install
-    const startInstallBtn = await view.findWebElement(
-      By.xpath(`.//button[@data-config-id='start-install-btn']`)
-    );
-    await startInstallBtn.click();
-    await new Promise((res) => setTimeout(res, 3000));
+    await checkManualEspIdfPath(view);
+
+    await selectPythonExecutable(view);
 
     // select-esp-idf-tools
     const idfToolSelect = await view.findWebElement(
