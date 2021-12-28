@@ -17,6 +17,40 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.3.0)
+
+### Features and enhancements
+
+- [Create virtual env before install-python-env](https://github.com/espressif/vscode-esp-idf-extension/pull/536)
+- [Partition table editor unit testing](https://github.com/espressif/vscode-esp-idf-extension/pull/538)
+- [NVS partition table editor unit testing](https://github.com/espressif/vscode-esp-idf-extension/pull/545)
+- [Add JTAG configuration links in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/549)
+- [Add ninja arguments for build task](https://github.com/espressif/vscode-esp-idf-extension/pull/564)
+- [Add CMake and Ninja-build to setup when not found in PATH](https://github.com/espressif/vscode-esp-idf-extension/pull/550)
+- [IDF Target and serial port only saved in workspace folder](https://github.com/espressif/vscode-esp-idf-extension/pull/562)
+- [Add size task after build task](https://github.com/espressif/vscode-esp-idf-extension/pull/567)
+- [SDK Configuration editor and Build end to end testing](https://github.com/espressif/vscode-esp-idf-extension/pull/491)
+- [Add flashing types in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/576)
+- [Project creation end to end testing](https://github.com/espressif/vscode-esp-idf-extension/pull/586)
+- [GDB timeout scale factor in launch json for espidf configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/575)
+- [Add WSL Enable configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/590)
+- [Add pre build, post build, pre flash, post flash custom task (with icon for custom tasks)](https://github.com/espressif/vscode-esp-idf-extension/pull/585)
+- [Add Welcome page](https://github.com/espressif/vscode-esp-idf-extension/pull/584)
+- [Add setup end to end testing](https://github.com/espressif/vscode-esp-idf-extension/pull/595)
+
+### Bug Fixes
+
+- [Fix multiple save scope calls on workspace folder setup](https://github.com/espressif/vscode-esp-idf-extension/pull/526)
+- [Fix documentation links](https://github.com/espressif/vscode-esp-idf-extension/pull/528)
+- [Fix spaces in git path](https://github.com/espressif/vscode-esp-idf-extension/pull/533)
+- [Remove openOCD copy rules button](https://github.com/espressif/vscode-esp-idf-extension/pull/544)
+- [Update cppdbg launch json default configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/555) Thanks @rdancer !
+- [Fix openOCD configuration files in project wizard and settings](https://github.com/espressif/vscode-esp-idf-extension/pull/569)
+- [Fix idf size UI issues due to idf_size.py schema changes](https://github.com/espressif/vscode-esp-idf-extension/pull/535)
+- [Fix WSL detection and add WSL enable configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/578)
+- [Add silent notification for error messages](https://github.com/espressif/vscode-esp-idf-extension/pull/582)
+- [Fix unused esp container directory being created](https://github.com/espressif/vscode-esp-idf-extension/pull/591)
+
 ## [1.2.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.2.0)
 
 ### Features and enhancements
