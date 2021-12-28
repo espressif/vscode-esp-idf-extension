@@ -18,7 +18,9 @@
       >
       <span
         v-if="downloadStatus.progress === '100.00%' && isInstallationCompleted"
-        ><span>Installed in {{ destPath }}</span></span
+        ><span data-config-id="download-status-installed"
+          >Installed in {{ destPath }}</span
+        ></span
       >
     </div>
   </div>

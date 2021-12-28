@@ -19,7 +19,11 @@
       >
       <div class="control">
         <div class="select">
-          <select v-model="selectedIdfVersion" @change="clearIDfErrorStatus">
+          <select
+            v-model="selectedIdfVersion"
+            @change="clearIDfErrorStatus"
+            id="select-esp-idf"
+          >
             <option
               v-for="ver in idfVersionList"
               :key="ver.name"
@@ -37,6 +41,7 @@
       :openMethod="openEspIdfFolder"
       :onChangeMethod="clearIDfErrorStatus"
       v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
+      data-config-id="manual-idf-directory"
     />
     <folderOpen
       propLabel="Enter ESP-IDF container directory"

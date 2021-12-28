@@ -5,7 +5,7 @@
       v-if="!isInstalled && currentRoute !== '/' && currentRoute !== '/status'"
     >
       <div class="icon is-large is-size-4">
-        <router-link to="/" class="button">
+        <router-link to="/" class="button" id="home-button">
           <iconify-icon icon="home" />
         </router-link>
       </div>
@@ -55,7 +55,7 @@
       <router-view></router-view>
     </transition>
     <div class="centerize install-finished" v-if="isInstalled">
-      <h2 class="subtitle">
+      <h2 class="subtitle" data-config-id="setup-is-finished">
         All settings have been configured. You can close this window.
       </h2>
 

@@ -52,6 +52,13 @@ export async function installPyReqs(
     OutputChannel.appendLine(msg);
     return;
   }
+  const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(sysPyBinPath, workingDir);
+  if (!isNotVirtualEnv) {
+    const msg = "Selected python is from a virtual environment. Choose system python";
+    sendPyReqLog(msg);
+    OutputChannel.appendLine(msg);
+    return;
+  }
   const logTracker = new PyReqLog(sendPyReqLog);
   progress.report({
     message: `Installing python virtualenv and ESP-IDF python requirements...`,

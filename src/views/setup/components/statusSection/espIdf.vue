@@ -25,9 +25,12 @@
       :destPath="espIdf"
       :status="statusEspIdf"
       v-if="isInstalling"
+      data-config-id="esp-idf-download-status"
     />
     <div class="control barText" v-if="espIdfErrorStatus">
-      <p class="label">{{ espIdfErrorStatus }}</p>
+      <p class="label" data-config-id="esp-idf-download-status">
+        {{ espIdfErrorStatus }}
+      </p>
       <div class="icon is-large is-size-4">
         <iconify-icon
           :icon="
@@ -91,4 +94,3 @@ export default class EspIdfStatus extends Vue {
   }
 }
 </script>
-
