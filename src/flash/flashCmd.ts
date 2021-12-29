@@ -16,21 +16,25 @@
  * limitations under the License.
  */
 
-import { pathExists } from "fs-extra";
+import { ensureDir, pathExists } from "fs-extra";
+import * as cp from "child_process";
 import { join } from "path";
 import * as idfConf from "../idfConfiguration";
 import * as vscode from "vscode";
 import { FlashTask } from "./flashTask";
+import {
+  selectedDFUAdapterId,
+  isBinInPath,
+  execChildProcess,
+  appendIdfAndToolsToPath,
+  listAvailableDfuDevices,
+} from "../utils";
 import { BuildTask } from "../build/buildTask";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
 
 const locDic = new LocDictionary(__filename);
-
-async function listDfuDevices() {
-  return new vscode.ShellExecution("dfu-util --list");
-}
 
 export async function verifyCanFlash(
   flashBaudRate: string,
@@ -86,7 +90,8 @@ export async function verifyCanFlash(
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType");
   if (selectedFlashType === "DFU") {
-    if (!(await listDfuDevices())) {
+    const listDfu = await listAvailableDfuDevices();
+    if (!listDfu) {
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         new Error("NO_DFU_DEVICES_FOUND")
@@ -94,4 +99,25 @@ export async function verifyCanFlash(
     }
   }
   return continueFlag;
+}
+
+export async function selectDfuDevice(arrDfuDevices) {
+  const target = idfConf.readParameter("idf.saveScope");
+  let selectedDfuDevice = await vscode.window.showQuickPick(arrDfuDevices, {
+    ignoreFocusOut: true,
+    placeHolder: "Select one of the available devices from the list",
+  });
+
+  if (selectedDfuDevice) {
+    const regex = new RegExp(/path="[0-9]+-[0-9]+"/g);
+    const pathValue = selectedDfuDevice.match(regex)[0].slice(6, -1);
+
+    await idfConf.writeParameter(
+      "idf.selectedDfuDevicePath",
+      pathValue,
+      target
+    );
+  } else {
+    await idfConf.writeParameter("idf.selectedDfuDevicePath", "", target);
+  }
 }

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 30th April 2021 9:26:11 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import { join } from "path";
 import { updateIdfComponentsTree } from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
+import { readParameter } from "../idfConfiguration";
 
 const locDic = new LocDictionary(__filename);
 
@@ -67,6 +68,12 @@ export async function buildCommand(
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
         return Logger.warnNotify(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+        );
+      }
+      const adapterTargetName = readParameter("idf.adapterTargetName");
+      if (adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
+        return Logger.warnNotify(
+          `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
         );
       }
       await buildTask.buildDfu();

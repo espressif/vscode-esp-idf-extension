@@ -966,15 +966,30 @@ export async function createNewComponent(
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
-export function selectedDFUAdapterId(chip) {
+export function selectedDFUAdapterId(chip: string): number {
   switch (chip) {
     case "esp32s2":
       return 2;
     case "esp32s3":
       return 9;
     default:
-      return;
+      return -1;
   }
+}
+
+export async function listAvailableDfuDevices() {
+  const target = idfConf.readParameter("idf.saveScope");
+  const text = await execChildProcess("dfu-util --list", "");
+  const regex = new RegExp(
+    /\[([0-9a-fA-F]{4}\:[0-9a-fA-F]{4}\]) ver=[0-9a-fA-F]{4}, devnum=[0-9]+, cfg=[0-9]+, intf=[0-9]+. path="[0-9]+-[0-9]+", alt=[0-9]+, name=".+", serial="[0-9]+"/g
+  );
+  const arrayDfuDevices = text.match(regex);
+  if (arrayDfuDevices) {
+    await idfConf.writeParameter("idf.listDfuDevices", arrayDfuDevices, target);
+  } else {
+    await idfConf.writeParameter("idf.listDfuDevices", [], target);
+  }
+  return arrayDfuDevices;
 }
 
 /**

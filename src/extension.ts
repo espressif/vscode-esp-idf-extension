@@ -98,7 +98,7 @@ import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
-import { verifyCanFlash } from "./flash/flashCmd";
+import { selectDfuDevice, verifyCanFlash } from "./flash/flashCmd";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createMonitorTerminal } from "./espIdf/monitor/command";
@@ -2924,6 +2924,10 @@ const flash = () => {
           workspaceRoot
         );
         if (canFlash) {
+          const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+          if (arrDfuDevices.length > 1) {
+            await selectDfuDevice(arrDfuDevices);
+          }
           await flashCommand(
             cancelToken,
             flashBaudRate,
@@ -3030,6 +3034,10 @@ async function selectFlashMethod(cancelToken) {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     return await jtagFlashCommand(buildPath);
   } else {
+    const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+    if (arrDfuDevices.length > 1) {
+      await selectDfuDevice(arrDfuDevices);
+    }
     return await flashCommand(
       cancelToken,
       flashBaudRate,

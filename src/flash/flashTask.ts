@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as path from "path";
 import { constants } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
@@ -150,10 +150,20 @@ export class FlashTask {
 
   public _dfuFlashing() {
     this.flashing(true);
+    const selectedDfuPath = idfConf.readParameter("idf.selectedDfuDevicePath");
+    if (selectedDfuPath) {
+      const idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
+      const pythonPath = idfConf.readParameter("idf.pythonBinPath") as string;
+      const idfPy = path.join(idfPathDir, "tools", "idf.py");
+      return new vscode.ShellExecution(
+        `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`
+      );
+    }
     return new vscode.ShellExecution(
-      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${
-        join(this.buildDir, "dfu.bin")
-      }`
+      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
+        this.buildDir,
+        "dfu.bin"
+      )}`
     );
   }
 
