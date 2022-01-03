@@ -12,7 +12,7 @@ suite("DFU Flashing Suite", () => {
       "..",
       "..",
       "testFiles",
-      "dfu-list.json"
+      "dfu-list.txt"
     );
     let data = await fse.readFile(urlText, "utf-8");
     let result = await listAvailableDfuDevices(data);
