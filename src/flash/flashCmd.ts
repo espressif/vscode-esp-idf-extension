@@ -111,7 +111,7 @@ export async function selectDfuDevice(arrDfuDevices) {
   });
 
   if (selectedDfuDevice) {
-    const regex = new RegExp(/path="[0-9]+-[0-9]+"/g);
+    const regex = new RegExp(/path="[0-9]+-(^[1-9][0-9]?$|^100$)+"/g);
     const pathValue = selectedDfuDevice.match(regex)[0].slice(6, -1);
 
     await idfConf.writeParameter(
