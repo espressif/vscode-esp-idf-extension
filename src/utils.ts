@@ -977,9 +977,8 @@ export function selectedDFUAdapterId(chip: string): number {
   }
 }
 
-export async function listAvailableDfuDevices() {
+export async function listAvailableDfuDevices(text) {
   const target = idfConf.readParameter("idf.saveScope");
-  const text = await execChildProcess("dfu-util --list", "");
   const regex = new RegExp(
     /\[([0-9a-fA-F]{4}\:[0-9a-fA-F]{4}\]) ver=[0-9a-fA-F]{4}, devnum=[0-9]+, cfg=[0-9]+, intf=[0-9]+. path="[0-9]+-[0-9]+", alt=[0-9]+, name=".+", serial="[0-9]+"/g
   );

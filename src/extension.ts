@@ -3089,6 +3089,10 @@ export function deactivate() {
   KconfigLangClient.stopKconfigLangServer();
 }
 
+export async function getDfuList() {
+  return await utils.execChildProcess("dfu-util --list", "");
+}
+
 class IdfDebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
   public async resolveDebugConfiguration(

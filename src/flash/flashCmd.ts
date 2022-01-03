@@ -29,6 +29,7 @@ import {
   appendIdfAndToolsToPath,
   listAvailableDfuDevices,
 } from "../utils";
+import { getDfuList } from "../extension";
 import { BuildTask } from "../build/buildTask";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
@@ -90,7 +91,8 @@ export async function verifyCanFlash(
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType");
   if (selectedFlashType === "DFU") {
-    const listDfu = await listAvailableDfuDevices();
+    const data = await getDfuList();
+    const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {
       return Logger.errorNotify(
         "No DFU capable USB device available found",
