@@ -151,7 +151,8 @@ export class FlashTask {
   public _dfuFlashing() {
     this.flashing(true);
     const selectedDfuPath = idfConf.readParameter("idf.selectedDfuDevicePath");
-    if (selectedDfuPath) {
+    const listDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+    if (listDfuDevices.length > 1) {
       const idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
       const pythonPath = idfConf.readParameter("idf.pythonBinPath") as string;
       const idfPy = path.join(idfPathDir, "tools", "idf.py");
