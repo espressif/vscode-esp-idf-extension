@@ -306,7 +306,7 @@ export async function getSetupInitialValues(
           : ["ninja"];
       }
     } else {
-      setupInitArgs.hasPrerequisites = prevInstall.gitVersion !== "Not found";
+      setupInitArgs.hasPrerequisites = true;
     }
     progress.report({ increment: 20, message: "Preparing setup view..." });
     if (prevInstall) {
