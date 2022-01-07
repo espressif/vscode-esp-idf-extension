@@ -103,16 +103,37 @@ export async function verifyCanFlash(
   return continueFlag;
 }
 
+function deviceLabel(selectedDevice) {
+  const regex = new RegExp(/:\d+\]/g);
+  const pid = selectedDevice.match(regex)[0].slice(4, -1);
+
+  if (pid[0] === "2") {
+    return "ESP32-S2";
+  }
+  return "ESP32-S3";
+}
+
 export async function selectDfuDevice(arrDfuDevices) {
   const target = idfConf.readParameter("idf.saveScope");
-  let selectedDfuDevice = await vscode.window.showQuickPick(arrDfuDevices, {
+  let options = [];
+  for (let i = 0; i < arrDfuDevices.length; i++) {
+    options.push(
+      new Object({
+        label: deviceLabel(arrDfuDevices[i]),
+        detail: arrDfuDevices[i],
+      })
+    );
+  }
+
+  let selectedDfuDevice = await vscode.window.showQuickPick(options, {
     ignoreFocusOut: true,
+    matchOnDetail: true,
     placeHolder: "Select one of the available devices from the list",
   });
 
   if (selectedDfuDevice) {
-    const regex = new RegExp(/path="[0-9]+-[0-9]+"/g);
-    const pathValue = selectedDfuDevice.match(regex)[0].slice(6, -1);
+    const regex = new RegExp(/path="[0-9.]+-[0-9.]+"/g);
+    const pathValue = selectedDfuDevice.detail.match(regex)[0].slice(6, -1);
 
     await idfConf.writeParameter(
       "idf.selectedDfuDevicePath",
