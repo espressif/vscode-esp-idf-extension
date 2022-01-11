@@ -99,17 +99,21 @@ export async function mergeFlashBinaries(
     }
   }
 
-  const isSilentMode = readParameter("idf.notificationSilentMode");
+  const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
   const showTaskOutput = isSilentMode
-    ? TaskRevealKind.Silent
-    : TaskRevealKind.Always;
+    ? TaskRevealKind.Always
+    : TaskRevealKind.Silent;
   const mergeExecution = await getMergeExecution(
     buildDirPath,
     esptoolPath,
     flashModel
   );
   TaskManager.addTask(
-    { type: "esp-idf", command: "Merge flash binaries", taskId: "idf-mergeBin-task" },
+    {
+      type: "esp-idf",
+      command: "Merge flash binaries",
+      taskId: "idf-mergeBin-task",
+    },
     TaskScope.Workspace,
     "Merge flash binaries",
     mergeExecution,

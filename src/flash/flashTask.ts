@@ -74,10 +74,12 @@ export class FlashTask {
       throw new Error("ALREADY_FLASHING");
     }
     this.verifyArgs();
-    const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
+    const isSilentMode = idfConf.readParameter(
+      "idf.notificationSilentMode"
+    ) as boolean;
     const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Silent
-      : vscode.TaskRevealKind.Always;
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
     let isWsl2Kernel = isRunningInWsl();
     const powershellPath = await isBinInPath(
       "powershell.exe",
