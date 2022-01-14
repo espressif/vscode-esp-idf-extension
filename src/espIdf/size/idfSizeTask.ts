@@ -62,10 +62,10 @@ export class IdfSizeTask {
       env: modifiedEnv,
     };
     const sizeExecution = await this.getShellExecution(options);
-    const isSilentMode = readParameter("idf.notificationSilentMode");
+    const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
     const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Silent
-      : TaskRevealKind.Always;
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
 
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Size", taskId: "idf-size-task" },

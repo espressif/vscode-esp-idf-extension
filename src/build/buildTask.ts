@@ -94,10 +94,12 @@ export class BuildTask {
       cwd: this.curWorkspace,
       env: modifiedEnv,
     };
-    const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
+    const isSilentMode = idfConf.readParameter(
+      "idf.notificationSilentMode"
+    ) as boolean;
     const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Silent
-      : vscode.TaskRevealKind.Always;
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
 
     if (!cmakeCacheExists) {
       const compilerArgs = (idfConf.readParameter(
@@ -118,7 +120,11 @@ export class BuildTask {
       }
       const compileExecution = this.getShellExecution(compilerArgs, options);
       TaskManager.addTask(
-        { type: "esp-idf", command: "ESP-IDF Compile", taskId: "idf-compile-task" },
+        {
+          type: "esp-idf",
+          command: "ESP-IDF Compile",
+          taskId: "idf-compile-task",
+        },
         vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
@@ -127,9 +133,8 @@ export class BuildTask {
       );
     }
 
-    const buildArgs = (idfConf.readParameter("idf.ninjaArgs") as Array<
-      string
-    >) || [];
+    const buildArgs =
+      (idfConf.readParameter("idf.ninjaArgs") as Array<string>) || [];
     const buildExecution = this.getNinjaShellExecution(buildArgs, options);
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },

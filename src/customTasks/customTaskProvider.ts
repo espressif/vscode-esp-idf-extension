@@ -86,10 +86,10 @@ export class CustomTask {
       cwd: this.currentWorkspace,
       env: modifiedEnv,
     };
-    const isSilentMode = readParameter("idf.notificationSilentMode");
+    const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
     const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Silent
-      : TaskRevealKind.Always;
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
     const customExecution = this.getProcessExecution(cmd, options);
     TaskManager.addTask(
       {

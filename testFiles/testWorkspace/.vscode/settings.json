@@ -12,5 +12,6 @@
   "files.simpleDialog.enable": true,
   "window.dialogStyle": "custom",
   "idf.customExtraPaths": "${env:PATH}",
-  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\" }"
+  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\" }",
+  "idf.notificationSilentMode": true
 }
