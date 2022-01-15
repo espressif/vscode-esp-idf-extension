@@ -1269,7 +1269,7 @@
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",
-    "marked": "^0.7.0",
+    "marked": "^4.0.10",
     "plotly.js-dist": "^1.54.1",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
