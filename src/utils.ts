@@ -962,36 +962,6 @@ export async function createNewComponent(
 }
 
 /**
- * Select IDF target PID for DFU flashing
- * @param {string} chip - String to identify the chip (IDF_TARGET)
- * @returns {number} PID Number for DFU
- */
-export function selectedDFUAdapterId(chip: string): number {
-  switch (chip) {
-    case "esp32s2":
-      return 2;
-    case "esp32s3":
-      return 9;
-    default:
-      return -1;
-  }
-}
-
-export async function listAvailableDfuDevices(text) {
-  const target = idfConf.readParameter("idf.saveScope");
-  const regex = new RegExp(
-    /\[([0-9a-fA-F]{4}\:[0-9a-fA-F]{4}\]) ver=.+, devnum=[0-9]+, cfg=.+, intf=.+, path=".+", alt=.+, name=".+", serial=".+"/g
-  );
-  const arrayDfuDevices = text.match(regex);
-  if (arrayDfuDevices) {
-    await idfConf.writeParameter("idf.listDfuDevices", arrayDfuDevices, target);
-  } else {
-    await idfConf.writeParameter("idf.listDfuDevices", [], target);
-  }
-  return arrayDfuDevices;
-}
-
-/**
  * Compare two version strings based on semantic versioning.
  * @param {string} v1 - String containing dot-separated numbers.
  * @param {string} v2 - String containing dot-separated numbers.

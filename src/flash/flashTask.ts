@@ -28,9 +28,9 @@ import {
   extensionContext,
   isBinInPath,
   isRunningInWsl,
-  selectedDFUAdapterId,
 } from "../utils";
 import { TaskManager } from "../taskManager";
+import { selectedDFUAdapterId } from "./dfu";
 
 export class FlashTask {
   public static isFlashing: boolean;

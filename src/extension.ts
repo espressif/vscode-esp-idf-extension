@@ -98,7 +98,7 @@ import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
-import { selectDfuDevice, verifyCanFlash } from "./flash/flashCmd";
+import { verifyCanFlash } from "./flash/flashCmd";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createMonitorTerminal } from "./espIdf/monitor/command";
@@ -117,6 +117,7 @@ import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
 import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
+import { selectDfuDevice } from "./flash/dfu";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3087,10 +3088,6 @@ export function deactivate() {
     covRenderer.dispose();
   }
   KconfigLangClient.stopKconfigLangServer();
-}
-
-export async function getDfuList() {
-  return await utils.execChildProcess("dfu-util --list", "");
 }
 
 class IdfDebugConfigurationProvider

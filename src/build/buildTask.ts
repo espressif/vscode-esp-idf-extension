@@ -24,9 +24,9 @@ import * as idfConf from "../idfConfiguration";
 import {
   appendIdfAndToolsToPath,
   isBinInPath,
-  selectedDFUAdapterId,
 } from "../utils";
 import { TaskManager } from "../taskManager";
+import { selectedDFUAdapterId } from "../flash/dfu";
 
 export class BuildTask {
   public static isBuilding: boolean;
