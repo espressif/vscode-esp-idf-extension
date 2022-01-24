@@ -99,7 +99,7 @@ import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
 import { verifyCanFlash } from "./flash/flashCmd";
-import { uartFlashCommand } from "./flash/uartFlash";
+import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createMonitorTerminal } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
@@ -117,6 +117,7 @@ import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
 import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
+import { selectDfuDevice } from "./flash/dfu";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1229,6 +1230,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
 
+  registerIDFCommand("espIdf.flashDFU", flash);
+  registerIDFCommand("espIdf.buildDFU", build);
   registerIDFCommand("espIdf.flashDevice", flash);
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -2891,7 +2894,8 @@ const build = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        await buildCommand(workspaceRoot, cancelToken);
+        const buildType = idfConf.readParameter("idf.flashType");
+        await buildCommand(workspaceRoot, cancelToken, buildType);
       }
     );
   });
@@ -2911,6 +2915,7 @@ const flash = () => {
         const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         const port = idfConf.readParameter("idf.port");
         const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        const selectedFlashType = idfConf.readParameter("idf.flashType");
         if (monitorTerminal) {
           monitorTerminal.sendText(ESP.CTRL_RBRACKET);
         }
@@ -2920,12 +2925,17 @@ const flash = () => {
           workspaceRoot
         );
         if (canFlash) {
-          await uartFlashCommand(
+          const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+          if (arrDfuDevices.length > 1) {
+            await selectDfuDevice(arrDfuDevices);
+          }
+          await flashCommand(
             cancelToken,
             flashBaudRate,
             idfPathDir,
             port,
-            workspaceRoot
+            workspaceRoot,
+            selectedFlashType
           );
         }
       }
@@ -2959,7 +2969,12 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
-        let canContinue = await buildCommand(workspaceRoot, cancelToken);
+        const buildType = idfConf.readParameter("idf.flashType");
+        let canContinue = await buildCommand(
+          workspaceRoot,
+          cancelToken,
+          buildType
+        );
         if (!canContinue) {
           return;
         }
@@ -2983,17 +2998,23 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
   });
 };
 
+enum selectedFlashType {
+  JTAG = "JTAG",
+  UART = "UART",
+  DFU = "DFU",
+}
+
 async function selectFlashMethod(cancelToken) {
-  let flashType = idfConf.readParameter("idf.flashType");
-  if (!flashType) {
-    flashType = await vscode.window.showQuickPick(["JTAG", "UART"], {
+  let flashType = await vscode.window.showQuickPick(
+    Object.keys(selectedFlashType),
+    {
       ignoreFocusOut: true,
       placeHolder:
         "Select flash method, you can modify the choice later from settings 'idf.flashType'",
-    });
-    const target = idfConf.readParameter("idf.saveScope");
-    await idfConf.writeParameter("idf.flashType", flashType, target);
-  }
+    }
+  );
+  const target = idfConf.readParameter("idf.saveScope");
+  await idfConf.writeParameter("idf.flashType", flashType, target);
 
   if (!flashType) {
     return;
@@ -3013,13 +3034,18 @@ async function selectFlashMethod(cancelToken) {
   if (flashType === "JTAG") {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     return await jtagFlashCommand(buildPath);
-  } else if (flashType === "UART") {
-    return await uartFlashCommand(
+  } else {
+    const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+    if (arrDfuDevices.length > 1) {
+      await selectDfuDevice(arrDfuDevices);
+    }
+    return await flashCommand(
       cancelToken,
       flashBaudRate,
       idfPathDir,
       port,
-      workspaceRoot
+      workspaceRoot,
+      flashType
     );
   }
 }

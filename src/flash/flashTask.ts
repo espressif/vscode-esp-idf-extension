@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as path from "path";
 import { constants } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
@@ -30,6 +30,7 @@ import {
   isRunningInWsl,
 } from "../utils";
 import { TaskManager } from "../taskManager";
+import { selectedDFUAdapterId } from "./dfu";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -69,7 +70,7 @@ export class FlashTask {
     }
   }
 
-  public async flash() {
+  public async flash(flashType) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
@@ -90,7 +91,16 @@ export class FlashTask {
     if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
       flashExecution = await this._wslFlashExecution();
     } else {
-      flashExecution = this._flashExecution();
+      switch (flashType) {
+        case "UART":
+          flashExecution = this._flashExecution();
+          break;
+        case "DFU":
+          flashExecution = this._dfuFlashing();
+          break;
+        default:
+          break;
+      }
     }
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
@@ -136,6 +146,26 @@ export class FlashTask {
     };
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     return new vscode.ProcessExecution(pythonBinPath, flasherArgs, options);
+  }
+
+  public _dfuFlashing() {
+    this.flashing(true);
+    const selectedDfuPath = idfConf.readParameter("idf.selectedDfuDevicePath");
+    const listDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+    if (listDfuDevices.length > 1) {
+      const idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
+      const pythonPath = idfConf.readParameter("idf.pythonBinPath") as string;
+      const idfPy = path.join(idfPathDir, "tools", "idf.py");
+      return new vscode.ShellExecution(
+        `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`
+      );
+    }
+    return new vscode.ShellExecution(
+      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
+        this.buildDir,
+        "dfu.bin"
+      )}`
+    );
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {

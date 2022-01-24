@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 30th April 2021 10:25:57 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,14 @@
 
 import { pathExists } from "fs-extra";
 import { join } from "path";
+import * as idfConf from "../idfConfiguration";
 import * as vscode from "vscode";
 import { FlashTask } from "./flashTask";
 import { BuildTask } from "../build/buildTask";
 import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
+import { getDfuList, listAvailableDfuDevices } from "./dfu";
 
 const locDic = new LocDictionary(__filename);
 
@@ -78,6 +80,17 @@ export async function verifyCanFlash(
       "Select a baud rate before flashing",
       new Error("NOT_SELECTED_BAUD_RATE")
     );
+  }
+  const selectedFlashType = idfConf.readParameter("idf.flashType");
+  if (selectedFlashType === "DFU") {
+    const data = await getDfuList();
+    const listDfu = await listAvailableDfuDevices(data);
+    if (!listDfu) {
+      return Logger.errorNotify(
+        "No DFU capable USB device available found",
+        new Error("NO_DFU_DEVICES_FOUND")
+      );
+    }
   }
   return continueFlag;
 }

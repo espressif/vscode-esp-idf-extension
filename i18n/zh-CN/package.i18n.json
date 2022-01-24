@@ -14,6 +14,7 @@
   "espIdf.selectPort.title": "ESP-IDF：选择要使用的烧录端口 (COM, tty, usbserial)",
   "espIdf.buildDevice.title": "ESP-IDF：构建项目",
   "espIdf.flashDevice.title": "ESP-IDF：烧录项目 (UART)",
+  "espIdf.flashDFU.title": "ESP-IDF：烧录项目 (DFU)",
   "espIdf.monitorDevice.title": "ESP-IDF：监视设备输出",
   "espIdf.setup.title": "ESP-IDF：配置 ESP-IDF 插件",
   "espIdf.examples.title": "ESP-IDF：展示示例项目",

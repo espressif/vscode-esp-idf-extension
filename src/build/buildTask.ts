@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 27th September 2019 9:59:57 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,19 +17,29 @@
  */
 
 import { ensureDir, pathExists } from "fs-extra";
-import { join } from "path";
+import { join, dirname } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  isBinInPath,
+} from "../utils";
 import { TaskManager } from "../taskManager";
+import { selectedDFUAdapterId } from "../flash/dfu";
 
 export class BuildTask {
   public static isBuilding: boolean;
   private curWorkspace: string;
+  private idfPathDir: string;
+  private adapterTargetName: string;
 
   constructor(workspace: string) {
     this.curWorkspace = join(workspace, "build");
+    this.idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
+    this.adapterTargetName = idfConf.readParameter(
+      "idf.adapterTargetName"
+    ) as string;
   }
 
   public building(flag: boolean) {
@@ -55,6 +65,19 @@ export class BuildTask {
     options?: vscode.ShellExecutionOptions
   ) {
     return new vscode.ShellExecution(`ninja ${args.join(" ")}`, options);
+  }
+
+  public dfuShellExecution(options?: vscode.ShellExecutionOptions) {
+    return new vscode.ShellExecution(
+      `${join(this.idfPathDir, "tools", "mkdfu.py")} write -o ${join(
+        this.curWorkspace,
+        "dfu.bin"
+      )} --json ${join(
+        this.curWorkspace,
+        "flasher_args.json"
+      )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
+      options
+    );
   }
 
   public async build() {
@@ -141,6 +164,36 @@ export class BuildTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
+      ["idfRelative", "idfAbsolute"],
+      showTaskOutput
+    );
+  }
+
+  public async buildDfu() {
+    this.building(true);
+    const modifiedEnv = appendIdfAndToolsToPath();
+    await ensureDir(this.curWorkspace);
+
+    const options: vscode.ShellExecutionOptions = {
+      cwd: dirname(this.curWorkspace),
+      env: modifiedEnv,
+    };
+
+    const isSilentMode = idfConf.readParameter("idf.notificationSilentMode");
+    const showTaskOutput = isSilentMode
+      ? vscode.TaskRevealKind.Always
+      : vscode.TaskRevealKind.Silent;
+
+    const writeExecution = this.dfuShellExecution(options);
+    TaskManager.addTask(
+      {
+        type: "esp-idf",
+        command: "ESP-IDF Write DFU.bin",
+        taskId: "idf-write-dfu-task",
+      },
+      vscode.TaskScope.Workspace,
+      "ESP-IDF Write DFU.bin",
+      writeExecution,
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
     );

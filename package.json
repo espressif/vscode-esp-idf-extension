@@ -50,6 +50,7 @@
     "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
     "onCommand:espIdf.flashDevice",
+    "onCommand:espIdf.flashDFU",
     "onCommand:espIdf.monitorDevice",
     "onCommand:espIdf.pickAWorkspaceFolder",
     "onCommand:espIdf.buildFlashMonitor",
@@ -624,10 +625,19 @@
             "type": "string",
             "enum": [
               "UART",
-              "JTAG"
+              "JTAG",
+              "DFU"
             ],
             "description": "%idf.flashType.description%",
             "scope": "resource"
+          },
+          "idf.selectedDfuDevicePath": {
+            "type":"string",
+            "default": ""
+          },
+          "idf.listDfuDevices": {
+            "type":"array",
+            "default": "[]"
           },
           "openocd.tcl.host": {
             "type": "string",
@@ -810,6 +820,10 @@
       {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%"
+      },
+      {
+        "command": "espIdf.flashDFU",
+        "title": "%espIdf.flashDFU.title%"
       },
       {
         "command": "espIdf.monitorDevice",
