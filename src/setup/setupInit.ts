@@ -242,7 +242,16 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
   if (!pyExists) {
     return false;
   }
-  const requirements = path.join(espIdfPath, "requirements.txt");
+  let requirements: string;
+  requirements = path.join(espIdfPath, "requirements.core.txt"); 
+  const coreRequirementsExists = await pathExists(requirements);
+  if (!coreRequirementsExists) {
+    requirements = path.join(espIdfPath, "requirements.txt");
+    const requirementsExists = await pathExists(requirements);
+    if (!requirementsExists) {
+      return false;
+    }
+  }
   const reqsResults = await utils.startPythonReqsProcess(
     pyVenvPath,
     espIdfPath,
