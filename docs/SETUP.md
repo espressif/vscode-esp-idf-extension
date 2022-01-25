@@ -46,7 +46,14 @@ Setup wizard provides 3 choices:
 - **Use existing setup**: This option will use an existing setup if:
   1. `esp-idf.json` is found in the current `idf.toolsPath` (MacOS/Linux users) or `idf.toolsPathWin` (Windows users). This file is generated when you install ESP-IDF with the [IDF Windows installer](https://github.com/espressif/idf-installer) or using [IDF-ENV](https://github.com/espressif/idf-env).
   2. ESP-IDF is found in `idf.espIdfPath` or `idf.espIdfPathWin`, `IDF_PATH` environment variable, `$HOME/esp/esp-idf` on MacOS/Linux and `%USERPROFILE%\esp\esp-idf` or `%USERPROFILE%\Desktop\esp-idf` in Windows.
-  3. ESP-IDF Tools and ESP-IDF Python virtual environment for the previos ESP-IDF are found in `idf.toolsPath` or `idf.toolsPathWin`, `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
+  3. ESP-IDF Tools and ESP-IDF Python virtual environment for the previous ESP-IDF are found in `idf.toolsPath` or `idf.toolsPathWin`, `IDF_TOOLS_PATH` environment variable, `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows.
+
+> **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages, this extension (`EXTENSION_PATH`/requirements.txt and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages where `EXTENSION_PATH` is:
+
+- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
+- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
+
+so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment.
 
 > **NOTE:** Make sure that `IDF_PATH` and `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues.
 

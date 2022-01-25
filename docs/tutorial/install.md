@@ -1,6 +1,6 @@
 # Installation
 
-  > **NOTE:** [troubleshooting](../../README.md#Troubleshooting)
+> **NOTE:** [troubleshooting](../../README.md#Troubleshooting)
 
 1. Download and install [Visual Studio Code](https://code.visualstudio.com/).
 2. Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of Visual Studio Code or the **View: Extensions** command <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd>.
@@ -30,7 +30,7 @@
 10. If you choose **Express** setup mode:
     - Pick an ESP-IDF version to download (or find ESP-IDF in your system) and the python executable to create the virtual environment.
     - Choose the location for ESP-IDF Tools and python virtual environment (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
-    > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
+      > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
 
 > **NOTE:** Make sure that `IDF_PATH` and `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues.
 
@@ -65,8 +65,13 @@
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
 </p>
 
-> **NOTE**: The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path. Make sure each  ESP-IDF tool path doesn't have any spaces.
+> **NOTE**: The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path. Make sure each ESP-IDF tool path doesn't have any spaces.
 
 15. Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 
-  > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review [vscode settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
+> **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review [vscode settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
+
+> **NOTE:** the setup wizard will install ESP-IDF Python packages, this extension (`EXTENSION_PATH`/requirements.txt) and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages. Make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment. The `EXTENSION_PATH` is:
+
+- Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
+- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`

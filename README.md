@@ -4,8 +4,9 @@
 
 # ESP-IDF VS Code Extension
 
+[![Tutorials](https://img.shields.io/badge/-Tutorials-red)](./docs/tutorial/toc.md)
 [![Documentation](https://img.shields.io/badge/Documentation-blue)](./docs/ONBOARDING.md)
-[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2%20ESP32--S3%20ESP32--C3-green)](./docs/HARDWARE_SUPPORT.md)
+[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2%20ESP32--S3%20ESP32--C3-red)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
@@ -20,6 +21,16 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
   </p>
 </a>
 
+# Tutorials
+
+1. [Install and setup the extension](./docs/tutorial/install.md).
+2. [Create a project from example, Build, flash and monitor](./docs/tutorial/install.md).
+3. [Debugging](./docs/tutorial/debugging.md) with steps to configure OpenOCD and debug adapter.
+4. [Heap tracing](./docs/tutorial/heap_tracing.md)
+5. [Code coverage](./docs/tutorial/code_coverage.md)
+
+Check all the tutorials [here](./docs/tutorial/toc.md).
+
 # Table of content
 
 1. [Prerequisites](#Prerequisites)
@@ -30,6 +41,8 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 6. [Troubleshooting](#Troubleshooting)
 7. [Code of Conduct](#Code-of-Conduct)
 8. [License](#License)
+
+Check all the [documentation](./docs/ONBOARDING.md).
 
 # Prerequisites
 
@@ -62,6 +75,8 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
 - Configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md). There is a default configuration that should work but you might want to modify it to your needs.
 
   > **Note:** If you want to get code navigation and ESP-IDF function references, the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to resolve header/source links. By default, projects created with **ESP-IDF: Create project from extension template** or **ESP-IDF: Show Examples Projects** tries to resolve headers by manually recursing ESP-IDF directory sources with the `Tag Parser` engine. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
+
+  > **NOTE:** You should set `"C_Cpp.intelliSenseEngine": "Tag Parser"` in your settings.json if you are not using the compile_commands.json approach.
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
@@ -176,9 +191,11 @@ Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system 
 
 If something is not working please check for any error on one of these:
 
-> **NOTE:** Use `idf.openOcdDebugLevel` to 3 or more to show debug logging in OpenOCD server output.
+> **NOTE:** Use `idf.openOcdDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
 
-1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor.
+> **NOTE:** Use `logLevel` in launch.json to 3 or more to show more debug adapter output.
+
+1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor. This output information is useful what is happening in each tool.
 2. Use the `ESP-IDF: Doctor command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
 3. Check log file which can be obtained from:
 
@@ -187,7 +204,7 @@ If something is not working please check for any error on one of these:
 
 4. In Visual Studio Code, select menu "Help" -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
 
-5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and WorkspaceFolder. The doctor command might give the values from user settings instead of the workspace folder settings.
+5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and WorkspaceFolder so make sure your project has the right settings. The doctor command might give the values from user settings instead of the workspace folder settings.
 
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
