@@ -122,6 +122,7 @@ export async function downloadInstallIdfVersion(
     sendExtractedZip(expectedDirectory);
 
     if (gitPath) {
+      await utils.fixFileModeGitRepository(expectedDirectory, gitPath);
       await utils.cleanDirtyGitRepository(expectedDirectory, gitPath);
     }
   }
