@@ -702,6 +702,29 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
   }
 }
 
+export async function cleanDirtyGitRepository(
+  workingDir: string,
+  gitPath: string
+) {
+  try {
+    const gitBinariesExists = await pathExists(gitPath);
+    if (!gitBinariesExists) {
+      return;
+    }
+    const modifiedEnv = appendIdfAndToolsToPath();
+    const resetResult = await execChildProcess(
+      `"${gitPath}" reset --hard --recurse-submodule`,
+      workingDir,
+      OutputChannel.init(),
+      { env: modifiedEnv, cwd: workingDir }
+    );
+    OutputChannel.init().appendLine(resetResult + EOL);
+  } catch (error) {
+    const errMsg = error.message ? error.message : "Error resetting repository";
+    Logger.errorNotify(errMsg, error);
+  }
+}
+
 export function buildPromiseChain<TItem, TPromise>(
   items: TItem[],
   promiseBuilder: (TItem: TItem) => Promise<TPromise>
