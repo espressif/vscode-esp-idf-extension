@@ -53,7 +53,7 @@ Setup wizard provides 3 choices:
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
 
-so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment. 
+so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment.
 
 > **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
 
