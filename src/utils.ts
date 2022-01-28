@@ -353,10 +353,10 @@ export function readComponentsDirs(filePath): IdfComponent[] {
     const idfCommand = stats.isDirectory()
       ? void 0
       : {
-        arguments: [vscode.Uri.file(path.join(filePath, file))],
-        command: "espIdf.openIdfDocument",
-        title: openComponentMsg,
-      };
+          arguments: [vscode.Uri.file(path.join(filePath, file))],
+          command: "espIdf.openIdfDocument",
+          title: openComponentMsg,
+        };
     const component = new IdfComponent(
       file,
       isCollapsable,
@@ -388,9 +388,9 @@ export function execChildProcess(
   const execOpts: childProcess.ExecOptions = opts
     ? opts
     : {
-      cwd: workingDirectory,
-      maxBuffer: 500 * 1024,
-    };
+        cwd: workingDirectory,
+        maxBuffer: 500 * 1024,
+      };
   return new Promise<string>((resolve, reject) => {
     childProcess.exec(
       processStr,
@@ -725,7 +725,10 @@ export async function cleanDirtyGitRepository(
   }
 }
 
-export async function fixFileModeGitRepository(workingDir: string, gitPath: string) {
+export async function fixFileModeGitRepository(
+  workingDir: string,
+  gitPath: string
+) {
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
@@ -744,9 +747,13 @@ export async function fixFileModeGitRepository(workingDir: string, gitPath: stri
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
     );
-    OutputChannel.init().appendLine(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL);
+    OutputChannel.init().appendLine(
+      fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL
+    );
   } catch (error) {
-    const errMsg = error.message ? error.message : "Error fixing FileMode in repository";
+    const errMsg = error.message
+      ? error.message
+      : "Error fixing FileMode in repository";
     Logger.errorNotify(errMsg, error);
   }
 }
@@ -1029,8 +1036,8 @@ export function compareVersion(v1: string, v2: string) {
   return v1Parts.length === v2Parts.length
     ? 0
     : v1Parts.length < v2Parts.length
-      ? -1
-      : 1;
+    ? -1
+    : 1;
 }
 
 /**
@@ -1075,8 +1082,9 @@ export function markdownToWebviewHtml(
     const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
     const absPath = `<img src="${panel.webview.asWebviewUri(
       vscode.Uri.file(path.resolve(projectPath, pathToResolve[1]))
-    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${width && width.length > 0 ? `width="${width[1]}"` : ""
-      } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
+      width && width.length > 0 ? `width="${width[1]}"` : ""
+    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
     contentStr = contentStr.replace(encodedMatch[0], absPath);
   }
   contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");

@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 
 jobs:
   extension_ci:
@@ -17,6 +17,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
+
+      - name: Setup Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+
+      - name: Install Node Dependencies
+        run: yarn
+
+      - name: Lint Check
+        run: yarn lint
 
       - name: Run test
         uses: ./.github/actions/idf
@@ -31,18 +42,6 @@ jobs:
         with:
           name: test-result.xml
           path: test-result.xml
-
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: "12.x"
-
-
-      - name: Install Node Dependencies
-        run: yarn
-
-      - name: Lint Check
-        run: yarn lint
 
       - name: Package open .vsix
         run: yarn packageWithoutDependencies
