@@ -31,16 +31,20 @@ If applicable, add screenshots to help explain your problem.
 - ESP-IDF Version: [e.g. v3.2.2]
 - Python Version: [e.g. 2.7.10]
 
-> **NOTE**: You can use the `ESP-IDF: Doctor command` to generate a report of your configuration.
+> **NOTE**: You can use the `ESP-IDF: Doctor command` to generate a report of your configuration in your clipboard which you can copy here.
 
 **Output**
 
-Click the menu `View` and select `Output`. This extension uses several output channels: ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor.
+In Visual Studio Code select menu `View` -> `Output` -> ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor.
 
-Please share the output of the channel related to your issue. For example ESP-IDF is used mostly for the extension setup process.
+> **NOTE:** Use `idf.openOcdDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
+
+> **NOTE:** Use `logLevel` in your <project-directory>/.vscode/launch.json to 3 or more to show more debug adapter output.
+
+Please share the output of the channel related to your issue. For example ESP-IDF is used mostly for the extension setup process output.
 
 **Logs**
-If applicable, please share the log file which can be obtained from
+Please share the log file which can be obtained from:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`

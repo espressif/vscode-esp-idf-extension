@@ -11,6 +11,8 @@ We recommend using our ESP-IDF Debug Adapter to debug your ESP-IDF projects, but
 
 ## Use the ESP-IDF Debug Adapter
 
+> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable you use in `idf.pythonBinPath` contains these libraries. This will be dropped in later versions of ESP-IDF.
+
 This extension includes the [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) which implement the debug adapter protocol (DAP) to communicate Xtensa's Toolchain and OpenOCD with Visual Studio Code allowing the user to easily debug ESP-IDF applications. Visual Studio Code will:
 
 1. Launch the debug adapter server in port `debugPort` given in launch.json if `mode` is `auto` or

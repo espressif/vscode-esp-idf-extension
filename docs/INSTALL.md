@@ -33,7 +33,7 @@ To install from `.vsix` file:
 ## Configure the extension
 
 - (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md) for more information. Default is User settings.
-- Please take a look at [SETUP](./SETUP.md) for details about extension configuration.
+- Please take a look at [SETUP](./SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about the extension configuration.
 
 ## Uninstalling the plugin
 

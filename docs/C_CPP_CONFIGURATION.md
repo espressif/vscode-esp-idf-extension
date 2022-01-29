@@ -10,7 +10,7 @@ To enable Code Navigation, auto-complete and other language support features on 
 ## Default configuration
 
 With this configuration file, the IntelliSense engine of the C/C++ extension will include all header files found by performing a recursive search of the `${config:idf.espIdfPath}/components` folder.
-For this configuration to work, you need to set you C/C++ Extension IntelliSense engine to **Tag Parser**.
+For this configuration to work, you need to set you C/C++ Extension IntelliSense engine to **Tag Parser** by using `C_Cpp.intelliSenseEngine": "Tag Parser"` in your settings.json.
 
 An example configuration that should work with most projects is shown below.
 
