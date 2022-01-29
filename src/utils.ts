@@ -204,12 +204,21 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
       await copy(fSrcPath, fPath);
     }
   }
+  await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
+}
+
+export async function setCCppPropertiesJsonCompilerPath(
+  curWorkspaceFsPath: string
+) {
   const cCppPropertiesJsonPath = path.join(
     curWorkspaceFsPath,
     ".vscode",
     "c_cpp_properties.json"
   );
-  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
+  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
+  if (!doesPathExists) {
+    return;
+  }
   const modifiedEnv = appendIdfAndToolsToPath();
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool =
@@ -221,16 +230,17 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
     curWorkspaceFsPath,
     modifiedEnv
   );
+  const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
   if (
     cCppPropertiesJson &&
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
     cCppPropertiesJson.configurations[0].compilerPath = compilerPath;
+    await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
+      spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
+    });
   }
-  await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
-    spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
-  });
 }
 
 export function chooseTemplateDir() {

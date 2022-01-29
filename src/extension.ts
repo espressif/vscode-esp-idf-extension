@@ -1460,6 +1460,7 @@ export async function activate(context: vscode.ExtensionContext) {
             );
             Logger.info(setTargetResult.toString());
             OutputChannel.append(setTargetResult.toString());
+            utils.setCCppPropertiesJsonCompilerPath(workspaceRoot.fsPath);
           } catch (err) {
             if (err.message && err.message.indexOf("are satisfied") > -1) {
               Logger.info(err.message.toString());
