@@ -632,11 +632,11 @@
             "scope": "resource"
           },
           "idf.selectedDfuDevicePath": {
-            "type":"string",
+            "type": "string",
             "default": ""
           },
           "idf.listDfuDevices": {
-            "type":"array",
+            "type": "array",
             "default": "[]"
           },
           "openocd.tcl.host": {
