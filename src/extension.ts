@@ -3036,7 +3036,9 @@ async function selectFlashMethod(cancelToken) {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     return await jtagFlashCommand(buildPath);
   } else {
-    const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices") as string[];
+    const arrDfuDevices = idfConf.readParameter(
+      "idf.listDfuDevices"
+    ) as string[];
     if (flashType === "DFU" && arrDfuDevices.length > 1) {
       await selectDfuDevice(arrDfuDevices);
     }
