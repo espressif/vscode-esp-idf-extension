@@ -37,10 +37,8 @@ export function run(): Promise<void> {
       toConsole: true,
       outputs: true,
     },
-    useColors: true,
     inlineDiffs: true,
   });
-  mocha.useColors(true);
 
   const testsRoot = path.resolve(__dirname, "..");
 

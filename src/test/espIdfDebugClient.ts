@@ -18,8 +18,8 @@
 
 import * as cp from "child_process";
 import * as net from "net";
-import { ProtocolClient } from "vscode-debugadapter-testsupport/lib/protocolClient";
-import { DebugProtocol } from "vscode-debugprotocol";
+import { ProtocolClient } from "@vscode/debugadapter-testsupport/lib/protocolClient";
+import { DebugProtocol } from "@vscode/debugprotocol";
 
 export class EspIdfDebugClient extends ProtocolClient {
   private runtime: string;
