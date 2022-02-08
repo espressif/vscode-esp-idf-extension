@@ -2917,7 +2917,10 @@ const flash = () => {
         const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         const port = idfConf.readParameter("idf.port");
         const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
-        const selectedFlashType = idfConf.readParameter("idf.flashType", workspaceRoot);
+        const selectedFlashType = idfConf.readParameter(
+          "idf.flashType",
+          workspaceRoot
+        );
         if (monitorTerminal) {
           monitorTerminal.sendText(ESP.CTRL_RBRACKET);
         }
