@@ -44,7 +44,18 @@ export class PlatformInformation {
       case "win32":
         return this.architecture === "x86" ? "win32" : "win64";
       case "linux":
-        return this.architecture === "x86" ? "linux-i686" : "linux-amd64";
+        switch (this.architecture) {
+          case "arm64":
+            return "linux-arm64";
+          case "armel":
+            return "linux-armel";
+          case "armhf":
+            return "linux-armhf";
+          case "x86":
+            return "linux-i686";
+          default:
+            return "linux-amd64";
+        }
       default:
         break;
     }
