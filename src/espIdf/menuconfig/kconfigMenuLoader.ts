@@ -45,10 +45,11 @@ export class KconfigMenuLoader {
       newConfig.range = values.ranges[newConfig.name];
     }
     for (let i = 0; i < newConfig.children.length; i++) {
-      const newChild = this.updateValues(newConfig.children[i], values);
-      newConfig.children[i] = newChild;
-      if (newConfig.type === menuType.choice && newChild.value === true) {
-        newConfig.value = newChild.name;
+      newConfig.children[i] = this.updateValues(newConfig.children[i], values);
+      if (newConfig.type === menuType.choice) {
+        values.values[newConfig.children[i].name]
+          ? (newConfig.value = newConfig.children[i].name)
+          : (newConfig.children[i].value = false);
       }
     }
     return newConfig;

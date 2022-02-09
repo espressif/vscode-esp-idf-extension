@@ -22,6 +22,7 @@
                   v-for="option in config.children"
                   :key="option.id"
                   :value="option.id"
+                  v-show="option.isVisible"
                 >
                   {{ option.title }}
                 </option>
