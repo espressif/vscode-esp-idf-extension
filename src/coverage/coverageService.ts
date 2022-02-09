@@ -136,7 +136,7 @@ function _runCmd(cmd: string, args: string[], dirPath: string) {
 
 export async function generateCoverageForEditors(
   dirPath: string,
-  editors: vscode.TextEditor[],
+  editors: readonly vscode.TextEditor[],
   gcovJsonObj
 ) {
   const coveredEditors: textEditorWithCoverage[] = [];

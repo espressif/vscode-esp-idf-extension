@@ -28,7 +28,7 @@ import {
   writeJSON,
 } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
-import marked from "marked";
+import { marked } from "marked";
 import { EOL } from "os";
 import * as path from "path";
 import * as url from "url";
@@ -40,6 +40,7 @@ import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
+import * as sanitizedHtml from "sanitize-html";
 
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
@@ -54,7 +55,6 @@ let templateDir: string = path.join(
 );
 export function setExtensionContext(context: vscode.ExtensionContext): void {
   extensionContext = context;
-  // templateDir = path.join(extensionContext.extensionPath, "templates");
 }
 
 export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
@@ -1061,29 +1061,29 @@ export function markdownToWebviewHtml(
   projectPath: string,
   panel: vscode.WebviewPanel
 ) {
-  marked.setOptions({
+  const rendererObj = new marked.Renderer();
+  let contentStr = marked(content, {
     baseUrl: null,
     breaks: true,
     gfm: true,
     pedantic: false,
-    renderer: new marked.Renderer(),
-    sanitize: true,
+    renderer: rendererObj,
     smartLists: true,
     smartypants: false,
   });
-  let contentStr = marked(content);
+  let cleanHtml = sanitizedHtml(contentStr);
   const srcLinkRegex = new RegExp(/src\s*=\s*"(.+?)"/g);
   let match: RegExpExecArray;
-  while ((match = srcLinkRegex.exec(contentStr)) !== null) {
+  while ((match = srcLinkRegex.exec(cleanHtml)) !== null) {
     const unresolvedPath = match[1];
     const absPath = `src="${panel.webview.asWebviewUri(
       vscode.Uri.file(path.resolve(projectPath, unresolvedPath))
     )}"`;
-    contentStr = contentStr.replace(match[0], absPath);
+    cleanHtml = cleanHtml.replace(match[0], absPath);
   }
   const srcEncodedRegex = new RegExp(/&lt;img src=&quot;(.*?)&quot;\s?&gt;/g);
   let encodedMatch: RegExpExecArray;
-  while ((encodedMatch = srcEncodedRegex.exec(contentStr)) !== null) {
+  while ((encodedMatch = srcEncodedRegex.exec(cleanHtml)) !== null) {
     const pathToResolve = encodedMatch[0].match(
       /(?:src=&quot;)(.*?)(?:&quot;)/
     );
@@ -1095,8 +1095,8 @@ export function markdownToWebviewHtml(
     )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
       width && width.length > 0 ? `width="${width[1]}"` : ""
     } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
-    contentStr = contentStr.replace(encodedMatch[0], absPath);
+    cleanHtml = cleanHtml.replace(encodedMatch[0], absPath);
   }
-  contentStr = contentStr.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-  return contentStr;
+  cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  return cleanHtml;
 }
