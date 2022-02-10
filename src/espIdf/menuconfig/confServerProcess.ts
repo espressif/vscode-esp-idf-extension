@@ -170,9 +170,15 @@ export class ConfserverProcess {
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath();
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+    const reconfigureArgs: string[] = [idfPyPath];
+    if (enableCCache) {
+      reconfigureArgs.push("--ccache")
+    }
+    reconfigureArgs.push("-C", currWorkspace.fsPath, "reconfigure");
     const getSdkconfigProcess = spawn(
       pythonBinPath,
-      [idfPyPath, "-C", currWorkspace.fsPath, "reconfigure"],
+      reconfigureArgs,
       { env: modifiedEnv }
     );
 
@@ -267,9 +273,15 @@ export class ConfserverProcess {
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath();
+    const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+    const confServerArgs: string[] = [idfPath];
+    if (enableCCache) {
+      confServerArgs.push("--ccache")
+    }
+    confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
     this.confServerProcess = spawn(
       pythonBinPath,
-      [idfPath, "-C", workspaceFolder.fsPath, "confserver"],
+      confServerArgs,
       { env: modifiedEnv }
     );
     ConfserverProcess.progress.report({
