@@ -2791,6 +2791,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 function creatCmdsStatusBarItems() {
   const port = idfConf.readParameter("idf.port", workspaceRoot);
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
+  let flashType = idfConf.readParameter("idf.flashType", workspaceRoot);
   if (idfTarget === "custom") {
     idfTarget = idfConf.readParameter(
       "idf.customAdapterTargetName",
@@ -2836,7 +2837,7 @@ function creatCmdsStatusBarItems() {
     95
   );
   statusBarItems["flash"] = createStatusBarItem(
-    "$(zap)",
+    `$(zap) ${flashType}`,
     "ESP-IDF Flash device",
     "espIdf.selectFlashMethodAndFlash",
     94
@@ -2895,7 +2896,7 @@ const build = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        const buildType = idfConf.readParameter("idf.flashType");
+        const buildType = idfConf.readParameter("idf.flashType", workspaceRoot);
         await buildCommand(workspaceRoot, cancelToken, buildType);
       }
     );
@@ -2916,7 +2917,10 @@ const flash = () => {
         const idfPathDir = idfConf.readParameter("idf.espIdfPath");
         const port = idfConf.readParameter("idf.port");
         const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
-        const selectedFlashType = idfConf.readParameter("idf.flashType");
+        const selectedFlashType = idfConf.readParameter(
+          "idf.flashType",
+          workspaceRoot
+        );
         if (monitorTerminal) {
           monitorTerminal.sendText(ESP.CTRL_RBRACKET);
         }
@@ -2970,7 +2974,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         cancelToken: vscode.CancellationToken
       ) => {
         progress.report({ message: "Building project...", increment: 20 });
-        const buildType = idfConf.readParameter("idf.flashType");
+        const buildType = idfConf.readParameter("idf.flashType", workspaceRoot);
         let canContinue = await buildCommand(
           workspaceRoot,
           cancelToken,
@@ -3014,8 +3018,11 @@ async function selectFlashMethod(cancelToken) {
         "Select flash method, you can modify the choice later from settings 'idf.flashType'",
     }
   );
-  const target = idfConf.readParameter("idf.saveScope");
-  await idfConf.writeParameter("idf.flashType", flashType, target);
+  await idfConf.writeParameter(
+    "idf.flashType",
+    flashType,
+    vscode.ConfigurationTarget.WorkspaceFolder
+  );
 
   if (!flashType) {
     return;
@@ -3036,8 +3043,10 @@ async function selectFlashMethod(cancelToken) {
     const buildPath = path.join(workspaceRoot.fsPath, "build");
     return await jtagFlashCommand(buildPath);
   } else {
-    const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices");
-    if (arrDfuDevices.length > 1) {
+    const arrDfuDevices = idfConf.readParameter(
+      "idf.listDfuDevices"
+    ) as string[];
+    if (flashType === "DFU" && arrDfuDevices.length > 1) {
       await selectDfuDevice(arrDfuDevices);
     }
     return await flashCommand(

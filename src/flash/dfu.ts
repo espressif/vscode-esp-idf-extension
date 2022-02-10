@@ -75,7 +75,7 @@ export async function listAvailableDfuDevices(text) {
   }
 }
 
-export async function selectDfuDevice(arrDfuDevices) {
+export async function selectDfuDevice(arrDfuDevices: string[]) {
   const target = readParameter("idf.saveScope");
   let options = [];
   for (let i = 0; i < arrDfuDevices.length; i++) {

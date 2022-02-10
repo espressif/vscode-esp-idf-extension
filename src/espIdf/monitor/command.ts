@@ -23,6 +23,7 @@ import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
+import { getProjectName } from "../../workspaceConfig";
 
 const locDic = new LocDictionary(__filename);
 
@@ -107,10 +108,19 @@ export async function createMonitorTerminal(
       idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
     ).replace(/\\/g, "\\\\");
     monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
-    const elfFile = await utils.getElfFilePath(workspace);
-    monitorTerminal.sendText(
-      `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFile}"`
-    );
+    try {
+      const projectName = await getProjectName(workspace.fsPath);
+      const elfFilePath = join("build", `${projectName}.elf`);
+      monitorTerminal.sendText(
+        `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFilePath}"`
+      );
+    } catch (error) {
+      Logger.errorNotify(
+        "Failed to read project name while fetching elf file",
+        error
+      );
+      return;
+    }
   } else {
     monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
   }

@@ -81,7 +81,7 @@ export async function verifyCanFlash(
       new Error("NOT_SELECTED_BAUD_RATE")
     );
   }
-  const selectedFlashType = idfConf.readParameter("idf.flashType");
+  const selectedFlashType = idfConf.readParameter("idf.flashType", workspace);
   if (selectedFlashType === "DFU") {
     const data = await getDfuList();
     const listDfu = await listAvailableDfuDevices(data);
