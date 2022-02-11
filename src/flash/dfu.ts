@@ -31,8 +31,8 @@ function deviceLabel(selectedDevice: string) {
   return "ESP32-S3";
 }
 
-export async function getDfuList() {
-  const modifiedEnv = appendIdfAndToolsToPath();
+export async function getDfuList(workspace: vscode.Uri) {
+  const modifiedEnv = appendIdfAndToolsToPath(workspace);
   return await execChildProcess(
     "dfu-util --list",
     process.cwd(),

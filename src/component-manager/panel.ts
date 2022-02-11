@@ -37,7 +37,7 @@ export class ComponentManagerUIPanel {
     if (!!ComponentManagerUIPanel.instance) {
       ComponentManagerUIPanel.instance.panel.reveal(column);
     }
-    const url = readParameter("esp.component-manager.url");
+    const url = readParameter("esp.component-manager.url", workspaceRoot);
     if (!url) {
       throw new Error("esp.component-manager.url is not set");
     }

@@ -18,7 +18,7 @@
 import * as assert from "assert";
 import { readdir, readFile, readJson, remove } from "fs-extra";
 import { join, resolve } from "path";
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, Uri } from "vscode";
 import { getExamplesList } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "../newProject/utils";
 import {
@@ -46,7 +46,7 @@ suite("Project tests", () => {
   });
 
   test("vscode folder creation", async () => {
-    await createVscodeFolder(targetFolder);
+    await createVscodeFolder(Uri.file(targetFolder));
     const resultFiles = await readdir(join(targetFolder, ".vscode"));
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultFiles.includes("launch.json"), true);
@@ -92,7 +92,7 @@ suite("Project tests", () => {
   test("Test project creation", async () => {
     const templatePath = join(templateFolder, "template-app");
     const projectPath = join(wsFolder, "new-project");
-    await copyFromSrcProject(templatePath, projectPath);
+    await copyFromSrcProject(templatePath, Uri.file(projectPath));
     const resultRootFiles = await readdir(projectPath);
     const resultVscodeFiles = await readdir(join(projectPath, ".vscode"));
     const resultMainFiles = await readdir(join(projectPath, "main"));

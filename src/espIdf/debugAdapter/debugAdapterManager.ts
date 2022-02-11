@@ -286,7 +286,7 @@ export class DebugAdapterManager extends EventEmitter {
       idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
     }
     this.target = idfTarget;
-    this.env = appendIdfAndToolsToPath();
+    this.env = appendIdfAndToolsToPath(this.currentWorkspace);
     this.env.PYTHONPATH = path.join(
       extensionPath,
       "esp_debug_adapter",

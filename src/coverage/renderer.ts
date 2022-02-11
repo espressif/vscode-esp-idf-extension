@@ -159,7 +159,7 @@ export class CoverageRenderer {
 
   public async renderCoverage() {
     const editors = vscode.window.visibleTextEditors;
-    this.gcovObj = await buildJson(this.workspaceFolder.fsPath);
+    this.gcovObj = await buildJson(this.workspaceFolder);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
         this.workspaceFolder.fsPath,

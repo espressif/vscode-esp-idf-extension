@@ -48,7 +48,7 @@ export async function createMonitorTerminal(
   const pythonBinPath = readParameter("idf.pythonBinPath") as string;
   const port = serialPort ? serialPort : readParameter("idf.port");
   const idfPath = join(idfPathDir, "tools", "idf.py");
-  const modifiedEnv = utils.appendIdfAndToolsToPath();
+  const modifiedEnv = utils.appendIdfAndToolsToPath(workspace);
   if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {
     Logger.errorNotify(
       "Python binary path is not defined",

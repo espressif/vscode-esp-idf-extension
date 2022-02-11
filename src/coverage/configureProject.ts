@@ -105,18 +105,18 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
   const gcovEnableRequest = `{"version": 2, "set": { "APPTRACE_DEST_TRAX": true, "APPTRACE_GCOV_ENABLE": true }}\n`;
   ConfserverProcess.sendUpdatedValue(gcovEnableRequest);
   ConfserverProcess.saveGuiConfigValues();
-  await openCoverageUrl();
+  await openCoverageUrl(workspacePath);
 }
 
-export async function openCoverageUrl() {
+export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
   const idfPath =
-    readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  const gitPath = readParameter("idf.gitPath") || "git";
+    readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
+  const gitPath = readParameter("idf.gitPath", workspacePath) || "git";
   let idfVersion = "v" + (await getEspIdfVersion(idfPath, gitPath));
-  let idfTarget = readParameter("idf.adapterTargetName");
+  let idfTarget = readParameter("idf.adapterTargetName", workspacePath);
   if (idfTarget === "custom") {
-    idfTarget = readParameter("idf.customAdapterTargetName");
+    idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);
   }
   let docVersion = docsVersions.find(
     (docVer) => docVer.name === idfVersion

@@ -21,6 +21,7 @@ import {
   ShellExecutionOptions,
   TaskRevealKind,
   TaskScope,
+  Uri,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
@@ -37,9 +38,7 @@ export enum CustomTaskType {
 export class CustomTask {
   public static isRunningCustomTask: boolean;
 
-  constructor(
-    private currentWorkspace: string
-  ) {}
+  constructor(private currentWorkspace: Uri) {}
 
   public isRunning(flag: boolean) {
     CustomTask.isRunningCustomTask = flag;
@@ -81,9 +80,9 @@ export class CustomTask {
     if (!cmd) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
     const options: ShellExecutionOptions = {
-      cwd: this.currentWorkspace,
+      cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,
     };
     const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;

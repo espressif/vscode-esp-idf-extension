@@ -40,7 +40,7 @@ export async function generateConfigurationReport(
   currentWorkspace: vscode.Uri,
   reportedResult: reportObj
 ) {
-  getConfigurationSettings(reportedResult);
+  getConfigurationSettings(reportedResult, currentWorkspace);
   await checkSystemInfo(reportedResult);
   await getConfigurationAccess(reportedResult, context);
   await getGitVersion(reportedResult, context);

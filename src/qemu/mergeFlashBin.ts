@@ -25,6 +25,7 @@ import {
   ProcessExecutionOptions,
   TaskRevealKind,
   TaskScope,
+  Uri,
 } from "vscode";
 import { FlashModel } from "../flash/flashModel";
 import { createFlashModel } from "../flash/flashModelBuilder";
@@ -62,7 +63,7 @@ export async function validateReqs(
 }
 
 export async function mergeFlashBinaries(
-  wsFolder: string,
+  wsFolder: Uri,
   cancelToken?: CancellationToken
 ) {
   if (cancelToken) {
@@ -74,7 +75,7 @@ export async function mergeFlashBinaries(
   const idfPath = readParameter("idf.espIdfPath");
   const port = readParameter("idf.port");
   const flashBaudRate = readParameter("idf.flashBaudRate");
-  const buildDirPath = join(wsFolder, "build");
+  const buildDirPath = join(wsFolder.fsPath, "build");
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const esptoolPath = join(
     idfPath,
@@ -106,7 +107,8 @@ export async function mergeFlashBinaries(
   const mergeExecution = await getMergeExecution(
     buildDirPath,
     esptoolPath,
-    flashModel
+    flashModel,
+    wsFolder
   );
   TaskManager.addTask(
     {
@@ -130,9 +132,10 @@ export async function mergeFlashBinaries(
 export async function getMergeExecution(
   buildDir: string,
   esptoolPath: string,
-  model: FlashModel
+  model: FlashModel,
+  wsFolder: Uri
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
   const mergeArgs = getMergeArgs(esptoolPath, model);
   const options: ProcessExecutionOptions = {
     cwd: buildDir,

@@ -34,12 +34,12 @@ import { selectedDFUAdapterId } from "./dfu";
 
 export class FlashTask {
   public static isFlashing: boolean;
-  private buildDir: string;
+  private workspaceUri: vscode.Uri;
   private flashScriptPath: string;
   private model: FlashModel;
 
-  constructor(buildDir: string, idfPath: string, model: FlashModel) {
-    this.buildDir = buildDir;
+  constructor(workspace: vscode.Uri, idfPath: string, model: FlashModel) {
+    this.workspaceUri = workspace;
     this.flashScriptPath = join(
       idfPath,
       "components",
@@ -61,7 +61,7 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
-          join(this.buildDir, flashFile.binFilePath),
+          join(this.workspaceUri.fsPath, "build", flashFile.binFilePath),
           constants.R_OK
         )
       ) {
@@ -84,7 +84,7 @@ export class FlashTask {
     let isWsl2Kernel = isRunningInWsl();
     const powershellPath = await isBinInPath(
       "powershell.exe",
-      this.buildDir,
+      this.workspaceUri.fsPath,
       process.env
     );
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
@@ -114,7 +114,7 @@ export class FlashTask {
 
   public async _wslFlashExecution() {
     this.flashing(true);
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const wslRoot = extensionContext.extensionPath.replace(/\//g, "\\");
     const wslCurrPath = await execChildProcess(
       `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
@@ -127,7 +127,7 @@ export class FlashTask {
 
     const flasherArgs = this.getFlasherArgs(toolPath, true);
     const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDir,
+      cwd: join(this.workspaceUri.fsPath, "build"),
       env: modifiedEnv,
     };
     return new vscode.ShellExecution(
@@ -138,10 +138,10 @@ export class FlashTask {
 
   public _flashExecution() {
     this.flashing(true);
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
     const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDir,
+      cwd: join(this.workspaceUri.fsPath, "build"),
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
@@ -162,7 +162,8 @@ export class FlashTask {
     }
     return new vscode.ShellExecution(
       `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
-        this.buildDir,
+        this.workspaceUri.fsPath,
+        "build",
         "dfu.bin"
       )}`
     );

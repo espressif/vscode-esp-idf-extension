@@ -168,7 +168,7 @@ export class ConfserverProcess {
     const guiconfigEspPath =
       idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
     const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
     const reconfigureArgs: string[] = [idfPyPath];
@@ -272,7 +272,7 @@ export class ConfserverProcess {
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceFolder);
     const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
     const confServerArgs: string[] = [idfPath];
     if (enableCCache) {

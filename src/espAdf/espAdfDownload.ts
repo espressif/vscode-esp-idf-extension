@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import { Uri } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
 import { readParameter } from "../idfConfiguration";
 
@@ -25,8 +26,8 @@ export class AdfCloning extends AbstractCloning {
   }
 }
 
-export async function getEspAdf() {
+export async function getEspAdf(workspace?: Uri) {
   const gitPath = await readParameter("idf.gitPath") || "git";
   const adfInstaller = new AdfCloning(gitPath);
-  await adfInstaller.getRepository("idf.espAdfPath");
+  await adfInstaller.getRepository("idf.espAdfPath", workspace);
 }

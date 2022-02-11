@@ -31,6 +31,7 @@ import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
   openOcdConfigFilesList: string[];
+  workspace: vscode.Uri;
 }
 
 export class OpenOCDManager extends EventEmitter {
@@ -48,6 +49,7 @@ export class OpenOCDManager extends EventEmitter {
   private displayChan: vscode.OutputChannel;
   private statusBar: vscode.StatusBarItem;
   private tclConnectionParams: TCLConnection;
+  private workspace: vscode.Uri;
 
   private constructor() {
     super();
@@ -55,15 +57,12 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public async version(): Promise<string> {
-    const modifiedEnv = appendIdfAndToolsToPath();
-    const workspace = PreCheck.isWorkspaceFolderOpen()
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : "";
-    if (!isBinInPath("openocd", workspace, modifiedEnv)) {
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspace);
+    if (!isBinInPath("openocd", this.workspace.fsPath, modifiedEnv)) {
       return "";
     }
     const resp = await sspawn("openocd", ["--version"], {
-      cwd: workspace,
+      cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
     const versionString = resp.toString();
@@ -118,7 +117,12 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public configureServer(config: IOpenOCDConfig) {
-    this.openOcdConfigFilesList = config.openOcdConfigFilesList;
+    if (config.openOcdConfigFilesList) {
+      this.openOcdConfigFilesList = config.openOcdConfigFilesList;
+    }
+    if (config.workspace) {
+      this.workspace = config.workspace;
+    }
   }
 
   public isRunning(): boolean {
@@ -147,11 +151,8 @@ export class OpenOCDManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
-    const workspace = PreCheck.isWorkspaceFolderOpen()
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : "";
-    if (!isBinInPath("openocd", workspace, modifiedEnv)) {
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspace);
+    if (!isBinInPath("openocd", this.workspace.fsPath, modifiedEnv)) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"
       );
@@ -183,7 +184,7 @@ export class OpenOCDManager extends EventEmitter {
     });
 
     this.server = spawn("openocd", openOcdArgs, {
-      cwd: workspace,
+      cwd: this.workspace.fsPath,
       env: modifiedEnv,
     });
     this.server.stderr.on("data", (data) => {
@@ -251,10 +252,14 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   private configureServerWithDefaultParam() {
-    const openOcdConfigFilesList = idfConf.readParameter("idf.openOcdConfigs") as string[];
+    const openOcdConfigFilesList = idfConf.readParameter(
+      "idf.openOcdConfigs"
+    ) as string[];
     const host = idfConf.readParameter("openocd.tcl.host");
     const port = idfConf.readParameter("openocd.tcl.port");
-
+    if (PreCheck.isWorkspaceFolderOpen()) {
+      this.workspace = vscode.workspace.workspaceFolders[0].uri;
+    }
     this.openOcdConfigFilesList = openOcdConfigFilesList;
     this.chan = Buffer.alloc(0);
     this.displayChan = vscode.window.createOutputChannel("OpenOCD");

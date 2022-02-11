@@ -17,13 +17,14 @@
  */
 
 import { join } from "path";
+import { Uri } from "vscode";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
-export async function verifyAppBinary(workspaceFolder: string) {
-  const modifiedEnv = appendIdfAndToolsToPath();
+export async function verifyAppBinary(workspaceFolder: Uri) {
+  const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
   const serialPort = readParameter("idf.port");
   const flashBaudRate = readParameter("idf.flashBaudRate");
   const idfPath = readParameter("idf.espIdfPath");
@@ -36,7 +37,7 @@ export async function verifyAppBinary(workspaceFolder: string) {
     "esptool.py"
   );
   const flasherArgsJsonPath = join(
-    workspaceFolder,
+    workspaceFolder.fsPath,
     "build",
     "flasher_args.json"
   );

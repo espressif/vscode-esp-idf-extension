@@ -17,7 +17,7 @@
  */
 
 import { appendIdfAndToolsToPath } from "../../utils";
-import { window, Terminal } from "vscode";
+import { window, Terminal, Uri } from "vscode";
 
 export interface MonitorConfig {
   pythonBinPath: string;
@@ -26,6 +26,7 @@ export interface MonitorConfig {
   baudRate: string;
   elfFilePath: string;
   wsPort: number;
+  workspaceFolder: Uri;
 }
 
 export class IDFMonitor {
@@ -35,7 +36,7 @@ export class IDFMonitor {
     this.config = config;
   }
   start() {
-    const env = appendIdfAndToolsToPath();
+    const env = appendIdfAndToolsToPath(this.config.workspaceFolder);
     this.terminal = window.createTerminal({
       name: `ESP-IDF Monitor (--ws enabled)`,
       env,

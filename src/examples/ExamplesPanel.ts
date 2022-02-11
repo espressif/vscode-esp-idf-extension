@@ -110,7 +110,7 @@ export class ExamplesPlanel {
               await ensureDir(resultFolder);
               await utils.copyFromSrcProject(
                 message.project_path,
-                resultFolder
+                vscode.Uri.file(resultFolder)
               );
               const projectPath = vscode.Uri.file(resultFolder);
               vscode.commands.executeCommand("vscode.openFolder", projectPath);

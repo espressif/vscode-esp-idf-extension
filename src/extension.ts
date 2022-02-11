@@ -341,6 +341,13 @@ export async function activate(context: vscode.ExtensionContext) {
         elfFile: projectElfFile,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
+      const openOCDConfig: IOpenOCDConfig = {
+        workspace: workspaceRoot,
+      } as IOpenOCDConfig;
+      openOCDManager.configureServer(openOCDConfig);
+      qemuManager.configure({
+        workspaceFolder: workspaceRoot,
+      } as IQemuOptions);
     }
     ConfserverProcess.dispose();
   });
@@ -451,7 +458,8 @@ export async function activate(context: vscode.ExtensionContext) {
               Logger.infoNotify(`${resultFolder} already exists.`);
               return;
             }
-            await utils.createSkeleton(resultFolder, selectedTemplate.target);
+            const projectPath = vscode.Uri.file(resultFolder);
+            await utils.createSkeleton(projectPath, selectedTemplate.target);
             if (selectedTemplate.label === "arduino-as-component") {
               const gitPath =
                 ((await idfConf.readParameter("idf.gitPath")) as string) ||
@@ -465,7 +473,6 @@ export async function activate(context: vscode.ExtensionContext) {
               });
               await arduinoComponentManager.addArduinoAsComponent();
             }
-            const projectPath = vscode.Uri.file(resultFolder);
             vscode.commands.executeCommand(
               "vscode.openFolder",
               projectPath,
@@ -608,9 +615,9 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.getEspAdf", getEspAdf);
+  registerIDFCommand("espIdf.getEspAdf", async () => getEspAdf(workspaceRoot));
 
-  registerIDFCommand("espIdf.getEspMdf", getEspMdf);
+  registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform(
@@ -621,7 +628,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.customTask", async () => {
     try {
-      const customTask = new CustomTask(workspaceRoot.fsPath);
+      const customTask = new CustomTask(workspaceRoot);
       customTask.addCustomTask(CustomTaskType.Custom);
       await TaskManager.runTasks();
     } catch (error) {
@@ -674,6 +681,13 @@ export async function activate(context: vscode.ExtensionContext) {
           currentWorkspace: workspaceRoot,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
+        const openOCDConfig: IOpenOCDConfig = {
+          workspace: workspaceRoot,
+        } as IOpenOCDConfig;
+        openOCDManager.configureServer(openOCDConfig);
+        qemuManager.configure({
+          workspaceFolder: workspaceRoot,
+        } as IQemuOptions);
         ConfserverProcess.dispose();
         const coverageOptions = getCoverageOptions();
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -1031,7 +1045,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getCoverageReport", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      await previewReport(workspaceRoot.fsPath);
+      await previewReport(workspaceRoot);
     });
   });
 
@@ -1137,7 +1151,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const modifiedEnv = utils.appendIdfAndToolsToPath();
+      const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
       const gdbTool =
         idfTarget === "esp32c3"
@@ -1158,7 +1172,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGcc", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const modifiedEnv = utils.appendIdfAndToolsToPath();
+      const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
       const gccTool =
         idfTarget === "esp32c3"
@@ -1180,7 +1194,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
-        await utils.createVscodeFolder(workspaceRoot.fsPath);
+        await utils.createVscodeFolder(workspaceRoot);
         Logger.infoNotify(
           "ESP-IDF vscode files have been added to the project."
         );
@@ -1445,7 +1459,9 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             const idfPathDir = idfConf.readParameter("idf.espIdfPath");
             const idfPy = path.join(idfPathDir, "tools", "idf.py");
-            const modifiedEnv = utils.appendIdfAndToolsToPath();
+            const modifiedEnv = utils.appendIdfAndToolsToPath(
+              workspaceFolder.uri
+            );
             modifiedEnv.IDF_TARGET = undefined;
             const pythonBinPath = idfConf.readParameter(
               "idf.pythonBinPath"
@@ -1454,13 +1470,13 @@ export async function activate(context: vscode.ExtensionContext) {
               pythonBinPath,
               [idfPy, "set-target", selectedTarget.target],
               {
-                cwd: workspaceRoot.fsPath,
+                cwd: workspaceFolder.uri.fsPath,
                 env: modifiedEnv,
               }
             );
             Logger.info(setTargetResult.toString());
             OutputChannel.append(setTargetResult.toString());
-            utils.setCCppPropertiesJsonCompilerPath(workspaceRoot.fsPath);
+            utils.setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
           } catch (err) {
             if (err.message && err.message.indexOf("are satisfied") > -1) {
               Logger.info(err.message.toString());
@@ -1812,7 +1828,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!projectDirOption) {
       return;
     }
-    let destFolder: string;
+    let destFolder: vscode.Uri;
     if (projectDirOption.target === "another") {
       const newFolder = await vscode.window.showOpenDialog({
         canSelectFolders: true,
@@ -1822,9 +1838,9 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!newFolder || !newFolder.length) {
         return;
       }
-      destFolder = newFolder[0].fsPath;
+      destFolder = newFolder[0];
     } else if (workspaceRoot) {
-      destFolder = workspaceRoot.fsPath;
+      destFolder = workspaceRoot;
     }
     if (!destFolder) {
       return;
@@ -1836,24 +1852,20 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!projectName) {
       return;
     }
-    destFolder = path.join(destFolder, projectName);
-    const doesProjectExists = await pathExists(destFolder);
+    destFolder = vscode.Uri.file(path.join(destFolder.fsPath, projectName));
+    const doesProjectExists = await pathExists(destFolder.fsPath);
     if (doesProjectExists) {
       Logger.infoNotify(`${destFolder} already exists.`);
       return;
     }
     await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
-    await utils.updateProjectNameInCMakeLists(destFolder, projectName);
+    await utils.updateProjectNameInCMakeLists(destFolder.fsPath, projectName);
     const opt = await vscode.window.showInformationMessage(
       "Project has been imported",
       "Open"
     );
     if (opt === "Open") {
-      vscode.commands.executeCommand(
-        "vscode.openFolder",
-        vscode.Uri.file(destFolder),
-        true
-      );
+      vscode.commands.executeCommand("vscode.openFolder", destFolder, true);
     }
   });
 
@@ -1895,7 +1907,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 /start/gi
               );
         if (heapTraceLabel) {
-          await gdbHeapTraceManager.start();
+          await gdbHeapTraceManager.start(workspaceRoot);
         } else {
           await gdbHeapTraceManager.stop();
         }
@@ -1931,7 +1943,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 message: "Merging binaries for flashing",
                 increment: 10,
               });
-              await mergeFlashBinaries(workspaceRoot.fsPath, cancelToken);
+              await mergeFlashBinaries(workspaceRoot, cancelToken);
             }
             await qemuManager.commandHandler();
           } catch (error) {
@@ -1954,7 +1966,7 @@ export async function activate(context: vscode.ExtensionContext) {
         path.join(workspaceRoot.fsPath, "build", "merged_qemu.bin")
       );
       if (!qemuBinExists) {
-        await mergeFlashBinaries(workspaceRoot.fsPath);
+        await mergeFlashBinaries(workspaceRoot);
       }
       qemuManager.configure({
         launchArgs: [
@@ -2020,7 +2032,11 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!partitionAction) {
         return;
       }
-      await flashBinaryToPartition(partitionAction.target, binPath.fsPath);
+      await flashBinaryToPartition(
+        partitionAction.target,
+        binPath.fsPath,
+        workspaceRoot
+      );
     }
   );
 
@@ -2059,7 +2075,8 @@ export async function activate(context: vscode.ExtensionContext) {
           if (selectedFile && selectedFile.length > 0) {
             await flashBinaryToPartition(
               partitionNode.offset,
-              selectedFile[0].fsPath
+              selectedFile[0].fsPath,
+              workspaceRoot
             );
           }
         }
@@ -2069,7 +2086,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.partition.table.refresh", () => {
     PreCheck.perform([openFolderCheck], () => {
-      partitionTableTreeDataProvider.populatePartitionItems();
+      partitionTableTreeDataProvider.populatePartitionItems(workspaceRoot);
     });
   });
 
@@ -2393,6 +2410,7 @@ export async function activate(context: vscode.ExtensionContext) {
       idfMonitorToolPath,
       elfFilePath,
       wsPort,
+      workspaceFolder: workspaceRoot,
     });
     if (wsServer) {
       wsServer.close();
@@ -2426,6 +2444,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 infoCoreFileFormat: InfoCoreFileFormat.Base64,
                 progELFFilePath: resp.prog,
                 pythonBinPath,
+                workspaceUri: workspaceRoot,
               })) === true
             ) {
               progress.report({
@@ -3062,7 +3081,7 @@ async function selectFlashMethod(cancelToken) {
 
 function createIdfTerminal() {
   PreCheck.perform([webIdeCheck, openFolderCheck], () => {
-    const modifiedEnv = utils.appendIdfAndToolsToPath();
+    const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
@@ -3121,7 +3140,7 @@ class IdfDebugConfigurationProvider
         );
       }
       if (config.verifyAppBinBeforeDebug) {
-        const isSameAppBinary = await verifyAppBinary(workspaceRoot.fsPath);
+        const isSameAppBinary = await verifyAppBinary(workspaceRoot);
         if (!isSameAppBinary) {
           throw new Error(
             `Current app binary is different from your project. Flash first.`

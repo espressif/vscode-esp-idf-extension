@@ -499,7 +499,7 @@
           "idf.showOnboardingOnInit": {
             "type": "boolean",
             "default": true,
-            "scope": "resource",
+            "scope": "window",
             "description": "%param.showOnboardingOnInit%"
           },
           "trace.poll_period": {
@@ -682,7 +682,7 @@
           "idf.enableUpdateSrcsToCMakeListsFile": {
             "type": "boolean",
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
-            "scope": "resource",
+            "scope": "window",
             "default": true
           },
           "idf.qemuTcpPort": {

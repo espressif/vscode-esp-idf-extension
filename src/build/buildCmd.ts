@@ -37,9 +37,9 @@ export async function buildCommand(
   buildType: string
 ) {
   let continueFlag = true;
-  const buildTask = new BuildTask(workspace.fsPath);
-  const sizeTask = new IdfSizeTask(workspace.fsPath);
-  const customTask = new CustomTask(workspace.fsPath);
+  const buildTask = new BuildTask(workspace);
+  const sizeTask = new IdfSizeTask(workspace);
+  const customTask = new CustomTask(workspace);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
     const waitProcessIsFinishedMsg = locDic.localize(
       "build.waitProcessIsFinishedMessage",
@@ -70,7 +70,7 @@ export async function buildCommand(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
         );
       }
-      const adapterTargetName = readParameter("idf.adapterTargetName");
+      const adapterTargetName = readParameter("idf.adapterTargetName", workspace);
       if (adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
         return Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`

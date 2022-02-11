@@ -18,14 +18,15 @@
 
 import { pathExists } from "fs-extra";
 import { dirname, join } from "path";
+import { Uri } from "vscode";
 import { appendIdfAndToolsToPath } from "../utils";
 import { SetupPanel } from "./SetupPanel";
 
-export async function getOpenOcdRules() {
+export async function getOpenOcdRules(workspace: Uri) {
   if (process.platform !== "linux") {
     return;
   }
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(workspace);
   if (!modifiedEnv.OPENOCD_SCRIPTS) {
     throw new Error("OPENOCD_SCRIPTS environment variables is not defined");
   }

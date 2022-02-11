@@ -17,14 +17,20 @@ import treeKill from "tree-kill";
 import { Logger } from "../logger/logger";
 import { checkGitExists, dirExistPromise } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
-import { CancellationToken, Progress, ProgressLocation, window } from "vscode";
+import {
+  CancellationToken,
+  Progress,
+  ProgressLocation,
+  Uri,
+  window,
+} from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { PackageProgress } from "../PackageProgress";
 
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
   private readonly GITHUB_REPO: string;
-  
+
   constructor(
     githubRepository: string,
     private name: string,
@@ -45,7 +51,7 @@ export class AbstractCloning {
   public downloadByCloning(
     installDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
@@ -130,8 +136,8 @@ export class AbstractCloning {
     });
   }
 
-  public async getRepository(configurationId: string) {
-    const toolsDir = await idfConf.readParameter("idf.toolsPath");
+  public async getRepository(configurationId: string, workspace?: Uri) {
+    const toolsDir = await idfConf.readParameter("idf.toolsPath", workspace);
     const installDir = await window.showQuickPick(
       [
         {
@@ -182,7 +188,10 @@ export class AbstractCloning {
         cancelToken: CancellationToken
       ) => {
         try {
-          const gitVersion = await checkGitExists(installDirPath, this.gitBinPath);
+          const gitVersion = await checkGitExists(
+            installDirPath,
+            this.gitBinPath
+          );
           if (!gitVersion || gitVersion === "Not found") {
             throw new Error("Git is not found in idf.gitPath or PATH");
           }

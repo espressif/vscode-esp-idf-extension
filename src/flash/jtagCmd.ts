@@ -24,6 +24,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { TaskManager } from "../taskManager";
+import { Uri } from "vscode";
 
 export async function jtagFlashCommand(buildPath: string) {
   let continueFlag = true;
@@ -41,7 +42,7 @@ export async function jtagFlashCommand(buildPath: string) {
   const forceUNIXPathSeparator = readParameter(
     "openocd.jtag.command.force_unix_path_separator"
   );
-  const customTask = new CustomTask(buildPath);
+  const customTask = new CustomTask(Uri.file(buildPath));
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
