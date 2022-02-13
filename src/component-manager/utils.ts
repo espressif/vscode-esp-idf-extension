@@ -33,9 +33,15 @@ export async function addDependency(
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath();
     const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+    const enableCCache = readParameter("idf.enableCCache") as boolean;
+    const addDependencyArgs: string[] = [idfPy];
+    if (enableCCache) {
+      addDependencyArgs.push("--ccache")
+    }
+    addDependencyArgs.push("add-dependency", `--component=${component}`, dependency, "reconfigue");
     const addDependencyResult = await spawn(
       pythonBinPath,
-      [idfPy, "add-dependency", `--component=${component}`, dependency],
+      addDependencyArgs,
       {
         cwd: workspace.fsPath,
         env: modifiedEnv,
