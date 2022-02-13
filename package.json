@@ -1283,7 +1283,7 @@
     "bignumber.js": "^9.0.1",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
-    "follow-redirects": "^1.14.7",
+    "follow-redirects": "^1.14.8",
     "fs-extra": "^8.1.0",
     "html-webpack-plugin": "4",
     "https-proxy-agent": "^3.0.0",
