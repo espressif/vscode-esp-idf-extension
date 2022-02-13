@@ -38,7 +38,7 @@ export async function addDependency(
     if (enableCCache) {
       addDependencyArgs.push("--ccache")
     }
-    addDependencyArgs.push("add-dependency", `--component=${component}`, dependency, "reconfigue");
+    addDependencyArgs.push("add-dependency", `--component=${component}`, dependency, "reconfigure");
     const addDependencyResult = await spawn(
       pythonBinPath,
       addDependencyArgs,
