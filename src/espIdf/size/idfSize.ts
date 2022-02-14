@@ -105,7 +105,10 @@ export class IDFSize {
   }
 
   private idfPath(): string {
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    const idfPathDir = idfConf.readParameter(
+      "idf.espIdfPath",
+      this.workspaceRoot
+    );
     return path.join(idfPathDir, "tools");
   }
 
@@ -117,7 +120,8 @@ export class IDFSize {
     const idfPath = this.idfPath();
     try {
       const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath"
+        "idf.pythonBinPath",
+        this.workspaceRoot
       ) as string;
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: idfPath,

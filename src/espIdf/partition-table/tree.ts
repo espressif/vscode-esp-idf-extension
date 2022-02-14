@@ -81,9 +81,9 @@ export class PartitionTreeDataProvider
     this.partitionItems = Array<PartitionItem>(0);
     try {
       const modifiedEnv = appendIdfAndToolsToPath(workspace);
-      const serialPort = readParameter("idf.port") as string;
-      const idfPath = readParameter("idf.espIdfPath");
-      const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+      const serialPort = readParameter("idf.port", workspace) as string;
+      const idfPath = readParameter("idf.espIdfPath", workspace);
+      const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {

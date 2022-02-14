@@ -27,7 +27,7 @@ export class AdfCloning extends AbstractCloning {
 }
 
 export async function getEspAdf(workspace?: Uri) {
-  const gitPath = await readParameter("idf.gitPath") || "git";
+  const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
   const adfInstaller = new AdfCloning(gitPath);
   await adfInstaller.getRepository("idf.espAdfPath", workspace);
 }

@@ -114,8 +114,14 @@ export class DebugAdapterManager extends EventEmitter {
       const logFile = path.join(this.currentWorkspace.fsPath, "debug") + ".log";
 
       if (!this.appOffset) {
-        const serialPort = idfConf.readParameter("idf.port");
-        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate");
+        const serialPort = idfConf.readParameter(
+          "idf.port",
+          this.currentWorkspace
+        );
+        const flashBaudRate = idfConf.readParameter(
+          "idf.flashBaudRate",
+          this.currentWorkspace
+        );
         const flasherArgsJsonPath = path.join(
           this.currentWorkspace.fsPath,
           "build",
@@ -135,7 +141,8 @@ export class DebugAdapterManager extends EventEmitter {
       }
 
       const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath"
+        "idf.pythonBinPath",
+        this.currentWorkspace
       ) as string;
 
       const toolchainPrefix =
@@ -281,9 +288,15 @@ export class DebugAdapterManager extends EventEmitter {
     this.isOocdDisabled = false;
     this.port = 43474;
     this.logLevel = 0;
-    let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+    let idfTarget = idfConf.readParameter(
+      "idf.adapterTargetName",
+      this.currentWorkspace
+    );
     if (idfTarget === "custom") {
-      idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+      idfTarget = idfConf.readParameter(
+        "idf.customAdapterTargetName",
+        this.currentWorkspace
+      );
     }
     this.target = idfTarget;
     this.env = appendIdfAndToolsToPath(this.currentWorkspace);

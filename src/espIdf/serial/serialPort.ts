@@ -42,10 +42,10 @@ export class SerialPort {
   private constructor() {
     this.locDic = new LocDictionary(__filename);
   }
-  public promptUserToSelect(): any {
-    SerialPort.shared().displayList();
+  public promptUserToSelect(workspaceFolder: vscode.Uri): any {
+    SerialPort.shared().displayList(workspaceFolder);
   }
-  private async displayList() {
+  private async displayList(workspaceFolder: vscode.Uri) {
     const msgDefault =
       "Select the available serial port where your device is connected.";
     const msg = this.locDic.localize(
@@ -62,7 +62,7 @@ export class SerialPort {
       ) {
         portList = await this.wslList();
       } else {
-        portList = await this.list();
+        portList = await this.list(workspaceFolder);
       }
       const chosen = await vscode.window.showQuickPick(
         portList.map((l: SerialPortDetails) => {
@@ -84,8 +84,8 @@ export class SerialPort {
     }
   }
 
-  public async getListArray() {
-    return await this.list();
+  public async getListArray(workspaceFolder: vscode.Uri) {
+    return await this.list(workspaceFolder);
   }
 
   private async updatePortListStatus(l: string) {
@@ -103,11 +103,12 @@ export class SerialPort {
     );
   }
 
-  private list(): Thenable<SerialPortDetails[]> {
+  private list(workspaceFolder: vscode.Uri): Thenable<SerialPortDetails[]> {
     return new Promise(async (resolve, reject) => {
       try {
         const pythonBinPath = idfConf.readParameter(
-          "idf.pythonBinPath"
+          "idf.pythonBinPath",
+          workspaceFolder
         ) as string;
         const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
         const regexp = /\'(.*?)\'/g;

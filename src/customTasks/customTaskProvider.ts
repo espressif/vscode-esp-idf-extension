@@ -56,23 +56,23 @@ export class CustomTask {
     let taskName: string;
     switch (taskType) {
       case CustomTaskType.PreBuild:
-        cmd = readParameter("idf.preBuildTask");
+        cmd = readParameter("idf.preBuildTask", this.currentWorkspace);
         taskName = "Pre Build";
         break;
       case CustomTaskType.PostBuild:
-        cmd = readParameter("idf.postBuildTask");
+        cmd = readParameter("idf.postBuildTask", this.currentWorkspace);
         taskName = "Post Build";
         break;
       case CustomTaskType.PreFlash:
-        cmd = readParameter("idf.preFlashTask");
+        cmd = readParameter("idf.preFlashTask", this.currentWorkspace);
         taskName = "Pre Flash";
         break;
       case CustomTaskType.PostFlash:
-        cmd = readParameter("idf.postFlashTask");
+        cmd = readParameter("idf.postFlashTask", this.currentWorkspace);
         taskName = "Post Flash";
         break;
       case CustomTaskType.Custom:
-        cmd = readParameter("idf.customTask");
+        cmd = readParameter("idf.customTask", this.currentWorkspace);
         taskName = "Custom task";
       default:
         break;
@@ -85,7 +85,10 @@ export class CustomTask {
       cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,
     };
-    const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
+    const isSilentMode = readParameter(
+      "idf.notificationSilentMode",
+      this.currentWorkspace
+    ) as boolean;
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;

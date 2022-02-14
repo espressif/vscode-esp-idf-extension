@@ -22,6 +22,7 @@ import { readParameter } from "../idfConfiguration";
 import { tmpdir } from "os";
 import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
+import { Uri } from "vscode";
 
 export type ESPEFuseSummary = {
   [category: string]: [
@@ -48,9 +49,10 @@ export class ESPEFuseManager {
   private pythonPath: string;
   private idfPath: string;
 
-  constructor() {
-    this.pythonPath = readParameter("idf.pythonBinPath") as string;
-    this.idfPath = readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+  constructor(private workspace: Uri) {
+    this.pythonPath = readParameter("idf.pythonBinPath", workspace) as string;
+    this.idfPath =
+      readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
   }
 
   async summary(): Promise<ESPEFuseSummary> {
@@ -102,7 +104,7 @@ export class ESPEFuseManager {
   }
 
   private get serialPort(): string {
-    const port = readParameter("idf.port") as string;
+    const port = readParameter("idf.port", this.workspace) as string;
     return port;
   }
 }

@@ -43,9 +43,15 @@ export abstract class XtensaTools {
   }
 
   private toolNameForTarget(toolName: string): string {
-    let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+    let idfTarget = idfConf.readParameter(
+      "idf.adapterTargetName",
+      this.workspaceRoot
+    );
     if (idfTarget == "custom") {
-      idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+      idfTarget = idfConf.readParameter(
+        "idf.customAdapterTargetName",
+        this.workspaceRoot
+      );
     }
     if (
       idfTarget === "esp32" ||

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Uri } from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { getEspIdfVersion } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
@@ -37,15 +38,26 @@ export function getIntersection(
   });
 }
 
-export async function seachInEspDocs(searchString: string) {
+export async function seachInEspDocs(
+  searchString: string,
+  workspaceFolder: Uri
+) {
   const docsVersions = await getDocsVersion();
   const idfPath =
-    idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  const gitPath = idfConf.readParameter("idf.gitPath") || "git";
+    idfConf.readParameter("idf.espIdfPath", workspaceFolder) ||
+    process.env.IDF_PATH;
+  const gitPath =
+    idfConf.readParameter("idf.gitPath", workspaceFolder) || "git";
   let idfVersion = "v" + (await getEspIdfVersion(idfPath, gitPath));
-  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  let idfTarget = idfConf.readParameter(
+    "idf.adapterTargetName",
+    workspaceFolder
+  );
   if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+    idfTarget = idfConf.readParameter(
+      "idf.customAdapterTargetName",
+      workspaceFolder
+    );
   }
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
   let targetToUse: string;

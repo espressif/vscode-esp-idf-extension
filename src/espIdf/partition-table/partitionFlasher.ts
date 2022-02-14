@@ -22,7 +22,11 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
-export async function flashBinaryToPartition(offset: string, binPath: string, workspaceFolder: Uri) {
+export async function flashBinaryToPartition(
+  offset: string,
+  binPath: string,
+  workspaceFolder: Uri
+) {
   await window.withProgress(
     {
       cancellable: false,
@@ -32,9 +36,12 @@ export async function flashBinaryToPartition(offset: string, binPath: string, wo
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
         const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
-        const serialPort = readParameter("idf.port");
-        const idfPath = readParameter("idf.espIdfPath");
-        const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+        const serialPort = readParameter("idf.port", workspaceFolder);
+        const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+        const pythonBinPath = readParameter(
+          "idf.pythonBinPath",
+          workspaceFolder
+        ) as string;
         const esptoolPath = join(
           idfPath,
           "components",

@@ -30,6 +30,8 @@ import {
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
 export interface IOpenOCDConfig {
+  host: string;
+  port: number;
   openOcdConfigFilesList: string[];
   workspace: vscode.Uri;
 }
@@ -120,8 +122,17 @@ export class OpenOCDManager extends EventEmitter {
     if (config.openOcdConfigFilesList) {
       this.openOcdConfigFilesList = config.openOcdConfigFilesList;
     }
+
     if (config.workspace) {
       this.workspace = config.workspace;
+    }
+    
+    if (config.host) {
+      this.tclConnectionParams.host = config.host;
+    }
+
+    if (config.port) {
+      this.tclConnectionParams.port = config.port;
     }
   }
 
@@ -174,7 +185,8 @@ export class OpenOCDManager extends EventEmitter {
 
     const openOcdArgs = [];
     const openOcdDebugLevel = idfConf.readParameter(
-      "idf.openOcdDebugLevel"
+      "idf.openOcdDebugLevel",
+      this.workspace
     ) as string;
     openOcdArgs.push(`-d${openOcdDebugLevel}`);
 
@@ -255,11 +267,11 @@ export class OpenOCDManager extends EventEmitter {
     const openOcdConfigFilesList = idfConf.readParameter(
       "idf.openOcdConfigs"
     ) as string[];
-    const host = idfConf.readParameter("openocd.tcl.host");
-    const port = idfConf.readParameter("openocd.tcl.port");
     if (PreCheck.isWorkspaceFolderOpen()) {
       this.workspace = vscode.workspace.workspaceFolders[0].uri;
     }
+    const host = idfConf.readParameter("openocd.tcl.host", this.workspace);
+    const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
     this.openOcdConfigFilesList = openOcdConfigFilesList;
     this.chan = Buffer.alloc(0);
     this.displayChan = vscode.window.createOutputChannel("OpenOCD");

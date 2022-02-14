@@ -166,11 +166,11 @@ export class ConfserverProcess {
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     delConfigFile(currWorkspace);
     const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+      idfConf.readParameter("idf.espIdfPath", currWorkspace) || process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
-    const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", currWorkspace) as string;
+    const enableCCache = idfConf.readParameter("idf.enableCCache", currWorkspace) as boolean;
     const reconfigureArgs: string[] = [idfPyPath];
     if (enableCCache) {
       reconfigureArgs.push("--ccache")
@@ -259,9 +259,9 @@ export class ConfserverProcess {
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
     this.espIdfPath =
-      idfConf.readParameter("idf.espIdfPath").toString() ||
+      idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceFolder) as string;
     this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
     if (typeof this.confServerChannel === "undefined") {
@@ -273,7 +273,7 @@ export class ConfserverProcess {
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceFolder);
-    const enableCCache = idfConf.readParameter("idf.enableCCache") as boolean;
+    const enableCCache = idfConf.readParameter("idf.enableCCache", workspaceFolder) as boolean;
     const confServerArgs: string[] = [idfPath];
     if (enableCCache) {
       confServerArgs.push("--ccache")

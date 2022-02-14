@@ -25,10 +25,13 @@ import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
-  const serialPort = readParameter("idf.port");
-  const flashBaudRate = readParameter("idf.flashBaudRate");
-  const idfPath = readParameter("idf.espIdfPath");
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+  const serialPort = readParameter("idf.port", workspaceFolder);
+  const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
+  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const pythonBinPath = readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
   const esptoolPath = join(
     idfPath,
     "components",

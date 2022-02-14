@@ -19,6 +19,7 @@ import { join } from "path";
 import * as idfConf from "../../idfConfiguration";
 import { readJSON } from "fs-extra";
 import { Logger } from "../../logger/logger";
+import { Uri } from "vscode";
 
 export interface IdfBoard {
   name: string;
@@ -60,8 +61,11 @@ export const defaultBoards = [
   } as IdfBoard,
 ];
 
-export function getOpenOcdScripts(): string {
-  const customExtraVars = idfConf.readParameter("idf.customExtraVars");
+export function getOpenOcdScripts(workspace: Uri): string {
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    workspace
+  );
   let openOcdScriptsPath: string;
   try {
     const jsonDict = JSON.parse(customExtraVars);

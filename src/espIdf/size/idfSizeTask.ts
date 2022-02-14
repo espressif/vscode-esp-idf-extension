@@ -37,8 +37,11 @@ export class IdfSizeTask {
 
   constructor(workspacePath: Uri) {
     this.curWorkspace = workspacePath;
-    this.pythonBinPath = readParameter("idf.pythonBinPath") as string;
-    const idfPathDir = readParameter("idf.espIdfPath") as string;
+    this.pythonBinPath = readParameter(
+      "idf.pythonBinPath",
+      workspacePath
+    ) as string;
+    const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
   }
 
@@ -63,7 +66,10 @@ export class IdfSizeTask {
       env: modifiedEnv,
     };
     const sizeExecution = await this.getShellExecution(options);
-    const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
+    const isSilentMode = readParameter(
+      "idf.notificationSilentMode",
+      this.curWorkspace
+    ) as boolean;
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
