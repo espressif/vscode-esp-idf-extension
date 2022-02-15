@@ -4,7 +4,7 @@ This extension contributes the following settings that can be later updated in s
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands. 
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
 
 > **NOTE:** All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
 
