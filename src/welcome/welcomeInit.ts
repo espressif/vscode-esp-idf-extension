@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Progress } from "vscode";
+import { Progress, Uri } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { packageJson } from "../utils";
 
@@ -27,11 +27,12 @@ export interface IWelcomeArgs {
 }
 
 export async function getWelcomePageInitialValues(
-  progress: Progress<{ message: string; increment: number }>
+  progress: Progress<{ message: string; increment: number }>,
+  workspace?: Uri,
 ) {
   progress.report({ increment: 20, message: "Getting extension version..." });
   const extensionVersion = packageJson.version as string;
-  const confEspIdfPath = readParameter("idf.espIdfPath") as string;
+  const confEspIdfPath = readParameter("idf.espIdfPath", workspace) as string;
   const confShowOnboardingOnInit = readParameter(
     "idf.showOnboardingOnInit"
   ) as boolean;

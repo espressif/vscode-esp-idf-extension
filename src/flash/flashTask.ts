@@ -76,12 +76,13 @@ export class FlashTask {
     }
     this.verifyArgs();
     const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode"
+      "idf.notificationSilentMode",
+      this.workspaceUri
     ) as boolean;
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Always
       : vscode.TaskRevealKind.Silent;
-    let isWsl2Kernel = isRunningInWsl();
+    let isWsl2Kernel = isRunningInWsl(this.workspaceUri);
     const powershellPath = await isBinInPath(
       "powershell.exe",
       this.workspaceUri.fsPath,
@@ -144,17 +145,32 @@ export class FlashTask {
       cwd: join(this.workspaceUri.fsPath, "build"),
       env: modifiedEnv,
     };
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath") as string;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      this.workspaceUri
+    ) as string;
     return new vscode.ProcessExecution(pythonBinPath, flasherArgs, options);
   }
 
   public _dfuFlashing() {
     this.flashing(true);
-    const selectedDfuPath = idfConf.readParameter("idf.selectedDfuDevicePath");
-    const listDfuDevices = idfConf.readParameter("idf.listDfuDevices");
+    const selectedDfuPath = idfConf.readParameter(
+      "idf.selectedDfuDevicePath",
+      this.workspaceUri
+    );
+    const listDfuDevices = idfConf.readParameter(
+      "idf.listDfuDevices",
+      this.workspaceUri
+    );
     if (listDfuDevices.length > 1) {
-      const idfPathDir = idfConf.readParameter("idf.espIdfPath") as string;
-      const pythonPath = idfConf.readParameter("idf.pythonBinPath") as string;
+      const idfPathDir = idfConf.readParameter(
+        "idf.espIdfPath",
+        this.workspaceUri
+      ) as string;
+      const pythonPath = idfConf.readParameter(
+        "idf.pythonBinPath",
+        this.workspaceUri
+      ) as string;
       const idfPy = path.join(idfPathDir, "tools", "idf.py");
       return new vscode.ShellExecution(
         `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`

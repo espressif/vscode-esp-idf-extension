@@ -54,7 +54,7 @@ export class SerialPort {
     );
 
     try {
-      let isWsl2Kernel = isRunningInWsl();
+      let isWsl2Kernel = isRunningInWsl(workspaceFolder);
       let portList: SerialPortDetails[];
       if (
         process.platform === "linux" &&

@@ -17,18 +17,13 @@ import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import { readParameter, writeParameter } from "./idfConfiguration";
+import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
-  const projDescPath = path.join(
-    workspaceRoot.fsPath,
-    "build",
-    "project_description.json"
-  );
-  updateIdfComponentsTree(projDescPath);
+  updateIdfComponentsTree(workspaceRoot);
   const workspaceFolderInfo = {
     clickCommand: "espIdf.pickAWorkspaceFolder",
     currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
@@ -40,12 +35,12 @@ export function initSelectedWorkspace(status: vscode.StatusBarItem) {
 }
 
 let idfDataProvider: IdfTreeDataProvider;
-export function updateIdfComponentsTree(projectDescriptionPath: string) {
+export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
   if (typeof idfDataProvider === "undefined") {
-    idfDataProvider = new IdfTreeDataProvider(projectDescriptionPath);
+    idfDataProvider = new IdfTreeDataProvider(workspaceFolder);
     vscode.window.registerTreeDataProvider("idfComponents", idfDataProvider);
   }
-  idfDataProvider.refresh(projectDescriptionPath);
+  idfDataProvider.refresh(workspaceFolder);
 }
 
 export function getProjectName(workspacePath: string): Promise<string> {

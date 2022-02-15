@@ -4,6 +4,10 @@ This extension contributes the following settings that can be later updated in s
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands. 
+
+> **NOTE:** All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
+
 ## ESP-IDF Specific Settings
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
@@ -39,16 +43,18 @@ This is how the extension uses them:
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting                                          | Description                                                         |
-| ------------------------------------------------ | ------------------------------------------------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                |
-| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                        |
-| `idf.flashBaudRate`                              | Flash Baud rate                                                     |
-| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |
-| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |
-| `idf.port`                                       | Path of selected device port                                        |
-| `idf.portWin`                                    | Path of selected device port in Windows                             |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   |
+| Setting                                          | Description                                                         | Scope                     |
+| ------------------------------------------------ | ------------------------------------------------------------------- | ------------------------- |
+| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                |                           |
+| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                        |                           |
+| `idf.flashBaudRate`                              | Flash Baud rate                                                     |                           |
+| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |                           |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |                           |
+| `idf.port`                                       | Path of selected device port                                        |                           |
+| `idf.portWin`                                    | Path of selected device port in Windows                             |                           |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   | User, Remote or Workspace |
+| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                | User, Remote or Workspace |
+| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                | User, Remote or Workspace |
 
 This is how the extension uses them:
 
@@ -77,19 +83,18 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ## Extension Behaviour Settings
 
-| Setting ID                             | Description                                                            |
-| -------------------------------------- | ---------------------------------------------------------------------- |
-| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)          |
-| `idf.flashType`                        | Preferred flash method. UART or JTAG                                   |
-| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                |
-| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output                |
-| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation              |
-| `idf.saveScope`                        | Where to save extension settings                                       |
-| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)             |
-| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                              |
-| `idf.wslEnable`                        | Enable use of powershell executable for flash and monitor tasks in WSL |
-
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
+| Setting ID                             | Description                                                            | Scope                     |
+| -------------------------------------- | ---------------------------------------------------------------------- | ------------------------- |
+| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)          | User, Remote or Workspace |
+| `idf.flashType`                        | Preferred flash method. UART or JTAG                                   |                           |
+| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                |                           |
+| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output                | User, Remote or Workspace |
+| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation              | User, Remote or Workspace |
+| `idf.saveScope`                        | Where to save extension settings                                       | User, Remote or Workspace |
+| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)             |                           |
+| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                              |                           |
+| `idf.telemetry`                        | Enable Telemetry                                                       | User, Remote or Workspace |
+| `idf.wslEnable`                        | Enable use of powershell executable for flash and monitor tasks in WSL |                           |
 
 ## Custom tasks for build and flash tasks
 

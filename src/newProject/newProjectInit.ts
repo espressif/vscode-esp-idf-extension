@@ -11,14 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { Progress } from "vscode";
+import { Progress, Uri } from "vscode";
 import { getExamplesList, IExampleCategory } from "../examples/Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import * as idfConf from "../idfConfiguration";
 import { SerialPort } from "../espIdf/serial/serialPort";
 import { dirExistPromise } from "../utils";
 import { Logger } from "../logger/logger";
-import { defaultBoards, getBoards, getOpenOcdScripts, IdfBoard } from "../espIdf/openOcd/boardConfiguration";
+import {
+  defaultBoards,
+  getBoards,
+  getOpenOcdScripts,
+  IdfBoard,
+} from "../espIdf/openOcd/boardConfiguration";
 
 export interface INewProjectArgs {
   espIdfPath: string;
@@ -29,18 +34,22 @@ export interface INewProjectArgs {
   serialPortList: string[];
   targetList: IdfBoard[];
   templates: { [key: string]: IExampleCategory };
+  workspaceFolder: Uri;
 }
 
 export async function getNewProjectArgs(
   extensionPath: string,
-  progress: Progress<{ message: string; increment: number }>
+  progress: Progress<{ message: string; increment: number }>,
+  workspace: Uri,
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
   progress.report({ increment: 10, message: "Loading serial ports..." });
   let serialPortList: Array<string>;
   try {
-    const serialPortListDetails = await SerialPort.shared().getListArray();
+    const serialPortListDetails = await SerialPort.shared().getListArray(
+      workspace
+    );
     serialPortList = serialPortListDetails.map((p) => p.comName);
   } catch (error) {
     const msg = error.message
@@ -51,14 +60,23 @@ export async function getNewProjectArgs(
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
-  const openOcdScriptsPath = getOpenOcdScripts();
+  const openOcdScriptsPath = getOpenOcdScripts(workspace);
   const espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const targetList = defaultBoards;
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
-  const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-  const espAdfPath = idfConf.readParameter("idf.espAdfPath") as string;
-  const espMdfPath = idfConf.readParameter("idf.espMdfPath") as string;
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    workspace
+  ) as string;
+  const espAdfPath = idfConf.readParameter(
+    "idf.espAdfPath",
+    workspace
+  ) as string;
+  const espMdfPath = idfConf.readParameter(
+    "idf.espMdfPath",
+    workspace
+  ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
   templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(espIdfPath);

@@ -116,7 +116,10 @@ export class QemuManager extends EventEmitter {
   }
 
   public configureWithDefValues() {
-    const qemuTcpPort = readParameter("idf.qemuTcpPort");
+    let workspaceFolder: Uri;
+    if (PreCheck.isWorkspaceFolderOpen()) {
+      workspaceFolder = workspace.workspaceFolders[0].uri;
+    }
     const defOptions = {
       launchArgs: [
         "-nographic",
@@ -125,11 +128,8 @@ export class QemuManager extends EventEmitter {
         "-drive",
         "file=build/merged_qemu.bin,if=mtd,format=raw",
       ],
-      tcpPort: qemuTcpPort,
+      tcpPort: readParameter("idf.qemuTcpPort", workspaceFolder),
     } as IQemuOptions;
-    if (PreCheck.isWorkspaceFolderOpen()) {
-      defOptions.workspaceFolder = workspace.workspaceFolders[0].uri;
-    }
     this.configure(defOptions);
   }
 

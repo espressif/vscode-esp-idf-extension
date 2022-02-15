@@ -15,8 +15,8 @@
 import {
   ConfigurationTarget,
   Progress,
+  Uri,
   window,
-  workspace,
   WorkspaceFolder,
 } from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
@@ -48,14 +48,24 @@ export interface ISetupInitArgs {
 }
 
 export async function checkPreviousInstall(
-  pythonVersions: string[]
+  pythonVersions: string[],
+  workspaceFolder: Uri
 ): Promise<ISetupInitArgs> {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
 
-  const confEspIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
-  const confToolsPath = idfConf.readParameter("idf.toolsPath") as string;
-  const confPyPath = idfConf.readParameter("idf.pythonBinPath") as string;
+  const confEspIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    workspaceFolder
+  ) as string;
+  const confToolsPath = idfConf.readParameter(
+    "idf.toolsPath",
+    workspaceFolder
+  ) as string;
+  const confPyPath = idfConf.readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
   const toolsPath =
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
@@ -68,7 +78,8 @@ export async function checkPreviousInstall(
 
   const espIdfJsonPath = path.join(toolsPath, "esp_idf.json");
   const espIdfJsonExists = await pathExists(espIdfJsonPath);
-  let gitPath = idfConf.readParameter("idf.gitPath") || "/usr/bin/git";
+  let gitPath =
+    idfConf.readParameter("idf.gitPath", workspaceFolder) || "/usr/bin/git";
   if (espIdfJsonExists) {
     const idfInstalled = await getSelectedIdfInstalled(toolsPath);
     if (idfInstalled && idfInstalled.path && idfInstalled.python) {
@@ -243,7 +254,7 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     return false;
   }
   let requirements: string;
-  requirements = path.join(espIdfPath, "requirements.core.txt"); 
+  requirements = path.join(espIdfPath, "requirements.core.txt");
   const coreRequirementsExists = await pathExists(requirements);
   if (!coreRequirementsExists) {
     requirements = path.join(espIdfPath, "requirements.txt");
@@ -265,7 +276,8 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
 
 export async function getSetupInitialValues(
   extensionPath: string,
-  progress: Progress<{ message: string; increment: number }>
+  progress: Progress<{ message: string; increment: number }>,
+  workspaceFolder: Uri
 ) {
   progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
@@ -282,7 +294,10 @@ export async function getSetupInitialValues(
     });
 
     // Get initial paths
-    const prevInstall = await checkPreviousInstall(pythonVersions);
+    const prevInstall = await checkPreviousInstall(
+      pythonVersions,
+      workspaceFolder
+    );
     if (process.platform !== "win32") {
       setupInitArgs.hasPrerequisites =
         prevInstall.gitVersion !== "Not found" &&
@@ -346,17 +361,24 @@ function getToolIndex(toolName: string, toolsResults: IEspIdfTool[]) {
     : -1;
 }
 
-export async function isCurrentInstallValid() {
+export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = idfConf.readParameter("idf.toolsPath") as string;
+  const confToolsPath = idfConf.readParameter(
+    "idf.toolsPath",
+    workspaceFolder
+  ) as string;
   const toolsPath =
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
-  const extraPaths = idfConf.readParameter("idf.customExtraPaths") as string;
-  let espIdfPath = idfConf.readParameter("idf.espIdfPath");
-  const gitPath = idfConf.readParameter("idf.gitPath") || "git";
+  const extraPaths = idfConf.readParameter(
+    "idf.customExtraPaths",
+    workspaceFolder
+  ) as string;
+  let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
+  const gitPath =
+    idfConf.readParameter("idf.gitPath", workspaceFolder) || "git";
   let idfPathVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");

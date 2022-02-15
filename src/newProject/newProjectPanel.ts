@@ -125,7 +125,8 @@ export class NewProjectPanel {
               message.port,
               message.containerFolder,
               message.projectName,
-              message.template
+              message.template,
+              newProjectArgs.workspaceFolder
             );
           }
           break;
@@ -201,7 +202,8 @@ export class NewProjectPanel {
     port: string,
     projectDirectory: string,
     projectName: string,
-    template: IExample
+    template: IExample,
+    workspaceFolder?: vscode.Uri
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;
@@ -268,7 +270,8 @@ export class NewProjectPanel {
             settingsJsonPath,
             idfTarget,
             openOcdConfigs,
-            port
+            port,
+            workspaceFolder
           );
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:

@@ -72,9 +72,9 @@ export async function mergeFlashBinaries(
       TaskManager.disposeListeners();
     });
   }
-  const idfPath = readParameter("idf.espIdfPath");
-  const port = readParameter("idf.port");
-  const flashBaudRate = readParameter("idf.flashBaudRate");
+  const idfPath = readParameter("idf.espIdfPath", wsFolder);
+  const port = readParameter("idf.port", wsFolder);
+  const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
   const buildDirPath = join(wsFolder.fsPath, "build");
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const esptoolPath = join(
@@ -100,7 +100,7 @@ export async function mergeFlashBinaries(
     }
   }
 
-  const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
+  const isSilentMode = readParameter("idf.notificationSilentMode", wsFolder) as boolean;
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Always
     : TaskRevealKind.Silent;
@@ -141,7 +141,7 @@ export async function getMergeExecution(
     cwd: buildDir,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(

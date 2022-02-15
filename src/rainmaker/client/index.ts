@@ -221,7 +221,7 @@ export class RainmakerAPIClient {
       apiServerURL = "https://api.rainmaker.espressif.com/v1";
     }
     if (apiServerURL.endsWith("/")) {
-      apiServerURL = apiServerURL.substr(0, apiServerURL.length - 1);
+      apiServerURL = apiServerURL.slice(0, apiServerURL.length - 1);
     }
     return `${apiServerURL}/${path}`;
   }

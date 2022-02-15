@@ -80,12 +80,7 @@ export async function buildCommand(
       await TaskManager.runTasks();
     }
     if (!cancelToken.isCancellationRequested) {
-      const projDescPath = join(
-        workspace.fsPath,
-        "build",
-        "project_description.json"
-      );
-      updateIdfComponentsTree(projDescPath);
+      updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successfully");
       TaskManager.disposeListeners();
     }

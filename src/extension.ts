@@ -693,7 +693,7 @@ export async function activate(context: vscode.ExtensionContext) {
           "build",
           "project_description.json"
         );
-        updateIdfComponentsTree(projDescPath);
+        updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
           currentWorkSpace: option.name,
@@ -1564,7 +1564,11 @@ export async function activate(context: vscode.ExtensionContext) {
             try {
               setupArgs = setupArgs
                 ? setupArgs
-                : await getSetupInitialValues(context.extensionPath, progress);
+                : await getSetupInitialValues(
+                    context.extensionPath,
+                    progress,
+                    workspaceRoot
+                  );
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -1692,7 +1696,10 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const welcomeArgs = await getWelcomePageInitialValues(progress);
+          const welcomeArgs = await getWelcomePageInitialValues(
+            progress,
+            workspaceRoot
+          );
           if (!welcomeArgs) {
             throw new Error("Error getting welcome page initial values");
           }
@@ -1722,7 +1729,8 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
-            progress
+            progress,
+            workspaceRoot
           );
           if (!newProjectArgs || !newProjectArgs.targetList) {
             throw new Error("Could not find ESP-IDF Targets");
@@ -2429,14 +2437,20 @@ export async function activate(context: vscode.ExtensionContext) {
     let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
       workspaceRoot.fsPath
     );
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceRoot) as string;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceRoot
+    ) as string;
     if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
       Logger.errorNotify(
         "Python binary path is not defined",
         new Error("idf.pythonBinPath is not defined")
       );
     }
-    const idfPath = idfConf.readParameter("idf.espIdfPath", workspaceRoot) as string;
+    const idfPath = idfConf.readParameter(
+      "idf.espIdfPath",
+      workspaceRoot
+    ) as string;
     const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
     if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
       Logger.errorNotify(
@@ -2689,7 +2703,10 @@ export async function activate(context: vscode.ExtensionContext) {
       [openFolderCheck, webIdeCheck, openOcdMinCheck],
       async () => {
         const port = idfConf.readParameter("idf.port", workspaceRoot);
-        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate", workspaceRoot);
+        const flashBaudRate = idfConf.readParameter(
+          "idf.flashBaudRate",
+          workspaceRoot
+        );
         if (monitorTerminal) {
           monitorTerminal.sendText(ESP.CTRL_RBRACKET);
         }
@@ -2699,8 +2716,7 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot
         );
         if (canFlash) {
-          const buildPath = path.join(workspaceRoot.fsPath, "build");
-          await jtagFlashCommand(buildPath);
+          await jtagFlashCommand(workspaceRoot);
         }
       }
     );
@@ -2792,7 +2808,7 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  await checkExtensionSettings(context.extensionPath);
+  await checkExtensionSettings(context.extensionPath, workspaceRoot);
 }
 
 function validateInputForRainmakerDeviceParam(
@@ -2985,9 +3001,15 @@ const flash = () => {
         progress: vscode.Progress<{ message: string; increment: number }>,
         cancelToken: vscode.CancellationToken
       ) => {
-        const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
+        const idfPathDir = idfConf.readParameter(
+          "idf.espIdfPath",
+          workspaceRoot
+        );
         const port = idfConf.readParameter("idf.port", workspaceRoot);
-        const flashBaudRate = idfConf.readParameter("idf.flashBaudRate", workspaceRoot);
+        const flashBaudRate = idfConf.readParameter(
+          "idf.flashBaudRate",
+          workspaceRoot
+        );
         const selectedFlashType = idfConf.readParameter(
           "idf.flashType",
           workspaceRoot
@@ -3001,7 +3023,10 @@ const flash = () => {
           workspaceRoot
         );
         if (canFlash) {
-          const arrDfuDevices = idfConf.readParameter("idf.listDfuDevices", workspaceRoot);
+          const arrDfuDevices = idfConf.readParameter(
+            "idf.listDfuDevices",
+            workspaceRoot
+          );
           if (arrDfuDevices.length > 1) {
             await selectDfuDevice(arrDfuDevices);
           }
@@ -3026,7 +3051,10 @@ function createQemuMonitor() {
       vscode.window.showInformationMessage("QEMU is not running. Run first.");
       return;
     }
-    const qemuTcpPort = idfConf.readParameter("idf.qemuTcpPort", workspaceRoot) as number;
+    const qemuTcpPort = idfConf.readParameter(
+      "idf.qemuTcpPort",
+      workspaceRoot
+    ) as number;
     const serialPort = `socket://localhost:${qemuTcpPort}`;
     await createMonitorTerminal(monitorTerminal, workspaceRoot, serialPort);
   });
@@ -3101,7 +3129,10 @@ async function selectFlashMethod(cancelToken) {
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);
   const port = idfConf.readParameter("idf.port", workspaceRoot);
-  const flashBaudRate = idfConf.readParameter("idf.flashBaudRate", workspaceRoot);
+  const flashBaudRate = idfConf.readParameter(
+    "idf.flashBaudRate",
+    workspaceRoot
+  );
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
   }
@@ -3111,8 +3142,7 @@ async function selectFlashMethod(cancelToken) {
   }
 
   if (flashType === "JTAG") {
-    const buildPath = path.join(workspaceRoot.fsPath, "build");
-    return await jtagFlashCommand(buildPath);
+    return await jtagFlashCommand(workspaceRoot);
   } else {
     const arrDfuDevices = idfConf.readParameter(
       "idf.listDfuDevices",

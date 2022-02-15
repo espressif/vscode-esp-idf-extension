@@ -18,21 +18,23 @@
 
 import { readParameter } from "../idfConfiguration";
 import { readJSON } from "fs-extra";
+import { Uri } from "vscode";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
   idfTarget: string,
   openOcdConfigs: string,
-  port: string
+  port: string,
+  workspace?: Uri
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
-  const idfPathDir = readParameter("idf.espIdfPath");
-  const adfPathDir = readParameter("idf.espAdfPath");
-  const mdfPathDir = readParameter("idf.espMdfPath");
-  const extraPaths = readParameter("idf.customExtraPaths");
-  const extraVars = readParameter("idf.customExtraVars") as string;
-  const toolsDir = readParameter("idf.toolsPath");
-  const pyPath = readParameter("idf.pythonBinPath");
+  const idfPathDir = readParameter("idf.espIdfPath", workspace);
+  const adfPathDir = readParameter("idf.espAdfPath", workspace);
+  const mdfPathDir = readParameter("idf.espMdfPath", workspace);
+  const extraPaths = readParameter("idf.customExtraPaths", workspace);
+  const extraVars = readParameter("idf.customExtraVars", workspace) as string;
+  const toolsDir = readParameter("idf.toolsPath", workspace);
+  const pyPath = readParameter("idf.pythonBinPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
   settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
   if (extraPaths) {

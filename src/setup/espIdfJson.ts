@@ -19,7 +19,6 @@
 import { createHash } from "crypto";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { join } from "path";
-import { readParameter } from "../idfConfiguration";
 import { isBinInPath } from "../utils";
 
 export interface EspIdfJson {

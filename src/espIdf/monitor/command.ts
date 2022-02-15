@@ -86,7 +86,7 @@ export async function createMonitorTerminal(
     });
   }
   monitorTerminal.show();
-  let isWsl2Kernel = utils.isRunningInWsl();
+  let isWsl2Kernel = utils.isRunningInWsl(workspace);
   const isPowerShellInPath = await utils.isBinInPath(
     "powershell.exe",
     workspace.fsPath,

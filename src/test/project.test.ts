@@ -149,7 +149,8 @@ suite("Project tests", () => {
       settingsJsonPath,
       "esp32",
       openOcdConfigs,
-      "no port"
+      "no port",
+      Uri.file(projectPath)
     );
     assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");

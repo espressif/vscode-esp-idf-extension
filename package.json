@@ -541,7 +541,6 @@
           "idf.notificationSilentMode": {
             "type": "boolean",
             "default": false,
-            "scope": "resource",
             "description": "%param.notificationSilentMode%"
           },
           "idf.saveScope": {
@@ -637,7 +636,7 @@
           },
           "idf.listDfuDevices": {
             "type": "array",
-            "default": "[]"
+            "default": []
           },
           "openocd.tcl.host": {
             "type": "string",
