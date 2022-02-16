@@ -294,7 +294,7 @@
         "mac": "cmd+i b"
       },
       {
-        "command": "espIdf.selectFlashMethodAndFlash",
+        "command": "espIdf.startFlashing",
         "key": "ctrl+e f",
         "mac": "cmd+i f"
       },
@@ -823,6 +823,10 @@
       {
         "command": "espIdf.flashDFU",
         "title": "%espIdf.flashDFU.title%"
+      },
+      {
+        "command": "espIdf.startFlashing",
+        "title": "%espIdf.flashDevice.title%"
       },
       {
         "command": "espIdf.monitorDevice",

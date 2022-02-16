@@ -106,4 +106,41 @@ export class CustomTask {
       showTaskOutput
     );
   }
+
+  public async runTasks(taskType: CustomTaskType) {
+    let cmd: string;
+    switch (taskType) {
+      case CustomTaskType.PreBuild:
+        cmd = readParameter(
+          "idf.preBuildTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PostBuild:
+        cmd = readParameter(
+          "idf.postBuildTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PreFlash:
+        cmd = readParameter(
+          "idf.preFlashTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PostFlash:
+        cmd = readParameter(
+          "idf.postFlashTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.Custom:
+        cmd = readParameter("idf.customTask", this.currentWorkspace) as string;
+      default:
+        break;
+    }
+    if (cmd) {
+      await TaskManager.runTasks();
+    }
+  }
 }

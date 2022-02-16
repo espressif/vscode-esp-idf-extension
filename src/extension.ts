@@ -973,6 +973,12 @@ export async function activate(context: vscode.ExtensionContext) {
         port: tclPort,
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
+    } else if (e.affectsConfiguration("idf.flashType")) {
+      let flashType = idfConf.readParameter(
+        "idf.flashType",
+        workspaceRoot
+      ) as string;
+      statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
     }
   });
 
@@ -2723,6 +2729,11 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
     PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
+      await selectFlashMethod();
+    });
+  });
+  registerIDFCommand("espIdf.startFlashing", () => {
+    PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
       await vscode.window.withProgress(
         {
           cancellable: true,
@@ -2733,7 +2744,7 @@ export async function activate(context: vscode.ExtensionContext) {
           progress: vscode.Progress<{ message: string; increment: number }>,
           cancelToken: vscode.CancellationToken
         ) => {
-          await selectFlashMethod(cancelToken);
+          await startFlashing(cancelToken);
         }
       );
     });
@@ -2923,35 +2934,41 @@ function creatCmdsStatusBarItems() {
     "espIdf.buildDevice",
     95
   );
-  statusBarItems["flash"] = createStatusBarItem(
-    `$(zap) ${flashType}`,
-    "ESP-IDF Flash device",
+  statusBarItems["flashType"] = createStatusBarItem(
+    `$(star-empty) ${flashType}`,
+    "ESP-IDF Select flash method",
     "espIdf.selectFlashMethodAndFlash",
     94
+  );
+  statusBarItems["flash"] = createStatusBarItem(
+    `$(zap)`,
+    "ESP-IDF Flash device",
+    "espIdf.startFlashing",
+    93
   );
   statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
     "ESP-IDF Monitor device",
     "espIdf.monitorDevice",
-    93
+    92
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
     "ESP-IDF Build, Flash and Monitor",
     "espIdf.buildFlashMonitor",
-    92
+    91
   );
   statusBarItems["terminal"] = createStatusBarItem(
     "$(terminal)",
     "ESP-IDF: Open ESP-IDF Terminal",
     "espIdf.createIdfTerminal",
-    91
+    90
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
     "ESP-IDF: Execute custom task",
     "espIdf.customTask",
-    90
+    89
   );
   return statusBarItems;
 }
@@ -3086,7 +3103,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           message: "Flashing project into device...",
           increment: 60,
         });
-        canContinue = await selectFlashMethod(cancelToken);
+        canContinue = await startFlashing(cancelToken);
         if (!canContinue) {
           return;
         }
@@ -3108,7 +3125,7 @@ enum selectedFlashType {
   DFU = "DFU",
 }
 
-async function selectFlashMethod(cancelToken) {
+async function selectFlashMethod() {
   let flashType = await vscode.window.showQuickPick(
     Object.keys(selectedFlashType),
     {
@@ -3122,9 +3139,13 @@ async function selectFlashMethod(cancelToken) {
     flashType,
     vscode.ConfigurationTarget.WorkspaceFolder
   );
+  return flashType;
+}
 
+async function startFlashing(cancelToken) {
+  let flashType = idfConf.readParameter("idf.flashType", workspaceRoot);
   if (!flashType) {
-    return;
+    flashType = await selectFlashMethod();
   }
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath", workspaceRoot);

@@ -51,12 +51,12 @@ export async function jtagFlashCommand(workspace: Uri) {
   }
   try {
     customTask.addCustomTask(CustomTaskType.PreFlash);
-    await TaskManager.runTasks();
+    await customTask.runTasks(CustomTaskType.PreFlash);
     await jtag.flash(
       `program_esp_bins ${buildPath} flasher_args.json verify reset`
     );
     customTask.addCustomTask(CustomTaskType.PostFlash);
-    await TaskManager.runTasks();
+    await customTask.runTasks(CustomTaskType.PostFlash);
     Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
