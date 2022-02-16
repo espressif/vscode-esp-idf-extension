@@ -21,6 +21,7 @@ import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
+import * as idfConf from "../idfConfiguration";
 import { setCurrentSettingsInTemplate } from "./utils";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
@@ -216,6 +217,25 @@ export class NewProjectPanel {
         token: vscode.CancellationToken
       ) => {
         try {
+          const espIdfPath = idfConf.readParameter("idf.espIdfPath") as string;
+          const gitPath = idfConf.readParameter("idf.gitPath") || "git";
+          const version = await utils.getEspIdfVersion(espIdfPath, gitPath);
+          if (/\s/g.test(projectName) && Number(version) < 5) {
+            let versionMessage = `Detected a whitespace character in your paths. Spaces in IDF_PATH and project paths are allowed in version 5.0 or higher of IDF Tools. Your current IDF Tools version is ${version}`;
+            Logger.warnNotify(versionMessage);
+            isSkipped = true;
+            return;
+          }
+          if (components && components.length > 0) {
+            for (const component of components) {
+              if (/\s/g.test(component.path)) {
+                let versionMessage = `Detected a whitespace character in your paths. Spaces in IDF_PATH and project paths are allowed in version 5.0 or higher of IDF Tools. Your current IDF Tools version is ${version}`;
+                Logger.warnNotify(versionMessage);
+                isSkipped = true;
+                return;
+              }
+            }
+          }
           const projectDirExists = await utils.dirExistPromise(
             projectDirectory
           );
