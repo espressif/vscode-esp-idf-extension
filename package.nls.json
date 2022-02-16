@@ -114,6 +114,7 @@
   "idf.wssPort.description": "Web Socket Server Port for Core Dump or GDB Stub",
   "esp.webview.open.partition-table.title": "Open Partition Table Editor UI",
   "esp.efuse.summary.title": "Get eFuse Summary",
+  "espIdf.efuse.clearResults.title": "Clear eFuse Summary",
   "espIdf.jtag_flash.title": "Flash (with JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Select Flash Method and Flash",
   "idf.flashType.description": "Device flash method, UART or JTag",

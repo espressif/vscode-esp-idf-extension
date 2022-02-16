@@ -177,6 +177,7 @@
     "idf.wssPort.description",
     "esp.webview.open.partition-table.title",
     "esp.efuse.summary.title",
+    "espIdf.efuse.clearResults.title",
     "espIdf.jtag_flash.title",
     "espIdf.selectFlashMethodAndFlash.title",
     "idf.flashType.description",

@@ -114,6 +114,7 @@
   "idf.wssPort.description": "Порт сервера веб-сокетов для дампа ядра или GDB stub",
   "esp.webview.open.partition-table.title": "Открыть интерфейс редактора таблицы разделов",
   "esp.efuse.summary.title": "Получить состояние eFuse",
+  "espIdf.efuse.clearResults.title": "Очистить сводку eFuse",
   "espIdf.jtag_flash.title": "Прошить (через JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Выбрать метод прошивки и прошить",
   "idf.flashType.description": "Метод прошивки устройства, UART или JTag",

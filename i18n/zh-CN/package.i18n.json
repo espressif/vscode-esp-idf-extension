@@ -114,6 +114,7 @@
   "idf.wssPort.description": "CoreDump/GDB-Stub 模式 Web Socket 端口",
   "esp.webview.open.partition-table.title": "打开分区表编辑器 UI",
   "esp.efuse.summary.title": "获取 eFuse 摘要",
+  "espIdf.efuse.clearResults.title": "清除 eFuse 摘要",
   "espIdf.jtag_flash.title": "JTag 烧录",
   "espIdf.selectFlashMethodAndFlash.title": "选择烧录方式烧录",
   "idf.flashType.description": "设备烧录方式，UART 或 JTag",

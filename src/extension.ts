@@ -2581,6 +2581,10 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
+  registerIDFCommand("espIdf.efuse.clearResults", async () => {
+    eFuseExplorer.clearResults();
+  });
+
   registerIDFCommand("espIdf.ninja.summary", async () => {
     vscode.window.withProgress(
       {
