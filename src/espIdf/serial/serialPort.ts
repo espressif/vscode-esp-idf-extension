@@ -42,8 +42,8 @@ export class SerialPort {
   private constructor() {
     this.locDic = new LocDictionary(__filename);
   }
-  public promptUserToSelect(workspaceFolder: vscode.Uri): any {
-    SerialPort.shared().displayList(workspaceFolder);
+  public promptUserToSelect(workspaceFolder: vscode.Uri) {
+    return SerialPort.shared().displayList(workspaceFolder);
   }
   private async displayList(workspaceFolder: vscode.Uri) {
     const msgDefault =

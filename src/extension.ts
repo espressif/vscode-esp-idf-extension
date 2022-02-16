@@ -645,7 +645,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform(
       [webIdeCheck, openFolderCheck],
-      SerialPort.shared().promptUserToSelect(workspaceRoot)
+      async () => SerialPort.shared().promptUserToSelect(workspaceRoot)
     );
   });
 
