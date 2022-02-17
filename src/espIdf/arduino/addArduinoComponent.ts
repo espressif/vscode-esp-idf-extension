@@ -25,10 +25,13 @@ import { OutputChannel } from "../../logger/outputChannel";
 import { ESP } from "../../config";
 
 export class ArduinoComponentInstaller {
+  private cloneProcess: ChildProcess;
+  private espIdfPath: string;
   private readonly projectDir: string;
   private gitBinPath: string;
-  private cloneProcess: ChildProcess;
-  constructor(projectDir: string, gitBinPath: string = "git") {
+
+  constructor(espIdfPath: string, projectDir: string, gitBinPath: string = "git") {
+    this.espIdfPath = espIdfPath;
     this.projectDir = projectDir;
     this.gitBinPath = gitBinPath;
   }
@@ -83,8 +86,7 @@ export class ArduinoComponentInstaller {
 
   private async checkIdfVersion(espIdfPath?: string) {
     if (typeof espIdfPath === "undefined" || espIdfPath === "") {
-      espIdfPath =
-        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+      espIdfPath = this.espIdfPath || process.env.IDF_PATH;
     }
 
     const idfVersion = await getEspIdfVersion(espIdfPath, this.gitBinPath);

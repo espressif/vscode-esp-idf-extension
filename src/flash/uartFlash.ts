@@ -56,8 +56,8 @@ export async function flashCommand(
       port,
       flashBaudRate
     );
-    flashTask = new FlashTask(buildPath, idfPathDir, model);
-    const customTask = new CustomTask(workspace.fsPath);
+    flashTask = new FlashTask(workspace, idfPathDir, model);
+    const customTask = new CustomTask(workspace);
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
     });

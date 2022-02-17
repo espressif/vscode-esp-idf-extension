@@ -65,5 +65,5 @@ export async function createPyReqs(
     command: "setIsIdfInstalling",
     installing: false,
   });
-  await getOpenOcdRules();
+  await getOpenOcdRules(vscode.Uri.file(idfPath));
 }

@@ -49,13 +49,13 @@ export function getGcovExecutable(idfTarget: string) {
     : `xtensa-${idfTarget}-elf-gcov`;
 }
 
-export async function getGcovFilterPaths() {
+export async function getGcovFilterPaths(workspacePath: vscode.Uri) {
   const espAdfPath =
-    idfConf.readParameter("idf.espAdfPath") || process.env.ADF_PATH;
+    idfConf.readParameter("idf.espAdfPath", workspacePath) || process.env.ADF_PATH;
   const espIdfPath =
-    idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+    idfConf.readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
   const espMdfPath =
-    idfConf.readParameter("idf.espMdfPath") || process.env.MDF_PATH;
+    idfConf.readParameter("idf.espMdfPath", workspacePath) || process.env.MDF_PATH;
 
   const pathsToFilter: string[] = [];
 
@@ -83,9 +83,9 @@ export async function getGcovFilterPaths() {
   return pathsToFilter;
 }
 
-export async function buildJson(dirPath: string) {
-  const componentsDir = await getGcovFilterPaths();
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName") || "esp32";
+export async function buildJson(dirPath: vscode.Uri) {
+  const componentsDir = await getGcovFilterPaths(dirPath);
+  const idfTarget = idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
   const gcovTool = getGcovExecutable(idfTarget);
 
   const result = await _runCmd(
@@ -98,14 +98,14 @@ export async function buildJson(dirPath: string) {
       gcovTool,
       "--json",
     ],
-    dirPath.replace(/\\/g, "/")
+    dirPath.fsPath.replace(/\\/g, "/")
   );
   return JSON.parse(result);
 }
 
-export async function buildHtml(dirPath: string) {
-  const componentsDir = await getGcovFilterPaths();
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName") || "esp32";
+export async function buildHtml(dirPath: vscode.Uri) {
+  const componentsDir = await getGcovFilterPaths(dirPath);
+  const idfTarget = idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
   const gcovTool = getGcovExecutable(idfTarget);
   const result = await _runCmd(
     "gcovr",
@@ -117,13 +117,13 @@ export async function buildHtml(dirPath: string) {
       gcovTool,
       "--html",
     ],
-    dirPath
+    dirPath.fsPath
   );
   return result;
 }
 
 function _runCmd(cmd: string, args: string[], dirPath: string) {
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(vscode.Uri.file(dirPath));
   return spawn(cmd, args, { env: modifiedEnv, cwd: dirPath })
     .then((resultBuffer) => resultBuffer.toString())
     .catch((e) => {
@@ -234,7 +234,7 @@ export async function generateCoverageForEditors(
 }
 
 let gcovHtmlPanel: vscode.WebviewPanel;
-export async function previewReport(dirPath: string) {
+export async function previewReport(dirPath: vscode.Uri) {
   try {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn

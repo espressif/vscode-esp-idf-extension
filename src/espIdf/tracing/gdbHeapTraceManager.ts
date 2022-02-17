@@ -18,7 +18,7 @@
 import { ChildProcess, spawn } from "child_process";
 import { ensureDir, pathExists, writeFile } from "fs-extra";
 import { join } from "path";
-import { env, OutputChannel, window, workspace } from "vscode";
+import { env, OutputChannel, Uri, window } from "vscode";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
@@ -35,32 +35,30 @@ export class GdbHeapTraceManager {
   private heapTraceChannel: OutputChannel;
   private childProcess: ChildProcess;
   private gdbinitFileName: string = "heaptrace-gdbinit";
+  private workspace: Uri;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
-    archiveDataProvider: AppTraceArchiveTreeDataProvider
+    archiveDataProvider: AppTraceArchiveTreeDataProvider,
   ) {
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
     this.heapTraceChannel = window.createOutputChannel("GDB Heap Trace");
   }
 
-  public async start() {
+  public async start(workspace: Uri) {
     try {
       const isOpenOcdLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
       if (isOpenOcdLaunched) {
         this.heapTraceChannel.clear();
         this.showStopButton();
-        const workspaceFolder = PreCheck.isWorkspaceFolderOpen()
-          ? workspace.workspaceFolders[0].uri.fsPath
-          : "";
-        ensureDir(join(workspaceFolder, "trace"));
+        ensureDir(join(workspace.fsPath, "trace"));
         const fileName = `file://${join(
-          workspaceFolder,
+          workspace.fsPath,
           "trace"
         ).replace(/\\/g, "/")}/htrace_${new Date().getTime()}.svdat`;
-        await this.createGdbinitFile(fileName, workspaceFolder);
-        const modifiedEnv = appendIdfAndToolsToPath();
+        await this.createGdbinitFile(fileName, workspace.fsPath);
+        const modifiedEnv = appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
         const gdbTool =
           idfTarget === "esp32c3"
@@ -68,19 +66,19 @@ export class GdbHeapTraceManager {
             : `xtensa-${idfTarget}-elf-gdb`;
         const isGdbToolInPath = await isBinInPath(
           gdbTool,
-          workspaceFolder,
+          workspace.fsPath,
           modifiedEnv
         );
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
         }
-        const buildExists = await pathExists(join(workspaceFolder, "build"));
+        const buildExists = await pathExists(join(workspace.fsPath, "build"));
         if (!buildExists) {
-          throw new Error(`${workspaceFolder} build doesn't exist. Build first.`);
+          throw new Error(`${workspace.fsPath} build doesn't exist. Build first.`);
         }
-        const projectName = await getProjectName(workspaceFolder);
+        const projectName = await getProjectName(workspace.fsPath);
         const elfFilePath = join(
-          workspaceFolder,
+          workspace.fsPath,
           "build",
           `${projectName}.elf`
         );
@@ -92,7 +90,7 @@ export class GdbHeapTraceManager {
           `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
           [],
           {
-            cwd: workspaceFolder,
+            cwd: workspace.fsPath,
             env: modifiedEnv,
             shell: env.shell,
           }

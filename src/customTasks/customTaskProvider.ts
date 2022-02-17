@@ -21,6 +21,7 @@ import {
   ShellExecutionOptions,
   TaskRevealKind,
   TaskScope,
+  Uri,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
@@ -37,9 +38,7 @@ export enum CustomTaskType {
 export class CustomTask {
   public static isRunningCustomTask: boolean;
 
-  constructor(
-    private currentWorkspace: string
-  ) {}
+  constructor(private currentWorkspace: Uri) {}
 
   public isRunning(flag: boolean) {
     CustomTask.isRunningCustomTask = flag;
@@ -57,23 +56,23 @@ export class CustomTask {
     let taskName: string;
     switch (taskType) {
       case CustomTaskType.PreBuild:
-        cmd = readParameter("idf.preBuildTask");
+        cmd = readParameter("idf.preBuildTask", this.currentWorkspace);
         taskName = "Pre Build";
         break;
       case CustomTaskType.PostBuild:
-        cmd = readParameter("idf.postBuildTask");
+        cmd = readParameter("idf.postBuildTask", this.currentWorkspace);
         taskName = "Post Build";
         break;
       case CustomTaskType.PreFlash:
-        cmd = readParameter("idf.preFlashTask");
+        cmd = readParameter("idf.preFlashTask", this.currentWorkspace);
         taskName = "Pre Flash";
         break;
       case CustomTaskType.PostFlash:
-        cmd = readParameter("idf.postFlashTask");
+        cmd = readParameter("idf.postFlashTask", this.currentWorkspace);
         taskName = "Post Flash";
         break;
       case CustomTaskType.Custom:
-        cmd = readParameter("idf.customTask");
+        cmd = readParameter("idf.customTask", this.currentWorkspace);
         taskName = "Custom task";
       default:
         break;
@@ -81,12 +80,15 @@ export class CustomTask {
     if (!cmd) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
     const options: ShellExecutionOptions = {
-      cwd: this.currentWorkspace,
+      cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,
     };
-    const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
+    const isSilentMode = readParameter(
+      "idf.notificationSilentMode",
+      this.currentWorkspace
+    ) as boolean;
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -103,5 +105,42 @@ export class CustomTask {
       ["idfRelative", "idfAbsolute"],
       showTaskOutput
     );
+  }
+
+  public async runTasks(taskType: CustomTaskType) {
+    let cmd: string;
+    switch (taskType) {
+      case CustomTaskType.PreBuild:
+        cmd = readParameter(
+          "idf.preBuildTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PostBuild:
+        cmd = readParameter(
+          "idf.postBuildTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PreFlash:
+        cmd = readParameter(
+          "idf.preFlashTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.PostFlash:
+        cmd = readParameter(
+          "idf.postFlashTask",
+          this.currentWorkspace
+        ) as string;
+        break;
+      case CustomTaskType.Custom:
+        cmd = readParameter("idf.customTask", this.currentWorkspace) as string;
+      default:
+        break;
+    }
+    if (cmd) {
+      await TaskManager.runTasks();
+    }
   }
 }

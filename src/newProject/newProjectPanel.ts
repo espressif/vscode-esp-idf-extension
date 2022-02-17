@@ -125,7 +125,8 @@ export class NewProjectPanel {
               message.port,
               message.containerFolder,
               message.projectName,
-              message.template
+              message.template,
+              newProjectArgs.workspaceFolder
             );
           }
           break;
@@ -201,7 +202,8 @@ export class NewProjectPanel {
     port: string,
     projectDirectory: string,
     projectName: string,
-    template: IExample
+    template: IExample,
+    workspaceFolder?: vscode.Uri
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;
@@ -246,14 +248,14 @@ export class NewProjectPanel {
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
           if (template && template.path !== "") {
-            await utils.copyFromSrcProject(template.path, newProjectPath);
+            await utils.copyFromSrcProject(template.path, vscode.Uri.file(newProjectPath));
           } else {
             const boilerplatePath = path.join(
               this.extensionPath,
               "templates",
               "boilerplate"
             );
-            await utils.copyFromSrcProject(boilerplatePath, newProjectPath);
+            await utils.copyFromSrcProject(boilerplatePath, vscode.Uri.file(newProjectPath));
           }
           await utils.updateProjectNameInCMakeLists(
             newProjectPath,
@@ -268,7 +270,8 @@ export class NewProjectPanel {
             settingsJsonPath,
             idfTarget,
             openOcdConfigs,
-            port
+            port,
+            workspaceFolder
           );
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:

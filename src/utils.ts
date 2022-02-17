@@ -189,8 +189,8 @@ export function updateStatus(
   }
 }
 
-export async function createVscodeFolder(curWorkspaceFsPath: string) {
-  const settingsDir = path.join(curWorkspaceFsPath, ".vscode");
+export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
+  const settingsDir = path.join(curWorkspaceFsPath.fsPath, ".vscode");
   const vscodeTemplateFolder = path.join(templateDir, ".vscode");
   await ensureDir(settingsDir);
 
@@ -208,10 +208,10 @@ export async function createVscodeFolder(curWorkspaceFsPath: string) {
 }
 
 export async function setCCppPropertiesJsonCompilerPath(
-  curWorkspaceFsPath: string
+  curWorkspaceFsPath: vscode.Uri
 ) {
   const cCppPropertiesJsonPath = path.join(
-    curWorkspaceFsPath,
+    curWorkspaceFsPath.fsPath,
     ".vscode",
     "c_cpp_properties.json"
   );
@@ -219,7 +219,7 @@ export async function setCCppPropertiesJsonCompilerPath(
   if (!doesPathExists) {
     return;
   }
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool =
     idfTarget === "esp32c3"
@@ -227,7 +227,7 @@ export async function setCCppPropertiesJsonCompilerPath(
       : `xtensa-${idfTarget}-elf-gcc`;
   const compilerPath = await isBinInPath(
     gccTool,
-    curWorkspaceFsPath,
+    curWorkspaceFsPath.fsPath,
     modifiedEnv
   );
   const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
@@ -265,7 +265,7 @@ export function getDirectories(dirPath) {
 }
 
 export async function createSkeleton(
-  curWorkspacePath: string,
+  curWorkspacePath: vscode.Uri,
   chosenTemplateDir: string
 ) {
   const templateDirToUse = path.join(templateDir, chosenTemplateDir);
@@ -281,11 +281,11 @@ export async function createDevContainer(curWorkspaceFsPath: string) {
 
 export async function copyFromSrcProject(
   srcDirPath: string,
-  destinationDir: string
+  destinationDir: vscode.Uri
 ) {
   await createVscodeFolder(destinationDir);
-  await createDevContainer(destinationDir);
-  await copy(srcDirPath, destinationDir);
+  await createDevContainer(destinationDir.fsPath);
+  await copy(srcDirPath, destinationDir.fsPath);
 }
 
 export function getConfigValueFromSDKConfig(
@@ -721,7 +721,8 @@ export async function cleanDirtyGitRepository(
     if (!gitBinariesExists) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const workingDirUri = vscode.Uri.file(workingDir);
+    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
     const resetResult = await execChildProcess(
       `"${gitPath}" reset --hard --recurse-submodule`,
       workingDir,
@@ -744,7 +745,8 @@ export async function fixFileModeGitRepository(
     if (!gitBinariesExists) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const workingDirUri = vscode.Uri.file(workingDir);
+    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
     const fixFileModeResult = await execChildProcess(
       `"${gitPath}" config --local core.fileMode false`,
       workingDir,
@@ -820,14 +822,18 @@ export function validateFileSizeAndChecksum(
   });
 }
 
-export function appendIdfAndToolsToPath() {
+export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
-  const extraPaths = idfConf.readParameter("idf.customExtraPaths");
+  const extraPaths = idfConf.readParameter(
+    "idf.customExtraPaths",
+    curWorkspace
+  );
 
   const customVarsString = idfConf.readParameter(
-    "idf.customExtraVars"
+    "idf.customExtraVars",
+    curWorkspace
   ) as string;
   if (customVarsString) {
     try {
@@ -846,18 +852,18 @@ export function appendIdfAndToolsToPath() {
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const defaultEspIdfPath = path.join(containerPath, "esp", "esp-idf");
 
-  const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+  const idfPathDir = idfConf.readParameter("idf.espIdfPath", curWorkspace);
   modifiedEnv.IDF_PATH =
     idfPathDir || process.env.IDF_PATH || defaultEspIdfPath;
 
-  const adfPathDir = idfConf.readParameter("idf.espAdfPath");
+  const adfPathDir = idfConf.readParameter("idf.espAdfPath", curWorkspace);
   modifiedEnv.ADF_PATH = adfPathDir || process.env.ADF_PATH;
 
-  const mdfPathDir = idfConf.readParameter("idf.espMdfPath");
+  const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
   modifiedEnv.MDF_PATH = mdfPathDir || process.env.MDF_PATH;
 
   modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath")}` ||
+    `${idfConf.readParameter("idf.pythonBinPath", curWorkspace)}` ||
     `${process.env.PYTHON}` ||
     `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
 
@@ -865,7 +871,7 @@ export function appendIdfAndToolsToPath() {
     path.dirname(path.dirname(modifiedEnv.PYTHON)) ||
     process.env.IDF_PYTHON_ENV_PATH;
 
-  const gitPath = idfConf.readParameter("idf.gitPath") as string;
+  const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
   let pathToGitDir;
   if (gitPath && gitPath !== "git") {
     pathToGitDir = path.dirname(gitPath);
@@ -916,14 +922,18 @@ export function appendIdfAndToolsToPath() {
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  let idfTarget = idfConf.readParameter("idf.adapterTargetName");
+  let idfTarget = idfConf.readParameter("idf.adapterTargetName", curWorkspace);
   if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter("idf.customAdapterTargetName");
+    idfTarget = idfConf.readParameter(
+      "idf.customAdapterTargetName",
+      curWorkspace
+    );
   }
   modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
   let enableComponentManager = idfConf.readParameter(
-    "idf.enableIdfComponentManager"
+    "idf.enableIdfComponentManager",
+    curWorkspace
   ) as boolean;
 
   if (enableComponentManager) {
@@ -965,7 +975,7 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(extensionContext.extensionUri);
   return execChildProcess(
     `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
     extensionContext.extensionPath,
@@ -980,8 +990,11 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   );
 }
 
-export function isRunningInWsl() {
-  const wslEnable = idfConf.readParameter("idf.wslEnable") as boolean;
+export function isRunningInWsl(workspace: vscode.Uri) {
+  const wslEnable = idfConf.readParameter(
+    "idf.wslEnable",
+    workspace
+  ) as boolean;
   return (
     wslEnable &&
     typeof process.env.WSL_DISTRO_NAME === "string" &&

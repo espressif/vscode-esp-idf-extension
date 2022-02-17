@@ -294,7 +294,7 @@
         "mac": "cmd+i b"
       },
       {
-        "command": "espIdf.selectFlashMethodAndFlash",
+        "command": "espIdf.startFlashing",
         "key": "ctrl+e f",
         "mac": "cmd+i f"
       },
@@ -499,7 +499,7 @@
           "idf.showOnboardingOnInit": {
             "type": "boolean",
             "default": true,
-            "scope": "resource",
+            "scope": "window",
             "description": "%param.showOnboardingOnInit%"
           },
           "trace.poll_period": {
@@ -541,7 +541,6 @@
           "idf.notificationSilentMode": {
             "type": "boolean",
             "default": false,
-            "scope": "resource",
             "description": "%param.notificationSilentMode%"
           },
           "idf.saveScope": {
@@ -637,7 +636,7 @@
           },
           "idf.listDfuDevices": {
             "type": "array",
-            "default": "[]"
+            "default": []
           },
           "openocd.tcl.host": {
             "type": "string",
@@ -682,7 +681,7 @@
           "idf.enableUpdateSrcsToCMakeListsFile": {
             "type": "boolean",
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",
-            "scope": "resource",
+            "scope": "window",
             "default": true
           },
           "idf.qemuTcpPort": {
@@ -824,6 +823,10 @@
       {
         "command": "espIdf.flashDFU",
         "title": "%espIdf.flashDFU.title%"
+      },
+      {
+        "command": "espIdf.startFlashing",
+        "title": "%espIdf.flashDevice.title%"
       },
       {
         "command": "espIdf.monitorDevice",

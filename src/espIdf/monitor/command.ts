@@ -44,11 +44,11 @@ export async function createMonitorTerminal(
     return;
   }
 
-  const idfPathDir = readParameter("idf.espIdfPath") || process.env.IDF_PATH;
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
-  const port = serialPort ? serialPort : readParameter("idf.port");
+  const idfPathDir = readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
+  const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
+  const port = serialPort ? serialPort : readParameter("idf.port", workspace);
   const idfPath = join(idfPathDir, "tools", "idf.py");
-  const modifiedEnv = utils.appendIdfAndToolsToPath();
+  const modifiedEnv = utils.appendIdfAndToolsToPath(workspace);
   if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {
     Logger.errorNotify(
       "Python binary path is not defined",
@@ -86,7 +86,7 @@ export async function createMonitorTerminal(
     });
   }
   monitorTerminal.show();
-  let isWsl2Kernel = utils.isRunningInWsl();
+  let isWsl2Kernel = utils.isRunningInWsl(workspace);
   const isPowerShellInPath = await utils.isBinInPath(
     "powershell.exe",
     workspace.fsPath,

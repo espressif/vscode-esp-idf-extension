@@ -29,10 +29,10 @@ export async function addDependency(
   component: string
 ) {
   try {
-    const idfPathDir = readParameter("idf.espIdfPath");
+    const idfPathDir = readParameter("idf.espIdfPath", workspace);
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath();
-    const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+    const modifiedEnv = appendIdfAndToolsToPath(workspace);
+    const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
     const addDependencyResult = await spawn(
       pythonBinPath,
       [idfPy, "add-dependency", `--component=${component}`, dependency],

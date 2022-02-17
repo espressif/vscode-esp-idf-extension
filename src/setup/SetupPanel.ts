@@ -24,7 +24,7 @@ import {
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
-import vscode from "vscode";
+import vscode, { Uri } from "vscode";
 import { expressInstall } from "./espIdfDownloadStep";
 import { IdfToolsManager } from "../idfToolsManager";
 import { installExtensionPyReqs } from "./installPyReqs";
@@ -556,7 +556,7 @@ export class SetupPanel {
 
   private async getOpenOcdRulesPath() {
     try {
-      await getOpenOcdRules();
+      await getOpenOcdRules(Uri.file(this.extensionPath));
     } catch (error) {
       this.setupErrHandler(error);
     }

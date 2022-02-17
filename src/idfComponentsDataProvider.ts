@@ -19,6 +19,7 @@ import * as idfConf from "./idfConfiguration";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
+import { join } from "path";
 const locDic = new LocDictionary(__filename);
 
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
@@ -31,13 +32,24 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
   > = this.OnDidChangeTreeData.event;
 
   private projectDescriptionJsonPath: string;
+  private workspaceFolder: vscode.Uri;
 
-  constructor(projectDescriptionPath: string) {
-    this.projectDescriptionJsonPath = projectDescriptionPath;
+  constructor(workspaceFolder: vscode.Uri) {
+    this.workspaceFolder = workspaceFolder;
+    this.projectDescriptionJsonPath = join(
+      workspaceFolder.fsPath,
+      "build",
+      "project_description.json"
+    );
   }
 
-  public refresh(projectDescriptionPath: string): void {
-    this.projectDescriptionJsonPath = projectDescriptionPath;
+  public refresh(workspaceFolder: vscode.Uri): void {
+    this.workspaceFolder = workspaceFolder;
+    this.projectDescriptionJsonPath = join(
+      workspaceFolder.fsPath,
+      "build",
+      "project_description.json"
+    );
     this.OnDidChangeTreeData.fire(null);
   }
 
@@ -63,7 +75,10 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
         utils.readFileSync(this.projectDescriptionJsonPath)
       );
 
-      const defaultComponentsDir = idfConf.readParameter("idf.espIdfPath");
+      const defaultComponentsDir = idfConf.readParameter(
+        "idf.espIdfPath",
+        this.workspaceFolder
+      );
 
       if (
         Object.prototype.hasOwnProperty.call(

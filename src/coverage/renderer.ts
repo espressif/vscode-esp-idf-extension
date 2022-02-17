@@ -30,25 +30,31 @@ export interface CoverageOptions {
   overviewRuleLane: vscode.OverviewRulerLane;
 }
 
-export function getCoverageOptions() {
+export function getCoverageOptions(workspace: vscode.Uri) {
   const coverageOptions: CoverageOptions = {
     darkThemeCoveredBackgroundColor: idfConf.readParameter(
-      "idf.coveredDarkTheme"
+      "idf.coveredDarkTheme",
+      workspace
     ),
     darkThemeUncoveredBackgroundColor: idfConf.readParameter(
-      "idf.uncoveredDarkTheme"
+      "idf.uncoveredDarkTheme",
+      workspace
     ),
     darkThemePartialBackgroundColor: idfConf.readParameter(
-      "idf.partialDarkTheme"
+      "idf.partialDarkTheme",
+      workspace
     ),
     lightThemeCoveredBackgroundColor: idfConf.readParameter(
-      "idf.coveredLightTheme"
+      "idf.coveredLightTheme",
+      workspace
     ),
     lightThemePartialBackgroundColor: idfConf.readParameter(
-      "idf.partialLightTheme"
+      "idf.partialLightTheme",
+      workspace
     ),
     lightThemeUncoveredBackgroundColor: idfConf.readParameter(
-      "idf.uncoveredLightTheme"
+      "idf.uncoveredLightTheme",
+      workspace
     ),
     overviewRuleLane: vscode.OverviewRulerLane.Right,
   };
@@ -159,7 +165,7 @@ export class CoverageRenderer {
 
   public async renderCoverage() {
     const editors = vscode.window.visibleTextEditors;
-    this.gcovObj = await buildJson(this.workspaceFolder.fsPath);
+    this.gcovObj = await buildJson(this.workspaceFolder);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
         this.workspaceFolder.fsPath,

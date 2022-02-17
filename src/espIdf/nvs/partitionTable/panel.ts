@@ -28,7 +28,11 @@ export class NVSPartitionTable {
   private static readonly viewType = "idfNvsPartitionTableEditor";
   private static readonly viewTitle = "ESP-IDF NVS Partition Table Editor";
 
-  public static async createOrShow(extensionPath: string, filePath: string) {
+  public static async createOrShow(
+    extensionPath: string,
+    filePath: string,
+    workspaceFolder: vscode.Uri
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
@@ -55,7 +59,8 @@ export class NVSPartitionTable {
       NVSPartitionTable.currentPanel = new NVSPartitionTable(
         extensionPath,
         filePath,
-        panel
+        panel,
+        workspaceFolder
       );
     }
   }
@@ -70,15 +75,18 @@ export class NVSPartitionTable {
   private filePath: string;
   private readonly panel: vscode.WebviewPanel;
   private disposables: vscode.Disposable[] = [];
+  private workspaceFolder: vscode.Uri;
 
   private constructor(
     extensionPath: string,
     filePath: string,
-    panel: vscode.WebviewPanel
+    panel: vscode.WebviewPanel,
+    workspaceFolder: vscode.Uri
   ) {
     this.extensionPath = extensionPath;
     this.filePath = filePath;
     this.panel = panel;
+    this.workspaceFolder = workspaceFolder;
     this.panel.iconPath = vscode.Uri.file(
       join(extensionPath, "media", "espressif_icon.png")
     );
@@ -123,9 +131,11 @@ export class NVSPartitionTable {
   ) {
     try {
       const idfPathDir =
-        idfConf.readParameter("idf.espIdfPath") || process.env.IDF_PATH;
+        idfConf.readParameter("idf.espIdfPath", this.workspaceFolder) ||
+        process.env.IDF_PATH;
       const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath"
+        "idf.pythonBinPath",
+        this.workspaceFolder
       ) as string;
       const dirPath = dirname(this.filePath);
       const fileName = basename(this.filePath);

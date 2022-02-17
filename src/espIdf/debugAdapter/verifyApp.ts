@@ -17,17 +17,21 @@
  */
 
 import { join } from "path";
+import { Uri } from "vscode";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
-export async function verifyAppBinary(workspaceFolder: string) {
-  const modifiedEnv = appendIdfAndToolsToPath();
-  const serialPort = readParameter("idf.port");
-  const flashBaudRate = readParameter("idf.flashBaudRate");
-  const idfPath = readParameter("idf.espIdfPath");
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+export async function verifyAppBinary(workspaceFolder: Uri) {
+  const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+  const serialPort = readParameter("idf.port", workspaceFolder);
+  const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
+  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const pythonBinPath = readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
   const esptoolPath = join(
     idfPath,
     "components",
@@ -36,7 +40,7 @@ export async function verifyAppBinary(workspaceFolder: string) {
     "esptool.py"
   );
   const flasherArgsJsonPath = join(
-    workspaceFolder,
+    workspaceFolder.fsPath,
     "build",
     "flasher_args.json"
   );

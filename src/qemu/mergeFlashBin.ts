@@ -25,6 +25,7 @@ import {
   ProcessExecutionOptions,
   TaskRevealKind,
   TaskScope,
+  Uri,
 } from "vscode";
 import { FlashModel } from "../flash/flashModel";
 import { createFlashModel } from "../flash/flashModelBuilder";
@@ -62,7 +63,7 @@ export async function validateReqs(
 }
 
 export async function mergeFlashBinaries(
-  wsFolder: string,
+  wsFolder: Uri,
   cancelToken?: CancellationToken
 ) {
   if (cancelToken) {
@@ -71,10 +72,10 @@ export async function mergeFlashBinaries(
       TaskManager.disposeListeners();
     });
   }
-  const idfPath = readParameter("idf.espIdfPath");
-  const port = readParameter("idf.port");
-  const flashBaudRate = readParameter("idf.flashBaudRate");
-  const buildDirPath = join(wsFolder, "build");
+  const idfPath = readParameter("idf.espIdfPath", wsFolder);
+  const port = readParameter("idf.port", wsFolder);
+  const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
+  const buildDirPath = join(wsFolder.fsPath, "build");
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const esptoolPath = join(
     idfPath,
@@ -99,14 +100,15 @@ export async function mergeFlashBinaries(
     }
   }
 
-  const isSilentMode = readParameter("idf.notificationSilentMode") as boolean;
+  const isSilentMode = readParameter("idf.notificationSilentMode", wsFolder) as boolean;
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Always
     : TaskRevealKind.Silent;
   const mergeExecution = await getMergeExecution(
     buildDirPath,
     esptoolPath,
-    flashModel
+    flashModel,
+    wsFolder
   );
   TaskManager.addTask(
     {
@@ -130,15 +132,16 @@ export async function mergeFlashBinaries(
 export async function getMergeExecution(
   buildDir: string,
   esptoolPath: string,
-  model: FlashModel
+  model: FlashModel,
+  wsFolder: Uri
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath();
+  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
   const mergeArgs = getMergeArgs(esptoolPath, model);
   const options: ProcessExecutionOptions = {
     cwd: buildDir,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(

@@ -22,6 +22,7 @@ import {
   StatusBarAlignment,
   StatusBarItem,
   Terminal,
+  Uri,
   window,
   workspace,
 } from "vscode";
@@ -33,6 +34,7 @@ import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
 export interface IQemuOptions {
   launchArgs: string[];
   tcpPort: string;
+  workspaceFolder: Uri;
 }
 
 export class QemuManager extends EventEmitter {
@@ -107,11 +109,17 @@ export class QemuManager extends EventEmitter {
     if (config.tcpPort) {
       this.options.tcpPort = config.tcpPort;
     }
+    if (config.workspaceFolder) {
+      this.options.workspaceFolder = config.workspaceFolder;
+    }
     this.registerQemuStatusBarItem();
   }
 
   public configureWithDefValues() {
-    const qemuTcpPort = readParameter("idf.qemuTcpPort");
+    let workspaceFolder: Uri;
+    if (PreCheck.isWorkspaceFolderOpen()) {
+      workspaceFolder = workspace.workspaceFolders[0].uri;
+    }
     const defOptions = {
       launchArgs: [
         "-nographic",
@@ -120,7 +128,7 @@ export class QemuManager extends EventEmitter {
         "-drive",
         "file=build/merged_qemu.bin,if=mtd,format=raw",
       ],
-      tcpPort: qemuTcpPort,
+      tcpPort: readParameter("idf.qemuTcpPort", workspaceFolder),
     } as IQemuOptions;
     this.configure(defOptions);
   }
@@ -150,11 +158,12 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath();
-    const wsFolder = PreCheck.isWorkspaceFolderOpen()
-      ? workspace.workspaceFolders[0].uri.fsPath
-      : "";
-    const isQemuBinInPath = await isBinInPath(this.execString, wsFolder, modifiedEnv);
+    const modifiedEnv = appendIdfAndToolsToPath(this.options.workspaceFolder);
+    const isQemuBinInPath = await isBinInPath(
+      this.execString,
+      this.options.workspaceFolder.fsPath,
+      modifiedEnv
+    );
     if (!isQemuBinInPath) {
       throw new Error("qemu-system-xtensa is not in PATH or access is denied");
     }
@@ -183,7 +192,10 @@ export class QemuManager extends EventEmitter {
       this.qemuTerminal = window.createTerminal({
         name: "ESP-IDF QEMU",
         env: modifiedEnv,
-        cwd: wsFolder || modifiedEnv.IDF_PATH || process.cwd(),
+        cwd:
+          this.options.workspaceFolder.fsPath ||
+          modifiedEnv.IDF_PATH ||
+          process.cwd(),
         shellArgs: [],
         shellPath: env.shell,
         strictEnv: true,

@@ -26,9 +26,12 @@ import { OutputChannel } from "./logger/outputChannel";
 import { installExtensionPyReqs } from "./pythonManager";
 import { readParameter } from "./idfConfiguration";
 
-export async function checkExtensionSettings(extensionPath: string) {
+export async function checkExtensionSettings(
+  extensionPath: string,
+  workspace: vscode.Uri
+) {
   const showSetupWindow = readParameter("idf.showOnboardingOnInit") as boolean;
-  const isExtensionConfigured = await isCurrentInstallValid();
+  const isExtensionConfigured = await isCurrentInstallValid(workspace);
   if (isExtensionConfigured) {
     return;
   }
@@ -43,7 +46,11 @@ export async function checkExtensionSettings(extensionPath: string) {
       cancelToken: vscode.CancellationToken
     ) => {
       try {
-        const setupArgs = await getSetupInitialValues(extensionPath, progress);
+        const setupArgs = await getSetupInitialValues(
+          extensionPath,
+          progress,
+          workspace
+        );
         if (
           setupArgs.espIdfPath &&
           setupArgs.espToolsPath &&

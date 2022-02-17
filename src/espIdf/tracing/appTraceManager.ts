@@ -22,7 +22,7 @@ import { join, sep } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { fileExists, PreCheck } from "../../utils";
+import { fileExists } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { TCLClient, TCLConnection } from "../openOcd/tcl/tclClient";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -39,7 +39,7 @@ export interface IAppTraceManagerConfig {
 }
 
 export class AppTraceManager extends EventEmitter {
-  public static async saveConfiguration() {
+  public static async saveConfiguration(workspace: vscode.Uri) {
     await this.promptUserForEditingApptraceConfig(
       "Data polling period for apptrace",
       "milliseconds",
@@ -49,7 +49,8 @@ export class AppTraceManager extends EventEmitter {
           return "";
         }
         return "Invalid poll_period value, please enter only number";
-      }
+      },
+      workspace
     );
     await this.promptUserForEditingApptraceConfig(
       "Maximum size of data to be collected",
@@ -60,7 +61,8 @@ export class AppTraceManager extends EventEmitter {
           return "";
         }
         return "Invalid trace_size value, only -1 or positive integer allowed";
-      }
+      },
+      workspace
     );
     await this.promptUserForEditingApptraceConfig(
       "Idle timeout for apptrace",
@@ -71,7 +73,8 @@ export class AppTraceManager extends EventEmitter {
           return "";
         }
         return "Invalid stop_tmo value, please enter only number";
-      }
+      },
+      workspace
     );
     await this.promptUserForEditingApptraceConfig(
       "Should wait for halt?",
@@ -82,7 +85,8 @@ export class AppTraceManager extends EventEmitter {
           return "";
         }
         return "Invalid wait4halt value, please enter only number";
-      }
+      },
+      workspace
     );
     await this.promptUserForEditingApptraceConfig(
       "Number of bytes to skip at the start",
@@ -93,7 +97,8 @@ export class AppTraceManager extends EventEmitter {
           return "";
         }
         return "Invalid skip_size value, please enter only number";
-      }
+      },
+      workspace
     );
   }
 
@@ -101,9 +106,10 @@ export class AppTraceManager extends EventEmitter {
     prompt: string,
     placeholder: string,
     paramName: string,
-    validatorFunction: (value: string) => string
+    validatorFunction: (value: string) => string,
+    workspace: vscode.Uri
   ) {
-    const savedConf = idfConf.readParameter(paramName);
+    const savedConf = idfConf.readParameter(paramName, workspace);
     const userInput = await vscode.window.showInputBox({
       placeHolder: placeholder,
       value: savedConf,
@@ -112,8 +118,8 @@ export class AppTraceManager extends EventEmitter {
       validateInput: validatorFunction,
     });
     if (userInput) {
-      const target = idfConf.readParameter("idf.saveScope");
-      await idfConf.writeParameter(paramName, userInput, target);
+      const target = idfConf.readParameter("idf.saveScope", workspace);
+      await idfConf.writeParameter(paramName, userInput, target, workspace);
     }
   }
 
@@ -121,6 +127,7 @@ export class AppTraceManager extends EventEmitter {
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
   private tclConnectionParams: TCLConnection;
   private shallContinueCheckingStatus: boolean;
+  private workspaceFolder: vscode.Uri;
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
@@ -129,13 +136,10 @@ export class AppTraceManager extends EventEmitter {
     super();
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    const host = idfConf.readParameter("openocd.tcl.host");
-    const port = idfConf.readParameter("openocd.tcl.port");
-    this.tclConnectionParams = { host, port };
     this.shallContinueCheckingStatus = false;
   }
 
-  public async start() {
+  public async start(workspace: vscode.Uri) {
     try {
       if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
         this.treeDataProvider.showStopButton(AppTraceButtonType.AppTraceButton);
@@ -143,21 +147,20 @@ export class AppTraceManager extends EventEmitter {
           AppTraceButtonType.AppTraceButton,
           ""
         );
-        // tslint:disable-next-line: max-line-length
-        const workspace = PreCheck.isWorkspaceFolderOpen()
-          ? vscode.workspace.workspaceFolders[0].uri
-          : undefined;
-        const workspacePath = workspace ? workspace.fsPath : "";
         const fileName = `file:${sep}${sep}${join(
-          workspacePath,
+          workspace.fsPath,
           "trace",
           `trace_${new Date().getTime()}.trace`
         )}`.replace(/\\/g, "/");
-        const pollPeriod = idfConf.readParameter("trace.poll_period");
-        const traceSize = idfConf.readParameter("trace.trace_size");
-        const stopTmo = idfConf.readParameter("trace.stop_tmo");
-        const wait4halt = idfConf.readParameter("trace.wait4halt");
-        const skipSize = idfConf.readParameter("trace.skip_size");
+        const pollPeriod = idfConf.readParameter(
+          "trace.poll_period",
+          workspace
+        );
+        this.workspaceFolder = workspace;
+        const traceSize = idfConf.readParameter("trace.trace_size", workspace);
+        const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
+        const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
+        const skipSize = idfConf.readParameter("trace.skip_size", workspace);
         const startTrackingHandler = this.sendCommandToTCLSession(
           [
             "esp",
@@ -169,7 +172,8 @@ export class AppTraceManager extends EventEmitter {
             stopTmo,
             wait4halt,
             skipSize,
-          ].join(" ")
+          ].join(" "),
+          workspace
         );
         const tracingStatusHandler = this.appTracingStatusChecker(() => {
           tracingStatusHandler.stop();
@@ -193,7 +197,10 @@ export class AppTraceManager extends EventEmitter {
   public async stop() {
     if (await OpenOCDManager.init().promptUserToLaunchOpenOCDServer()) {
       this.shallContinueCheckingStatus = false;
-      const stopHandler = this.sendCommandToTCLSession("esp apptrace stop");
+      const stopHandler = this.sendCommandToTCLSession(
+        "esp apptrace stop",
+        this.workspaceFolder
+      );
       stopHandler.on("response", (resp: Buffer) => {
         const respStr = resp.toString();
         if (respStr.includes("Tracing is not running!")) {
@@ -219,13 +226,16 @@ export class AppTraceManager extends EventEmitter {
     this.archiveDataProvider.refresh();
   }
 
-  private sendCommandToTCLSession(command: string): TCLClient {
-    const workspace = PreCheck.isWorkspaceFolderOpen()
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : "";
-    if (!fileExists(join(workspace, "trace"))) {
-      mkdirSync(join(workspace, "trace"));
+  private sendCommandToTCLSession(
+    command: string,
+    workspace: vscode.Uri
+  ): TCLClient {
+    if (!fileExists(join(workspace.fsPath, "trace"))) {
+      mkdirSync(join(workspace.fsPath, "trace"));
     }
+    const host = idfConf.readParameter("openocd.tcl.host", workspace);
+    const port = idfConf.readParameter("openocd.tcl.port", workspace);
+    this.tclConnectionParams = { host, port };
     const startTracingCommandHandler = new TCLClient(this.tclConnectionParams);
     startTracingCommandHandler.sendCommandWithCapture(command);
     return startTracingCommandHandler;

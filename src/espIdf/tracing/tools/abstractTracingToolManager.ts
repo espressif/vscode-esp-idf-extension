@@ -42,13 +42,13 @@ export abstract class AbstractTracingToolManager {
     args?: string[],
     option?: any
   ) {
-    const modifiedEnv = appendIdfAndToolsToPath();
+    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceRoot);
     option.env = option.env || modifiedEnv;
     return await spawn(command, args, option);
   }
 
   protected appTraceToolsPath(): string {
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath");
+    const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
     return join(idfPathDir, "tools", "esp_app_trace");
   }
 

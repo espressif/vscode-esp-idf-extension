@@ -24,8 +24,10 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { TaskManager } from "../taskManager";
+import { Uri } from "vscode";
+import { join } from "path";
 
-export async function jtagFlashCommand(buildPath: string) {
+export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
@@ -34,25 +36,27 @@ export async function jtagFlashCommand(buildPath: string) {
     );
   }
   FlashTask.isFlashing = true;
-  const host = readParameter("openocd.tcl.host");
-  const port = readParameter("openocd.tcl.port");
+  const host = readParameter("openocd.tcl.host", workspace);
+  const port = readParameter("openocd.tcl.port", workspace);
   const client = new TCLClient({ host, port });
   const jtag = new JTAGFlash(client);
   const forceUNIXPathSeparator = readParameter(
-    "openocd.jtag.command.force_unix_path_separator"
+    "openocd.jtag.command.force_unix_path_separator",
+    workspace
   );
-  const customTask = new CustomTask(buildPath);
+  let buildPath = join(workspace.fsPath, "build");
+  const customTask = new CustomTask(Uri.file(buildPath));
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
   try {
     customTask.addCustomTask(CustomTaskType.PreFlash);
-    await TaskManager.runTasks();
+    await customTask.runTasks(CustomTaskType.PreFlash);
     await jtag.flash(
       `program_esp_bins ${buildPath} flasher_args.json verify reset`
     );
     customTask.addCustomTask(CustomTaskType.PostFlash);
-    await TaskManager.runTasks();
+    await customTask.runTasks(CustomTaskType.PostFlash);
     Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);

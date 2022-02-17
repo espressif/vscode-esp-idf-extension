@@ -26,6 +26,7 @@ import {
   ThemeIcon,
   TreeDataProvider,
   TreeItem,
+  Uri,
   window,
   workspace,
 } from "vscode";
@@ -76,16 +77,13 @@ export class PartitionTreeDataProvider
     this.OnDidChangeTreeData.fire(null);
   }
 
-  public async populatePartitionItems() {
+  public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
-    const workspaceFolder = PreCheck.isWorkspaceFolderOpen()
-      ? workspace.workspaceFolders[0].uri.fsPath
-      : "";
     try {
-      const modifiedEnv = appendIdfAndToolsToPath();
-      const serialPort = readParameter("idf.port") as string;
-      const idfPath = readParameter("idf.espIdfPath");
-      const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+      const modifiedEnv = appendIdfAndToolsToPath(workspace);
+      const serialPort = readParameter("idf.port", workspace) as string;
+      const idfPath = readParameter("idf.espIdfPath", workspace);
+      const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {
@@ -106,7 +104,7 @@ export class PartitionTreeDataProvider
       if (partitionTableOffsetOption.target.indexOf("sdkconfig") !== -1) {
         partitionTableOffset = getConfigValueFromSDKConfig(
           "CONFIG_PARTITION_TABLE_OFFSET",
-          workspaceFolder
+          workspace.fsPath
         );
       } else if (partitionTableOffsetOption.target.indexOf("custom") !== -1) {
         partitionTableOffset = await window.showInputBox({
@@ -120,14 +118,14 @@ export class PartitionTreeDataProvider
         });
       }
 
-      ensureDir(join(workspaceFolder, "partition_table"));
+      ensureDir(join(workspace.fsPath, "partition_table"));
       const partTableBin = join(
-        workspaceFolder,
+        workspace.fsPath,
         "partition_table",
         "partitionTable.bin"
       );
       const partTableCsv = join(
-        workspaceFolder,
+        workspace.fsPath,
         "partition_table",
         "partitionTable.csv"
       );
@@ -159,7 +157,7 @@ export class PartitionTreeDataProvider
           partTableBin,
         ],
         {
-          cwd: workspaceFolder,
+          cwd: workspace.fsPath,
           env: modifiedEnv,
         }
       );
@@ -168,7 +166,7 @@ export class PartitionTreeDataProvider
         pythonBinPath,
         [genEsp32PartPath, partTableBin, partTableCsv],
         {
-          cwd: workspaceFolder,
+          cwd: workspace.fsPath,
           env: modifiedEnv,
         }
       );

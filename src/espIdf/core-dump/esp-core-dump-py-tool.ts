@@ -19,6 +19,7 @@
 import { join } from "path";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { Logger } from "../../logger/logger";
+import { Uri } from "vscode";
 
 export enum InfoCoreFileFormat {
   Base64 = "b64",
@@ -28,10 +29,11 @@ export enum InfoCoreFileFormat {
 
 export type CoreELFGenerationOptions = {
   coreElfFilePath: string;
+  coreInfoFilePath: string;
   infoCoreFileFormat: InfoCoreFileFormat;
   progELFFilePath: string;
-  coreInfoFilePath: string;
   pythonBinPath: string;
+  workspaceUri: Uri;
 };
 
 export class ESPCoreDumpPyTool {
@@ -47,7 +49,7 @@ export class ESPCoreDumpPyTool {
   public async generateCoreELFFile(options: CoreELFGenerationOptions) {
     let resp: Buffer;
     try {
-      const env = appendIdfAndToolsToPath();
+      const env = appendIdfAndToolsToPath(options.workspaceUri);
       resp = await spawn(
         options.pythonBinPath,
         [

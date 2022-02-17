@@ -83,7 +83,7 @@ export async function verifyCanFlash(
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType", workspace);
   if (selectedFlashType === "DFU") {
-    const data = await getDfuList();
+    const data = await getDfuList(workspace);
     const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {
       return Logger.errorNotify(

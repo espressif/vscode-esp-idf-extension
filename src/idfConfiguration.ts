@@ -50,7 +50,7 @@ export function readParameter(
     return "";
   }
   if (typeof paramValue === "string") {
-    return resolveVariables(paramValue);
+    return resolveVariables(paramValue, scope);
   }
   return paramValue;
 }
@@ -197,15 +197,18 @@ export function parseStrToArray(groupStr: string) {
   return resultArr;
 }
 
-export function resolveVariables(configPath: string) {
+export function resolveVariables(
+  configPath: string,
+  scope?: vscode.ConfigurationScope
+) {
   const regexp = /\$\{(.*?)\}/g; // Find ${anything}
   return configPath.replace(regexp, (match: string, name: string) => {
     if (match.indexOf("config:") > 0) {
       const configVar = name.substring(
         name.indexOf("config:") + "config:".length
       );
-      const configVarValue = readParameter(configVar);
-      return resolveVariables(configVarValue);
+      const configVarValue = readParameter(configVar, scope);
+      return resolveVariables(configVarValue, scope);
     }
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);
@@ -214,10 +217,8 @@ export function resolveVariables(configPath: string) {
       }
       return process.env[envVariable];
     }
-    if (match.indexOf("workspaceFolder") > 0) {
-      return PreCheck.isWorkspaceFolderOpen()
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : "";
+    if (scope && match.indexOf("workspaceFolder") > 0) {
+      return scope instanceof vscode.Uri ? scope.fsPath : scope.uri.fsPath;
     }
     return match;
   });

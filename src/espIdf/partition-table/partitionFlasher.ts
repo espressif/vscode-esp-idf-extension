@@ -17,12 +17,16 @@
  */
 
 import { basename, join } from "path";
-import { Progress, ProgressLocation, window, workspace } from "vscode";
+import { Progress, ProgressLocation, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, PreCheck, spawn } from "../../utils";
+import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
-export async function flashBinaryToPartition(offset: string, binPath: string) {
+export async function flashBinaryToPartition(
+  offset: string,
+  binPath: string,
+  workspaceFolder: Uri
+) {
   await window.withProgress(
     {
       cancellable: false,
@@ -31,13 +35,13 @@ export async function flashBinaryToPartition(offset: string, binPath: string) {
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const workspaceFolder = PreCheck.isWorkspaceFolderOpen()
-          ? workspace.workspaceFolders[0].uri.fsPath
-          : "";
-        const modifiedEnv = appendIdfAndToolsToPath();
-        const serialPort = readParameter("idf.port");
-        const idfPath = readParameter("idf.espIdfPath");
-        const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+        const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+        const serialPort = readParameter("idf.port", workspaceFolder);
+        const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+        const pythonBinPath = readParameter(
+          "idf.pythonBinPath",
+          workspaceFolder
+        ) as string;
         const esptoolPath = join(
           idfPath,
           "components",
@@ -50,7 +54,7 @@ export async function flashBinaryToPartition(offset: string, binPath: string) {
           pythonBinPath,
           [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
           {
-            cwd: workspaceFolder,
+            cwd: workspaceFolder.fsPath,
             env: modifiedEnv,
           }
         );
