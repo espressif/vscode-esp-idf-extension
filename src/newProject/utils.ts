@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 27th July 2021 4:35:42 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +52,10 @@ export async function setCurrentSettingsInTemplate(
   if (mdfPathDir) {
     settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
   }
-  settingsJson["idf.openOcdConfigs"] = openOcdConfigs.split(",");
+  settingsJson["idf.openOcdConfigs"] =
+    openOcdConfigs.indexOf(",") !== -1
+      ? openOcdConfigs.split(",")
+      : [openOcdConfigs];
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
   }

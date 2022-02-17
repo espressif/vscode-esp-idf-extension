@@ -167,8 +167,8 @@ export class NewProjectPanel {
           ) {
             const defConfigFiles =
               newProjectArgs.boards && newProjectArgs.boards.length > 0
-                ? newProjectArgs.boards[0].configFiles
-                : newProjectArgs.targetList[0].configFiles;
+                ? newProjectArgs.boards[0].configFiles.join(",")
+                : newProjectArgs.targetList[0].configFiles.join(",");
             this.panel.webview.postMessage({
               boards: newProjectArgs.boards,
               command: "initialLoad",
