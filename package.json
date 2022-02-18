@@ -1265,7 +1265,7 @@
     "typescript": "^4.4.4",
     "typescript-tslint-plugin": "^1.0.1",
     "vsce": "^1.88.0",
-    "vscode-extension-tester": "^4.2.3",
+    "vscode-extension-tester": "^4.2.4",
     "vscode-nls-dev": "^3.3.1",
     "vscode-test": "^1.0.0",
     "vue-class-component": "^7.1.0",

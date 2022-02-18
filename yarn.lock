@@ -29,9 +29,9 @@
   integrity sha512-ooImbeXEBxf77cttbzA7X5rC5aAWm9UsXIGViFOnsqB+6M944GkB28S5R4UWRqjFd2iW4zGEkEifAU+q43pt2w==
 
 "@iconify-icons/codicon@^1.0.6":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@iconify-icons/codicon/-/codicon-1.2.2.tgz#f7e1562b50f7bc2951980eb0a8a5ce76d73f7d73"
-  integrity sha512-saI7HBQxAri1nywnaHMAC2ggWhkoDls/miK92KGhntpH5rFXWmwhL+RFw5qV7thA03vgbWhFSK33+IDyawFVFA==
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@iconify-icons/codicon/-/codicon-1.2.3.tgz#901814b1b6b8569cacccf369e908ad5dca7f9398"
+  integrity sha512-T4xCHff4DhEd+HvuLCCg3DSvHheqRWaWv3NrPoVWlo5FPUUrdXOopz0BZFRB+vNYNk8dBhmthEFK4L3+Ntseaw==
   dependencies:
     "@iconify/types" "^1.0.12"
 
@@ -6637,7 +6637,7 @@ vscode-extension-tester-locators@^1.62.0:
   resolved "https://registry.yarnpkg.com/vscode-extension-tester-locators/-/vscode-extension-tester-locators-1.62.1.tgz#3d285c32ad35e00f7c425d3e50e4cff50d157457"
   integrity sha512-EHlQO8LDz+bvNdbyNS+K2nL2O0Wt6uMt8ZiRD15vASLQHONfmbQcFT7Zc+sHRa7Ylx0Q1HIv6iYScPAuKm7Eeg==
 
-vscode-extension-tester@^4.2.3:
+vscode-extension-tester@^4.2.4:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-4.2.4.tgz#664f6129630fbac426fe02e412597e44ed7e7739"
   integrity sha512-4BT9bf7fs7lE97z8XtzT+wfawIOaYwC5D64u4WbnlzxfV9YQoPEqd76g+MjD27YgjsZWItAC3fhNOip9ry2dSg==
