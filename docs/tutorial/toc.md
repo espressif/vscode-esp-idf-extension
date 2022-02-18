@@ -14,3 +14,4 @@
 10. [ESP-ADF, ESP-MDF and other frameworks](./additional_frameworks.md)
 11. [eFuse Explorer](./efuse.md)
 12. [Rainmaker](./rainmaker.md)
+13. [New project wizard](./new_project_wizard.md)

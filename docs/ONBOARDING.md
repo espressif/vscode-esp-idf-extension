@@ -16,6 +16,7 @@
 10. [ESP-ADF, ESP-MDF and other frameworks](./tutorial/additional_frameworks.md)
 11. [eFuse Explorer](./tutorial/efuse.md)
 12. [Rainmaker](./tutorial/rainmaker.md)
+13. [New project wizard](./new_project_wizard.md)
 
 ## Documentation
 
