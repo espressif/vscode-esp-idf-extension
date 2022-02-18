@@ -12,7 +12,7 @@ This feature allows you to create a new project using the ESP-IDF, ESP-ADF and E
 
 > **NOTE:** If using the custom board option, please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these openOCD configuration files and the [debugging tutorial](./debugging.md) for values examples.
 
-3. After that click the `Choose Template` button and choose a template from Extension template and, if configured; ESP-IDF, ESP-ADF and ESP-MDF frameworks.
+3. After that click the `Choose Template` button and choose a template from Extension templates and, if configured; ESP-IDF, ESP-ADF and ESP-MDF frameworks. If you want to create a blank project, choose ESP-IDF `sample_project` or the extension `template-app`.
 
 <p>
   <img src="../../media/tutorials/new_project/new_project_templates.png" alt="New project templates" height="500">
