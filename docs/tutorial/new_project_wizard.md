@@ -23,5 +23,5 @@ This feature allows you to create a new project using the ESP-IDF, ESP-ADF and E
 5. After the project is created, a notification window will show up to open the newly created project or not.
 
 <p>
-  <img src="../../media/tutorials/new_project/new_project_templates.png" alt="New project templates" height="500">
+  <img src="../../media/tutorials/new_project/new_project_confirm.png" alt="New project templates" height="100">
 </p>
