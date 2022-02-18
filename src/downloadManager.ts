@@ -293,13 +293,12 @@ export class DownloadManager {
             );
 
             fileStream.on("error", (e) => {
-              this.appendChannel(e);
+              this.appendChannel(e.message);
               return reject(
                 new PackageError(
                   "Error creating file",
                   "DownloadPackage",
-                  e,
-                  e.code
+                  e
                 )
               );
             });
