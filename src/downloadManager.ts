@@ -295,11 +295,7 @@ export class DownloadManager {
             fileStream.on("error", (e) => {
               this.appendChannel(e.message);
               return reject(
-                new PackageError(
-                  "Error creating file",
-                  "DownloadPackage",
-                  e
-                )
+                new PackageError("Error creating file", "DownloadPackage", e)
               );
             });
             this.appendChannel(
