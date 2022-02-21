@@ -235,11 +235,13 @@ suite("Doctor command tests", () => {
     getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
-    for (const toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
-      assert.equal(
-        reportObj.configurationAccess.espIdfToolsPaths[toolPath],
-        true
-      );
+    for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
+      if (toolPath.indexOf(process.env.IDF_TOOLS_PATH) !== -1) {
+        assert.equal(
+          reportObj.configurationAccess.espIdfToolsPaths[toolPath],
+          true
+        ); 
+      }
     }
   });
 
@@ -306,7 +308,7 @@ suite("Doctor command tests", () => {
     }${os.EOL}`;
     expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;
     expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
-    expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;    
+    expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
     const actualReport = await writeTextReport(reportObj, mockUpContext);
     const subReport = actualReport.slice(

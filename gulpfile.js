@@ -136,5 +136,5 @@ exports.validateLocalization = validateLocalizationFiles;
 exports.publish = gulp.series(build, vscePublish);
 exports.vscePkg = gulp.series(build, vscePackage);
 exports.default = build;
-
+exports.removeExtensionDependencies = removeExtensionDependencies;
 exports.noDepBuild = gulp.series(preBuild, removeExtensionDependencies);
