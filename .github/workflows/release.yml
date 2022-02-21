@@ -78,4 +78,4 @@ jobs:
       - name: OpenVSX release
         run: yarn run open-vsx-release
         env:
-          VS_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
+          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
