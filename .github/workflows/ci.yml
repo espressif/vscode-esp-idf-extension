@@ -43,6 +43,9 @@ jobs:
           name: test-result.xml
           path: test-result.xml
 
+      - name: Add permisssion to vscode-test folder
+        run: chmod -R 777 .vscode-test
+
       - name: Package open .vsix
         run: yarn packageWithoutDependencies
 
