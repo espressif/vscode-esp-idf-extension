@@ -114,6 +114,7 @@
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
   "esp.webview.open.partition-table.title": "Abrir la interfaz de usuario del editor de tablas de particiones",
   "esp.efuse.summary.title": "Obtenga el resumen de eFuse",
+  "espIdf.efuse.clearResults.title": "Limpiar el resumen de eFuse",
   "espIdf.jtag_flash.title": "Flash (con JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Seleccione el método Flash y Flash",
   "idf.flashType.description": "Método de flash del dispositivo, UART o JTag",

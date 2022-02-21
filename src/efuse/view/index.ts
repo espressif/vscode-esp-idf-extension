@@ -60,6 +60,11 @@ export class ESPEFuseTreeDataProvider
     this._onDidChangeTreeData.fire(null);
   }
 
+  public clearResults() {
+    this.espFuseSummaryData = undefined;
+    this.refresh();
+  }
+
   public registerDataProviderForTree(treeName: string): Disposable {
     return window.registerTreeDataProvider(treeName, this);
   }
