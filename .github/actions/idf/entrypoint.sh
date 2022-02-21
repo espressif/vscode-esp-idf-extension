@@ -20,3 +20,5 @@ yarn
 yarn lint
 Xvfb -ac :99 -screen 0 1920x1080x16 & sleep 2 & yarn test
 echo ::set-output name=result::$(cat ./out/results/test-results.xml)
+
+rm -r .vscode-test
