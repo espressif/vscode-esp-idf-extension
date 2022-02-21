@@ -230,6 +230,7 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
     console.log(`Env OLD_PATH is \n ${process.env.OLD_PATH}`);
     console.log(`Env PATH is \n ${process.env.PATH}`);
+    console.log(`Env IDF_TOOLS_PATH is \n ${process.env.IDF_TOOLS_PATH}`);
     reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
       delimiter + process.env.OLD_PATH,
       ""
@@ -241,10 +242,12 @@ suite("Doctor command tests", () => {
       console.log(
         `${toolPath} with value ${reportObj.configurationAccess.espIdfToolsPaths[toolPath]}`
       );
-      assert.equal(
-        reportObj.configurationAccess.espIdfToolsPaths[toolPath],
-        true
-      );
+      if (toolPath.indexOf(process.env.IDF_TOOLS_PATH) !== -1) {
+        assert.equal(
+          reportObj.configurationAccess.espIdfToolsPaths[toolPath],
+          true
+        ); 
+      }
     }
   });
 
