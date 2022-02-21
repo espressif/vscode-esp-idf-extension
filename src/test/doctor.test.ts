@@ -228,6 +228,8 @@ suite("Doctor command tests", () => {
   test("Good configuration access", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
     reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
+    console.log(`Env OLD_PATH is \n ${process.env.OLD_PATH}`);
+    console.log(`Env PATH is \n ${process.env.PATH}`);
     reportObj.configurationSettings.customExtraPaths = process.env.PATH.replace(
       delimiter + process.env.OLD_PATH,
       ""
@@ -235,7 +237,6 @@ suite("Doctor command tests", () => {
     getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
-    console.log("Hello darkness my old friend");
     for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
       console.log(
         `${toolPath} with value ${reportObj.configurationAccess.espIdfToolsPaths[toolPath]}`
