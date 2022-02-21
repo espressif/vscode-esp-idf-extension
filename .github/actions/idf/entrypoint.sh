@@ -18,7 +18,5 @@ export PY_PKGS=$(python -m pip list --format json)
 
 yarn
 yarn lint
-Xvfb :99 & sleep 2
-yarn compile
-node ./out/test/runTest.js --VERBOSE
+Xvfb -ac :99 -screen 0 1920x1080x16 & sleep 2 & yarn test
 echo ::set-output name=result::$(cat ./out/results/test-results.xml)
