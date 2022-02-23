@@ -118,6 +118,7 @@ import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { selectDfuDevice } from "./flash/dfu";
+import { ESPRegisterTreeDataProvider } from "./espIdf/debugAdapter/registersTree";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -155,6 +156,9 @@ let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
 
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
+
+// ESP Register Tree
+let registerTreeDataProvider: ESPRegisterTreeDataProvider;
 
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
@@ -2872,9 +2876,27 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 
   espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
 
+  registerTreeDataProvider = new ESPRegisterTreeDataProvider();
+
   vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
     espIdfDocsResultTreeDataProvider.clearResults();
   });
+
+  vscode.commands.registerCommand("espIdf.registers.refreshRegisters", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const currentSession = vscode.debug.activeDebugSession;
+      if (currentSession && currentSession.type === "espidf") {
+        const response = await currentSession.customRequest("executeCommmand", {
+          cmd: "info registers",
+        });
+        registerTreeDataProvider.load(response);
+      }
+    });
+  });
+
+  vscode.commands.registerCommand("espIdf.registers.cleanRegisters", () => {
+    registerTreeDataProvider.clearResults();
+  })
 
   idfSearchResults = vscode.window.createTreeView("idfSearchResults", {
     treeDataProvider: espIdfDocsResultTreeDataProvider,
@@ -2893,7 +2915,8 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     ),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
-    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
+    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer"),
+    registerTreeDataProvider.registerTreeDataProvider("idfRegisters")
   );
 }
 

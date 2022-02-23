@@ -50,6 +50,8 @@
   "espIdf.partition.table.refresh.title": "Refresh partition table",
   "espIdf.flashBinaryToPartition.title": "Flash binary to partition...",
   "espIdf.customTask.title": "Execute custom task",
+  "espIdf.registers.cleanRegisters": "Clean Espressif registers in debug session",
+  "espIdf.registers.refreshRegisters.title": "Refresh Espressif registers in debug session",
   "espIdf.welcome.title": "Welcome",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",

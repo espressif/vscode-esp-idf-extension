@@ -171,6 +171,13 @@
           "id": "idfComponents",
           "name": "%view.components.name%"
         }
+      ],
+      "debug": [
+        {
+          "id": "idfRegisters",
+          "name": "ESP Registers",
+          "when": "debugType == 'espidf'"
+        }
       ]
     },
     "viewsWelcome": [
@@ -181,6 +188,10 @@
       {
         "view": "idfPartitionExplorer",
         "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
+      },
+      {
+        "view": "idfRegisters",
+        "contents": "Get the registers from your Espressif device by running info registers and populating results here."
       }
     ],
     "menus": {
@@ -223,6 +234,16 @@
           "command": "espIdf.efuse.clearResults",
           "group": "navigation",
           "when": "view == espEFuseExplorer"
+        },
+        {
+          "command": "espIdf.registers.refreshRegisters",
+          "group": "navigation",
+          "when": "view == idfRegisters"
+        },
+        {
+          "command": "espIdf.registers.cleanRegisters",
+          "group": "navigation",
+          "when": "view == idfRegisters"
         }
       ],
       "view/item/context": [
@@ -1074,6 +1095,18 @@
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.registers.refreshRegisters",
+        "title": "%espIdf.registers.refreshRegisters.title%",
+        "category": "ESP-IDF",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.registers.cleanRegisters",
+        "title": "%espIdf.registers.cleanRegisters.title%",
+        "category": "ESP-IDF",
+        "icon": "$(clear-all)"
       }
     ],
     "breakpoints": [

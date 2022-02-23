@@ -51,6 +51,8 @@
   "espIdf.flashBinaryToPartition.title": "烧录二进制文件到分区",
   "espIdf.customTask.title": "执行自定义任务",
   "espIdf.welcome.title": "欢迎",
+  "espIdf.registers.cleanRegisters": "在调试会话中清理Espressif寄存器",
+  "espIdf.registers.refreshRegisters.title": "在调试会话中刷新Espressif寄存器",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF：启动",

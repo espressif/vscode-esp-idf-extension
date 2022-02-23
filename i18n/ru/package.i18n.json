@@ -51,6 +51,8 @@
   "espIdf.flashBinaryToPartition.title": "Прошить двоичный файл для раздела ...",
   "espIdf.customTask.title": "Выполнить настраиваемую задачу",
   "espIdf.welcome.title": "Добро пожаловать",
+  "espIdf.registers.cleanRegisters": "Чистый Espressif регистрируется в сеансе отладки",
+  "espIdf.registers.refreshRegisters.title": "Обновить регистры Espressif в сеансе отладки",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "ESP-IDF: Запустить",
