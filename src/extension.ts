@@ -2896,7 +2896,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 
   vscode.commands.registerCommand("espIdf.registers.cleanRegisters", () => {
     registerTreeDataProvider.clearResults();
-  })
+  });
 
   idfSearchResults = vscode.window.createTreeView("idfSearchResults", {
     treeDataProvider: espIdfDocsResultTreeDataProvider,
