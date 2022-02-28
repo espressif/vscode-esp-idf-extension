@@ -53,7 +53,7 @@
   "espIdf.flashBinaryToPartition.title": "Programar binarios a la partición...",
   "espIdf.customTask.title": "Ejecutar tarea personalizada",
   "espIdf.welcome.title": "Bienvenido/a",
-  "espIdf.registers.cleanRegisters": "Limpiar los registros en la sesión de depuracion",
+  "espIdf.registers.cleanRegisters.title": "Limpiar los registros en la sesión de depuracion",
   "espIdf.registers.refreshRegisters.title": "Refrescar los registros en la sesión de depuracion",
   "debug.initConfig.name": "Lanzar ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
