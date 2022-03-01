@@ -32,6 +32,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add project wizard tutorial](https://github.com/espressif/vscode-esp-idf-extension/pull/651)
 - [Update extension node dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/639) like node-sass to sass
 - [Add eFuse Explorer refresh and clear summary](https://github.com/espressif/vscode-esp-idf-extension/pull/650)
+- [OpenVSX extension release](https://github.com/espressif/vscode-esp-idf-extension/pull/652)
 
 ### Bug Fixes
 

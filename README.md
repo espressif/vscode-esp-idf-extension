@@ -33,39 +33,42 @@ Check all the tutorials [here](./docs/tutorial/toc.md).
 
 # Table of content
 
-1. [Prerequisites](#Prerequisites)
-2. [How to use](#How-to-use)
-3. [Available commands](#Available-commands)
-4. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
-5. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
-6. [Troubleshooting](#Troubleshooting)
-7. [Code of Conduct](#Code-of-Conduct)
-8. [License](#License)
+1. [How to use](#How-to-use)
+2. [Available commands](#Available-commands)
+3. [Commands for tasks.json and launch.json](#Commands-for-tasks.json-and-launch.json)
+4. [Available Tasks in tasks.json](#Available-Tasks-in-tasks.json)
+5. [Troubleshooting](#Troubleshooting)
+6. [Code of Conduct](#Code-of-Conduct)
+7. [License](#License)
 
 Check all the [documentation](./docs/ONBOARDING.md).
 
-# Prerequisites
+# How to use
 
-There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review [ESP-IDF Prerequisites](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#step-1-install-prerequisites) documentation.
+- Download and install [Visual Studio Code](https://code.visualstudio.com/).
+- Then
+  - Either open Visual Studio Code and create a workspace folder.
+  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
+- Install this extension in your Visual Studio Code.
+
+## Prerequisites
+
+There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review the following documentation.
 
 - Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
 - Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
 - For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
 
-All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
+Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itself (existing ESP-IDF installation may also be reused) using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
 
-> Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
+  > **NOTE:** Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
 
-> **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the additional requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
+  > **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the additional requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
 
-# How to use
+- (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings.
 
-- Install this extension in your Visual Studio Code.
-- Then
-  - Either open Visual Studio Code and create a workspace folder.
-  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
-- Check you have installed the [Prerequisites](#Prerequisites)
-- (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings. Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information. Default is User settings.
+  > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information. Default is User settings.
+
 - On the first time using the extension, press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values.
 
   > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension setup and configuration.
@@ -86,7 +89,7 @@ All the other dependencies like ESP-IDF and ESP-IDF Tools can be installed using
   > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly).
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
 # Available commands
 
