@@ -17,6 +17,33 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.4.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.4.0)
+
+### Features and enhancements
+
+- [Show task output on Notification silent mode](https://github.com/espressif/vscode-esp-idf-extension/pull/606)
+- [DFU Support](https://github.com/espressif/vscode-esp-idf-extension/pull/566)
+- [Check core requirements.txt first](https://github.com/espressif/vscode-esp-idf-extension/pull/620)
+- [Add debug adapter use generic classes](https://github.com/espressif/vscode-esp-idf-extension/pull/617)
+- [Update compilerPath when IDF_TARGET changes](https://github.com/espressif/vscode-esp-idf-extension/pull/619)
+- [Update marked dependency to latest](https://github.com/espressif/vscode-esp-idf-extension/pull/634)
+- [Add other platforms in setup](https://github.com/espressif/vscode-esp-idf-extension/pull/636)
+- [Use workspace folder in readParameter](https://github.com/espressif/vscode-esp-idf-extension/pull/641)
+- [Add project wizard tutorial](https://github.com/espressif/vscode-esp-idf-extension/pull/651)
+- [Update extension node dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/639) like node-sass to sass
+- [Add eFuse Explorer refresh and clear summary](https://github.com/espressif/vscode-esp-idf-extension/pull/650)
+- [OpenVSX extension release](https://github.com/espressif/vscode-esp-idf-extension/pull/652)
+
+### Bug Fixes
+
+- [Remove Windows Prerequisites](https://github.com/espressif/vscode-esp-idf-extension/pull/604)
+- [Add tutorials links](https://github.com/espressif/vscode-esp-idf-extension/pull/621)
+- [Clean dirty repositories](https://github.com/espressif/vscode-esp-idf-extension/pull/622)
+- [Hide not-visible options in SDK Configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/633)
+- [Use relative elf in WSL monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/625)
+- [Add ccache logic in SDK Configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/637)
+- [Add ccache fixes for IDF_TARGET and add idf component](https://github.com/espressif/vscode-esp-idf-extension/pull/645) Thanks @meltdown03 !
+
 ## [1.3.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.3.0)
 
 ### Features and enhancements

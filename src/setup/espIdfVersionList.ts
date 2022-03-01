@@ -76,7 +76,7 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
   const versionZip =
     "https://github.com/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip";
   const mirrorZip =
-    "https://dl.espressif.com/dl/esp-idf/releases/esp-idf-IDFZIPFileVersion.zip";
+    `https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip`;
   const versionRegex = /\b(IDFZIPFileVersion)\b/g;
   const espIdfMasterZip =
     "https://github.com/espressif/esp-idf/archive/master.zip";
