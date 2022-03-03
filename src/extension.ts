@@ -262,9 +262,8 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-    const winFlag = process.platform === "win32" ? "Win" : "";
     statusBarItems["port"].text =
-      "$(plug) " + idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
+      "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -318,10 +317,9 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot,
             statusBarItems["target"]
           );
-          const winFlag = process.platform === "win32" ? "Win" : "";
           statusBarItems["port"].text =
             "$(plug) " +
-            idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
+            idfConf.readParameter("idf.port", workspaceRoot);
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -683,10 +681,9 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot,
           statusBarItems["target"]
         );
-        const winFlag = process.platform === "win32" ? "Win" : "";
         statusBarItems["port"].text =
           "$(plug) " +
-          idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
+          idfConf.readParameter("idf.port", workspaceRoot);
         const projDescPath = path.join(
           workspaceRoot.fsPath,
           "build",
@@ -937,7 +934,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IQemuOptions);
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       statusBarItems["port"].text =
-        "$(plug) " + idfConf.readParameter("idf.port" + winFlag, workspaceRoot);
+        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
     } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
@@ -2898,7 +2895,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 }
 
 function creatCmdsStatusBarItems() {
-  const port = idfConf.readParameter("idf.port", workspaceRoot);
+  const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   let flashType = idfConf.readParameter("idf.flashType", workspaceRoot);
   if (idfTarget === "custom") {
@@ -2910,11 +2907,12 @@ function creatCmdsStatusBarItems() {
   const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
 
   statusBarItems["port"] = createStatusBarItem(
-    "$(plug) " + port,
+    "$(plug)" + port,
     "ESP-IDF Select port to use (COM, tty, usbserial)",
     "espIdf.selectPort",
     100
   );
+
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,
     "ESP-IDF Set Espressif device target",

@@ -550,7 +550,7 @@
           },
           "idf.notificationSilentMode": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "description": "%param.notificationSilentMode%"
           },
           "idf.saveScope": {
