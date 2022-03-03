@@ -1225,7 +1225,7 @@
     "test": "yarn compile && node ./out/test/runTest.js --VERBOSE 2>&1",
     "package": "gulp build && vsce package --yarn -o esp-idf-extension.vsix && gulp removeExtensionDependencies",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN} --packagePath esp-idf-extension.vsix",
-    "open-vsx-release": "ovsx publish esp-idf-extension-open.vsix --yarn -p ${OPENVSX_MARKETPLACE_TOKEN}",
+    "open-vsx-release": "ovsx publish esp-idf-extension-open.vsix -p ${OPENVSX_MARKETPLACE_TOKEN}",
     "clean": "gulp clean",
     "validateLocalization": "gulp validateLocalization",
     "webpack": "webpack --mode production",
