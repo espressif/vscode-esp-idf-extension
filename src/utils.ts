@@ -594,11 +594,12 @@ export async function updateProjectNameInCMakeLists(
   const cmakeListFile = path.join(dirPath, "CMakeLists.txt");
   if (fileExists(cmakeListFile)) {
     let content = await readFile(cmakeListFile, "utf-8");
+    const noSpacesProjectName = newProjectName.replace(/ /g, "_");
     const projectMatches = content.match(/(project\(.*?\))/g);
     if (projectMatches && projectMatches.length) {
       content = content.replace(
         /(project\(.*?\))/g,
-        `project(${newProjectName})`
+        `project(${noSpacesProjectName})`
       );
       await writeFile(cmakeListFile, content);
     }
