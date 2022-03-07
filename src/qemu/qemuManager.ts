@@ -129,6 +129,7 @@ export class QemuManager extends EventEmitter {
         "file=build/merged_qemu.bin,if=mtd,format=raw",
       ],
       tcpPort: readParameter("idf.qemuTcpPort", workspaceFolder),
+      workspaceFolder
     } as IQemuOptions;
     this.configure(defOptions);
   }
