@@ -56,6 +56,11 @@ jobs:
           asset_name: esp-idf-extension-open-${{ steps.version.outputs.version }}.vsix
           asset_content_type: application/zip
 
+      - name: OpenVSX release
+        run: yarn run open-vsx-release
+        env:
+          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
+
       - name: VSIX Package
         run: yarn run package
 
@@ -74,8 +79,3 @@ jobs:
         run: yarn run release
         env:
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-
-      - name: OpenVSX release
-        run: yarn run open-vsx-release
-        env:
-          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
