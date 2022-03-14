@@ -692,8 +692,7 @@ export async function activate(context: vscode.ExtensionContext) {
           statusBarItems["target"]
         );
         statusBarItems["port"].text =
-          "$(plug) " +
-          idfConf.readParameter("idf.port", workspaceRoot);
+          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
         updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
