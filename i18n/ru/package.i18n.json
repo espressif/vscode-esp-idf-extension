@@ -90,6 +90,7 @@
   "param.preFlashTask": "Специальная задача предварительной прошивки",
   "param.postFlashTask": "Опубликовать настраиваемую задачу Flash",
   "param.customTask": "Специальная задача",
+  "param.buildDirectoryName": "Имя каталога сборки CMake",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",

@@ -23,6 +23,7 @@ import { TaskManager } from "../taskManager";
 import { FlashTask } from "./flashTask";
 import { createFlashModel } from "./flashModelBuilder";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
+import { readParameter } from "../idfConfiguration";
 
 export async function flashCommand(
   cancelToken: vscode.CancellationToken,
@@ -33,7 +34,11 @@ export async function flashCommand(
   flashType: string
 ) {
   let continueFlag = true;
-  const buildPath = join(workspace.fsPath, "build");
+  const buildDirName = readParameter(
+    "idf.buildDirectoryName",
+    workspace
+  ) as string;
+  const buildPath = join(workspace.fsPath, buildDirName);
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
     (fileName) => fileName.endsWith(".bin") === true

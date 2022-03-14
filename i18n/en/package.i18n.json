@@ -87,6 +87,7 @@
   "param.preFlashTask": "Pre flash custom task",
   "param.postFlashTask": "Post flash custom task",
   "param.customTask": "Custom task",
+  "param.buildDirectoryName": "Name of CMake build directory",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

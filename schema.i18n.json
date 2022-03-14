@@ -202,6 +202,7 @@
     "param.wslEnable",
     "param.openOcdDebugLevel",
     "param.customTask",
+    "param.buildDirectoryName",
     "param.preBuildTask",
     "param.postBuildTask",
     "param.preFlashTask",

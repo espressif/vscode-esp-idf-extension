@@ -465,6 +465,12 @@
             "description": "%param.adapterTargetName%",
             "scope": "resource"
           },
+          "idf.buildDirectoryName": {
+            "type": "string",
+            "default": "build",
+            "description": "%param.buildDirectoryName%",
+            "scope": "resource"
+          },
           "idf.cmakeCompilerArgs": {
             "type": "array",
             "default": [

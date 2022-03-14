@@ -542,7 +542,11 @@ export async function getElfFilePath(
   }
 
   try {
-    projectName = await getProjectName(workspaceURI.fsPath);
+    const buildDirName = idfConf.readParameter(
+      "idf.buildDirectoryName",
+      workspaceURI
+    ) as string;
+    projectName = await getProjectName(workspaceURI.fsPath, buildDirName);
   } catch (error) {
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
@@ -551,7 +555,11 @@ export async function getElfFilePath(
     return;
   }
 
-  const buildDir = path.join(workspaceURI.fsPath, "build");
+  const buildDirName = idfConf.readParameter(
+    "idf.buildDirectoryName",
+    workspaceURI
+  ) as string;
+  const buildDir = path.join(workspaceURI.fsPath, buildDirName);
   if (!canAccessFile(buildDir, fs.constants.R_OK)) {
     throw new Error("Build is required once to generate the ELF File");
   }
