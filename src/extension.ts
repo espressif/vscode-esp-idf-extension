@@ -903,7 +903,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  vscode.workspace.onDidChangeConfiguration((e) => {
+  vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
     if (e.affectsConfiguration("idf.openOcdConfigs")) {
       const openOcdConfigFilesList = idfConf.readParameter(
@@ -979,6 +979,8 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as string;
       statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+    } else if (e.affectsConfiguration("idf.buildDirectoryName")) {
+      updateIdfComponentsTree(workspaceRoot);
     }
   });
 
