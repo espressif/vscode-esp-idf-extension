@@ -18,6 +18,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { readParameter } from "../../idfConfiguration";
 import { LocDictionary } from "../../localizationDictionary";
 import { readFileSync } from "../../utils";
 import { formatHelpText } from "./helpTextFormatter";
@@ -64,9 +65,13 @@ export class KconfigMenuLoader {
   }
 
   public initMenuconfigServer(): Menu[] {
+    const buildDirName = readParameter(
+      "idf.buildDirectoryName",
+      this.workspaceFolder
+    ) as string;
     const kconfigMenusPath = path.join(
       this.workspaceFolder.fsPath,
-      "build",
+      buildDirName,
       "config",
       "kconfig_menus.json"
     );

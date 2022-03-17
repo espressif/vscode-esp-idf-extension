@@ -17,7 +17,7 @@
  */
 
 import { ensureDir, pathExists } from "fs-extra";
-import { join, dirname } from "path";
+import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
@@ -27,6 +27,7 @@ import { selectedDFUAdapterId } from "../flash/dfu";
 
 export class BuildTask {
   public static isBuilding: boolean;
+  private buildDirName: string;
   private curWorkspace: vscode.Uri;
   private idfPathDir: string;
   private adapterTargetName: string;
@@ -41,6 +42,7 @@ export class BuildTask {
       "idf.adapterTargetName",
       workspace
     ) as string;
+    this.buildDirName = idfConf.readParameter("idf.buildDirectoryName", workspace) as string;
   }
 
   public building(flag: boolean) {
@@ -74,10 +76,10 @@ export class BuildTask {
   public dfuShellExecution(options?: vscode.ShellExecutionOptions) {
     return new vscode.ShellExecution(
       `${join(this.idfPathDir, "tools", "mkdfu.py")} write -o ${join(
-        join(this.curWorkspace.fsPath, "build"),
+        join(this.curWorkspace.fsPath, this.buildDirName),
         "dfu.bin"
       )} --json ${join(
-        join(this.curWorkspace.fsPath, "build"),
+        join(this.curWorkspace.fsPath, this.buildDirName),
         "flasher_args.json"
       )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
       options
@@ -98,7 +100,7 @@ export class BuildTask {
     }
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, "build"));
+    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.curWorkspace.fsPath,
@@ -112,7 +114,7 @@ export class BuildTask {
 
     const cmakeCachePath = join(
       this.curWorkspace.fsPath,
-      "build",
+      this.buildDirName,
       "CMakeCache.txt"
     );
     const cmakeCacheExists = await pathExists(cmakeCachePath);
@@ -122,7 +124,7 @@ export class BuildTask {
     }
 
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.curWorkspace.fsPath, "build"),
+      cwd: join(this.curWorkspace.fsPath, this.buildDirName),
       env: modifiedEnv,
     };
     const isSilentMode = idfConf.readParameter(
@@ -187,7 +189,7 @@ export class BuildTask {
   public async buildDfu() {
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, "build"));
+    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
 
     const options: vscode.ShellExecutionOptions = {
       cwd: this.curWorkspace.fsPath,

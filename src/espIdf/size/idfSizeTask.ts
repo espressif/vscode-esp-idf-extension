@@ -34,6 +34,7 @@ export class IdfSizeTask {
   private curWorkspace: Uri;
   private pythonBinPath: string;
   private idfSizePath: string;
+  private buildDirName: string;
 
   constructor(workspacePath: Uri) {
     this.curWorkspace = workspacePath;
@@ -43,6 +44,10 @@ export class IdfSizeTask {
     ) as string;
     const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
+    this.buildDirName = readParameter(
+      "idf.buildDirectoryName",
+      workspacePath
+    ) as string;
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {
@@ -54,13 +59,16 @@ export class IdfSizeTask {
   }
 
   private async mapFilePath() {
-    const projectName = await getProjectName(this.curWorkspace.fsPath);
-    return join(this.curWorkspace.fsPath, "build", `${projectName}.map`);
+    const projectName = await getProjectName(
+      this.curWorkspace.fsPath,
+      this.buildDirName
+    );
+    return join(this.curWorkspace.fsPath, this.buildDirName, `${projectName}.map`);
   }
 
   public async getSizeInfo() {
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, "build"));
+    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
     const options: ShellExecutionOptions = {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,

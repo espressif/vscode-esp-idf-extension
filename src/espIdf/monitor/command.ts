@@ -44,7 +44,8 @@ export async function createMonitorTerminal(
     return;
   }
 
-  const idfPathDir = readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
+  const idfPathDir =
+    readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
   const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
   const port = serialPort ? serialPort : readParameter("idf.port", workspace);
   const idfPath = join(idfPathDir, "tools", "idf.py");
@@ -109,8 +110,12 @@ export async function createMonitorTerminal(
     ).replace(/\\/g, "\\\\");
     monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
     try {
-      const projectName = await getProjectName(workspace.fsPath);
-      const elfFilePath = join("build", `${projectName}.elf`);
+      const buildDirName = readParameter(
+        "idf.buildDirectoryName",
+        workspace
+      ) as string;
+      const projectName = await getProjectName(workspace.fsPath, buildDirName);
+      const elfFilePath = join(buildDirName, `${projectName}.elf`);
       monitorTerminal.sendText(
         `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFilePath}"`
       );

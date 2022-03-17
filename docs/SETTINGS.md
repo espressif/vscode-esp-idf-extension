@@ -14,6 +14,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 
 | Setting ID                      | Description                                                                   |
 | ------------------------------- | ----------------------------------------------------------------------------- |
+| `idf.buildDirectoryName`        | Custom build directory name for extension commands. (Default: build)          |
 | `idf.cmakeCompilerArgs`         | Arguments for CMake compilation task                                          |
 | `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                |
 | `idf.customExtraVars`           | Variables to be added to system environment variables                         |

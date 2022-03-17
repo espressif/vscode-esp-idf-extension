@@ -36,18 +36,26 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 
   constructor(workspaceFolder: vscode.Uri) {
     this.workspaceFolder = workspaceFolder;
+    const buildDirName = idfConf.readParameter(
+      "idf.buildDirectoryName",
+      workspaceFolder
+    ) as string;
     this.projectDescriptionJsonPath = join(
       workspaceFolder.fsPath,
-      "build",
+      buildDirName,
       "project_description.json"
     );
   }
 
   public refresh(workspaceFolder: vscode.Uri): void {
     this.workspaceFolder = workspaceFolder;
+    const buildDirName = idfConf.readParameter(
+      "idf.buildDirectoryName",
+      workspaceFolder
+    ) as string;
     this.projectDescriptionJsonPath = join(
       workspaceFolder.fsPath,
-      "build",
+      buildDirName,
       "project_description.json"
     );
     this.OnDidChangeTreeData.fire(null);

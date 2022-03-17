@@ -37,6 +37,7 @@ export class FlashTask {
   private workspaceUri: vscode.Uri;
   private flashScriptPath: string;
   private model: FlashModel;
+  private buildDirName: string;
 
   constructor(workspace: vscode.Uri, idfPath: string, model: FlashModel) {
     this.workspaceUri = workspace;
@@ -48,6 +49,10 @@ export class FlashTask {
       "esptool.py"
     );
     this.model = model;
+    this.buildDirName = idfConf.readParameter(
+      "idf.buildDirectoryName",
+      workspace
+    ) as string;
   }
 
   public flashing(flag: boolean) {
@@ -61,7 +66,7 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
-          join(this.workspaceUri.fsPath, "build", flashFile.binFilePath),
+          join(this.workspaceUri.fsPath, this.buildDirName, flashFile.binFilePath),
           constants.R_OK
         )
       ) {
@@ -128,7 +133,7 @@ export class FlashTask {
 
     const flasherArgs = this.getFlasherArgs(toolPath, true);
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.workspaceUri.fsPath, "build"),
+      cwd: join(this.workspaceUri.fsPath, this.buildDirName),
       env: modifiedEnv,
     };
     return new vscode.ShellExecution(
@@ -142,7 +147,7 @@ export class FlashTask {
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.workspaceUri.fsPath, "build"),
+      cwd: join(this.workspaceUri.fsPath, this.buildDirName),
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter(
@@ -179,7 +184,7 @@ export class FlashTask {
     return new vscode.ShellExecution(
       `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
         this.workspaceUri.fsPath,
-        "build",
+        this.buildDirName,
         "dfu.bin"
       )}`
     );

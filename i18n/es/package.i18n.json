@@ -90,6 +90,7 @@
   "param.preFlashTask": "Pre build tarea personalizada",
   "param.postFlashTask": "Post build tarea personalizada",
   "param.customTask": "Tarea personalizada",
+  "param.buildDirectoryName": "Nombre del directorio de construcción de CMake",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

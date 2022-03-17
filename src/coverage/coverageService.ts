@@ -51,11 +51,14 @@ export function getGcovExecutable(idfTarget: string) {
 
 export async function getGcovFilterPaths(workspacePath: vscode.Uri) {
   const espAdfPath =
-    idfConf.readParameter("idf.espAdfPath", workspacePath) || process.env.ADF_PATH;
+    idfConf.readParameter("idf.espAdfPath", workspacePath) ||
+    process.env.ADF_PATH;
   const espIdfPath =
-    idfConf.readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
+    idfConf.readParameter("idf.espIdfPath", workspacePath) ||
+    process.env.IDF_PATH;
   const espMdfPath =
-    idfConf.readParameter("idf.espMdfPath", workspacePath) || process.env.MDF_PATH;
+    idfConf.readParameter("idf.espMdfPath", workspacePath) ||
+    process.env.MDF_PATH;
 
   const pathsToFilter: string[] = [];
 
@@ -85,7 +88,8 @@ export async function getGcovFilterPaths(workspacePath: vscode.Uri) {
 
 export async function buildJson(dirPath: vscode.Uri) {
   const componentsDir = await getGcovFilterPaths(dirPath);
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
+  const idfTarget =
+    idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
   const gcovTool = getGcovExecutable(idfTarget);
 
   const result = await _runCmd(
@@ -105,7 +109,8 @@ export async function buildJson(dirPath: vscode.Uri) {
 
 export async function buildHtml(dirPath: vscode.Uri) {
   const componentsDir = await getGcovFilterPaths(dirPath);
-  const idfTarget = idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
+  const idfTarget =
+    idfConf.readParameter("idf.adapterTargetName", dirPath) || "esp32";
   const gcovTool = getGcovExecutable(idfTarget);
   const result = await _runCmd(
     "gcovr",
@@ -135,7 +140,7 @@ function _runCmd(cmd: string, args: string[], dirPath: string) {
 }
 
 export async function generateCoverageForEditors(
-  dirPath: string,
+  dirPath: vscode.Uri,
   editors: readonly vscode.TextEditor[],
   gcovJsonObj
 ) {
@@ -143,15 +148,19 @@ export async function generateCoverageForEditors(
   try {
     for (let editor of editors) {
       let gcovObjFilePath = "";
-      if (editor.document.fileName.indexOf(dirPath) > -1) {
+      if (editor.document.fileName.indexOf(dirPath.fsPath) > -1) {
         const fileParts = editor.document.fileName
           .replace(dirPath + sep, "")
           .split(sep);
         if (fileParts && fileParts.length > 1) {
           const fileName = fileParts.pop();
+          const buildDirName = idfConf.readParameter(
+            "idf.buildDirectoryName",
+            dirPath
+          ) as string;
           gcovObjFilePath = join(
-            dirPath,
-            "build",
+            dirPath.fsPath,
+            buildDirName,
             "esp-idf",
             fileParts[fileParts.length - 1],
             "CMakeFiles",

@@ -39,9 +39,13 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
     "esptool",
     "esptool.py"
   );
+  const buildDirName = readParameter(
+    "idf.buildDirectoryName",
+    workspaceFolder
+  ) as string;
   const flasherArgsJsonPath = join(
     workspaceFolder.fsPath,
-    "build",
+    buildDirName,
     "flasher_args.json"
   );
   const model = await createFlashModel(

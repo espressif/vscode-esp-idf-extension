@@ -19,6 +19,7 @@ import { ChildProcess, spawn } from "child_process";
 import { ensureDir, pathExists, writeFile } from "fs-extra";
 import { join } from "path";
 import { env, OutputChannel, Uri, window } from "vscode";
+import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
@@ -39,7 +40,7 @@ export class GdbHeapTraceManager {
 
   constructor(
     treeDataProvider: AppTraceTreeDataProvider,
-    archiveDataProvider: AppTraceArchiveTreeDataProvider,
+    archiveDataProvider: AppTraceArchiveTreeDataProvider
   ) {
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
@@ -53,10 +54,10 @@ export class GdbHeapTraceManager {
         this.heapTraceChannel.clear();
         this.showStopButton();
         ensureDir(join(workspace.fsPath, "trace"));
-        const fileName = `file://${join(
-          workspace.fsPath,
-          "trace"
-        ).replace(/\\/g, "/")}/htrace_${new Date().getTime()}.svdat`;
+        const fileName = `file://${join(workspace.fsPath, "trace").replace(
+          /\\/g,
+          "/"
+        )}/htrace_${new Date().getTime()}.svdat`;
         await this.createGdbinitFile(fileName, workspace.fsPath);
         const modifiedEnv = appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
@@ -72,14 +73,25 @@ export class GdbHeapTraceManager {
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
         }
-        const buildExists = await pathExists(join(workspace.fsPath, "build"));
+        const buildDirName = readParameter(
+          "idf.buildDirectoryName",
+          workspace
+        ) as string;
+        const buildExists = await pathExists(
+          join(workspace.fsPath, buildDirName)
+        );
         if (!buildExists) {
-          throw new Error(`${workspace.fsPath} build doesn't exist. Build first.`);
+          throw new Error(
+            `${workspace.fsPath} build doesn't exist. Build first.`
+          );
         }
-        const projectName = await getProjectName(workspace.fsPath);
+        const projectName = await getProjectName(
+          workspace.fsPath,
+          buildDirName
+        );
         const elfFilePath = join(
           workspace.fsPath,
-          "build",
+          buildDirName,
           `${projectName}.elf`
         );
         const elfFileExists = await pathExists(elfFilePath);

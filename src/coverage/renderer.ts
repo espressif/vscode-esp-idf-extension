@@ -168,7 +168,7 @@ export class CoverageRenderer {
     this.gcovObj = await buildJson(this.workspaceFolder);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
-        this.workspaceFolder.fsPath,
+        this.workspaceFolder,
         editors,
         this.gcovObj
       );
@@ -197,7 +197,7 @@ export class CoverageRenderer {
     }
     this.setDecoratorsForEditor(editorsInCache);
     const editorsWithCoverage = await generateCoverageForEditors(
-      this.workspaceFolder.fsPath,
+      this.workspaceFolder,
       editorsWithNoCoverage,
       this.gcovObj
     );

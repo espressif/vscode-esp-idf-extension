@@ -43,10 +43,13 @@ export function updateIdfComponentsTree(workspaceFolder: vscode.Uri) {
   idfDataProvider.refresh(workspaceFolder);
 }
 
-export function getProjectName(workspacePath: string): Promise<string> {
+export function getProjectName(
+  workspacePath: string,
+  buildDir: string
+): Promise<string> {
   const projDescJsonPath = path.join(
     workspacePath,
-    "build",
+    buildDir,
     "project_description.json"
   );
   return new Promise((resolve, reject) => {
