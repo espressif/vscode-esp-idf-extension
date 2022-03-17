@@ -73,8 +73,8 @@ export class EspMatterCloning extends AbstractCloning {
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
     const isSilentMode = readParameter("idf.notificationSilentMode");
     const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Silent
-      : TaskRevealKind.Always;
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
 
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-Matter Bootstrap", taskId: "idf-bootstrap-task" },

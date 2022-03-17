@@ -149,14 +149,19 @@ export class AbstractCloning {
           target: "current",
         },
         { label: "Choose a container directory...", target: "another" },
+        {
+          label: "Use existing repository",
+          target: "existing",
+        },
       ],
       { placeHolder: `Select a directory to save ${this.name}` }
     );
     if (!installDir) {
       return;
     }
+
     let installDirPath: string;
-    if (installDir.target === "another") {
+    if (installDir.target === "another" || installDir.target === "existing") {
       const chosenFolder = await window.showOpenDialog({
         canSelectFolders: true,
         canSelectFiles: false,
@@ -173,6 +178,13 @@ export class AbstractCloning {
         return;
       }
       installDirPath = toolsDir;
+    }
+
+    if (installDir.target === "existing") {
+      const target = idfConf.readParameter("idf.saveScope");
+      await idfConf.writeParameter(configurationId, installDirPath, target);
+      Logger.infoNotify(`${this.name} has been installed`);
+      return;
     }
     const resultFolder = basename(this.GITHUB_REPO).replace(".git", "");
     const resultingPath = join(installDirPath, resultFolder);
