@@ -1,7 +1,11 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import { json } from "stream/consumers";
-import { getGcovExecutable, buildJson } from "../../coverage/coverageService";
+import { join } from "path";
+import {
+  getGcovExecutable,
+  buildJson,
+  getGcovFilterPaths
+} from "../../coverage/coverageService";
 import { CoverageRenderer } from "../../coverage/renderer";
 
 suite("Test Coverage Unit Tests", () => {
@@ -16,4 +20,11 @@ suite("Test Coverage Unit Tests", () => {
     assert.equal(esp32s3, "xtensa-esp32s3-elf-gcov");
     assert.equal(esp32, "xtensa-esp32-elf-gcov");
   });
+
+  test("getGcovFilterPaths", async () => {
+    const workspace = vscode.Uri.file(join(__dirname, "../../testFiles/gcov"));
+    const pathsToFilter = await getGcovFilterPaths(workspace);
+    console.log({ workspace, pathsToFilter })
+  })
+
 });
