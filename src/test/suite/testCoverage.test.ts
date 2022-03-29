@@ -10,8 +10,6 @@ import { readParameter } from "../../idfConfiguration";
 
 suite("Test Coverage Unit Tests", () => {
   const workspace = vscode.Uri.file(join(__dirname, "../../testFiles/gcov"));
-  const idfPath = join(process.env.HOME, "esp", "esp-idf") || readParameter("idf.espIdfPath", workspace);
-  process.env.IDF_PATH = idfPath;
   test("gcov executables based on idfTarget", () => {
     const esp32c3 = getGcovExecutable("esp32c3")
     const esp32s2 = getGcovExecutable("esp32s2")
@@ -26,7 +24,7 @@ suite("Test Coverage Unit Tests", () => {
 
   test("getGcovFilterPaths", async () => {
     const pathsToFilter = await getGcovFilterPaths(workspace);
-    const example = ["--filter", `${idfPath}/components`];
+    const example = ["--filter", `${process.env.IDF_PATH}/components`];
     assert.equal(JSON.stringify(test), JSON.stringify(pathsToFilter))
   })
 });
