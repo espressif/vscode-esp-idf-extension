@@ -6,7 +6,6 @@ import {
   buildJson,
   getGcovFilterPaths
 } from "../../coverage/coverageService";
-import { CoverageRenderer } from "../../coverage/renderer";
 
 suite("Test Coverage Unit Tests", () => {
   test("gcov executables based on idfTarget", () => {
@@ -23,8 +22,10 @@ suite("Test Coverage Unit Tests", () => {
 
   test("getGcovFilterPaths", async () => {
     const workspace = vscode.Uri.file(join(__dirname, "../../testFiles/gcov"));
+    const idfPath = join(process.env.HOME, "esp", "esp-idf");
+    process.env.IDF_PATH = idfPath;
     const pathsToFilter = await getGcovFilterPaths(workspace);
-    console.log({ workspace, pathsToFilter })
+    const example = ["--filter", `${idfPath}/components`];
+    assert.equal(JSON.stringify(test), JSON.stringify(pathsToFilter))
   })
-
 });
