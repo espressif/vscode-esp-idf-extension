@@ -25,6 +25,6 @@ suite("Test Coverage Unit Tests", () => {
   test("getGcovFilterPaths", async () => {
     const pathsToFilter = await getGcovFilterPaths(workspace);
     const example = ["--filter", `${process.env.IDF_PATH}/components`];
-    assert.equal(JSON.stringify(test), JSON.stringify(pathsToFilter))
+    assert.equal(JSON.stringify(example), JSON.stringify(pathsToFilter))
   })
 });
