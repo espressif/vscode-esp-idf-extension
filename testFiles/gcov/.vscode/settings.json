@@ -1,3 +1,10 @@
 {
-  "C_Cpp.intelliSenseEngine": "Tag Parser"
+  "C_Cpp.intelliSenseEngine": "Tag Parser",
+  "idf.portWin": "COM10",
+  "idf.adapterTargetName": "esp32",
+  "idf.openOcdConfigs": [
+    "interface/ftdi/esp32_devkitj_v1.cfg",
+    "target/esp32.cfg"
+  ],
+  "idf.flashType": "JTAG"
 }
