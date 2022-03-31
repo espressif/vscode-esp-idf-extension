@@ -2,7 +2,7 @@
     "configurations": [
         {
             "name": "ESP-IDF",
-            "compilerPath": "/Users/radurentea/.espressif/tools/xtensa-esp32-elf/esp-2021r2-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc",
+            "compilerPath": "${default}",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "includePath": [
