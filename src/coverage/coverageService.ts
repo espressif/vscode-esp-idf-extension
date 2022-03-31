@@ -104,7 +104,7 @@ export async function buildJson(dirPath: vscode.Uri) {
     ],
     dirPath.fsPath.replace(/\\/g, "/")
   );
-  return JSON.parse(result);
+  return JSON.stringify(result);
 }
 
 export async function buildHtml(dirPath: vscode.Uri) {
