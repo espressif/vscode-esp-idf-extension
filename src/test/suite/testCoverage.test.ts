@@ -9,7 +9,7 @@ import {
 import { readParameter } from "../../idfConfiguration";
 
 suite("Test Coverage Unit Tests", () => {
-  const workspace = vscode.Uri.file(join(__dirname, "../../../testFiles/gcov"));
+  const workspace = vscode.Uri.file(join(__dirname, "../../testFiles/gcov"));
   test("gcov executables based on idfTarget", () => {
     const esp32c3 = getGcovExecutable("esp32c3")
     const esp32s2 = getGcovExecutable("esp32s2")
