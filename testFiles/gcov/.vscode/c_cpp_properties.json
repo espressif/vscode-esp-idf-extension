@@ -6,7 +6,7 @@
         "cStandard": "c11",
         "cppStandard": "c++17",
         "includePath": [
-          "${env:IDF_PATH}/components/**",
+          "${config:idf.espIdfPath}/components/**",
           "${config:idf.espIdfPathWin}/components/**",
           "${config:idf.espAdfPath}/components/**",
           "${config:idf.espAdfPathWin}/components/**",
@@ -14,7 +14,7 @@
         ],
         "browse": {
           "path": [
-            "${env:IDF_PATH}/components",
+            "${config:idf.espIdfPath}/components",
             "${config:idf.espIdfPathWin}/components",
             "${config:idf.espAdfPath}/components/**",
             "${config:idf.espAdfPathWin}/components/**",
