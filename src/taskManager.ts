@@ -51,7 +51,7 @@ export class TaskManager {
     newTask.presentationOptions = {
       reveal: revealTask,
       showReuseMessage: false,
-      clear: clearTerminal
+      clear: clearTerminal,
     } as vscode.TaskPresentationOptions;
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
