@@ -21,7 +21,7 @@ yarn
 yarn lint
 export NO_AT_BRIDGE=1; # Don't use dbus accessibility bridge
 eval $(dbus-launch --sh-syntax);
-eval $(echo -n "" | /usr/bin/gnome-keyring-daemon --login);
-eval $(/usr/bin/gnome-keyring-daemon --components=secrets --start);
+/usr/bin/gnome-keyring-daemon --login
+/usr/bin/gnome-keyring-daemon --components=secrets --start
 /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');";
 Xvfb -ac :99 -screen 0 1920x1080x16 & sleep 2 & yarn ci-test
