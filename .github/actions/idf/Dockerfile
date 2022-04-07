@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
  libnss3 \
  libsecret-1-0 \
  libxss1 \
- libxtst6\
+ libxtst6 \
+ gnome-keyring \
  xvfb
 
 ENV LC_ALL=C.UTF-8
