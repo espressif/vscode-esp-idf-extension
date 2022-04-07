@@ -37,7 +37,8 @@ export class TaskManager {
       | vscode.ProcessExecution
       | vscode.CustomExecution,
     problemMatchers: string | string[],
-    revealTask: vscode.TaskRevealKind
+    revealTask: vscode.TaskRevealKind,
+    clearTerminal: Boolean = false
   ) {
     const newTask: vscode.Task = new vscode.Task(
       taskDefinition,
@@ -50,7 +51,8 @@ export class TaskManager {
     newTask.presentationOptions = {
       reveal: revealTask,
       showReuseMessage: false,
-    };
+      clear: clearTerminal
+    } as vscode.TaskPresentationOptions;
     TaskManager.tasks.push(newTask);
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {

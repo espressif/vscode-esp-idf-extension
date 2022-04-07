@@ -167,7 +167,8 @@ export class BuildTask {
         "ESP-IDF Compile",
         compileExecution,
         ["idfRelative", "idfAbsolute"],
-        showTaskOutput
+        showTaskOutput,
+        true
       );
     }
 
@@ -182,7 +183,8 @@ export class BuildTask {
       "ESP-IDF Build",
       buildExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      showTaskOutput,
+      cmakeCacheExists
     );
   }
 
