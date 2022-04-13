@@ -19,6 +19,8 @@
 import {
   ShellExecution,
   ShellExecutionOptions,
+  TaskPanelKind,
+  TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
   Uri,
@@ -93,6 +95,12 @@ export class CustomTask {
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
     const customExecution = this.getProcessExecution(cmd, options);
+    const customTaskPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: TaskPanelKind.Dedicated
+    } as TaskPresentationOptions;
     TaskManager.addTask(
       {
         type: "esp-idf",
@@ -103,7 +111,7 @@ export class CustomTask {
       `ESP-IDF ${taskName}`,
       customExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      customTaskPresentationOptions
     );
   }
 

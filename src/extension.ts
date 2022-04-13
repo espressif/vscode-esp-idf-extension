@@ -1529,11 +1529,14 @@ export async function activate(context: vscode.ExtensionContext) {
             );
             modifiedEnv.IDF_TARGET = undefined;
             const enableCCache = idfConf.readParameter(
-              "idf.enableCCache"
+              "idf.enableCCache",
+              workspaceFolder.uri
             ) as boolean;
             const setTargetArgs: string[] = [idfPy];
             if (enableCCache) {
-              setTargetArgs.push("--ccache");
+              modifiedEnv.IDF_CCACHE_ENABLE = "1";
+            } else {
+              modifiedEnv.IDF_CCACHE_ENABLE = undefined;
             }
             setTargetArgs.push("set-target", selectedTarget.target);
             const pythonBinPath = idfConf.readParameter(

@@ -157,6 +157,12 @@ export class BuildTask {
         }
       }
       const compileExecution = this.getShellExecution(compilerArgs, options);
+      const compilePresentationOptions = {
+        reveal: showTaskOutput,
+        showReuseMessage: false,
+        clear: true,
+        panel: vscode.TaskPanelKind.Shared
+      } as vscode.TaskPresentationOptions;
       TaskManager.addTask(
         {
           type: "esp-idf",
@@ -167,7 +173,7 @@ export class BuildTask {
         "ESP-IDF Compile",
         compileExecution,
         ["idfRelative", "idfAbsolute"],
-        showTaskOutput
+        compilePresentationOptions
       );
     }
 
@@ -176,13 +182,19 @@ export class BuildTask {
         string
       >) || [];
     const buildExecution = this.getNinjaShellExecution(buildArgs, options);
+    const buildPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: cmakeCacheExists,
+      panel: vscode.TaskPanelKind.Shared
+    } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      buildPresentationOptions
     );
   }
 
@@ -205,6 +217,12 @@ export class BuildTask {
       : vscode.TaskRevealKind.Silent;
 
     const writeExecution = this.dfuShellExecution(options);
+    const buildPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: vscode.TaskPanelKind.Shared
+    } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       {
         type: "esp-idf",
@@ -215,7 +233,7 @@ export class BuildTask {
       "ESP-IDF Write DFU.bin",
       writeExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      buildPresentationOptions
     );
   }
 }

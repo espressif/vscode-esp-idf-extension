@@ -21,6 +21,8 @@ import { join } from "path";
 import {
   ShellExecution,
   ShellExecutionOptions,
+  TaskPanelKind,
+  TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
   Uri,
@@ -63,7 +65,11 @@ export class IdfSizeTask {
       this.curWorkspace.fsPath,
       this.buildDirName
     );
-    return join(this.curWorkspace.fsPath, this.buildDirName, `${projectName}.map`);
+    return join(
+      this.curWorkspace.fsPath,
+      this.buildDirName,
+      `${projectName}.map`
+    );
   }
 
   public async getSizeInfo() {
@@ -81,14 +87,19 @@ export class IdfSizeTask {
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
-
+    const sizePresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: true,
+      panel: TaskPanelKind.Dedicated,
+    } as TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Size", taskId: "idf-size-task" },
       TaskScope.Workspace,
       "ESP-IDF Size",
       sizeExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      sizePresentationOptions
     );
   }
 }

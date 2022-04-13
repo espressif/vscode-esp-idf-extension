@@ -16,7 +16,7 @@ export PY_VERSION=$( echo "$a" | echo $(python --version) | sed -nre 's/^[^0-9]*
 export PIP_VERSION=$( echo "$a" | echo $(python -m pip --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
 export PY_PKGS=$(python -m pip list --format json)
 
-rm -rf out test-resources
+rm -rf node_modules out test-resources
 yarn
 yarn lint
 Xvfb -ac :99 -screen 0 1920x1080x16 & sleep 2 & yarn ci-test

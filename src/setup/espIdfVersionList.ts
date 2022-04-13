@@ -18,6 +18,7 @@ import { Logger } from "../logger/logger";
 import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
 import { IEspIdfLink } from "../views/setup/types";
+import { ESP } from "../config";
 
 export async function getEspIdfVersions(extensionPath: string) {
   const downloadManager = new DownloadManager(extensionPath);
@@ -39,9 +40,8 @@ export async function downloadEspIdfVersionList(
 ) {
   try {
     const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
-    const versionsUrl = "https://dl.espressif.com/dl/esp-idf/idf_versions.txt";
     const downloadMessage = await downloadManager.downloadFile(
-      versionsUrl,
+      ESP.URL.IDF_VERSIONS,
       0,
       tmpdir()
     );
@@ -76,7 +76,7 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
   const versionZip =
     "https://github.com/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip";
   const mirrorZip =
-    `https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip`;
+    `${ESP.URL.IDF_GITHUB_ASSETS}/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip`;
   const versionRegex = /\b(IDFZIPFileVersion)\b/g;
   const espIdfMasterZip =
     "https://github.com/espressif/esp-idf/archive/master.zip";

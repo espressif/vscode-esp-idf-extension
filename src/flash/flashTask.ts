@@ -108,13 +108,19 @@ export class FlashTask {
           break;
       }
     }
+    const flashPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: vscode.TaskPanelKind.Shared,
+    } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
       ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      flashPresentationOptions
     );
   }
 
