@@ -86,25 +86,12 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
   const versionList = data.toString().trim().split(splitString);
   const downloadList: IEspIdfLink[] = versionList.map((version) => {
     if (version.startsWith("release/")) {
-      const versionRoot = version.replace("release/", "");
-      const versionForRelease = versionList.find((ver) =>
-        ver.startsWith(versionRoot)
-      );
-      if (versionForRelease) {
-        return {
-          filename: `esp-idf-${versionForRelease}.zip`,
-          name: version + " (release branch)",
-          url: versionZip.replace(versionRegex, versionForRelease),
-          mirror: mirrorZip.replace(versionRegex, versionForRelease),
-        };
-      } else {
-        return {
-          filename: `${version}`,
-          name: version + " (release branch)",
-          url: "",
-          mirror: "",
-        };
-      }
+      return {
+        filename: `${version}`,
+        name: version + " (release branch)",
+        url: `https://github.com/espressif/esp-idf/archive/refs/heads/${version}.zip`,
+        mirror: "",
+      };
     } else if (version.startsWith("v")) {
       return {
         filename: `esp-idf-${version}.zip`,
@@ -123,7 +110,7 @@ export function createEspIdfLinkList(data: Buffer, splitString: string) {
       return {
         filename: `master`,
         name: version + " (development branch)",
-        url: espIdfMasterZip,
+        url: `https://github.com/espressif/esp-idf/archive/refs/heads/${version}.zip`,
         mirror: espIdfMasterZip,
       };
     } else if (betaRegex.test(version)) {

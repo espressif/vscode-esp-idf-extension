@@ -234,6 +234,17 @@ export class DownloadManager {
         ) => {
           if (response.statusCode === 301 || response.statusCode === 302) {
             let redirectUrl: string;
+            if (!response.headers.location) {
+              return reject(
+                new PackageManagerWebError(
+                  response.socket,
+                  "HTTP/HTTPS Location header error",
+                  "downloadFile",
+                  "HTTP/HTTPS missing location header error",
+                  response.statusCode.toString()
+                )
+              );
+            }
             if (typeof response.headers.location === "string") {
               redirectUrl = response.headers.location;
             } else {
@@ -260,15 +271,11 @@ export class DownloadManager {
               )
             );
           } else {
-            let contentLength: any = response.headers["content-length"];
-            if (typeof response.headers["content-length"] === "string") {
-              contentLength = response.headers["content-length"];
-            } else {
-              contentLength = response.headers["content-length"][0];
-            }
-            const packageSize: number = parseInt(contentLength, 10);
+            let contentLength: any = response.headers["content-length"] || 0;
+            let packageSize: number = parseInt(contentLength, 10);
             let downloadPercentage: number = 0;
             let downloadedSize: number = 0;
+            let isSizeUndefined: boolean = packageSize === 0;
             let progressDetail: string;
 
             const fileName = utils.fileNameFromUrl(urlString);
@@ -304,6 +311,9 @@ export class DownloadManager {
 
             response.on("data", (data) => {
               downloadedSize += data.length;
+              if (isSizeUndefined) {
+                packageSize = downloadedSize * 1.25;
+              }
               downloadPercentage = (downloadedSize / packageSize) * 100;
               progressDetail = `(${(downloadedSize / 1024).toFixed(2)} / ${(
                 packageSize / 1024
