@@ -104,7 +104,7 @@ export async function installExtensionPyReqs(
   gitPath: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
-  opts?: { env: NodeJS.ProcessEnv, cwd?: string },
+  opts?: { env: NodeJS.ProcessEnv; cwd?: string },
   cancelToken?: CancellationToken
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
@@ -139,7 +139,10 @@ export async function installExtensionPyReqs(
     channel.appendLine(installExtensionPyPkgsMsg + "\n");
   }
   const espIdfVersion = await utils.getEspIdfVersion(espDir, gitPath);
-  const constrainsFile = path.join(idfToolsDir, `espidf.constraints.v${espIdfVersion}.txt`);
+  const constrainsFile = path.join(
+    idfToolsDir,
+    `espidf.constraints.v${espIdfVersion}.txt`
+  );
   const constrainsFileExists = await pathExists(constrainsFile);
   let constraintArg = "";
   if (constrainsFileExists) {
