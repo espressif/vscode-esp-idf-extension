@@ -87,13 +87,17 @@ export async function installPyReqs(
 }
 
 export async function installExtensionPyReqs(
-  workingDir: string,
-  pythonBinPath: string
+  idfToolsDir: string,
+  pythonBinPath: string,
+  espIdfPath: string,
+  gitPath: string
 ) {
   const logTracker = new PyReqLog(sendPyReqLog);
   await pythonManager.installExtensionPyReqs(
     pythonBinPath,
-    workingDir,
+    espIdfPath,
+    idfToolsDir,
+    gitPath,
     logTracker,
     OutputChannel.init()
   );

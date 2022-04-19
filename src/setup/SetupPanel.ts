@@ -274,7 +274,9 @@ export class SetupPanel {
             });
             await installExtensionPyReqs(
               setupArgs.espToolsPath,
-              setupArgs.pyBinPath
+              setupArgs.pyBinPath,
+              setupArgs.espIdfPath,
+              setupArgs.gitPath
             );
             await saveSettings(
               setupArgs.espIdfPath,

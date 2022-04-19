@@ -69,9 +69,12 @@ export async function checkExtensionSettings(
           });
           await installExtensionPyReqs(
             setupArgs.pyBinPath,
+            setupArgs.espIdfPath,
             setupArgs.espToolsPath,
+            setupArgs.gitPath,
             undefined,
             OutputChannel.init(),
+            { env: process.env, cwd: workspace.fsPath },
             cancelToken
           );
           await saveSettings(

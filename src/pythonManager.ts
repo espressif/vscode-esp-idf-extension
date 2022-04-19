@@ -15,7 +15,7 @@
 import { PyReqLog } from "./PyReqLog";
 import { CancellationToken, OutputChannel } from "vscode";
 import * as utils from "./utils";
-import { constants } from "fs-extra";
+import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import path from "path";
 
@@ -44,12 +44,14 @@ export async function installPythonEnvFromIdfTools(
     }
     modifiedEnv.PYTHONNOUSERSITE = "1";
   }
+
   const pyEnvPath = await getPythonEnvPath(
     espDir,
     idfToolsDir,
     pythonBinPath,
     gitPath
   );
+
   await execProcessWithLog(
     `"${pythonBinPath}" -m pip install --user virtualenv`,
     idfToolsDir,
@@ -84,9 +86,12 @@ export async function installPythonEnvFromIdfTools(
   const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
   await installExtensionPyReqs(
     virtualEnvPython,
+    espDir,
     idfToolsDir,
+    gitPath,
     pyTracker,
     channel,
+    { env: modifiedEnv },
     cancelToken
   );
   return virtualEnvPython;
@@ -94,9 +99,12 @@ export async function installPythonEnvFromIdfTools(
 
 export async function installExtensionPyReqs(
   virtualEnvPython: string,
+  espDir: string,
   idfToolsDir: string,
+  gitPath: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
+  opts?: { env: NodeJS.ProcessEnv, cwd?: string },
   cancelToken?: CancellationToken
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
@@ -130,12 +138,19 @@ export async function installExtensionPyReqs(
   if (channel) {
     channel.appendLine(installExtensionPyPkgsMsg + "\n");
   }
+  const espIdfVersion = await utils.getEspIdfVersion(espDir, gitPath);
+  const constrainsFile = path.join(idfToolsDir, `espidf.constraints.v${espIdfVersion}.txt`);
+  const constrainsFileExists = await pathExists(constrainsFile);
+  let constraintArg = "";
+  if (constrainsFileExists) {
+    constraintArg = `--constraint ${constrainsFile} `;
+  }
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade --no-warn-script-location  -r "${extensionRequirements}"`,
+    `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location  -r "${extensionRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel,
-    undefined,
+    opts,
     cancelToken
   );
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
@@ -146,11 +161,11 @@ export async function installExtensionPyReqs(
     channel.appendLine(installDAPyPkgsMsg + "\n");
   }
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade --no-warn-script-location -r "${debugAdapterRequirements}"`,
+    `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location -r "${debugAdapterRequirements}"`,
     idfToolsDir,
     pyTracker,
     channel,
-    undefined,
+    opts,
     cancelToken
   );
 }

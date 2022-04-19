@@ -870,6 +870,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
   modifiedEnv.MDF_PATH = mdfPathDir || process.env.MDF_PATH;
 
+  const defaultToolsPath = path.join(containerPath, ".espressif");
+  const toolsPath = idfConf.readParameter("idf.toolsPath", curWorkspace) as string;
+  modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
+
   modifiedEnv.PYTHON =
     `${idfConf.readParameter("idf.pythonBinPath", curWorkspace)}` ||
     `${process.env.PYTHON}` ||
