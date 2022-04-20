@@ -2455,184 +2455,203 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
   registerIDFCommand("espIdf.launchWSServerAndMonitor", async () => {
-    const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
-    if (!port) {
-      try {
-        await vscode.commands.executeCommand("espIdf.selectPort");
-      } catch (error) {
-        Logger.error("Unable to execute the command: espIdf.selectPort", error);
-      }
-      return Logger.errorNotify(
-        "Select a serial port before flashing",
-        new Error("NOT_SELECTED_PORT")
-      );
-    }
-    let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-      workspaceRoot.fsPath
-    );
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      workspaceRoot
-    ) as string;
-    if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
-      Logger.errorNotify(
-        "Python binary path is not defined",
-        new Error("idf.pythonBinPath is not defined")
-      );
-    }
-    const idfPath = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspaceRoot
-    ) as string;
-    const idfMonitorToolPath = path.join(idfPath, "tools", "idf_monitor.py");
-    if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
-      Logger.errorNotify(
-        idfMonitorToolPath + " is not defined",
-        new Error(idfMonitorToolPath + " is not defined")
-      );
-    }
-    const buildDirName = idfConf.readParameter(
-      "idf.buildDirectoryName",
-      workspaceRoot
-    ) as string;
-    const elfFilePath = path.join(
-      workspaceRoot.fsPath,
-      buildDirName,
-      (await getProjectName(workspaceRoot.fsPath.toString(), buildDirName)) +
-        ".elf"
-    );
-    const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
-    const monitor = new IDFMonitor({
-      port,
-      baudRate: sdkMonitorBaudRate,
-      pythonBinPath,
-      idfMonitorToolPath,
-      elfFilePath,
-      wsPort,
-      workspaceFolder: workspaceRoot,
-    });
-    if (wsServer) {
-      wsServer.close();
-    }
-    wsServer = new WSServer(wsPort);
-    wsServer.start();
-    wsServer
-      .on("started", () => {
-        monitor.start();
-      })
-      .on("core-dump-detected", async (resp) => {
-        vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false,
-            title:
-              "Core-dump detected, please wait while we parse the data received",
-          },
-          async (progress) => {
-            const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
-            const buildDirName = idfConf.readParameter(
-              "idf.buildDirectoryName",
-              workspaceRoot
-            ) as string;
-            const projectName = await getProjectName(
-              workspaceRoot.fsPath,
-              buildDirName
+    const idfVersionCheck = await minIdfVersionCheck("4.3", workspaceRoot);
+    PreCheck.perform(
+      [idfVersionCheck, webIdeCheck, openFolderCheck],
+      async () => {
+        const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
+        if (!port) {
+          try {
+            await vscode.commands.executeCommand("espIdf.selectPort");
+          } catch (error) {
+            Logger.error(
+              "Unable to execute the command: espIdf.selectPort",
+              error
             );
-            const coreElfFilePath = path.join(
-              workspaceRoot.fsPath,
-              buildDirName,
-              `${projectName}.coredump.elf`
-            );
-            if (
-              (await espCoreDumpPyTool.generateCoreELFFile({
-                coreElfFilePath,
-                coreInfoFilePath: resp.file,
-                infoCoreFileFormat: InfoCoreFileFormat.Base64,
-                progELFFilePath: resp.prog,
-                pythonBinPath,
-                workspaceUri: workspaceRoot,
-              })) === true
-            ) {
-              progress.report({
-                message:
-                  "Successfully created ELF file from the info received (espcoredump.py)",
-              });
-              try {
-                debugAdapterManager.configureAdapter({
-                  isPostMortemDebugMode: true,
-                  elfFile: resp.prog,
-                  coreDumpFile: coreElfFilePath,
-                  isOocdDisabled: true,
-                });
-                await vscode.debug.startDebugging(undefined, {
-                  name: "Core Dump Debug",
-                  type: "espidf",
-                  request: "launch",
-                  sessionID: "core-dump.debug.session.ws",
-                });
-                vscode.debug.onDidTerminateDebugSession((session) => {
-                  if (
-                    session.configuration.sessionID ===
-                    "core-dump.debug.session.ws"
-                  ) {
-                    monitor.dispose();
-                    wsServer.close();
-                  }
-                });
-              } catch (error) {
-                Logger.errorNotify(
-                  "Failed to launch debugger for postmortem",
-                  error
+          }
+          return Logger.errorNotify(
+            "Select a serial port before flashing",
+            new Error("NOT_SELECTED_PORT")
+          );
+        }
+        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+          workspaceRoot.fsPath
+        );
+        const pythonBinPath = idfConf.readParameter(
+          "idf.pythonBinPath",
+          workspaceRoot
+        ) as string;
+        if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
+          Logger.errorNotify(
+            "Python binary path is not defined",
+            new Error("idf.pythonBinPath is not defined")
+          );
+        }
+        const idfPath = idfConf.readParameter(
+          "idf.espIdfPath",
+          workspaceRoot
+        ) as string;
+        const idfMonitorToolPath = path.join(
+          idfPath,
+          "tools",
+          "idf_monitor.py"
+        );
+        if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
+          Logger.errorNotify(
+            idfMonitorToolPath + " is not defined",
+            new Error(idfMonitorToolPath + " is not defined")
+          );
+        }
+        const buildDirName = idfConf.readParameter(
+          "idf.buildDirectoryName",
+          workspaceRoot
+        ) as string;
+        const projectName = await getProjectName(
+          workspaceRoot.fsPath.toString(),
+          buildDirName
+        );
+        const elfFilePath = path.join(
+          workspaceRoot.fsPath,
+          buildDirName,
+          `${projectName}.elf`
+        );
+        const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
+        const monitor = new IDFMonitor({
+          port,
+          baudRate: sdkMonitorBaudRate,
+          pythonBinPath,
+          idfMonitorToolPath,
+          elfFilePath,
+          wsPort,
+          workspaceFolder: workspaceRoot,
+        });
+        if (wsServer) {
+          wsServer.close();
+        }
+        wsServer = new WSServer(wsPort);
+        wsServer.start();
+        wsServer
+          .on("started", () => {
+            monitor.start();
+          })
+          .on("core-dump-detected", async (resp) => {
+            vscode.window.withProgress(
+              {
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title:
+                  "Core-dump detected, please wait while we parse the data received",
+              },
+              async (progress) => {
+                const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
+                const buildDirName = idfConf.readParameter(
+                  "idf.buildDirectoryName",
+                  workspaceRoot
+                ) as string;
+                const projectName = await getProjectName(
+                  workspaceRoot.fsPath,
+                  buildDirName
                 );
+                const coreElfFilePath = path.join(
+                  workspaceRoot.fsPath,
+                  buildDirName,
+                  `${projectName}.coredump.elf`
+                );
+                if (
+                  (await espCoreDumpPyTool.generateCoreELFFile({
+                    coreElfFilePath,
+                    coreInfoFilePath: resp.file,
+                    infoCoreFileFormat: InfoCoreFileFormat.Base64,
+                    progELFFilePath: resp.prog,
+                    pythonBinPath,
+                    workspaceUri: workspaceRoot,
+                  })) === true
+                ) {
+                  progress.report({
+                    message:
+                      "Successfully created ELF file from the info received (espcoredump.py)",
+                  });
+                  try {
+                    debugAdapterManager.configureAdapter({
+                      isPostMortemDebugMode: true,
+                      elfFile: resp.prog,
+                      coreDumpFile: coreElfFilePath,
+                      isOocdDisabled: true,
+                    });
+                    await vscode.debug.startDebugging(undefined, {
+                      name: "Core Dump Debug",
+                      type: "espidf",
+                      request: "launch",
+                      sessionID: "core-dump.debug.session.ws",
+                    });
+                    vscode.debug.onDidTerminateDebugSession((session) => {
+                      if (
+                        session.configuration.sessionID ===
+                        "core-dump.debug.session.ws"
+                      ) {
+                        monitor.dispose();
+                        wsServer.close();
+                      }
+                    });
+                  } catch (error) {
+                    Logger.errorNotify(
+                      "Failed to launch debugger for postmortem",
+                      error
+                    );
+                  }
+                } else {
+                  Logger.warnNotify(
+                    "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+                  );
+                }
               }
-            } else {
-              Logger.warnNotify(
-                "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+            );
+          })
+          .on("gdb-stub-detected", async (resp) => {
+            const setupCmd = [`target remote ${resp.port}`];
+            const debugAdapterConfig = {
+              elfFile: resp.prog,
+              initGdbCommands: setupCmd,
+              isOocdDisabled: false,
+              isPostMortemDebugMode: true,
+              logLevel: 5,
+            } as IDebugAdapterConfig;
+            try {
+              debugAdapterManager.configureAdapter(debugAdapterConfig);
+              await vscode.debug.startDebugging(undefined, {
+                name: "GDB Stub Debug",
+                type: "espidf",
+                request: "launch",
+                sessionID: "gdbstub.debug.session.ws",
+              });
+              vscode.debug.onDidTerminateDebugSession((session) => {
+                if (
+                  session.configuration.sessionID === "gdbstub.debug.session.ws"
+                ) {
+                  monitor.dispose();
+                  wsServer.close();
+                }
+              });
+            } catch (error) {
+              Logger.errorNotify(
+                "Failed to launch debugger for postmortem",
+                error
               );
             }
-          }
-        );
-      })
-      .on("gdb-stub-detected", async (resp) => {
-        const setupCmd = [`target remote ${resp.port}`];
-        const debugAdapterConfig = {
-          elfFile: resp.prog,
-          initGdbCommands: setupCmd,
-          isOocdDisabled: false,
-          isPostMortemDebugMode: true,
-          logLevel: 5,
-        } as IDebugAdapterConfig;
-        try {
-          debugAdapterManager.configureAdapter(debugAdapterConfig);
-          await vscode.debug.startDebugging(undefined, {
-            name: "GDB Stub Debug",
-            type: "espidf",
-            request: "launch",
-            sessionID: "gdbstub.debug.session.ws",
-          });
-          vscode.debug.onDidTerminateDebugSession((session) => {
-            if (
-              session.configuration.sessionID === "gdbstub.debug.session.ws"
-            ) {
-              monitor.dispose();
-              wsServer.close();
+          })
+          .on("close", (resp) => {
+            wsServer.close();
+          })
+          .on("error", (err) => {
+            let message = err.message;
+            if (err && err.message.includes("EADDRINUSE")) {
+              message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
             }
+            Logger.errorNotify(message, err);
+            wsServer.close();
           });
-        } catch (error) {
-          Logger.errorNotify("Failed to launch debugger for postmortem", error);
-        }
-      })
-      .on("close", (resp) => {
-        wsServer.close();
-      })
-      .on("error", (err) => {
-        let message = err.message;
-        if (err && err.message.includes("EADDRINUSE")) {
-          message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
-        }
-        Logger.errorNotify(message, err);
-        wsServer.close();
-      });
+      }
+    );
   });
   registerIDFCommand(
     "esp.webview.open.partition-table",
