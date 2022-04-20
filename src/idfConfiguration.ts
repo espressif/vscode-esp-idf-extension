@@ -122,10 +122,11 @@ export async function writeParameter(
 }
 
 export async function updateConfParameter(
-  confParamName,
-  confParamDescription,
-  currentValue,
-  label
+  confParamName: string,
+  confParamDescription: string,
+  currentValue: any,
+  label: string,
+  workspaceFolderUri: vscode.Uri
 ) {
   const newValue = await vscode.window.showInputBox({
     placeHolder: confParamDescription,
@@ -141,32 +142,17 @@ export async function updateConfParameter(
     throw new Error(msg);
   }
   const typeOfConfig = checkTypeOfConfiguration(confParamName);
-  let valueToWrite;
+  let valueToWrite: any;
   if (typeOfConfig === "array") {
     valueToWrite = parseStrToArray(newValue);
   } else {
     valueToWrite = newValue;
   }
-  const target = readParameter("idf.saveScope");
-  if (
-    !PreCheck.isWorkspaceFolderOpen() &&
-    target !== vscode.ConfigurationTarget.Global
-  ) {
-    const noWsOpenMSg = `Open a workspace or folder first.`;
-    Logger.warnNotify(noWsOpenMSg);
-    throw new Error(noWsOpenMSg);
-  }
-  let workspaceFolder: vscode.WorkspaceFolder;
-  if (target === vscode.ConfigurationTarget.WorkspaceFolder) {
-    workspaceFolder = await vscode.window.showWorkspaceFolderPick({
-      placeHolder: `Pick Workspace Folder to which settings should be applied`,
-    });
-  }
   await writeParameter(
     confParamName,
     valueToWrite,
-    target,
-    workspaceFolder.uri
+    vscode.ConfigurationTarget.WorkspaceFolder,
+    workspaceFolderUri
   );
   const updateMessage = locDic.localize(
     "idfConfiguration.hasBeenUpdated",

@@ -794,7 +794,8 @@ export async function activate(context: vscode.ExtensionContext) {
             paramName,
             msg,
             currentValue,
-            option.label
+            option.label,
+            workspaceRoot
           );
         }
       } catch (error) {
@@ -891,7 +892,8 @@ export async function activate(context: vscode.ExtensionContext) {
           paramName,
           msg,
           currentValue,
-          option.label
+          option.label,
+          workspaceRoot
         );
       }
     } catch (error) {
