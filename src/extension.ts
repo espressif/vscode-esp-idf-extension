@@ -521,6 +521,12 @@ export async function activate(context: vscode.ExtensionContext) {
           `There is no build directory to clean, exiting!`
         );
       }
+      if (ConfserverProcess.exists()) {
+        OutputChannel.init().appendLine(
+          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
+        );
+        ConfserverProcess.dispose();
+      }
       const cmakeCacheFile = path.join(buildDir, "CMakeCache.txt");
       const doesCmakeCacheExists = utils.canAccessFile(
         cmakeCacheFile,

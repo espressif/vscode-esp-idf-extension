@@ -211,7 +211,7 @@ export class FlashTask {
     if (this.model.chip) {
       flasherArgs.push("--chip", this.model.chip);
     }
-    if (!!this.model.stub && !this.model.stub) {
+    if (typeof this.model.stub !== undefined && !this.model.stub) {
       flasherArgs.push("--no-stub");
     }
     flasherArgs.push(
