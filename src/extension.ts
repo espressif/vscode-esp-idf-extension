@@ -553,6 +553,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.eraseFlash", async () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      if (monitorTerminal) {
+        monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+      }
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath",
         workspaceRoot
