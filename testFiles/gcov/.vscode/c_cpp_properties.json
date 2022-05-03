@@ -6,18 +6,18 @@
         "cStandard": "c11",
         "cppStandard": "c++17",
         "includePath": [
-          "${env:idf.espIdfPath}/components/**",
-          "${env:idf.espIdfPathWin}/components/**",
-          "${env:idf.espAdfPath}/components/**",
-          "${env:idf.espAdfPathWin}/components/**",
+          "${config:idf.espIdfPath}/components/**",
+          "${config:idf.espIdfPathWin}/components/**",
+          "${config:idf.espAdfPath}/components/**",
+          "${config:idf.espAdfPathWin}/components/**",
           "${workspaceFolder}/**"
         ],
         "browse": {
           "path": [
-            "${env:idf.espIdfPath}/components",
-            "${env:idf.espIdfPathWin}/components",
-            "${env:idf.espAdfPath}/components/**",
-            "${env:idf.espAdfPathWin}/components/**",
+            "${config:idf.espIdfPath}/components",
+            "${config:idf.espIdfPathWin}/components",
+            "${config:idf.espAdfPath}/components/**",
+            "${config:idf.espAdfPathWin}/components/**",
             "${workspaceFolder}"
           ],
           "limitSymbolsToIncludedHeaders": false
