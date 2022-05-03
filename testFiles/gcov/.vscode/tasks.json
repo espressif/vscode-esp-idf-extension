@@ -4,18 +4,18 @@
         {
             "label": "Build - Build project",
             "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py build",
+            "command": "${env:idf.pythonBinPath} ${env:idf.espIdfPath}/tools/idf.py build",
             "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py build",
+                "command": "${env:idf.pythonBinPathWin} ${env:idf.espIdfPathWin}\\tools\\idf.py build",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}"
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}"
                     }
                 }
             },
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}"
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}"
                 }
             },
             "problemMatcher": [
@@ -72,18 +72,18 @@
         {
             "label": "Clean - Clean the project",
             "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py fullclean",
+            "command": "${env:idf.pythonBinPath} ${env:idf.espIdfPath}/tools/idf.py fullclean",
             "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py fullclean",
+                "command": "${env:idf.pythonBinPathWin} ${env:idf.espIdfPathWin}\\tools\\idf.py fullclean",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}"
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}"
                     }
                 }
             },
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}"
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}"
                 }
             },
             "problemMatcher": [
@@ -119,18 +119,18 @@
         {
             "label": "Flash - Flash the device",
             "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} -b ${config:idf.flashBaudRate} flash",
+            "command": "${env:idf.pythonBinPath} ${env:idf.espIdfPath}/tools/idf.py -p ${env:idf.port} -b ${env:idf.flashBaudRate} flash",
             "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py flash -p ${config:idf.portWin} -b ${config:idf.flashBaudRate}",
+                "command": "${env:idf.pythonBinPathWin} ${env:idf.espIdfPathWin}\\tools\\idf.py flash -p ${env:idf.portWin} -b ${env:idf.flashBaudRate}",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}"
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}"
                     }
                 }
             },
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}"
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}"
                 }
             },
             "problemMatcher": [
@@ -166,18 +166,18 @@
         {
             "label": "Monitor: Start the monitor",
             "type": "shell",
-            "command": "${config:idf.pythonBinPath} ${config:idf.espIdfPath}/tools/idf.py -p ${config:idf.port} monitor",
+            "command": "${env:idf.pythonBinPath} ${env:idf.espIdfPath}/tools/idf.py -p ${env:idf.port} monitor",
             "windows": {
-                "command": "${config:idf.pythonBinPathWin} ${config:idf.espIdfPathWin}\\tools\\idf.py -p ${config:idf.portWin} monitor",
+                "command": "${env:idf.pythonBinPathWin} ${env:idf.espIdfPathWin}\\tools\\idf.py -p ${env:idf.portWin} monitor",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}"
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}"
                     }
                 }
             },
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}"
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}"
                 }
             },
             "problemMatcher": [
@@ -225,13 +225,13 @@
                 "command": "openocd.exe -s ${command:espIdf.getOpenOcdScriptValue} ${command:espIdf.getOpenOcdConfigs}",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}"
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}"
                     }
                 }
             },
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}"
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}"
                 }
             },
             "problemMatcher": {
@@ -250,11 +250,11 @@
         {
             "label": "adapter",
             "type": "shell",
-            "command": "${config:idf.pythonBinPath}",
+            "command": "${env:idf.pythonBinPath}",
             "isBackground": true,
             "options": {
                 "env": {
-                    "PATH": "${env:PATH}:${config:idf.customExtraPaths}",
+                    "PATH": "${env:PATH}:${env:idf.customExtraPaths}",
                     "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
                 }
             },
@@ -282,15 +282,15 @@
                 "-ip",
                 "localhost",
                 "-dn",
-                "${config:idf.adapterTargetName}",
+                "${env:idf.adapterTargetName}",
                 "-om",
                 "connect_to_instance"
             ],
             "windows": {
-                "command": "${config:idf.pythonBinPathWin}",
+                "command": "${env:idf.pythonBinPathWin}",
                 "options": {
                     "env": {
-                        "PATH": "${env:PATH};${config:idf.customExtraPaths}",
+                        "PATH": "${env:PATH};${env:idf.customExtraPaths}",
                         "PYTHONPATH": "${command:espIdf.getExtensionPath}/esp_debug_adapter/debug_adapter"
                     }
                 }
