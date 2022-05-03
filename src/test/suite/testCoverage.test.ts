@@ -28,9 +28,4 @@ suite("Test Coverage Unit Tests", () => {
     assert.equal(JSON.stringify(example), JSON.stringify(pathsToFilter))
   })
 
-  test("buildJson", async () => {
-    const parsedResult = await buildJson(workspace);
-    const test = readParameter("idf.includePath");
-    assert.equal(test, parsedResult);
-  })
 });
