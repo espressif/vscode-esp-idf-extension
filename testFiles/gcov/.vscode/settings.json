@@ -2,20 +2,13 @@
   "C_Cpp.intelliSenseEngine": "Tag Parser",
   "idf.portWin": "COM10", 
   "idf.flashType": "JTAG",
-  "idf.espAdfPath": "/test/esp-adf",
-  "idf.espIdfPath": "${env:IDF_PATH}",
-  "idf.espMdfPath": "/test/esp-mdf",
   "idf.port": "/serialport",
-  "idf.pythonBinPath": "/opt/esp/python_env/idf4.4_py3.8_env/bin/python",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "target/esp32.cfg"
   ],
-  "idf.toolsPath": "${env:IDF_TOOLS_PATH}",
-  "idf.gitPath": "/usr/bin/git",
   "files.simpleDialog.enable": true,
   "window.dialogStyle": "custom",
-  "idf.customExtraPaths": "${env:PATH}",
   "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\": \"${env:OPENOCD_SCRIPTS}\" }",
   "idf.notificationSilentMode": true,
   "idf.adapterTargetName": "esp32"
