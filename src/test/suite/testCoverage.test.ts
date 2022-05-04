@@ -4,7 +4,8 @@ import { join } from "path";
 import {
   getGcovExecutable,
   buildJson,
-  getGcovFilterPaths
+  getGcovFilterPaths,
+  buildHtml
 } from "../../coverage/coverageService";
 import { readParameter } from "../../idfConfiguration";
 
@@ -33,5 +34,11 @@ suite("Test Coverage Unit Tests", () => {
     const parsedResult = JSON.parse(JSON.parse(result));
     assert.ok(parsedResult.files);
     assert.ok(parsedResult["gcovr/format_version"]);
+  })
+
+  test("buildHtml", async () => {
+    const result = await buildHtml(workspace);
+    console.log("RADU result", typeof result);
+    assert.equal("", result);
   })
 });
