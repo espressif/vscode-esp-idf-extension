@@ -29,8 +29,9 @@ suite("Test Coverage Unit Tests", () => {
   })
 
   test("buildJson", async () => {
-    const parsedResult = await buildJson(workspace);
-    const test = readParameter("idf.includePath");
-    assert.equal(test, parsedResult);
+    const result = await buildJson(workspace);
+    const parsedResult = JSON.parse(JSON.parse(result));
+    assert.ok(parsedResult.files);
+    assert.ok(parsedResult["gcovr/format_version"]);
   })
 });
