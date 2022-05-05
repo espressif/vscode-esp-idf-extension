@@ -8,6 +8,7 @@ import {
   buildHtml
 } from "../../coverage/coverageService";
 import { readParameter } from "../../idfConfiguration";
+import * as fse from "fs-extra";
 
 suite("Test Coverage Unit Tests", () => {
   const workspace = vscode.Uri.file(join(__dirname, "../../../testFiles/gcov"));
@@ -29,6 +30,7 @@ suite("Test Coverage Unit Tests", () => {
     assert.equal(JSON.stringify(example), JSON.stringify(pathsToFilter))
   })
 
+  // Tests if buildJson returns a double stringified object that has the following properties: "files", "gcovr/format_version"
   test("buildJson", async () => {
     const result = await buildJson(workspace);
     const parsedResult = JSON.parse(JSON.parse(result));
@@ -36,9 +38,10 @@ suite("Test Coverage Unit Tests", () => {
     assert.ok(parsedResult["gcovr/format_version"]);
   })
 
+  // Tests if buildHtml returns a string cointanting html content.
   test("buildHtml", async () => {
     const result = await buildHtml(workspace);
-    console.log("RADU result", typeof result);
-    assert.equal("", result);
+    assert.equal(result.slice(result.length - 8), "</html>\n");
+    assert.equal(result.slice(0,15), "<!DOCTYPE html>");
   })
 });
