@@ -5,10 +5,10 @@ import {
   getGcovExecutable,
   buildJson,
   getGcovFilterPaths,
-  buildHtml
+  buildHtml,
+  generateCoverageForEditors,
+  previewReport
 } from "../../coverage/coverageService";
-import { readParameter } from "../../idfConfiguration";
-import * as fse from "fs-extra";
 
 suite("Test Coverage Unit Tests", () => {
   const workspace = vscode.Uri.file(join(__dirname, "../../../testFiles/gcov"));
@@ -43,5 +43,19 @@ suite("Test Coverage Unit Tests", () => {
     const result = await buildHtml(workspace);
     assert.equal(result.slice(result.length - 8), "</html>\n");
     assert.equal(result.slice(0,15), "<!DOCTYPE html>");
+  })
+
+  test("generateCoverageForEditors", async () => {
+    const editors = vscode.window.visibleTextEditors;
+    const gcovObj = await buildJson(workspace);
+    const result = await generateCoverageForEditors(
+      workspace,
+      editors,
+      gcovObj
+    );
+
+    assert.ok(editors);
+    assert.ok(gcovObj);
+    assert.ok(result);
   })
 });
