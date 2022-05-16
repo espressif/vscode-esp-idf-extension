@@ -52,6 +52,7 @@ export async function installPyReqs(
     const msg = "Pip have not been found in your environment.";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
+    Logger.info(msg);
     return;
   }
   const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(sysPyBinPath, workingDir);
@@ -59,6 +60,7 @@ export async function installPyReqs(
     const msg = "Selected python is from a virtual environment. Choose system python";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
+    Logger.info(msg);
     return;
   }
   const logTracker = new PyReqLog(sendPyReqLog);
@@ -76,7 +78,9 @@ export async function installPyReqs(
   );
   if (virtualEnvPyBin) {
     if (logTracker.Log.indexOf("Exception") < 0) {
-      OutputChannel.appendLine("Python requirements has been installed");
+      const msg = "Python requirements has been installed";
+      OutputChannel.appendLine(msg);
+      Logger.info(msg);
       SetupPanel.postMessage({
         command: "load_python_bin_path",
         pythonBinPath: virtualEnvPyBin,
@@ -84,7 +88,9 @@ export async function installPyReqs(
       return virtualEnvPyBin;
     }
   }
-  OutputChannel.appendLine("Python requirements has not been installed");
+  const msg = "Python requirements has not been installed";
+  OutputChannel.appendLine(msg);
+  Logger.info(msg);
   return;
 }
 

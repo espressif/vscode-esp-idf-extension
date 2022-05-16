@@ -1212,8 +1212,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : typeof error === "string"
-                ? error
-                : "Error installing Python requirements";
+              ? error
+              : "Error installing Python requirements";
             Logger.errorNotify(msg, error);
           }
         }
@@ -1599,10 +1599,10 @@ export async function activate(context: vscode.ExtensionContext) {
               setupArgs = setupArgs
                 ? setupArgs
                 : await getSetupInitialValues(
-                  context.extensionPath,
-                  progress,
-                  workspaceRoot
-                );
+                    context.extensionPath,
+                    progress,
+                    workspaceRoot
+                  );
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -1974,8 +1974,8 @@ export async function activate(context: vscode.ExtensionContext) {
         typeof appTraceTreeDataProvider.appTraceButton.label === "string"
           ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
           : appTraceTreeDataProvider.appTraceButton.label.label.match(
-            /start/gi
-          );
+              /start/gi
+            );
       if (appTraceLabel) {
         await appTraceManager.start(workspaceRoot);
       } else {
@@ -1993,8 +1993,8 @@ export async function activate(context: vscode.ExtensionContext) {
           typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
             ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
             : appTraceTreeDataProvider.heapTraceButton.label.label.match(
-              /start/gi
-            );
+                /start/gi
+              );
         if (heapTraceLabel) {
           await gdbHeapTraceManager.start(workspaceRoot);
         } else {

@@ -188,17 +188,19 @@ export class ConfserverProcess {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           OutputChannel.appendLine(data.toString());
+          Logger.infoNotify(data.toString());
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
+        Logger.infoNotify(data.toString());
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
-          OutputChannel.appendLine(
-            `When loading default values received exit signal: ${signal}, code : ${code}`
-          );
+          const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
+          OutputChannel.appendLine(errorMsg);
+          Logger.errorNotify(errorMsg, new Error(errorMsg));
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });

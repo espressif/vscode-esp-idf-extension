@@ -129,9 +129,9 @@ export class GdbHeapTraceManager {
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
-            this.heapTraceChannel.appendLine(
-              `Heap tracing process exited with code ${code} and signal ${signal}`
-            );
+            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`
+            this.heapTraceChannel.appendLine(errMsg);
+            Logger.errorNotify(errMsg, new Error(errMsg));
           }
         });
       }
