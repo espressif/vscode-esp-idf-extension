@@ -2766,7 +2766,7 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot.fsPath,
             OutputChannel.init()
           );
-          const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`
+          const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
           OutputChannel.appendLine(ninjaBuildMsg);
           Logger.info(ninjaBuildMsg);
           OutputChannel.appendLine(summaryResult);
