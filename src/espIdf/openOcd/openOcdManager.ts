@@ -212,10 +212,12 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
+        Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
         this.displayChan.append(`❌ ${errStr}`);
         this.emit("error", err, this.chan);
       }
       this.displayChan.append(errStr);
+      Logger.info(errStr);
     });
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
@@ -245,7 +247,9 @@ export class OpenOCDManager extends EventEmitter {
       this.server.kill("SIGKILL");
       this.server = undefined;
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
-      this.displayChan.appendLine("[Stopped] : OpenOCD Server");
+      const endMsg = "[Stopped] : OpenOCD Server";
+      this.displayChan.appendLine(endMsg);
+      Logger.info(endMsg);
     }
   }
 

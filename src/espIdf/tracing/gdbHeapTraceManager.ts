@@ -110,17 +110,20 @@ export class GdbHeapTraceManager {
 
         this.childProcess.stdout.on("data", (data) => {
           this.heapTraceChannel.appendLine(data.toString());
+          Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
 
         this.childProcess.stderr.on("data", (data) => {
           this.heapTraceChannel.appendLine(data.toString());
+          Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
 
         this.childProcess.on("error", (err) => {
           this.heapTraceChannel.appendLine(err.message);
           this.heapTraceChannel.appendLine(err.stack);
+          Logger.errorNotify(err.message, err);
           this.stop();
         });
 

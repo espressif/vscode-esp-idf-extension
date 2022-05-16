@@ -194,6 +194,7 @@ export class DebugAdapterManager extends EventEmitter {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
         this.displayChan.append(data.toString());
+        Logger.info(data.toString());
         this.emit("error", data, this.chan);
       });
 
@@ -201,6 +202,7 @@ export class DebugAdapterManager extends EventEmitter {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
         this.displayChan.append(data.toString());
+        Logger.info(data.toString());
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
           return resolve(true);
@@ -233,7 +235,9 @@ export class DebugAdapterManager extends EventEmitter {
       this.initGdbCommands = [];
       this.adapter.kill("SIGKILL");
       this.adapter = undefined;
-      this.displayChan.appendLine("[Stopped] : ESP-IDF Debug Adapter");
+      const stoppedMsg = "[Stopped] : ESP-IDF Debug Adapter";
+      Logger.info(stoppedMsg);
+      this.displayChan.appendLine(stoppedMsg);
     }
   }
 

@@ -32,6 +32,7 @@ import { pathExists } from "fs-extra";
 import { checkGitExists } from "../utils";
 import { checkPythonExists } from "../pythonManager";
 import { ESP } from "../config";
+import { Logger } from "../logger/logger";
 
 export async function installIdfGit(
   idfToolsDir: string,
@@ -65,15 +66,19 @@ export async function installIdfGit(
     const gitDirectory = join(idfGitDestPath, "cmd");
     const binVersion = await checkGitExists(gitDirectory, resultGitPath);
     if (!binVersion || binVersion === "Not found") {
-      OutputChannel.appendLine(`Using existing ${idfGitDestPath}`);
+      const msg = `Using existing ${idfGitDestPath}`;
+      OutputChannel.appendLine(msg);
+      Logger.info(msg)
       return resultGitPath;
     }
   }
 
   const gitZipPathExists = await pathExists(idfGitZipPath);
   if (!gitZipPathExists) {
-    progress.report({ message: `Downloading ${idfGitZipPath}...` });
-    OutputChannel.appendLine(`Downloading ${idfGitZipPath}...`);
+    const msgDownload = `Downloading ${idfGitZipPath}...`;
+    progress.report({ message: msgDownload });
+    OutputChannel.appendLine(msgDownload);
+    Logger.info(msgDownload);
     await downloadManager.downloadWithRetries(
       ESP.URL.IDF_EMBED_GIT.IDF_EMBED_GIT_URL,
       join(idfToolsDir, "dist"),
@@ -81,17 +86,23 @@ export async function installIdfGit(
       cancelToken
     );
   } else {
-    OutputChannel.appendLine(`Using existing ${idfGitZipPath}`);
+    const existingMsg = `Using existing ${idfGitZipPath}`;
+    OutputChannel.appendLine(existingMsg);
+    Logger.info(existingMsg);
   }
-  progress.report({ message: `Installing ${idfGitDestPath} ...` });
-  OutputChannel.appendLine(`Installing ${idfGitDestPath} ...`);
+  const installingMsg = `Installing ${idfGitDestPath} ...`;
+  progress.report({ message: installingMsg });
+  OutputChannel.appendLine(installingMsg);
+  Logger.info(installingMsg);
   await installManager.installZipFile(
     idfGitZipPath,
     idfGitDestPath,
     cancelToken
   );
-  progress.report({ message: `Extracted ${idfGitDestPath} ...` });
-  OutputChannel.appendLine(`Extracted ${idfGitDestPath} ...`);
+  const extractedMsg = `Extracted ${idfGitDestPath} ...`;
+  progress.report({ message: extractedMsg });
+  OutputChannel.appendLine(extractedMsg);
+  Logger.info(extractedMsg);
   return resultGitPath;
 }
 
@@ -127,7 +138,9 @@ export async function installIdfPython(
       idfPyDestPath
     );
     if (binVersion) {
-      OutputChannel.appendLine(`Using existing ${idfPyDestPath}`);
+      const usingExistingDestMsg = `Using existing ${idfPyDestPath}`;
+      OutputChannel.appendLine(usingExistingDestMsg);
+      Logger.info(usingExistingDestMsg);
       return join(idfPyDestPath, "python.exe");
     }
   }
@@ -141,11 +154,14 @@ export async function installIdfPython(
       cancelToken
     );
   } else {
-    OutputChannel.appendLine(`Using existing ${idfPyZipPath}`);
+    const usingExistingPathMsg = `Using existing ${idfPyZipPath}`;
+    OutputChannel.appendLine(usingExistingPathMsg);
+    Logger.info(usingExistingPathMsg);
   }
   progress.report({ message: `Installing ${idfPyDestPath}...` });
   await installManager.installZipFile(idfPyZipPath, idfPyDestPath, cancelToken);
-  progress.report({ message: `Extracted ${idfPyDestPath} ...` });
-  OutputChannel.appendLine(`Extracted ${idfPyDestPath} ...`);
+  const extractePyDestMsg = `Extracted ${idfPyDestPath} ...`;
+  progress.report({ message: extractePyDestMsg });
+  OutputChannel.appendLine(extractePyDestMsg);
   return join(idfPyDestPath, "python.exe");
 }

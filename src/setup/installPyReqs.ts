@@ -18,6 +18,7 @@ import { SetupPanel } from "./SetupPanel";
 import { OutputChannel } from "../logger/outputChannel";
 import { PyReqLog } from "../PyReqLog";
 import { CancellationToken, Progress } from "vscode";
+import { Logger } from "../logger/logger";
 
 export async function installPyReqs(
   espIdfPath: string,
@@ -40,6 +41,7 @@ export async function installPyReqs(
     const msg = "Python have not been found in your environment.";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
+    Logger.info(msg);
     return;
   }
   const doesPipExists = await pythonManager.checkPipExists(

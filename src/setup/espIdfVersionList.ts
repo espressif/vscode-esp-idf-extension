@@ -50,9 +50,9 @@ export async function downloadEspIdfVersionList(
     const downloadList: IEspIdfLink[] = createEspIdfLinkList(fileContent, "\n");
     return downloadList;
   } catch (error) {
-    OutputChannel.appendLine(
-      `Error opening esp-idf version list file. ${error.message}`
-    );
+    const errorMsg = `Error opening esp-idf version list file. ${error.message}`;
+    OutputChannel.appendLine(errorMsg);
+    Logger.errorNotify(errorMsg, error);
     try {
       const idfVersionListFallBack = path.join(
         extensionPath,
@@ -65,9 +65,9 @@ export async function downloadEspIdfVersionList(
       );
       return downloadList;
     } catch (fallbackError) {
-      OutputChannel.appendLine(
-        `Error opening esp-idf fallback version list file. ${fallbackError.message}`
-      );
+      const fallBackErrMsg = `Error opening esp-idf fallback version list file. ${fallbackError.message}`;
+      OutputChannel.appendLine(fallBackErrMsg);
+      Logger.errorNotify(fallBackErrMsg, fallbackError);
     }
   }
 }
