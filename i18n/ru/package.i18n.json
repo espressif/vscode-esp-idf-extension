@@ -119,7 +119,7 @@
   "esp.efuse.summary.title": "Получить состояние eFuse",
   "espIdf.efuse.clearResults.title": "Очистить сводку eFuse",
   "espIdf.jtag_flash.title": "Прошить (через JTag)",
-  "espIdf.selectFlashMethodAndFlash.title": "Выбрать метод прошивки и прошить",
+  "espIdf.selectFlashMethodAndFlash.title": "Выбрать метод прошивки",
   "idf.flashType.description": "Метод прошивки устройства, UART или JTag",
   "openocd.tcl.host.description": "Хост для подключения openocd tcl",
   "openocd.tcl.port.description": "Порт для подключения openocd tcl",
