@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 6th May 2021 2:13:33 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,21 +17,23 @@
  */
 import { readdir } from "fs-extra";
 import { join } from "path";
-import * as vscode from "vscode";
+import { CancellationToken, Uri } from "vscode";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { FlashTask } from "./flashTask";
 import { createFlashModel } from "./flashModelBuilder";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
+import { ESP } from "../config";
 
 export async function flashCommand(
-  cancelToken: vscode.CancellationToken,
+  cancelToken: CancellationToken,
   flashBaudRate: string,
   idfPathDir: string,
   port: string,
-  workspace: vscode.Uri,
-  flashType: string
+  workspace: Uri,
+  flashType: ESP.FlashType,
+  encryptPartitions: boolean
 ) {
   let continueFlag = true;
   const buildDirName = readParameter(
@@ -61,7 +63,7 @@ export async function flashCommand(
       port,
       flashBaudRate
     );
-    flashTask = new FlashTask(workspace, idfPathDir, model);
+    flashTask = new FlashTask(workspace, idfPathDir, model, encryptPartitions);
     const customTask = new CustomTask(workspace);
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;

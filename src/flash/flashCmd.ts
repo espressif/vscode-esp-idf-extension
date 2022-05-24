@@ -26,6 +26,7 @@ import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
 import { getDfuList, listAvailableDfuDevices } from "./dfu";
+import { ESP } from "../config";
 
 const locDic = new LocDictionary(__filename);
 
@@ -86,8 +87,8 @@ export async function verifyCanFlash(
       new Error("NOT_SELECTED_BAUD_RATE")
     );
   }
-  const selectedFlashType = idfConf.readParameter("idf.flashType", workspace);
-  if (selectedFlashType === "DFU") {
+  const selectedFlashType = idfConf.readParameter("idf.flashType", workspace) as ESP.FlashType;
+  if (selectedFlashType === ESP.FlashType.DFU) {
     const data = await getDfuList(workspace);
     const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {

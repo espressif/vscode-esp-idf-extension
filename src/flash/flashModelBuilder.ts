@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 22nd October 2019 8:18:32 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,12 +47,18 @@ export async function createFlashModel(
     partitionTable: {
       address: flashArgsJson.partition_table
         ? flashArgsJson.partition_table.offset
+        : flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].offset
         : undefined,
       binFilePath: flashArgsJson.partition_table
         ? flashArgsJson.partition_table.file
+        : flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].file
         : undefined,
       encrypted: flashArgsJson.partition_table
         ? flashArgsJson.partition_table.encrypted
+        : flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].encrypted
         : undefined,
     } as FlashSection,
     baudRate,
@@ -64,9 +70,7 @@ export async function createFlashModel(
     port,
     size: flashArgsJson.flash_settings.flash_size,
     storage: {
-      address: flashArgsJson.storage
-        ? flashArgsJson.storage.offset
-        : undefined,
+      address: flashArgsJson.storage ? flashArgsJson.storage.offset : undefined,
       binFilePath: flashArgsJson.storage
         ? flashArgsJson.storage.file
         : undefined,
@@ -83,18 +87,20 @@ export async function createFlashModel(
   Object.keys(flashArgsJson.flash_files).forEach((fileKey) => {
     const existingFlashSection = flashModel.flashSections.length
       ? flashModel.flashSections.filter(
-        (section) => section.address.indexOf(fileKey) !== -1
-      )
+          (section) => section.address.indexOf(fileKey) !== -1
+        )
       : [];
     const existingEncryptedFlashSection = flashModel.encryptedFlashSections
       .length
       ? flashModel.encryptedFlashSections.filter(
-        (section_1) => section_1.address.indexOf(fileKey) !== -1
-      )
+          (section_1) => section_1.address.indexOf(fileKey) !== -1
+        )
       : [];
-    if (fileKey &&
+    if (
+      fileKey &&
       !existingEncryptedFlashSection.length &&
-      !existingFlashSection.length) {
+      !existingFlashSection.length
+    ) {
       flashModel.flashSections.push({
         address: fileKey,
         binFilePath: flashArgsJson.flash_files[fileKey],
@@ -106,8 +112,12 @@ export async function createFlashModel(
 
 function addSectionToModel(flashSection: FlashSection, model: FlashModel) {
   if (flashSection && flashSection.address && flashSection.binFilePath) {
-    flashSection.encrypted && flashSection.encrypted.indexOf("true") !== -1
-      ? model.encryptedFlashSections.push(flashSection)
-      : model.flashSections.push(flashSection);
+    model.flashSections.push(flashSection);
+    if (
+      flashSection.encrypted &&
+      flashSection.encrypted.indexOf("true") !== -1
+    ) {
+      model.encryptedFlashSections.push(flashSection);
+    }
   }
 }

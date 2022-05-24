@@ -28,13 +28,14 @@ import { updateIdfComponentsTree } from "../workspaceConfig";
 import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
+import { ESP } from "../config";
 
 const locDic = new LocDictionary(__filename);
 
 export async function buildCommand(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
-  buildType: string
+  flashType: ESP.FlashType
 ) {
   let continueFlag = true;
   const buildTask = new BuildTask(workspace);
@@ -63,7 +64,7 @@ export async function buildCommand(
     await sizeTask.getSizeInfo();
     customTask.addCustomTask(CustomTaskType.PostBuild);
     await TaskManager.runTasks();
-    if (buildType === "DFU") {
+    if (flashType === ESP.FlashType.DFU) {
       const buildDirName = readParameter(
         "idf.buildDirectoryName",
         workspace
@@ -74,7 +75,7 @@ export async function buildCommand(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
         );
       }
-      const adapterTargetName = readParameter("idf.adapterTargetName", workspace);
+      const adapterTargetName = readParameter("idf.adapterTargetName", workspace) as string;
       if (adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
         return Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`

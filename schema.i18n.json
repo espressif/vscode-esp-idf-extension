@@ -90,6 +90,7 @@
     "espIdf.selectPort.title",
     "espIdf.buildDevice.title",
     "espIdf.flashDevice.title",
+    "espIdf.flashAndEncryptDevice.title",
     "espIdf.flashDFU.title",
     "espIdf.monitorDevice.title",
     "espIdf.setup.title",

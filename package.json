@@ -304,7 +304,7 @@
         "mac": "cmd+i b"
       },
       {
-        "command": "espIdf.startFlashing",
+        "command": "espIdf.flashDevice",
         "key": "ctrl+e f",
         "mac": "cmd+i f"
       },
@@ -835,14 +835,18 @@
       {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%"
+      },{
+        "command": "espIdf.flashUart",
+        "title": "%espIdf.flashUart.title%"
       },
       {
         "command": "espIdf.flashDFU",
         "title": "%espIdf.flashDFU.title%"
       },
       {
-        "command": "espIdf.startFlashing",
-        "title": "%espIdf.flashDevice.title%"
+        "command": "espIdf.flashAndEncryptDevice",
+        "title": "%espIdf.flashAndEncryptDevice.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.monitorDevice",

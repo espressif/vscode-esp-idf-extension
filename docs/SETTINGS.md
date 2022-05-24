@@ -87,7 +87,7 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | Setting ID                             | Description                                                              | Scope                     |
 | -------------------------------------- | ------------------------------------------------------------------------ | ------------------------- |
 | `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)            | User, Remote or Workspace |
-| `idf.flashType`                        | Preferred flash method. UART or JTAG                                     |                           |
+| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                |                           |
 | `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                  |                           |
 | `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`) | User, Remote or Workspace |
 | `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                | User, Remote or Workspace |
