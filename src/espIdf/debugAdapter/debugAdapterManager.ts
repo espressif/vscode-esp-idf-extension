@@ -31,6 +31,7 @@ import {
 import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
@@ -78,9 +79,7 @@ export class DebugAdapterManager extends EventEmitter {
   private constructor(context: vscode.ExtensionContext) {
     super();
     this.configureWithDefaultValues(context.extensionPath);
-    this.displayChan = vscode.window.createOutputChannel(
-      "ESP-IDF Debug Adapter"
-    );
+    this.displayChan = OutputChannel.init();
     this.chan = Buffer.alloc(0);
   }
 
