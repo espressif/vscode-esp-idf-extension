@@ -235,20 +235,22 @@ export class FlashTask {
       "--flash_size",
       this.model.size
     );
+    const encryptedFlashSections = this.model.flashSections.filter(
+      (flashSection) => flashSection.encrypted
+    );
     if (
       this.encryptPartitions &&
-      this.model.encryptedFlashSections &&
-      this.model.encryptedFlashSections.length
+      encryptedFlashSections &&
+      encryptedFlashSections.length
     ) {
       if (
         this.model.flashSections &&
-        this.model.flashSections.length ===
-          this.model.encryptedFlashSections.length
+        this.model.flashSections.length === encryptedFlashSections.length
       ) {
         flasherArgs.push("--encrypt");
       } else {
         flasherArgs.push("--encrypt-files");
-        for (const flashFile of this.model.encryptedFlashSections) {
+        for (const flashFile of encryptedFlashSections) {
           let binPath = replacePathSep
             ? flashFile.binFilePath.replace(/\//g, "\\")
             : flashFile.binFilePath;

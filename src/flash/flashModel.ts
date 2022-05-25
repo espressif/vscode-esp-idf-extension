@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 22nd October 2019 8:18:43 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,20 +22,16 @@ export interface FlashModel {
   app: FlashSection;
   baudRate: string;
   before: string;
-  bootloader: FlashSection;
   chip: string;
-  encryptedFlashSections: FlashSection[];
   flashSections: FlashSection[];
   frequency: string;
   mode: string;
-  partitionTable: FlashSection;
   port: string;
   size: string;
-  storage: FlashSection;
   stub: boolean;
 }
 export interface FlashSection {
   address: string;
   binFilePath: string;
-  encrypted: string;
+  encrypted: boolean;
 }
