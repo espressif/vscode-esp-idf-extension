@@ -31,6 +31,7 @@ import {
 } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
+import { ESP } from "../config";
 
 export class FlashTask {
   public static isFlashing: boolean;
@@ -38,8 +39,14 @@ export class FlashTask {
   private flashScriptPath: string;
   private model: FlashModel;
   private buildDirName: string;
+  private encryptPartitions: boolean;
 
-  constructor(workspace: vscode.Uri, idfPath: string, model: FlashModel) {
+  constructor(
+    workspace: vscode.Uri,
+    idfPath: string,
+    model: FlashModel,
+    encryptPartitions: boolean
+  ) {
     this.workspaceUri = workspace;
     this.flashScriptPath = join(
       idfPath,
@@ -53,6 +60,7 @@ export class FlashTask {
       "idf.buildDirectoryName",
       workspace
     ) as string;
+    this.encryptPartitions = encryptPartitions;
   }
 
   public flashing(flag: boolean) {
@@ -66,7 +74,11 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
-          join(this.workspaceUri.fsPath, this.buildDirName, flashFile.binFilePath),
+          join(
+            this.workspaceUri.fsPath,
+            this.buildDirName,
+            flashFile.binFilePath
+          ),
           constants.R_OK
         )
       ) {
@@ -75,7 +87,7 @@ export class FlashTask {
     }
   }
 
-  public async flash(flashType) {
+  public async flash(flashType: ESP.FlashType) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
@@ -223,24 +235,36 @@ export class FlashTask {
       "--flash_size",
       this.model.size
     );
+    const encryptedFlashSections = this.model.flashSections.filter(
+      (flashSection) => flashSection.encrypted
+    );
+    if (
+      this.encryptPartitions &&
+      encryptedFlashSections &&
+      encryptedFlashSections.length
+    ) {
+      if (
+        this.model.flashSections &&
+        this.model.flashSections.length === encryptedFlashSections.length
+      ) {
+        flasherArgs.push("--encrypt");
+      } else {
+        flasherArgs.push("--encrypt-files");
+        for (const flashFile of encryptedFlashSections) {
+          let binPath = replacePathSep
+            ? flashFile.binFilePath.replace(/\//g, "\\")
+            : flashFile.binFilePath;
+          flasherArgs.push(flashFile.address, binPath);
+        }
+      }
+    }
     for (const flashFile of this.model.flashSections) {
       let binPath = replacePathSep
         ? flashFile.binFilePath.replace(/\//g, "\\")
         : flashFile.binFilePath;
       flasherArgs.push(flashFile.address, binPath);
     }
-    if (
-      this.model.encryptedFlashSections &&
-      this.model.encryptedFlashSections.length
-    ) {
-      flasherArgs.push("--encrypt-files");
-    }
-    for (const flashFile of this.model.encryptedFlashSections) {
-      let binPath = replacePathSep
-        ? flashFile.binFilePath.replace(/\//g, "\\")
-        : flashFile.binFilePath;
-      flasherArgs.push(flashFile.address, binPath);
-    }
+
     return flasherArgs;
   }
 }
