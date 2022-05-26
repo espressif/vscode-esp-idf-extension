@@ -222,7 +222,6 @@ export class ConfserverProcess {
       ConfserverProcess.instance.confServerProcess.stdin.end();
       ConfserverProcess.instance.confServerProcess = null;
       ConfserverProcess.instance.confServerChannel.clear();
-      ConfserverProcess.instance.confServerChannel.dispose();
       ConfserverProcess.instance.confServerChannel = null;
       ConfserverProcess.instance = null;
     }
@@ -267,9 +266,7 @@ export class ConfserverProcess {
     this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
     if (typeof this.confServerChannel === "undefined") {
-      this.confServerChannel = vscode.window.createOutputChannel(
-        "SDK Configuration Editor"
-      );
+      this.confServerChannel = OutputChannel.init();
     }
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
