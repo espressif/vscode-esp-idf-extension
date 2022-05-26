@@ -48,6 +48,12 @@ export const defaultBoards = [
     configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"],
   } as IdfBoard,
   {
+    name: "ESP32-S3 chip (via builtin USB-JTAG)",
+    description: "ESP32-S3 used with ESP-PROG board",
+    target: "esp32s3",
+    configFiles: ["board/esp32s3-builtin.cfg"],
+  } as IdfBoard,
+  {
     name: "ESP32-C3 chip (via ESP-PROG)",
     description: "ESP32-C3 used with ESP-PROG board",
     target: "esp32c3",
