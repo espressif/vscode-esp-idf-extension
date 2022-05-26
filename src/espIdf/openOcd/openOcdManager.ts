@@ -21,6 +21,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
 import {
   appendIdfAndToolsToPath,
   isBinInPath,
@@ -278,7 +279,7 @@ export class OpenOCDManager extends EventEmitter {
     const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
     this.openOcdConfigFilesList = openOcdConfigFilesList;
     this.chan = Buffer.alloc(0);
-    this.displayChan = vscode.window.createOutputChannel("OpenOCD");
+    this.displayChan = OutputChannel.init();
     this.tclConnectionParams = { host, port };
     this.registerOpenOCDStatusBarItem();
   }
