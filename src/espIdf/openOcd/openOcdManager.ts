@@ -239,7 +239,6 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.updateStatusText("❇️ OpenOCD Server (Running)");
-    this.displayChan.clear();
     this.displayChan.show(true);
   }
 

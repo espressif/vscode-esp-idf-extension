@@ -223,7 +223,6 @@ export class DebugAdapterManager extends EventEmitter {
         }
         this.stop();
       });
-      this.displayChan.clear();
       this.displayChan.show(true);
     });
   }

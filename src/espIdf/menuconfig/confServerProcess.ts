@@ -221,8 +221,6 @@ export class ConfserverProcess {
     if (ConfserverProcess.instance) {
       ConfserverProcess.instance.confServerProcess.stdin.end();
       ConfserverProcess.instance.confServerProcess = null;
-      ConfserverProcess.instance.confServerChannel.clear();
-      ConfserverProcess.instance.confServerChannel = null;
       ConfserverProcess.instance = null;
     }
     if (MenuConfigPanel.currentPanel) {

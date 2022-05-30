@@ -52,7 +52,6 @@ export class GdbHeapTraceManager {
     try {
       const isOpenOcdLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
       if (isOpenOcdLaunched) {
-        this.heapTraceChannel.clear();
         this.showStopButton();
         ensureDir(join(workspace.fsPath, "trace"));
         const fileName = `file://${join(workspace.fsPath, "trace").replace(
