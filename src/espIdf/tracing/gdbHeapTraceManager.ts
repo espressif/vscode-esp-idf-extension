@@ -21,6 +21,7 @@ import { join } from "path";
 import { env, OutputChannel, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
+import { OutputChannel as IDFOutputChannel } from "../../logger/outputChannel";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -44,7 +45,7 @@ export class GdbHeapTraceManager {
   ) {
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    this.heapTraceChannel = window.createOutputChannel("GDB Heap Trace");
+    this.heapTraceChannel = IDFOutputChannel.init();
   }
 
   public async start(workspace: Uri) {
