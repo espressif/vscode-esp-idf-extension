@@ -22,8 +22,15 @@ export class OutputChannel {
     return OutputChannel.instance;
   }
 
-  public static appendLine(message: string) {
+  public static appendLine(message: string, name?: string) {
     OutputChannel.checkInitialized();
+    if(name) {
+      OutputChannel.instance.appendLine(`[${name}'s output started]`);
+      OutputChannel.instance.appendLine(message);
+      OutputChannel.instance.appendLine(`[${name}'s output ended]`);
+    } else {
+      OutputChannel.instance.appendLine(message);
+    }
     OutputChannel.instance.appendLine(message);
   }
 
