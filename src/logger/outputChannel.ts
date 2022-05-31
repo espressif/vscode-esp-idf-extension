@@ -31,12 +31,17 @@ export class OutputChannel {
     } else {
       OutputChannel.instance.appendLine(message);
     }
-    OutputChannel.instance.appendLine(message);
   }
 
-  public static append(message: string) {
+  public static append(message: string, name?: string) {
     OutputChannel.checkInitialized();
-    OutputChannel.instance.append(message);
+    if(name) {
+      OutputChannel.instance.append(`[${name}]'s output started`);
+      OutputChannel.instance.append(message);
+      OutputChannel.instance.append(`[${name}]'s output ended`);
+    } else {
+      OutputChannel.instance.append(message);
+    }
   }
 
   public static end() {
