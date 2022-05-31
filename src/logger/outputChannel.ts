@@ -25,9 +25,9 @@ export class OutputChannel {
   public static appendLine(message: string, name?: string) {
     OutputChannel.checkInitialized();
     if(name) {
-      OutputChannel.instance.appendLine(`[${name}'s output started]`);
+      OutputChannel.instance.appendLine(`**${name}'s output started**`);
       OutputChannel.instance.appendLine(message);
-      OutputChannel.instance.appendLine(`[${name}'s output ended]`);
+      OutputChannel.instance.appendLine(`**${name}]'s output ended**`);
     } else {
       OutputChannel.instance.appendLine(message);
     }
@@ -36,9 +36,9 @@ export class OutputChannel {
   public static append(message: string, name?: string) {
     OutputChannel.checkInitialized();
     if(name) {
-      OutputChannel.instance.append(`[${name}]'s output started`);
+      OutputChannel.instance.appendLine(`**${name}'s output started**`);
       OutputChannel.instance.append(message);
-      OutputChannel.instance.append(`[${name}]'s output ended`);
+      OutputChannel.instance.appendLine(`**${name}]'s output ended**`);
     } else {
       OutputChannel.instance.append(message);
     }
