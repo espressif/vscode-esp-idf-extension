@@ -64,7 +64,6 @@ export class DebugAdapterManager extends EventEmitter {
   private coreDumpFile: string;
   private currentWorkspace: vscode.Uri;
   private debugAdapterPath: string;
-  private displayChan: vscode.OutputChannel;
   private elfFile: string;
   private env;
   private gdbinitFilePath: string;
@@ -79,7 +78,7 @@ export class DebugAdapterManager extends EventEmitter {
   private constructor(context: vscode.ExtensionContext) {
     super();
     this.configureWithDefaultValues(context.extensionPath);
-    this.displayChan = OutputChannel.init();
+    OutputChannel.init();
     this.chan = Buffer.alloc(0);
   }
 
@@ -192,7 +191,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.stderr.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        this.displayChan.append(data.toString());
+        OutputChannel.append(data.toString(), "Debug Adapter");
         Logger.info(data.toString());
         this.emit("error", data, this.chan);
       });
@@ -200,7 +199,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.stdout.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        this.displayChan.append(data.toString());
+        OutputChannel.append(data.toString(), "Debug Adapter");
         Logger.info(data.toString());
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
@@ -223,7 +222,7 @@ export class DebugAdapterManager extends EventEmitter {
         }
         this.stop();
       });
-      this.displayChan.show(true);
+      OutputChannel.show();
     });
   }
 
@@ -235,7 +234,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter = undefined;
       const stoppedMsg = "[Stopped] : ESP-IDF Debug Adapter";
       Logger.info(stoppedMsg);
-      this.displayChan.appendLine(stoppedMsg);
+      OutputChannel.appendLine(stoppedMsg);
     }
   }
 
