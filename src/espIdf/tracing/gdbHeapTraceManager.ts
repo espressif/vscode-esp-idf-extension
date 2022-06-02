@@ -18,10 +18,10 @@
 import { ChildProcess, spawn } from "child_process";
 import { ensureDir, pathExists, writeFile } from "fs-extra";
 import { join } from "path";
-import { env, OutputChannel, Uri, window } from "vscode";
+import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { OutputChannel as IDFOutputChannel } from "../../logger/outputChannel";
+import { OutputChannel } from "../../logger/outputChannel";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -34,7 +34,6 @@ import {
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
-  private heapTraceChannel: OutputChannel;
   private childProcess: ChildProcess;
   private gdbinitFileName: string = "heaptrace-gdbinit";
   private workspace: Uri;
@@ -45,7 +44,7 @@ export class GdbHeapTraceManager {
   ) {
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    this.heapTraceChannel = IDFOutputChannel.init();
+    OutputChannel.init();
   }
 
   public async start(workspace: Uri) {
@@ -135,7 +134,7 @@ export class GdbHeapTraceManager {
         ? error.message
         : "Error starting GDB Heap Tracing";
       Logger.errorNotify(msg, error);
-      this.heapTraceChannel.appendLine(msg);
+      OutputChannel.appendLine(msg, "GDB Heap Trace");
       this.stop();
     }
   }
