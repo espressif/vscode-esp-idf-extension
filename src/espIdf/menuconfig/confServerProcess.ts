@@ -127,7 +127,7 @@ export class ConfserverProcess {
   }
 
   public static sendUpdatedValue(newValueRequest: string) {
-    ConfserverProcess.instance.confServerChannel.appendLine(newValueRequest);
+    OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess.stdin.write(newValueRequest);
     ConfserverProcess.instance.areValuesSaved = false;
   }
@@ -138,7 +138,7 @@ export class ConfserverProcess {
       version: 2,
       save: ConfserverProcess.instance.configFile,
     });
-    ConfserverProcess.instance.confServerChannel.appendLine(saveRequest);
+    OutputChannel.appendLine(saveRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess.stdin.write(saveRequest);
     ConfserverProcess.instance.confServerProcess.stdin.write("\n");
     ConfserverProcess.instance.areValuesSaved = true;
@@ -149,7 +149,7 @@ export class ConfserverProcess {
       version: 2,
       load: ConfserverProcess.instance.configFile,
     });
-    ConfserverProcess.instance.confServerChannel.appendLine(loadRequest);
+    OutputChannel.appendLine(loadRequest, "SDK Configuration Editor");
     ConfserverProcess.instance.confServerProcess.stdin.write(loadRequest);
     ConfserverProcess.instance.confServerProcess.stdin.write("\n");
     if (isClosingWithoutSaving) {
@@ -187,19 +187,19 @@ export class ConfserverProcess {
     return new Promise<void>((resolve, reject) => {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
-          OutputChannel.appendLine(data.toString());
+          OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
           Logger.infoNotify(data.toString());
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
-        OutputChannel.appendLine(data.toString());
+        OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
         Logger.infoNotify(data.toString());
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
-          OutputChannel.appendLine(errorMsg);
+          OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
           Logger.errorNotify(errorMsg, new Error(errorMsg));
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
@@ -242,7 +242,6 @@ export class ConfserverProcess {
 
   private areValuesSaved: boolean = true;
   private confServerProcess: ChildProcess;
-  private confServerChannel: vscode.OutputChannel;
   private espIdfPath: string;
   private emitter: EventEmitter;
   private isSavingSdkconfig: boolean = false;
@@ -263,9 +262,6 @@ export class ConfserverProcess {
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceFolder) as string;
     this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
-    if (typeof this.confServerChannel === "undefined") {
-      this.confServerChannel = OutputChannel.init();
-    }
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
@@ -334,7 +330,7 @@ export class ConfserverProcess {
         message: "Loading initial values...",
       });
       Logger.info(data.toString());
-      this.confServerChannel.appendLine(data.toString());
+      OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
       this.checkIfJsonIsReceived();
     });
     this.confServerProcess.stderr.on("data", (data) => {
@@ -350,7 +346,7 @@ export class ConfserverProcess {
         const regexPattern = new RegExp(ignoreList.join("|"));
         if (regexPattern.test(dataStr)) {
           Logger.info(dataStr);
-          this.confServerChannel.appendLine(dataStr);
+          OutputChannel.appendLine(dataStr, "SDK Configuration Editor");
         } else {
           this.printError(dataStr);
         }
@@ -372,12 +368,13 @@ export class ConfserverProcess {
   }
 
   private printError(data: string) {
-    this.confServerChannel.show();
-    this.confServerChannel.appendLine(
-      "---------------------------ERROR--------------------------"
+    OutputChannel.show();
+    OutputChannel.appendLine(
+      "---------------------------ERROR--------------------------",
+      "SDK Configuration Editor"
     );
-    this.confServerChannel.appendLine("\n" + data);
-    this.confServerChannel.appendLine(
+    OutputChannel.appendLine("\n" + data);
+    OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
     Logger.error(data.toString(), new Error(data.toString()));
