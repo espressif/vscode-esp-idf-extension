@@ -49,7 +49,6 @@ export class OpenOCDManager extends EventEmitter {
   private openOcdConfigFilesList: string[];
   private server: ChildProcess;
   private chan: Buffer;
-  private displayChan: vscode.OutputChannel;
   private statusBar: vscode.StatusBarItem;
   private tclConnectionParams: TCLConnection;
   private workspace: vscode.Uri;
@@ -214,10 +213,10 @@ export class OpenOCDManager extends EventEmitter {
         )}`;
         const err = new Error(errorMsg);
         Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
-        this.displayChan.append(`❌ ${errStr}`);
+        OutputChannel.append(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
-      this.displayChan.append(errStr);
+      OutputChannel.append(errStr, "OpenOCD");
       Logger.info(errStr);
     });
     this.server.stdout.on("data", (data) => {
@@ -239,7 +238,7 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.updateStatusText("❇️ OpenOCD Server (Running)");
-    this.displayChan.show(true);
+    OutputChannel.show();
   }
 
   public stop() {
@@ -248,13 +247,13 @@ export class OpenOCDManager extends EventEmitter {
       this.server = undefined;
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
       const endMsg = "[Stopped] : OpenOCD Server";
-      this.displayChan.appendLine(endMsg);
+      OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
     }
   }
 
   public showOutputChannel(preserveFocus?: boolean) {
-    this.displayChan.show(preserveFocus);
+    preserveFocus ? OutputChannel.show() : null;
   }
 
   private registerOpenOCDStatusBarItem() {
@@ -278,7 +277,7 @@ export class OpenOCDManager extends EventEmitter {
     const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
     this.openOcdConfigFilesList = openOcdConfigFilesList;
     this.chan = Buffer.alloc(0);
-    this.displayChan = OutputChannel.init();
+    OutputChannel.init();
     this.tclConnectionParams = { host, port };
     this.registerOpenOCDStatusBarItem();
   }
