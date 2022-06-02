@@ -27,7 +27,7 @@ export class OutputChannel {
     if(name) {
       OutputChannel.instance.appendLine(`**${name}'s output started**`);
       OutputChannel.instance.appendLine(message);
-      OutputChannel.instance.appendLine(`**${name}]'s output ended**`);
+      OutputChannel.instance.appendLine(`**${name}'s output ended**`);
     } else {
       OutputChannel.instance.appendLine(message);
     }
@@ -38,7 +38,7 @@ export class OutputChannel {
     if(name) {
       OutputChannel.instance.appendLine(`**${name}'s output started**`);
       OutputChannel.instance.append(message);
-      OutputChannel.instance.appendLine(`**${name}]'s output ended**`);
+      OutputChannel.instance.appendLine(`**${name}'s output ended**`);
     } else {
       OutputChannel.instance.append(message);
     }
