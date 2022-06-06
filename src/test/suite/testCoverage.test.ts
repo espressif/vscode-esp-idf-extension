@@ -7,7 +7,6 @@ import {
   getGcovFilterPaths,
   buildHtml,
   generateCoverageForEditors,
-  previewReport
 } from "../../coverage/coverageService";
 
 suite("Test Coverage Unit Tests", () => {
@@ -45,6 +44,7 @@ suite("Test Coverage Unit Tests", () => {
     assert.equal(result.slice(0,15), "<!DOCTYPE html>");
   })
 
+  // Tests the parameters and the result not to be undefinied
   test("generateCoverageForEditors", async () => {
     const editors = vscode.window.visibleTextEditors;
     const gcovObj = await buildJson(workspace);
