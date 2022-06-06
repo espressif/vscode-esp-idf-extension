@@ -1,8 +1,0 @@
-# This code was taken from https://www.mathewjbray.com/2018/04/20/powershell-show-available-com-ports/
-# All credits to Mathew Bray
-$COMportList = [System.IO.Ports.SerialPort]::getportnames()
-ForEach ($COMport in $COMportList) {
-    $temp = new-object System.IO.Ports.SerialPort $COMport
-    echo $temp.PortName
-    $temp.Dispose()
-}

@@ -1,6 +1,6 @@
 # Using Docker Container
 
-as we all know, Espressif docker image has been released [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-guides/tools/idf-docker-image.html?highlight=docker), but it is too simple to bring up, also it highlighted that `idf.py flash` and `idf.py monitor`will not work in the container unless the serial port is passed through into the container.
+The Espressif docker image has been released [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-guides/tools/idf-docker-image.html?highlight=docker), but it is too simple to bring up, also it highlighted that `idf.py flash` and `idf.py monitor`will not work in the container unless the serial port is passed through into the container.
 
 so this tutorial will show you how to develop your projects based on `VSCODE` + `ESP-IDF extension` + `IDF Docker Image` and implement all features `ESP-IDF extension` supported, for instance, flashing, monitoring and debugging etc. ok, here we go!
 

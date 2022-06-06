@@ -200,7 +200,6 @@
     "param.gitPath.title",
     "param.enableUpdateSrcsToCMakeListsFile",
     "param.qemuTcpPort",
-    "param.wslEnable",
     "param.openOcdDebugLevel",
     "param.customTask",
     "param.buildDirectoryName",

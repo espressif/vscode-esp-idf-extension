@@ -83,7 +83,6 @@
   "param.uncoveredDarkTheme": "Background color for uncovered lines in Dark theme for ESP-IDF Coverage.",
   "param.enableUpdateSrcsToCMakeListsFile": "Enable update source files in CMakeLists.txt",
   "param.qemuTcpPort": "QEMU tcp port for serial communication",
-  "param.wslEnable": "Enable use of powershell for WSL flash and monitor tasks",
   "param.openOcdDebugLevel": "OpenOCD Server debug level",
   "param.preBuildTask": "Pre build custom task",
   "param.postBuildTask": "Post build custom task",

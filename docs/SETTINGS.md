@@ -95,7 +95,6 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)               |                           |
 | `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                |                           |
 | `idf.telemetry`                        | Enable Telemetry                                                         | User, Remote or Workspace |
-| `idf.wslEnable`                        | Enable use of powershell executable for flash and monitor tasks in WSL   |                           |
 
 ## Custom tasks for build and flash tasks
 
