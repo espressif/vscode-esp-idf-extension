@@ -111,11 +111,14 @@ export class PartitionTreeDataProvider
           placeHolder: "Enter custom partition table offset",
           value: "",
           validateInput: (text) => {
-            return /^[0-9A-Fa-f]+$/i.test(text)
+            return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
               ? null
               : "The value is not a valid hexadecimal number";
           },
         });
+        if (partitionTableOffset === undefined) {
+          return;
+        }
       }
 
       ensureDir(join(workspace.fsPath, "partition_table"));
@@ -164,7 +167,13 @@ export class PartitionTreeDataProvider
 
       await spawn(
         pythonBinPath,
-        [genEsp32PartPath, partTableBin, partTableCsv],
+        [
+          genEsp32PartPath,
+          "-o",
+          partitionTableOffset,
+          partTableBin,
+          partTableCsv
+        ],
         {
           cwd: workspace.fsPath,
           env: modifiedEnv,
