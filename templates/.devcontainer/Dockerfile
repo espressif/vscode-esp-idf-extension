@@ -1,4 +1,4 @@
-FROM espressif/idf:release-v4.4
+FROM espressif/idf
 
 ARG DEBIAN_FRONTEND=nointeractive
 
@@ -6,11 +6,14 @@ RUN apt-get update \
   && apt install -y -q \
   cmake \
   git \
+  hwdata \
   libglib2.0-0 \
   libnuma1 \
-  libpixman-1-0
+  libpixman-1-0 \
+  linux-tools-5.4.0-77-generic \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN ./opt/esp/entrypoint.sh && pip install --no-cache-dir idf-component-manager
+RUN update-alternatives --install /usr/local/bin/usbip usbip /usr/lib/linux-tools/5.4.0-77-generic/usbip 20
 
 # QEMU
 ENV QEMU_REL=esp-develop-20210220
@@ -20,7 +23,6 @@ ENV QEMU_URL=https://github.com/espressif/qemu/releases/download/${QEMU_REL}/${Q
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-ENV IDF_PYTHON_ENV_PATH=/opt/esp/python_env/idf4.4_py3.6_env
 
 RUN wget --no-verbose ${QEMU_URL} \
   && echo "${QEMU_SHA256} *${QEMU_DIST}" | sha256sum --check --strict - \
