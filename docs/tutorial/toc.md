@@ -15,3 +15,5 @@
 11. [eFuse Explorer](./efuse.md)
 12. [Rainmaker](./rainmaker.md)
 13. [New project wizard](./new_project_wizard.md)
+14. [Developing on Docker Container](./using-docker-container.md)
+15. [Developing on WSL](./wsl.md)
