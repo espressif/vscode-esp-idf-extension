@@ -15,13 +15,13 @@
 	 */
 	"workspaceFolder": "/workspaces",
 	"mounts": [
-		"source=extensionCache,target=/root/.vscode-server/extensions,type=volume",
+		"source=extensionCache,target=/root/.vscode-server/extensions,type=volume"
 	],
 	"settings": {
 		"terminal.integrated.defaultProfile.linux": "bash",
 		"idf.espIdfPath": "/opt/esp/idf",
 		"idf.customExtraPaths": "",
-		"idf.pythonBinPath": "/opt/esp/python_env/idf4.3_py3.6_env/bin/python",
+		"idf.pythonBinPath": "python",
 		"idf.toolsPath": "/opt/esp",
 		"idf.gitPath": "/usr/bin/git"
 	},

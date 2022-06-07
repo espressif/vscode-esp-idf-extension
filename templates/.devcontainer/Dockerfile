@@ -31,7 +31,6 @@ RUN wget --no-verbose ${QEMU_URL} \
 
 ENV PATH=/opt/qemu/bin:${PATH}
 
-RUN ./opt/esp/entrypoint.sh && pip install --no-cache-dir idf-component-manager
 RUN echo $($IDF_PATH/tools/idf_tools.py export) >> $HOME/.bashrc
 
 ENTRYPOINT [ "/opt/esp/entrypoint.sh" ]
