@@ -23,7 +23,6 @@ import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
-import { getProjectName } from "../../workspaceConfig";
 
 const locDic = new LocDictionary(__filename);
 
@@ -87,47 +86,6 @@ export async function createMonitorTerminal(
     });
   }
   monitorTerminal.show();
-  let isWsl2Kernel = utils.isRunningInWsl(workspace);
-  const isPowerShellInPath = await utils.isBinInPath(
-    "powershell.exe",
-    workspace.fsPath,
-    modifiedEnv
-  );
-  if (
-    process.platform === "linux" &&
-    isWsl2Kernel &&
-    isPowerShellInPath !== ""
-  ) {
-    const wslRoot = utils.extensionContext.extensionPath.replace(/\//g, "\\");
-    const wslCurrPath = await utils.execChildProcess(
-      `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
-      utils.extensionContext.extensionPath
-    );
-    const winWslRoot = wslCurrPath.replace(wslRoot, "").replace(/[\r\n]+/g, "");
-    const toolPath = (
-      winWslRoot +
-      idfPath.replace("idf.py", "idf_monitor.py").replace(/\//g, "\\")
-    ).replace(/\\/g, "\\\\");
-    monitorTerminal.sendText(`export WSLENV=IDF_PATH/p`);
-    try {
-      const buildDirName = readParameter(
-        "idf.buildDirectoryName",
-        workspace
-      ) as string;
-      const projectName = await getProjectName(workspace.fsPath, buildDirName);
-      const elfFilePath = join(buildDirName, `${projectName}.elf`);
-      monitorTerminal.sendText(
-        `powershell.exe -Command "python ${toolPath} -p ${port} ${elfFilePath}"`
-      );
-    } catch (error) {
-      Logger.errorNotify(
-        "Failed to read project name while fetching elf file",
-        error
-      );
-      return;
-    }
-  } else {
-    monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
-  }
+  monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
   return monitorTerminal;
 }

@@ -21,14 +21,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import {
-  appendIdfAndToolsToPath,
-  canAccessFile,
-  execChildProcess,
-  extensionContext,
-  isBinInPath,
-  isRunningInWsl,
-} from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
@@ -99,26 +92,16 @@ export class FlashTask {
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Always
       : vscode.TaskRevealKind.Silent;
-    let isWsl2Kernel = isRunningInWsl(this.workspaceUri);
-    const powershellPath = await isBinInPath(
-      "powershell.exe",
-      this.workspaceUri.fsPath,
-      process.env
-    );
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
-    if (process.platform === "linux" && isWsl2Kernel && powershellPath !== "") {
-      flashExecution = await this._wslFlashExecution();
-    } else {
-      switch (flashType) {
-        case "UART":
-          flashExecution = this._flashExecution();
-          break;
-        case "DFU":
-          flashExecution = this._dfuFlashing();
-          break;
-        default:
-          break;
-      }
+    switch (flashType) {
+      case "UART":
+        flashExecution = this._flashExecution();
+        break;
+      case "DFU":
+        flashExecution = this._dfuFlashing();
+        break;
+      default:
+        break;
     }
     const flashPresentationOptions = {
       reveal: showTaskOutput,
@@ -133,30 +116,6 @@ export class FlashTask {
       flashExecution,
       ["idfRelative", "idfAbsolute"],
       flashPresentationOptions
-    );
-  }
-
-  public async _wslFlashExecution() {
-    this.flashing(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
-    const wslRoot = extensionContext.extensionPath.replace(/\//g, "\\");
-    const wslCurrPath = await execChildProcess(
-      `powershell.exe -Command "(Get-Location).Path | Convert-Path"`,
-      extensionContext.extensionPath
-    );
-    const winWslRoot = wslCurrPath.replace(wslRoot, "").replace(/[\r\n]+/g, "");
-    const toolPath = (
-      winWslRoot + this.flashScriptPath.replace(/\//g, "\\")
-    ).replace(/\\/g, "\\\\");
-
-    const flasherArgs = this.getFlasherArgs(toolPath, true);
-    const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.workspaceUri.fsPath, this.buildDirName),
-      env: modifiedEnv,
-    };
-    return new vscode.ShellExecution(
-      `powershell.exe -Command "python ${flasherArgs.join(" ")}"`,
-      options
     );
   }
 

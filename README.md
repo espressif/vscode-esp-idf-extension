@@ -28,6 +28,8 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 3. [Debugging](./docs/tutorial/debugging.md) with steps to configure OpenOCD and debug adapter.
 4. [Heap tracing](./docs/tutorial/heap_tracing.md)
 5. [Code coverage](./docs/tutorial/code_coverage.md)
+6. [Developing on Docker Container](./docs/tutorial/using-docker-container.md)
+7. [Developing on WSL](./docs/tutorial/wsl.md)
 
 Check all the tutorials [here](./docs/tutorial/toc.md).
 

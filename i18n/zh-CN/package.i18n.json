@@ -59,7 +59,6 @@
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF 调试适配器的目标名称",
   "param.customAdapterTargetName": "ESP-IDF 调试适配器的自定义目标名称",
-  "param.wslEnable": "允许将powershell用于WSL闪存和监视器任务",
   "param.openOcdConfigFilesList": "OpenOCD 脚本目录中的配置文件列表",
   "param.flashBaudRate": "ESP-IDF 烧录波特率",
   "param.port": "选中的烧录端口路径",

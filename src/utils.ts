@@ -1005,18 +1005,6 @@ export function getWebViewFavicon(extensionPath: string): vscode.Uri {
   );
 }
 
-export function isRunningInWsl(workspace: vscode.Uri) {
-  const wslEnable = idfConf.readParameter(
-    "idf.wslEnable",
-    workspace
-  ) as boolean;
-  return (
-    wslEnable &&
-    typeof process.env.WSL_DISTRO_NAME === "string" &&
-    process.env.WSL_DISTRO_NAME !== ""
-  );
-}
-
 export async function createNewComponent(
   name: string,
   currentDirectory: string
