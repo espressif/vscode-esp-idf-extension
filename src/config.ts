@@ -31,6 +31,16 @@ export namespace ESP {
     DFU = "DFU",
   }
 
+  export const platformDepConfigurations: string[] = [
+    "idf.espIdfPath",
+    "idf.espAdfPath",
+    "idf.espMdfPath",
+    "idf.gitPath",
+    "idf.pythonBinPath",
+    "idf.port",
+    "idf.toolsPath",
+  ];
+
   export namespace Rainmaker {
     export let store: RainmakerStore;
     export namespace OAuth {

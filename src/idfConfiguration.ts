@@ -15,22 +15,15 @@
 import * as vscode from "vscode";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
-import { PreCheck } from "./utils";
+import { ESP } from "./config";
 
 const locDic = new LocDictionary(__filename);
 
-const platformDepConfigurations: string[] = [
-  "idf.espIdfPath",
-  "idf.espAdfPath",
-  "idf.espMdfPath",
-  "idf.pythonBinPath",
-  "idf.port",
-  "idf.toolsPath",
-];
+
 
 export function addWinIfRequired(param: string) {
   const winFlag = process.platform === "win32" ? "Win" : "";
-  for (const platDepConf of platformDepConfigurations) {
+  for (const platDepConf of ESP.platformDepConfigurations) {
     if (param.indexOf(platDepConf) >= 0) {
       return param + winFlag;
     }

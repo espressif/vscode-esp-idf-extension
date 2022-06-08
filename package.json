@@ -694,6 +694,12 @@
             "scope": "resource",
             "default": "/usr/bin/git"
           },
+          "idf.gitPathWin": {
+            "type": "string",
+            "description": "%param.gitPath.title%",
+            "scope": "resource",
+            "default": "${env:programfiles}\\Git\\cmd\\git.exe"
+          },
           "idf.enableUpdateSrcsToCMakeListsFile": {
             "type": "boolean",
             "description": "%param.enableUpdateSrcsToCMakeListsFile%",

@@ -39,6 +39,6 @@ export function getConfigurationSettings(
     toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
-    gitPath: conf.get("idf.gitPath")
+    gitPath: conf.get("idf.gitPath" + winFlag)
   };
 }
