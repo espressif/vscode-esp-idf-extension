@@ -24,7 +24,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 # Tutorials
 
 1. [Install and setup the extension](./docs/tutorial/install.md).
-2. [Create a project from example, Build, flash and monitor](./docs/tutorial/install.md).
+2. [Create a project from example, Build, flash and monitor](./docs/tutorial/new_project_wizard.md).
 3. [Debugging](./docs/tutorial/debugging.md) with steps to configure OpenOCD and debug adapter.
 4. [Heap tracing](./docs/tutorial/heap_tracing.md)
 5. [Code coverage](./docs/tutorial/code_coverage.md)
