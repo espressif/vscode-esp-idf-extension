@@ -19,8 +19,6 @@ import { ESP } from "./config";
 
 const locDic = new LocDictionary(__filename);
 
-
-
 export function addWinIfRequired(param: string) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   for (const platDepConf of ESP.platformDepConfigurations) {
