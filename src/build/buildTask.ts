@@ -42,7 +42,10 @@ export class BuildTask {
       "idf.adapterTargetName",
       workspace
     ) as string;
-    this.buildDirName = idfConf.readParameter("idf.buildDirectoryName", workspace) as string;
+    this.buildDirName = idfConf.readParameter(
+      "idf.buildDirectoryName",
+      workspace
+    ) as string;
   }
 
   public building(flag: boolean) {
@@ -74,8 +77,16 @@ export class BuildTask {
   }
 
   public dfuShellExecution(options?: vscode.ShellExecutionOptions) {
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      this.curWorkspace
+    ) as string;
     return new vscode.ShellExecution(
-      `${join(this.idfPathDir, "tools", "mkdfu.py")} write -o ${join(
+      `${pythonBinPath} ${join(
+        this.idfPathDir,
+        "tools",
+        "mkdfu.py"
+      )} write -o ${join(
         join(this.curWorkspace.fsPath, this.buildDirName),
         "dfu.bin"
       )} --json ${join(
@@ -161,7 +172,7 @@ export class BuildTask {
         reveal: showTaskOutput,
         showReuseMessage: false,
         clear: true,
-        panel: vscode.TaskPanelKind.Shared
+        panel: vscode.TaskPanelKind.Shared,
       } as vscode.TaskPresentationOptions;
       TaskManager.addTask(
         {
@@ -186,7 +197,7 @@ export class BuildTask {
       reveal: showTaskOutput,
       showReuseMessage: false,
       clear: cmakeCacheExists,
-      panel: vscode.TaskPanelKind.Shared
+      panel: vscode.TaskPanelKind.Shared,
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },
@@ -221,7 +232,7 @@ export class BuildTask {
       reveal: showTaskOutput,
       showReuseMessage: false,
       clear: false,
-      panel: vscode.TaskPanelKind.Shared
+      panel: vscode.TaskPanelKind.Shared,
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       {
