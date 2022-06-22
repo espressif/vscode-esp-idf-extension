@@ -51,8 +51,8 @@ export function isValidJSON(
     }
         // For type "data"
     if(row.type.match(/^(0x01|data)$/)) {
-      if(!row.subtype.match(/^(ota|phy|nvs|nvs_keys)$|^(0x)(([0][0-6])|[8][0-2])$/)) {
-        return "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)";
+      if(!row.subtype.match(/^(ota|phy|nvs|nvs_keys|spiffs|coredump|fat)$|^(0x)(([0][0-6])|[8][0-2])$/)) {
+        return "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), \"fat\" (0x81), \"spiffs\" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)";
       }
     }
         // For custom type
