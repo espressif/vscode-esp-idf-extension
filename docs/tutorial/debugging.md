@@ -133,6 +133,14 @@ You can check the assembly code from the debugging session by doing a right clic
   <img src="../../media/tutorials/debug/disassembly_view.png" alt="Disassembly view" height="500">
 </p>
 
+# Watchpoints (data breakpoints)
+
+You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`.
+
+<p>
+  <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
+</p>
+
 # Next steps
 
 You can send any GDB commands in the Debug console with `--exec COMMAND`. You need to set `logLevel: 5` in the project's launch.json to see the command output.
