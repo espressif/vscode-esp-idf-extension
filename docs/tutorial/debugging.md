@@ -135,7 +135,7 @@ You can check the assembly code from the debugging session by doing a right clic
 
 # Watchpoints (data breakpoints)
 
-You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`.
+You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`. See [ESP-IDF Breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
 
 <p>
   <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
