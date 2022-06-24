@@ -82,7 +82,7 @@ describe("Configure extension", () => {
     );
     const idfChoices = await selectEspIdfElement.findElements(By.css("option"));
     expect(idfChoices).to.be.an("array");
-    await idfChoices[idfChoices.length - 1].click();
+    await idfChoices[0].click();
   }
 
   async function checkGitVersion(view: WebView) {
