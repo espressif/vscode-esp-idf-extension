@@ -287,7 +287,7 @@ suite("PartitionTable Suite", () => {
     }];
     await assert.equal(JSON.stringify(isValidJSON(invalidRow)), JSON.stringify({ 
       ok: false,
-      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
+      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), \"fat\" (0x81), \"spiffs\" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
       row: 0
     }));
   });
@@ -304,7 +304,7 @@ suite("PartitionTable Suite", () => {
     }];
     await assert.equal(JSON.stringify(isValidJSON(invalidRow)), JSON.stringify({ 
       ok: false,
-      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
+      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), \"fat\" (0x81), \"spiffs\" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
       row: 0
     }));
   });
@@ -321,7 +321,7 @@ suite("PartitionTable Suite", () => {
     }];
     await assert.equal(JSON.stringify(isValidJSON(invalidRow)), JSON.stringify({ 
       ok: false,
-      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
+      error: "When type is \"data\", the subtype field can be specified as \"ota\" (0x00), \"phy\" (0x01), \"nvs\" (0x02), \"nvs_keys\" (0x04), \"fat\" (0x81), \"spiffs\" (0x82) or a range of other component-specific subtypes (0x05, 0x06, 0x80, 0x81, 0x82)",
       row: 0
     }));
   });
