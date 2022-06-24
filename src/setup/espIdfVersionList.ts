@@ -19,6 +19,7 @@ import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
 import { IEspIdfLink } from "../views/setup/types";
 import { ESP } from "../config";
+import axios from "axios";
 
 export async function getEspIdfVersions(extensionPath: string) {
   const downloadManager = new DownloadManager(extensionPath);
@@ -30,8 +31,7 @@ export async function getEspIdfVersions(extensionPath: string) {
     name: "Find ESP-IDF in your system",
     filename: "manual",
   } as IEspIdfLink;
-  versionList.push(manualVersion);
-  return versionList;
+  return [manualVersion, ...versionList];
 }
 
 export async function downloadEspIdfVersionList(
@@ -47,8 +47,8 @@ export async function downloadEspIdfVersionList(
     );
     Logger.info(downloadMessage.statusMessage);
     const fileContent = await readFile(idfVersionList);
-    const downloadList: IEspIdfLink[] = createEspIdfLinkList(fileContent, "\n");
-    return downloadList;
+    const versionList = fileContent.toString().trim().split("\n");
+    return createEspIdfLinkList(versionList);
   } catch (error) {
     const errorMsg = `Error opening esp-idf version list file. ${error.message}`;
     OutputChannel.appendLine(errorMsg);
@@ -59,11 +59,8 @@ export async function downloadEspIdfVersionList(
         "idf_versions.txt"
       );
       const fallbackContent = await readFile(idfVersionListFallBack);
-      const downloadList: IEspIdfLink[] = createEspIdfLinkList(
-        fallbackContent,
-        EOL
-      );
-      return downloadList;
+      const versionList = fallbackContent.toString().trim().split(EOL);
+      return createEspIdfLinkList(versionList);
     } catch (fallbackError) {
       const fallBackErrMsg = `Error opening esp-idf fallback version list file. ${fallbackError.message}`;
       OutputChannel.appendLine(fallBackErrMsg);
@@ -72,18 +69,27 @@ export async function downloadEspIdfVersionList(
   }
 }
 
-export function createEspIdfLinkList(data: Buffer, splitString: string) {
+export async function getEspIdfTags() {
+  try {
+    const idfTagsResponse = await axios.get(
+      "https://api.github.com/repos/espressif/esp-idf/tags"
+    );
+    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name );
+    return createEspIdfLinkList(tagsStrList);
+  } catch (error) {
+    OutputChannel.appendLine(`Error getting ESP-IDF Tags. Error: ${error}`);
+  }
+}
+
+export function createEspIdfLinkList(versionList: string[]) {
   const versionZip =
     "https://github.com/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip";
-  const mirrorZip =
-    `${ESP.URL.IDF_GITHUB_ASSETS}/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip`;
+  const mirrorZip = `${ESP.URL.IDF_GITHUB_ASSETS}/espressif/esp-idf/releases/download/IDFZIPFileVersion/esp-idf-IDFZIPFileVersion.zip`;
   const versionRegex = /\b(IDFZIPFileVersion)\b/g;
   const espIdfMasterZip =
     "https://github.com/espressif/esp-idf/archive/master.zip";
   const preReleaseRegex = /v.+-rc/g;
   const betaRegex = /v.+-beta/g;
-
-  const versionList = data.toString().trim().split(splitString);
   const downloadList: IEspIdfLink[] = versionList.map((version) => {
     if (version.startsWith("release/")) {
       return {

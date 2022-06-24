@@ -83,6 +83,9 @@ window.addEventListener("message", (event) => {
       if (msg.idfVersions) {
         store.commit("setEspIdfVersionList", msg.idfVersions);
       }
+      if (msg.idfTags) {
+        store.commit("setEspIdfTagsList", msg.idfTags);
+      }
       if (msg.idfVersion) {
         store.commit("setIdfVersion", msg.idfVersion);
       }

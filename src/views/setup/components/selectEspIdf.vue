@@ -14,6 +14,12 @@
       </div>
     </div>
     <div class="field">
+      <label class="checkbox is-small">
+        <input type="checkbox" v-model="showGithubTags" />
+        Show all ESP-IDF tags
+      </label>
+    </div>
+    <div class="field">
       <label for="idf-version-select" class="label"
         >Select ESP-IDF version:</label
       >
@@ -73,12 +79,15 @@ export default class SelectEspIdf extends Vue {
   @Mutation setEspIdfContainerPath;
   @Mutation setIdfMirror;
   @Mutation setSelectedEspIdfVersion;
+  @Mutation setShowIdfTagList: Function;
   @Mutation setEspIdfErrorStatus;
   @State("espIdf") private storeEspIdf: string;
   @State("espIdfContainer") private storeEspIdfContainer: string;
   @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
+  @State("espIdfTags") private storeEspIdfTags: IEspIdfLink[];
   @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
-  @State("selectedIdfMirror") private storeSelectedIdfMirror;
+  @State("selectedIdfMirror") private storeSelectedIdfMirror: IdfMirror;
+  @State("showIdfTagList") private storeShowIdfTagList: boolean;
 
   get espIdf() {
     return this.storeEspIdf;
@@ -93,6 +102,18 @@ export default class SelectEspIdf extends Vue {
   }
 
   get idfVersionList() {
+    if (this.showGithubTags) {
+      const idfVersionWithTagsList = [...this.storeEspIdfVersionList];
+      for (const idfTag of this.storeEspIdfTags) {
+        const existingVersion = this.storeEspIdfVersionList.find(
+          (idfVersion) => idfVersion.name === idfTag.name
+        );
+        if (!existingVersion) {
+          idfVersionWithTagsList.push(idfTag);
+        }
+      }
+      return idfVersionWithTagsList;
+    }
     return this.storeEspIdfVersionList;
   }
 
@@ -110,6 +131,13 @@ export default class SelectEspIdf extends Vue {
     this.setIdfMirror(val);
   }
 
+  get showGithubTags() {
+    return this.storeShowIdfTagList;
+  }
+  set showGithubTags(showTags: boolean) {
+    this.setShowIdfTagList(showTags);
+  }
+
   public clearIDfErrorStatus() {
     this.setEspIdfErrorStatus("");
   }
@@ -119,5 +147,8 @@ export default class SelectEspIdf extends Vue {
 <style scoped>
 #select-esp-idf-version {
   margin: 0.25em;
+}
+.checkbox:hover {
+  color: var(--vscode-button-background);
 }
 </style>
