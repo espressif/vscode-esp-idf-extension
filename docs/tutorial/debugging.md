@@ -125,6 +125,22 @@ For this example, go to line 79 and right click on the circle shown next to the 
   <img src="../../media/tutorials/debug/conditional_breakpoint.png" alt="Watch program variables" height="500">
 </p>
 
+# Disassembly view
+
+You can check the assembly code from the debugging session by doing a right click in any line in of source code file and pressing `Open Disassembly View`. This will open the **Disassemble View** showing the assembly code with C code where you can set breakpoints too.
+
+<p>
+  <img src="../../media/tutorials/debug/disassembly_view.png" alt="Disassembly view" height="500">
+</p>
+
+# Watchpoints (data breakpoints)
+
+You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`. See [ESP-IDF Breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
+
+<p>
+  <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
+</p>
+
 # Next steps
 
 You can send any GDB commands in the Debug console with `--exec COMMAND`. You need to set `logLevel: 5` in the project's launch.json to see the command output.
