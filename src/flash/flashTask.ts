@@ -114,7 +114,7 @@ export class FlashTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
-      ["idfRelative", "idfAbsolute"],
+      ["espIdf"],
       flashPresentationOptions
     );
   }

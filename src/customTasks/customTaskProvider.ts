@@ -110,7 +110,7 @@ export class CustomTask {
       TaskScope.Workspace,
       `ESP-IDF ${taskName}`,
       customExecution,
-      ["idfRelative", "idfAbsolute"],
+      ["espIdf"],
       customTaskPresentationOptions
     );
   }
