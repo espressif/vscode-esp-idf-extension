@@ -183,7 +183,7 @@ export class BuildTask {
         vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
-        ["idfRelative", "idfAbsolute"],
+        ["espIdf"],
         compilePresentationOptions
       );
     }
@@ -204,7 +204,7 @@ export class BuildTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
-      ["idfRelative", "idfAbsolute"],
+      ["espIdf"],
       buildPresentationOptions
     );
   }
@@ -243,7 +243,7 @@ export class BuildTask {
       vscode.TaskScope.Workspace,
       "ESP-IDF Write DFU.bin",
       writeExecution,
-      ["idfRelative", "idfAbsolute"],
+      ["espIdf"],
       buildPresentationOptions
     );
   }

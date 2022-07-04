@@ -98,7 +98,7 @@ export class IdfSizeTask {
       TaskScope.Workspace,
       "ESP-IDF Size",
       sizeExecution,
-      ["idfRelative", "idfAbsolute"],
+      ["espIdf"],
       sizePresentationOptions
     );
   }

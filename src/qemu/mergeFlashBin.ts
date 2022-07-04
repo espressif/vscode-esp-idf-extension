@@ -131,7 +131,7 @@ export async function mergeFlashBinaries(
     TaskScope.Workspace,
     "Merge flash binaries",
     mergeExecution,
-    ["idfRelative", "idfAbsolute"],
+    ["espIdf"],
     mergePresentationOptions
   );
   await TaskManager.runTasks();
