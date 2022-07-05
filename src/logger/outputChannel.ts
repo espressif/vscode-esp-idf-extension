@@ -26,20 +26,16 @@ export class OutputChannel {
     OutputChannel.checkInitialized();
     if(name) {
       OutputChannel.instance.appendLine(`[${name}]`);
-      OutputChannel.instance.appendLine(message);
-    } else {
-      OutputChannel.instance.appendLine(message);
     }
+    OutputChannel.instance.appendLine(message);
   }
 
   public static append(message: string, name?: string) {
     OutputChannel.checkInitialized();
     if(name) {
       OutputChannel.instance.appendLine(`[${name}]`);
-      OutputChannel.instance.append(message);
-    } else {
-      OutputChannel.instance.append(message);
-    }
+    } 
+    OutputChannel.instance.append(message);
   }
 
   public static end() {
