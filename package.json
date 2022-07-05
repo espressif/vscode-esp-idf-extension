@@ -136,6 +136,12 @@
       ]
     },
     "views": {
+      "debug": [
+        {
+          "name": "ESP Memory View",
+          "id": "espIdf.memoryView"
+        }
+      ],
       "idfViewController": [
         {
           "id": "idfSearchResults",
@@ -1274,6 +1280,7 @@
     "@types/tmp": "0.0.33",
     "@types/vscode": "^1.30.0",
     "@types/ws": "^7.2.5",
+    "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
     "@vscode/debugadapter": "^1.53.0",
     "@vscode/debugadapter-testsupport": "^1.51.0",
@@ -1349,6 +1356,7 @@
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "ws": "^7.4.6",
+    "xml2js": "^0.4.23",
     "yauzl": "^2.10.0"
   },
   "alias": {
