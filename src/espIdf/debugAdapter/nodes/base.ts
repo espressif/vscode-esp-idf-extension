@@ -17,6 +17,7 @@
  */
 
 import { Command, DebugSession, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { AddrRange, NodeSetting, NumberFormat } from "../common";
 
 
 export abstract class BasePeripheral extends TreeItem {
