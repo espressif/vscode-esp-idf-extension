@@ -22,12 +22,14 @@ import {
   TreeItem,
   TreeItemCollapsibleState,
   TreeItemLabel,
-  window
+  window,
 } from "vscode";
-import { AddrRange, NodeSetting, NumberFormat } from "./common";
-import { PeripheralBaseNode } from "./nodes/base";
-import { AccessType, EspIdfPeripheralTreeItem } from "./peripheral";
-import { binaryFormat, createMask, extractBits, hexFormat } from "./utils";
+import { Cluster } from "./cluster";
+import { AddrRange, NodeSetting, NumberFormat } from "../common";
+import { PeripheralBaseNode } from "./base";
+import { Field } from "./field";
+import { AccessType, Peripheral } from "./peripheral";
+import { binaryFormat, createMask, extractBits, hexFormat } from "../utils";
 
 export interface PeripheralRegisterOptions {
   name: string;
@@ -38,8 +40,8 @@ export interface PeripheralRegisterOptions {
   resetValue?: number;
 }
 
-export class EspIdfPeripheralRegisterTreeItem extends PeripheralBaseNode {
-  public children: PeripheralFieldNode[];
+export class Register extends PeripheralBaseNode {
+  public children: Field[];
   public readonly name: string;
   public readonly description?: string;
   public readonly offset: number;
@@ -55,7 +57,7 @@ export class EspIdfPeripheralRegisterTreeItem extends PeripheralBaseNode {
   private prevValue: string = "";
 
   constructor(
-    public parent: EspIdfPeripheralTreeItem,
+    public parent: Peripheral | Cluster,
     options: PeripheralRegisterOptions
   ) {
     super(parent);
@@ -79,11 +81,7 @@ export class EspIdfPeripheralRegisterTreeItem extends PeripheralBaseNode {
     this.currentValue = undefined;
   }
 
-  public extractBits(
-    offset: number,
-    width: number,
-    value: number
-  ) {
+  public extractBits(offset: number, width: number) {
     return extractBits(this.currentValue, offset, width);
   }
 
@@ -234,16 +232,16 @@ export class EspIdfPeripheralRegisterTreeItem extends PeripheralBaseNode {
     return extractBits(this.resetValue, offset, width);
   }
 
-  public getChildren(): PeripheralFieldNode[] {
+  public getChildren(): Field[] {
     return this.children || [];
   }
 
-  public setChildren(children: PeripheralFieldNode[]) {
+  public setChildren(children: Field[]) {
     this.children = children.slice(0, children.length);
     this.children.sort((f1, f2) => (f1.offset > f2.offset ? 1 : -1));
   }
 
-  public addChild(child: PeripheralFieldNode) {
+  public addChild(child: Field) {
     this.children.push(child);
     this.children.sort((f1, f2) => (f1.offset > f2.offset ? 1 : -1));
   }

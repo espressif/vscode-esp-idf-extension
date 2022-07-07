@@ -17,11 +17,11 @@
  */
 
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-import { AddrRange, NodeSetting, NumberFormat } from "./common";
-import { PeripheralBaseNode } from "./nodes/base";
-import { AccessType, EspIdfPeripheralTreeItem } from "./peripheral";
-import { EspIdfPeripheralRegisterTreeItem } from "./register";
-import { hexFormat } from "./utils";
+import { AddrRange, NodeSetting, NumberFormat } from "../common";
+import { PeripheralBaseNode } from "./base";
+import { AccessType, Peripheral } from "./peripheral";
+import { Register } from "./register";
+import { hexFormat } from "../utils";
 
 export interface ClusterOptions {
   name: string;
@@ -32,8 +32,8 @@ export interface ClusterOptions {
   resetValue?: number;
 }
 
-export class EspIdfPeripheralClusterTreeItem extends PeripheralBaseNode {
-  private children: EspIdfPeripheralRegisterTreeItem[];
+export class Cluster extends PeripheralBaseNode {
+  private children: Register[];
   public readonly name: string;
   public readonly description?: string;
   public readonly offset: number;
@@ -42,7 +42,7 @@ export class EspIdfPeripheralClusterTreeItem extends PeripheralBaseNode {
   public readonly accessType: AccessType;
 
   constructor(
-    public parent: EspIdfPeripheralTreeItem,
+    public parent: Peripheral,
     options: ClusterOptions
   ) {
     super(parent);
@@ -71,16 +71,16 @@ export class EspIdfPeripheralClusterTreeItem extends PeripheralBaseNode {
     return item;
   }
 
-  public getChildren(): EspIdfPeripheralRegisterTreeItem[] {
+  public getChildren(): Register[] {
     return this.children;
   }
 
-  public setChildren(children: EspIdfPeripheralRegisterTreeItem[]) {
+  public setChildren(children: Register[]) {
     this.children = children.slice(0, children.length);
     this.children.sort((r1, r2) => (r1.offset > r2.offset ? 1 : -1));
   }
 
-  public addChild(child: EspIdfPeripheralRegisterTreeItem) {
+  public addChild(child: Register) {
     this.children.push(child);
     this.children.sort((r1, r2) => (r1.offset > r2.offset ? 1 : -1));
   }

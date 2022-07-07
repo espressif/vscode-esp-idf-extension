@@ -25,18 +25,18 @@ import {
   TreeItem,
   Uri,
 } from "vscode";
-import { EspIdfPeripheralTreeItem } from "./peripheral";
+import { Peripheral } from "./nodes/peripheral";
 
 export class EspIdfDebugMemoryViewTreeDataProvider
-  implements TreeDataProvider<EspIdfPeripheralTreeItem> {
+  implements TreeDataProvider<Peripheral> {
   private _onDidChangeTreeData: EventEmitter<
-    EspIdfPeripheralTreeItem
-  > = new EventEmitter<EspIdfPeripheralTreeItem>();
-  private memoryItems: EspIdfPeripheralTreeItem[];
+    Peripheral
+  > = new EventEmitter<Peripheral>();
+  private memoryItems: Peripheral[];
   private workspaceFolder: Uri;
   private isSessionActive: boolean = false;
 
-  readonly onDidChangeTreeData: Event<EspIdfPeripheralTreeItem> = this
+  readonly onDidChangeTreeData: Event<Peripheral> = this
     ._onDidChangeTreeData.event;
 
   constructor(private debugSession: DebugSession) {
@@ -57,11 +57,11 @@ export class EspIdfDebugMemoryViewTreeDataProvider
     this._onDidChangeTreeData.fire(null);
   }
 
-  getTreeItem(element: EspIdfPeripheralTreeItem): TreeItem {
+  getTreeItem(element: Peripheral): TreeItem {
     return element;
   }
 
-  getChildren(element?: EspIdfPeripheralTreeItem): EspIdfPeripheralTreeItem[] {
+  getChildren(element?: Peripheral): Peripheral[] {
     if (!this.isSessionActive) {
       return [];
     }

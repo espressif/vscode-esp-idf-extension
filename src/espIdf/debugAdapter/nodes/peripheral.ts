@@ -23,11 +23,11 @@ import {
   TreeItem,
   TreeItemCollapsibleState,
 } from "vscode";
-import { EspIdfPeripheralClusterTreeItem } from "./cluster";
-import { AddrRange, NodeSetting, NumberFormat } from "./common";
-import { PeripheralBaseNode } from "./nodes/base";
-import { EspIdfPeripheralRegisterTreeItem } from "./register";
-import { hexFormat, readMemoryChunks, splitIntoChunks } from "./utils";
+import { Cluster } from "./cluster";
+import { AddrRange, NodeSetting, NumberFormat } from "../common";
+import { PeripheralBaseNode } from "./base";
+import { Register } from "./register";
+import { hexFormat, readMemoryChunks, splitIntoChunks } from "../utils";
 
 export enum AccessType {
   ReadOnly = 1,
@@ -54,9 +54,9 @@ export interface PeripheralOptions {
   resetValue?: number;
 }
 
-export class EspIdfPeripheralTreeItem extends PeripheralBaseNode {
+export class Peripheral extends PeripheralBaseNode {
   private children: Array<
-    EspIdfPeripheralRegisterTreeItem | EspIdfPeripheralClusterTreeItem
+    Register | Cluster
   >;
   public readonly name: string;
   public readonly baseAddress: number;
@@ -114,7 +114,7 @@ export class EspIdfPeripheralTreeItem extends PeripheralBaseNode {
 
   public setChildren(
     children: Array<
-      EspIdfPeripheralRegisterTreeItem | EspIdfPeripheralClusterTreeItem
+      Register | Cluster
     >
   ) {
     this.children = children;
@@ -124,7 +124,7 @@ export class EspIdfPeripheralTreeItem extends PeripheralBaseNode {
   }
 
   public addChild(
-    child: EspIdfPeripheralRegisterTreeItem | EspIdfPeripheralClusterTreeItem
+    child: Register | Cluster
   ) {
     this.children.push(child);
     this.children.sort((child1, child2) =>
@@ -263,8 +263,8 @@ export class EspIdfPeripheralTreeItem extends PeripheralBaseNode {
   }
 
   public static compare(
-    p1: EspIdfPeripheralTreeItem,
-    p2: EspIdfPeripheralTreeItem
+    p1: Peripheral,
+    p2: Peripheral
   ): number {
     if ((p1.pinned && p2.pinned) || (!p1.pinned && !p2.pinned)) {
       if (p1.groupName !== p2.groupName) {

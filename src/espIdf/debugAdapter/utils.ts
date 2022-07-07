@@ -44,6 +44,10 @@ export function binaryFormat(
   return includePrefix ? "0b" + base : base;
 }
 
+export function cleanupDescription(input: string): string {
+  return input.replace('\r', '').replace(/\n\s*/g, ' ');
+}
+
 export function createMask(offset: number, width: number) {
   let r = 0;
   const a = offset;
@@ -68,6 +72,53 @@ export function hexFormat(
   let base = (value >>> 0).toString(16);
   base = base.padStart(padding, "0");
   return includePrefix ? "0x" + base : base;
+}
+
+export function parseDimIndex(spec: string, count: number): string[] {
+  if (spec.indexOf(",") !== -1) {
+    const components = spec.split(",").map((c) => c.trim());
+    if (components.length !== count) {
+      throw new Error("dimIndex Element has invalid specification.");
+    }
+    return components;
+  }
+
+  if (/^([0-9]+)\-([0-9]+)$/i.test(spec)) {
+    const parts = spec.split("-").map((p) => parseInteger(p));
+    const start = parts[0];
+    const end = parts[1];
+
+    const numElements = end - start + 1;
+    if (numElements < count) {
+      throw new Error("dimIndex Element has invalid specification.");
+    }
+
+    const components = [];
+    for (let i = 0; i < count; i++) {
+      components.push(`${start + i}`);
+    }
+
+    return components;
+  }
+
+  if (/^[a-zA-Z]\-[a-zA-Z]$/.test(spec)) {
+    const start = spec.charCodeAt(0);
+    const end = spec.charCodeAt(2);
+
+    const numElements = end - start + 1;
+    if (numElements < count) {
+      throw new Error("dimIndex Element has invalid specification.");
+    }
+
+    const components = [];
+    for (let i = 0; i < count; i++) {
+      components.push(String.fromCharCode(start + i));
+    }
+
+    return components;
+  }
+
+  return [];
 }
 
 export function parseInteger(value: string): number {
