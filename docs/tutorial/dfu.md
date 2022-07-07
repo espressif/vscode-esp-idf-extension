@@ -4,7 +4,7 @@
 
 - ESP32-S2 or an ESP32-S3 chip
 - You will need to do some electrical connection work. (Here is a guide for the S2 board: https://blog.espressif.com/dfu-using-the-native-usb-on-esp32-s2-for-flashing-the-firmware-b2c4af3335f1)
-- The ESP32-S2 chip needs to be in bootloader mode for the detection as a DFU device and flashing. This can be achieved by pressing the “reset” button, while holding the “boot” button pressed
+- The chip needs to be in bootloader mode for the detection as a DFU device and flashing. This can be achieved by pressing the “reset” button, while holding the “boot” button pressed
 - For Windows only: You have to register on Windows the device with the WinUSB driver.
     > **NOTE:** The drivers can be installed by the [Zadig tool](https://zadig.akeo.ie/). Please make sure that the device is in download mode before you run the tool and that it detects the ESP32-S2 device before you install the drivers. The Zadig tool might detect several USB interfaces of ESP32-S2. Please install the WinUSB driver only for the interface where there is no driver installed (probably it is Interface 2) and do not re-install the driver for the other interface.
 
@@ -20,7 +20,12 @@
   <img src="../../media/tutorials/dfu/build_project.png" alt="Build Project" height="500">
 </p>
 
-3. Flash
+3. Select DFU as flashing method
+<p>
+  <img src="../../media/tutorials/dfu/flash_method.png" alt="Flash" height="500">
+</p>
+
+4. Flash
 <p>
   <img src="../../media/tutorials/dfu/flash.png" alt="Flash" height="500">
 </p>
