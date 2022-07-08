@@ -354,7 +354,7 @@ export class Register extends PeripheralBaseNode {
     return Promise.resolve(true);
   }
 
-  public saveState(path?: string): NodeSetting[] {
+  public saveState(path?: string) {
     const results: NodeSetting[] = [];
 
     if (this.format !== NumberFormat.Auto || this.expanded) {
@@ -364,10 +364,10 @@ export class Register extends PeripheralBaseNode {
         format: this.format,
       });
     }
-
-    this.children.forEach((c) => {
-      results.push(...c.saveState(`${path}.${this.name}`));
-    });
+    for (const c of this.children) {
+      const stateResult = c.saveState(`${path}.${this.name}`);
+      results.push(...stateResult);
+    }
 
     return results;
   }

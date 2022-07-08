@@ -16,8 +16,19 @@
  * limitations under the License.
  */
 
-import { MarkdownString, TreeItem, TreeItemCollapsibleState, TreeItemLabel, window } from "vscode";
-import { AddrRange, EnumerationMap, NodeSetting, NumberFormat } from "../common";
+import {
+  MarkdownString,
+  TreeItem,
+  TreeItemCollapsibleState,
+  TreeItemLabel,
+  window,
+} from "vscode";
+import {
+  AddrRange,
+  EnumerationMap,
+  NodeSetting,
+  NumberFormat,
+} from "../common";
 import { AccessType } from "./peripheral";
 import { Register } from "./register";
 import { binaryFormat, hexFormat, parseInteger } from "../utils";

@@ -34,17 +34,20 @@ import { Field } from "./nodes/field";
 export class SVDParser {
   private static peripheralMap = {};
   private static enumTypeValuesMap = {};
+  private static gapThreshold: number = 16;
 
   public static async parse(
     session: DebugSession,
     svdFilePath: string,
-    gapThreshold: string
+    gapThreshold: number
   ) {
-    
+    SVDParser.gapThreshold = gapThreshold;
+    SVDParser.enumTypeValuesMap = {};
+    SVDParser.peripheralMap = {};
     const svdData = await readFile(svdFilePath, "utf-8");
 
-    return new Promise((resolve, reject) => {
-      parseString(svdData, (err, result) => {
+    return new Promise<Peripheral[]>((resolve, reject) => {
+      parseString(svdData, async (err, result) => {
         if (err) {
           return reject(err);
         }
@@ -81,17 +84,15 @@ export class SVDParser {
           }
         }
 
-        const peripherals = [];
+        const peripherals: Peripheral[] = [];
         for (const key in peripheralMap) {
           try {
-            peripherals.push(
-              SVDParser.parsePeripheral(
-                session,
-                gapThreshold,
-                peripheralMap[key],
-                defaultOptions
-              )
+            const p = await SVDParser.parsePeripheral(
+              session,
+              peripheralMap[key],
+              defaultOptions
             );
+            peripherals.push(p);
           } catch (error) {
             reject(error);
           }
@@ -101,10 +102,7 @@ export class SVDParser {
     });
   }
 
-  private static parseFields(
-    fieldInfo: any[],
-    parent: Register
-  ): Field[] {
+  private static parseFields(fieldInfo: any[], parent: Register): Field[] {
     const fields: Field[] = [];
 
     if (fieldInfo == null) {
@@ -168,10 +166,6 @@ export class SVDParser {
               valueMap[evvalue] = new EnumeratedValue(evname, evdesc, evvalue);
             }
           });
-
-          // According to the SVD spec/schema, I am not sure any scope applies. Seems like everything is in a global name space
-          // No make sense but how I am interpreting it for now. Easy to make it scope based but then why allow referencing
-          // other peripherals. Global scope it is. Overrides dups from previous definitions!!!
           if (eValues.name && eValues.name[0]) {
             let evName = eValues.name[0];
             for (const prefix of [
@@ -321,7 +315,6 @@ export class SVDParser {
 
   public static async parsePeripheral(
     session: DebugSession,
-    gapThreshold: string,
     p: any,
     defOptions: PeripheralOptions
   ) {
@@ -338,7 +331,7 @@ export class SVDParser {
     const options = {
       name: p.name,
       baseAddress: parseInteger(p.baseAddress ? p.baseAddress : 0),
-      description: p.description ? p.description : "",
+      description: cleanupDescription(p.description ? p.description : ""),
       totalLength: length,
     } as PeripheralOptions;
 
@@ -355,11 +348,7 @@ export class SVDParser {
       options.groupName = p.groupName;
     }
 
-    const peripheral = new Peripheral(
-      session,
-      gapThreshold,
-      options
-    );
+    const peripheral = new Peripheral(session, SVDParser.gapThreshold, options);
 
     if (p.registers) {
       if (p.registers[0].register) {
