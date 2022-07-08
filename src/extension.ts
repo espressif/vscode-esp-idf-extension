@@ -522,9 +522,9 @@ export async function activate(context: vscode.ExtensionContext) {
         );
       }
       if (ConfserverProcess.exists()) {
-        OutputChannel.init().appendLine(
-          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
-        );
+        const closingSDKConfigMsg = `Trying to delete the build folder. Closing existing SDK Configuration editor process...`;
+        OutputChannel.init().appendLine(closingSDKConfigMsg);
+        Logger.info(closingSDKConfigMsg);
         ConfserverProcess.dispose();
       }
       const cmakeCacheFile = path.join(buildDir, "CMakeCache.txt");
@@ -2772,10 +2772,11 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot.fsPath,
             OutputChannel.init()
           );
-          OutputChannel.appendLine(
-            `Ninja build summary - ${Date().toLocaleString()}`
-          );
+          const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
+          OutputChannel.appendLine(ninjaBuildMsg);
+          Logger.info(ninjaBuildMsg);
           OutputChannel.appendLine(summaryResult);
+          Logger.info(summaryResult);
           OutputChannel.show();
         } catch (error) {
           Logger.errorNotify("Ninja build summary found an error", error);

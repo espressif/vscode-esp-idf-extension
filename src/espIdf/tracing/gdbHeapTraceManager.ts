@@ -18,9 +18,10 @@
 import { ChildProcess, spawn } from "child_process";
 import { ensureDir, pathExists, writeFile } from "fs-extra";
 import { join } from "path";
-import { env, OutputChannel, Uri, window } from "vscode";
+import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
@@ -33,7 +34,6 @@ import {
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
   private archiveDataProvider: AppTraceArchiveTreeDataProvider;
-  private heapTraceChannel: OutputChannel;
   private childProcess: ChildProcess;
   private gdbinitFileName: string = "heaptrace-gdbinit";
   private workspace: Uri;
@@ -44,14 +44,13 @@ export class GdbHeapTraceManager {
   ) {
     this.treeDataProvider = treeDataProvider;
     this.archiveDataProvider = archiveDataProvider;
-    this.heapTraceChannel = window.createOutputChannel("GDB Heap Trace");
+    OutputChannel.init();
   }
 
   public async start(workspace: Uri) {
     try {
       const isOpenOcdLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
       if (isOpenOcdLaunched) {
-        this.heapTraceChannel.clear();
         this.showStopButton();
         ensureDir(join(workspace.fsPath, "trace"));
         const fileName = `file://${join(workspace.fsPath, "trace").replace(
@@ -109,26 +108,24 @@ export class GdbHeapTraceManager {
         );
 
         this.childProcess.stdout.on("data", (data) => {
-          this.heapTraceChannel.appendLine(data.toString());
+          Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
 
         this.childProcess.stderr.on("data", (data) => {
-          this.heapTraceChannel.appendLine(data.toString());
+          Logger.info(data.toString());
           this.errorHandler(data.toString());
         });
 
         this.childProcess.on("error", (err) => {
-          this.heapTraceChannel.appendLine(err.message);
-          this.heapTraceChannel.appendLine(err.stack);
+          Logger.errorNotify(err.message, err);
           this.stop();
         });
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
-            this.heapTraceChannel.appendLine(
-              `Heap tracing process exited with code ${code} and signal ${signal}`
-            );
+            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`
+            Logger.errorNotify(errMsg, new Error(errMsg));
           }
         });
       }
@@ -137,7 +134,7 @@ export class GdbHeapTraceManager {
         ? error.message
         : "Error starting GDB Heap Tracing";
       Logger.errorNotify(msg, error);
-      this.heapTraceChannel.appendLine(msg);
+      OutputChannel.appendLine(msg, "GDB Heap Trace");
       this.stop();
     }
   }

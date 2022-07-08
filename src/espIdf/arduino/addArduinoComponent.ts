@@ -21,6 +21,7 @@ import * as idfConf from "../../idfConfiguration";
 import * as treeKill from "tree-kill";
 import { join } from "path";
 import { ensureDir } from "fs-extra";
+import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { ESP } from "../../config";
 
@@ -40,7 +41,9 @@ export class ArduinoComponentInstaller {
     if (this.cloneProcess && !this.cloneProcess.killed) {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
-      OutputChannel.appendLine("\n❌ [Arduino ESP32 Cloning] : Stopped!\n");
+      const stoppedMsg = "\n❌ [Arduino ESP32 Cloning] : Stopped!\n";
+      OutputChannel.appendLine(stoppedMsg);
+      Logger.info(stoppedMsg);
     }
   }
 
@@ -67,17 +70,19 @@ export class ArduinoComponentInstaller {
       );
       this.cloneProcess.stderr.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
+        Logger.info(data.toString());
       });
 
       this.cloneProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
+        Logger.info(data.toString());
       });
       this.cloneProcess.on("exit", (code, signal) => {
         if (!signal && code !== 0) {
-          OutputChannel.appendLine(
-            `Arduino ESP32 cloning has exit with ${code}`
-          );
-          reject(new Error(`Arduino ESP32 cloning has exit with ${code}`));
+          const errorMsg = `Arduino ESP32 cloning has exit with ${code}`;
+          OutputChannel.appendLine(errorMsg);
+          Logger.errorNotify(errorMsg, new Error(errorMsg));
+          reject(new Error(errorMsg));
         }
         resolve();
       });

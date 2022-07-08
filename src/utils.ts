@@ -738,6 +738,7 @@ export async function cleanDirtyGitRepository(
       { env: modifiedEnv, cwd: workingDir }
     );
     OutputChannel.init().appendLine(resetResult + EOL);
+    Logger.info(resetResult + EOL);
   } catch (error) {
     const errMsg = error.message ? error.message : "Error resetting repository";
     Logger.errorNotify(errMsg, error);
@@ -770,6 +771,7 @@ export async function fixFileModeGitRepository(
     OutputChannel.init().appendLine(
       fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL
     );
+    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL);
   } catch (error) {
     const errMsg = error.message
       ? error.message

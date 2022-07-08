@@ -21,6 +21,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
+import { OutputChannel } from "../../logger/outputChannel";
 import {
   appendIdfAndToolsToPath,
   isBinInPath,
@@ -48,7 +49,6 @@ export class OpenOCDManager extends EventEmitter {
   private openOcdConfigFilesList: string[];
   private server: ChildProcess;
   private chan: Buffer;
-  private displayChan: vscode.OutputChannel;
   private statusBar: vscode.StatusBarItem;
   private tclConnectionParams: TCLConnection;
   private workspace: vscode.Uri;
@@ -212,10 +212,12 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
-        this.displayChan.append(`❌ ${errStr}`);
+        Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
+        OutputChannel.append(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
-      this.displayChan.append(errStr);
+      OutputChannel.append(errStr, "OpenOCD");
+      Logger.info(errStr);
     });
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
@@ -236,8 +238,7 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.updateStatusText("❇️ OpenOCD Server (Running)");
-    this.displayChan.clear();
-    this.displayChan.show(true);
+    OutputChannel.show();
   }
 
   public stop() {
@@ -245,12 +246,14 @@ export class OpenOCDManager extends EventEmitter {
       this.server.kill("SIGKILL");
       this.server = undefined;
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
-      this.displayChan.appendLine("[Stopped] : OpenOCD Server");
+      const endMsg = "[Stopped] : OpenOCD Server";
+      OutputChannel.appendLine(endMsg, "OpenOCD");
+      Logger.info(endMsg);
     }
   }
 
   public showOutputChannel(preserveFocus?: boolean) {
-    this.displayChan.show(preserveFocus);
+    preserveFocus ? OutputChannel.show() : null;
   }
 
   private registerOpenOCDStatusBarItem() {
@@ -274,7 +277,7 @@ export class OpenOCDManager extends EventEmitter {
     const port = idfConf.readParameter("openocd.tcl.port", this.workspace);
     this.openOcdConfigFilesList = openOcdConfigFilesList;
     this.chan = Buffer.alloc(0);
-    this.displayChan = vscode.window.createOutputChannel("OpenOCD");
+    OutputChannel.init();
     this.tclConnectionParams = { host, port };
     this.registerOpenOCDStatusBarItem();
   }

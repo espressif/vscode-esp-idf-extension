@@ -22,13 +22,19 @@ export class OutputChannel {
     return OutputChannel.instance;
   }
 
-  public static appendLine(message: string) {
+  public static appendLine(message: string, name?: string) {
     OutputChannel.checkInitialized();
+    if(name) {
+      OutputChannel.instance.appendLine(`[${name}]`);
+    }
     OutputChannel.instance.appendLine(message);
   }
 
-  public static append(message: string) {
+  public static append(message: string, name?: string) {
     OutputChannel.checkInitialized();
+    if(name) {
+      OutputChannel.instance.appendLine(`[${name}]`);
+    } 
     OutputChannel.instance.append(message);
   }
 

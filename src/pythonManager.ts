@@ -132,6 +132,7 @@ export async function installExtensionPyReqs(
     return;
   }
   const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
+  Logger.info(installExtensionPyPkgsMsg);
   if (pyTracker) {
     pyTracker.Log = installExtensionPyPkgsMsg;
   }
@@ -157,6 +158,7 @@ export async function installExtensionPyReqs(
     cancelToken
   );
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
+  Logger.info(installDAPyPkgsMsg + "\n");
   if (pyTracker) {
     pyTracker.Log = installDAPyPkgsMsg;
   }
@@ -188,6 +190,7 @@ export async function execProcessWithLog(
     opts,
     cancelToken
   );
+  Logger.info(processResult + "\n");
   if (pyTracker) {
     pyTracker.Log = processResult + "\n";
   }

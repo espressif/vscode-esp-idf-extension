@@ -31,6 +31,7 @@ import {
 import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
@@ -63,7 +64,6 @@ export class DebugAdapterManager extends EventEmitter {
   private coreDumpFile: string;
   private currentWorkspace: vscode.Uri;
   private debugAdapterPath: string;
-  private displayChan: vscode.OutputChannel;
   private elfFile: string;
   private env;
   private gdbinitFilePath: string;
@@ -78,9 +78,7 @@ export class DebugAdapterManager extends EventEmitter {
   private constructor(context: vscode.ExtensionContext) {
     super();
     this.configureWithDefaultValues(context.extensionPath);
-    this.displayChan = vscode.window.createOutputChannel(
-      "ESP-IDF Debug Adapter"
-    );
+    OutputChannel.init();
     this.chan = Buffer.alloc(0);
   }
 
@@ -193,14 +191,16 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.stderr.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        this.displayChan.append(data.toString());
+        OutputChannel.append(data.toString(), "Debug Adapter");
+        Logger.info(data.toString());
         this.emit("error", data, this.chan);
       });
 
       this.adapter.stdout.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        this.displayChan.append(data.toString());
+        OutputChannel.append(data.toString(), "Debug Adapter");
+        Logger.info(data.toString());
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
           return resolve(true);
@@ -222,8 +222,7 @@ export class DebugAdapterManager extends EventEmitter {
         }
         this.stop();
       });
-      this.displayChan.clear();
-      this.displayChan.show(true);
+      OutputChannel.show();
     });
   }
 
@@ -233,7 +232,9 @@ export class DebugAdapterManager extends EventEmitter {
       this.initGdbCommands = [];
       this.adapter.kill("SIGKILL");
       this.adapter = undefined;
-      this.displayChan.appendLine("[Stopped] : ESP-IDF Debug Adapter");
+      const stoppedMsg = "[Stopped] : ESP-IDF Debug Adapter";
+      Logger.info(stoppedMsg);
+      OutputChannel.appendLine(stoppedMsg);
     }
   }
 

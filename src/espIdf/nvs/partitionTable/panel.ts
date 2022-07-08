@@ -186,6 +186,7 @@ export class NVSPartitionTable {
         dirPath
       );
       OutputChannel.appendLine(result);
+      Logger.infoNotify(result);
 
       if (result.indexOf("Created NVS binary: ===>") !== -1) {
         Logger.infoNotify(`Created NVS Binary in ${join(dirPath, resultName)}`);
