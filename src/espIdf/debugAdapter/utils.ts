@@ -45,7 +45,7 @@ export function binaryFormat(
 }
 
 export function cleanupDescription(input: string): string {
-  return input.replace('\r', '').replace(/\n\s*/g, ' ');
+  return input.replace(/\r/g, "").replace(/\n\s*/g, " ");
 }
 
 export function createMask(offset: number, width: number) {
