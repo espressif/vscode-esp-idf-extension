@@ -60,19 +60,19 @@ export class SVDParser {
         } as PeripheralOptions;
 
         if (result.device.resetValue) {
-          defaultOptions.resetValue = result.device.resetValue;
+          defaultOptions.resetValue = result.device.resetValue[0];
         }
 
         if (result.device.size) {
-          defaultOptions.size = result.device.size;
+          defaultOptions.size = result.device.size[0];
         }
 
         if (result.device.access) {
-          defaultOptions.accessType = result.device.access;
+          defaultOptions.accessType = AccessTypeMap[result.device.access[0]];
         }
 
-        for (const peripheral of result.device.peripherals) {
-          peripheralMap[peripheral.name] = peripheral;
+        for (const peripheral of result.device.peripherals[0].peripheral) {
+          peripheralMap[peripheral.name[0]] = peripheral;
         }
 
         for (const key in peripheralMap) {
@@ -107,6 +107,10 @@ export class SVDParser {
 
     if (fieldInfo == null) {
       return fields;
+    }
+
+    if (!Array.isArray(fieldInfo)) {
+      return [];
     }
 
     fieldInfo.map((f) => {
@@ -322,56 +326,56 @@ export class SVDParser {
 
     if (p.addressBlock) {
       for (const addrBlock of p.addressBlock) {
-        const offset = parseInteger(addrBlock.offset);
-        const size = parseInteger(addrBlock.size);
+        const offset = parseInteger(addrBlock.offset[0]);
+        const size = parseInteger(addrBlock.size[0]);
         length = Math.max(length, offset + size);
       }
     }
 
     const options = {
       name: p.name,
-      baseAddress: parseInteger(p.baseAddress ? p.baseAddress : 0),
-      description: cleanupDescription(p.description ? p.description : ""),
+      baseAddress: parseInteger(p.baseAddress ? p.baseAddress[0] : 0),
+      description: cleanupDescription(p.description ? p.description[0] : ""),
       totalLength: length,
     } as PeripheralOptions;
 
     if (p.access) {
-      options.accessType = AccessTypeMap[p.access];
+      options.accessType = AccessTypeMap[p.access[0]];
     }
     if (p.size) {
-      options.size = parseInteger(p.size);
+      options.size = parseInteger(p.size[0]);
     }
     if (p.resetValue) {
-      options.resetValue = p.resetValue;
+      options.resetValue = parseInteger(p.resetValue[0]);
     }
     if (p.groupName) {
-      options.groupName = p.groupName;
+      options.groupName = p.groupName[0];
     }
 
     const peripheral = new Peripheral(session, SVDParser.gapThreshold, options);
 
     if (p.registers) {
       if (p.registers[0].register) {
-        SVDParser.parseRegisters(p.registers, peripheral);
+        SVDParser.parseRegisters(p.registers[0].register, peripheral);
       }
-      if (p.registers[0].register) {
-        SVDParser.parseClusters(p.registers, peripheral);
+      if (p.registers[0].cluster) {
+        SVDParser.parseClusters(p.registers[0].cluster, peripheral);
       }
     }
     return peripheral;
   }
 
   public static parseRegisters(
-    registersInfo: any[],
+    info: any[],
     parent: Peripheral | Cluster
   ): Register[] {
-    const info = [...registersInfo];
+    const registersInfo = [...info];
     const registers: Register[] = [];
 
     const registerMap = {};
     for (const reg of registersInfo) {
-      registerMap[reg.name] = reg;
-      this.peripheralMap[`${parent.name}.${reg.name}`] = reg;
+      registerMap[reg.name[0]] = reg;
+      this.peripheralMap[`${parent.name}.${reg.name[0]}`] = reg;
     }
 
     let index = 0;
@@ -382,14 +386,14 @@ export class SVDParser {
           registerMap[derivedFrom] || this.peripheralMap[derivedFrom];
         if (!from) {
           throw new Error(
-            `Invalid 'derivedFrom' key "${derivedFrom}" in register ${reg.name}`
+            `Invalid 'derivedFrom' key "${derivedFrom}" in register ${reg.name[0]}`
           );
         }
         const combined = { ...from, ...reg };
         delete combined.$.derivedFrom;
         combined.$._derivedFrom = derivedFrom;
-        registerMap[reg.name] = combined;
-        this.peripheralMap[`${parent.name}.${reg.name}`] = combined;
+        registerMap[reg.name[0]] = combined;
+        this.peripheralMap[`${parent.name}.${reg.name[0]}`] = combined;
         registersInfo[index] = combined;
       }
       index++;
@@ -398,32 +402,32 @@ export class SVDParser {
     for (const reg of registersInfo) {
       const baseOptions = {} as PeripheralOptions;
       if (reg.access) {
-        baseOptions.accessType = AccessTypeMap[reg.access];
+        baseOptions.accessType = AccessTypeMap[reg.access[0]];
       }
       if (reg.size) {
-        baseOptions.size = parseInteger(reg.size);
+        baseOptions.size = parseInteger(reg.size[0]);
       }
       if (reg.resetValue) {
-        baseOptions.resetValue = parseInteger(reg.resetValue);
+        baseOptions.resetValue = parseInteger(reg.resetValue[0]);
       }
       if (reg.dim) {
         if (!reg.dimIncrement) {
           throw new Error("Register has dim element without dimIncrement");
         }
-        const count = parseInteger(reg.dim);
-        const increment = parseInteger(reg.dimIncrement);
+        const count = parseInteger(reg.dim[0]);
+        const increment = parseInteger(reg.dimIncrement[0]);
         let dimIndex = [];
         if (reg.dimIndex) {
-          dimIndex = parseDimIndex(reg.dimIndex, count);
+          dimIndex = parseDimIndex(reg.dimIndex[0], count);
         } else {
           for (let i = 0; i < count; i++) {
             dimIndex.push(`${i}`);
           }
         }
 
-        const nameBase: string = reg.name;
-        const descBase: string = reg.description ? reg.description : "";
-        const offsetBase = parseInteger(reg.addressOffset);
+        const nameBase: string = reg.name[0];
+        const descBase: string = cleanupDescription(reg.description ? reg.description[0] : "");
+        const offsetBase = parseInteger(reg.addressOffset[0]);
 
         for (let i = 0; i < count; i++) {
           const name = nameBase.replace("%s", dimIndex[i]);
@@ -436,20 +440,20 @@ export class SVDParser {
             addressOffset: offsetBase + increment * i,
           });
           if (reg.fields && reg.fields.length === 1) {
-            this.parseFields(reg.fields[0], register);
+            this.parseFields(reg.fields[0].field, register);
           }
           registers.push(register);
         }
       } else {
-        const description = reg.description ? reg.description : "";
+        const description = cleanupDescription(reg.description ? reg.description[0] : "");
         const register = new Register(parent, {
           ...baseOptions,
-          name: reg.name,
+          name: reg.name[0],
           description: description,
-          addressOffset: parseInteger(reg.addressOffset),
+          addressOffset: parseInteger(reg.addressOffset[0]),
         });
         if (reg.fields && reg.fields.length === 1) {
-          this.parseFields(reg.fields[0], register);
+          this.parseFields(reg.fields[0].field, register);
         }
         registers.push(register);
       }

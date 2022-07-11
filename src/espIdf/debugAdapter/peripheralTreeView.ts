@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { readJson, writeJson } from "fs-extra";
+import { pathExists, readJson, writeJson } from "fs-extra";
 import { isAbsolute, join, normalize } from "path";
 import {
   debug,
@@ -152,9 +152,7 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
     // Never rejects
     this.svdFileName = SVDFile;
     if (!isAbsolute(this.svdFileName) && this.wsFolderPath) {
-      const fullpath = normalize(
-        join(this.wsFolderPath, this.svdFileName)
-      );
+      const fullpath = normalize(join(this.wsFolderPath, this.svdFileName));
       this.svdFileName = fullpath;
     }
 
@@ -174,16 +172,19 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
 
       this.loadSVD().then(
         async () => {
-          const fspath = this.stateFileName();
-          const settings = await readJson(fspath);
-          settings.forEach((s: NodeSetting) => {
-            const node = this.findNodeByPath(s.node);
-            if (node) {
-              node.expanded = s.expanded || false;
-              node.pinned = s.pinned || false;
-              node.format = s.format;
-            }
-          });
+          const stateFilePath = this.stateFileName();
+          const stateFileExists = await pathExists(stateFilePath);
+          if (stateFileExists) {
+            const settings = await readJson(stateFilePath);
+            settings.forEach((s: NodeSetting) => {
+              const node = this.findNodeByPath(s.node);
+              if (node) {
+                node.expanded = s.expanded || false;
+                node.pinned = s.pinned || false;
+                node.format = s.format;
+              }
+            });
+          }
           this.peripherials.sort(Peripheral.compare);
           this.fireCb();
           resolve(undefined);
@@ -205,11 +206,7 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
 
   public stateFileName(): string {
     return this.wsFolderPath
-      ? join(
-          this.wsFolderPath,
-          ".vscode",
-          ".espidf.peripherals.state.json"
-        )
+      ? join(this.wsFolderPath, ".vscode", ".espidf.peripherals.state.json")
       : undefined;
   }
 
@@ -220,9 +217,7 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
         writeJson(this.stateFileName(), state);
       }
     } catch (e) {
-      window.showWarningMessage(
-        `Unable to save periperal preferences ${e}`
-      );
+      window.showWarningMessage(`Unable to save periperal preferences ${e}`);
     }
   }
 
@@ -237,9 +232,6 @@ export class PeripheralTreeView
   private _onDidChangeTreeData: EventEmitter<
     PeripheralBaseNode
   > = new EventEmitter<PeripheralBaseNode>();
-  private memoryItems: PeripheralBaseNode[];
-  private workspaceFolder: Uri;
-  private isSessionActive: boolean = false;
 
   protected sessionPeripheralsMap = new Map<string, PeripheralTreeForSession>();
   protected oldState = new Map<string, TreeItemCollapsibleState>();
@@ -247,9 +239,7 @@ export class PeripheralTreeView
   readonly onDidChangeTreeData: Event<PeripheralBaseNode> = this
     ._onDidChangeTreeData.event;
 
-  constructor(private debugSession: DebugSession) {
-    this.workspaceFolder = this.debugSession.workspaceFolder.uri;
-  }
+  constructor() {}
 
   refresh() {
     this._onDidChangeTreeData.fire(null);
@@ -339,14 +329,14 @@ export class PeripheralTreeView
 
   public debugContinued() {}
 
-  public getActiveCDSession() {
+  public getActiveDebugSession() {
     return debug.activeDebugSession?.type === "espidf"
       ? debug.activeDebugSession
       : null;
   }
 
   public togglePinPeripheral(node: PeripheralBaseNode) {
-    const session = this.getActiveCDSession();
+    const session = this.getActiveDebugSession();
     const regs = this.sessionPeripheralsMap.get(session?.id);
     if (regs) {
       regs.togglePinPeripheral(node);

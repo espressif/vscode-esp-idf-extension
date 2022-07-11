@@ -138,8 +138,8 @@
     "views": {
       "debug": [
         {
-          "name": "ESP Memory View",
-          "id": "espIdf.memoryView"
+          "name": "ESP Peripheral View",
+          "id": "espIdf.peripheralView"
         }
       ],
       "idfViewController": [
