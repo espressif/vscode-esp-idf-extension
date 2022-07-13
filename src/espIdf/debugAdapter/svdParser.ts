@@ -97,6 +97,12 @@ export class SVDParser {
             reject(error);
           }
         }
+
+        peripherals.sort(Peripheral.compare);
+
+        for (const p of peripherals) {
+          p.collectRanges();
+        }
         return resolve(peripherals);
       });
     });

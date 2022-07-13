@@ -144,11 +144,16 @@ export function readMemoryChunks(
     return new Promise((resolve, reject) => {
       const addr = "0x" + r.base.toString(16);
       session
-        .customRequest("read-memory", { address: addr, length: r.length })
+        .customRequest("readMemory", { memoryReference: addr, count: r.length, offset: 0 })
         .then(
-          (data) => {
+          (result) => {
             let dst = r.base - startAddr;
-            const bytes: number[] = data.bytes;
+            const bytes = [];
+            const numBytes = result.data[0].contents.length / 2;
+            const data = result.data[0].contents;
+            for (let i = 0, d = 0; i < numBytes; i++, d +=2) {
+              bytes.push([`${data[d]}${data[d+1]}`]);
+            }
             for (const byte of bytes) {
               storeTo[dst++] = byte;
             }
@@ -206,7 +211,6 @@ export function splitIntoChunks(
       r.length -= maxBytes;
     }
     if (r.length > 0) {
-      // Watch out, can be negative
       newRanges.push(r);
     }
   }

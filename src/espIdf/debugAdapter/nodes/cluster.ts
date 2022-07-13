@@ -149,9 +149,9 @@ export class Cluster extends PeripheralBaseNode {
     }
   }
 
-  public collectRanges(ary: AddrRange[]): void {
+  public collectRanges(addrRanges: AddrRange[]): void {
     this.children.map((r) => {
-      r.collectRanges(ary);
+      r.collectRanges(addrRanges);
     });
   }
 
