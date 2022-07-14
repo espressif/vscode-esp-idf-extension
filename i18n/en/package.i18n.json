@@ -91,6 +91,7 @@
   "param.postFlashTask": "Post flash custom task",
   "param.customTask": "Custom task",
   "param.buildDirectoryName": "Name of CMake build directory",
+  "param.svdFile": "SVD file to resolve ESP-IDF Peripheral view in Debug view",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

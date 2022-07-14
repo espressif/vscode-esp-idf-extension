@@ -781,6 +781,12 @@
             "default": "",
             "scope": "resource",
             "description": "%param.customTask%"
+          },
+          "idf.svdFilePath": {
+            "type": "string",
+            "default": "${workspaceFolder}/esp32.svd",
+            "scope": "resource",
+            "description": "%param.svdFile%"
           }
         }
       }
@@ -1103,7 +1109,13 @@
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.downloadSVDFile",
+        "title": "Download SVD File",
+        "category": "ESP-IDF"
       }
+
     ],
     "breakpoints": [
       {

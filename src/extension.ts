@@ -122,6 +122,8 @@ import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
+import { DownloadManager } from "./downloadManager";
+import { PackageProgress } from "./PackageProgress";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -760,6 +762,57 @@ export async function activate(context: vscode.ExtensionContext) {
     idfConf.chooseConfigurationTarget();
   });
 
+  registerIDFCommand("espIdf.downloadSVDFile", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const downloadManager = new DownloadManager(workspaceRoot.fsPath);
+      let selectedSVDFile = "esp32";
+      const esp32Svd = `https://raw.githubusercontent.com/espressif/svd/main/svd/esp32.svd`;
+
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: `Downloading ${selectedSVDFile} SVD file`,
+        },
+        async (
+          progress: vscode.Progress<{
+            message: string;
+            increment: number;
+          }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          const pkgProgress = new PackageProgress(
+            `${selectedSVDFile} SVD file`,
+            (name: string, val: number) => {
+              progress.report({
+                message: `${name} : ${val} %`,
+                increment: val,
+              });
+            },
+            null,
+            null,
+            null
+          );
+          await downloadManager.downloadWithRetries(
+            esp32Svd,
+            workspaceRoot.fsPath,
+            pkgProgress,
+            cancelToken
+          );
+          await idfConf.writeParameter(
+            "idf.svdFilePath",
+            path.join(workspaceRoot.fsPath, `${selectedSVDFile}.svd`),
+            vscode.ConfigurationTarget.WorkspaceFolder,
+            workspaceRoot
+          );
+          vscode.window.showInformationMessage(
+            `${selectedSVDFile} has been downloaded.`
+          );
+        }
+      );
+    });
+  });
+
   registerIDFCommand("espIdf.setPath", () => {
     PreCheck.perform([webIdeCheck], async () => {
       const selectFrameworkMsg = locDic.localize(
@@ -1097,7 +1150,10 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.debug.onDidStartDebugSession((session) => {
-    const svdFile = path.join(context.extensionPath, "esp32.svd");
+    const svdFile = idfConf.readParameter(
+      "idf.svdFilePath",
+      workspaceRoot
+    ) as string;
     peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
   });
 

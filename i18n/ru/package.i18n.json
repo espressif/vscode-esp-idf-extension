@@ -94,6 +94,7 @@
   "param.postFlashTask": "Опубликовать настраиваемую задачу Flash",
   "param.customTask": "Специальная задача",
   "param.buildDirectoryName": "Имя каталога сборки CMake",
+  "param.svdFile": "Файл SVD для разрешения периферийного представления ESP-IDF в представлении отладки",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",
