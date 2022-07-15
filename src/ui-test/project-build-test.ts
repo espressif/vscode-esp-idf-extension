@@ -41,7 +41,9 @@ describe("Build testing", async () => {
     await new Promise((res) => setTimeout(res, 2000));
     const terminalView = await panel.openTerminalView();
     await new Promise((res) => setTimeout(res, 150000));
-    await terminalView.getCurrentChannel();
+    const names = await terminalView.getChannelNames();
+    console.log(names);
+    // await terminalView.selectChannel();
     const text = await terminalView.getText();
     console.log(text);
     const testBinPath = resolve(
