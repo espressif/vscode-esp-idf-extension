@@ -28,6 +28,7 @@ export function getConfigurationSettings(
     espAdfPath: conf.get("idf.espAdfPath" + winFlag),
     espIdfPath: conf.get("idf.espIdfPath" + winFlag),
     espMdfPath: conf.get("idf.espMdfPath" + winFlag),
+    espMatterPath: conf.get("idf.espMatterPath" + winFlag),
     customExtraPaths: conf.get("idf.customExtraPaths"),
     customExtraVars: conf.get("idf.customExtraVars"),
     pythonBinPath: conf.get("idf.pythonBinPath" + winFlag),

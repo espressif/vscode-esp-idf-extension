@@ -14,3 +14,5 @@ In addition to ESP-IDF chips, there are several boards configurations files impl
 - [Espressif Audio Development Framework (ESP-ADF)](https://github.com/espressif/esp-adf) is the official audio development framework for the ESP32 and ESP32-S2 SoCs. The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 
 - [Espressif Mesh Development Framework (ESP-MDF)](https://github.com/espressif/esp-mdf) to develop with the [ESP-WIFI-MESH](https://docs.espressif.com/projects/esp-idf/en/stable/api-guides/mesh.html) networking protocol. The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+
+- [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows) configuration setting.

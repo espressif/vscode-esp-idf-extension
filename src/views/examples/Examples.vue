@@ -2,11 +2,7 @@
   <div id="examples-window">
     <div id="sidenav" class="content">
       <ul>
-        <ExampleList
-          v-for="cat of exampleRootPath.subcategories"
-          :node="cat"
-          :key="cat.name"
-        />
+        <ExampleList :node="exampleRootPath" :key="exampleRootPath.name" />
       </ul>
     </div>
 

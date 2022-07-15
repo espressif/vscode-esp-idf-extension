@@ -39,6 +39,7 @@ export async function writeTextReport(
   output += `ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
+  output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   output += `Custom extra vars (idf.customExtraVars) ${reportedResult.configurationSettings.customExtraVars}${EOL}`;
   output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
@@ -50,6 +51,7 @@ export async function writeTextReport(
   output += `Access to ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
   output += `Access to ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
+  output += `Access to ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
