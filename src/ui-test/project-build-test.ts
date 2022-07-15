@@ -37,10 +37,10 @@ describe("Build testing", async () => {
     await new Workbench().executeCommand("ESP-IDF: Build your project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
-    panel = new BottomBarPanel();
     await new Promise((res) => setTimeout(res, 2000));
-    const terminalView = await panel.openTerminalView();
     await new Promise((res) => setTimeout(res, 150000));
+    panel = new BottomBarPanel();
+    const terminalView = await panel.openTerminalView();
     const names = await terminalView.getChannelNames();
     console.log(names);
     // await terminalView.selectChannel();
