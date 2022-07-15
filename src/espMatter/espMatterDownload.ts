@@ -20,6 +20,8 @@ import { join } from "path";
 import {
   ShellExecution,
   ShellExecutionOptions,
+  TaskPanelKind,
+  TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
 } from "vscode";
@@ -60,12 +62,12 @@ export class EspMatterCloning extends AbstractCloning {
       matterPathDir,
       "connectedhomeip",
       "connectedhomeip"
-      );
-      const bootstrapFilePath = join(workingDir, "scripts", "bootstrap.sh");
-      const bootstrapFilePathExists = await pathExists(bootstrapFilePath);
-      if (!bootstrapFilePathExists) {
-        return;
-      }
+    );
+    const bootstrapFilePath = join(workingDir, "scripts", "bootstrap.sh");
+    const bootstrapFilePathExists = await pathExists(bootstrapFilePath);
+    if (!bootstrapFilePathExists) {
+      return;
+    }
     EspMatterCloning.isBuildingGn = true;
     const shellOptions: ShellExecutionOptions = {
       cwd: workingDir,
@@ -76,13 +78,24 @@ export class EspMatterCloning extends AbstractCloning {
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
 
+    const matterBootstrapPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: true,
+      panel: TaskPanelKind.Dedicated,
+    } as TaskPresentationOptions;
+
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-Matter Bootstrap", taskId: "idf-bootstrap-task" },
+      {
+        type: "esp-idf",
+        command: "ESP-Matter Bootstrap",
+        taskId: "idf-bootstrap-task",
+      },
       TaskScope.Workspace,
       "ESP-Matter Bootstrap",
       buildGnExec,
-      ["idfRelative", "idfAbsolute"],
-      showTaskOutput
+      ["espIdf"],
+      matterBootstrapPresentationOptions
     );
   }
 }
