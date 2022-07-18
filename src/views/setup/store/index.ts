@@ -30,6 +30,7 @@ export interface IState {
   espIdfContainer: string;
   espIdfErrorStatus: string;
   espIdfVersionList: IEspIdfLink[];
+  espIdfTags: IEspIdfLink[];
   exportedToolsPaths: string;
   exportedVars: string;
   gitVersion: string;
@@ -52,6 +53,7 @@ export interface IState {
   selectedIdfMirror: IdfMirror;
   selectedSysPython: string;
   setupMode: SetupMode;
+  showIdfTagList: boolean;
   statusIdfGit: StatusType;
   statusIdfPython: StatusType;
   statusEspIdf: StatusType;
@@ -67,6 +69,7 @@ export const setupState: IState = {
   espIdfContainer: "",
   espIdfErrorStatus: "",
   espIdfVersionList: [],
+  espIdfTags: [],
   exportedToolsPaths: "",
   exportedVars: "",
   gitVersion: "",
@@ -106,6 +109,7 @@ export const setupState: IState = {
   selectedIdfMirror: IdfMirror.Github,
   selectedSysPython: "",
   setupMode: SetupMode.express,
+  showIdfTagList: false,
   statusEspIdf: StatusType.started,
   statusEspIdfTools: StatusType.pending,
   statusIdfGit: StatusType.pending,
@@ -239,6 +243,11 @@ export const mutations: MutationTree<IState> = {
     }
     Object.assign(state, newState);
   },
+  setEspIdfTagsList(state, espIdfTagsList: IEspIdfLink[]) {
+    const newState = state;
+    newState.espIdfTags = espIdfTagsList;
+    Object.assign(state, newState);
+  },
   setGitVersion(state, gitVersion) {
     const newState = state;
     newState.gitVersion = gitVersion;
@@ -336,6 +345,11 @@ export const mutations: MutationTree<IState> = {
   setSetupMode(state, setupMode: SetupMode) {
     const newState = state;
     newState.setupMode = setupMode;
+    Object.assign(state, newState);
+  },
+  setShowIdfTagList(state, showIdfTagList: boolean) {
+    const newState = state;
+    newState.showIdfTagList = showIdfTagList;
     Object.assign(state, newState);
   },
   setToolsFolder(state, toolsFolder: string) {

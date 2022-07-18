@@ -21,7 +21,7 @@ import {
 } from "vscode";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import * as utils from "../utils";
-import { getEspIdfVersions } from "./espIdfVersionList";
+import { getEspIdfTags, getEspIdfVersions } from "./espIdfVersionList";
 import { IEspIdfLink } from "../views/setup/types";
 import { getPythonList } from "./installPyReqs";
 import { pathExists } from "fs-extra";
@@ -38,6 +38,7 @@ export interface ISetupInitArgs {
   exportedPaths: string;
   exportedVars: string;
   espIdfVersionsList: IEspIdfLink[];
+  espIdfTagsList: IEspIdfLink[];
   gitPath: string;
   gitVersion: string;
   hasPrerequisites: boolean;
@@ -111,6 +112,7 @@ export async function checkPreviousInstall(
       exportedPaths: undefined,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      espIdfTagsList: undefined,
       gitPath,
       gitVersion,
       hasPrerequisites: undefined,
@@ -146,6 +148,7 @@ export async function checkPreviousInstall(
       exportedPaths: undefined,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      espIdfTagsList: undefined,
       gitPath,
       gitVersion,
       hasPrerequisites: undefined,
@@ -168,6 +171,7 @@ export async function checkPreviousInstall(
       toolsResults: toolsInfo,
       exportedVars: undefined,
       espIdfVersionsList: undefined,
+      espIdfTagsList: undefined,
       gitPath,
       gitVersion,
       hasPrerequisites: undefined,
@@ -195,6 +199,7 @@ export async function checkPreviousInstall(
       exportedVars,
       toolsResults: toolsInfo,
       espIdfVersionsList: undefined,
+      espIdfTagsList: undefined,
       gitPath,
       gitVersion,
       hasPrerequisites: undefined,
@@ -212,6 +217,7 @@ export async function checkPreviousInstall(
     pyBinPath: pyEnvPath,
     toolsResults: toolsInfo,
     espIdfVersionsList: undefined,
+    espIdfTagsList: undefined,
     gitPath,
     gitVersion,
     hasPrerequisites: undefined,
@@ -281,10 +287,13 @@ export async function getSetupInitialValues(
 ) {
   progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
-  progress.report({ increment: 20, message: "Getting Python versions..." });
+  progress.report({ increment: 10, message: "Getting ESP-IDF Tags"});
+  const espIdfTagsList = await getEspIdfTags();
+  progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const setupInitArgs = {
     espIdfVersionsList,
+    espIdfTagsList,
     pythonVersions,
   } as ISetupInitArgs;
   try {
@@ -478,3 +487,4 @@ export async function saveSettings(
   );
   window.showInformationMessage("ESP-IDF has been configured");
 }
+

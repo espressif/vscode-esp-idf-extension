@@ -208,6 +208,7 @@ export class SetupPanel {
             hasPrerequisites: setupArgs.hasPrerequisites,
             idfVersion: setupArgs.espIdfVersion,
             idfVersions: setupArgs.espIdfVersionsList,
+            idfTags: setupArgs.espIdfTagsList,
             pathSep,
             platform: process.platform,
             pyBinPath: setupArgs.pyBinPath,
