@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th December 2020 5:07:59 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,6 +35,7 @@ export async function writeTextReport(
   output += `Visual Studio Code language ${reportedResult.systemInfo.language} ${EOL}`;
   output += `Visual Studio Code shell ${reportedResult.systemInfo.shell} ${EOL}`;
   output += `ESP-IDF Extension version ${reportedResult.systemInfo.extensionVersion} ${EOL}`;
+  output += `Workspace folder ${reportedResult.workspaceFolder} ${EOL}`;
   output += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${EOL}`;
   output += `ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSettings.espAdfPath}${EOL}`;
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
@@ -60,6 +61,18 @@ export async function writeTextReport(
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
   output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
+  output += `-------------------------------------------------------- Configurations has spaces -------------------------------------------------------------${EOL}`;
+  output += `Spaces in system environment Path ${reportedResult.configurationSpacesValidation.systemEnvPath}${EOL}`;
+  output += `Spaces in ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationSpacesValidation.espAdfPath}${EOL}`;
+  output += `Spaces in ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
+  output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
+  output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
+  output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
+  for (let key in reportedResult.configurationSpacesValidation.customExtraPaths) {
+    output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
+  }
+  output += `Spaces in Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
+  output += `Spaces in ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
   output += `Git version ${
     reportedResult.gitVersion.result

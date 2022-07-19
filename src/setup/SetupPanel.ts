@@ -34,6 +34,7 @@ import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
+import { checkSpacesInPath } from "../utils";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -304,17 +305,19 @@ export class SetupPanel {
 
   setupErrHandler(error: Error) {
     const errMsg = error.message ? error.message : "Error during ESP-IDF setup";
-    if (errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1) {
+    if (
+      errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1 ||
+      errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1
+    ) {
       SetupPanel.postMessage({
         command: "setEspIdfErrorStatus",
         errorMsg: error.message,
       });
-    } else if (errMsg.indexOf("ERROR_INVALID_PYTHON") !== -1) {
-      SetupPanel.postMessage({
-        command: "setPyExecErrorStatus",
-        errorMsg: error.message,
-      });
-    } else if (errMsg.indexOf("ERROR_INVALID_PIP") !== -1) {
+    } else if (
+      errMsg.indexOf("ERROR_INVALID_PYTHON") !== -1 ||
+      errMsg.indexOf("ERROR_INVALID_PIP") !== -1 ||
+      errMsg.indexOf("PYTHON_BIN_PATH_WITH_SPACES") !== -1
+    ) {
       SetupPanel.postMessage({
         command: "setPyExecErrorStatus",
         errorMsg: error.message,
@@ -372,6 +375,12 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
+          this.checkSpacesInPaths(
+            espIdfPath,
+            toolsPath,
+            idfGitPath,
+            idfPythonPath
+          );
           await expressInstall(
             selectedIdfVersion,
             idfPythonPath,
@@ -473,6 +482,12 @@ export class SetupPanel {
             installing: true,
             page: "/status",
           });
+          this.checkSpacesInPaths(
+            idfPath,
+            toolsPath,
+            gitPath,
+            pyPath
+          );
           await downloadIdfTools(
             idfPath,
             toolsPath,
@@ -555,6 +570,36 @@ export class SetupPanel {
     ) as vscode.ConfigurationTarget;
     await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
+  }
+
+  private checkSpacesInPaths(
+    idfPath: string,
+    idfToolsPath: string,
+    gitPath: string,
+    pythonBinPath: string
+  ) {
+    const doesIdfPathHasSpaces = checkSpacesInPath(idfPath);
+    const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
+    const doesGitPathHasSpaces = checkSpacesInPath(gitPath);
+    const doesPythonBinPath = checkSpacesInPath(pythonBinPath);
+    let pathHasSpaces = "";
+    if (doesIdfPathHasSpaces) {
+      pathHasSpaces = `${idfPath} has spaces. Use another location. (IDF_PATH_WITH_SPACES)`;
+    }
+    if (doesIdfToolsPathHasSpaces) {
+      pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
+    }
+    if (doesGitPathHasSpaces) {
+      pathHasSpaces = `${gitPath} has spaces. Use another location. (GIT_PATH_WITH_SPACES)`;
+    }
+    if (doesPythonBinPath) {
+      pathHasSpaces = `${pythonBinPath} has spaces. Use another location. (PYTHON_BIN_PATH_WITH_SPACES)`;
+    }
+    if (pathHasSpaces) {
+      OutputChannel.appendLine(pathHasSpaces);
+      Logger.infoNotify(pathHasSpaces);
+      throw new Error(pathHasSpaces);
+    }
   }
 
   private async getOpenOcdRulesPath() {
