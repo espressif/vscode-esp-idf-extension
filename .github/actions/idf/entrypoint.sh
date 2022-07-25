@@ -7,6 +7,7 @@ export OLD_PATH=$PATH
 
 cd /github/workspace
 
+pip install --upgrade pip
 pip install -r requirements.txt
 pip install -r esp_debug_adapter/requirements.txt
 
