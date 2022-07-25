@@ -307,7 +307,8 @@ export class SetupPanel {
     const errMsg = error.message ? error.message : "Error during ESP-IDF setup";
     if (
       errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1 ||
-      errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1
+      errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1 ||
+      errMsg.indexOf("IDF_TOOLS_PATH_WITH_SPACES") !== -1
     ) {
       SetupPanel.postMessage({
         command: "setEspIdfErrorStatus",
