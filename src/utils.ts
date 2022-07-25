@@ -533,6 +533,10 @@ export function isStringNotEmpty(str: string) {
   return !!str.trim();
 }
 
+export function checkSpacesInPath(pathStr: string) {
+  return /\s+/g.test(pathStr);
+}
+
 export async function getElfFilePath(
   workspaceURI: vscode.Uri
 ): Promise<string> {

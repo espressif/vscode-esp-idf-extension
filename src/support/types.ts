@@ -43,6 +43,18 @@ export class Configuration {
   gitPath: string;
 }
 
+export class ConfigurationSpacesValidation {
+  systemEnvPath: boolean;
+  espIdfPath: boolean;
+  espAdfPath: boolean;
+  espMdfPath: boolean;
+  espMatterPath: boolean;
+  customExtraPaths: { [key: string]: boolean };
+  pythonBinPath: boolean;
+  toolsPath: boolean;
+  gitPath: boolean;
+}
+
 export class SystemInfo {
   architecture: string;
   envIdfPythonEnvPath: string;
@@ -76,6 +88,7 @@ export class execResult {
 export class reportObj {
   configurationSettings: Configuration;
   configurationAccess: ConfigurationAccess;
+  configurationSpacesValidation: ConfigurationSpacesValidation;
   espIdfToolsVersions: idfToolResult[];
   espIdfVersion: execResult;
   gitVersion: execResult;
@@ -90,4 +103,5 @@ export class reportObj {
   debugAdapterRequirements: execResult;
   formatedOutput: string;
   systemInfo: SystemInfo;
+  workspaceFolder: string;
 }
