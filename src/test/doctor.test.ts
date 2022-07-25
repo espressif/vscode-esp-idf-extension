@@ -273,9 +273,9 @@ suite("Doctor command tests", () => {
 
   test("Match python packages", async () => {
     reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
+    console.log(process.env.PY_PKGS);
     const expectedPyPkgs = JSON.parse(process.env.PY_PKGS);
     await getPythonPackages(reportObj, mockUpContext);
-    console.log(expectedPyPkgs);
     console.log(reportObj.configurationSettings.pythonPackages);
     assert.deepEqual(
       reportObj.configurationSettings.pythonPackages,
