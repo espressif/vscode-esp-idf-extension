@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 7th April 2021 4:04:27 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -150,7 +150,10 @@ suite("Doctor command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
-    getConfigurationSettings(reportObj);
+    getConfigurationSettings(
+      reportObj,
+      vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
+    );
     assert.equal(
       reportObj.configurationSettings.espAdfPath,
       settingsJsonObj["idf.espAdfPath"]
@@ -240,7 +243,7 @@ suite("Doctor command tests", () => {
         assert.equal(
           reportObj.configurationAccess.espIdfToolsPaths[toolPath],
           true
-        ); 
+        );
       }
     }
   });
