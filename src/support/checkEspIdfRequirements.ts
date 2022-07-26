@@ -33,7 +33,7 @@ export async function checkEspIdfRequirements(
       requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "requirements.txt");
       const requirementsExists = await pathExists(requirementsPath);
       if (!requirementsExists) {
-        return false;
+        throw new Error("Requirements doesn't exists.");
       }
     }
     const result = await checkRequirements(
