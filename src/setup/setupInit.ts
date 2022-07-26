@@ -260,7 +260,7 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     return false;
   }
   let requirements: string;
-  requirements = path.join(espIdfPath, "requirements.core.txt");
+  requirements = path.join(espIdfPath, "tools", "requirements", "requirements.core.txt");
   const coreRequirementsExists = await pathExists(requirements);
   if (!coreRequirementsExists) {
     requirements = path.join(espIdfPath, "requirements.txt");
