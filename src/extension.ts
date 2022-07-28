@@ -1388,7 +1388,6 @@ export async function activate(context: vscode.ExtensionContext) {
         "Enter target name (IDF_TARGET)"
       );
       await setIdfTarget(enterDeviceTargetMsg);
-      
     });
   });
 
