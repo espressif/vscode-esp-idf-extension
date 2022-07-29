@@ -105,10 +105,7 @@ export async function setIdfTarget(placeHolderMsg: string) {
           Logger.infoNotify(
             `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
           );
-        } else if (
-          selectedBoard &&
-          selectedBoard.target
-        ) {
+        } else if (selectedBoard && selectedBoard.target) {
           await writeParameter(
             "idf.openOcdConfigs",
             selectedBoard.target,
