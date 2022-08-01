@@ -1229,7 +1229,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-      const gdbTool = utils.getToolchainToolName(idfTarget, "gdb");;
+      const gdbTool = utils.getToolchainToolName(idfTarget, "gdb");
       try {
         return await utils.isBinInPath(
           gdbTool,
@@ -1247,7 +1247,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return PreCheck.perform([openFolderCheck], async () => {
       const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
       const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-      const gccTool = utils.getToolchainToolName(idfTarget, "gcc");;
+      const gccTool = utils.getToolchainToolName(idfTarget, "gcc");
       try {
         return await utils.isBinInPath(
           gccTool,
@@ -3123,4 +3123,3 @@ class IdfDebugConfigurationProvider
     return config;
   }
 }
-
