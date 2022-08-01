@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { pathExists } from "fs-extra";
 import { join } from "path";
 import * as vscode from "vscode";
 import { execChildProcess } from "./execChildProcess";
@@ -25,10 +26,16 @@ export async function checkEspIdfRequirements(
   context: vscode.ExtensionContext
 ) {
   try {
-    const requirementsPath = join(
-      reportedResult.configurationSettings.espIdfPath,
-      "requirements.txt"
-    );
+    let requirementsPath: string;
+    requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "tools", "requirements", "requirements.core.txt");
+    const coreRequirementsExists = await pathExists(requirementsPath);
+    if (!coreRequirementsExists) {
+      requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "requirements.txt");
+      const requirementsExists = await pathExists(requirementsPath);
+      if (!requirementsExists) {
+        throw new Error("Requirements doesn't exists.");
+      }
+    }
     const result = await checkRequirements(
       context,
       reportedResult,
