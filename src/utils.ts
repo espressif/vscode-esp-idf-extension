@@ -221,10 +221,7 @@ export async function setCCppPropertiesJsonCompilerPath(
   }
   const modifiedEnv = appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-  const gccTool =
-    idfTarget === "esp32c3"
-      ? "riscv32-esp-elf-gcc"
-      : `xtensa-${idfTarget}-elf-gcc`;
+  const gccTool = getToolchainToolName(idfTarget, "gcc");
   const compilerPath = await isBinInPath(
     gccTool,
     curWorkspaceFsPath.fsPath,
@@ -240,6 +237,21 @@ export async function setCCppPropertiesJsonCompilerPath(
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
+  }
+}
+
+export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
+  switch (idfTarget) {
+    case "esp32c2":
+    case "esp32c3":
+    case "esp32h2":
+      return `riscv32-esp-elf-${tool}`;
+    case "esp32":
+    case "esp32s2":
+    case "esp32s3":
+      return `xtensa-${idfTarget}-elf-${tool}`;
+    default:
+      return undefined;
   }
 }
 
