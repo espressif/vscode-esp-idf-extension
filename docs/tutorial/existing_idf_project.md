@@ -1,4 +1,4 @@
-# Opening an existing ESP-IDF project 
+# Opening an existing ESP-IDF project
 
 An ESP-IDF project follow the tree directory structure as shown in [ESP-IDF Example project](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#example-project) is:
 
@@ -32,4 +32,4 @@ As shown in [working with multiple projects](../MULTI_PROJECTS.md), there are ma
 
 2. You can already use the existing setup to build, flash and monitor the existing project. To debug, you need the `esp-idf` launch.json which can be added by running the `ESP-IDF: Add vscode configuration folder` command.
 
-3. If you want to open the project within the ESP-IDF Docker container, use the `ESP-IDF: Add docker container configuration` and use the `Remote - Containers: Open folder in remote container`.
+3. If you want to open the project within the ESP-IDF Docker container, use the `ESP-IDF: Add docker container configuration` command to add the `.devcontainer` directory which allows the user to use the `Remote - Containers: Open folder in remote container` to open the existing project into a container.
