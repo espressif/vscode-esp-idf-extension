@@ -37,4 +37,4 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/console`
 
 7. Once the user is satisfied press `Save` to save the changes, _this will override the content of csv file_.
 
-8. Now you can click the `Build & Flash` button on the top-right, to build & flash the partition table to the chip.
+8. Now you can click the `Select Flash Method, Build, Flash ` right top buttons in order to finish flashing the partition table to the chip.
