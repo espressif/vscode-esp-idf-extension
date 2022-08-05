@@ -25,11 +25,13 @@ import tools from "@iconify-icons/codicon/tools";
 import symbolEvent from "@iconify-icons/codicon/symbol-event";
 import refresh from "@iconify-icons/codicon/refresh";
 import question from "@iconify-icons/codicon/question";
+import starEmpty from "@iconify-icons/codicon/star-empty";
 
 IconifyIcon.addIcon("tools", tools);
 IconifyIcon.addIcon("symbol-event", symbolEvent);
 IconifyIcon.addIcon("refresh", refresh);
 IconifyIcon.addIcon("question", question);
+IconifyIcon.addIcon("star-empty", starEmpty);
 
 Vue.component("iconify-icon", IconifyIcon);
 

@@ -21,6 +21,12 @@
               </a>
               <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
                 <span class="icon is-small">
+                  <iconify-icon icon="star-empty" />
+                </span>
+                &nbsp; Select Flash Method
+              </a>
+              <a class="button" href="command:espIdf.flashDevice">
+                <span class="icon is-small">
                   <iconify-icon icon="symbol-event" />
                 </span>
                 &nbsp; Flash
