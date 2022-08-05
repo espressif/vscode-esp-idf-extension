@@ -17,3 +17,4 @@
 13. [New project wizard](./new_project_wizard.md)
 14. [Developing on Docker Container](./using-docker-container.md)
 15. [Developing on WSL](./wsl.md)
+16. [Open existing ESP-IDF project](./existing_idf_project.md)
