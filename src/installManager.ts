@@ -18,6 +18,7 @@ import { ensureDir, move, pathExists, remove } from "fs-extra";
 import * as path from "path";
 import * as tarfs from "tar-fs";
 import * as vscode from "vscode";
+import { Decompressor } from "xz";
 import * as yauzl from "yauzl";
 import * as zlib from "zlib";
 import { IdfToolsManager } from "./idfToolsManager";
@@ -89,18 +90,24 @@ export class InstallManager {
           );
         } else if (
           parsedUrl[parsedUrl.length - 2] === "tar" &&
-          parsedUrl[parsedUrl.length - 1] === "gz"
+          (parsedUrl[parsedUrl.length - 1] === "gz" ||
+            parsedUrl[parsedUrl.length - 1] === "xz")
         ) {
-          p = this.installTarPackage(idfToolsManager, pkg, cancelToken).then(
-            async () => {
-              if (pkg.strip_container_dirs) {
-                await this.promisedStripContainerDirs(
-                  absolutePath,
-                  pkg.strip_container_dirs
-                );
-              }
+          const tarCompressionType =
+            parsedUrl[parsedUrl.length - 1] === "xz" ? "xz" : "gz";
+          p = this.installTarPackage(
+            idfToolsManager,
+            pkg,
+            tarCompressionType,
+            cancelToken
+          ).then(async () => {
+            if (pkg.strip_container_dirs) {
+              await this.promisedStripContainerDirs(
+                absolutePath,
+                pkg.strip_container_dirs
+              );
             }
-          );
+          });
         } else {
           p = new Promise<void>((resolve) => {
             resolve();
@@ -320,6 +327,7 @@ export class InstallManager {
   public installTarPackage(
     idfToolsManager: IdfToolsManager,
     pkg: IPackage,
+    tarCompressionType: string,
     cancelToken?: vscode.CancellationToken
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -388,7 +396,9 @@ export class InstallManager {
         );
         return resolve();
       }
-      this.appendChannel(`Installing tar.gz package ${pkg.description}`);
+      this.appendChannel(
+        `Installing tar.${tarCompressionType} package ${pkg.description}`
+      );
       const extractor = tarfs.extract(absolutePath, {
         readable: true, // all dirs and files should be readable
         writable: true, // all dirs and files should be writable
@@ -406,10 +416,10 @@ export class InstallManager {
       extractor.on("finish", () => {
         return resolve();
       });
+      const decompressor =
+        tarCompressionType === "xz" ? new Decompressor() : zlib.createGunzip();
       try {
-        fs.createReadStream(packageFile)
-          .pipe(zlib.createGunzip())
-          .pipe(extractor);
+        fs.createReadStream(packageFile).pipe(decompressor).pipe(extractor);
       } catch (error) {
         return reject(error);
       }

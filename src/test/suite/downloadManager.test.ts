@@ -204,16 +204,18 @@ suite("Download Manager Tests", () => {
         },
       ],
     } as IPackage;
-    await installManager.installTarPackage(idfToolsManager, pkg).then(() => {
-      const isFileExtracted = utils.fileExists(
-        downloadManager.getToolPackagesPath([
-          "tools",
-          pkg.name,
-          pkg.versions[0].name,
-          "tarsample.txt",
-        ])
-      );
-      assert.equal(isFileExtracted, true);
-    });
+    await installManager
+      .installTarPackage(idfToolsManager, pkg, "gz")
+      .then(() => {
+        const isFileExtracted = utils.fileExists(
+          downloadManager.getToolPackagesPath([
+            "tools",
+            pkg.name,
+            pkg.versions[0].name,
+            "tarsample.txt",
+          ])
+        );
+        assert.equal(isFileExtracted, true);
+      });
   });
 });

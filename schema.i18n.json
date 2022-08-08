@@ -127,6 +127,7 @@
     "espIdf.monitorQemu.title",
     "espIdf.launchQemu.title",
     "espIdf.qemuDebug.title",
+    "espIdf.flashUart.title",
     "espIdf.createDevContainer.title",
     "espIdf.partition.table.refresh.title",
     "espIdf.flashBinaryToPartition.title",
