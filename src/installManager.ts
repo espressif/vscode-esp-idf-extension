@@ -29,7 +29,7 @@ import { PackageError } from "./packageError";
 import * as utils from "./utils";
 
 export class InstallManager {
-  constructor(private installPath: string) {}
+  constructor(private installPath: string) { }
   public getToolPackagesPath(toolPackage: string[]) {
     return path.resolve(this.installPath, ...toolPackage);
   }
