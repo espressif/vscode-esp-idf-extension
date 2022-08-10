@@ -28,7 +28,7 @@ const extensionConfig = {
     __filename: true,
   },
   devtool: "source-map",
-  externals: ["commonjs", "lzma-native", "vscode"],
+  externals: ["commonjs", "vscode", "xz"],
   module: {
     rules: [
       {

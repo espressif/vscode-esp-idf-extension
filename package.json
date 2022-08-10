@@ -1325,7 +1325,6 @@
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",
-    "lzma-native": "^8.0.6",
     "marked": "^4.0.12",
     "plotly.js-dist": "^1.54.1",
     "postcss": "^8.4.6",
@@ -1342,6 +1341,7 @@
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "ws": "^7.4.6",
+    "xz": "^2.0.2",
     "yauzl": "^2.10.0"
   },
   "alias": {

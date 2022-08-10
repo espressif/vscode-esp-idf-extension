@@ -18,7 +18,7 @@ import { ensureDir, move, pathExists, remove } from "fs-extra";
 import * as path from "path";
 import * as tarfs from "tar-fs";
 import * as vscode from "vscode";
-import { createDecompressor } from "lzma-native";
+import * as xz from "xz";
 import * as yauzl from "yauzl";
 import * as zlib from "zlib";
 import { IdfToolsManager } from "./idfToolsManager";
@@ -29,7 +29,7 @@ import { PackageError } from "./packageError";
 import * as utils from "./utils";
 
 export class InstallManager {
-  constructor(private installPath: string) { }
+  constructor(private installPath: string) {}
   public getToolPackagesPath(toolPackage: string[]) {
     return path.resolve(this.installPath, ...toolPackage);
   }
@@ -417,7 +417,9 @@ export class InstallManager {
         return resolve();
       });
       const decompressor =
-        tarCompressionType === "xz" ? new createDecompressor() : zlib.createGunzip();
+        tarCompressionType === "xz"
+          ? new xz.Decompressor()
+          : zlib.createGunzip();
       try {
         fs.createReadStream(packageFile).pipe(decompressor).pipe(extractor);
       } catch (error) {
