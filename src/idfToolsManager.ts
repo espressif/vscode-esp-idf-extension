@@ -46,7 +46,8 @@ export class IdfToolsManager {
     const idfToolsManager = new IdfToolsManager(
       toolsObj,
       platformInfo,
-      OutputChannel.init()
+      OutputChannel.init(),
+      idfPath
     );
     return idfToolsManager;
   }
@@ -56,7 +57,8 @@ export class IdfToolsManager {
   constructor(
     private toolsJson: any,
     private platformInfo: PlatformInformation,
-    private toolsManagerChannel: vscode.OutputChannel
+    private toolsManagerChannel: vscode.OutputChannel,
+    public espIdfPath: string
   ) {}
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {

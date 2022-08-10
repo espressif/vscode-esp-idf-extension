@@ -449,11 +449,6 @@ export function execChildProcess(
   });
 }
 
-export function getToolPackagesPath(toolPackage: string[]) {
-  const idfToolsPath = idfConf.readParameter("idf.toolsPath");
-  return path.resolve(idfToolsPath, ...toolPackage);
-}
-
 export async function getToolsJsonPath(newIdfPath: string, gitPath: string) {
   const espIdfVersion = await getEspIdfVersion(newIdfPath, gitPath);
   let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
