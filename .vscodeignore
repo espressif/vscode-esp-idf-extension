@@ -19,7 +19,6 @@ gulpfile.js
 media/screenshots
 media/tutorials
 node_modules
-!node_modules/xz
 out
 package-lock.json
 report.txt
