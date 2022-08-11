@@ -32,6 +32,7 @@ export async function downloadEspIdfTools(
   idfToolsManager: IdfToolsManager,
   mirror: IdfMirror,
   progress: Progress<{ message: string; increment?: number }>,
+  pythonBinPath: string,
   cancelToken?: CancellationToken,
   onReqPkgs?: string[]
 ) {
@@ -65,7 +66,13 @@ export async function downloadEspIdfTools(
   );
   OutputChannel.appendLine("");
   Logger.info("");
-  await installManager.installPackages(idfToolsManager, progress, cancelToken, onReqPkgs);
+  await installManager.installPackages(
+    idfToolsManager,
+    progress,
+    pythonBinPath,
+    cancelToken,
+    onReqPkgs
+  );
   OutputChannel.appendLine("");
   Logger.info("");
 }

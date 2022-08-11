@@ -51,7 +51,7 @@ export async function downloadIdfTools(
     command: "setRequiredToolsInfo",
     toolsInfo: requiredTools,
   });
-  await downloadEspIdfTools(toolsPath, idfToolsManager, mirror, progress, cancelToken, onReqPkgs);
+  await downloadEspIdfTools(toolsPath, idfToolsManager, mirror, progress, pyPath, cancelToken, onReqPkgs);
   SetupPanel.postMessage({
     command: "updateEspIdfToolsStatus",
     status: StatusType.installed,

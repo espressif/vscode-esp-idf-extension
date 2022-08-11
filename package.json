@@ -835,7 +835,8 @@
       {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%"
-      },{
+      },
+      {
         "command": "espIdf.flashUart",
         "title": "%espIdf.flashUart.title%"
       },
@@ -1261,6 +1262,7 @@
     "@types/nock": "^9.3.1",
     "@types/node": "^16.11.1",
     "@types/sanitize-html": "^2.6.2",
+    "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
     "@types/vscode": "^1.30.0",
     "@types/ws": "^7.2.5",
