@@ -183,6 +183,10 @@
       {
         "view": "idfPartitionExplorer",
         "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
+      }, 
+      {
+        "view": "espIdf.peripheralView",
+        "contents": "Show Peripherals registers from SVD file defined in IDF Svd File Path (idf.svdFilePath) configuration setting during active debug session"
       }
     ],
     "menus": {
@@ -1109,13 +1113,7 @@
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
         "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.downloadSVDFile",
-        "title": "Download SVD File",
-        "category": "ESP-IDF"
       }
-
     ],
     "breakpoints": [
       {

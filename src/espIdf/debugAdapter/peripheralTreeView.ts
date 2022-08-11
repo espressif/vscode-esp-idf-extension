@@ -31,6 +31,7 @@ import {
   Uri,
   window,
 } from "vscode";
+import { Logger } from "../../logger/logger";
 import { AddrRange, MessageNode, NodeSetting } from "./common";
 import { BasePeripheral, PeripheralBaseNode } from "./nodes/base";
 import { Peripheral } from "./nodes/peripheral";
@@ -193,7 +194,7 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
           this.errMessage = `Unable to parse SVD file ${
             this.svdFileName
           }: ${e.toString()}`;
-          window.showErrorMessage(this.errMessage);
+          Logger.errorNotify(this.errMessage, new Error(this.errMessage));
           if (debug.activeDebugConsole) {
             debug.activeDebugConsole.appendLine(this.errMessage);
           }
@@ -256,11 +257,7 @@ export class PeripheralTreeView
     if (element) {
       return element.getChildren();
     } else if (values.length === 0) {
-      return [
-        new MessageNode(
-          "SVD: No active debug sessions or no SVD files specified"
-        ),
-      ];
+      return [];
     } else if (values.length === 1) {
       return values[0].getChildren();
     } else {
@@ -270,19 +267,19 @@ export class PeripheralTreeView
 
   public debugSessionStarted(
     session: DebugSession,
-    svdfile: string,
+    svdFilePath: string,
     thresh: any
   ): Thenable<any> {
     return new Promise<void>(async (resolve, reject) => {
-      if (!svdfile) {
+      const svdFileExists = await pathExists(svdFilePath);
+      if (!svdFilePath || !svdFileExists) {
         resolve(undefined);
         return;
       }
       if (this.sessionPeripheralsMap.get(session.id)) {
         this._onDidChangeTreeData.fire(undefined);
-        window.showErrorMessage(
-          `Internal Error: Session ${session.name} id=${session.id} already in the tree view?`
-        );
+        const err = new Error(`Internal Error: Session ${session.name} id=${session.id} already in the tree view?`)
+        Logger.errorNotify(err.message, err);
         resolve(undefined);
         return;
       }
@@ -298,11 +295,10 @@ export class PeripheralTreeView
       });
       this.sessionPeripheralsMap.set(session.id, regs);
       try {
-        await regs.sessionStarted(svdfile, thresh); // Should never reject
+        await regs.sessionStarted(svdFilePath, thresh); // Should never reject
       } catch (e) {
-        window.showErrorMessage(
-          `Internal Error: Unexpected rejection of promise ${e}`
-        );
+        const err = new Error(`Internal Error: Unexpected rejection of promise ${e}`);
+        Logger.errorNotify(err.message, err);
       } finally {
         this._onDidChangeTreeData.fire(undefined);
       }
