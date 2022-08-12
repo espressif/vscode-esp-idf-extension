@@ -7,8 +7,8 @@ export OLD_PATH=$PATH
 
 cd /github/workspace
 
+pip install --upgrade pip
 pip install -r requirements.txt
-pip install -r esp_debug_adapter/requirements.txt
 
 export GIT_VERSION=$( echo "$a" | echo $(git --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
 export IDF_VERSION=$( echo "$a" | echo $(idf.py --version) | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
