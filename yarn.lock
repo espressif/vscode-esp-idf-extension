@@ -173,7 +173,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.2.tgz#22306626110c459aedd2cdf131c749ec781e3b34"
   integrity sha512-ce7MIiaYWCFv6A83oEultwhBXb22fxwNOQf5DIxWA4WXvDQ7K+L0fbWl/YOfCzlR5B/uFkSnVBhPcOfOECcWvA==
 
-"@types/node@^16.11.1":
+"@types/node@^16.11.7":
   version "16.11.48"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.48.tgz#22d386f32b24fb644940b606ed393b56be7d8686"
   integrity sha512-Z9r9UWlNeNkYnxybm+1fc0jxUNjZqRekTAr1pG0qdXe9apT9yCiqk1c4VvKQJsFpnchU4+fLl25MabSLA2wxIw==
@@ -236,7 +236,7 @@
   dependencies:
     source-map "^0.6.1"
 
-"@types/vscode@^1.30.0":
+"@types/vscode@^1.32.0":
   version "1.70.0"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.70.0.tgz#9cb14cdaac9f450a7005ae2db49ecee4a084c983"
   integrity sha512-3/9Fz0F2eBgwciazc94Ien+9u1elnjFg9YAhvAb3qDy/WeFWD9VrOPU7CIytryOVUdbxus8uzL4VZYONA0gDtA==
@@ -314,10 +314,10 @@
   resolved "https://registry.yarnpkg.com/@vscode/debugprotocol/-/debugprotocol-1.57.0.tgz#f055c0422b1f77358a12b1415623099ba0541647"
   integrity sha512-eww0WhAtj3lPX7+7tGkxQ3P7IRC3hS7+SVL7fmM8CAat2DMM+PVjg1FQbTCtMw6EwNSmT/qMx1iZCyzQguJJKA==
 
-"@vscode/extension-telemetry@^0.4.8":
-  version "0.4.10"
-  resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.4.10.tgz#be960c05bdcbea0933866346cf244acad6cac910"
-  integrity sha512-XgyUoWWRQExTmd9DynIIUQo1NPex/zIeetdUAXeBjVuW9ioojM1TcDaSqOa/5QLC7lx+oEXwSU1r0XSBgzyz6w==
+"@vscode/extension-telemetry@0.4.8":
+  version "0.4.8"
+  resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.4.8.tgz#bb67386ae7ba4d3505978243df91055d5e0cf950"
+  integrity sha512-5xtf8k7vQJ+EOqhAcEaGwbnj9t/qLjIJQePmq7eBKEZzt8vpnOg0ZJIJx6VnQFAwO3lfsf3M+X3NT+IpKRymZw==
 
 "@vscode/test-electron@^2.1.2":
   version "2.1.5"
@@ -5630,12 +5630,12 @@ semver-greatest-satisfied-range@^1.1.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-semver@^6.0.0, semver@^6.3.0:
+semver@^6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
 
-semver@^7.3.2, semver@^7.3.5:
+semver@^7.3.2, semver@^7.3.4, semver@^7.3.5:
   version "7.3.7"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.7.tgz#12c5b649afdbf9049707796e22a4028814ce523f"
   integrity sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==
@@ -6297,16 +6297,16 @@ ts-essentials@^8.0.0:
   resolved "https://registry.yarnpkg.com/ts-essentials/-/ts-essentials-8.1.0.tgz#bc982b242db226b84c89477d3d42630ee2954513"
   integrity sha512-34xALeQADWRYq9kbtprP4KdpTQ3v3BBIs/U4SpaP+C4++B8ijXY5NnILRJLchQVMzw7YBzKuGMUMrI9uT+ALVw==
 
-ts-loader@^7.0.5:
-  version "7.0.5"
-  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-7.0.5.tgz#789338fb01cb5dc0a33c54e50558b34a73c9c4c5"
-  integrity sha512-zXypEIT6k3oTc+OZNx/cqElrsbBtYqDknf48OZos0NQ3RTt045fBIU8RRSu+suObBzYB355aIPGOe/3kj9h7Ig==
+ts-loader@^8.0.2:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.4.0.tgz#e845ea0f38d140bdc3d7d60293ca18d12ff2720f"
+  integrity sha512-6nFY3IZ2//mrPc+ImY3hNWx1vCHyEhl6V+wLmL4CZcm6g1CqX7UKrkc6y0i4FwcfOhxyMPCfaEvh20f4r9GNpw==
   dependencies:
-    chalk "^2.3.0"
+    chalk "^4.1.0"
     enhanced-resolve "^4.0.0"
-    loader-utils "^1.0.2"
+    loader-utils "^2.0.0"
     micromatch "^4.0.0"
-    semver "^6.0.0"
+    semver "^7.3.4"
 
 tslib@^1.7.1, tslib@^1.8.0, tslib@^1.8.1:
   version "1.14.1"
@@ -6425,7 +6425,7 @@ typescript@^3.9.5:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
 
-typescript@^4.5.5:
+typescript@^4.7.4:
   version "4.7.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
   integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
@@ -6726,7 +6726,7 @@ vscode-extension-tester-locators@^2.0.0:
   resolved "https://registry.yarnpkg.com/vscode-extension-tester-locators/-/vscode-extension-tester-locators-2.0.0.tgz#c389dc26a348abf64b261924d09b3bb9b20b2912"
   integrity sha512-ljmevi7R1K5uCiMpstKydh/sCA9TEiohxLmzX30ZZU5qE/ZNWz/5oLrxTdqN3EcSVW9ZXhExvrQFvHoYZxy9Ng==
 
-vscode-extension-tester@^4.2.4:
+vscode-extension-tester@^4.3.0:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-4.4.1.tgz#de8bff7307d80592a36c796d77cbf7116b1b4b18"
   integrity sha512-CaxWk41sX1Q9rycFCN6GRmNzjY3DJl5dxVknbLxVbjeR9g0Qam+dIajVQIeHsdUVEKJdfPCA8xbpJOyl/bUFnA==
