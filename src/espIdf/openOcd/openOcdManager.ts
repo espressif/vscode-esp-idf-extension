@@ -126,7 +126,7 @@ export class OpenOCDManager extends EventEmitter {
     if (config.workspace) {
       this.workspace = config.workspace;
     }
-    
+
     if (config.host) {
       this.tclConnectionParams.host = config.host;
     }
@@ -183,7 +183,11 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
-    const openOcdArgs = [];
+    const openOcdArgs =
+      (idfConf.readParameter(
+        "idf.openOcdLaunchArgs",
+        this.workspace
+      ) as string[]) || [];
     const openOcdDebugLevel = idfConf.readParameter(
       "idf.openOcdDebugLevel",
       this.workspace

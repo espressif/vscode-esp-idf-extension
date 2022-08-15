@@ -61,6 +61,7 @@
   "param.adapterTargetName": "ESP-IDF 调试适配器的目标名称",
   "param.customAdapterTargetName": "ESP-IDF 调试适配器的自定义目标名称",
   "param.openOcdConfigFilesList": "OpenOCD 脚本目录中的配置文件列表",
+  "param.openOcdLaunchArgs": "从此扩展启动openOCD的参数",
   "param.flashBaudRate": "ESP-IDF 烧录波特率",
   "param.port": "选中的烧录端口路径",
   "param.pythonBinPath": "项目构建使用的 Python 解释器的绝对路径",
