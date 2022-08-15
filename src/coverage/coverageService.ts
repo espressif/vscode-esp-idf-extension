@@ -18,6 +18,7 @@ import {
   appendIdfAndToolsToPath,
   dirExistPromise,
   extensionContext,
+  getToolchainToolName,
   getWebViewFavicon,
   spawn,
 } from "../utils";
@@ -44,9 +45,7 @@ export interface textEditorWithCoverage {
 }
 
 export function getGcovExecutable(idfTarget: string) {
-  return idfTarget === "esp32c3"
-    ? "riscv32-esp-elf-gcov"
-    : `xtensa-${idfTarget}-elf-gcov`;
+  return getToolchainToolName(idfTarget, "gcov");
 }
 
 export async function getGcovFilterPaths(workspacePath: vscode.Uri) {
