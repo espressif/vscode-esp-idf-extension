@@ -9,6 +9,8 @@ The Visual Studio Code uses `.vscode/launch.json` to configure debug as specifie
 
 We recommend using our ESP-IDF Debug Adapter to debug your ESP-IDF projects, but you can also just configure launch.json for the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools).
 
+Our extension implements a `ESP Peripheral View` tree view in the `Run and debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
+
 ## Use the ESP-IDF Debug Adapter
 
 > **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable you use in `idf.pythonBinPath` contains these libraries. This will be dropped in later versions of ESP-IDF.

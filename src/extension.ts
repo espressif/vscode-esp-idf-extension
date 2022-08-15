@@ -120,6 +120,10 @@ import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
 import { selectDfuDevice } from "./flash/dfu";
 import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
+import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
+import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
+import { DownloadManager } from "./downloadManager";
+import { PackageProgress } from "./PackageProgress";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -157,6 +161,10 @@ let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
 
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
+
+// Peripheral Tree Data Provider
+let peripheralTreeProvider: PeripheralTreeView;
+let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
 
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
@@ -255,6 +263,23 @@ export async function activate(context: vscode.ExtensionContext) {
     appTraceTreeDataProvider,
     appTraceArchiveTreeDataProvider
   );
+
+  // Debug session Peripherals tree view
+  peripheralTreeProvider = new PeripheralTreeView();
+  peripheralTreeView = vscode.window.createTreeView("espIdf.peripheralView", {
+    treeDataProvider: peripheralTreeProvider,
+  });
+  context.subscriptions.push(
+    peripheralTreeView,
+    peripheralTreeView.onDidExpandElement((e) => {
+      e.element.expanded = true;
+      e.element.getPeripheral().updateData();
+      peripheralTreeProvider.refresh();
+    })
+  ),
+    peripheralTreeView.onDidCollapseElement((e) => {
+      e.element.expanded = false;
+    });
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
@@ -1071,6 +1096,18 @@ export async function activate(context: vscode.ExtensionContext) {
         return Logger.errorNotify(errMsg, error);
       }
     },
+  });
+
+  vscode.debug.onDidStartDebugSession((session) => {
+    const svdFile = idfConf.readParameter(
+      "idf.svdFilePath",
+      workspaceRoot
+    ) as string;
+    peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
+  });
+
+  vscode.debug.onDidTerminateDebugSession((session) => {
+    peripheralTreeProvider.debugSessionTerminated(session);
   });
 
   vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
