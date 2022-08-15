@@ -185,6 +185,17 @@ export async function installExtensionPyReqs(
   let constraintArg = "";
   if (constrainsFileExists) {
     constraintArg = `--constraint ${constrainsFile} `;
+  } else {
+    const extensionConstraintsFile = path.join(
+      utils.extensionContext.extensionPath,
+      `espidf.constraints.txt`
+    );
+    const extensionConstraintsFileExists = await pathExists(
+      extensionConstraintsFile
+    );
+    if (extensionConstraintsFileExists) {
+      constraintArg = `--constraint ${extensionConstraintsFile} `;
+    }
   }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location  -r "${extensionRequirements}"`,
