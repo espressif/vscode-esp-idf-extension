@@ -183,11 +183,7 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
-    const openOcdArgs =
-      (idfConf.readParameter(
-        "idf.openOcdLaunchArgs",
-        this.workspace
-      ) as string[]) || [];
+    const openOcdArgs = [];
     const openOcdDebugLevel = idfConf.readParameter(
       "idf.openOcdDebugLevel",
       this.workspace
@@ -198,6 +194,17 @@ export class OpenOCDManager extends EventEmitter {
       openOcdArgs.push("-f");
       openOcdArgs.push(configFile);
     });
+
+    const addLaunchArgs = idfConf.readParameter(
+      "idf.openOcdLaunchArgs",
+      this.workspace
+    ) as string[];
+
+    if (addLaunchArgs && addLaunchArgs.length) {
+      addLaunchArgs.forEach((arg) => {
+        openOcdArgs.push(arg);
+      });
+    }
 
     this.server = spawn("openocd", openOcdArgs, {
       cwd: this.workspace.fsPath,
