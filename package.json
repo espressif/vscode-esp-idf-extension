@@ -114,10 +114,10 @@
         "owner": "cpp",
         "fileLocation": [
           "autoDetect",
-          "${cwd}"
+          "${workspaceFolder}"
         ],
         "pattern": {
-          "regexp": "^(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
+          "regexp": "^\\.?\\.?(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
           "file": 1,
           "line": 2,
           "column": 3,
