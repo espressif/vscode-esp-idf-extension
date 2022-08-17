@@ -686,7 +686,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
 
-  registerIDFCommand("espIdf.getEspMatter", getEspMatter);
+  registerIDFCommand("espIdf.getEspMatter", async () => getEspMatter (workspaceRoot));
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
