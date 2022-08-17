@@ -21,7 +21,7 @@ import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
-const tag:string = "Workspace Configuration";
+const tag: string = "Workspace Configuration";
 
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;

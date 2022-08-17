@@ -675,7 +675,10 @@ export async function activate(context: vscode.ExtensionContext) {
               arduinoDirPath
             );
             if (arduinoDirExists) {
-              return Logger.infoNotify(`${arduinoDirPath} already exists.`, tag);
+              return Logger.infoNotify(
+                `${arduinoDirPath} already exists.`,
+                tag
+              );
             }
             await arduinoComponentManager.addArduinoAsComponent();
           } catch (error) {
@@ -1278,7 +1281,11 @@ export async function activate(context: vscode.ExtensionContext) {
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify("gdb is not found in idf.customExtraPaths", error, tag);
+        Logger.errorNotify(
+          "gdb is not found in idf.customExtraPaths",
+          error,
+          tag
+        );
         return;
       }
     });
@@ -1296,7 +1303,11 @@ export async function activate(context: vscode.ExtensionContext) {
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify("gcc is not found in idf.customExtraPaths", error, tag);
+        Logger.errorNotify(
+          "gcc is not found in idf.customExtraPaths",
+          error,
+          tag
+        );
         return;
       }
     });
@@ -1733,20 +1744,14 @@ export async function activate(context: vscode.ExtensionContext) {
               { placeHolder: "Select framework to use" }
             );
             if (!examplesFolder) {
-              Logger.infoNotify(
-                "No framework selected to load examples.",
-                tag
-              );
+              Logger.infoNotify("No framework selected to load examples.", tag);
               return;
             }
             const doesFolderExist = await utils.dirExistPromise(
               examplesFolder.target
             );
             if (!doesFolderExist) {
-              Logger.infoNotify(
-                `${examplesFolder.target} doesn't exist.`,
-                tag
-              );
+              Logger.infoNotify(`${examplesFolder.target} doesn't exist.`, tag);
               return;
             }
             ExamplesPlanel.createOrShow(
@@ -1909,10 +1914,7 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.target,
         target
       );
-      Logger.infoNotify(
-        "OpenOCD Board configuration files are updated.",
-        tag
-      );
+      Logger.infoNotify("OpenOCD Board configuration files are updated.", tag);
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";
@@ -2374,10 +2376,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
     if (RainmakerAPIClient.isLoggedIn()) {
-      return Logger.infoNotify(
-        "Already logged-in, please sign-out first",
-        tag
-      );
+      return Logger.infoNotify("Already logged-in, please sign-out first", tag);
     }
 
     //ask to select login provider
@@ -2408,10 +2407,7 @@ export async function activate(context: vscode.ExtensionContext) {
             accountDetails.password
           );
           await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify(
-            "Rainmaker Cloud Linking Success!!",
-            tag
-          );
+          Logger.infoNotify("Rainmaker Cloud Linking Success!!", tag);
         } catch (error) {
           return Logger.errorNotify(
             "Failed to login with Rainmaker Cloud, double check your id and password",
@@ -2538,10 +2534,7 @@ export async function activate(context: vscode.ExtensionContext) {
               newParamValue
             );
             await rainMakerTreeDataProvider.refresh();
-            Logger.infoNotify(
-              "Sent the param update request to cloud",
-              tag
-            );
+            Logger.infoNotify("Sent the param update request to cloud", tag);
           } catch (error) {
             let errorMsg = "Failed to update the param, please try once more";
             if (error.response) {
@@ -2948,7 +2941,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "Failed to sign-in with Rainmaker (via OAuth)",
             error,
             tag,
-            { meta: JSON.stringify(error) },
+            { meta: JSON.stringify(error) }
           );
         }
         return;

@@ -118,7 +118,7 @@ export class PreCheck {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
         error,
-      { tag }
+        { tag }
       );
       return false;
     }
@@ -648,7 +648,9 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
   try {
     const doesWorkingDirExists = await pathExists(workingDir);
     if (!doesWorkingDirExists) {
-      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`, { tag });
+      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`, {
+        tag,
+      });
       return "x.x";
     }
     const gitVersion = await checkGitExists(workingDir, gitPath);
@@ -692,10 +694,9 @@ export async function getEspIdfFromCMake(espIdfPath: string) {
   );
   const doesVersionFileExists = await pathExists(versionFilePath);
   if (!doesVersionFileExists) {
-    Logger.info(
-      `${versionFilePath} does not exist to get ESP-IDF version.`,
-      { tag }
-    );
+    Logger.info(`${versionFilePath} does not exist to get ESP-IDF version.`, {
+      tag,
+    });
     return "x.x";
   }
   const versionFileContent = await readFile(versionFilePath, "utf8");

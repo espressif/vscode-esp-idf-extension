@@ -52,9 +52,14 @@ export namespace ChangelogViewer {
             Uri.file(changelogFilePath)
           );
         } catch (error) {
-          Logger.errorNotify("Failed to open the CHANGELOG.md file", error, tag, {
-            sev: 1,
-          });
+          Logger.errorNotify(
+            "Failed to open the CHANGELOG.md file",
+            error,
+            tag,
+            {
+              sev: 1,
+            }
+          );
         }
       }
     }
