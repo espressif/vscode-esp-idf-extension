@@ -72,7 +72,7 @@ This is how the extension uses them:
 4. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 5. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
 6. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
-7. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd ${idf.openOcdLaunchArgs} -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}`.
+7. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code coverage Specific Settings
 

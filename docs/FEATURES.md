@@ -85,7 +85,7 @@ Before using the OpenOCD server, you need to set the proper values for openOCD C
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-The resulting openOCD server launch command looks like this: `openocd ${idf.openOcdLaunchArgs} -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs}`. The `idf.openOcdDebugLevel` is a number used to define the openOCD log level (0-4) and `idf.openOcdLaunchArgs` is a string array of any custom openOCD launch arguments the user wants to use.
+The resulting openOCD server launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`. The `idf.openOcdDebugLevel` is a number used to define the openOCD log level (0-4) and `idf.openOcdLaunchArgs` is a string array of any custom openOCD launch arguments the user wants to use.
 
 ## Partition table tree
 
