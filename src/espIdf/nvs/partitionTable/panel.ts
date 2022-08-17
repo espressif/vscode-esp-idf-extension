@@ -23,6 +23,7 @@ import * as idfConf from "../../../idfConfiguration";
 import { canAccessFile, execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
 
+const tag: string = "ESP-IDF NVS";
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
   private static readonly viewType = "idfNvsPartitionTableEditor";
@@ -118,8 +119,12 @@ export class NVSPartitionTable {
       });
     } catch (error) {
       error.message
-        ? Logger.errorNotify(error.message, error)
-        : Logger.errorNotify(`Failed to read CSV from ${filePath}`, error);
+        ? Logger.errorNotify(error.message, error, tag)
+        : Logger.errorNotify(
+            `Failed to read CSV from ${filePath}`,
+            error,
+            tag
+          );
     }
   }
 
@@ -150,12 +155,14 @@ export class NVSPartitionTable {
       if (!canAccessFile(pythonBinPath, constants.R_OK)) {
         Logger.errorNotify(
           "Python binary path is not defined",
-          new Error("idf.pythonBinPath is not defined")
+          new Error("idf.pythonBinPath is not defined"),
+          tag
         );
       }
       if (!canAccessFile(this.filePath, constants.R_OK)) {
         Logger.warnNotify(
-          `${this.filePath} + " is not defined. Save the file first.`
+          `${this.filePath} + " is not defined. Save the file first.`,
+          tag
         );
       }
       if (!canAccessFile(toolPath, constants.R_OK)) {
@@ -163,7 +170,8 @@ export class NVSPartitionTable {
           "nvs_partition_gen.py is not defined",
           new Error(
             "nvs_partition_gen.py is not defined, Make sure idf.espIdfPath is correct."
-          )
+          ),
+          tag
         );
       }
       const genEncryptPart = encrypt ? "encrypt" : "generate";
@@ -186,17 +194,20 @@ export class NVSPartitionTable {
         dirPath
       );
       OutputChannel.appendLine(result);
-      Logger.infoNotify(result);
+      Logger.infoNotify(result, tag);
 
       if (result.indexOf("Created NVS binary: ===>") !== -1) {
-        Logger.infoNotify(`Created NVS Binary in ${join(dirPath, resultName)}`);
+        Logger.infoNotify(
+          `Created NVS Binary in ${join(dirPath, resultName)}`,
+          tag
+        );
       }
     } catch (error) {
       const msg = error.message
         ? error.message
         : "Error generating NVS partition";
       OutputChannel.appendLine(msg);
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, tag);
     }
   }
 
@@ -257,7 +268,11 @@ export class NVSPartitionTable {
         break;
       case "showErrorMessage":
         if (message.error) {
-          Logger.errorNotify(message.error, new Error(message.error));
+          Logger.errorNotify(
+            message.error,
+            new Error(message.error),
+            tag
+          );
         }
       case "saveDataRequest":
         if (message.csv) {
@@ -287,13 +302,15 @@ export class NVSPartitionTable {
       if (this.filePath && this.filePath.endsWith(".csv")) {
         await writeFile(this.filePath, csv);
         Logger.infoNotify(
-          `NVS Partition table is saved successfully. (${this.filePath})`
+          `NVS Partition table is saved successfully. (${this.filePath})`,
+          tag
         );
       }
     } catch (err) {
       return Logger.errorNotify(
         `Failed to save the partition data to the file ${this.filePath} due to some error. Error: ${err.message}`,
-        err
+        err,
+        tag
       );
     }
   }

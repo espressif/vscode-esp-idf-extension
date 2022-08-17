@@ -27,6 +27,7 @@ import {
 import * as idfConf from "../idfConfiguration";
 import { PackageProgress } from "../PackageProgress";
 
+const tag: string = "Common";
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
   private readonly GITHUB_REPO: string;
@@ -45,7 +46,7 @@ export class AbstractCloning {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
       OutputChannel.appendLine(`\n❌ [${this.name} Cloning] : Stopped!\n`);
-      Logger.info(`\n❌ [${this.name} Cloning] : Stopped!\n`);
+      Logger.info(`\n❌ [${this.name} Cloning] : Stopped!\n`, { tag });
     }
   }
 
@@ -70,7 +71,7 @@ export class AbstractCloning {
 
       this.cloneProcess.stderr.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString());
+        Logger.info(data.toString(), { tag });
         const errRegex = /\b(Error)\b/g;
         if (errRegex.test(data.toString())) {
           reject(data.toString());
@@ -102,7 +103,7 @@ export class AbstractCloning {
 
       this.cloneProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString());
+        Logger.info(data.toString(), { tag });
         const progressRegex = /(\d+)(\.\d+)?%/g;
         const matches = data.toString().match(progressRegex);
         if (matches) {
@@ -132,7 +133,7 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `${this.name} clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("Cloning error", new Error(msg));
+          Logger.errorNotify("Cloning error", new Error(msg), tag );
           return reject(new Error(msg));
         }
         return resolve();
@@ -174,7 +175,7 @@ export class AbstractCloning {
     } else {
       const doesToolsDirExists = await dirExistPromise(toolsDir);
       if (!doesToolsDirExists) {
-        Logger.infoNotify(`${toolsDir} doesn't exist.`);
+        Logger.infoNotify(`${toolsDir} doesn't exist.`, tag);
         return;
       }
       installDirPath = toolsDir;
@@ -183,14 +184,14 @@ export class AbstractCloning {
     if (installDir.target === "existing") {
       const target = idfConf.readParameter("idf.saveScope");
       await idfConf.writeParameter(configurationId, installDirPath, target);
-      Logger.infoNotify(`${this.name} has been installed`);
+      Logger.infoNotify(`${this.name} has been installed`, tag);
       return;
     }
     const resultFolder = basename(this.GITHUB_REPO).replace(".git", "");
     const resultingPath = join(installDirPath, resultFolder);
     const doesResultingPathExists = await dirExistPromise(resultingPath);
     if (doesResultingPathExists) {
-      Logger.infoNotify(`${resultingPath} already exist.`);
+      Logger.infoNotify(`${resultingPath} already exist.`, tag);
       return;
     }
     await window.withProgress(
@@ -217,10 +218,10 @@ export class AbstractCloning {
           await this.downloadByCloning(installDirPath, undefined, progress);
           const target = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(configurationId, resultingPath, target);
-          Logger.infoNotify(`${this.name} has been installed`);
+          Logger.infoNotify(`${this.name} has been installed`, tag);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, tag);
         }
       }
     );

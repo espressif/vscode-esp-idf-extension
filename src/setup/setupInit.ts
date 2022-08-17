@@ -31,6 +31,8 @@ import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
 import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 
+const tag: string = "Setup";
+
 export interface ISetupInitArgs {
   espIdfPath: string;
   espIdfVersion: string;
@@ -354,7 +356,7 @@ export async function getSetupInitialValues(
       setupInitArgs.pyBinPath = prevInstall.pyBinPath;
     }
   } catch (error) {
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, { tag });
   }
   return setupInitArgs;
 }

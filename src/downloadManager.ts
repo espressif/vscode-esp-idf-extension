@@ -30,6 +30,7 @@ import { PackageManagerWebError } from "./packageWebError";
 import * as utils from "./utils";
 import { IdfMirror } from "./views/setup/types";
 
+const tag: string = "Download Manager";
 export class DownloadManager {
   constructor(
     private installPath: string,
@@ -175,7 +176,7 @@ export class DownloadManager {
         const errMsg = error.message
           ? error.message
           : `Error downloading ${urlToUse}`;
-        Logger.error(errMsg, error);
+        Logger.error(errMsg, error, { tag });
         retryCount += 1;
         if (cancelToken && cancelToken.isCancellationRequested) {
           throw error;
@@ -394,6 +395,6 @@ export class DownloadManager {
 
   private appendChannel(text: string): void {
     OutputChannel.appendLine(text);
-    Logger.info(text);
+    Logger.info(text, { tag });
   }
 }

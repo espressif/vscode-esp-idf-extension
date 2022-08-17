@@ -23,6 +23,8 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
+const tag: string = "ESP-IDF Debug Adapter";
+
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
   const serialPort = readParameter("idf.port", workspaceFolder);
@@ -70,7 +72,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
         env: modifiedEnv,
       }
     );
-    Logger.info(cmdResult.toString());
+    Logger.info(cmdResult.toString(), { tag });
     if (
       cmdResult.toString().indexOf("verify FAILED (digest mismatch)") !== -1
     ) {
@@ -95,7 +97,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
       : error.message
       ? error.message
       : "Something wrong while verifying app binary.";
-    Logger.errorNotify(msg, error);
+    Logger.errorNotify(msg, error, tag);
     return false;
   }
 }

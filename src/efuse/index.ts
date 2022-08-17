@@ -24,6 +24,8 @@ import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { Uri } from "vscode";
 
+const tag: string = "Efuse";
+
 export type ESPEFuseSummary = {
   [category: string]: [
     {
@@ -73,7 +75,11 @@ export class ESPEFuseManager {
     );
     const eFuseFields = await readJson(tempFile);
     unlink(tempFile, (err) => {
-      Logger.error("Failed to delete the tmp espfuse json file", err);
+      Logger.error(
+        "Failed to delete the tmp espfuse json file",
+        err,
+        { tag }
+      );
     });
     const resp = {};
     for (const name in eFuseFields) {

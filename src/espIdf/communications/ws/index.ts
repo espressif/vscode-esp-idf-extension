@@ -20,6 +20,8 @@ import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
 import { Logger } from "../../../logger/logger";
 
+const tag:string = "ESP-IDF Communication";
+
 interface GDBStubResponse {
   event: "gdb_stub";
   port: string;
@@ -92,7 +94,8 @@ export class WSServer extends EventEmitter {
             } catch (error) {
               Logger.errorNotify(
                 `Failed to parse the websocket message`,
-                error
+                error,
+                tag
               );
               this.emit("unknown-message", data, error);
             }

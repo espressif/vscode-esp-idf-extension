@@ -27,7 +27,7 @@ export class Logger {
     return Logger.instance;
   }
 
-  public static infoNotify(message: string, metadata?: any, tag?: string) {
+  public static infoNotify(message: string, tag: string, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
@@ -41,7 +41,7 @@ export class Logger {
     winston.info(message, metadata);
   }
 
-  public static warnNotify(message: string, metadata?: any, tag?: string) {
+  public static warnNotify(message: string, tag: string, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
@@ -55,7 +55,7 @@ export class Logger {
     winston.warn(message, metadata);
   }
 
-  public static errorNotify(message: string, error: Error, metadata?: any, tag?: string) {
+  public static errorNotify(message: string, error: Error, tag: string, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }

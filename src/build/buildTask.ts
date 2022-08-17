@@ -25,6 +25,7 @@ import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
+const tag: string = "Build";
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirName: string;
@@ -103,8 +104,8 @@ export class BuildTask {
     } catch (error) {
       const errorMessage =
         "Failed to save unsaved files, ignoring and continuing with the build";
-      Logger.error(errorMessage, error);
-      Logger.warnNotify(errorMessage);
+      Logger.error(errorMessage, error, { tag });
+      Logger.warnNotify(errorMessage, tag);
     }
     if (BuildTask.isBuilding) {
       throw new Error("ALREADY_BUILDING");

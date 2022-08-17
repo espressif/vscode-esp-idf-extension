@@ -31,6 +31,8 @@ import {
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
 
+const tag: string = "ESP-IDF Tracing";
+
 export interface IAppTraceManagerConfig {
   host: string;
   port: number;
@@ -190,7 +192,7 @@ export class AppTraceManager extends EventEmitter {
         });
       }
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(error.message, error, tag);
     }
   }
 
@@ -273,7 +275,8 @@ export class AppTraceManager extends EventEmitter {
     tclClient.on("error", (error: Error) => {
       Logger.error(
         `Some error prevailed while checking the tracking status`,
-        error
+        error,
+        { tag }
       );
       this.shallContinueCheckingStatus = false;
       onStop();

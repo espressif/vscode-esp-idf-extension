@@ -16,6 +16,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { Logger } from "./logger/logger";
 
+const tag: string = "Localization Dictionary";
+
 export class LocDictionary {
   private dictionary: object;
   private schemaProperties: string[];
@@ -46,7 +48,8 @@ export class LocDictionary {
       } catch (error) {
         Logger.errorNotify(
           "Failed to load localization, by default will only display in English",
-          error
+          error,
+          tag
         );
       }
     }
@@ -58,7 +61,8 @@ export class LocDictionary {
     }
     if (this.schemaProperties && this.schemaProperties.hasOwnProperty(key)) {
       Logger.infoNotify(
-        `${this.localizationFile} doesn't contain localization for ${key}`
+        `${this.localizationFile} doesn't contain localization for ${key}`,
+        tag
       );
     }
     return defaultMsg;
@@ -91,7 +95,7 @@ export class LocDictionary {
       const err = new Error(
         `Error with parsing localization schema for ${this.localizationFile}`
       );
-      Logger.errorNotify(err.message, err);
+      Logger.errorNotify(err.message, err, tag);
     }
   }
 

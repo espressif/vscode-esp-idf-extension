@@ -21,6 +21,7 @@ import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
 const locDic = new LocDictionary(__filename);
+const tag: string = "ESP-IDF Menuconfig";
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -171,7 +172,11 @@ export class MenuConfigPanel {
                     progress
                   );
                 } catch (error) {
-                  Logger.errorNotify(error.message, error);
+                  Logger.errorNotify(
+                    error.message,
+                    error,
+                    tag
+                    );
                 }
               }
             );
@@ -183,7 +188,7 @@ export class MenuConfigPanel {
             "menuconfig.saveValues",
             "Saved changes in SDK Configuration editor"
           );
-          Logger.infoNotify(saveMessage);
+          Logger.infoNotify(saveMessage, tag);
           break;
         case "discardChanges":
           ConfserverProcess.loadGuiConfigValues();
@@ -191,7 +196,7 @@ export class MenuConfigPanel {
             "menuconfig.discardValues",
             "Discarded changes in SDK Configuration editor"
           );
-          Logger.infoNotify(discardMessage);
+          Logger.infoNotify(discardMessage, tag);
           break;
         case "requestInitValues":
           MenuConfigPanel.currentPanel.panel.webview.postMessage({
@@ -203,7 +208,7 @@ export class MenuConfigPanel {
           const err = new Error(
             `Menuconfig: Unrecognized command received, file: ${__filename}`
           );
-          Logger.error(err.message, err);
+          Logger.error(err.message, err, { tag });
           break;
       }
     });
@@ -224,7 +229,7 @@ export class MenuConfigPanel {
 
     if (jsonValues.error) {
       const err = new Error(`Invalid data error: ${jsonValues.error}`);
-      Logger.error(err.message, err);
+      Logger.error(err.message, err, { tag });
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);

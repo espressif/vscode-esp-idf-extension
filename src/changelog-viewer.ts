@@ -22,6 +22,7 @@ import { ESP } from "./config";
 import { Logger } from "./logger/logger";
 import { packageJson } from "./utils";
 
+const tag: string = "Changelog Viewer";
 export namespace ChangelogViewer {
   export async function showChangeLogAndUpdateVersion(cxt: ExtensionContext) {
     //get the version saved in the db
@@ -51,7 +52,7 @@ export namespace ChangelogViewer {
             Uri.file(changelogFilePath)
           );
         } catch (error) {
-          Logger.errorNotify("Failed to open the CHANGELOG.md file", error, {
+          Logger.errorNotify("Failed to open the CHANGELOG.md file", error, tag, {
             sev: 1,
           });
         }

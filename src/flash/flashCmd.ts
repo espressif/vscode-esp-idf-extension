@@ -29,6 +29,7 @@ import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
 
 const locDic = new LocDictionary(__filename);
+const tag: string = "Flash";
 
 export async function verifyCanFlash(
   flashBaudRate: string,
@@ -43,7 +44,8 @@ export async function verifyCanFlash(
     );
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      tag
     );
   }
 
@@ -56,35 +58,44 @@ export async function verifyCanFlash(
   if (!(await pathExists(buildPath))) {
     return Logger.errorNotify(
       `Build is required before Flashing, ${buildPath} can't be accessed`,
-      new Error("BUILD_PATH_ACCESS_ERROR")
+      new Error("BUILD_PATH_ACCESS_ERROR"),
+      tag
     );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     return Logger.warnNotify(
-      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!",
+      tag
     );
   }
   const projectName = await getProjectName(workspace.fsPath, buildDirName);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
     return Logger.warnNotify(
-      `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`
+      `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`,
+      tag
     );
   }
   if (!port) {
     try {
       await vscode.commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error);
+      Logger.error(
+        "Unable to execute the command: espIdf.selectPort",
+        error,
+        { tag }
+      );
     }
     return Logger.errorNotify(
       "Select a serial port before flashing",
-      new Error("NOT_SELECTED_PORT")
+      new Error("NOT_SELECTED_PORT"),
+      tag
     );
   }
   if (!flashBaudRate) {
     return Logger.errorNotify(
       "Select a baud rate before flashing",
-      new Error("NOT_SELECTED_BAUD_RATE")
+      new Error("NOT_SELECTED_BAUD_RATE"),
+      tag
     );
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType", workspace) as ESP.FlashType;
@@ -94,7 +105,8 @@ export async function verifyCanFlash(
     if (!listDfu) {
       return Logger.errorNotify(
         "No DFU capable USB device available found",
-        new Error("NO_DFU_DEVICES_FOUND")
+        new Error("NO_DFU_DEVICES_FOUND"),
+        tag
       );
     }
   }

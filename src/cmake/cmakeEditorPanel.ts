@@ -23,6 +23,7 @@ import {
 } from "./cmakeListsBuilder";
 import CMakeListsWebviewCollection from "./cmakeFilesCollection";
 
+const tag: string = "CMake";
 export class CmakeListsEditorPanel {
   public static cmakeListsPanels: CMakeListsWebviewCollection = new CMakeListsWebviewCollection();
 
@@ -124,7 +125,10 @@ export class CmakeListsEditorPanel {
               fileName: fileUri.fsPath,
             });
           } catch (error) {
-            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error);
+            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`,
+              error,
+              tag
+            );
           }
         case "saveChanges":
           if (message.newValues) {

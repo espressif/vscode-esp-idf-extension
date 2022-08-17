@@ -42,6 +42,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 
+const tag: string = "ESP-IDF Utils";
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
   "utils.currentFolder",
@@ -71,7 +72,7 @@ export class PreCheck {
     preCheckFunctions.forEach((preCheck: PreCheckInput) => {
       if (!preCheck[0]()) {
         isPassedAll = false;
-        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"));
+        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"), tag);
       }
     });
     if (isPassedAll) {
@@ -100,7 +101,8 @@ export class PreCheck {
       } catch (error) {
         Logger.error(
           `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-          error
+          error,
+          { tag }
         );
         return false;
       }
@@ -115,7 +117,8 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error
+        error,
+      { tag }
       );
       return false;
     }
@@ -145,7 +148,7 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err);
+        Logger.error(err.message, err, { tag });
         reject(err);
       }
     });
@@ -159,7 +162,7 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     fs.accessSync(filePath, mode);
     return true;
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${filePath}`, error);
+    Logger.error(`Cannot access filePath: ${filePath}`, error, { tag });
     return false;
   }
 }
@@ -314,7 +317,7 @@ export function getMonitorBaudRate(workspacePath: string) {
     const errMsg = error.message
       ? error.message
       : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
-    Logger.error(errMsg, error);
+    Logger.error(errMsg, error, { tag });
   }
   return sdkMonitorBaudRate;
 }
@@ -433,12 +436,12 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error);
+            Logger.error(error.message, error, { tag });
           }
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          Logger.error(stderr, new Error(stderr));
+          Logger.error(stderr, new Error(stderr), { tag });
           if (stderr.indexOf("Error") !== -1) {
             return reject(stderr);
           }
@@ -554,7 +557,8 @@ export async function getElfFilePath(
   } catch (error) {
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
-      error
+      error,
+      tag
     );
     return;
   }
@@ -637,7 +641,7 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
   try {
     const doesWorkingDirExists = await pathExists(workingDir);
     if (!doesWorkingDirExists) {
-      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`);
+      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`, { tag });
       return "x.x";
     }
     const gitVersion = await checkGitExists(workingDir, gitPath);
@@ -667,7 +671,7 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
     if (espIdfVersionFromCmake) {
       return espIdfVersionFromCmake;
     }
-    Logger.info(error);
+    Logger.info(error, { tag });
     return "x.x";
   }
 }
@@ -681,7 +685,10 @@ export async function getEspIdfFromCMake(espIdfPath: string) {
   );
   const doesVersionFileExists = await pathExists(versionFilePath);
   if (!doesVersionFileExists) {
-    Logger.info(`${versionFilePath} does not exist to get ESP-IDF version.`);
+    Logger.info(
+      `${versionFilePath} does not exist to get ESP-IDF version.`,
+      { tag }
+    );
     return "x.x";
   }
   const versionFileContent = await readFile(versionFilePath, "utf8");
@@ -723,7 +730,7 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       return "Not found";
     }
   } catch (error) {
-    Logger.errorNotify("Git is not found in current environment", error);
+    Logger.errorNotify("Git is not found in current environment", error, tag);
     return "Not found";
   }
 }
@@ -746,10 +753,10 @@ export async function cleanDirtyGitRepository(
       { env: modifiedEnv, cwd: workingDir }
     );
     OutputChannel.init().appendLine(resetResult + EOL);
-    Logger.info(resetResult + EOL);
+    Logger.info(resetResult + EOL, { tag });
   } catch (error) {
     const errMsg = error.message ? error.message : "Error resetting repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, tag);
   }
 }
 
@@ -784,7 +791,7 @@ export async function fixFileModeGitRepository(
     const errMsg = error.message
       ? error.message
       : "Error fixing FileMode in repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, tag);
   }
 }
 
@@ -862,7 +869,11 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid custom environment variables format", error);
+      Logger.errorNotify(
+        "Invalid custom environment variables format",
+        error,
+        tag
+      );
     }
   }
 
@@ -1010,7 +1021,7 @@ export async function isBinInPath(
         : result.toString().trim();
     }
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${binaryName}`, error);
+    Logger.error(`Cannot access filePath: ${binaryName}`, error, tag);
   }
   return "";
 }

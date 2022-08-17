@@ -50,6 +50,7 @@ export interface IDebugAdapterConfig {
 }
 
 export class DebugAdapterManager extends EventEmitter {
+  public tag: string = "ESP-IDF Debug Adapter";
   public static init(context: vscode.ExtensionContext): DebugAdapterManager {
     if (!DebugAdapterManager.instance) {
       DebugAdapterManager.instance = new DebugAdapterManager(context);
@@ -192,7 +193,7 @@ export class DebugAdapterManager extends EventEmitter {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
         OutputChannel.append(data.toString(), "Debug Adapter");
-        Logger.info(data.toString());
+        Logger.info(data.toString(), { tag: this.tag });
         this.emit("error", data, this.chan);
       });
 
@@ -200,7 +201,7 @@ export class DebugAdapterManager extends EventEmitter {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
         OutputChannel.append(data.toString(), "Debug Adapter");
-        Logger.info(data.toString());
+        Logger.info(data.toString(), { tag: this.tag });
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {
           return resolve(true);
@@ -217,7 +218,8 @@ export class DebugAdapterManager extends EventEmitter {
         if (!signal && code && code !== 0) {
           Logger.errorNotify(
             `ESP-IDF Debug Adapter exit with error code ${code}`,
-            new Error("Spawn exit with non-zero" + code)
+            new Error("Spawn exit with non-zero" + code),
+            this.tag
           );
         }
         this.stop();
@@ -233,7 +235,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.kill("SIGKILL");
       this.adapter = undefined;
       const stoppedMsg = "[Stopped] : ESP-IDF Debug Adapter";
-      Logger.info(stoppedMsg);
+      Logger.info(stoppedMsg, { tag: this.tag });
       OutputChannel.appendLine(stoppedMsg);
     }
   }
@@ -347,7 +349,11 @@ export class DebugAdapterManager extends EventEmitter {
         return resultGdbInitPath;
       }
     } catch (error) {
-      Logger.errorNotify("Error creating gdbinit file", error);
+      Logger.errorNotify(
+        "Error creating gdbinit file",
+        error,
+        this.tag
+      );
     }
     return;
   }

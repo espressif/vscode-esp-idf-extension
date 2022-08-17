@@ -32,6 +32,7 @@ import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
+const tag:string = "ESP-IDF Menuconfig";
 export class ConfserverProcess {
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise((resolve) => {
@@ -188,24 +189,24 @@ export class ConfserverProcess {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-          Logger.infoNotify(data.toString());
+          Logger.infoNotify(data.toString(), tag);
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-        Logger.infoNotify(data.toString());
+        Logger.infoNotify(data.toString(), tag);
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.errorNotify(errorMsg, new Error(errorMsg));
+          Logger.errorNotify(errorMsg, new Error(errorMsg), tag);
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
         const loadMessage = "Loaded default settings in GUI menuconfig";
-        Logger.infoNotify(loadMessage);
+        Logger.infoNotify(loadMessage, tag);
         resolve();
       });
     });
@@ -329,7 +330,7 @@ export class ConfserverProcess {
         increment: 3,
         message: "Loading initial values...",
       });
-      Logger.info(data.toString());
+      Logger.info(data.toString(), { tag });
       OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
       this.checkIfJsonIsReceived();
     });
@@ -345,7 +346,7 @@ export class ConfserverProcess {
       if (isStringNotEmpty(dataStr)) {
         const regexPattern = new RegExp(ignoreList.join("|"));
         if (regexPattern.test(dataStr)) {
-          Logger.info(dataStr);
+          Logger.info(dataStr, { tag });
           OutputChannel.appendLine(dataStr, "SDK Configuration Editor");
         } else {
           this.printError(dataStr);
@@ -377,6 +378,10 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(data.toString(), new Error(data.toString()));
+    Logger.error(
+      data.toString(),
+      new Error(data.toString()),
+      { tag }
+    );
   }
 }

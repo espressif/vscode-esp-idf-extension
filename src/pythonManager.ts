@@ -19,6 +19,8 @@ import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import path from "path";
 
+const tag: string = "Python Manager";
+
 export async function installPythonEnvFromIdfTools(
   espDir: string,
   idfToolsDir: string,
@@ -114,7 +116,7 @@ export async function installExtensionPyReqs(
     "requirements.txt"
   );
   if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
-    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
+    Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists, tag);
     if (channel) {
       channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
     }
@@ -125,14 +127,14 @@ export async function installExtensionPyReqs(
     "requirements.txt"
   );
   if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
-    Logger.warnNotify(extensionRequirements + reqDoesNotExists);
+    Logger.warnNotify(extensionRequirements + reqDoesNotExists, tag);
     if (channel) {
       channel.appendLine(extensionRequirements + reqDoesNotExists);
     }
     return;
   }
   const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
-  Logger.info(installExtensionPyPkgsMsg);
+  Logger.info(installExtensionPyPkgsMsg, { tag });
   if (pyTracker) {
     pyTracker.Log = installExtensionPyPkgsMsg;
   }
@@ -158,7 +160,7 @@ export async function installExtensionPyReqs(
     cancelToken
   );
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
-  Logger.info(installDAPyPkgsMsg + "\n");
+  Logger.info(installDAPyPkgsMsg + "\n", { tag });
   if (pyTracker) {
     pyTracker.Log = installDAPyPkgsMsg;
   }
@@ -190,7 +192,7 @@ export async function execProcessWithLog(
     opts,
     cancelToken
   );
-  Logger.info(processResult + "\n");
+  Logger.info(processResult + "\n", { tag });
   if (pyTracker) {
     pyTracker.Log = processResult + "\n";
   }
@@ -246,7 +248,7 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Python is not found in current environment");
-    Logger.errorNotify(newErr.message, newErr);
+    Logger.errorNotify(newErr.message, newErr, tag);
   }
   return false;
 }
@@ -268,7 +270,7 @@ export async function checkPipExists(pyBinPath: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Pip is not found in current environment");
-    Logger.errorNotify(newErr.message, newErr);
+    Logger.errorNotify(newErr.message, newErr, tag);
   }
   return false;
 }
@@ -292,7 +294,7 @@ export async function getUnixPythonList(workingDir: string) {
       return resultList;
     }
   } catch (error) {
-    Logger.errorNotify("Error looking for python in system", error);
+    Logger.errorNotify("Error looking for python in system", error, tag);
     return ["Not found"];
   }
 }
@@ -308,7 +310,7 @@ export async function checkIfNotVirtualEnv(
     );
     return isVirtualEnvBuffer.toString().indexOf("True") !== -1 ? true : false;
   } catch (error) {
-    Logger.errorNotify("Error checking Python is virtualenv", error);
+    Logger.errorNotify("Error checking Python is virtualenv", error, tag);
     return false;
   }
 }

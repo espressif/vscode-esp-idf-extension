@@ -21,6 +21,8 @@ import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 
+const tag:string = "Workspace Configuration";
+
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
   updateIdfComponentsTree(workspaceRoot);
@@ -59,7 +61,7 @@ export function getProjectName(
       }
       fs.readFile(projDescJsonPath, (err, data) => {
         if (err) {
-          Logger.error(err.message, err);
+          Logger.error(err.message, err, { tag });
           return reject(err);
         }
         const projDescJson = JSON.parse(data.toString());
@@ -77,7 +79,7 @@ export function getProjectName(
       });
     } catch (error) {
       const errMsg = error && error.message ? error.message : error;
-      Logger.error(errMsg, error);
+      Logger.error(errMsg, error, { tag });
       return reject(error);
     }
   });

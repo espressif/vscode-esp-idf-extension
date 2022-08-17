@@ -29,6 +29,8 @@ const COVERED_FACTOR = 0.9;
 const PARTIAL_FACTOR = 0.75;
 const MIN_LINE_COUNT = 1;
 
+const tag:string = "Coverage";
+
 export interface countRange {
   range: vscode.Range;
   count: Number;
@@ -133,7 +135,7 @@ function _runCmd(cmd: string, args: string[], dirPath: string) {
     .then((resultBuffer) => resultBuffer.toString())
     .catch((e) => {
       const msg = e.error ? e.error.message : e;
-      Logger.error("Error on gcov cmd.\n" + msg, e);
+      Logger.error("Error on gcov cmd.\n" + msg, e, { tag });
       OutputChannel.appendLine("Error building gcov cmd.\n" + msg);
       return "";
     });
@@ -236,7 +238,11 @@ export async function generateCoverageForEditors(
     }
   } catch (error) {
     const msg = error.message ? error.message : error;
-    Logger.error("Error generate editor coverage.\n" + msg, error);
+    Logger.error(
+      "Error generate editor coverage.\n" + msg,
+      error,
+      { tag }
+    );
     OutputChannel.appendLine("Error generating editor coverage.\n" + msg);
   }
   return coveredEditors;
@@ -263,7 +269,7 @@ export async function previewReport(dirPath: vscode.Uri) {
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {
     const msg = e.message ? e.message : e;
-    Logger.error("Error building gcov html.\n" + msg, e);
+    Logger.error("Error building gcov html.\n" + msg, e, { tag });
     OutputChannel.appendLine("Error building gcov html.\n" + msg);
   }
 }

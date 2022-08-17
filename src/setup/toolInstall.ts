@@ -27,6 +27,8 @@ import {
 import { CancellationToken, Progress } from "vscode";
 import { IdfMirror } from "../views/setup/types";
 
+const tag: string = "Setup";
+
 export async function downloadEspIdfTools(
   installDir: string,
   idfToolsManager: IdfToolsManager,
@@ -37,7 +39,7 @@ export async function downloadEspIdfTools(
 ) {
   const manyPathsInInstallDir = installDir.split(delimiter);
   if (manyPathsInInstallDir.length > 1) {
-    Logger.infoNotify("Introduce a single path");
+    Logger.infoNotify("Introduce a single path", tag);
     return;
   }
   const downloadManager = new DownloadManager(installDir);
@@ -54,7 +56,7 @@ export async function downloadEspIdfTools(
     );
   });
   OutputChannel.appendLine("");
-  Logger.info("");
+  Logger.info("", { tag });
   await downloadManager.downloadPackages(
     idfToolsManager,
     progress,
@@ -64,8 +66,8 @@ export async function downloadEspIdfTools(
     onReqPkgs
   );
   OutputChannel.appendLine("");
-  Logger.info("");
+  Logger.info("", { tag });
   await installManager.installPackages(idfToolsManager, progress, cancelToken, onReqPkgs);
   OutputChannel.appendLine("");
-  Logger.info("");
+  Logger.info("", { tag });
 }

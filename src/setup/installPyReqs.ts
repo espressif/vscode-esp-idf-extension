@@ -20,6 +20,8 @@ import { PyReqLog } from "../PyReqLog";
 import { CancellationToken, Progress } from "vscode";
 import { Logger } from "../logger/logger";
 
+const tag: string = "Setup";
+
 export async function installPyReqs(
   espIdfPath: string,
   workingDir: string,
@@ -41,7 +43,7 @@ export async function installPyReqs(
     const msg = "Python have not been found in your environment.";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
-    Logger.info(msg);
+    Logger.info(msg, { tag });
     return;
   }
   const doesPipExists = await pythonManager.checkPipExists(
@@ -52,7 +54,7 @@ export async function installPyReqs(
     const msg = "Pip have not been found in your environment.";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
-    Logger.info(msg);
+    Logger.info(msg, { tag });
     return;
   }
   const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(sysPyBinPath, workingDir);
@@ -60,7 +62,7 @@ export async function installPyReqs(
     const msg = "Selected python is from a virtual environment. Choose system python";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
-    Logger.info(msg);
+    Logger.info(msg, { tag });
     return;
   }
   const logTracker = new PyReqLog(sendPyReqLog);
@@ -80,7 +82,7 @@ export async function installPyReqs(
     if (logTracker.Log.indexOf("Exception") < 0) {
       const msg = "Python requirements has been installed";
       OutputChannel.appendLine(msg);
-      Logger.info(msg);
+      Logger.info(msg, { tag });
       SetupPanel.postMessage({
         command: "load_python_bin_path",
         pythonBinPath: virtualEnvPyBin,
@@ -90,7 +92,7 @@ export async function installPyReqs(
   }
   const msg = "Python requirements has not been installed";
   OutputChannel.appendLine(msg);
-  Logger.info(msg);
+  Logger.info(msg, { tag });
   return;
 }
 

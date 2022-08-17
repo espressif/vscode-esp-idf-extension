@@ -21,6 +21,8 @@ import { ESP } from "../../config";
 import { env, Uri } from "vscode";
 import { Logger } from "../../logger/logger";
 
+const tag: string = "Rainmaker";
+
 export enum RainmakerOAuthProvider {
   Google = "Google",
   Github = "Github",
@@ -36,7 +38,7 @@ export class RainmakerOAuthManager {
       url = new URL(oAuthURL);
     } catch (error) {
       const err = new Error(`Invalid OAuth Server URL, ${oAuthURL}`);
-      Logger.errorNotify(err.message, err);
+      Logger.errorNotify(err.message, err, tag);
       throw err;
     }
 

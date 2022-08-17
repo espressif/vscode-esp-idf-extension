@@ -21,6 +21,8 @@ import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
 import { getWebViewFavicon } from "../../utils";
 
+const tag: string = "ESP-IDF Size";
+
 export class IDFSizePanel {
   public static createOrShow(
     context: vscode.ExtensionContext,
@@ -107,7 +109,7 @@ export class IDFSizePanel {
             const err = new Error(
               `Unrecognized command received from webview (idf-size), file: ${__filename}`
             );
-            Logger.error(err.message, err);
+            Logger.error(err.message, err, { tag });
             break;
         }
       },

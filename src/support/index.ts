@@ -36,6 +36,8 @@ import { checkSystemInfo } from "./checkSystemInfo";
 import { checkCCppPropertiesJson, checkLaunchJson } from "./checkVscodeFiles";
 import { checkSpacesInSettings } from "./checkSpacesInSettings";
 
+const tag: string = "Support";
+
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
   currentWorkspace: vscode.Uri,
@@ -60,7 +62,8 @@ export async function generateConfigurationReport(
   await vscode.env.clipboard.writeText(reportOutput);
   reportedResult.formatedOutput = reportOutput;
   Logger.infoNotify(
-    "Extension configuration report has been copied to clipboard"
+    "Extension configuration report has been copied to clipboard",
+    tag
   );
   return reportedResult;
 }

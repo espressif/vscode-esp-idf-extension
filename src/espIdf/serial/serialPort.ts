@@ -23,6 +23,8 @@ import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
+const tag: string = "ESP-IDF Serial";
+
 export class SerialPort {
   public static shared(): SerialPort {
     if (!SerialPort.instance) {
@@ -65,7 +67,8 @@ export class SerialPort {
     } catch (error) {
       Logger.errorNotify(
         "Something went wrong while getting the serial port list",
-        error
+        error,
+        tag
       );
     }
   }
@@ -85,7 +88,8 @@ export class SerialPort {
       "Port has been updated to "
     );
     Logger.infoNotify(
-      `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`
+      `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`,
+      tag
     );
   }
 

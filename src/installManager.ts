@@ -27,6 +27,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { PackageError } from "./packageError";
 import * as utils from "./utils";
 
+const tag: string = "Install Manager";
 export class InstallManager {
   constructor(private installPath: string) {}
   public getToolPackagesPath(toolPackage: string[]) {
@@ -417,7 +418,7 @@ export class InstallManager {
   }
   private appendChannel(text: string): void {
     OutputChannel.appendLine(text);
-    Logger.info(text);
+    Logger.info(text, { tag });
   }
   private async promisedStripContainerDirs(pkgDirPath: string, levels: number) {
     const tmpPath = pkgDirPath + ".tmp";

@@ -40,6 +40,8 @@ import {
   RainmakerDevice,
 } from "../client/model";
 
+const tag: string = "Rainmaker";
+
 export class ESPRainMakerTreeDataProvider
   implements TreeDataProvider<RMakerItem> {
   private _onDidChangeTreeData: EventEmitter<RMakerItem> = new EventEmitter<
@@ -87,7 +89,11 @@ export class ESPRainMakerTreeDataProvider
         const resp = await RainmakerAPIClient.getNodeParams(nodeId);
         value = resp[device.name];
       } catch (error) {
-        Logger.errorNotify("Failed to get params for device", error);
+        Logger.errorNotify(
+          "Failed to get params for device",
+          error,
+          tag
+        );
       }
       return device.params.map((param) =>
         DeviceParamItem(parent.id, param, value ? value[param.name] : "")
@@ -107,7 +113,11 @@ export class ESPRainMakerTreeDataProvider
     try {
       return await RainmakerAPIClient.getAllUserAssociatedNodes();
     } catch (error) {
-      Logger.warnNotify("Failed to fetch node details, try refreshing", error);
+      Logger.warnNotify(
+        "Failed to fetch node details, try refreshing",
+        error,
+        tag
+      );
     }
     return;
   }
@@ -121,7 +131,8 @@ export class ESPRainMakerTreeDataProvider
     } catch (error) {
       Logger.warnNotify(
         "Failed to refresh access token, try once again",
-        error
+        error,
+        tag
       );
     }
   }

@@ -26,6 +26,8 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 
+const tag: string = "Flash";
+
 export async function flashCommand(
   cancelToken: CancellationToken,
   flashBaudRate: string,
@@ -48,7 +50,8 @@ export async function flashCommand(
   if (binFiles.length === 0) {
     return Logger.errorNotify(
       `Build is required before Flashing, .bin file can't be accessed`,
-      new Error("BIN_FILE_ACCESS_ERROR")
+      new Error("BIN_FILE_ACCESS_ERROR"),
+      tag
     );
   }
   const flasherArgsJsonPath = join(buildPath, "flasher_args.json");
@@ -74,27 +77,37 @@ export async function flashCommand(
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;
-      Logger.infoNotify("Flash Done ⚡️");
+      Logger.infoNotify("Flash Done ⚡️", tag);
     }
     TaskManager.disposeListeners();
   } catch (error) {
     if (error.message === "ALREADY_FLASHING") {
-      return Logger.errorNotify("Already one flash process is running!", error);
+      return Logger.errorNotify(
+        "Already one flash process is running!",
+        error,
+        tag
+      );
     }
     FlashTask.isFlashing = false;
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
       return Logger.errorNotify(
         "No DFU capable USB device available found",
-        error
+        error,
+        tag
       );
     }
     if (error.message === "FLASH_TERMINATED") {
-      return Logger.errorNotify("Flashing has been stopped!", error);
+      return Logger.errorNotify(
+        "Flashing has been stopped!",
+        error,
+        tag
+      );
     }
     if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
       return Logger.errorNotify(
         "Flash (.bin) files don't exists or can't be accessed!",
-        error
+        error,
+        tag
       );
     }
     if (
@@ -103,10 +116,15 @@ export async function flashCommand(
     ) {
       return Logger.errorNotify(
         `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
-        error
+        error,
+        tag
       );
     }
-    Logger.errorNotify("Failed to flash because of some unusual error", error);
+    Logger.errorNotify(
+      "Failed to flash because of some unusual error",
+      error,
+      tag
+    );
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

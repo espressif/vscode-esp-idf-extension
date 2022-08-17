@@ -22,6 +22,7 @@ import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 
 const locDict = new LocDictionary("ComponentRegistryPanel");
+const tag: string = "Component Manager";
 
 export async function addDependency(
   workspace: Uri,
@@ -48,9 +49,10 @@ export async function addDependency(
       }
     );
     Logger.infoNotify(
-      `Added dependency ${dependency} to the component "${component}"`
+      `Added dependency ${dependency} to the component "${component}"`,
+      tag
     );
-    Logger.info(addDependencyResult.toString());
+    Logger.info(addDependencyResult.toString(), { tag });
   } catch (error) {
     const throwableError = new Error(
       locDict.localize(
@@ -58,7 +60,7 @@ export async function addDependency(
         `Error encountered while adding dependency ${dependency} to the component "${component}"`
       )
     );
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, { tag });
     throw throwableError;
   }
 }

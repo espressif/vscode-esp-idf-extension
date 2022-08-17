@@ -30,6 +30,7 @@ export async function checkExtensionSettings(
   extensionPath: string,
   workspace: vscode.Uri
 ) {
+  const tag: string = "Check Extension Settings";
   const showSetupWindow = readParameter("idf.showOnboardingOnInit") as boolean;
   const isExtensionConfigured = await isCurrentInstallValid(workspace);
   if (isExtensionConfigured) {
@@ -95,7 +96,7 @@ export async function checkExtensionSettings(
         const msg = error.message
           ? error.message
           : "Error loading initial configuration.";
-        Logger.errorNotify(msg, error);
+        Logger.errorNotify(msg, error, tag);
         if (showSetupWindow) {
           vscode.commands.executeCommand("espIdf.setup.start");
         }

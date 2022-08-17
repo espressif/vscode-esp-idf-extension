@@ -124,6 +124,7 @@ import { getEspMatter } from "./espMatter/espMatterDownload";
 let workspaceRoot: vscode.Uri;
 const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
+const tag: string = "ESP-IDF VSCode Extension";
 
 // OpenOCD  and Debug Adapter Manager
 let statusBarItems: { [key: string]: vscode.StatusBarItem };
@@ -223,7 +224,7 @@ export async function activate(context: vscode.ExtensionContext) {
   ): number => {
     const telemetryCallback = (...args: any[]): any => {
       const startTime = Date.now();
-      Logger.info(`Command::${name}::Executed`);
+      Logger.info(`Command::${name}::Executed`, { tag });
       const cbResult = callback.apply(this, args);
       const timeSpent = Date.now() - startTime;
       Telemetry.sendEvent("command", { commandName: name }, { timeSpent });
@@ -466,7 +467,7 @@ export async function activate(context: vscode.ExtensionContext) {
             );
             const doesProjectExists = await pathExists(resultFolder);
             if (doesProjectExists) {
-              Logger.infoNotify(`${resultFolder} already exists.`);
+              Logger.infoNotify(`${resultFolder} already exists.`, tag);
               return;
             }
             const projectPath = vscode.Uri.file(resultFolder);
@@ -500,11 +501,11 @@ export async function activate(context: vscode.ExtensionContext) {
               "extension.defaultFoldersGeneratedMessage",
               "Template folders has been generated."
             );
-            Logger.infoNotify(defaultFoldersMsg);
+            Logger.infoNotify(defaultFoldersMsg, tag);
           }
         );
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -519,7 +520,8 @@ export async function activate(context: vscode.ExtensionContext) {
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
         return Logger.warnNotify(
-          `There is no build directory to clean, exiting!`
+          `There is no build directory to clean, exiting!`,
+          tag
         );
       }
       if (ConfserverProcess.exists()) {
@@ -535,19 +537,21 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (!doesCmakeCacheExists) {
         return Logger.warnNotify(
-          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
+          `There is no CMakeCache.txt. Please try to delete the build directory manually.`,
+          tag
         );
       }
       if (BuildTask.isBuilding || FlashTask.isFlashing) {
         return Logger.warnNotify(
-          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
+          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`,
+          tag
         );
       }
 
       try {
         await del(buildDir, { force: true });
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -596,9 +600,9 @@ export async function activate(context: vscode.ExtensionContext) {
               cancelToken
             );
             OutputChannel.appendLine(result);
-            Logger.infoNotify("Flash memory content has been erased.");
+            Logger.infoNotify("Flash memory content has been erased.", tag);
           } catch (error) {
-            Logger.errorNotify(error.message, error);
+            Logger.errorNotify(error.message, error, tag);
           }
         }
       );
@@ -645,11 +649,11 @@ export async function activate(context: vscode.ExtensionContext) {
               arduinoDirPath
             );
             if (arduinoDirExists) {
-              return Logger.infoNotify(`${arduinoDirPath} already exists.`);
+              return Logger.infoNotify(`${arduinoDirPath} already exists.`, tag);
             }
             await arduinoComponentManager.addArduinoAsComponent();
           } catch (error) {
-            Logger.errorNotify(error.message, error);
+            Logger.errorNotify(error.message, error, tag);
           }
         }
       );
@@ -676,7 +680,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } catch (error) {
       const errMsg =
         error && error.message ? error.message : "Error at custom task";
-      Logger.errorNotify(errMsg, error);
+      Logger.errorNotify(errMsg, error, tag);
     }
   });
 
@@ -695,7 +699,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension.noFolderMessage",
             "No workspace selected."
           );
-          Logger.infoNotify(noFolderMsg);
+          Logger.infoNotify(noFolderMsg, tag);
           return;
         }
         workspaceRoot = option.uri;
@@ -727,7 +731,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const coverageOptions = getCoverageOptions(workspaceRoot);
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -764,7 +768,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension.noOptionMessage",
             "No option selected."
           );
-          Logger.infoNotify(noOptionMsg);
+          Logger.infoNotify(noOptionMsg, tag);
           return;
         }
         let currentValue;
@@ -797,7 +801,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "extension.noPathUpdatedMessage",
               "No path has been updated"
             );
-            Logger.infoNotify(noPathUpdatedMsg);
+            Logger.infoNotify(noPathUpdatedMsg, tag);
             break;
         }
         if (msg && paramName) {
@@ -815,7 +819,7 @@ export async function activate(context: vscode.ExtensionContext) {
           error && error.message
             ? error.message
             : "Error at defining framework path.";
-        Logger.errorNotify(errMsg, error);
+        Logger.errorNotify(errMsg, error, tag);
       }
     });
   });
@@ -857,7 +861,7 @@ export async function activate(context: vscode.ExtensionContext) {
           "extension.noOptionMessage",
           "No option selected."
         );
-        Logger.infoNotify(noOptionMsg);
+        Logger.infoNotify(noOptionMsg, tag);
         return;
       }
       let currentValue;
@@ -892,7 +896,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension.noParamUpdatedMessage",
             "No device parameter has been updated"
           );
-          Logger.infoNotify(noParamUpdatedMsg);
+          Logger.infoNotify(noParamUpdatedMsg, tag);
           break;
       }
       if (msg && paramName) {
@@ -913,7 +917,7 @@ export async function activate(context: vscode.ExtensionContext) {
         error && error.message
           ? error.message
           : "Error at device configuration.";
-      Logger.errorNotify(errMsg, error);
+      Logger.errorNotify(errMsg, error, tag);
     }
   });
 
@@ -1067,7 +1071,7 @@ export async function activate(context: vscode.ExtensionContext) {
           error && error.message
             ? error.message
             : "Error starting ESP-IDF Debug Adapter";
-        return Logger.errorNotify(errMsg, error);
+        return Logger.errorNotify(errMsg, error, tag);
       }
     },
   });
@@ -1153,7 +1157,7 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         } catch (error) {
           const errMsg = error.message || "Error searching in ESP-IDF docs";
-          Logger.errorNotify(errMsg, error);
+          Logger.errorNotify(errMsg, error, tag);
           return;
         }
       }
@@ -1217,7 +1221,7 @@ export async function activate(context: vscode.ExtensionContext) {
               : typeof error === "string"
               ? error
               : "Error installing Python requirements";
-            Logger.errorNotify(msg, error);
+            Logger.errorNotify(msg, error, tag);
           }
         }
       );
@@ -1239,7 +1243,7 @@ export async function activate(context: vscode.ExtensionContext) {
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify("gdb is not found in idf.customExtraPaths", error);
+        Logger.errorNotify("gdb is not found in idf.customExtraPaths", error, tag);
         return;
       }
     });
@@ -1260,7 +1264,7 @@ export async function activate(context: vscode.ExtensionContext) {
           modifiedEnv
         );
       } catch (error) {
-        Logger.errorNotify("gcc is not found in idf.customExtraPaths", error);
+        Logger.errorNotify("gcc is not found in idf.customExtraPaths", error, tag);
         return;
       }
     });
@@ -1271,11 +1275,12 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await utils.createVscodeFolder(workspaceRoot);
         Logger.infoNotify(
-          "ESP-IDF vscode files have been added to the project."
+          "ESP-IDF vscode files have been added to the project.",
+          tag
         );
       } catch (error) {
         const errMsg = error.message || "Error creating .vscode folder";
-        Logger.errorNotify(errMsg, error);
+        Logger.errorNotify(errMsg, error, tag);
         return;
       }
     });
@@ -1286,11 +1291,12 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await utils.createDevContainer(workspaceRoot.fsPath);
         Logger.infoNotify(
-          "ESP-IDF container files have been added to the project."
+          "ESP-IDF container files have been added to the project.",
+          tag
         );
       } catch (error) {
         const errMsg = error.message || "Error creating .devcontainer folder";
-        Logger.errorNotify(errMsg, error);
+        Logger.errorNotify(errMsg, error, tag);
         return;
       }
     });
@@ -1308,11 +1314,12 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         await utils.createNewComponent(componentName, workspaceRoot.fsPath);
         Logger.infoNotify(
-          `The ESP-IDF component ${componentName} has been created`
+          `The ESP-IDF component ${componentName} has been created`,
+          tag
         );
       } catch (error) {
         const errMsg = error.message || "Error creating ESP-IDF component";
-        return Logger.errorNotify(errMsg, error);
+        return Logger.errorNotify(errMsg, error, tag);
       }
     });
   });
@@ -1360,12 +1367,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 context.extensionPath
               );
             } catch (error) {
-              Logger.errorNotify(error.message, error);
+              Logger.errorNotify(error.message, error, tag);
             }
           }
         );
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -1376,7 +1383,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ConfserverProcess.dispose();
       }
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(error.message, error, tag);
     }
   });
 
@@ -1457,7 +1464,8 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceFolder.uri
         );
         return Logger.infoNotify(
-          `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`
+          `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`,
+          tag
         );
       }
       await idfConf.writeParameter(
@@ -1571,15 +1579,15 @@ export async function activate(context: vscode.ExtensionContext) {
                 env: modifiedEnv,
               }
             );
-            Logger.info(setTargetResult.toString());
+            Logger.info(setTargetResult.toString(), { tag });
             OutputChannel.append(setTargetResult.toString());
             utils.setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
           } catch (err) {
             if (err.message && err.message.indexOf("are satisfied") > -1) {
-              Logger.info(err.message.toString());
+              Logger.info(err.message.toString(), { tag });
               OutputChannel.append(err.message.toString());
             } else {
-              Logger.errorNotify(err, err);
+              Logger.errorNotify(err, err, tag);
               OutputChannel.append(err);
             }
           }
@@ -1614,12 +1622,12 @@ export async function activate(context: vscode.ExtensionContext) {
                   );
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
-              Logger.errorNotify(error.message, error);
+              Logger.errorNotify(error.message, error, tag);
             }
           }
         );
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -1692,14 +1700,20 @@ export async function activate(context: vscode.ExtensionContext) {
               { placeHolder: "Select framework to use" }
             );
             if (!examplesFolder) {
-              Logger.infoNotify("No framework selected to load examples.");
+              Logger.infoNotify(
+                "No framework selected to load examples.",
+                tag
+              );
               return;
             }
             const doesFolderExist = await utils.dirExistPromise(
               examplesFolder.target
             );
             if (!doesFolderExist) {
-              Logger.infoNotify(`${examplesFolder.target} doesn't exist.`);
+              Logger.infoNotify(
+                `${examplesFolder.target} doesn't exist.`,
+                tag
+              );
               return;
             }
             ExamplesPlanel.createOrShow(
@@ -1708,12 +1722,12 @@ export async function activate(context: vscode.ExtensionContext) {
               examplesFolder.description
             );
           } catch (error) {
-            Logger.errorNotify(error.message, error);
+            Logger.errorNotify(error.message, error, tag);
           }
         }
       );
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(error.message, error, tag);
     }
   });
 
@@ -1723,7 +1737,8 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!fileUri) {
         Logger.errorNotify(
           "Cannot call this command directly, right click on any CMakeLists.txt file!",
-          new Error("INVALID_INVOCATION")
+          new Error("INVALID_INVOCATION"),
+          tag
         );
         return;
       }
@@ -1761,7 +1776,7 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           WelcomePanel.createOrShow(context.extensionPath, welcomeArgs);
         } catch (error) {
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, tag);
         }
       }
     );
@@ -1793,7 +1808,7 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
         } catch (error) {
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, tag);
         }
       }
     );
@@ -1848,7 +1863,7 @@ export async function activate(context: vscode.ExtensionContext) {
         target !== vscode.ConfigurationTarget.Global
       ) {
         const noWsOpenMSg = `Open a workspace or folder first.`;
-        Logger.warnNotify(noWsOpenMSg);
+        Logger.warnNotify(noWsOpenMSg, tag);
         throw new Error(noWsOpenMSg);
       }
       await idfConf.writeParameter(
@@ -1861,11 +1876,14 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.target,
         target
       );
-      Logger.infoNotify("OpenOCD Board configuration files are updated.");
+      Logger.infoNotify(
+        "OpenOCD Board configuration files are updated.",
+        tag
+      );
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";
-      Logger.errorNotify(errMsg, error);
+      Logger.errorNotify(errMsg, error, tag);
       return;
     }
   });
@@ -1900,12 +1918,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 IDFSizePanel.createOrShow(context, results);
               }
             } catch (error) {
-              Logger.errorNotify(error.message, error);
+              Logger.errorNotify(error.message, error, tag);
             }
           }
         );
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -1921,7 +1939,10 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     const isIdfProject = utils.checkIsProjectCmakeLists(srcFolder[0].fsPath);
     if (!isIdfProject) {
-      Logger.infoNotify(`${srcFolder[0].fsPath} is not an ESP-IDF project.`);
+      Logger.infoNotify(
+        `${srcFolder[0].fsPath} is not an ESP-IDF project.`,
+        tag
+      );
       return;
     }
     const items = [
@@ -1966,7 +1987,7 @@ export async function activate(context: vscode.ExtensionContext) {
     destFolder = vscode.Uri.file(path.join(destFolder.fsPath, projectName));
     const doesProjectExists = await pathExists(destFolder.fsPath);
     if (doesProjectExists) {
-      Logger.infoNotify(`${destFolder} already exists.`);
+      Logger.infoNotify(`${destFolder} already exists.`, tag);
       return;
     }
     await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
@@ -1985,7 +2006,7 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await configureProjectWithGcov(workspaceRoot);
       } catch (error) {
-        Logger.errorNotify(error.message, error);
+        Logger.errorNotify(error.message, error, tag);
       }
     });
   });
@@ -2065,7 +2086,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : "Error merging binaries for QEMU";
-            Logger.errorNotify(msg, error);
+            Logger.errorNotify(msg, error, tag);
           }
         }
       );
@@ -2237,9 +2258,10 @@ export async function activate(context: vscode.ExtensionContext) {
           const errMsg = error.message
             ? error.message
             : "Configuration report error";
-          Logger.error(errMsg, error);
+          Logger.error(errMsg, error, tag);
           Logger.warnNotify(
-            "Extension configuration report has been copied to clipboard with errors"
+            "Extension configuration report has been copied to clipboard with errors",
+            tag
           );
           const reportOutput = await writeTextReport(reportedResult, context);
           await vscode.env.clipboard.writeText(reportOutput);
@@ -2255,7 +2277,8 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!trace) {
         Logger.errorNotify(
           "Cannot call this command directly, click on any Trace to view its report!",
-          new Error("INVALID_COMMAND")
+          new Error("INVALID_COMMAND"),
+          tag
         );
         return;
       }
@@ -2318,7 +2341,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
     if (RainmakerAPIClient.isLoggedIn()) {
-      return Logger.infoNotify("Already logged-in, please sign-out first");
+      return Logger.infoNotify(
+        "Already logged-in, please sign-out first",
+        tag
+      );
     }
 
     //ask to select login provider
@@ -2349,11 +2375,15 @@ export async function activate(context: vscode.ExtensionContext) {
             accountDetails.password
           );
           await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify("Rainmaker Cloud Linking Success!!");
+          Logger.infoNotify(
+            "Rainmaker Cloud Linking Success!!",
+            tag
+          );
         } catch (error) {
           return Logger.errorNotify(
             "Failed to login with Rainmaker Cloud, double check your id and password",
-            error
+            error,
+            tag
           );
         }
       }
@@ -2405,7 +2435,8 @@ export async function activate(context: vscode.ExtensionContext) {
           } catch (error) {
             Logger.errorNotify(
               "Failed to delete node, maybe the node is already marked for delete, please try again after sometime",
-              error
+              error,
+              tag
             );
           }
         }
@@ -2414,7 +2445,8 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("esp.rainmaker.backend.add_node", async () => {
     Logger.infoNotify(
-      "Coming Soon!! until then you can add nodes using mobile app"
+      "Coming Soon!! until then you can add nodes using mobile app",
+      tag
     );
   });
   registerIDFCommand(
@@ -2427,7 +2459,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const params = item.getMeta<RainmakerDeviceParamStructure>();
 
       if (params.properties.indexOf("write") === -1) {
-        return Logger.infoNotify("Readonly Property");
+        return Logger.infoNotify("Readonly Property", tag);
       }
 
       let newParamValue;
@@ -2473,13 +2505,16 @@ export async function activate(context: vscode.ExtensionContext) {
               newParamValue
             );
             await rainMakerTreeDataProvider.refresh();
-            Logger.infoNotify("Sent the param update request to cloud");
+            Logger.infoNotify(
+              "Sent the param update request to cloud",
+              tag
+            );
           } catch (error) {
             let errorMsg = "Failed to update the param, please try once more";
             if (error.response) {
               errorMsg = `Failed to update param because, ${error.response.data.description}`;
             }
-            Logger.errorNotify(errorMsg, error);
+            Logger.errorNotify(errorMsg, error, tag);
           }
         }
       );
@@ -2497,12 +2532,14 @@ export async function activate(context: vscode.ExtensionContext) {
           } catch (error) {
             Logger.error(
               "Unable to execute the command: espIdf.selectPort",
-              error
+              error,
+              { tag }
             );
           }
           return Logger.errorNotify(
             "Select a serial port before flashing",
-            new Error("NOT_SELECTED_PORT")
+            new Error("NOT_SELECTED_PORT"),
+            tag
           );
         }
         let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
@@ -2515,7 +2552,8 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
             "Python binary path is not defined",
-            new Error("idf.pythonBinPath is not defined")
+            new Error("idf.pythonBinPath is not defined"),
+            tag
           );
         }
         const idfPath = idfConf.readParameter(
@@ -2530,7 +2568,8 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
           Logger.errorNotify(
             idfMonitorToolPath + " is not defined",
-            new Error(idfMonitorToolPath + " is not defined")
+            new Error(idfMonitorToolPath + " is not defined"),
+            tag
           );
         }
         const buildDirName = idfConf.readParameter(
@@ -2627,12 +2666,14 @@ export async function activate(context: vscode.ExtensionContext) {
                   } catch (error) {
                     Logger.errorNotify(
                       "Failed to launch debugger for postmortem",
-                      error
+                      error,
+                      tag
                     );
                   }
                 } else {
                   Logger.warnNotify(
-                    "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+                    "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually",
+                    tag
                   );
                 }
               }
@@ -2666,7 +2707,8 @@ export async function activate(context: vscode.ExtensionContext) {
             } catch (error) {
               Logger.errorNotify(
                 "Failed to launch debugger for postmortem",
-                error
+                error,
+                tag
               );
             }
           })
@@ -2678,7 +2720,7 @@ export async function activate(context: vscode.ExtensionContext) {
             if (err && err.message.includes("EADDRINUSE")) {
               message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
             }
-            Logger.errorNotify(message, err);
+            Logger.errorNotify(message, err, tag);
             wsServer.close();
           });
       }
@@ -2719,13 +2761,14 @@ export async function activate(context: vscode.ExtensionContext) {
           if (!utils.fileExists(partitionTableFilePath)) {
             // inform user and create file.
             Logger.infoNotify(
-              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`
+              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`,
+              tag
             );
             createFileSync(partitionTableFilePath);
           }
           filePath = partitionTableFilePath;
         } catch (error) {
-          return Logger.errorNotify(error.message, error);
+          return Logger.errorNotify(error.message, error, tag);
         }
       }
       PartitionTableEditorPanel.show(context.extensionPath, filePath);
@@ -2745,11 +2788,12 @@ export async function activate(context: vscode.ExtensionContext) {
           eFuseExplorer.refresh();
         } catch (error) {
           if (error.name === "IDF_VERSION_MIN_REQUIREMENT_ERROR") {
-            return Logger.errorNotify(error.message, error);
+            return Logger.errorNotify(error.message, error, tag);
           }
           Logger.errorNotify(
             "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
-            error
+            error,
+            tag
           );
         }
       }
@@ -2790,12 +2834,12 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           const ninjaBuildMsg = `Ninja build summary - ${Date().toLocaleString()}`;
           OutputChannel.appendLine(ninjaBuildMsg);
-          Logger.info(ninjaBuildMsg);
+          Logger.info(ninjaBuildMsg, { tag });
           OutputChannel.appendLine(summaryResult);
-          Logger.info(summaryResult);
+          Logger.info(summaryResult, { tag });
           OutputChannel.show();
         } catch (error) {
-          Logger.errorNotify("Ninja build summary found an error", error);
+          Logger.errorNotify("Ninja build summary found an error", error, tag);
         }
       }
     );
@@ -2828,7 +2872,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const errMsg = error.message
             ? error.message
             : "Error at NVS Partition Editor";
-          Logger.errorNotify(errMsg, error);
+          Logger.errorNotify(errMsg, error, tag);
         }
       }
       NVSPartitionTable.createOrShow(
@@ -2842,7 +2886,7 @@ export async function activate(context: vscode.ExtensionContext) {
     try {
       ComponentManagerUIPanel.show(context.extensionPath, workspaceRoot);
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(error.message, error, tag);
     }
   });
   vscode.window.registerUriHandler({
@@ -2861,7 +2905,8 @@ export async function activate(context: vscode.ExtensionContext) {
               await RainmakerAPIClient.exchangeCodeForTokens(code);
               await rainMakerTreeDataProvider.refresh();
               Logger.infoNotify(
-                "Rainmaker Cloud is connected successfully (via OAuth)!!"
+                "Rainmaker Cloud is connected successfully (via OAuth)!!",
+                tag
               );
             }
           );
@@ -2869,12 +2914,13 @@ export async function activate(context: vscode.ExtensionContext) {
           return Logger.errorNotify(
             "Failed to sign-in with Rainmaker (via OAuth)",
             error,
-            { meta: JSON.stringify(error) }
+            tag,
+            { meta: JSON.stringify(error) },
           );
         }
         return;
       }
-      Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
+      Logger.warn(`Failed to handle URI Open, ${uri.toString()}`, { tag });
     },
   });
   await checkExtensionSettings(context.extensionPath, workspaceRoot);
@@ -3275,6 +3321,7 @@ export function deactivate() {
 
 class IdfDebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
+  public tag: string = "IDF Debug Configuration Provider";
   public async resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
@@ -3313,7 +3360,7 @@ class IdfDebugConfigurationProvider
       const msg = error.message
         ? error.message
         : "Some build files doesn't exist. Build this project first.";
-      Logger.error(error.message, error);
+      Logger.error(error.message, error, { tag: this.tag });
       const startBuild = await vscode.window.showInformationMessage(
         msg,
         "Build"

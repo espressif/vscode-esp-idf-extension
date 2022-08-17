@@ -24,6 +24,7 @@ import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
+const tag: string = "New Project";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -291,13 +292,13 @@ export class NewProjectPanel {
                 await copy(comp.path, compPath);
               } else {
                 const msg = `Component ${comp.name} path: ${comp.path} doesn't exist. Ignoring in new project...`;
-                Logger.info(msg);
+                Logger.info(msg, { tag });
                 OutputChannel.appendLine(msg);
               }
             }
           }
         } catch (error) {
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, tag);
         }
       }
     );

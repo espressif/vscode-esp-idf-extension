@@ -25,6 +25,7 @@ import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 
 const locDic = new LocDictionary(__filename);
+const tag: string = "ESP-IDF Monitor";
 
 export async function createMonitorTerminal(
   monitorTerminal: Terminal,
@@ -38,7 +39,8 @@ export async function createMonitorTerminal(
     );
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      tag
     );
     return;
   }
@@ -52,14 +54,16 @@ export async function createMonitorTerminal(
   if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
+      new Error("idf.pythonBinPath is not defined"),
+      tag
     );
     return;
   }
   if (!idfPathDir) {
     Logger.errorNotify(
       "ESP-IDF Path is not defined",
-      new Error("idf.espIdfPath is not defined")
+      new Error("idf.espIdfPath is not defined"),
+      tag
     );
     return;
   }
@@ -67,11 +71,16 @@ export async function createMonitorTerminal(
     try {
       await commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error);
+      Logger.error(
+        "Unable to execute the command: espIdf.selectPort",
+        error,
+        { tag }
+        );
     }
     Logger.errorNotify(
       "Select a serial port before flashing",
-      new Error("NOT_SELECTED_PORT")
+      new Error("NOT_SELECTED_PORT"),
+      tag
     );
     return;
   }
