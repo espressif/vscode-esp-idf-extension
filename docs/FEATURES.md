@@ -85,6 +85,8 @@ Before using the OpenOCD server, you need to set the proper values for openOCD C
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
+The resulting openOCD server launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`. The `idf.openOcdDebugLevel` is a number used to define the openOCD log level (0-4) and `idf.openOcdLaunchArgs` is a string array of any custom openOCD launch arguments the user wants to use.
+
 ## Partition table tree
 
 Click the`ESP-IDF Explorer` in the [activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `Device Partition Explorer` section, click the `Refresh partition table` icon or the `ESP-IDF: Refresh partition table` command in the Command Palette. This will get a list of the partitions listed in the partition table of your connected device and show them in the `Device Partition Explorer` section. When you can any partition, you can choose to either open the partition table editor (only when custom partition table is enabled) or choose a binary (.bin) file to flash on the selected partition. You can also right click any `.bin` file and choose the partition in device to flash this partition.

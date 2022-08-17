@@ -61,6 +61,7 @@
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
   "param.customAdapterTargetName": "Custom target name for ESP-IDF Debug Adapter",
   "param.openOcdConfigFilesList": "List of configuration files inside OpenOCD Scripts directory",
+  "param.openOcdLaunchArgs": "Arguments to launch openOCD from this extension",
   "param.flashBaudRate": "ESP-IDF Flash Baud rate",
   "param.port": "Path of selected device port",
   "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python Scripts",

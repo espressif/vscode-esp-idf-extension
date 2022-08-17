@@ -126,7 +126,7 @@ export class OpenOCDManager extends EventEmitter {
     if (config.workspace) {
       this.workspace = config.workspace;
     }
-    
+
     if (config.host) {
       this.tclConnectionParams.host = config.host;
     }
@@ -194,6 +194,17 @@ export class OpenOCDManager extends EventEmitter {
       openOcdArgs.push("-f");
       openOcdArgs.push(configFile);
     });
+
+    const addLaunchArgs = idfConf.readParameter(
+      "idf.openOcdLaunchArgs",
+      this.workspace
+    ) as string[];
+
+    if (addLaunchArgs && addLaunchArgs.length) {
+      addLaunchArgs.forEach((arg) => {
+        openOcdArgs.push(arg);
+      });
+    }
 
     this.server = spawn("openocd", openOcdArgs, {
       cwd: this.workspace.fsPath,

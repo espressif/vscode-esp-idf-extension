@@ -756,6 +756,12 @@
             "scope": "resource",
             "description": "%param.openOcdDebugLevel%"
           },
+          "idf.openOcdLaunchArgs": {
+            "type": "array",
+            "default": [],
+            "description": "%param.openOcdLaunchArgs%",
+            "scope": "resource"
+          },
           "idf.preBuildTask": {
             "type": "string",
             "default": "",

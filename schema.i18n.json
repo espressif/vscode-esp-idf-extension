@@ -137,6 +137,7 @@
     "param.adapterTargetName",
     "param.customAdapterTargetName",
     "param.openOcdConfigFilesList",
+    "param.openOcdLaunchArgs",
     "param.flashBaudRate",
     "param.port",
     "param.pythonBinPath",
