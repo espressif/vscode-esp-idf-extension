@@ -86,7 +86,8 @@ suite("IDF Tools Manager Tests", async () => {
   const idfToolsManager = new IdfToolsManager(
     packageJsonMockUp,
     platInfo,
-    output
+    output,
+    process.env.IDF_PATH
   );
   const mockInstallPath = path.join(__dirname, "../../..", "testFiles");
 

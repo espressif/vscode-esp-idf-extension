@@ -45,18 +45,20 @@ This is how the extension uses them:
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting                                          | Description                                                         | Scope                     |
-| ------------------------------------------------ | ------------------------------------------------------------------- | ------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                |                           |
-| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                        |                           |
-| `idf.flashBaudRate`                              | Flash Baud rate                                                     |                           |
-| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder |                           |
-| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                            |                           |
-| `idf.port`                                       | Path of selected device port                                        |                           |
-| `idf.portWin`                                    | Path of selected device port in Windows                             |                           |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`   | User, Remote or Workspace |
-| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                | User, Remote or Workspace |
-| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                | User, Remote or Workspace |
+| Setting                                          | Description                                                                      | Scope                     |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------- |
+| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                             |                           |
+| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                     |                           |
+| `idf.flashBaudRate`                              | Flash Baud rate                                                                  |                           |
+| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder              |                           |
+| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs |                           |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                         |                           |
+| `idf.port`                                       | Path of selected device port                                                     |                           |
+| `idf.portWin`                                    | Path of selected device port in Windows                                          |                           |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                | User, Remote or Workspace |
+| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                             | User, Remote or Workspace |
+| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                             | User, Remote or Workspace |
+| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                | User, Remote or Workspace |
 
 This is how the extension uses them:
 
@@ -67,8 +69,10 @@ This is how the extension uses them:
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your project** command and [ESP-IDF Debug](./DEBUGGING.md).
    > **NOTE** The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
-4. `idf.openOcdConfigs` is used to store an array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+4. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 5. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
+6. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
+7. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code coverage Specific Settings
 

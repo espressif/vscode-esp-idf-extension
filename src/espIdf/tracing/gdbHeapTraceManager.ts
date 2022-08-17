@@ -22,7 +22,7 @@ import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../../utils";
+import { appendIdfAndToolsToPath, getToolchainToolName, isBinInPath, PreCheck } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -62,10 +62,7 @@ export class GdbHeapTraceManager {
         await this.createGdbinitFile(fileName, workspace.fsPath);
         const modifiedEnv = appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-        const gdbTool =
-          idfTarget === "esp32c3"
-            ? "riscv32-esp-elf-gdb"
-            : `xtensa-${idfTarget}-elf-gdb`;
+        const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(
           gdbTool,
           workspace.fsPath,

@@ -21,6 +21,43 @@ import path from "path";
 
 const tag: string = "Python Manager";
 
+export async function installEspIdfToolFromIdf(
+  espDir: string,
+  pythonBinPath: string,
+  idfToolsPath: string,
+  toolName: string,
+  toolVersion: string,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
+  const idfToolsPyPath = path.join(espDir, "tools", "idf_tools.py");
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  modifiedEnv.IDF_TOOLS_PATH = idfToolsPath;
+  modifiedEnv.IDF_PATH = espDir;
+  return new Promise<void>(async (resolve, reject) => {
+    if (cancelToken && cancelToken.isCancellationRequested) {
+      return reject(new Error("Process cancelled by user"));
+    }
+    try {
+      const processResult = await utils.execChildProcess(
+        `"${pythonBinPath}" ${idfToolsPyPath} install ${toolName}@${toolVersion}`,
+        idfToolsPath,
+        channel,
+        { cwd: idfToolsPath, env: modifiedEnv },
+        cancelToken
+      );
+      if (channel) {
+        channel.appendLine(processResult);
+      }
+      return resolve();
+    } catch (error) {
+      return reject(error);
+    }
+  });
+}
+
 export async function installPythonEnvFromIdfTools(
   espDir: string,
   idfToolsDir: string,
@@ -150,6 +187,17 @@ export async function installExtensionPyReqs(
   let constraintArg = "";
   if (constrainsFileExists) {
     constraintArg = `--constraint ${constrainsFile} `;
+  } else {
+    const extensionConstraintsFile = path.join(
+      utils.extensionContext.extensionPath,
+      `espidf.constraints.txt`
+    );
+    const extensionConstraintsFileExists = await pathExists(
+      extensionConstraintsFile
+    );
+    if (extensionConstraintsFileExists) {
+      constraintArg = `--constraint ${extensionConstraintsFile} `;
+    }
   }
   await execProcessWithLog(
     `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location  -r "${extensionRequirements}"`,

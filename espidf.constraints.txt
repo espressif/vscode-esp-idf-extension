@@ -1,0 +1,74 @@
+# --------- CORE ----------
+
+# setuptools: version 21 is required to handle PEP 508 environment markers
+setuptools>=21
+
+# click: Min. version was set to support the API used in idf.py and auto-completion
+# click: Max. version was set to avoid potential breaking changes
+click>=7.0,<8.1
+
+# pyserial: Min. version was set to support the used API
+# pyserial: Max. version was set to avoid potential breaking changes
+pyserial>=3.3,<3.6
+
+# future: Min. version was set to support the used API
+# future: Max. version was set to avoid potential breaking changes
+future>=0.15.2,<0.18.3
+
+# cryptography: Min. version was set to support all functionality of ESP-IDF
+# cryptography: Max. version was set to avoid breaking changes
+# Only binary for cryptography is here to make it work on ARMv7 architecture
+# We do have cryptography binary on https://dl.espressif.com/pypi for ARM
+# On https://pypi.org/ are no ARM binaries as standard now
+cryptography>=2.1.4,<36.1
+--only-binary cryptography
+
+# pyparsing: Min version was set based on https://github.com/pyparsing/pyparsing/issues/319
+# pyparsing: Max version was set to avoid breaking changes
+pyparsing>=3.0.3,<3.1
+
+# pyelftools: Max version was set to avoid breaking changes
+pyelftools<0.28
+
+idf-component-manager~=1.1
+
+esptool~=4.2
+
+esp-coredump~=1.2
+
+# kconfiglib: Min. version is set because some ESP-IDF patches were applied upstream
+# kconfiglib: Max. version is set just to avoid potential incompatibility (there is no known at this moment)
+kconfiglib>=13.7.1,<=14.2
+
+freertos_gdb~=1.0
+
+# --------- CORE ends ----------
+
+# --------- GDBGUI -------------
+
+gdbgui==0.13.2.0
+# Windows is not supported since 0.14.0.0. See https://github.com/cs01/gdbgui/issues/348
+# pygdmi dependency is shared between gdbgui, coredump and py_debug_backend
+# pygdbmi 0.10 have breaking changes
+# The pygdbmi required max version 0.9.0.2 since 0.9.0.3 is not compatible with latest gdbgui (>=0.13.2.0)
+pygdbmi<=0.9.0.2
+# A compatible Socket.IO should be used. See https://github.com/miguelgrinberg/python-socketio/issues/578
+python-socketio<5
+jinja2<3.1
+itsdangerous<2.1
+
+# --------- GDBGUI ends ---------
+
+# --------- PYTEST -------------
+
+pytest-embedded-serial-esp~=0.7.3
+pytest-embedded-idf~=0.7.3
+pytest-embedded-qemu~=0.7.3
+
+# --------- PYTEST ends ---------
+
+# --------- DOCS -------------
+
+esp-docs~=1.1.0
+
+# --------- DOCS ends ---------

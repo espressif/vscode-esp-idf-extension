@@ -25,6 +25,7 @@ import { Logger } from "../../logger/logger";
 import {
   appendIdfAndToolsToPath,
   canAccessFile,
+  getToolchainToolName,
   isBinInPath,
   PreCheck,
 } from "../../utils";
@@ -148,10 +149,7 @@ export class DebugAdapterManager extends EventEmitter {
         this.currentWorkspace
       ) as string;
 
-      const toolchainPrefix =
-        this.target === "esp32c3"
-          ? "riscv32-esp-elf-"
-          : `xtensa-${this.target}-elf-`;
+      const toolchainPrefix = getToolchainToolName(this.target, "");
       const adapterArgs = [
         this.debugAdapterPath,
         "-d",

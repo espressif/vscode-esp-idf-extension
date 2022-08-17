@@ -31,7 +31,7 @@ RUN wget --no-verbose ${QEMU_URL} \
 
 ENV PATH=/opt/qemu/bin:${PATH}
 
-RUN echo $($IDF_PATH/tools/idf_tools.py export) >> $HOME/.bashrc
+RUN echo "source /opt/esp/idf/export.sh > /dev/null 2>&1" >> ~/.bashrc
 
 ENTRYPOINT [ "/opt/esp/entrypoint.sh" ]
 

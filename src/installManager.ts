@@ -25,6 +25,7 @@ import { IPackage } from "./IPackage";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { PackageError } from "./packageError";
+import { installEspIdfToolFromIdf } from "./pythonManager";
 import * as utils from "./utils";
 
 const tag: string = "Install Manager";
@@ -37,6 +38,7 @@ export class InstallManager {
   public async installPackages(
     idfToolsManager: IdfToolsManager,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
+    pythonBinPath: string,
     cancelToken?: vscode.CancellationToken,
     onReqPkgs?: string[]
   ): Promise<void> {
@@ -78,30 +80,53 @@ export class InstallManager {
         const parsedUrl = urlToUse.url.split(/\#|\?/)[0].split("."); //  Get url file extension
         let p: Promise<void>;
         if (parsedUrl[parsedUrl.length - 1] === "zip") {
-          p = this.installZipPackage(idfToolsManager, pkg, cancelToken).then(
-            async () => {
-              if (pkg.strip_container_dirs) {
-                await this.promisedStripContainerDirs(
-                  absolutePath,
-                  pkg.strip_container_dirs
-                );
-              }
+          p = this.installZipPackage(
+            idfToolsManager,
+            pkg,
+            absolutePath,
+            cancelToken
+          ).then(async () => {
+            if (pkg.strip_container_dirs) {
+              await this.promisedStripContainerDirs(
+                absolutePath,
+                pkg.strip_container_dirs
+              );
             }
-          );
+          });
         } else if (
           parsedUrl[parsedUrl.length - 2] === "tar" &&
           parsedUrl[parsedUrl.length - 1] === "gz"
         ) {
-          p = this.installTarPackage(idfToolsManager, pkg, cancelToken).then(
-            async () => {
-              if (pkg.strip_container_dirs) {
-                await this.promisedStripContainerDirs(
-                  absolutePath,
-                  pkg.strip_container_dirs
-                );
-              }
+          p = this.installTarPackage(
+            idfToolsManager,
+            pkg,
+            absolutePath,
+            cancelToken
+          ).then(async () => {
+            if (pkg.strip_container_dirs) {
+              await this.promisedStripContainerDirs(
+                absolutePath,
+                pkg.strip_container_dirs
+              );
             }
-          );
+          });
+        } else if (
+          parsedUrl[parsedUrl.length - 2] === "tar" &&
+          parsedUrl[parsedUrl.length - 1] === "xz"
+        ) {
+          p = this.installToolFromIdf(
+            idfToolsManager,
+            pythonBinPath,
+            pkg,
+            cancelToken
+          ).then(async () => {
+            if (pkg.strip_container_dirs) {
+              await this.promisedStripContainerDirs(
+                absolutePath,
+                pkg.strip_container_dirs
+              );
+            }
+          });
         } else {
           p = new Promise<void>((resolve) => {
             resolve();
@@ -281,6 +306,7 @@ export class InstallManager {
   public async installZipPackage(
     idfToolsManager: IdfToolsManager,
     pkg: IPackage,
+    absolutePath: string,
     cancelToken?: vscode.CancellationToken
   ) {
     this.appendChannel(`Installing zip package ${pkg.description}`);
@@ -309,18 +335,13 @@ export class InstallManager {
       );
       throw new PackageError("Downloaded file invalid", "InstallZipPackage");
     }
-    const versionName = idfToolsManager.getVersionToUse(pkg);
-    const absolutePath: string = this.getToolPackagesPath([
-      "tools",
-      pkg.name,
-      versionName,
-    ]);
     return await this.installZipFile(packageFile, absolutePath, cancelToken);
   }
 
   public installTarPackage(
     idfToolsManager: IdfToolsManager,
     pkg: IPackage,
+    absolutePath: string,
     cancelToken?: vscode.CancellationToken
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -354,12 +375,6 @@ export class InstallManager {
           new PackageError("Downloaded file invalid", "InstallTarPackage")
         );
       }
-      const versionName = idfToolsManager.getVersionToUse(pkg);
-      const absolutePath: string = this.getToolPackagesPath([
-        "tools",
-        pkg.name,
-        versionName,
-      ]);
       const dirExists = await utils.dirExistPromise(absolutePath);
       if (dirExists) {
         try {
@@ -416,10 +431,30 @@ export class InstallManager {
       }
     });
   }
+
+  public installToolFromIdf(
+    idfToolsManager: IdfToolsManager,
+    pythonBinPath: string,
+    pkg: IPackage,
+    cancelToken?: vscode.CancellationToken
+  ) {
+    const versionToUse = idfToolsManager.getVersionToUse(pkg);
+    return installEspIdfToolFromIdf(
+      idfToolsManager.espIdfPath,
+      pythonBinPath,
+      this.installPath,
+      pkg.name,
+      versionToUse,
+      OutputChannel.init(),
+      cancelToken
+    );
+  }
+
   private appendChannel(text: string): void {
-    OutputChannel.appendLine(text);
+    OutputChannel.init().appendLine(text);
     Logger.info(text, { tag });
   }
+
   private async promisedStripContainerDirs(pkgDirPath: string, levels: number) {
     const tmpPath = pkgDirPath + ".tmp";
     const exists = await utils.dirExistPromise(tmpPath);

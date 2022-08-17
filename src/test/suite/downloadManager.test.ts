@@ -96,7 +96,8 @@ suite("Download Manager Tests", () => {
   const idfToolsManager = new IdfToolsManager(
     packageJsonMockUp,
     platInfo,
-    output
+    output,
+    process.env.IDF_PATH
   );
   const downloadManager = new DownloadManager(mockInstallPath);
   const installManager = new InstallManager(mockInstallPath);
@@ -174,17 +175,25 @@ suite("Download Manager Tests", () => {
         },
       ],
     } as IPackage;
-    await installManager.installZipPackage(idfToolsManager, pkg).then(() => {
-      const fileIsExtracted = utils.fileExists(
-        downloadManager.getToolPackagesPath([
-          "tools",
-          pkg.name,
-          pkg.versions[0].name,
-          "sample.txt",
-        ])
-      );
-      assert.equal(fileIsExtracted, true);
-    });
+    const versionName = idfToolsManager.getVersionToUse(pkg);
+    const absolutePath: string = installManager.getToolPackagesPath([
+      "tools",
+      pkg.name,
+      versionName,
+    ]);
+    await installManager
+      .installZipPackage(idfToolsManager, pkg, absolutePath)
+      .then(() => {
+        const fileIsExtracted = utils.fileExists(
+          downloadManager.getToolPackagesPath([
+            "tools",
+            pkg.name,
+            pkg.versions[0].name,
+            "sample.txt",
+          ])
+        );
+        assert.equal(fileIsExtracted, true);
+      });
   });
 
   test("Install targz", async () => {
@@ -204,16 +213,18 @@ suite("Download Manager Tests", () => {
         },
       ],
     } as IPackage;
-    await installManager.installTarPackage(idfToolsManager, pkg).then(() => {
-      const isFileExtracted = utils.fileExists(
-        downloadManager.getToolPackagesPath([
-          "tools",
-          pkg.name,
-          pkg.versions[0].name,
-          "tarsample.txt",
-        ])
-      );
-      assert.equal(isFileExtracted, true);
-    });
+    await installManager
+      .installTarPackage(idfToolsManager, pkg, "gz")
+      .then(() => {
+        const isFileExtracted = utils.fileExists(
+          downloadManager.getToolPackagesPath([
+            "tools",
+            pkg.name,
+            pkg.versions[0].name,
+            "tarsample.txt",
+          ])
+        );
+        assert.equal(isFileExtracted, true);
+      });
   });
 });

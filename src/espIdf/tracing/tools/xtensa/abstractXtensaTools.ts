@@ -19,7 +19,7 @@
 import * as vscode from "vscode";
 import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
-import { appendIdfAndToolsToPath, spawn } from "../../../../utils";
+import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
 
 const tag: string = "ESP-IDF Tracing";
 
@@ -56,16 +56,7 @@ export abstract class XtensaTools {
         this.workspaceRoot
       );
     }
-    if (
-      idfTarget === "esp32" ||
-      idfTarget === "esp32s2" ||
-      idfTarget === "esp32s3"
-    ) {
-      return `xtensa-${idfTarget}-elf-${toolName}`;
-    }
-    if (idfTarget === "esp32c3") {
-      return `riscv32-esp-elf-${toolName}`;
-    }
-    return `unknown-tracing-tool`;
+    const toolNameResult = getToolchainToolName(idfTarget, toolName);
+    return toolNameResult ? toolNameResult : `unknown-tracing-tool`;
   }
 }

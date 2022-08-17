@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.30.0"
+    "vscode": "^1.32.0"
   },
   "repository": {
     "type": "git",
@@ -28,9 +28,17 @@
     "ESP",
     "Espressif",
     "ESP32",
+    "ESP32-C2",
+    "ESP32-C3",
+    "ESP32-H2",
     "ESP32-S2",
+    "ESP32-S3",
     "esp32",
+    "esp32c2",
+    "esp32c3",
+    "esp32h2",
     "esp32s2",
+    "esp32s3",
     "iot",
     "wifi",
     "soc"
@@ -106,10 +114,10 @@
         "owner": "cpp",
         "fileLocation": [
           "autoDetect",
-          "${cwd}"
+          "${workspaceFolder}"
         ],
         "pattern": {
-          "regexp": "^(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
+          "regexp": "^\\.?\\.?(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
           "file": 1,
           "line": 2,
           "column": 3,
@@ -128,6 +136,12 @@
       ]
     },
     "views": {
+      "debug": [
+        {
+          "name": "ESP Peripheral View",
+          "id": "espIdf.peripheralView"
+        }
+      ],
       "idfViewController": [
         {
           "id": "idfSearchResults",
@@ -169,6 +183,10 @@
       {
         "view": "idfPartitionExplorer",
         "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
+      },
+      {
+        "view": "espIdf.peripheralView",
+        "contents": "Show Peripherals registers from SVD file defined in IDF Svd File Path (idf.svdFilePath) configuration setting during active debug session"
       }
     ],
     "menus": {
@@ -738,6 +756,12 @@
             "scope": "resource",
             "description": "%param.openOcdDebugLevel%"
           },
+          "idf.openOcdLaunchArgs": {
+            "type": "array",
+            "default": [],
+            "description": "%param.openOcdLaunchArgs%",
+            "scope": "resource"
+          },
           "idf.preBuildTask": {
             "type": "string",
             "default": "",
@@ -767,6 +791,12 @@
             "default": "",
             "scope": "resource",
             "description": "%param.customTask%"
+          },
+          "idf.svdFilePath": {
+            "type": "string",
+            "default": "${workspaceFolder}/esp32.svd",
+            "scope": "resource",
+            "description": "%param.svdFile%"
           }
         }
       }
@@ -835,7 +865,8 @@
       {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%"
-      },{
+      },
+      {
         "command": "espIdf.flashUart",
         "title": "%espIdf.flashUart.title%"
       },
@@ -1259,16 +1290,18 @@
     "@types/marked": "^4.0.2",
     "@types/mocha": "^9.1.0",
     "@types/nock": "^9.3.1",
-    "@types/node": "^16.11.1",
+    "@types/node": "^16.11.7",
     "@types/sanitize-html": "^2.6.2",
+    "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.30.0",
+    "@types/vscode": "^1.32.0",
     "@types/ws": "^7.2.5",
+    "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
     "@vscode/debugadapter": "^1.53.0",
     "@vscode/debugadapter-testsupport": "^1.51.0",
     "@vscode/debugprotocol": "^1.53.0",
-    "@vscode/extension-telemetry": "^0.4.8",
+    "@vscode/extension-telemetry": "0.4.8",
     "@vscode/test-electron": "^2.1.2",
     "@vue/component-compiler-utils": "^3.0.0",
     "bulma": "^0.9.3",
@@ -1292,15 +1325,15 @@
     "sass": "^1.49.8",
     "sass-loader": "^10",
     "style-loader": "^3.3.1",
-    "ts-loader": "^7.0.5",
+    "ts-loader": "^8.0.2",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.3.0",
     "tslint-webpack-plugin": "^2.1.0",
-    "typescript": "^4.5.5",
+    "typescript": "^4.7.4",
     "typescript-tslint-plugin": "^1.0.1",
     "vsce": "^2.6.7",
-    "vscode-extension-tester": "^4.2.4",
+    "vscode-extension-tester": "^4.3.0",
     "vscode-nls-dev": "^3.3.1",
     "vue-class-component": "^7.1.0",
     "vue-hot-reload-api": "^2.3.2",
@@ -1339,6 +1372,7 @@
     "vuex": "^3.1.1",
     "winston": "^2.3.1",
     "ws": "^7.4.6",
+    "xml2js": "^0.4.23",
     "yauzl": "^2.10.0"
   },
   "alias": {

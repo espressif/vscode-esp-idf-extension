@@ -127,6 +127,7 @@
     "espIdf.monitorQemu.title",
     "espIdf.launchQemu.title",
     "espIdf.qemuDebug.title",
+    "espIdf.flashUart.title",
     "espIdf.createDevContainer.title",
     "espIdf.partition.table.refresh.title",
     "espIdf.flashBinaryToPartition.title",
@@ -136,6 +137,7 @@
     "param.adapterTargetName",
     "param.customAdapterTargetName",
     "param.openOcdConfigFilesList",
+    "param.openOcdLaunchArgs",
     "param.flashBaudRate",
     "param.port",
     "param.pythonBinPath",
@@ -208,6 +210,7 @@
     "param.preBuildTask",
     "param.postBuildTask",
     "param.preFlashTask",
-    "param.postFlashTask"
+    "param.postFlashTask",
+    "param.svdFile"
   ]
 }
