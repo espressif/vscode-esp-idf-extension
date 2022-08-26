@@ -184,7 +184,7 @@ export async function installExtensionPyReqs(
   const constrainsFileExists = await pathExists(constrainsFile);
   let constraintArg = "";
   if (constrainsFileExists) {
-    constraintArg = `--constraint ${constrainsFile} `;
+    constraintArg = `--constraint "${constrainsFile}" `;
   } else {
     const extensionConstraintsFile = path.join(
       utils.extensionContext.extensionPath,
@@ -194,7 +194,7 @@ export async function installExtensionPyReqs(
       extensionConstraintsFile
     );
     if (extensionConstraintsFileExists) {
-      constraintArg = `--constraint ${extensionConstraintsFile} `;
+      constraintArg = `--constraint "${extensionConstraintsFile}" `;
     }
   }
   await execProcessWithLog(
