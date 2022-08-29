@@ -572,6 +572,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
       try {
         await del(buildDir, { force: true });
+        const delComponentsOnFullClean = (await idfConf.readParameter(
+          "idf.deleteComponentsOnFullClean",
+          workspaceRoot
+        )) as boolean;
+        if (delComponentsOnFullClean) {
+          const managedComponents = path.join(
+            workspaceRoot.fsPath,
+            "managed_components"
+          );
+          const componentDirExists = await pathExists(managedComponents);
+          if (componentDirExists) {
+            await del(managedComponents, { force: true });
+          }
+        }
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }

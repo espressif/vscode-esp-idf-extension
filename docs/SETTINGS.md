@@ -89,17 +89,18 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ## Extension Behaviour Settings
 
-| Setting ID                             | Description                                                              | Scope                     |
-| -------------------------------------- | ------------------------------------------------------------------------ | ------------------------- |
-| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)            | User, Remote or Workspace |
-| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                |                           |
-| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                  |                           |
-| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`) | User, Remote or Workspace |
-| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                | User, Remote or Workspace |
-| `idf.saveScope`                        | Where to save extension settings                                         | User, Remote or Workspace |
-| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)               |                           |
-| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                |                           |
-| `idf.telemetry`                        | Enable Telemetry                                                         | User, Remote or Workspace |
+| Setting ID                             | Description                                                                 | Scope                     |
+| -------------------------------------- | --------------------------------------------------------------------------- | ------------------------- |
+| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)               | User, Remote or Workspace |
+| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                   |                           |
+| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                     |                           |
+| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`)    | User, Remote or Workspace |
+| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                   | User, Remote or Workspace |
+| `idf.saveScope`                        | Where to save extension settings                                            | User, Remote or Workspace |
+| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)                  |                           |
+| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                   |                           |
+| `idf.telemetry`                        | Enable Telemetry                                                            | User, Remote or Workspace |
+| `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`) | User, Remote or Workspace |
 
 ## Custom tasks for build and flash tasks
 
