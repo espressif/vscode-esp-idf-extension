@@ -61,20 +61,13 @@ export class IdfSizeTask {
   }
 
   private async mapFilePath() {
-    const projectName = await getProjectName(
-      this.curWorkspace.fsPath,
-      this.buildDirName
-    );
-    return join(
-      this.curWorkspace.fsPath,
-      this.buildDirName,
-      `${projectName}.map`
-    );
+    const projectName = await getProjectName(this.buildDirName);
+    return join(this.buildDirName, `${projectName}.map`);
   }
 
   public async getSizeInfo() {
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
+    await ensureDir(this.buildDirName);
     const options: ShellExecutionOptions = {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,

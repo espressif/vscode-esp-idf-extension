@@ -553,11 +553,19 @@ export async function getElfFilePath(
   }
 
   try {
-    const buildDirName = idfConf.readParameter(
+    const buildDir = idfConf.readParameter(
       "idf.buildDirectoryName",
       workspaceURI
     ) as string;
-    projectName = await getProjectName(workspaceURI.fsPath, buildDirName);
+    if (!canAccessFile(buildDir, fs.constants.R_OK)) {
+      throw new Error("Build is required once to generate the ELF File");
+    }
+
+    const elfFilePath = path.join(buildDir, `${projectName}.elf`);
+    if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
+      throw new Error(`Failed to access .elf file at ${elfFilePath}`);
+    }
+    return elfFilePath;
   } catch (error) {
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
@@ -565,21 +573,6 @@ export async function getElfFilePath(
     );
     return;
   }
-
-  const buildDirName = idfConf.readParameter(
-    "idf.buildDirectoryName",
-    workspaceURI
-  ) as string;
-  const buildDir = path.join(workspaceURI.fsPath, buildDirName);
-  if (!canAccessFile(buildDir, fs.constants.R_OK)) {
-    throw new Error("Build is required once to generate the ELF File");
-  }
-
-  const elfFilePath = path.join(buildDir, `${projectName}.elf`);
-  if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
-    throw new Error(`Failed to access .elf file at ${elfFilePath}`);
-  }
-  return elfFilePath;
 }
 
 export function checkIsProjectCmakeLists(dir: string) {

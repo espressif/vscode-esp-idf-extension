@@ -22,7 +22,12 @@ import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { appendIdfAndToolsToPath, getToolchainToolName, isBinInPath, PreCheck } from "../../utils";
+import {
+  appendIdfAndToolsToPath,
+  getToolchainToolName,
+  isBinInPath,
+  PreCheck,
+} from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -73,23 +78,12 @@ export class GdbHeapTraceManager {
           "idf.buildDirectoryName",
           workspace
         ) as string;
-        const buildExists = await pathExists(
-          join(workspace.fsPath, buildDirName)
-        );
+        const buildExists = await pathExists(buildDirName);
         if (!buildExists) {
-          throw new Error(
-            `${workspace.fsPath} build doesn't exist. Build first.`
-          );
+          throw new Error(`${buildDirName} doesn't exist. Build first.`);
         }
-        const projectName = await getProjectName(
-          workspace.fsPath,
-          buildDirName
-        );
-        const elfFilePath = join(
-          workspace.fsPath,
-          buildDirName,
-          `${projectName}.elf`
-        );
+        const projectName = await getProjectName(buildDirName);
+        const elfFilePath = join(buildDirName, `${projectName}.elf`);
         const elfFileExists = await pathExists(elfFilePath);
         if (!elfFileExists) {
           throw new Error(`${elfFilePath} doesn't exist.`);
@@ -98,7 +92,7 @@ export class GdbHeapTraceManager {
           `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
           [],
           {
-            cwd: workspace.fsPath,
+            cwd: buildDirName,
             env: modifiedEnv,
             shell: env.shell,
           }
@@ -121,7 +115,7 @@ export class GdbHeapTraceManager {
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
-            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`
+            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
             Logger.errorNotify(errMsg, new Error(errMsg));
           }
         });

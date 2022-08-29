@@ -158,7 +158,6 @@ export async function generateCoverageForEditors(
             dirPath
           ) as string;
           gcovObjFilePath = join(
-            dirPath.fsPath,
             buildDirName,
             "esp-idf",
             fileParts[fileParts.length - 1],

@@ -65,11 +65,10 @@ export async function buildCommand(
     customTask.addCustomTask(CustomTaskType.PostBuild);
     await TaskManager.runTasks();
     if (flashType === ESP.FlashType.DFU) {
-      const buildDirName = readParameter(
+      const buildPath = readParameter(
         "idf.buildDirectoryName",
         workspace
       ) as string;
-      const buildPath = join(workspace.fsPath, buildDirName);
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
         return Logger.warnNotify(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"

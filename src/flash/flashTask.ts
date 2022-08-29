@@ -67,11 +67,7 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
-          join(
-            this.workspaceUri.fsPath,
-            this.buildDirName,
-            flashFile.binFilePath
-          ),
+          join(this.buildDirName, flashFile.binFilePath),
           constants.R_OK
         )
       ) {
@@ -124,7 +120,7 @@ export class FlashTask {
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.workspaceUri.fsPath, this.buildDirName),
+      cwd: this.buildDirName,
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter(
@@ -160,7 +156,6 @@ export class FlashTask {
     }
     return new vscode.ShellExecution(
       `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
-        this.workspaceUri.fsPath,
         this.buildDirName,
         "dfu.bin"
       )}`

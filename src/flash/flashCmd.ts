@@ -47,12 +47,10 @@ export async function verifyCanFlash(
     );
   }
 
-  const buildDirName = idfConf.readParameter(
+  const buildPath = idfConf.readParameter(
     "idf.buildDirectoryName",
     workspace
   ) as string;
-
-  const buildPath = join(workspace.fsPath, buildDirName);
   if (!(await pathExists(buildPath))) {
     return Logger.errorNotify(
       `Build is required before Flashing, ${buildPath} can't be accessed`,
@@ -64,7 +62,7 @@ export async function verifyCanFlash(
       "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
     );
   }
-  const projectName = await getProjectName(workspace.fsPath, buildDirName);
+  const projectName = await getProjectName(buildPath);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
     return Logger.warnNotify(
       `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`

@@ -43,11 +43,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
     "idf.buildDirectoryName",
     workspaceFolder
   ) as string;
-  const flasherArgsJsonPath = join(
-    workspaceFolder.fsPath,
-    buildDirName,
-    "flasher_args.json"
-  );
+  const flasherArgsJsonPath = join(buildDirName, "flasher_args.json");
   const model = await createFlashModel(
     flasherArgsJsonPath,
     serialPort,

@@ -364,15 +364,8 @@ export async function activate(context: vscode.ExtensionContext) {
         "idf.buildDirectoryName",
         workspaceRoot
       ) as string;
-      const projectName = await getProjectName(
-        workspaceRoot.fsPath,
-        buildDirName
-      );
-      const projectElfFile = `${path.join(
-        workspaceRoot.fsPath,
-        buildDirName,
-        projectName
-      )}.elf`;
+      const projectName = await getProjectName(buildDirName);
+      const projectElfFile = `${path.join(buildDirName, projectName)}.elf`;
       const debugAdapterConfig = {
         currentWorkspace: workspaceRoot,
         elfFile: projectElfFile,
@@ -537,11 +530,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.fullClean", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const buildDirName = idfConf.readParameter(
+      const buildDir = idfConf.readParameter(
         "idf.buildDirectoryName",
         workspaceRoot
       ) as string;
-      const buildDir = path.join(workspaceRoot.fsPath, buildDirName);
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
         return Logger.warnNotify(
@@ -1174,7 +1166,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "idf.buildDirectoryName",
         workspaceRoot
       ) as string;
-      return await getProjectName(workspaceRoot.fsPath, buildDirName);
+      return await getProjectName(buildDirName);
     });
   });
 
@@ -1896,12 +1888,12 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const buildDirName = idfConf.readParameter(
+            const buildDir = idfConf.readParameter(
               "idf.buildDirectoryName",
               workspaceRoot
             ) as string;
             const qemuBinExists = await pathExists(
-              path.join(workspaceRoot.fsPath, buildDirName, "merged_qemu.bin")
+              path.join(buildDir, "merged_qemu.bin")
             );
             if (!qemuBinExists) {
               progress.report({
@@ -1932,7 +1924,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as string;
       const qemuBinExists = await pathExists(
-        path.join(workspaceRoot.fsPath, buildDirName, "merged_qemu.bin")
+        path.join(buildDirName, "merged_qemu.bin")
       );
       if (!qemuBinExists) {
         await mergeFlashBinaries(workspaceRoot);
@@ -2387,15 +2379,8 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.buildDirectoryName",
           workspaceRoot
         ) as string;
-        const projectName = await getProjectName(
-          workspaceRoot.fsPath.toString(),
-          buildDirName
-        );
-        const elfFilePath = path.join(
-          workspaceRoot.fsPath,
-          buildDirName,
-          `${projectName}.elf`
-        );
+        const projectName = await getProjectName(buildDirName);
+        const elfFilePath = path.join(buildDirName, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const monitor = new IDFMonitor({
           port,
@@ -2429,12 +2414,8 @@ export async function activate(context: vscode.ExtensionContext) {
                   "idf.buildDirectoryName",
                   workspaceRoot
                 ) as string;
-                const projectName = await getProjectName(
-                  workspaceRoot.fsPath,
-                  buildDirName
-                );
+                const projectName = await getProjectName(buildDirName);
                 const coreElfFilePath = path.join(
-                  workspaceRoot.fsPath,
                   buildDirName,
                   `${projectName}.coredump.elf`
                 );
@@ -2628,11 +2609,10 @@ export async function activate(context: vscode.ExtensionContext) {
             "chromium",
             "ninja-build-summary.py"
           );
-          const buildDirName = idfConf.readParameter(
+          const buildDir = idfConf.readParameter(
             "idf.buildDirectoryName",
             workspaceRoot
           ) as string;
-          const buildDir = path.join(workspaceRoot.fsPath, buildDirName);
           const summaryResult = await utils.execChildProcess(
             `${pythonBinPath} ${ninjaSummaryScript} -C ${buildDir}`,
             workspaceRoot.fsPath,
@@ -3135,15 +3115,8 @@ class IdfDebugConfigurationProvider
         "idf.buildDirectoryName",
         workspaceRoot
       ) as string;
-      const projectName = await getProjectName(
-        workspaceRoot.fsPath,
-        buildDirName
-      );
-      const elfFilePath = path.join(
-        workspaceRoot.fsPath,
-        buildDirName,
-        `${projectName}.elf`
-      );
+      const projectName = await getProjectName(buildDirName);
+      const elfFilePath = path.join(buildDirName, `${projectName}.elf`);
       const elfFileExists = await pathExists(elfFilePath);
       if (!elfFileExists) {
         throw new Error(

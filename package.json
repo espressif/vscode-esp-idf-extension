@@ -485,7 +485,13 @@
           },
           "idf.buildDirectoryName": {
             "type": "string",
-            "default": "build",
+            "default": "${workspaceFolder}/build",
+            "description": "%param.buildDirectoryName%",
+            "scope": "resource"
+          },
+          "idf.buildDirectoryNameWin": {
+            "type": "string",
+            "default": "${workspaceFolder}\\build",
             "description": "%param.buildDirectoryName%",
             "scope": "resource"
           },

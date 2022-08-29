@@ -126,7 +126,6 @@ export class DebugAdapterManager extends EventEmitter {
           this.currentWorkspace
         ) as string;
         const flasherArgsJsonPath = path.join(
-          this.currentWorkspace.fsPath,
           buildDirName,
           "flasher_args.json"
         );
@@ -315,11 +314,7 @@ export class DebugAdapterManager extends EventEmitter {
         "idf.buildDirectoryName",
         this.currentWorkspace
       ) as string;
-      this.elfFile = `${path.join(
-        this.currentWorkspace.fsPath,
-        buildDirName,
-        "project-name"
-      )}.elf`;
+      this.elfFile = `${path.join(buildDirName, "project-name")}.elf`;
     }
   }
 

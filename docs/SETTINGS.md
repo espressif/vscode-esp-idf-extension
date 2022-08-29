@@ -12,23 +12,23 @@ The `idf.saveScope` allows the user to specify where to save settings when using
 
 These are the configuration settings that ESP-IDF extension contributes to your Visual Studio Code editor settings.
 
-| Setting ID                      | Description                                                                   |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| `idf.buildDirectoryName`        | Custom build directory name for extension commands. (Default: build)          |
-| `idf.cmakeCompilerArgs`         | Arguments for CMake compilation task                                          |
-| `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                |
-| `idf.customExtraVars`           | Variables to be added to system environment variables                         |
-| `idf.gitPath`                   | Path to git executable                                                        |
-| `idf.gitPathWin`                | Path to git executable in Windows                                             |
-| `idf.enableCCache`              | Enable CCache on build task (make sure CCache is in PATH)                     |
-| `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                 |
-| `idf.espIdfPath`                | Path to locate ESP-IDF framework (IDF_PATH)                                   |
-| `idf.espIdfPathWin`             | Path to locate ESP-IDF framework in Windows (IDF_PATH)                        |
-| `idf.ninjaArgs`                 | Arguments for Ninja build task                                                |
-| `idf.pythonBinPath`             | Python absolute binary path used to execute ESP-IDF Python Scripts            |
-| `idf.pythonBinPathWin`          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows |
-| `idf.toolsPath`                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                 |
-| `idf.toolsPathWin`              | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                      |
+| Setting ID                      | Description                                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `idf.buildDirectoryName`        | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build) |
+| `idf.cmakeCompilerArgs`         | Arguments for CMake compilation task                                                     |
+| `idf.customExtraPaths`          | Paths to be appended to \$PATH                                                           |
+| `idf.customExtraVars`           | Variables to be added to system environment variables                                    |
+| `idf.gitPath`                   | Path to git executable                                                                   |
+| `idf.gitPathWin`                | Path to git executable in Windows                                                        |
+| `idf.enableCCache`              | Enable CCache on build task (make sure CCache is in PATH)                                |
+| `idf.enableIdfComponentManager` | Enable IDF Component manager in build command                                            |
+| `idf.espIdfPath`                | Path to locate ESP-IDF framework (IDF_PATH)                                              |
+| `idf.espIdfPathWin`             | Path to locate ESP-IDF framework in Windows (IDF_PATH)                                   |
+| `idf.ninjaArgs`                 | Arguments for Ninja build task                                                           |
+| `idf.pythonBinPath`             | Python absolute binary path used to execute ESP-IDF Python Scripts                       |
+| `idf.pythonBinPathWin`          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows            |
+| `idf.toolsPath`                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                            |
+| `idf.toolsPathWin`              | Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)                                 |
 
 This is how the extension uses them:
 

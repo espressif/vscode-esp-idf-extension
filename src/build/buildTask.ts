@@ -27,7 +27,7 @@ import { selectedDFUAdapterId } from "../flash/dfu";
 
 export class BuildTask {
   public static isBuilding: boolean;
-  private buildDirName: string;
+  private buildDirPath: string;
   private curWorkspace: vscode.Uri;
   private idfPathDir: string;
   private adapterTargetName: string;
@@ -42,7 +42,7 @@ export class BuildTask {
       "idf.adapterTargetName",
       workspace
     ) as string;
-    this.buildDirName = idfConf.readParameter(
+    this.buildDirPath = idfConf.readParameter(
       "idf.buildDirectoryName",
       workspace
     ) as string;
@@ -87,10 +87,10 @@ export class BuildTask {
         "tools",
         "mkdfu.py"
       )} write -o ${join(
-        join(this.curWorkspace.fsPath, this.buildDirName),
+        this.buildDirPath,
         "dfu.bin"
       )} --json ${join(
-        join(this.curWorkspace.fsPath, this.buildDirName),
+        this.buildDirPath,
         "flasher_args.json"
       )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
       options
@@ -111,7 +111,7 @@ export class BuildTask {
     }
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
+    await ensureDir(this.buildDirPath);
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.curWorkspace.fsPath,
@@ -124,8 +124,7 @@ export class BuildTask {
     );
 
     const cmakeCachePath = join(
-      this.curWorkspace.fsPath,
-      this.buildDirName,
+      this.buildDirPath,
       "CMakeCache.txt"
     );
     const cmakeCacheExists = await pathExists(cmakeCachePath);
@@ -135,7 +134,7 @@ export class BuildTask {
     }
 
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.curWorkspace.fsPath, this.buildDirName),
+      cwd: this.buildDirPath,
       env: modifiedEnv,
     };
     const isSilentMode = idfConf.readParameter(
@@ -212,7 +211,7 @@ export class BuildTask {
   public async buildDfu() {
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
+    await ensureDir(this.buildDirPath);
 
     const options: vscode.ShellExecutionOptions = {
       cwd: this.curWorkspace.fsPath,

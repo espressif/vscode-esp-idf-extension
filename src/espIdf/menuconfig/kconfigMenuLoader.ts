@@ -70,7 +70,6 @@ export class KconfigMenuLoader {
       this.workspaceFolder
     ) as string;
     const kconfigMenusPath = path.join(
-      this.workspaceFolder.fsPath,
       buildDirName,
       "config",
       "kconfig_menus.json"

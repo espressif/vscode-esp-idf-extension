@@ -41,7 +41,6 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
       workspaceFolder
     ) as string;
     this.projectDescriptionJsonPath = join(
-      workspaceFolder.fsPath,
       buildDirName,
       "project_description.json"
     );
@@ -54,7 +53,6 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
       workspaceFolder
     ) as string;
     this.projectDescriptionJsonPath = join(
-      workspaceFolder.fsPath,
       buildDirName,
       "project_description.json"
     );
