@@ -96,6 +96,7 @@
   "param.customTask": "Tarea personalizada",
   "param.buildDirectoryName": "Nombre del directorio de construcción de CMake",
   "param.svdFile": "Archivo SVD para la vista de perifericos en ventana de depuracion",
+  "param.deleteComponentsOnFullClean": "Borrar managed_components en el comando limpiar proyecto",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
