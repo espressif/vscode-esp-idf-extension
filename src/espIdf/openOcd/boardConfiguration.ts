@@ -49,7 +49,7 @@ export const defaultBoards = [
   } as IdfBoard,
   {
     name: "ESP32-S3 chip (via builtin USB-JTAG)",
-    description: "ESP32-S3 used with ESP-PROG board",
+    description: "ESP32-S3 debugging via builtin USB-JTAG",
     target: "esp32s3",
     configFiles: ["board/esp32s3-builtin.cfg"],
   } as IdfBoard,
