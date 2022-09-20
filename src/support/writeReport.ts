@@ -27,13 +27,18 @@ export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const strReportResults = await JSON.stringify(reportedResult);
+  const strReportResults = JSON.stringify(reportedResult);
 
-  // Replacing all process.env.HOME paths with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
-  const re = new RegExp(process.env.HOME, 'g');
+  // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
+  let re = new RegExp(process.env.HOME, 'g');
+  if(process.env.windir) {
+    const reWin = new RegExp('\\\\', 'g');
+    const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
+    re = new RegExp(result, 'g');
+  }
   const prvPathsReport = strReportResults.replace(re, '...');
 
-  reportedResult = await JSON.parse(prvPathsReport);
+  reportedResult = JSON.parse(prvPathsReport);
   Logger.warnNotify(prvPathsReport, {tag: 'DOCTOR COMMAND'});
   
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
