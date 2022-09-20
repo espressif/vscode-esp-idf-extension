@@ -19,12 +19,23 @@ import { writeFile, writeJson } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
+import { Logger } from "../logger/logger";
+import { readParameter } from "../idfConfiguration";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
+  const strReportResults = await JSON.stringify(reportedResult);
+
+  // Replacing all process.env.HOME paths with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
+  const re = new RegExp(process.env.HOME, 'g');
+  const prvPathsReport = strReportResults.replace(re, '...');
+
+  reportedResult = await JSON.parse(prvPathsReport);
+  Logger.warnNotify(prvPathsReport, {tag: 'DOCTOR COMMAND'});
+  
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
   output += `OS ${reportedResult.systemInfo.platform} ${reportedResult.systemInfo.architecture} ${reportedResult.systemInfo.systemName} ${EOL}`;
