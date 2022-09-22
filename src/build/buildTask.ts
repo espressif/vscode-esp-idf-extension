@@ -86,10 +86,7 @@ export class BuildTask {
         this.idfPathDir,
         "tools",
         "mkdfu.py"
-      )} write -o ${join(
-        this.buildDirPath,
-        "dfu.bin"
-      )} --json ${join(
+      )} write -o ${join(this.buildDirPath, "dfu.bin")} --json ${join(
         this.buildDirPath,
         "flasher_args.json"
       )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
@@ -123,10 +120,7 @@ export class BuildTask {
       modifiedEnv
     );
 
-    const cmakeCachePath = join(
-      this.buildDirPath,
-      "CMakeCache.txt"
-    );
+    const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
     const cmakeCacheExists = await pathExists(cmakeCachePath);
 
     if (canAccessCMake === "" || canAccessNinja === "") {
@@ -154,8 +148,13 @@ export class BuildTask {
         "Ninja",
         "-DPYTHON_DEPS_CHECKED=1",
         "-DESP_PLATFORM=1",
-        "..",
       ];
+      compilerArgs.push(
+        "-B",
+        this.buildDirPath,
+        "-S",
+        this.curWorkspace.fsPath
+      );
       const enableCCache = idfConf.readParameter(
         "idf.enableCCache",
         this.curWorkspace
