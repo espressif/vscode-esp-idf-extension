@@ -37,7 +37,7 @@ export class EspMatterCloning extends AbstractCloning {
     super(
       "https://github.com/espressif/esp-matter.git",
       "ESP-MATTER",
-      "master",
+      "main",
       gitBinPath
     );
   }
