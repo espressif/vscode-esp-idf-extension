@@ -27,19 +27,7 @@ export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
-  const strReportResults = JSON.stringify(reportedResult);
-
-  // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
-  let re = new RegExp(process.env.HOME, 'g');
-  if(process.env.windir) {
-    const reWin = new RegExp('\\\\', 'g');
-    const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
-    re = new RegExp(result, 'g');
-  }
-  const prvPathsReport = strReportResults.replace(re, '...');
-
-  reportedResult = JSON.parse(prvPathsReport);
-  Logger.warnNotify(prvPathsReport, {tag: 'DOCTOR COMMAND'});
+  reportedResult = replaceUserPath(reportedResult);
   
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
@@ -164,4 +152,20 @@ export async function writeTextReport(
     spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
   });
   return output;
+}
+
+export function replaceUserPath(report: reportObj): reportObj {
+  const strReport = JSON.stringify(report);
+
+  // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
+  let re = new RegExp(process.env.HOME, 'g');
+  if(process.env.windir) {
+    const reWin = new RegExp('\\\\', 'g');
+    const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
+    re = new RegExp(result, 'g');
+  }
+  const parsedReport = strReport.replace(re, '...');
+  Logger.warnNotify(parsedReport, {tag: 'DOCTOR COMMAND'});
+
+  return JSON.parse(parsedReport);
 }
