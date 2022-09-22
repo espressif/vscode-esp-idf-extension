@@ -11,7 +11,7 @@ suite("Write Report Suite", () => {
     }
     let result = replaceUserPath(mockData);
     let mockResult = new reportObj();
-    mockResult.workspaceFolder = '/Users/.../esp/blink';
+    mockResult.workspaceFolder = '/Users/<HOMEPATH>/esp/blink';
     assert.equal(JSON.stringify(result), JSON.stringify(mockResult));
   });
 });

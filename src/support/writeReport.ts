@@ -164,7 +164,7 @@ export function replaceUserPath(report: reportObj): reportObj {
     const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
     re = new RegExp(result, 'g');
   }
-  const parsedReport = strReport.replace(re, '...');
+  const parsedReport = strReport.replace(re, '<HOMEPATH>');
   Logger.warnNotify(parsedReport, {tag: 'DOCTOR COMMAND'});
 
   return JSON.parse(parsedReport);
