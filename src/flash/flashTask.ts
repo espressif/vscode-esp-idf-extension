@@ -31,7 +31,7 @@ export class FlashTask {
   private workspaceUri: vscode.Uri;
   private flashScriptPath: string;
   private model: FlashModel;
-  private buildDirName: string;
+  private buildDirPath: string;
   private encryptPartitions: boolean;
 
   constructor(
@@ -49,8 +49,8 @@ export class FlashTask {
       "esptool.py"
     );
     this.model = model;
-    this.buildDirName = idfConf.readParameter(
-      "idf.buildDirectoryName",
+    this.buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
       workspace
     ) as string;
     this.encryptPartitions = encryptPartitions;
@@ -67,7 +67,7 @@ export class FlashTask {
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
-          join(this.buildDirName, flashFile.binFilePath),
+          join(this.buildDirPath, flashFile.binFilePath),
           constants.R_OK
         )
       ) {
@@ -120,7 +120,7 @@ export class FlashTask {
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
     const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDirName,
+      cwd: this.buildDirPath,
       env: modifiedEnv,
     };
     const pythonBinPath = idfConf.readParameter(
@@ -156,7 +156,7 @@ export class FlashTask {
     }
     return new vscode.ShellExecution(
       `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
-        this.buildDirName,
+        this.buildDirPath,
         "dfu.bin"
       )}`
     );

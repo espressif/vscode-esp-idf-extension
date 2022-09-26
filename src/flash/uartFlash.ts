@@ -37,7 +37,7 @@ export async function flashCommand(
 ) {
   let continueFlag = true;
   const buildPath = readParameter(
-    "idf.buildDirectoryName",
+    "idf.buildPath",
     workspace
   ) as string;
   const buildFiles = await readdir(buildPath);

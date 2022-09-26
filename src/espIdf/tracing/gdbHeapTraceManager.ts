@@ -74,16 +74,16 @@ export class GdbHeapTraceManager {
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
         }
-        const buildDirName = readParameter(
-          "idf.buildDirectoryName",
+        const buildDirPath = readParameter(
+          "idf.buildPath",
           workspace
         ) as string;
-        const buildExists = await pathExists(buildDirName);
+        const buildExists = await pathExists(buildDirPath);
         if (!buildExists) {
-          throw new Error(`${buildDirName} doesn't exist. Build first.`);
+          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
         }
-        const projectName = await getProjectName(buildDirName);
-        const elfFilePath = join(buildDirName, `${projectName}.elf`);
+        const projectName = await getProjectName(buildDirPath);
+        const elfFilePath = join(buildDirPath, `${projectName}.elf`);
         const elfFileExists = await pathExists(elfFilePath);
         if (!elfFileExists) {
           throw new Error(`${elfFilePath} doesn't exist.`);
@@ -92,7 +92,7 @@ export class GdbHeapTraceManager {
           `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
           [],
           {
-            cwd: buildDirName,
+            cwd: buildDirPath,
             env: modifiedEnv,
             shell: env.shell,
           }

@@ -78,7 +78,7 @@ export async function mergeFlashBinaries(
   const port = readParameter("idf.port", wsFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
   const buildDirPath = readParameter(
-    "idf.buildDirectoryName",
+    "idf.buildPath",
     wsFolder
   ) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");

@@ -554,7 +554,7 @@ export async function getElfFilePath(
 
   try {
     const buildDir = idfConf.readParameter(
-      "idf.buildDirectoryName",
+      "idf.buildPath",
       workspaceURI
     ) as string;
     if (!canAccessFile(buildDir, fs.constants.R_OK)) {

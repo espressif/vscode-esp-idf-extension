@@ -45,7 +45,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     workspace
   );
   let buildPath = readParameter(
-    "idf.buildDirectoryName",
+    "idf.buildPath",
     workspace
   ) as string;
   const customTask = new CustomTask(Uri.file(buildPath));

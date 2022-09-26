@@ -66,7 +66,7 @@ export async function buildCommand(
     await TaskManager.runTasks();
     if (flashType === ESP.FlashType.DFU) {
       const buildPath = readParameter(
-        "idf.buildDirectoryName",
+        "idf.buildPath",
         workspace
       ) as string;
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {

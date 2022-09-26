@@ -43,7 +43,7 @@ export class BuildTask {
       workspace
     ) as string;
     this.buildDirPath = idfConf.readParameter(
-      "idf.buildDirectoryName",
+      "idf.buildPath",
       workspace
     ) as string;
   }

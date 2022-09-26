@@ -121,12 +121,12 @@ export class DebugAdapterManager extends EventEmitter {
           "idf.flashBaudRate",
           this.currentWorkspace
         );
-        const buildDirName = idfConf.readParameter(
-          "idf.buildDirectoryName",
+        const buildDirPath = idfConf.readParameter(
+          "idf.buildPath",
           this.currentWorkspace
         ) as string;
         const flasherArgsJsonPath = path.join(
-          buildDirName,
+          buildDirPath,
           "flasher_args.json"
         );
         if (!canAccessFile(flasherArgsJsonPath, constants.R_OK)) {
@@ -310,11 +310,11 @@ export class DebugAdapterManager extends EventEmitter {
     this.initGdbCommands = [];
     this.elfFile = "";
     if (this.currentWorkspace) {
-      const buildDirName = idfConf.readParameter(
-        "idf.buildDirectoryName",
+      const buildDirPath = idfConf.readParameter(
+        "idf.buildPath",
         this.currentWorkspace
       ) as string;
-      this.elfFile = `${path.join(buildDirName, "project-name")}.elf`;
+      this.elfFile = `${path.join(buildDirPath, "project-name")}.elf`;
     }
   }
 

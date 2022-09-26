@@ -483,16 +483,16 @@
             "description": "%param.adapterTargetName%",
             "scope": "resource"
           },
-          "idf.buildDirectoryName": {
+          "idf.buildPath": {
             "type": "string",
             "default": "${workspaceFolder}/build",
-            "description": "%param.buildDirectoryName%",
+            "description": "%param.buildPath%",
             "scope": "resource"
           },
-          "idf.buildDirectoryNameWin": {
+          "idf.buildPathWin": {
             "type": "string",
             "default": "${workspaceFolder}\\build",
-            "description": "%param.buildDirectoryName%",
+            "description": "%param.buildPath%",
             "scope": "resource"
           },
           "idf.cmakeCompilerArgs": {

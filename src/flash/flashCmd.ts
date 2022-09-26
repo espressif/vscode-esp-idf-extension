@@ -48,7 +48,7 @@ export async function verifyCanFlash(
   }
 
   const buildPath = idfConf.readParameter(
-    "idf.buildDirectoryName",
+    "idf.buildPath",
     workspace
   ) as string;
   if (!(await pathExists(buildPath))) {
