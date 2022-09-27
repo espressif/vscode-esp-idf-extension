@@ -194,10 +194,11 @@ const webIdeCheck = [
 const minOpenOcdVersionCheck = async function () {
   const currOpenOcdVersion = await openOCDManager.version();
   return [
-    PreCheck.openOCDVersionValidator(
-      "v0.10.0-esp32-20201125",
-      currOpenOcdVersion
-    ),
+    () =>
+      PreCheck.openOCDVersionValidator(
+        "v0.10.0-esp32-20201125",
+        currOpenOcdVersion
+      ),
     `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`,
   ] as utils.PreCheckInput;
 };
