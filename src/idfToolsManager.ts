@@ -59,7 +59,7 @@ export class IdfToolsManager {
     private platformInfo: PlatformInformation,
     private toolsManagerChannel: vscode.OutputChannel,
     public espIdfPath: string
-  ) { }
+  ) {}
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
@@ -154,9 +154,7 @@ export class IdfToolsManager {
       const platformType = Object.getOwnPropertyNames(value).indexOf(
         this.platformInfo.platformToUse
       );
-      const allPlatformType = Object.getOwnPropertyNames(value).indexOf(
-        "any"
-      );
+      const allPlatformType = Object.getOwnPropertyNames(value).indexOf("any");
       return (
         (value.status === "recommended" ||
           value.status === "supported" ||
