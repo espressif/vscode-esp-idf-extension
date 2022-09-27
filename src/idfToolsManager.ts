@@ -59,7 +59,7 @@ export class IdfToolsManager {
     private platformInfo: PlatformInformation,
     private toolsManagerChannel: vscode.OutputChannel,
     public espIdfPath: string
-  ) {}
+  ) { }
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
@@ -132,24 +132,12 @@ export class IdfToolsManager {
   }
 
   public obtainUrlInfoForPlatform(pkg: IPackage): IFileInfo {
-    const versions = pkg.versions.filter((value) => {
-      return (
-        (value.status === "recommended" ||
-          value.status === "supported" ||
-          value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
-          this.platformInfo.platformToUse
-        ) > -1
-      );
-    });
-    if (!versions || versions.length === 0) {
-      throw new Error(
-        `${pkg.name} doesn't have a compatible version for ${this.platformInfo.platformToUse}`
-      );
-    }
+    const versions = this.getVersionsToUse(pkg);
     const linkInfo =
       versions.length > 0
-        ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
+        ? versions[0][this.platformInfo.platformToUse]
+          ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
+          : (versions[0]["any"] as IFileInfo)
         : undefined;
     return linkInfo;
   }
@@ -161,15 +149,19 @@ export class IdfToolsManager {
     );
   }
 
-  public getVersionToUse(pkg: IPackage): string {
+  public getVersionsToUse(pkg: IPackage) {
     const versions = pkg.versions.filter((value) => {
+      const platformType = Object.getOwnPropertyNames(value).indexOf(
+        this.platformInfo.platformToUse
+      );
+      const allPlatformType = Object.getOwnPropertyNames(value).indexOf(
+        "any"
+      );
       return (
         (value.status === "recommended" ||
           value.status === "supported" ||
           value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
-          this.platformInfo.platformToUse
-        ) > -1
+        (platformType !== -1 || allPlatformType !== -1)
       );
     });
     if (!versions || versions.length === 0) {
@@ -177,6 +169,11 @@ export class IdfToolsManager {
         `${pkg.name} doesn't have a compatible version for ${this.platformInfo.platformToUse}`
       );
     }
+    return versions;
+  }
+
+  public getVersionNameToUse(pkg: IPackage): string {
+    const versions = this.getVersionsToUse(pkg);
     return versions.length > 0 ? versions[0].name : undefined;
   }
 
@@ -245,7 +242,7 @@ export class IdfToolsManager {
     const pkgs = await this.getPackageList(onReqPkgs);
     const exportedPaths: string[] = [];
     for (const pkg of pkgs) {
-      const versionToUse = this.getVersionToUse(pkg);
+      const versionToUse = this.getVersionNameToUse(pkg);
       let pkgExportedPath = pkg.binaries
         ? path.join(basePath, pkg.name, versionToUse, ...pkg.binaries)
         : path.join(basePath, pkg.name, versionToUse);
@@ -284,7 +281,7 @@ export class IdfToolsManager {
   public exportVarsForPkg(pkg: IPackage, basePath: string) {
     const exportedVars = {};
     Object.keys(pkg.export_vars).forEach((key, index, arr) => {
-      const versionToUse = this.getVersionToUse(pkg);
+      const versionToUse = this.getVersionNameToUse(pkg);
       const toolPath = path.join(basePath, pkg.name, versionToUse);
       exportedVars[key] = pkg.export_vars[key].replace(
         "${TOOL_PATH}",
@@ -315,7 +312,7 @@ export class IdfToolsManager {
       const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
       const isToolVersionCorrect =
         expectedVersions.indexOf(versions[pkg.name]) > -1;
-      const versionToUse = this.getVersionToUse(pkg);
+      const versionToUse = this.getVersionNameToUse(pkg);
       let pkgExportedPath: string = "";
       let pkgVars = pkg.export_vars;
       if (basePath) {

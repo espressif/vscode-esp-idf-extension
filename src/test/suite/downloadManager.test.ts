@@ -175,7 +175,7 @@ suite("Download Manager Tests", () => {
         },
       ],
     } as IPackage;
-    const versionName = idfToolsManager.getVersionToUse(pkg);
+    const versionName = idfToolsManager.getVersionNameToUse(pkg);
     const absolutePath: string = installManager.getToolPackagesPath([
       "tools",
       pkg.name,

@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as tmp from "tmp";
-
 export interface IFileInfo {
   sha256: string;
   size: number;
@@ -21,6 +19,7 @@ export interface IFileInfo {
 }
 
 export interface IVersion {
+  any: IFileInfo;
   name: string;
   status: string;
   win32: IFileInfo;

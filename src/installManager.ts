@@ -44,7 +44,7 @@ export class InstallManager {
     return idfToolsManager.getPackageList(onReqPkgs).then((packages) => {
       let count: number = 1;
       return utils.buildPromiseChain(packages, async (pkg) => {
-        const versionName = idfToolsManager.getVersionToUse(pkg);
+        const versionName = idfToolsManager.getVersionNameToUse(pkg);
         const absolutePath: string = this.getToolPackagesPath([
           "tools",
           pkg.name,
@@ -59,7 +59,7 @@ export class InstallManager {
             pkg,
             binDir
           );
-          const expectedVersion = idfToolsManager.getVersionToUse(pkg);
+          const expectedVersion = idfToolsManager.getVersionNameToUse(pkg);
           if (binVersion === expectedVersion) {
             this.appendChannel(
               `Using existing ${pkg.description} in ${absolutePath}`
@@ -437,7 +437,7 @@ export class InstallManager {
     pkg: IPackage,
     cancelToken?: vscode.CancellationToken
   ) {
-    const versionToUse = idfToolsManager.getVersionToUse(pkg);
+    const versionToUse = idfToolsManager.getVersionNameToUse(pkg);
     return installEspIdfToolFromIdf(
       idfToolsManager.espIdfPath,
       pythonBinPath,
