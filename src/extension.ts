@@ -101,7 +101,7 @@ import { buildCommand } from "./build/buildCmd";
 import { verifyCanFlash } from "./flash/flashCmd";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
-import { createMonitorTerminal } from "./espIdf/monitor/command";
+import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
@@ -122,8 +122,6 @@ import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
-import { DownloadManager } from "./downloadManager";
-import { PackageProgress } from "./PackageProgress";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2379,14 +2377,29 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.buildPath",
           workspaceRoot
         ) as string;
+        let idfTarget = idfConf.readParameter(
+          "idf.adapterTargetName",
+          workspaceRoot
+        );
+        if (idfTarget === "custom") {
+          idfTarget = idfConf.readParameter(
+            "idf.customAdapterTargetName",
+            workspaceRoot
+          );
+        }
+        const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
         const projectName = await getProjectName(buildDirPath);
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
+        const idfVersion = await utils.getEspIdfFromCMake(idfPath);
         const monitor = new IDFMonitor({
           port,
           baudRate: sdkMonitorBaudRate,
           pythonBinPath,
+          idfTarget,
+          toolchainPrefix,
           idfMonitorToolPath,
+          idfVersion,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
@@ -2942,7 +2955,7 @@ function createQemuMonitor() {
       workspaceRoot
     ) as number;
     const serialPort = `socket://localhost:${qemuTcpPort}`;
-    await createMonitorTerminal(monitorTerminal, workspaceRoot, serialPort);
+    await createNewIdfMonitor(workspaceRoot, serialPort);
   });
 }
 
@@ -3080,10 +3093,8 @@ function createIdfTerminal() {
 
 function createMonitor() {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    monitorTerminal = await createMonitorTerminal(
-      monitorTerminal,
-      workspaceRoot
-    );
+    const idfMonitor = await createNewIdfMonitor(workspaceRoot);
+    monitorTerminal = idfMonitor.start();
   });
 }
 
