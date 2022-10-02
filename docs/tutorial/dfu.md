@@ -15,14 +15,14 @@
   <img src="../../media/tutorials/dfu/select_device.png" alt="Select device" height="500">
 </p>
 
-2. Build the project
-<p>
-  <img src="../../media/tutorials/dfu/build_project.png" alt="Build Project" height="500">
-</p>
-
-3. Select DFU as flashing method
+2. Select DFU as flashing method
 <p>
   <img src="../../media/tutorials/dfu/flash_method.png" alt="Flash" height="500">
+</p>
+
+3. Build the project
+<p>
+  <img src="../../media/tutorials/dfu/build_project.png" alt="Build Project" height="500">
 </p>
 
 4. Flash
