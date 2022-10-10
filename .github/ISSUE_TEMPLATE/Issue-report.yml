@@ -1,0 +1,99 @@
+name: Issue report
+description: Report any issue here
+labels: ["bug-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        * Before reporting a new issue please check and search in [List of existing issues](https://github.com/espressif/vscode-esp-idf-extension/issues?q=is%3Aissue) 
+        * Please check [Online Documentation](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/ONBOARDING.md)
+        * Take a look on [Troubleshooting guide](https://github.com/espressif/vscode-esp-idf-extension#troubleshooting)
+        * If still experiencing the issue, please provide as many details as possible below about your hardware, computer setup and code.
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      description: On which Operating System does the problem occurs?
+      options:
+        - Windows
+        - MacOS
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: osver
+    attributes:
+      label: Operating System version
+      description: On which OS version this issue occur?
+      placeholder: ex. macOS 12.1, Windows 10...
+    validations:
+      required: true
+  - type: input
+    id: vscodeversion
+    attributes:
+      label: Visual Studio Code version
+      description: What Visual Studio Code version are you using
+      placeholder: 1.35.1
+  - type: input
+    id: espidf
+    attributes:
+      label: ESP-IDF version
+      description: What ESP-IDF version
+      placeholder: 4.4.3
+    validations:
+      required: true
+  - type: input
+    id: pythonversion
+    attributes:
+      label: Python version
+      description: What Python version are you using ?
+      placeholder: 3.8.7
+    validations:
+      required: true
+  - type: textarea
+    id: doctorcmd
+    attributes:
+      label: Doctor command output
+      description: What is the output of the 'ESP-IDF Doctor command' command?
+      placeholder: ex. DevKitC, plain module on breadboard, etc. If your hardware is custom or unusual, please attach a photo.
+    validations:
+      required: true
+  - type: textarea
+    id: extensionlog
+    attributes:
+      label: Extension
+      description: |
+        Please share related content of extension log file located in:
+        * Windows (%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log)
+        * Linux-MacOS ($HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log)
+  - type: textarea
+    id: Description
+    attributes:
+      label: Description
+      description: Please describe your problem here and expected behaviour
+      placeholder: ex. Can't connect/weird behaviour/wrong function/missing parameter..
+    validations:
+      required: true
+  - type: textarea
+    id: Debug
+    attributes:
+      label: Debug Message
+      description: Please provide a debug message or error message. If you have a Guru Meditation Error or Backtrace, please decode it with [ExceptionDecoder](https://github.com/me-no-dev/EspExceptionDecoder)
+      placeholder: Set logLevel > 3 in launch.json for Debug errors and idf.openOcdDebugLevel > 3 for OpenOCD output
+      render: plain
+    validations:
+      required: true
+  - type: textarea
+    id: other-remarks
+    attributes:
+      label: Other Steps to Reproduce
+      description: Is there any other information you can think of which will help us reproduce this problem? Any additional info can be added as well.
+      placeholder: ex. I also tried on other OS, HW...it works correctly on that setup.
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: I have checked existing issues, online documentation and the Troubleshooting Guide
+      description: You agree to check all the resources above before opening a new issue.
+      options:
+        - label: I confirm I have checked existing issues, online documentation and Troubleshooting guide.
+          required: true

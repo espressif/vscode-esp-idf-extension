@@ -92,21 +92,29 @@ export class PreCheck {
     minVersion: string,
     currentVersion: string
   ) {
-    return (): boolean => {
-      try {
-        return (
-          parseInt(currentVersion.split("-").pop()) >=
-          parseInt(minVersion.split("-").pop())
-        );
-      } catch (error) {
-        Logger.error(
-          `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-          error,
-          { tag }
-        );
-        return false;
+    try {
+      const minVersionParsed = minVersion.match(/v(\d+.?\d+.?\d)-esp32-(\d+)/);
+      const currentVersionParsed = currentVersion.match(
+        /v(\d+.?\d+.?\d)-esp32-(\d+)/
+      );
+      if (!minVersionParsed || !currentVersionParsed) {
+        throw new Error("Error parsing versions");
       }
-    };
+      const validationResult =
+        currentVersionParsed[1] >= minVersionParsed[1]
+          ? currentVersionParsed[2] >= minVersionParsed[2]
+            ? true
+            : false
+          : false;
+      return validationResult;
+    } catch (error) {
+      Logger.error(
+        `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
+        error,
+        { tag }
+      );
+      return false;
+    }
   }
   public static espIdfVersionValidator(
     minVersion: string,

@@ -211,6 +211,7 @@
     "param.postBuildTask",
     "param.preFlashTask",
     "param.postFlashTask",
-    "param.svdFile"
+    "param.svdFile",
+    "param.deleteComponentsOnFullClean"
   ]
 }

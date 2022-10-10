@@ -96,6 +96,7 @@
   "param.customTask": "Специальная задача",
   "param.buildDirectoryName": "Имя каталога сборки CMake",
   "param.svdFile": "Файл SVD для разрешения периферийного представления ESP-IDF в представлении отладки",
+  "param.deleteComponentsOnFullClean": "Удалить manage_components при полной очистке проекта.",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",

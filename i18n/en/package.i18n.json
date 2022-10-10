@@ -93,6 +93,7 @@
   "param.customTask": "Custom task",
   "param.buildDirectoryName": "Name of CMake build directory",
   "param.svdFile": "SVD file to resolve ESP-IDF Peripheral view in Debug view",
+  "param.deleteComponentsOnFullClean": "Delete managed_components on full clean project command",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

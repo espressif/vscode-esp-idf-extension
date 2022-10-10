@@ -195,10 +195,11 @@ const webIdeCheck = [
 const minOpenOcdVersionCheck = async function () {
   const currOpenOcdVersion = await openOCDManager.version();
   return [
-    PreCheck.openOCDVersionValidator(
-      "v0.10.0-esp32-20201125",
-      currOpenOcdVersion
-    ),
+    () =>
+      PreCheck.openOCDVersionValidator(
+        "v0.10.0-esp32-20201125",
+        currOpenOcdVersion
+      ),
     `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`,
   ] as utils.PreCheckInput;
 };
@@ -576,6 +577,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
       try {
         await del(buildDir, { force: true });
+        const delComponentsOnFullClean = (await idfConf.readParameter(
+          "idf.deleteComponentsOnFullClean",
+          workspaceRoot
+        )) as boolean;
+        if (delComponentsOnFullClean) {
+          const managedComponents = path.join(
+            workspaceRoot.fsPath,
+            "managed_components"
+          );
+          const componentDirExists = await pathExists(managedComponents);
+          if (componentDirExists) {
+            await del(managedComponents, { force: true });
+          }
+        }
       } catch (error) {
         Logger.errorNotify(error.message, error, tag);
       }
@@ -693,7 +708,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
 
-  registerIDFCommand("espIdf.getEspMatter", getEspMatter);
+  registerIDFCommand("espIdf.getEspMatter", async () =>
+    getEspMatter(workspaceRoot)
+  );
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>

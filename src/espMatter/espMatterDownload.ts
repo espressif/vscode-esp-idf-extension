@@ -24,6 +24,7 @@ import {
   TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
+  Uri,
 } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
 import { readParameter } from "../idfConfiguration";
@@ -34,12 +35,11 @@ const tag: string = "ESP Matter";
 
 export class EspMatterCloning extends AbstractCloning {
   public static isBuildingGn: boolean;
-  public currWorkspace: string;
-  constructor(gitBinPath: string = "git") {
+  constructor(gitBinPath: string = "git", public currWorkspace: Uri) {
     super(
       "https://github.com/espressif/esp-matter.git",
       "ESP-MATTER",
-      "master",
+      "main",
       gitBinPath
     );
   }
@@ -55,7 +55,7 @@ export class EspMatterCloning extends AbstractCloning {
     if (EspMatterCloning.isBuildingGn) {
       throw new Error("ALREADY_BUILDING");
     }
-    const matterPathDir = readParameter("idf.espMatterPath");
+    const matterPathDir = readParameter("idf.espMatterPath", this.currWorkspace);
     const espMatterPathExists = await pathExists(matterPathDir);
     if (!espMatterPathExists) {
       return;
@@ -75,7 +75,7 @@ export class EspMatterCloning extends AbstractCloning {
       cwd: workingDir,
     };
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
-    const isSilentMode = readParameter("idf.notificationSilentMode");
+    const isSilentMode = readParameter("idf.notificationSilentMode", this.currWorkspace);
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -102,11 +102,11 @@ export class EspMatterCloning extends AbstractCloning {
   }
 }
 
-export async function getEspMatter() {
-  const gitPath = (await readParameter("idf.gitPath")) || "/usr/bin/git";
-  const espMatterInstaller = new EspMatterCloning(gitPath);
+export async function getEspMatter(workspace?: Uri) {
+  const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
+  const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   try {
-    await espMatterInstaller.getRepository("idf.espMatterPath");
+    await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
     await espMatterInstaller.startBootstrap();
     await TaskManager.runTasks();
     EspMatterCloning.isBuildingGn = false;

@@ -13,13 +13,19 @@
         <div class="level-right">
           <div class="level-item">
             <p class="buttons are-small">
+              <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
+                <span class="icon is-small">
+                  <iconify-icon icon="star-empty" />
+                </span>
+                &nbsp; Select Flash Method
+              </a>
               <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
                   <iconify-icon icon="tools" />
                 </span>
                 &nbsp; Build
               </a>
-              <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
+              <a class="button" href="command:espIdf.flashDevice">
                 <span class="icon is-small">
                   <iconify-icon icon="symbol-event" />
                 </span>

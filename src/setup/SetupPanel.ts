@@ -484,11 +484,22 @@ export class SetupPanel {
             installing: true,
             page: "/status",
           });
+          let idfPythonPath = pyPath,
+            idfGitPath = gitPath || "/usr/bin/git";
+          if (process.platform === "win32") {
+            const embedPaths = await this.installEmbedPyGit(
+              toolsPath,
+              progress,
+              cancelToken
+            );
+            idfGitPath = embedPaths.idfGitPath;
+            idfPythonPath = embedPaths.idfPythonPath;
+          }
           this.checkSpacesInPaths(
             idfPath,
             toolsPath,
-            gitPath,
-            pyPath
+            idfGitPath,
+            idfPythonPath
           );
           await downloadIdfTools(
             idfPath,
