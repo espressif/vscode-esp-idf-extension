@@ -913,6 +913,7 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "connectedhomeip",
       ".environment",
       "cipd",
+      "packages",
       "pigweed"
     );
     modifiedEnv.ESP_MATTER_DEVICE_PATH = path.join(
