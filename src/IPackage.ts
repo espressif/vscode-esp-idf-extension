@@ -28,6 +28,7 @@ export interface IVersion {
   macos: IFileInfo;
   linux_am64: IFileInfo;
   linux_i686: IFileInfo;
+  any: IFileInfo;
 }
 
 export interface IPlatformOverride {

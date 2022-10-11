@@ -22,6 +22,7 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { readJSON } from "fs-extra";
 import { ESP } from "./config";
+import { version } from "os";
 
 export interface IEspIdfTool {
   actual: string;
@@ -137,9 +138,10 @@ export class IdfToolsManager {
         (value.status === "recommended" ||
           value.status === "supported" ||
           value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
+        (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
-        ) > -1
+        ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
     if (!versions || versions.length === 0) {
@@ -148,9 +150,9 @@ export class IdfToolsManager {
       );
     }
     const linkInfo =
-      versions.length > 0
-        ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
-        : undefined;
+      Object.getOwnPropertyNames(versions[0]).indexOf("any") > -1
+        ? (versions[0]["any"] as IFileInfo)
+        : (versions[0][this.platformInfo.platformToUse] as IFileInfo);
     return linkInfo;
   }
 
@@ -167,9 +169,10 @@ export class IdfToolsManager {
         (value.status === "recommended" ||
           value.status === "supported" ||
           value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
+        (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
-        ) > -1
+        ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
     if (!versions || versions.length === 0) {
