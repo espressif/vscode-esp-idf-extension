@@ -200,7 +200,7 @@ export class IdfToolsManager {
       modifiedEnv[pathNameInEnv] = modifiedPath;
     }
     const versionCmd = pkg.version_cmd.join(" ");
-    if(versionCmd === "") {
+    if (versionCmd === "") {
       return "No command version";
     }
     try {
