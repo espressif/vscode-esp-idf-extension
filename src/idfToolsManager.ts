@@ -22,7 +22,6 @@ import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import { readJSON } from "fs-extra";
 import { ESP } from "./config";
-import { version } from "os";
 
 export interface IEspIdfTool {
   actual: string;
@@ -193,13 +192,16 @@ export class IdfToolsManager {
     ) {
       modifiedPath = `${pathsToVerify}${path.delimiter}${process.env[pathNameInEnv]}`;
     }
-    const versionCmd = pkg.version_cmd.join(" ");
     const modifiedEnv = Object.assign({}, process.env);
     if (
       modifiedEnv[pathNameInEnv] &&
       !modifiedEnv[pathNameInEnv].includes(modifiedPath)
     ) {
       modifiedEnv[pathNameInEnv] = modifiedPath;
+    }
+    const versionCmd = pkg.version_cmd.join(" ");
+    if(versionCmd === "") {
+      return "No command version";
     }
     try {
       const binVersionResponse = await utils.execChildProcess(
