@@ -206,7 +206,7 @@
     "param.qemuTcpPort",
     "param.openOcdDebugLevel",
     "param.customTask",
-    "param.buildDirectoryName",
+    "param.buildPath",
     "param.preBuildTask",
     "param.postBuildTask",
     "param.preFlashTask",

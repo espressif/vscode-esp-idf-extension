@@ -153,13 +153,12 @@ export async function generateCoverageForEditors(
           .split(sep);
         if (fileParts && fileParts.length > 1) {
           const fileName = fileParts.pop();
-          const buildDirName = idfConf.readParameter(
-            "idf.buildDirectoryName",
+          const buildDirPath = idfConf.readParameter(
+            "idf.buildPath",
             dirPath
           ) as string;
           gcovObjFilePath = join(
-            dirPath.fsPath,
-            buildDirName,
+            buildDirPath,
             "esp-idf",
             fileParts[fileParts.length - 1],
             "CMakeFiles",

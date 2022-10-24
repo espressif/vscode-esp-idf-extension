@@ -17,15 +17,18 @@
  */
 
 import { appendIdfAndToolsToPath } from "../../utils";
-import { window, Terminal, Uri } from "vscode";
+import { window, Terminal, Uri, env } from "vscode";
 
 export interface MonitorConfig {
-  pythonBinPath: string;
-  idfMonitorToolPath: string;
-  port: string;
   baudRate: string;
   elfFilePath: string;
-  wsPort: number;
+  idfMonitorToolPath: string;
+  idfTarget: string;
+  idfVersion: string;
+  port: string;
+  pythonBinPath: string;
+  toolchainPrefix: string;
+  wsPort?: number;
   workspaceFolder: Uri;
 }
 
@@ -35,17 +38,25 @@ export class IDFMonitor {
   constructor(config: MonitorConfig) {
     this.config = config;
   }
+
   start() {
-    const env = appendIdfAndToolsToPath(this.config.workspaceFolder);
+    const modifiedEnv = appendIdfAndToolsToPath(this.config.workspaceFolder);
     this.terminal = window.createTerminal({
-      name: `ESP-IDF Monitor (--ws enabled)`,
-      env,
+      name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,
+      env: modifiedEnv,
+      cwd:
+        this.config.workspaceFolder.fsPath ||
+        modifiedEnv.IDF_PATH ||
+        process.cwd(),
+      strictEnv: true,
+      shellArgs: [],
+      shellPath: env.shell,
     });
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
     const baudRateToUse =
-      env.IDF_MONITOR_BAUD ||
-      env.MONITORBAUD ||
+      modifiedEnv.IDF_MONITOR_BAUD ||
+      modifiedEnv.MONITORBAUD ||
       this.config.baudRate ||
       "115200";
     const args = [
@@ -55,13 +66,20 @@ export class IDFMonitor {
       this.config.port,
       "-b",
       baudRateToUse,
-      "--ws",
-      `ws://localhost:${this.config.wsPort}`,
+      "--toolchain-prefix",
+      this.config.toolchainPrefix,
     ];
+    if (this.config.idfVersion >= "4.2") {
+      args.push("--target", this.config.idfTarget);
+    }
+    if (this.config.wsPort) {
+      args.push("--ws", `ws://localhost:${this.config.wsPort}`);
+    }
     args.push(this.config.elfFilePath);
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    this.terminal.sendText(`${envSetCmd} IDF_PATH=${env.IDF_PATH}`);
+    this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
     this.terminal.sendText(args.join(" "));
+    return this.terminal;
   }
   async dispose() {
     try {

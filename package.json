@@ -483,10 +483,16 @@
             "description": "%param.adapterTargetName%",
             "scope": "resource"
           },
-          "idf.buildDirectoryName": {
+          "idf.buildPath": {
             "type": "string",
-            "default": "build",
-            "description": "%param.buildDirectoryName%",
+            "default": "${workspaceFolder}/build",
+            "description": "%param.buildPath%",
+            "scope": "resource"
+          },
+          "idf.buildPathWin": {
+            "type": "string",
+            "default": "${workspaceFolder}\\build",
+            "description": "%param.buildPath%",
             "scope": "resource"
           },
           "idf.cmakeCompilerArgs": {
@@ -495,8 +501,7 @@
               "-G",
               "Ninja",
               "-DPYTHON_DEPS_CHECKED=1",
-              "-DESP_PLATFORM=1",
-              ".."
+              "-DESP_PLATFORM=1"
             ],
             "description": "%param.cmakeCompilerArgs%",
             "scope": "resource"
