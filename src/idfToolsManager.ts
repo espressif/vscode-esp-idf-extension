@@ -137,9 +137,10 @@ export class IdfToolsManager {
         (value.status === "recommended" ||
           value.status === "supported" ||
           value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
+        (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
-        ) > -1
+        ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
     if (!versions || versions.length === 0) {
@@ -148,9 +149,9 @@ export class IdfToolsManager {
       );
     }
     const linkInfo =
-      versions.length > 0
-        ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
-        : undefined;
+      Object.getOwnPropertyNames(versions[0]).indexOf("any") > -1
+        ? (versions[0]["any"] as IFileInfo)
+        : (versions[0][this.platformInfo.platformToUse] as IFileInfo);
     return linkInfo;
   }
 
@@ -167,9 +168,10 @@ export class IdfToolsManager {
         (value.status === "recommended" ||
           value.status === "supported" ||
           value.status === "deprecated") &&
-        Object.getOwnPropertyNames(value).indexOf(
+        (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
-        ) > -1
+        ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
     if (!versions || versions.length === 0) {
@@ -190,13 +192,16 @@ export class IdfToolsManager {
     ) {
       modifiedPath = `${pathsToVerify}${path.delimiter}${process.env[pathNameInEnv]}`;
     }
-    const versionCmd = pkg.version_cmd.join(" ");
     const modifiedEnv = Object.assign({}, process.env);
     if (
       modifiedEnv[pathNameInEnv] &&
       !modifiedEnv[pathNameInEnv].includes(modifiedPath)
     ) {
       modifiedEnv[pathNameInEnv] = modifiedPath;
+    }
+    const versionCmd = pkg.version_cmd.join(" ");
+    if (versionCmd === "") {
+      return "No command version";
     }
     try {
       const binVersionResponse = await utils.execChildProcess(
