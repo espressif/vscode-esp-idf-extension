@@ -47,12 +47,29 @@ export async function createNewIdfMonitor(
     return;
   }
 
+  const pythonBinPath = readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
+  if (!utils.canAccessFile(pythonBinPath, R_OK)) {
+    Logger.errorNotify(
+      "Python binary path is not defined",
+      new Error("idf.pythonBinPath is not defined")
+    );
+  }
+  const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
+  const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+  const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
+  if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
+    Logger.errorNotify(
+      idfMonitorToolPath + " is not defined",
+      new Error(idfMonitorToolPath + " is not defined")
+    );
+  }
   const idfPathDir =
-    readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-  const idfPath = join(idfPathDir, "tools", "idf.py");
-  const modifiedEnv = utils.appendIdfAndToolsToPath(workspace);
-  if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {
+    readParameter("idf.espIdfPath", workspaceFolder) || process.env.IDF_PATH;
+  const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceFolder);
+  if (!utils.isBinInPath(pythonBinPath, workspaceFolder.fsPath, modifiedEnv)) {
     Logger.errorNotify(
       "Python binary path is not defined",
       new Error("idf.pythonBinPath is not defined"),
@@ -90,25 +107,6 @@ export async function createNewIdfMonitor(
   let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
     workspaceFolder.fsPath
   );
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
-  if (!utils.canAccessFile(pythonBinPath, R_OK)) {
-    Logger.errorNotify(
-      "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
-    );
-  }
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
-  const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
-  if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
-    Logger.errorNotify(
-      idfMonitorToolPath + " is not defined",
-      new Error(idfMonitorToolPath + " is not defined")
-    );
-  }
   const buildDirPath = readParameter(
     "idf.buildPath",
     workspaceFolder
