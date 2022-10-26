@@ -54,7 +54,8 @@ export async function createNewIdfMonitor(
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
+      new Error("idf.pythonBinPath is not defined"),
+      tag
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
@@ -63,7 +64,8 @@ export async function createNewIdfMonitor(
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
       idfMonitorToolPath + " is not defined",
-      new Error(idfMonitorToolPath + " is not defined")
+      new Error(idfMonitorToolPath + " is not defined"),
+      tag
     );
   }
   const idfPathDir =
