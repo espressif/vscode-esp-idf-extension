@@ -49,12 +49,10 @@ export async function verifyCanFlash(
     );
   }
 
-  const buildDirName = idfConf.readParameter(
-    "idf.buildDirectoryName",
+  const buildPath = idfConf.readParameter(
+    "idf.buildPath",
     workspace
   ) as string;
-
-  const buildPath = join(workspace.fsPath, buildDirName);
   if (!(await pathExists(buildPath))) {
     return Logger.errorNotify(
       `Build is required before Flashing, ${buildPath} can't be accessed`,
@@ -68,7 +66,7 @@ export async function verifyCanFlash(
       tag
     );
   }
-  const projectName = await getProjectName(workspace.fsPath, buildDirName);
+  const projectName = await getProjectName(buildPath);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
     return Logger.warnNotify(
       `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`,

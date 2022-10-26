@@ -28,7 +28,7 @@ import { selectedDFUAdapterId } from "../flash/dfu";
 const tag: string = "Build";
 export class BuildTask {
   public static isBuilding: boolean;
-  private buildDirName: string;
+  private buildDirPath: string;
   private curWorkspace: vscode.Uri;
   private idfPathDir: string;
   private adapterTargetName: string;
@@ -43,8 +43,8 @@ export class BuildTask {
       "idf.adapterTargetName",
       workspace
     ) as string;
-    this.buildDirName = idfConf.readParameter(
-      "idf.buildDirectoryName",
+    this.buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
       workspace
     ) as string;
   }
@@ -87,11 +87,8 @@ export class BuildTask {
         this.idfPathDir,
         "tools",
         "mkdfu.py"
-      )} write -o ${join(
-        join(this.curWorkspace.fsPath, this.buildDirName),
-        "dfu.bin"
-      )} --json ${join(
-        join(this.curWorkspace.fsPath, this.buildDirName),
+      )} write -o ${join(this.buildDirPath, "dfu.bin")} --json ${join(
+        this.buildDirPath,
         "flasher_args.json"
       )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
       options
@@ -112,7 +109,7 @@ export class BuildTask {
     }
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
+    await ensureDir(this.buildDirPath);
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.curWorkspace.fsPath,
@@ -124,11 +121,7 @@ export class BuildTask {
       modifiedEnv
     );
 
-    const cmakeCachePath = join(
-      this.curWorkspace.fsPath,
-      this.buildDirName,
-      "CMakeCache.txt"
-    );
+    const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
     const cmakeCacheExists = await pathExists(cmakeCachePath);
 
     if (canAccessCMake === "" || canAccessNinja === "") {
@@ -136,7 +129,7 @@ export class BuildTask {
     }
 
     const options: vscode.ShellExecutionOptions = {
-      cwd: join(this.curWorkspace.fsPath, this.buildDirName),
+      cwd: this.buildDirPath,
       env: modifiedEnv,
     };
     const isSilentMode = idfConf.readParameter(
@@ -156,8 +149,13 @@ export class BuildTask {
         "Ninja",
         "-DPYTHON_DEPS_CHECKED=1",
         "-DESP_PLATFORM=1",
-        "..",
       ];
+      compilerArgs.push(
+        "-B",
+        this.buildDirPath,
+        "-S",
+        this.curWorkspace.fsPath
+      );
       const enableCCache = idfConf.readParameter(
         "idf.enableCCache",
         this.curWorkspace
@@ -213,7 +211,7 @@ export class BuildTask {
   public async buildDfu() {
     this.building(true);
     const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
-    await ensureDir(join(this.curWorkspace.fsPath, this.buildDirName));
+    await ensureDir(this.buildDirPath);
 
     const options: vscode.ShellExecutionOptions = {
       cwd: this.curWorkspace.fsPath,

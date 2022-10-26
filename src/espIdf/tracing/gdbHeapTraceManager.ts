@@ -22,7 +22,12 @@ import { env, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
-import { appendIdfAndToolsToPath, getToolchainToolName, isBinInPath, PreCheck } from "../../utils";
+import {
+  appendIdfAndToolsToPath,
+  getToolchainToolName,
+  isBinInPath,
+  PreCheck,
+} from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { AppTraceArchiveTreeDataProvider } from "./tree/appTraceArchiveTreeDataProvider";
@@ -71,27 +76,16 @@ export class GdbHeapTraceManager {
         if (!isGdbToolInPath) {
           throw new Error(`${gdbTool} is not available in PATH.`);
         }
-        const buildDirName = readParameter(
-          "idf.buildDirectoryName",
+        const buildDirPath = readParameter(
+          "idf.buildPath",
           workspace
         ) as string;
-        const buildExists = await pathExists(
-          join(workspace.fsPath, buildDirName)
-        );
+        const buildExists = await pathExists(buildDirPath);
         if (!buildExists) {
-          throw new Error(
-            `${workspace.fsPath} build doesn't exist. Build first.`
-          );
+          throw new Error(`${buildDirPath} doesn't exist. Build first.`);
         }
-        const projectName = await getProjectName(
-          workspace.fsPath,
-          buildDirName
-        );
-        const elfFilePath = join(
-          workspace.fsPath,
-          buildDirName,
-          `${projectName}.elf`
-        );
+        const projectName = await getProjectName(buildDirPath);
+        const elfFilePath = join(buildDirPath, `${projectName}.elf`);
         const elfFileExists = await pathExists(elfFilePath);
         if (!elfFileExists) {
           throw new Error(`${elfFilePath} doesn't exist.`);
@@ -100,7 +94,7 @@ export class GdbHeapTraceManager {
           `${gdbTool} -x ${this.gdbinitFileName} "${elfFilePath}"`,
           [],
           {
-            cwd: workspace.fsPath,
+            cwd: buildDirPath,
             env: modifiedEnv,
             shell: env.shell,
           }
@@ -123,7 +117,7 @@ export class GdbHeapTraceManager {
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
-            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`
+            const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
             Logger.errorNotify(errMsg, new Error(errMsg), tag);
           }
         });

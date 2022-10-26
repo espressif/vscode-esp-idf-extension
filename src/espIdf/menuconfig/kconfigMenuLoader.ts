@@ -65,13 +65,12 @@ export class KconfigMenuLoader {
   }
 
   public initMenuconfigServer(): Menu[] {
-    const buildDirName = readParameter(
-      "idf.buildDirectoryName",
+    const buildDirPath = readParameter(
+      "idf.buildPath",
       this.workspaceFolder
     ) as string;
     const kconfigMenusPath = path.join(
-      this.workspaceFolder.fsPath,
-      buildDirName,
+      buildDirPath,
       "config",
       "kconfig_menus.json"
     );

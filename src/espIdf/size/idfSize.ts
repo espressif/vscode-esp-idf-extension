@@ -102,12 +102,12 @@ export class IDFSize {
   }
 
   private async mapFilePath() {
-    const buildDirName = idfConf.readParameter(
-      "idf.buildDirectoryName",
+    const buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
       this.workspaceRoot
     ) as string;
-    const projectName = await getProjectName(this.workspaceRoot.fsPath, buildDirName);
-    return path.join(this.workspaceRoot.fsPath, buildDirName, `${projectName}.map`);
+    const projectName = await getProjectName(buildDirPath);
+    return path.join(buildDirPath, `${projectName}.map`);
   }
 
   private idfPath(): string {

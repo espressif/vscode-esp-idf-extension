@@ -38,11 +38,10 @@ export async function flashCommand(
   encryptPartitions: boolean
 ) {
   let continueFlag = true;
-  const buildDirName = readParameter(
-    "idf.buildDirectoryName",
+  const buildPath = readParameter(
+    "idf.buildPath",
     workspace
   ) as string;
-  const buildPath = join(workspace.fsPath, buildDirName);
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
     (fileName) => fileName.endsWith(".bin") === true

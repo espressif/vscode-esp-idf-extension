@@ -16,20 +16,22 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { commands, env, Uri, Terminal, window } from "vscode";
+import { commands, Uri } from "vscode";
 import { FlashTask } from "../../flash/flashTask";
 import { readParameter } from "../../idfConfiguration";
 import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
 import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
+import { R_OK } from "constants";
+import { getProjectName } from "../../workspaceConfig";
+import { IDFMonitor } from ".";
 
 const locDic = new LocDictionary(__filename);
 const tag: string = "ESP-IDF Monitor";
 
-export async function createMonitorTerminal(
-  monitorTerminal: Terminal,
-  workspace: Uri,
+export async function createNewIdfMonitor(
+  workspaceFolder: Uri,
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -48,7 +50,6 @@ export async function createMonitorTerminal(
   const idfPathDir =
     readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
   const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-  const port = serialPort ? serialPort : readParameter("idf.port", workspace);
   const idfPath = join(idfPathDir, "tools", "idf.py");
   const modifiedEnv = utils.appendIdfAndToolsToPath(workspace);
   if (!utils.isBinInPath(pythonBinPath, workspace.fsPath, modifiedEnv)) {
@@ -67,6 +68,9 @@ export async function createMonitorTerminal(
     );
     return;
   }
+  const port = serialPort
+    ? serialPort
+    : (readParameter("idf.port", workspaceFolder) as string);
   if (!port) {
     try {
       await commands.executeCommand("espIdf.selectPort");
@@ -82,19 +86,50 @@ export async function createMonitorTerminal(
       new Error("NOT_SELECTED_PORT"),
       tag
     );
-    return;
   }
-  if (typeof monitorTerminal === "undefined") {
-    monitorTerminal = window.createTerminal({
-      name: "ESP-IDF Monitor",
-      env: modifiedEnv,
-      cwd: workspace.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
-      shellArgs: [],
-      shellPath: env.shell,
-      strictEnv: true,
-    });
+  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+    workspaceFolder.fsPath
+  );
+  const pythonBinPath = readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
+  if (!utils.canAccessFile(pythonBinPath, R_OK)) {
+    Logger.errorNotify(
+      "Python binary path is not defined",
+      new Error("idf.pythonBinPath is not defined")
+    );
   }
-  monitorTerminal.show();
-  monitorTerminal.sendText(`${pythonBinPath} ${idfPath} -p ${port} monitor`);
-  return monitorTerminal;
+  const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
+  const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+  const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
+  if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
+    Logger.errorNotify(
+      idfMonitorToolPath + " is not defined",
+      new Error(idfMonitorToolPath + " is not defined")
+    );
+  }
+  const buildDirPath = readParameter(
+    "idf.buildPath",
+    workspaceFolder
+  ) as string;
+  let idfTarget = readParameter("idf.adapterTargetName", workspaceFolder);
+  if (idfTarget === "custom") {
+    idfTarget = readParameter("idf.customAdapterTargetName", workspaceFolder);
+  }
+  const projectName = await getProjectName(buildDirPath);
+  const elfFilePath = join(buildDirPath, `${projectName}.elf`);
+  const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
+  const monitor = new IDFMonitor({
+    port,
+    baudRate: sdkMonitorBaudRate,
+    pythonBinPath,
+    idfTarget,
+    idfMonitorToolPath,
+    idfVersion,
+    elfFilePath,
+    workspaceFolder,
+    toolchainPrefix,
+  });
+  return monitor;
 }
