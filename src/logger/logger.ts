@@ -27,7 +27,7 @@ export class Logger {
     return Logger.instance;
   }
 
-  public static infoNotify(message: string, tags: string, metadata?: any) {
+  public static infoNotify(message: string, tags: Array<string>, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
