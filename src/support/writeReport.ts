@@ -23,6 +23,8 @@ import { Logger } from "../logger/logger";
 import { readParameter } from "../idfConfiguration";
 import { reportObj } from "./types";
 
+const tag: string = 'DOCTOR COMMAND';
+
 export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
@@ -165,7 +167,7 @@ export function replaceUserPath(report: reportObj): reportObj {
     re = new RegExp(result, 'g');
   }
   const parsedReport = strReport.replace(re, '<HOMEPATH>');
-  Logger.warnNotify(parsedReport, {tag: 'DOCTOR COMMAND'});
+  Logger.warnNotify(parsedReport, tag);
 
   return JSON.parse(parsedReport);
 }
