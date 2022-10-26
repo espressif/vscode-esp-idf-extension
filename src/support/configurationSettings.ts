@@ -24,7 +24,7 @@ export function getConfigurationSettings(
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   const conf = workspace.getConfiguration("", scope);
-  reportedResult.workspaceFolder = scope.fsPath;
+  reportedResult.workspaceFolder = scope ? scope.fsPath: "No workspace folder is open";
   reportedResult.configurationSettings = {
     espAdfPath: conf.get("idf.espAdfPath" + winFlag),
     espIdfPath: conf.get("idf.espIdfPath" + winFlag),

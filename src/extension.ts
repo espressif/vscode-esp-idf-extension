@@ -2073,6 +2073,9 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot,
             reportedResult
           );
+          await vscode.window.showTextDocument(
+            vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
+          );
         } catch (error) {
           reportedResult.latestError = error;
           const errMsg = error.message
