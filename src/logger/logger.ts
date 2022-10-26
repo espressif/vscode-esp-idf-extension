@@ -27,11 +27,11 @@ export class Logger {
     return Logger.instance;
   }
 
-  public static infoNotify(message: string, tag: string, metadata?: any) {
+  public static infoNotify(message: string, tags: string, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
-    tag ? metadata.tag = tag : false;
+    tags && tags.length ? metadata.tags = tags : false;
     metadata.user = true;
     Logger.info(message, metadata);
   }
@@ -41,11 +41,11 @@ export class Logger {
     winston.info(message, metadata);
   }
 
-  public static warnNotify(message: string, tag: string, metadata?: any) {
+  public static warnNotify(message: string, tags: Array<string>, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
-    tag ? metadata.tag = tag : false;
+    tags && tags.length ? metadata.tags = tags : false;
     metadata.user = true;
     Logger.warn(message, metadata);
   }
@@ -55,11 +55,11 @@ export class Logger {
     winston.warn(message, metadata);
   }
 
-  public static errorNotify(message: string, error: Error, tag: string, metadata?: any) {
+  public static errorNotify(message: string, error: Error, tags: Array<string>, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
-    tag ? metadata.tag = tag : false;
+    tags && tags.length ? metadata.tags = tags : false;
     metadata.user = true;
     Logger.error(message, error, metadata);
   }
