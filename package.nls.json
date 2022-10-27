@@ -56,7 +56,7 @@
   "espIdf.welcome.title": "Welcome",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
-  "debug.initConfig.name": "ESP-IDF: Launch",
+  "debug.initConfig.name": "ESP-IDF Debug: Launch",
   "debug.initConfig.description": "A new configuration for launch ESP-IDF projects",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
   "param.customAdapterTargetName": "Custom target name for ESP-IDF Debug Adapter",
