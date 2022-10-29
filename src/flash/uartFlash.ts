@@ -26,7 +26,7 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 
-const tag: string = "Flash";
+const fileTag: string = "UART Flash";
 
 export async function flashCommand(
   cancelToken: CancellationToken,
@@ -50,7 +50,7 @@ export async function flashCommand(
     return Logger.errorNotify(
       `Build is required before Flashing, .bin file can't be accessed`,
       new Error("BIN_FILE_ACCESS_ERROR"),
-      tag
+      [fileTag]
     );
   }
   const flasherArgsJsonPath = join(buildPath, "flasher_args.json");
@@ -76,7 +76,7 @@ export async function flashCommand(
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;
-      Logger.infoNotify("Flash Done ⚡️", tag);
+      Logger.infoNotify("Flash Done ⚡️", [fileTag]);
     }
     TaskManager.disposeListeners();
   } catch (error) {
@@ -84,7 +84,7 @@ export async function flashCommand(
       return Logger.errorNotify(
         "Already one flash process is running!",
         error,
-        tag
+        [fileTag]
       );
     }
     FlashTask.isFlashing = false;
@@ -92,21 +92,21 @@ export async function flashCommand(
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         error,
-        tag
+        [fileTag]
       );
     }
     if (error.message === "FLASH_TERMINATED") {
       return Logger.errorNotify(
         "Flashing has been stopped!",
         error,
-        tag
+        [fileTag]
       );
     }
     if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
       return Logger.errorNotify(
         "Flash (.bin) files don't exists or can't be accessed!",
         error,
-        tag
+        [fileTag]
       );
     }
     if (
@@ -116,13 +116,13 @@ export async function flashCommand(
       return Logger.errorNotify(
         `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
         error,
-        tag
+        [fileTag]
       );
     }
     Logger.errorNotify(
       "Failed to flash because of some unusual error",
       error,
-      tag
+      [fileTag]
     );
     continueFlag = false;
   }

@@ -36,7 +36,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
 
-const tag: string = "QEMU";
+const fileTag: string = "QEMU";
 
 export async function validateReqs(
   buildDirPath: string,
@@ -137,7 +137,7 @@ export async function mergeFlashBinaries(
   );
   await TaskManager.runTasks();
   if (cancelToken && !cancelToken.isCancellationRequested) {
-    Logger.infoNotify("Merge binaries task is done ⚡️", tag);
+    Logger.infoNotify("Merge binaries task is done ⚡️", [fileTag]);
   }
   TaskManager.disposeListeners();
 }

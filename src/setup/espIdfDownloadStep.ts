@@ -27,7 +27,7 @@ import { downloadInstallIdfVersion } from "./espIdfDownload";
 import { Logger } from "../logger/logger";
 import { downloadIdfTools } from "./toolsDownloadStep";
 
-const tag: string = "Setup";
+const fileTag: string = "Setup";
 
 export async function expressInstall(
   selectedIdfVersion: IEspIdfLink,
@@ -46,13 +46,13 @@ export async function expressInstall(
   const doesPythonExists = await checkPythonExists(pyPath, __dirname);
   if (!(pyExists && doesPythonExists)) {
     const containerNotFoundMsg = `${pyPath} is not valid. (ERROR_INVALID_PYTHON)`;
-    Logger.infoNotify(containerNotFoundMsg, tag);
+    Logger.infoNotify(containerNotFoundMsg, [fileTag]);
     throw new Error(containerNotFoundMsg);
   }
   const doesPipExists = await checkPipExists(pyPath, __dirname);
   if (!doesPipExists) {
     const containerNotFoundMsg = `"${pyPath} -m pip" is not valid. (ERROR_INVALID_PIP)`;
-    Logger.infoNotify(containerNotFoundMsg, tag);
+    Logger.infoNotify(containerNotFoundMsg, [fileTag]);
     throw new Error(containerNotFoundMsg);
   }
   let idfPath: string;

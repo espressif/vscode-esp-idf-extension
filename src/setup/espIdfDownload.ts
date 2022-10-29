@@ -31,7 +31,7 @@ import { AbstractCloning } from "../common/abstractCloning";
 import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
 
-const tag: string = "Setup";
+const fileTag: string = "Setup";
 
 export class EspIdfCloning extends AbstractCloning {
   constructor(branchName: string, gitBinPath: string = "git") {
@@ -60,7 +60,7 @@ export async function downloadInstallIdfVersion(
   if (expectedDirExists) {
     const espExistsMsg = `${expectedDirectory} already exists. Delete it or use another location. (ERROR_EXISTING_ESP_IDF)`;
     OutputChannel.appendLine(espExistsMsg);
-    Logger.infoNotify(espExistsMsg, tag);
+    Logger.infoNotify(espExistsMsg, [fileTag]);
     throw new Error(espExistsMsg);
   }
   const downloadManager = new DownloadManager(destPath);
@@ -80,7 +80,7 @@ export async function downloadInstallIdfVersion(
   ) {
     const downloadByCloneMsg = `Downloading ESP-IDF ${idfVersion.filename} using git clone...\n`;
     OutputChannel.appendLine(downloadByCloneMsg);
-    Logger.info(downloadByCloneMsg, { tag });
+    Logger.info(downloadByCloneMsg, { tags: [fileTag] });
     if (progress) {
       progress.report({ message: downloadByCloneMsg });
     }
@@ -96,7 +96,7 @@ export async function downloadInstallIdfVersion(
   } else {
     const downloadByHttpMsg = `Downloading ESP-IDF ${idfVersion.name}...`;
     OutputChannel.appendLine(downloadByHttpMsg);
-    Logger.info(downloadByHttpMsg, { tag });
+    Logger.info(downloadByHttpMsg, { tags: [fileTag] });
     if (progress) {
       progress.report({ message: downloadByHttpMsg });
     }
@@ -110,7 +110,7 @@ export async function downloadInstallIdfVersion(
     );
     const downloadedMsg = `Downloaded ${idfVersion.name}. Extracting...\n`;
     OutputChannel.appendLine(downloadedMsg);
-    Logger.info(downloadedMsg, { tag });
+    Logger.info(downloadedMsg, { tags: [fileTag] });
     sendDownloadedZip(downloadedZipPath);
     await installManager.installZipFile(
       downloadedZipPath,
@@ -119,7 +119,7 @@ export async function downloadInstallIdfVersion(
     );
     const extractedMsg = `Extracted ${downloadedZipPath} in ${destPath}.\n`;
     OutputChannel.appendLine(extractedMsg);
-    Logger.info(extractedMsg, { tag });
+    Logger.info(extractedMsg, { tags: [fileTag] });
     await move(extractedDirectory, expectedDirectory);
     sendExtractedZip(expectedDirectory);
 

@@ -37,7 +37,7 @@ import { BasePeripheral, PeripheralBaseNode } from "./nodes/base";
 import { Peripheral } from "./nodes/peripheral";
 import { SVDParser } from "./svdParser";
 
-const tag: string = "ESP-IDF Debug Adapter";
+const fileTag: string = "ESP-IDF Debug Adapter";
 
 export class PeripheralTreeForSession extends PeripheralBaseNode {
   public myTreeItem: TreeItem;
@@ -196,7 +196,7 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
           this.errMessage = `Unable to parse SVD file ${
             this.svdFileName
           }: ${e.toString()}`;
-          Logger.errorNotify(this.errMessage, new Error(this.errMessage), tag);
+          Logger.errorNotify(this.errMessage, new Error(this.errMessage), [fileTag]);
           if (debug.activeDebugConsole) {
             debug.activeDebugConsole.appendLine(this.errMessage);
           }
@@ -283,7 +283,7 @@ export class PeripheralTreeView
         const err = new Error(
           `Internal Error: Session ${session.name} id=${session.id} already in the tree view?`
         );
-        Logger.errorNotify(err.message, err, tag);
+        Logger.errorNotify(err.message, err, [fileTag]);
         resolve(undefined);
         return;
       }
@@ -304,7 +304,7 @@ export class PeripheralTreeView
         const err = new Error(
           `Internal Error: Unexpected rejection of promise ${e}`
         );
-        Logger.errorNotify(err.message, err, tag);
+        Logger.errorNotify(err.message, err, [fileTag]);
       } finally {
         this._onDidChangeTreeData.fire(undefined);
       }

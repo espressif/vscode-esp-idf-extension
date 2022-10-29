@@ -23,7 +23,7 @@ import { Logger } from "../logger/logger";
 import { readParameter } from "../idfConfiguration";
 import { reportObj } from "./types";
 
-const tag: string = 'DOCTOR COMMAND';
+const fileTag: string = 'DOCTOR COMMAND';
 
 export async function writeTextReport(
   reportedResult: reportObj,
@@ -167,7 +167,7 @@ export function replaceUserPath(report: reportObj): reportObj {
     re = new RegExp(result, 'g');
   }
   const parsedReport = strReport.replace(re, '<HOMEPATH>');
-  Logger.warnNotify(parsedReport, tag);
+  Logger.warnNotify(parsedReport, [fileTag]);
 
   return JSON.parse(parsedReport);
 }

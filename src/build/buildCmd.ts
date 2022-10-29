@@ -31,7 +31,7 @@ import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 
 const locDic = new LocDictionary(__filename);
-const tag:string = "Build";
+const fileTag:string = "Build";
 
 export async function buildCommand(
   workspace: vscode.Uri,
@@ -50,7 +50,7 @@ export async function buildCommand(
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time"),
-      tag
+      [fileTag]
     );
     return;
   }
@@ -74,14 +74,14 @@ export async function buildCommand(
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
         return Logger.warnNotify(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!",
-          tag
+          [fileTag]
         );
       }
       const adapterTargetName = readParameter("idf.adapterTargetName", workspace) as string;
       if (adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
         return Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`,
-          tag
+          [fileTag]
         );
       }
       await buildTask.buildDfu();
@@ -89,20 +89,20 @@ export async function buildCommand(
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
-      Logger.infoNotify("Build Successfully", tag);
+      Logger.infoNotify("Build Successfully", [fileTag]);
       TaskManager.disposeListeners();
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify("Already a build is running!", error, tag);
+      return Logger.errorNotify("Already a build is running!", error, [fileTag]);
     }
     if (error.message === "BUILD_TERMINATED") {
-      return Logger.warnNotify(`Build is Terminated`, tag);
+      return Logger.warnNotify(`Build is Terminated`, [fileTag]);
     }
     Logger.errorNotify(
       "Something went wrong while trying to build the project",
       error,
-      tag
+      [fileTag]
     );
     continueFlag = false;
   }

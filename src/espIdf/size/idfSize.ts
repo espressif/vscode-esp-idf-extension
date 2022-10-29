@@ -24,7 +24,7 @@ import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
-const tag: string = "ESP-IDF Size";
+const fileTag: string = "ESP-IDF Size";
 
 export class IDFSize {
   private readonly workspaceRoot: vscode.Uri;
@@ -142,7 +142,7 @@ export class IDFSize {
           "Error encountered while calling idf_size.py"
         )
       );
-      Logger.error(error.message, error, { tag });
+      Logger.error(error.message, error, { tags: [fileTag] });
       throw throwableError;
     }
   }

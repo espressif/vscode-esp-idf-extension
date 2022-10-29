@@ -21,7 +21,7 @@ import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 
 const locDic = new LocDictionary(__filename);
-const tag: string = "ESP-IDF Menuconfig";
+const fileTag: string = "ESP-IDF Menuconfig";
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -175,7 +175,7 @@ export class MenuConfigPanel {
                   Logger.errorNotify(
                     error.message,
                     error,
-                    tag
+                    [fileTag]
                     );
                 }
               }
@@ -188,7 +188,7 @@ export class MenuConfigPanel {
             "menuconfig.saveValues",
             "Saved changes in SDK Configuration editor"
           );
-          Logger.infoNotify(saveMessage, tag);
+          Logger.infoNotify(saveMessage, [fileTag]);
           break;
         case "discardChanges":
           ConfserverProcess.loadGuiConfigValues();
@@ -196,7 +196,7 @@ export class MenuConfigPanel {
             "menuconfig.discardValues",
             "Discarded changes in SDK Configuration editor"
           );
-          Logger.infoNotify(discardMessage, tag);
+          Logger.infoNotify(discardMessage, [fileTag]);
           break;
         case "requestInitValues":
           MenuConfigPanel.currentPanel.panel.webview.postMessage({
@@ -208,7 +208,7 @@ export class MenuConfigPanel {
           const err = new Error(
             `Menuconfig: Unrecognized command received, file: ${__filename}`
           );
-          Logger.error(err.message, err, { tag });
+          Logger.error(err.message, err, { tags: [fileTag] });
           break;
       }
     });
@@ -229,7 +229,7 @@ export class MenuConfigPanel {
 
     if (jsonValues.error) {
       const err = new Error(`Invalid data error: ${jsonValues.error}`);
-      Logger.error(err.message, err, { tag });
+      Logger.error(err.message, err, { tags: [fileTag] });
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);

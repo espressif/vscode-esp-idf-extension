@@ -28,7 +28,7 @@ import { SysviewTraceProc } from "./tools/sysviewTraceProc";
 import { Addr2Line } from "./tools/xtensa/addr2line";
 import { ReadElf } from "./tools/xtensa/readelf";
 
-const tag: string = "ESP-IDF Tracing";
+const fileTag: string = "ESP-IDF Tracing";
 
 export class AppTracePanel {
   public static createOrShow(
@@ -116,11 +116,11 @@ export class AppTracePanel {
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
-                  ? Logger.errorNotify(error.message, error, tag)
+                  ? Logger.errorNotify(error.message, error, [fileTag])
                   : Logger.errorNotify(
                       `Failed to process the trace data`,
                       error,
-                      tag
+                      [fileTag]
                     );
               });
             break;
@@ -134,11 +134,11 @@ export class AppTracePanel {
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
-                  ? Logger.errorNotify(error.message, error, tag)
+                  ? Logger.errorNotify(error.message, error, [fileTag])
                   : Logger.errorNotify(
                       `Failed to process the heap trace data`,
                       error,
-                      tag
+                      [fileTag]
                     );
               });
             break;
@@ -152,7 +152,7 @@ export class AppTracePanel {
             const err = new Error(
               `Unrecognized command received from webview (idf-trace) file: ${__filename}`
             );
-            Logger.error(err.message, err, { tag });
+            Logger.error(err.message, err, { tags: [fileTag] });
             break;
         }
       },
@@ -174,7 +174,7 @@ export class AppTracePanel {
       });
       // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
-      Logger.errorNotify(error.message, error, tag);
+      Logger.errorNotify(error.message, error, [fileTag]);
     }
   }
   private async readElf(): Promise<string[][]> {

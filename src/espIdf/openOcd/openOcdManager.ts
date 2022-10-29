@@ -30,7 +30,7 @@ import {
 } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 
-const tag: string = "ESP-IDF OpenOCD";
+const fileTag: string = "ESP-IDF OpenOCD";
 
 export interface IOpenOCDConfig {
   host: string;
@@ -115,7 +115,7 @@ export class OpenOCDManager extends EventEmitter {
           break;
       }
     } catch (error) {
-      Logger.errorNotify(error.message, error, tag);
+      Logger.errorNotify(error.message, error, [fileTag]);
     }
     return true;
   }
@@ -225,12 +225,12 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
-        Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err, tag);
+        Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err, [fileTag]);
         OutputChannel.append(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
       OutputChannel.append(errStr, "OpenOCD");
-      Logger.info(errStr, { tag });
+      Logger.info(errStr, { tags: [fileTag] });
     });
     this.server.stdout.on("data", (data) => {
       data = typeof data === "string" ? Buffer.from(data) : data;
@@ -246,7 +246,7 @@ export class OpenOCDManager extends EventEmitter {
         Logger.errorNotify(
           `OpenOCD Exit with non-zero error code ${code}`,
           new Error("Spawn exit with non-zero" + code),
-          tag
+          [fileTag]
         );
       }
       this.stop();
@@ -262,7 +262,7 @@ export class OpenOCDManager extends EventEmitter {
       this.updateStatusText("❌ OpenOCD Server (Stopped)");
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
-      Logger.info(endMsg, { tag });
+      Logger.info(endMsg, { tags: [fileTag] });
     }
   }
 

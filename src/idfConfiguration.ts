@@ -18,7 +18,7 @@ import { Logger } from "./logger/logger";
 import { ESP } from "./config";
 
 const locDic = new LocDictionary(__filename);
-const tag: string = "IDF Configuration";
+const fileTag: string = "IDF Configuration";
 
 export function addWinIfRequired(param: string) {
   const winFlag = process.platform === "win32" ? "Win" : "";
@@ -130,7 +130,7 @@ export async function updateConfParameter(
   if (newValue.indexOf("~") !== -1) {
     const msg =
       "Character ~ is not valid for ESP-IDF extension configuration settings.";
-    Logger.warnNotify(msg, tag);
+    Logger.warnNotify(msg, [fileTag]);
     throw new Error(msg);
   }
   const typeOfConfig = checkTypeOfConfiguration(confParamName);
@@ -150,7 +150,7 @@ export async function updateConfParameter(
     "idfConfiguration.hasBeenUpdated",
     " has been updated"
   );
-  Logger.infoNotify(label + updateMessage, tag);
+  Logger.infoNotify(label + updateMessage, [fileTag]);
 }
 
 export function checkTypeOfConfiguration(paramName: string) {

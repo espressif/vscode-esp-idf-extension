@@ -31,7 +31,7 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 
-const tag: string = "ESP Matter";
+const fileTag: string = "ESP Matter";
 
 export class EspMatterCloning extends AbstractCloning {
   public static isBuildingGn: boolean;
@@ -117,10 +117,10 @@ export async function getEspMatter(workspace?: Uri) {
       return Logger.errorNotify(
         "ESP-Matter bootstrap is already running!",
         error,
-        tag
+        [fileTag]
       );
     }
-    Logger.errorNotify(msg, error, tag);
+    Logger.errorNotify(msg, error, [fileTag]);
     EspMatterCloning.isBuildingGn = false;
   }
 }

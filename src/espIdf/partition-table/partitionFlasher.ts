@@ -22,7 +22,7 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 
-const tag: string = "ESP-IDF Partition Table";
+const fileTag: string = "ESP-IDF Partition Table";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -67,7 +67,7 @@ export async function flashBinaryToPartition(
         let msg = error.message
           ? error.message
           : "Error getting partitions from device";
-        Logger.errorNotify(msg, error, tag);
+        Logger.errorNotify(msg, error, [fileTag]);
       }
     }
   );

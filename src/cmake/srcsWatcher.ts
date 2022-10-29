@@ -17,7 +17,7 @@ import { basename, dirname, join } from "path";
 import { Logger } from "../logger/logger";
 import { readParameter } from "../idfConfiguration";
 
-const tag: string = "CMake";
+const fileTag: string = "CMake";
 
 export enum srcOp {
   delete,
@@ -85,7 +85,7 @@ export class UpdateCmakeLists {
             ? error.message
             : "Error updating srcs in CMakeLists.txt";
           this.writeFinished();
-          Logger.error(msg, error, { tag });
+          Logger.error(msg, error, { tags: [fileTag] });
         }
       }
     );

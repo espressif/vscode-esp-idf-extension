@@ -40,7 +40,7 @@ import {
   RainmakerDevice,
 } from "../client/model";
 
-const tag: string = "Rainmaker";
+const fileTag: string = "Rainmaker";
 
 export class ESPRainMakerTreeDataProvider
   implements TreeDataProvider<RMakerItem> {
@@ -92,7 +92,7 @@ export class ESPRainMakerTreeDataProvider
         Logger.errorNotify(
           "Failed to get params for device",
           error,
-          tag
+          [fileTag]
         );
       }
       return device.params.map((param) =>
@@ -116,7 +116,7 @@ export class ESPRainMakerTreeDataProvider
       Logger.warnNotify(
         "Failed to fetch node details, try refreshing",
         error,
-        tag
+        [fileTag]
       );
     }
     return;
@@ -132,7 +132,7 @@ export class ESPRainMakerTreeDataProvider
       Logger.warnNotify(
         "Failed to refresh access token, try once again",
         error,
-        tag
+        [fileTag]
       );
     }
   }

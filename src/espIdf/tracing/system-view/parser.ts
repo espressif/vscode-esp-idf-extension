@@ -23,7 +23,7 @@ import { SystemViewPanel } from "./panel";
 import { readJsonSync } from "fs-extra";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
 
-const tag: string = "ESP-IDF Tracing";
+const fileTag: string = "ESP-IDF Tracing";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
@@ -44,7 +44,7 @@ export class SystemViewResultParser {
           Logger.errorNotify(
             "Failed to parse JSON from SVDAT file, make sure you've the proper version of sysviewtrace_proc.py installed and it supports JSON format output with (-j) flag",
             error,
-            tag
+            [fileTag]
           );
         }
       }

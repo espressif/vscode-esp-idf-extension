@@ -21,7 +21,7 @@ import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
 import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
 
-const tag: string = "ESP-IDF Tracing";
+const fileTag: string = "ESP-IDF Tracing";
 
 export abstract class XtensaTools {
   protected readonly workspaceRoot: vscode.Uri;
@@ -40,7 +40,7 @@ export abstract class XtensaTools {
       Logger.errorNotify(
         `Make sure ${this.toolName} is set in the Path with proper permission`,
         error,
-        tag
+        [fileTag]
       );
     }
   }

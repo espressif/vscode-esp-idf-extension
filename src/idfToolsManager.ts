@@ -23,7 +23,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { readJSON } from "fs-extra";
 import { ESP } from "./config";
 
-const tag: string = "IDF Tools Manager";
+const fileTag: string = "IDF Tools Manager";
 export interface IEspIdfTool {
   actual: string;
   description: string;
@@ -236,7 +236,7 @@ export class IdfToolsManager {
       const errMsg = `Error checking ${pkg.name} version`;
       this.toolsManagerChannel.appendLine(errMsg);
       this.toolsManagerChannel.appendLine(error);
-      Logger.error(errMsg, error, tag);
+      Logger.error(errMsg, error, [fileTag]);
       return errMsg;
     }
   }

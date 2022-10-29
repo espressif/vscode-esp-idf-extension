@@ -21,7 +21,7 @@ import { IEspIdfLink } from "../views/setup/types";
 import { ESP } from "../config";
 import axios from "axios";
 
-const tag: string = "Setup";
+const fileTag: string = "Setup";
 
 export async function getEspIdfVersions(extensionPath: string) {
   const downloadManager = new DownloadManager(extensionPath);
@@ -47,14 +47,14 @@ export async function downloadEspIdfVersionList(
       0,
       tmpdir()
     );
-    Logger.info(downloadMessage.statusMessage, { tag });
+    Logger.info(downloadMessage.statusMessage, { tags: [fileTag] });
     const fileContent = await readFile(idfVersionList);
     const versionList = fileContent.toString().trim().split("\n");
     return createEspIdfLinkList(versionList);
   } catch (error) {
     const errorMsg = `Error opening esp-idf version list file. ${error.message}`;
     OutputChannel.appendLine(errorMsg);
-    Logger.errorNotify(errorMsg, error, tag);
+    Logger.errorNotify(errorMsg, error, [fileTag]);
     try {
       const idfVersionListFallBack = path.join(
         extensionPath,
@@ -66,7 +66,7 @@ export async function downloadEspIdfVersionList(
     } catch (fallbackError) {
       const fallBackErrMsg = `Error opening esp-idf fallback version list file. ${fallbackError.message}`;
       OutputChannel.appendLine(fallBackErrMsg);
-      Logger.errorNotify(fallBackErrMsg, fallbackError, tag);
+      Logger.errorNotify(fallBackErrMsg, fallbackError, [fileTag]);
     }
   }
 }

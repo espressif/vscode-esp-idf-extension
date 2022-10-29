@@ -21,7 +21,7 @@ import { readJSON } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { Uri } from "vscode";
 
-const tag: string = "ESP-IDF OpenOCD";
+const fileTag: string = "ESP-IDF OpenOCD";
 
 export interface IdfBoard {
   name: string;
@@ -83,7 +83,7 @@ export function getOpenOcdScripts(workspace: Uri): string {
       ? process.env.OPENOCD_SCRIPTS
       : undefined;
   } catch (error) {
-    Logger.error(error.message, error, { tag });
+    Logger.error(error.message, error, { tags: [fileTag] });
     openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
       : undefined;
@@ -115,7 +115,7 @@ export async function getBoards(openOcdScriptsPath: string = "") {
     espBoards.push(emptyBoard);
     return espBoards;
   } catch (error) {
-    Logger.error(error.message, error, { tag });
+    Logger.error(error.message, error, { tags: [fileTag] });
     return defaultBoards;
   }
 }

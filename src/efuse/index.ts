@@ -24,7 +24,7 @@ import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { Uri } from "vscode";
 
-const tag: string = "Efuse";
+const fileTag: string = "Efuse";
 
 export type ESPEFuseSummary = {
   [category: string]: [
@@ -78,7 +78,7 @@ export class ESPEFuseManager {
       Logger.error(
         "Failed to delete the tmp espfuse json file",
         err,
-        { tag }
+        { tags: [fileTag] }
       );
     });
     const resp = {};

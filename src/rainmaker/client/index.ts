@@ -31,7 +31,7 @@ import { commands } from "vscode";
 const USER_TOKEN_CACHE_KEY = "esp.rainmaker.login.tokens";
 const USER_ASSOCIATED_NODES_CACHE_KEY = "esp.rainmaker.login.nodes";
 const USER_ALREADY_LOGGED_IN_CACHE_KEY = "rainmaker_logged_in";
-const tag: string = "Rainmaker";
+const fileTag: string = "Rainmaker";
 
 export enum RainmakerAPIClientErrors {
   LoginRequired = "Login is required",
@@ -255,7 +255,7 @@ export class RainmakerAPIClient {
     Logger.error(
       UnknownError.message,
       UnknownError,
-      { meta, tag }
+      { meta, tags: [fileTag] }
     );
     throw UnknownError;
   }

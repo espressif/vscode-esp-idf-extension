@@ -23,7 +23,7 @@ import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
 
 const locDic = new LocDictionary("ExamplesPanel");
-const tag: string = "ESP Examples";
+const fileTag: string = "ESP Examples";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -117,7 +117,7 @@ export class ExamplesPlanel {
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
               const msg = `Error copying ESP-IDF example.`;
-              Logger.error(msg, error, tag);
+              Logger.error(msg, error, [fileTag]);
               const opt = await vscode.window.showErrorMessage(
                 msg,
                 "Show Docs",
@@ -150,8 +150,8 @@ export class ExamplesPlanel {
               });
             } catch (err) {
               const notAvailable = "No README.md available for this project.";
-              Logger.info(notAvailable, { tag });
-              Logger.info(err, { tag });
+              Logger.info(notAvailable, { tags: [fileTag] });
+              Logger.info(err, { tags: [fileTag] });
               this.panel.webview.postMessage({
                 command: "set_example_detail",
                 example_detail: notAvailable,

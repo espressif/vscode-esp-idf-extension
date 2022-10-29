@@ -17,7 +17,7 @@ import { IDocResult } from "./getSearchResults";
 import { Logger } from "../../logger/logger";
 import { ESP } from "../../config";
 
-const tag: string = "ESP-IDF Documentation";
+const fileTag: string = "ESP-IDF Documentation";
 
 export class DocSearchResult extends vscode.TreeItem {
   name: string;
@@ -55,7 +55,7 @@ export class DocSearchResultTreeDataProvider
         Logger.errorNotify(
           "Cannot call this command directly, click on any ESP-IDF search result!",
           new Error("INVALID_INVOCATION"),
-          tag
+          [fileTag]
         );
         return;
       }

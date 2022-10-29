@@ -28,7 +28,7 @@ import { getProjectName } from "../../workspaceConfig";
 import { IDFMonitor } from ".";
 
 const locDic = new LocDictionary(__filename);
-const tag: string = "ESP-IDF Monitor";
+const fileTag: string = "ESP-IDF Monitor";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
@@ -42,7 +42,7 @@ export async function createNewIdfMonitor(
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time"),
-      tag
+      [fileTag]
     );
     return;
   }
@@ -55,7 +55,7 @@ export async function createNewIdfMonitor(
     Logger.errorNotify(
       "Python binary path is not defined",
       new Error("idf.pythonBinPath is not defined"),
-      tag
+      [fileTag]
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
@@ -65,7 +65,7 @@ export async function createNewIdfMonitor(
     Logger.errorNotify(
       idfMonitorToolPath + " is not defined",
       new Error(idfMonitorToolPath + " is not defined"),
-      tag
+      [fileTag]
     );
   }
   const idfPathDir =
@@ -75,7 +75,7 @@ export async function createNewIdfMonitor(
     Logger.errorNotify(
       "Python binary path is not defined",
       new Error("idf.pythonBinPath is not defined"),
-      tag
+      [fileTag]
     );
     return;
   }
@@ -83,7 +83,7 @@ export async function createNewIdfMonitor(
     Logger.errorNotify(
       "ESP-IDF Path is not defined",
       new Error("idf.espIdfPath is not defined"),
-      tag
+      [fileTag]
     );
     return;
   }
@@ -97,13 +97,13 @@ export async function createNewIdfMonitor(
       Logger.error(
         "Unable to execute the command: espIdf.selectPort",
         error,
-        { tag }
+        { tags: [fileTag] }
         );
     }
     Logger.errorNotify(
       "Select a serial port before flashing",
       new Error("NOT_SELECTED_PORT"),
-      tag
+      [fileTag]
     );
   }
   let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(

@@ -28,7 +28,7 @@ import { PackageError } from "./packageError";
 import { installEspIdfToolFromIdf } from "./pythonManager";
 import * as utils from "./utils";
 
-const tag: string = "Install Manager";
+const fileTag: string = "Install Manager";
 export class InstallManager {
   constructor(private installPath: string) {}
   public getToolPackagesPath(toolPackage: string[]) {
@@ -452,7 +452,7 @@ export class InstallManager {
 
   private appendChannel(text: string): void {
     OutputChannel.init().appendLine(text);
-    Logger.info(text, { tag });
+    Logger.info(text, { tags: [fileTag] });
   }
 
   private async promisedStripContainerDirs(pkgDirPath: string, levels: number) {

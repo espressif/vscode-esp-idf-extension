@@ -37,7 +37,7 @@ import { getOpenOcdRules } from "./addOpenOcdRules";
 import { checkSpacesInPath } from "../utils";
 
 const locDic = new LocDictionary("SetupPanel");
-const tag: string = "Setup";
+const fileTag: string = "Setup";
 
 export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
@@ -331,7 +331,7 @@ export class SetupPanel {
       });
     }
     OutputChannel.appendLine(errMsg);
-    Logger.errorNotify(errMsg, error, tag);
+    Logger.errorNotify(errMsg, error, [fileTag]);
     OutputChannel.show();
     SetupPanel.postMessage({
       command: "goToCustomPage",
@@ -610,7 +610,7 @@ export class SetupPanel {
     }
     if (pathHasSpaces) {
       OutputChannel.appendLine(pathHasSpaces);
-      Logger.infoNotify(pathHasSpaces, tag);
+      Logger.infoNotify(pathHasSpaces, [fileTag]);
       throw new Error(pathHasSpaces);
     }
   }

@@ -25,7 +25,7 @@ import {
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
 
-const tag: string = "New Project";
+const fileTag: string = "New Project";
 
 export interface INewProjectArgs {
   espIdfPath: string;
@@ -57,8 +57,8 @@ export async function getNewProjectArgs(
     const msg = error.message
       ? error.message
       : "Error looking for serial ports.";
-    Logger.infoNotify(msg, tag);
-    Logger.error(msg, error, { tag });
+    Logger.infoNotify(msg, [fileTag]);
+    Logger.error(msg, error, { tags: [fileTag] });
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });

@@ -22,7 +22,7 @@ import * as utils from "./utils";
 import { join } from "path";
 const locDic = new LocDictionary(__filename);
 
-const tag: string = "IDF Components Data Provider";
+const fileTag: string = "IDF Components Data Provider";
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
   private OnDidChangeTreeData: EventEmitter<
     IdfComponent | undefined
@@ -127,7 +127,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
           "File project_description.json cannot be found."
         ),
         new Error("File-Not-Found"),
-        tag
+        [fileTag]
       );
       return null;
     }

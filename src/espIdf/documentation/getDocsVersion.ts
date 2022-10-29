@@ -21,7 +21,7 @@ import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
 import { extensionContext } from "../../utils";
 
-const tag: string = "ESP-IDF Documentation";
+const fileTag: string = "ESP-IDF Documentation";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -50,7 +50,7 @@ export async function getDocsVersion() {
     Logger.error(
       `Error parsing object from ${ESP.URL.Docs.IDF_VERSIONS}`,
       error,
-      { tag }
+      { tags: [fileTag] }
     );
   }
 }
@@ -71,7 +71,7 @@ export function getDocsLocaleLang() {
     Logger.error(
       "Error getting current vscode language",
       error,
-      { tag }
+      { tags: [fileTag] }
     );
   }
   return localeLang;

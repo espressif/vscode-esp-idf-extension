@@ -36,7 +36,7 @@ import {
   AppTraceTreeDataProvider,
 } from "./tree/appTraceTreeDataProvider";
 
-const tag: string = "ESP-IDF Tracing";
+const fileTag: string = "ESP-IDF Tracing";
 
 export class GdbHeapTraceManager {
   private treeDataProvider: AppTraceTreeDataProvider;
@@ -101,24 +101,24 @@ export class GdbHeapTraceManager {
         );
 
         this.childProcess.stdout.on("data", (data) => {
-          Logger.info(data.toString(), { tag });
+          Logger.info(data.toString(), { tags: [fileTag] });
           this.errorHandler(data.toString());
         });
 
         this.childProcess.stderr.on("data", (data) => {
-          Logger.info(data.toString(), { tag });
+          Logger.info(data.toString(), { tags: [fileTag] });
           this.errorHandler(data.toString());
         });
 
         this.childProcess.on("error", (err) => {
-          Logger.errorNotify(err.message, err, tag);
+          Logger.errorNotify(err.message, err, [fileTag]);
           this.stop();
         });
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
             const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
-            Logger.errorNotify(errMsg, new Error(errMsg), tag);
+            Logger.errorNotify(errMsg, new Error(errMsg), [fileTag]);
           }
         });
       }
@@ -126,7 +126,7 @@ export class GdbHeapTraceManager {
       const msg = error.message
         ? error.message
         : "Error starting GDB Heap Tracing";
-      Logger.errorNotify(msg, error, tag);
+      Logger.errorNotify(msg, error, [fileTag]);
       OutputChannel.appendLine(msg, "GDB Heap Trace");
       this.stop();
     }
@@ -145,7 +145,7 @@ export class GdbHeapTraceManager {
       const msg = error.message
         ? error.message
         : "Error stoping GDB Heap Tracing";
-      Logger.errorNotify(msg, error, tag);
+      Logger.errorNotify(msg, error, [fileTag]);
     }
   }
 
@@ -161,7 +161,7 @@ export class GdbHeapTraceManager {
       dataReceived.indexOf(`Function "heap_trace_start" not defined`) !== -1 ||
       dataReceived.indexOf(`Function "heap_trace_stop" not defined`) !== -1
     ) {
-      Logger.infoNotify("Could not perform heap tracing.", tag);
+      Logger.infoNotify("Could not perform heap tracing.", [fileTag]);
       this.stop();
     } else if (dataReceived.indexOf("Tracing is STOPPED") !== -1) {
       window.showInformationMessage("Heap tracing done");

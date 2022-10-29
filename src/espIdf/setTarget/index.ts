@@ -29,7 +29,7 @@ import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 
-const tag: string = "ESP-IDF Set Target";
+const fileTag: string = "ESP-IDF Set Target";
 
 export async function setIdfTarget(placeHolderMsg: string) {
   const configurationTarget = ConfigurationTarget.WorkspaceFolder;
@@ -81,7 +81,7 @@ export async function setIdfTarget(placeHolderMsg: string) {
           );
           return Logger.infoNotify(
             `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`,
-            tag
+            [fileTag]
           );
         }
         await writeParameter(
@@ -107,7 +107,7 @@ export async function setIdfTarget(placeHolderMsg: string) {
         if (!selectedBoard) {
           Logger.infoNotify(
             `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`,
-            tag
+            [fileTag]
           );
         } else if (selectedBoard && selectedBoard.target) {
           await writeParameter(
@@ -126,7 +126,7 @@ export async function setIdfTarget(placeHolderMsg: string) {
           Logger.info(err.message.toString());
           OutputChannel.append(err.message.toString());
         } else {
-          Logger.errorNotify(err, err, tag);
+          Logger.errorNotify(err, err, [fileTag]);
           OutputChannel.append(err);
         }
       }

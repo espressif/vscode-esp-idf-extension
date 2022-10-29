@@ -23,7 +23,7 @@ import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 
-const tag: string = "ESP-IDF Serial";
+const fileTag: string = "ESP-IDF Serial";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -68,7 +68,7 @@ export class SerialPort {
       Logger.errorNotify(
         "Something went wrong while getting the serial port list",
         error,
-        tag
+        [fileTag]
       );
     }
   }
@@ -89,7 +89,7 @@ export class SerialPort {
     );
     Logger.infoNotify(
       `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`,
-      tag
+      [fileTag]
     );
   }
 

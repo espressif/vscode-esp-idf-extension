@@ -40,7 +40,7 @@ import {
 } from "../../utils";
 import { CSV2JSON } from "../../views/partition-table/util";
 
-const tag: string = "ESP-IDF Partition Table";
+const fileTag: string = "ESP-IDF Partition Table";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -188,7 +188,7 @@ export class PartitionTreeDataProvider
       let msg = error.message
         ? error.message
         : "Error getting partitions from device";
-      Logger.errorNotify(msg, error, tag);
+      Logger.errorNotify(msg, error, [fileTag]);
     }
     this.refresh();
   }

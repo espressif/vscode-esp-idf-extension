@@ -25,7 +25,7 @@ import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { ESP } from "../../config";
 
-const tag: string = "ESP-IDF Arduino";
+const fileTag: string = "ESP-IDF Arduino";
 export class ArduinoComponentInstaller {
   private cloneProcess: ChildProcess;
   private espIdfPath: string;
@@ -44,7 +44,7 @@ export class ArduinoComponentInstaller {
       this.cloneProcess = undefined;
       const stoppedMsg = "\n❌ [Arduino ESP32 Cloning] : Stopped!\n";
       OutputChannel.appendLine(stoppedMsg);
-      Logger.info(stoppedMsg, { tag });
+      Logger.info(stoppedMsg, { tags: [fileTag] });
     }
   }
 
@@ -71,12 +71,12 @@ export class ArduinoComponentInstaller {
       );
       this.cloneProcess.stderr.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString(), { tag });
+        Logger.info(data.toString(), { tags: [fileTag] });
       });
 
       this.cloneProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString(), { tag });
+        Logger.info(data.toString(), { tags: [fileTag] });
       });
       this.cloneProcess.on("exit", (code, signal) => {
         if (!signal && code !== 0) {
@@ -85,7 +85,7 @@ export class ArduinoComponentInstaller {
           Logger.errorNotify(
             errorMsg,
             new Error(errorMsg),
-            tag
+            [fileTag]
           );
           reject(new Error(errorMsg));
         }

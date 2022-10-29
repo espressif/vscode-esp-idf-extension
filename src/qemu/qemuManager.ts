@@ -31,7 +31,7 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
 
-const tag: string = "QEMU";
+const fileTag: string = "QEMU";
 
 export interface IQemuOptions {
   launchArgs: string[];
@@ -97,7 +97,7 @@ export class QemuManager extends EventEmitter {
       }
     } catch (error) {
       const msg = error.message ? error.message : "";
-      Logger.errorNotify(msg, error, tag);
+      Logger.errorNotify(msg, error, [fileTag]);
     }
   }
 

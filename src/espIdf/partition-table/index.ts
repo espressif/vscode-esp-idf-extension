@@ -30,7 +30,7 @@ import { readFileSync } from "../../utils";
 import { writeFile } from "fs-extra";
 import { Logger } from "../../logger/logger";
 
-const tag: string = "ESP-IDF Partition Table";
+const fileTag: string = "ESP-IDF Partition Table";
 
 export class PartitionTableEditorPanel {
   private static instance: PartitionTableEditorPanel;
@@ -118,12 +118,12 @@ export class PartitionTableEditorPanel {
           return Logger.errorNotify(
             `Failed to save the partition data to the file ${filePath} due to some error. Error: ${err.message}`,
             err,
-            tag
+            [fileTag]
           );
         }
         Logger.infoNotify(
           `Partition table is saved successfully. (${filePath})`,
-          tag
+          [fileTag]
         );
       });
     }
@@ -153,7 +153,7 @@ export class PartitionTableEditorPanel {
           Logger.errorNotify(
             message.error,
             new Error(message.error),
-            tag
+            [fileTag]
           );
         }
         break;

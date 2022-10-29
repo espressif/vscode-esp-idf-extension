@@ -29,7 +29,7 @@ import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
 
 const locDic = new LocDictionary(__filename);
-const tag: string = "Flash";
+const fileTag: string = "Flash";
 
 export async function verifyCanFlash(
   flashBaudRate: string,
@@ -45,7 +45,7 @@ export async function verifyCanFlash(
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time"),
-      tag
+      [fileTag]
     );
   }
 
@@ -57,20 +57,20 @@ export async function verifyCanFlash(
     return Logger.errorNotify(
       `Build is required before Flashing, ${buildPath} can't be accessed`,
       new Error("BUILD_PATH_ACCESS_ERROR"),
-      tag
+      [fileTag]
     );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     return Logger.warnNotify(
       "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!",
-      tag
+      [fileTag]
     );
   }
   const projectName = await getProjectName(buildPath);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
     return Logger.warnNotify(
       `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`,
-      tag
+      [fileTag]
     );
   }
   if (!port) {
@@ -80,20 +80,20 @@ export async function verifyCanFlash(
       Logger.error(
         "Unable to execute the command: espIdf.selectPort",
         error,
-        { tag }
+        { tags: [fileTag] }
       );
     }
     return Logger.errorNotify(
       "Select a serial port before flashing",
       new Error("NOT_SELECTED_PORT"),
-      tag
+      [fileTag]
     );
   }
   if (!flashBaudRate) {
     return Logger.errorNotify(
       "Select a baud rate before flashing",
       new Error("NOT_SELECTED_BAUD_RATE"),
-      tag
+      [fileTag]
     );
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType", workspace) as ESP.FlashType;
@@ -104,7 +104,7 @@ export async function verifyCanFlash(
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         new Error("NO_DFU_DEVICES_FOUND"),
-        tag
+        [fileTag]
       );
     }
   }

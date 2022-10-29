@@ -42,7 +42,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 
-const tag: string = "ESP-IDF Utils";
+const fileTag: string = "ESP-IDF Utils";
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
   "utils.currentFolder",
@@ -64,6 +64,7 @@ export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
 type PreCheckFunc = (...args: any[]) => boolean;
 export type PreCheckInput = [PreCheckFunc, string];
 export class PreCheck {
+  public static classTag:string = "PreCheck";
   public static perform(
     preCheckFunctions: PreCheckInput[],
     proceed: () => any
@@ -72,7 +73,7 @@ export class PreCheck {
     preCheckFunctions.forEach((preCheck: PreCheckInput) => {
       if (!preCheck[0]()) {
         isPassedAll = false;
-        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"), tag);
+        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"), [fileTag, this.classTag]);
       }
     });
     if (isPassedAll) {
@@ -111,7 +112,7 @@ export class PreCheck {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
         error,
-        { tag }
+        { tags: [fileTag, this.classTag] }
       );
       return false;
     }
@@ -126,7 +127,7 @@ export class PreCheck {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
         error,
-        { tag }
+        { tags: [fileTag, this.classTag] }
       );
       return false;
     }
@@ -138,6 +139,7 @@ export function spawn(
   args: string[] = [],
   options: any = {}
 ): Promise<Buffer> {
+  const functionTag: string = "spawn";
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
@@ -156,7 +158,7 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err, { tag });
+        Logger.error(err.message, err, { tags: [fileTag, functionTag] });
         reject(err);
       }
     });
@@ -164,13 +166,14 @@ export function spawn(
 }
 
 export function canAccessFile(filePath: string, mode?: number): boolean {
+  const functionTag: string = "canAccessFile";
   try {
     // tslint:disable-next-line: no-bitwise
     mode = mode || fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK;
     fs.accessSync(filePath, mode);
     return true;
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${filePath}`, error, { tag });
+    Logger.error(`Cannot access filePath: ${filePath}`, error, { tags: [fileTag, functionTag] });
     return false;
   }
 }
@@ -327,6 +330,7 @@ export function getConfigValueFromSDKConfig(
 }
 
 export function getMonitorBaudRate(workspacePath: string) {
+  const functionTag: string = "getMonitorBaudRate";
   let sdkMonitorBaudRate: string = "";
   try {
     sdkMonitorBaudRate = getConfigValueFromSDKConfig(
@@ -337,7 +341,7 @@ export function getMonitorBaudRate(workspacePath: string) {
     const errMsg = error.message
       ? error.message
       : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
-    Logger.error(errMsg, error, { tag });
+    Logger.error(errMsg, error, { tags: [fileTag, functionTag] });
   }
   return sdkMonitorBaudRate;
 }
@@ -418,6 +422,7 @@ export function execChildProcess(
   opts?: childProcess.ExecOptions,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
+  const functionTag: string = "execChildProcess";
   const execOpts: childProcess.ExecOptions = opts
     ? opts
     : {
@@ -456,12 +461,12 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error, { tag });
+            Logger.error(error.message, error, { tags: [fileTag, functionTag] });
           }
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          Logger.error(stderr, new Error(stderr), { tag });
+          Logger.error(stderr, new Error(stderr), { tags: [fileTag, functionTag] });
           if (stderr.indexOf("Error") !== -1) {
             return reject(stderr);
           }
@@ -558,6 +563,7 @@ export function checkSpacesInPath(pathStr: string) {
 export async function getElfFilePath(
   workspaceURI: vscode.Uri
 ): Promise<string> {
+  const functionTag: string = "getElfFilePath";
   let projectName = "";
   if (!workspaceURI) {
     throw new Error("No Workspace open");
@@ -581,7 +587,7 @@ export async function getElfFilePath(
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
       error,
-      tag
+      [fileTag, functionTag]
     );
     return;
   }
@@ -646,11 +652,12 @@ export function getSubProjects(dir: string): string[] {
 }
 
 export async function getEspIdfVersion(workingDir: string, gitPath: string) {
+  const functionTag: string = "getEspIdfVersion";
   try {
     const doesWorkingDirExists = await pathExists(workingDir);
     if (!doesWorkingDirExists) {
       Logger.info(`${workingDir} does not exists to get ESP-IDF version.`, {
-        tag,
+        tags: [fileTag, functionTag],
       });
       return "x.x";
     }
@@ -681,12 +688,13 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
     if (espIdfVersionFromCmake) {
       return espIdfVersionFromCmake;
     }
-    Logger.info(error, { tag });
+    Logger.info(error, { tags: [fileTag, functionTag] });
     return "x.x";
   }
 }
 
 export async function getEspIdfFromCMake(espIdfPath: string) {
+  const functionTag: string = "getEspIdfFromCMake";
   const versionFilePath = path.join(
     espIdfPath,
     "tools",
@@ -696,7 +704,7 @@ export async function getEspIdfFromCMake(espIdfPath: string) {
   const doesVersionFileExists = await pathExists(versionFilePath);
   if (!doesVersionFileExists) {
     Logger.info(`${versionFilePath} does not exist to get ESP-IDF version.`, {
-      tag,
+      tags: [fileTag, functionTag],
     });
     return "x.x";
   }
@@ -717,6 +725,7 @@ export async function getEspIdfFromCMake(espIdfPath: string) {
 }
 
 export async function checkGitExists(workingDir: string, gitPath: string) {
+  const functionTag: string = "checkGitExists";
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
@@ -739,7 +748,7 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       return "Not found";
     }
   } catch (error) {
-    Logger.errorNotify("Git is not found in current environment", error, tag);
+    Logger.errorNotify("Git is not found in current environment", error, [fileTag, functionTag]);
     return "Not found";
   }
 }
@@ -748,6 +757,7 @@ export async function cleanDirtyGitRepository(
   workingDir: string,
   gitPath: string
 ) {
+  const functionTag: string = "cleanDirtyGitRepository";
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
@@ -762,10 +772,10 @@ export async function cleanDirtyGitRepository(
       { env: modifiedEnv, cwd: workingDir }
     );
     OutputChannel.init().appendLine(resetResult + EOL);
-    Logger.info(resetResult + EOL, { tag });
+    Logger.info(resetResult + EOL, { tags: [fileTag, functionTag] });
   } catch (error) {
     const errMsg = error.message ? error.message : "Error resetting repository";
-    Logger.errorNotify(errMsg, error, tag);
+    Logger.errorNotify(errMsg, error, [fileTag, functionTag]);
   }
 }
 
@@ -773,6 +783,7 @@ export async function fixFileModeGitRepository(
   workingDir: string,
   gitPath: string
 ) {
+  const functionTag: string = "fixFileModeGitRepository";
   try {
     const gitBinariesExists = await pathExists(gitPath);
     if (!gitBinariesExists) {
@@ -795,12 +806,12 @@ export async function fixFileModeGitRepository(
     OutputChannel.init().appendLine(
       fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL
     );
-    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL);
+    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL, { tags: [fileTag, functionTag]});
   } catch (error) {
     const errMsg = error.message
       ? error.message
       : "Error fixing FileMode in repository";
-    Logger.errorNotify(errMsg, error, tag);
+    Logger.errorNotify(errMsg, error, [fileTag, functionTag]);
   }
 }
 
@@ -857,6 +868,7 @@ export function validateFileSizeAndChecksum(
 }
 
 export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
+  const functionTag: string = "appendIdfAndToolsToPath";
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
@@ -881,7 +893,7 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       Logger.errorNotify(
         "Invalid custom environment variables format",
         error,
-        tag
+        [fileTag, functionTag]
       );
     }
   }
@@ -1019,6 +1031,7 @@ export async function isBinInPath(
   workDirectory: string,
   env: NodeJS.ProcessEnv
 ) {
+  const functionTag: string = "isBinInPath";
   const cmd = process.platform === "win32" ? "where" : "which";
   try {
     const result = await spawn(cmd, [binaryName], { cwd: workDirectory, env });
@@ -1031,7 +1044,7 @@ export async function isBinInPath(
         : result.toString().trim();
     }
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${binaryName}`, error, tag);
+    Logger.error(`Cannot access filePath: ${binaryName}`, error, [fileTag, functionTag]);
   }
   return "";
 }
