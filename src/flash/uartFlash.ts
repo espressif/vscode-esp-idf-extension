@@ -89,10 +89,11 @@ export async function flashCommand(
     }
     FlashTask.isFlashing = false;
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
+      const dfuTag:string = "DFU Flash";
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         error,
-        [fileTag]
+        [fileTag, dfuTag]
       );
     }
     if (error.message === "FLASH_TERMINATED") {

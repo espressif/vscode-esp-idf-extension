@@ -100,13 +100,14 @@ export async function verifyCanFlash(
   }
   const selectedFlashType = idfConf.readParameter("idf.flashType", workspace) as ESP.FlashType;
   if (selectedFlashType === ESP.FlashType.DFU) {
+    const dfuTag:string = "DFU Flash";
     const data = await getDfuList(workspace);
     const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         new Error("NO_DFU_DEVICES_FOUND"),
-        [fileTag]
+        [fileTag, dfuTag]
       );
     }
   }
