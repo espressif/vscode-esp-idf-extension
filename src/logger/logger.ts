@@ -52,6 +52,7 @@ export class Logger {
 
   public static warn(message: string, metadata?: any) {
     Logger.checkInitialized();
+    message = prepandTags(message, metadata);
     winston.warn(message, metadata);
   }
 
@@ -66,6 +67,7 @@ export class Logger {
 
   public static error(message: string, error: Error, metadata?: any) {
     Logger.checkInitialized();
+    message = prepandTags(message, metadata);
     Telemetry.sendException(error, {
       errorMessage: message,
       capturedBy: "Logger",
@@ -111,4 +113,13 @@ export class Logger {
       ],
     });
   }
+}
+
+function prepandTags(message:string, metadata: any) {
+  if(metadata && metadata.tags && metadata.tags.length) {
+    for(let i=metadata.tags.length - 1; i>=0; i--) {
+        message = `[${metadata.tags[i]}]${message}`
+    }
+  }
+  return message;
 }
