@@ -33,8 +33,9 @@ export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
-    return Logger.warnNotify(
+    return Logger.errorNotify(
       "Can't perform JTag flash, because OpenOCD server is not running!!",
+      new Error("OPENOCD_NOT_RUNNING"),
       [fileTag]
     );
   }

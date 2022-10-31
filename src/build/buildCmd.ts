@@ -72,8 +72,9 @@ export async function buildCommand(
         workspace
       ) as string;
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
-        return Logger.warnNotify(
+        return Logger.errorNotify(
           "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!",
+          new Error("MISSING_FLASHER_ARGS.JSON"),
           [fileTag]
         );
       }
