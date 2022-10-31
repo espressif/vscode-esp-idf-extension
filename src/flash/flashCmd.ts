@@ -61,17 +61,15 @@ export async function verifyCanFlash(
     );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
-    return Logger.errorNotify(
+    return Logger.warnNotify(
       "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!",
-      new Error("MISSING_FLASHER_ARGS.JSON"),
       [fileTag]
     );
   }
   const projectName = await getProjectName(buildPath);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
-    return Logger.errorNotify(
+    return Logger.warnNotify(
       `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`,
-      new Error("MISSING_PROJECT_ELF_FILE"),
       [fileTag]
     );
   }
