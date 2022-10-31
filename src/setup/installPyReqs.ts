@@ -57,9 +57,13 @@ export async function installPyReqs(
     Logger.info(msg, { tags: [fileTag] });
     return;
   }
-  const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(sysPyBinPath, workingDir);
+  const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(
+    sysPyBinPath,
+    workingDir
+  );
   if (!isNotVirtualEnv) {
-    const msg = "Selected python is from a virtual environment. Choose system python";
+    const msg =
+      "Selected python is from a virtual environment. Choose system python";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
     Logger.info(msg, { tags: [fileTag] });

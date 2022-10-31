@@ -395,6 +395,6 @@ export class DownloadManager {
 
   private appendChannel(text: string): void {
     OutputChannel.appendLine(text);
-    Logger.info(text, {tags: [fileTag]});
+    Logger.info(text, { tags: [fileTag] });
   }
 }

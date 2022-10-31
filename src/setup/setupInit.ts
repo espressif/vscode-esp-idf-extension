@@ -262,7 +262,12 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     return false;
   }
   let requirements: string;
-  requirements = path.join(espIdfPath, "tools", "requirements", "requirements.core.txt");
+  requirements = path.join(
+    espIdfPath,
+    "tools",
+    "requirements",
+    "requirements.core.txt"
+  );
   const coreRequirementsExists = await pathExists(requirements);
   if (!coreRequirementsExists) {
     requirements = path.join(espIdfPath, "requirements.txt");
@@ -289,7 +294,7 @@ export async function getSetupInitialValues(
 ) {
   progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
-  progress.report({ increment: 10, message: "Getting ESP-IDF Tags"});
+  progress.report({ increment: 10, message: "Getting ESP-IDF Tags" });
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
@@ -489,4 +494,3 @@ export async function saveSettings(
   );
   window.showInformationMessage("ESP-IDF has been configured");
 }
-

@@ -150,11 +150,9 @@ export class PartitionTableEditorPanel {
         break;
       case "showErrorMessage":
         if (message.error) {
-          Logger.errorNotify(
-            message.error,
-            new Error(message.error),
-            [fileTag]
-          );
+          Logger.errorNotify(message.error, new Error(message.error), [
+            fileTag,
+          ]);
         }
         break;
       default:

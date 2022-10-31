@@ -172,11 +172,7 @@ export class MenuConfigPanel {
                     progress
                   );
                 } catch (error) {
-                  Logger.errorNotify(
-                    error.message,
-                    error,
-                    [fileTag]
-                    );
+                  Logger.errorNotify(error.message, error, [fileTag]);
                 }
               }
             );

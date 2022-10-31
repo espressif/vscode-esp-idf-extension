@@ -23,9 +23,10 @@ import * as os from "os";
 export async function checkSystemInfo(reportedResult: reportObj) {
   const extensionVersion = vscode.extensions.getExtension(ESP.extensionID);
   reportedResult.systemInfo.architecture = os.arch();
-  reportedResult.systemInfo.envIdfPythonEnvPath = process.env.IDF_PYTHON_ENV_PATH;
+  reportedResult.systemInfo.envIdfPythonEnvPath =
+    process.env.IDF_PYTHON_ENV_PATH;
   reportedResult.systemInfo.envPath =
-  process.platform === "win32" ? process.env.Path : process.env.PATH;
+    process.platform === "win32" ? process.env.Path : process.env.PATH;
   reportedResult.systemInfo.envPython = process.env.PYTHON;
   reportedResult.systemInfo.extensionVersion = extensionVersion
     ? extensionVersion.packageJSON.version

@@ -64,7 +64,7 @@ export const packageJson = vscode.extensions.getExtension(ESP.extensionID)
 type PreCheckFunc = (...args: any[]) => boolean;
 export type PreCheckInput = [PreCheckFunc, string];
 export class PreCheck {
-  public static classTag:string = "PreCheck";
+  public static classTag: string = "PreCheck";
   public static perform(
     preCheckFunctions: PreCheckInput[],
     proceed: () => any
@@ -73,7 +73,10 @@ export class PreCheck {
     preCheckFunctions.forEach((preCheck: PreCheckInput) => {
       if (!preCheck[0]()) {
         isPassedAll = false;
-        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"), [fileTag, this.classTag]);
+        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"), [
+          fileTag,
+          this.classTag,
+        ]);
       }
     });
     if (isPassedAll) {
@@ -173,7 +176,9 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     fs.accessSync(filePath, mode);
     return true;
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${filePath}`, error, { tags: [fileTag, functionTag] });
+    Logger.error(`Cannot access filePath: ${filePath}`, error, {
+      tags: [fileTag, functionTag],
+    });
     return false;
   }
 }
@@ -461,12 +466,16 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error, { tags: [fileTag, functionTag] });
+            Logger.error(error.message, error, {
+              tags: [fileTag, functionTag],
+            });
           }
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          Logger.error(stderr, new Error(stderr), { tags: [fileTag, functionTag] });
+          Logger.error(stderr, new Error(stderr), {
+            tags: [fileTag, functionTag],
+          });
           if (stderr.indexOf("Error") !== -1) {
             return reject(stderr);
           }
@@ -748,7 +757,10 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       return "Not found";
     }
   } catch (error) {
-    Logger.errorNotify("Git is not found in current environment", error, [fileTag, functionTag]);
+    Logger.errorNotify("Git is not found in current environment", error, [
+      fileTag,
+      functionTag,
+    ]);
     return "Not found";
   }
 }
@@ -806,7 +818,9 @@ export async function fixFileModeGitRepository(
     OutputChannel.init().appendLine(
       fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL
     );
-    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL, { tags: [fileTag, functionTag]});
+    Logger.info(fixFileModeResult + EOL + fixSubmodulesFileModeResult + EOL, {
+      tags: [fileTag, functionTag],
+    });
   } catch (error) {
     const errMsg = error.message
       ? error.message
@@ -890,11 +904,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify(
-        "Invalid custom environment variables format",
-        error,
-        [fileTag, functionTag]
-      );
+      Logger.errorNotify("Invalid custom environment variables format", error, [
+        fileTag,
+        functionTag,
+      ]);
     }
   }
 
@@ -1044,7 +1057,10 @@ export async function isBinInPath(
         : result.toString().trim();
     }
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${binaryName}`, error, [fileTag, functionTag]);
+    Logger.error(`Cannot access filePath: ${binaryName}`, error, [
+      fileTag,
+      functionTag,
+    ]);
   }
   return "";
 }

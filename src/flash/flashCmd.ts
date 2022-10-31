@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 30th April 2021 10:25:57 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,10 +49,7 @@ export async function verifyCanFlash(
     );
   }
 
-  const buildPath = idfConf.readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
+  const buildPath = idfConf.readParameter("idf.buildPath", workspace) as string;
   if (!(await pathExists(buildPath))) {
     return Logger.errorNotify(
       `Build is required before Flashing, ${buildPath} can't be accessed`,
@@ -77,11 +74,9 @@ export async function verifyCanFlash(
     try {
       await vscode.commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error(
-        "Unable to execute the command: espIdf.selectPort",
-        error,
-        { tags: [fileTag] }
-      );
+      Logger.error("Unable to execute the command: espIdf.selectPort", error, {
+        tags: [fileTag],
+      });
     }
     return Logger.errorNotify(
       "Select a serial port before flashing",
@@ -96,9 +91,12 @@ export async function verifyCanFlash(
       [fileTag]
     );
   }
-  const selectedFlashType = idfConf.readParameter("idf.flashType", workspace) as ESP.FlashType;
+  const selectedFlashType = idfConf.readParameter(
+    "idf.flashType",
+    workspace
+  ) as ESP.FlashType;
   if (selectedFlashType === ESP.FlashType.DFU) {
-    const dfuTag:string = "DFU Flash";
+    const dfuTag: string = "DFU Flash";
     const data = await getDfuList(workspace);
     const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {

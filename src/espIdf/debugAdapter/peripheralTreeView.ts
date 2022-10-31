@@ -196,7 +196,9 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
           this.errMessage = `Unable to parse SVD file ${
             this.svdFileName
           }: ${e.toString()}`;
-          Logger.errorNotify(this.errMessage, new Error(this.errMessage), [fileTag]);
+          Logger.errorNotify(this.errMessage, new Error(this.errMessage), [
+            fileTag,
+          ]);
           if (debug.activeDebugConsole) {
             debug.activeDebugConsole.appendLine(this.errMessage);
           }

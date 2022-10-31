@@ -120,11 +120,9 @@ export class NVSPartitionTable {
     } catch (error) {
       error.message
         ? Logger.errorNotify(error.message, error, [fileTag])
-        : Logger.errorNotify(
-            `Failed to read CSV from ${filePath}`,
-            error,
-            [fileTag]
-          );
+        : Logger.errorNotify(`Failed to read CSV from ${filePath}`, error, [
+            fileTag,
+          ]);
     }
   }
 
@@ -268,11 +266,9 @@ export class NVSPartitionTable {
         break;
       case "showErrorMessage":
         if (message.error) {
-          Logger.errorNotify(
-            message.error,
-            new Error(message.error),
-            [fileTag]
-          );
+          Logger.errorNotify(message.error, new Error(message.error), [
+            fileTag,
+          ]);
         }
       case "saveDataRequest":
         if (message.csv) {

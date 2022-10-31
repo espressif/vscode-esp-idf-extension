@@ -70,7 +70,7 @@ export async function installIdfGit(
     if (!binVersion || binVersion === "Not found") {
       const msg = `Using existing ${idfGitDestPath}`;
       OutputChannel.appendLine(msg);
-      Logger.info(msg, { tags: [fileTag] })
+      Logger.info(msg, { tags: [fileTag] });
       return resultGitPath;
     }
   }

@@ -125,10 +125,9 @@ export class CmakeListsEditorPanel {
               fileName: fileUri.fsPath,
             });
           } catch (error) {
-            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`,
-              error,
-              [fileTag]
-            );
+            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error, [
+              fileTag,
+            ]);
           }
         case "saveChanges":
           if (message.newValues) {

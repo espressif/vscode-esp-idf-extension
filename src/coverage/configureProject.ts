@@ -16,7 +16,11 @@
  * limitations under the License.
  */
 
-import { extensionContext, getConfigValueFromSDKConfig, getEspIdfVersion } from "../utils";
+import {
+  extensionContext,
+  getConfigValueFromSDKConfig,
+  getEspIdfVersion,
+} from "../utils";
 import { readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
@@ -27,7 +31,10 @@ import {
   Progress,
   CancellationToken,
 } from "vscode";
-import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
+import {
+  getDocsLocaleLang,
+  getDocsVersion,
+} from "../espIdf/documentation/getDocsVersion";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = getConfigValueFromSDKConfig(
@@ -69,7 +76,9 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
     appTraceGcovEnable === "y";
 
   if (isGcovEnabled) {
-    return window.showInformationMessage("Code coverage is already enabled in sdkconfig");
+    return window.showInformationMessage(
+      "Code coverage is already enabled in sdkconfig"
+    );
   }
 
   if (!ConfserverProcess.exists()) {
@@ -118,9 +127,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   if (idfTarget === "custom") {
     idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);
   }
-  let docVersion = docsVersions.find(
-    (docVer) => docVer.name === idfVersion
-  );
+  let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
   let targetToUse: string = "esp32";
   if (!docVersion) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");

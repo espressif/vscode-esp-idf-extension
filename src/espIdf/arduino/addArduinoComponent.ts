@@ -32,7 +32,11 @@ export class ArduinoComponentInstaller {
   private readonly projectDir: string;
   private gitBinPath: string;
 
-  constructor(espIdfPath: string, projectDir: string, gitBinPath: string = "git") {
+  constructor(
+    espIdfPath: string,
+    projectDir: string,
+    gitBinPath: string = "git"
+  ) {
     this.espIdfPath = espIdfPath;
     this.projectDir = projectDir;
     this.gitBinPath = gitBinPath;
@@ -82,11 +86,7 @@ export class ArduinoComponentInstaller {
         if (!signal && code !== 0) {
           const errorMsg = `Arduino ESP32 cloning has exit with ${code}`;
           OutputChannel.appendLine(errorMsg);
-          Logger.errorNotify(
-            errorMsg,
-            new Error(errorMsg),
-            [fileTag]
-          );
+          Logger.errorNotify(errorMsg, new Error(errorMsg), [fileTag]);
           reject(new Error(errorMsg));
         }
         resolve();

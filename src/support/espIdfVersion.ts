@@ -41,7 +41,9 @@ export async function getEspIdfVersion(reportedResult: reportObj) {
       reportedResult.espIdfVersion.result = "Not found";
     }
   } catch (error) {
-    const espIdfVersionFromCmake = await getEspIdfFromCMake(reportedResult.configurationSettings.espIdfPath);
+    const espIdfVersionFromCmake = await getEspIdfFromCMake(
+      reportedResult.configurationSettings.espIdfPath
+    );
     if (espIdfVersionFromCmake) {
       reportedResult.espIdfVersion.result = espIdfVersionFromCmake;
       return;

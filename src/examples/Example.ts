@@ -44,9 +44,15 @@ export function getExamplesList(
       .split(path.sep);
     addSubCategory(rootFolder, examplePath, pathSegments);
   }
-  const getStartedIndex = rootFolder.subcategories.findIndex((subCat) => subCat.name === "get-started");
+  const getStartedIndex = rootFolder.subcategories.findIndex(
+    (subCat) => subCat.name === "get-started"
+  );
   if (getStartedIndex !== -1) {
-    rootFolder.subcategories.splice(0, 0, rootFolder.subcategories.splice(getStartedIndex, 1)[0]);
+    rootFolder.subcategories.splice(
+      0,
+      0,
+      rootFolder.subcategories.splice(getStartedIndex, 1)[0]
+    );
   }
   return rootFolder;
 }

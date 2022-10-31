@@ -432,7 +432,9 @@ export class SVDParser {
         }
 
         const nameBase: string = reg.name[0];
-        const descBase: string = cleanupDescription(reg.description ? reg.description[0] : "");
+        const descBase: string = cleanupDescription(
+          reg.description ? reg.description[0] : ""
+        );
         const offsetBase = parseInteger(reg.addressOffset[0]);
 
         for (let i = 0; i < count; i++) {
@@ -451,7 +453,9 @@ export class SVDParser {
           registers.push(register);
         }
       } else {
-        const description = cleanupDescription(reg.description ? reg.description[0] : "");
+        const description = cleanupDescription(
+          reg.description ? reg.description[0] : ""
+        );
         const register = new Register(parent, {
           ...baseOptions,
           name: reg.name[0],

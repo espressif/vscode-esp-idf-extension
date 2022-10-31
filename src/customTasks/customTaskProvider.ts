@@ -99,7 +99,7 @@ export class CustomTask {
       reveal: showTaskOutput,
       showReuseMessage: false,
       clear: false,
-      panel: TaskPanelKind.Dedicated
+      panel: TaskPanelKind.Dedicated,
     } as TaskPresentationOptions;
     TaskManager.addTask(
       {

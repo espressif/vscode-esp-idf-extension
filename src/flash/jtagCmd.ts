@@ -47,10 +47,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     "openocd.jtag.command.force_unix_path_separator",
     workspace
   );
-  let buildPath = readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
+  let buildPath = readParameter("idf.buildPath", workspace) as string;
   const customTask = new CustomTask(Uri.file(buildPath));
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
@@ -66,11 +63,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     Logger.infoNotify("⚡️ Flashed Successfully (JTag)", [fileTag]);
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
-    Logger.errorNotify(
-      msg,
-      new Error("JTAG_FLASH_FAILED"),
-      [fileTag]
-    );
+    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"), [fileTag]);
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

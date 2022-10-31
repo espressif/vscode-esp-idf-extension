@@ -76,7 +76,7 @@ export async function getEspIdfTags() {
     const idfTagsResponse = await axios.get(
       "https://api.github.com/repos/espressif/esp-idf/tags"
     );
-    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name );
+    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);
   } catch (error) {
     OutputChannel.appendLine(`Error getting ESP-IDF Tags. Error: ${error}`);

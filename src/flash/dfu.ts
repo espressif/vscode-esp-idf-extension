@@ -64,7 +64,7 @@ export async function listAvailableDfuDevices(text) {
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
- export function selectedDFUAdapterId(chip: string): number {
+export function selectedDFUAdapterId(chip: string): number {
   switch (chip) {
     case "esp32s2":
       return 2;
@@ -97,11 +97,7 @@ export async function selectDfuDevice(arrDfuDevices: string[]) {
     const regex = new RegExp(/path="[0-9.]+-[0-9.]+"/g);
     const pathValue = selectedDfuDevice.detail.match(regex)[0].slice(6, -1);
 
-    await writeParameter(
-      "idf.selectedDfuDevicePath",
-      pathValue,
-      target
-    );
+    await writeParameter("idf.selectedDfuDevicePath", pathValue, target);
   } else {
     await writeParameter("idf.selectedDfuDevicePath", "", target);
   }

@@ -86,5 +86,3 @@ export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
   } as IdfTarget);
   return resultTargetArray;
 }
-
-

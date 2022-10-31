@@ -19,7 +19,11 @@
 import * as vscode from "vscode";
 import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
-import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
+import {
+  appendIdfAndToolsToPath,
+  getToolchainToolName,
+  spawn,
+} from "../../../../utils";
 
 const fileTag: string = "ESP-IDF Tracing";
 

@@ -53,7 +53,7 @@ export async function createFlashModel(
       flashModel.flashSections.push({
         address: fileKey,
         binFilePath: flashArgsJson.flash_files[fileKey],
-        encrypted: false
+        encrypted: false,
       } as FlashSection);
     }
   });

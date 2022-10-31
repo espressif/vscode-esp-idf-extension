@@ -27,11 +27,15 @@ export class Logger {
     return Logger.instance;
   }
 
-  public static infoNotify(message: string, tags: Array<string>, metadata?: any) {
+  public static infoNotify(
+    message: string,
+    tags: Array<string>,
+    metadata?: any
+  ) {
     if (!metadata) {
       metadata = {};
     }
-    tags && tags.length ? metadata.tags = tags : false;
+    tags && tags.length ? (metadata.tags = tags) : false;
     metadata.user = true;
     Logger.info(message, metadata);
   }
@@ -41,11 +45,15 @@ export class Logger {
     winston.info(message, metadata);
   }
 
-  public static warnNotify(message: string, tags: Array<string>, metadata?: any) {
+  public static warnNotify(
+    message: string,
+    tags: Array<string>,
+    metadata?: any
+  ) {
     if (!metadata) {
       metadata = {};
     }
-    tags && tags.length ? metadata.tags = tags : false;
+    tags && tags.length ? (metadata.tags = tags) : false;
     metadata.user = true;
     Logger.warn(message, metadata);
   }
@@ -56,11 +64,16 @@ export class Logger {
     winston.warn(message, metadata);
   }
 
-  public static errorNotify(message: string, error: Error, tags: Array<string>, metadata?: any) {
+  public static errorNotify(
+    message: string,
+    error: Error,
+    tags: Array<string>,
+    metadata?: any
+  ) {
     if (!metadata) {
       metadata = {};
     }
-    tags && tags.length ? metadata.tags = tags : false;
+    tags && tags.length ? (metadata.tags = tags) : false;
     metadata.user = true;
     Logger.error(message, error, metadata);
   }
@@ -115,10 +128,10 @@ export class Logger {
   }
 }
 
-function prepandTags(message:string, metadata: any) {
-  if(metadata && metadata.tags && metadata.tags.length) {
-    for(let i=metadata.tags.length - 1; i>=0; i--) {
-        message = `[${metadata.tags[i]}]${message}`
+function prepandTags(message: string, metadata: any) {
+  if (metadata && metadata.tags && metadata.tags.length) {
+    for (let i = metadata.tags.length - 1; i >= 0; i--) {
+      message = `[${metadata.tags[i]}]${message}`;
     }
   }
   return message;

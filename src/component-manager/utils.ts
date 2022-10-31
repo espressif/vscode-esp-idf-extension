@@ -33,21 +33,28 @@ export async function addDependency(
     const idfPathDir = readParameter("idf.espIdfPath", workspace);
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-    const enableCCache = readParameter("idf.enableCCache", workspace) as boolean;
+    const pythonBinPath = readParameter(
+      "idf.pythonBinPath",
+      workspace
+    ) as string;
+    const enableCCache = readParameter(
+      "idf.enableCCache",
+      workspace
+    ) as boolean;
     const addDependencyArgs: string[] = [idfPy];
     if (enableCCache) {
-      addDependencyArgs.push("--ccache")
+      addDependencyArgs.push("--ccache");
     }
-    addDependencyArgs.push("add-dependency", `--component=${component}`, dependency, "reconfigure");
-    const addDependencyResult = await spawn(
-      pythonBinPath,
-      addDependencyArgs,
-      {
-        cwd: workspace.fsPath,
-        env: modifiedEnv,
-      }
+    addDependencyArgs.push(
+      "add-dependency",
+      `--component=${component}`,
+      dependency,
+      "reconfigure"
     );
+    const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
+      cwd: workspace.fsPath,
+      env: modifiedEnv,
+    });
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`,
       [fileTag]

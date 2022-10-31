@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th December 2020 5:07:59 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +23,14 @@ import { Logger } from "../logger/logger";
 import { readParameter } from "../idfConfiguration";
 import { reportObj } from "./types";
 
-const fileTag: string = 'DOCTOR COMMAND';
+const fileTag: string = "DOCTOR COMMAND";
 
 export async function writeTextReport(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
 ) {
   reportedResult = replaceUserPath(reportedResult);
-  
+
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
   output += `OS ${reportedResult.systemInfo.platform} ${reportedResult.systemInfo.architecture} ${reportedResult.systemInfo.systemName} ${EOL}`;
@@ -74,7 +74,8 @@ export async function writeTextReport(
   output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
   output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
   output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
-  for (let key in reportedResult.configurationSpacesValidation.customExtraPaths) {
+  for (let key in reportedResult.configurationSpacesValidation
+    .customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
   output += `Spaces in Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
@@ -160,13 +161,13 @@ export function replaceUserPath(report: reportObj): reportObj {
   const strReport = JSON.stringify(report);
 
   // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
-  let re = new RegExp(process.env.HOME, 'g');
-  if(process.env.windir) {
-    const reWin = new RegExp('\\\\', 'g');
-    const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
-    re = new RegExp(result, 'g');
+  let re = new RegExp(process.env.HOME, "g");
+  if (process.env.windir) {
+    const reWin = new RegExp("\\\\", "g");
+    const result = process.env.HOMEPATH.replace(reWin, "\\\\\\\\");
+    re = new RegExp(result, "g");
   }
-  const parsedReport = strReport.replace(re, '<HOMEPATH>');
+  const parsedReport = strReport.replace(re, "<HOMEPATH>");
   Logger.warnNotify(parsedReport, [fileTag]);
 
   return JSON.parse(parsedReport);

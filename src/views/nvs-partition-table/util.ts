@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 17th December 2020 7:15:59 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,7 +49,16 @@ export function validateRows(rows: NvsPartitionTable.IRow[]) {
   return validationResults;
 }
 
-export const numberTypes = ["u8", "i8", "u16", "i16", "u32", "i32", "u64", "i64"];
+export const numberTypes = [
+  "u8",
+  "i8",
+  "u16",
+  "i16",
+  "u32",
+  "i32",
+  "u64",
+  "i64",
+];
 
 export const minValues = {
   u8: 0,
@@ -59,7 +68,7 @@ export const minValues = {
   u32: 0,
   i32: -2147483648,
   u64: 0,
-  i64: new BigNumber('-9223372036854775808'),
+  i64: new BigNumber("-9223372036854775808"),
 };
 export const maxValues = {
   u8: 255,
@@ -68,8 +77,8 @@ export const maxValues = {
   i16: 32767,
   u32: 4294967295,
   i32: 2147483647,
-  u64: new BigNumber('18446744073709551615'),
-  i64: new BigNumber('9223372036854775807'),
+  u64: new BigNumber("18446744073709551615"),
+  i64: new BigNumber("9223372036854775807"),
 };
 
 export function isInValidRow(row: NvsPartitionTable.IRow): string {
@@ -115,7 +124,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     const typeInt = new BigNumber(row.value);
 
     let minValue: number | BigNumber, maxValue: number | BigNumber;
-    
+
     minValue = minValues[row.encoding];
     maxValue = maxValues[row.encoding];
     if (

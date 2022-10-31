@@ -27,10 +27,18 @@ export async function checkEspIdfRequirements(
 ) {
   try {
     let requirementsPath: string;
-    requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "tools", "requirements", "requirements.core.txt");
+    requirementsPath = join(
+      reportedResult.configurationSettings.espIdfPath,
+      "tools",
+      "requirements",
+      "requirements.core.txt"
+    );
     const coreRequirementsExists = await pathExists(requirementsPath);
     if (!coreRequirementsExists) {
-      requirementsPath = join(reportedResult.configurationSettings.espIdfPath, "requirements.txt");
+      requirementsPath = join(
+        reportedResult.configurationSettings.espIdfPath,
+        "requirements.txt"
+      );
       const requirementsExists = await pathExists(requirementsPath);
       if (!requirementsExists) {
         throw new Error("Requirements doesn't exists.");

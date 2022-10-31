@@ -32,7 +32,7 @@ import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
-const fileTag:string = "ESP-IDF Menuconfig";
+const fileTag: string = "ESP-IDF Menuconfig";
 export class ConfserverProcess {
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise((resolve) => {
@@ -167,21 +167,26 @@ export class ConfserverProcess {
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     delConfigFile(currWorkspace);
     const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath", currWorkspace) || process.env.IDF_PATH;
+      idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
+      process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", currWorkspace) as string;
-    const enableCCache = idfConf.readParameter("idf.enableCCache", currWorkspace) as boolean;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      currWorkspace
+    ) as string;
+    const enableCCache = idfConf.readParameter(
+      "idf.enableCCache",
+      currWorkspace
+    ) as boolean;
     const reconfigureArgs: string[] = [idfPyPath];
     if (enableCCache) {
-      reconfigureArgs.push("--ccache")
+      reconfigureArgs.push("--ccache");
     }
     reconfigureArgs.push("-C", currWorkspace.fsPath, "reconfigure");
-    const getSdkconfigProcess = spawn(
-      pythonBinPath,
-      reconfigureArgs,
-      { env: modifiedEnv }
-    );
+    const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
+      env: modifiedEnv,
+    });
 
     progress.report({ increment: 10, message: "Loading default values..." });
 
@@ -260,24 +265,28 @@ export class ConfserverProcess {
     this.espIdfPath =
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceFolder) as string;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
     this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
 
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceFolder);
-    const enableCCache = idfConf.readParameter("idf.enableCCache", workspaceFolder) as boolean;
+    const enableCCache = idfConf.readParameter(
+      "idf.enableCCache",
+      workspaceFolder
+    ) as boolean;
     const confServerArgs: string[] = [idfPath];
     if (enableCCache) {
-      confServerArgs.push("--ccache")
+      confServerArgs.push("--ccache");
     }
     confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
-    this.confServerProcess = spawn(
-      pythonBinPath,
-      confServerArgs,
-      { env: modifiedEnv }
-    );
+    this.confServerProcess = spawn(pythonBinPath, confServerArgs, {
+      env: modifiedEnv,
+    });
     ConfserverProcess.progress.report({
       increment: 30,
       message: "Configuring server",
@@ -378,10 +387,8 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(
-      data.toString(),
-      new Error(data.toString()),
-      { tags: [fileTag] }
-    );
+    Logger.error(data.toString(), new Error(data.toString()), {
+      tags: [fileTag],
+    });
   }
 }

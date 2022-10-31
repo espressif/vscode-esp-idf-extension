@@ -75,11 +75,9 @@ export class ESPEFuseManager {
     );
     const eFuseFields = await readJson(tempFile);
     unlink(tempFile, (err) => {
-      Logger.error(
-        "Failed to delete the tmp espfuse json file",
-        err,
-        { tags: [fileTag] }
-      );
+      Logger.error("Failed to delete the tmp espfuse json file", err, {
+        tags: [fileTag],
+      });
     });
     const resp = {};
     for (const name in eFuseFields) {

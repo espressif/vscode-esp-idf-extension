@@ -30,7 +30,7 @@ const COVERED_FACTOR = 0.9;
 const PARTIAL_FACTOR = 0.75;
 const MIN_LINE_COUNT = 1;
 
-const fileTag:string = "Coverage";
+const fileTag: string = "Coverage";
 
 export interface countRange {
   range: vscode.Range;
@@ -236,11 +236,9 @@ export async function generateCoverageForEditors(
     }
   } catch (error) {
     const msg = error.message ? error.message : error;
-    Logger.error(
-      "Error generate editor coverage.\n" + msg,
-      error,
-      { tags: [fileTag] }
-    );
+    Logger.error("Error generate editor coverage.\n" + msg, error, {
+      tags: [fileTag],
+    });
     OutputChannel.appendLine("Error generating editor coverage.\n" + msg);
   }
   return coveredEditors;

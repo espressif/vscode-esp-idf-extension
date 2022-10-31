@@ -55,9 +55,7 @@ export interface PeripheralOptions {
 }
 
 export class Peripheral extends PeripheralBaseNode {
-  private children: Array<
-    Register | Cluster
-  >;
+  private children: Array<Register | Cluster>;
   public readonly name: string;
   public readonly baseAddress: number;
   public readonly description: string;
@@ -112,20 +110,14 @@ export class Peripheral extends PeripheralBaseNode {
     return this.children;
   }
 
-  public setChildren(
-    children: Array<
-      Register | Cluster
-    >
-  ) {
+  public setChildren(children: Array<Register | Cluster>) {
     this.children = children;
     this.children.sort((child1, child2) =>
       child1.offset > child2.offset ? 1 : -1
     );
   }
 
-  public addChild(
-    child: Register | Cluster
-  ) {
+  public addChild(child: Register | Cluster) {
     this.children.push(child);
     this.children.sort((child1, child2) =>
       child1.offset > child2.offset ? 1 : -1
@@ -262,10 +254,7 @@ export class Peripheral extends PeripheralBaseNode {
     return results;
   }
 
-  public static compare(
-    p1: Peripheral,
-    p2: Peripheral
-  ): number {
+  public static compare(p1: Peripheral, p2: Peripheral): number {
     if ((p1.pinned && p2.pinned) || (!p1.pinned && !p2.pinned)) {
       if (p1.groupName !== p2.groupName) {
         return p1.groupName > p2.groupName ? 1 : -1;

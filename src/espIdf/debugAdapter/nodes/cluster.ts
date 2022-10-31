@@ -41,10 +41,7 @@ export class Cluster extends PeripheralBaseNode {
   public readonly resetValue: number;
   public readonly accessType: AccessType;
 
-  constructor(
-    public parent: Peripheral,
-    options: ClusterOptions
-  ) {
+  constructor(public parent: Peripheral, options: ClusterOptions) {
     super(parent);
     this.name = options.name;
     this.description = options.description;

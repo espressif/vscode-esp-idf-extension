@@ -55,7 +55,10 @@ export class EspMatterCloning extends AbstractCloning {
     if (EspMatterCloning.isBuildingGn) {
       throw new Error("ALREADY_BUILDING");
     }
-    const matterPathDir = readParameter("idf.espMatterPath", this.currWorkspace);
+    const matterPathDir = readParameter(
+      "idf.espMatterPath",
+      this.currWorkspace
+    );
     const espMatterPathExists = await pathExists(matterPathDir);
     if (!espMatterPathExists) {
       return;
@@ -75,7 +78,10 @@ export class EspMatterCloning extends AbstractCloning {
       cwd: workingDir,
     };
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
-    const isSilentMode = readParameter("idf.notificationSilentMode", this.currWorkspace);
+    const isSilentMode = readParameter(
+      "idf.notificationSilentMode",
+      this.currWorkspace
+    );
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -103,7 +109,8 @@ export class EspMatterCloning extends AbstractCloning {
 }
 
 export async function getEspMatter(workspace?: Uri) {
-  const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
+  const gitPath =
+    (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   try {
     await espMatterInstaller.getRepository("idf.espMatterPath", workspace);

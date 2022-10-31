@@ -20,7 +20,7 @@ import { EventEmitter } from "events";
 import WebSocket, { Server } from "ws";
 import { Logger } from "../../../logger/logger";
 
-const fileTag:string = "ESP-IDF Communication";
+const fileTag: string = "ESP-IDF Communication";
 
 interface GDBStubResponse {
   event: "gdb_stub";

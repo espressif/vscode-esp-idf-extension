@@ -41,7 +41,7 @@ function clean(done) {
     "report.txt",
     "testing.results.log",
     "esp_idf_vsc_ext.log",
-    "esp_idf_docs_*.json"
+    "esp_idf_docs_*.json",
   ]);
   done();
 }
@@ -123,7 +123,7 @@ async function removeExtensionDependencies(done) {
   const packageJson = await readJSON("package.json");
   if (packageJson.extensionDependencies) {
     packageJson.extensionDependencies = undefined;
-    await writeJSON("package.json", packageJson, { spaces: 2});
+    await writeJSON("package.json", packageJson, { spaces: 2 });
   }
   done();
 }

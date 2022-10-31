@@ -7,6 +7,7 @@ Fixes # ([VSC-XXX](https://jira.espressif.com:8443/browse/VSC-XXX))
 ## Type of change
 
 Please delete options that are not relevant.
+
 - Bug fix (non-breaking change which fixes an issue)
 - New feature (non-breaking change which adds functionality)
 - Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -20,8 +21,9 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - Test B
 
 **Test Configuration**:
-* ESP-IDF Version:
-* OS (Windows,Linux and macOS):
+
+- ESP-IDF Version:
+- OS (Windows,Linux and macOS):
 
 ## Dependent components impacted by this PR:
 
@@ -29,6 +31,7 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - Component 2
 
 ## Checklist
+
 - [ ] PR Self Reviewed
 - [ ] Applied Code formatting
 - [ ] Added Documentation

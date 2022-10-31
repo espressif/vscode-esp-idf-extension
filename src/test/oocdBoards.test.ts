@@ -27,7 +27,10 @@ suite("OpenOCD Board tests", () => {
 
   setup(async () => {
     try {
-      const openOcdEspConfigJsonPath = join(openOcdScriptsPath, "esp-config.json");
+      const openOcdEspConfigJsonPath = join(
+        openOcdScriptsPath,
+        "esp-config.json"
+      );
       boardJsonObj = await readJSON(openOcdEspConfigJsonPath);
     } catch (error) {
       console.log(error);
@@ -47,7 +50,10 @@ suite("OpenOCD Board tests", () => {
     assert.equal(boards[0].name, boardJsonObj.boards[0].name);
     assert.equal(boards[0].description, boardJsonObj.boards[0].description);
     assert.equal(boards[0].target, boardJsonObj.boards[0].target);
-    assert.deepEqual(boards[0].configFiles, boardJsonObj.boards[0].config_files);
+    assert.deepEqual(
+      boards[0].configFiles,
+      boardJsonObj.boards[0].config_files
+    );
   });
 
   test("Check default boards", async () => {

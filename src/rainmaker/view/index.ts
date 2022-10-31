@@ -89,11 +89,7 @@ export class ESPRainMakerTreeDataProvider
         const resp = await RainmakerAPIClient.getNodeParams(nodeId);
         value = resp[device.name];
       } catch (error) {
-        Logger.errorNotify(
-          "Failed to get params for device",
-          error,
-          [fileTag]
-        );
+        Logger.errorNotify("Failed to get params for device", error, [fileTag]);
       }
       return device.params.map((param) =>
         DeviceParamItem(parent.id, param, value ? value[param.name] : "")
@@ -113,11 +109,9 @@ export class ESPRainMakerTreeDataProvider
     try {
       return await RainmakerAPIClient.getAllUserAssociatedNodes();
     } catch (error) {
-      Logger.warnNotify(
-        "Failed to fetch node details, try refreshing",
-        error,
-        [fileTag]
-      );
+      Logger.warnNotify("Failed to fetch node details, try refreshing", error, [
+        fileTag,
+      ]);
     }
     return;
   }

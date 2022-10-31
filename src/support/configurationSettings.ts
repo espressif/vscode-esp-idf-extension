@@ -35,12 +35,10 @@ export function getConfigurationSettings(
     pythonBinPath: conf.get("idf.pythonBinPath" + winFlag),
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),
-    openOcdConfigs:
-      conf.get("idf.openOcdConfigs") ||
-      [],
+    openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
     toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
-    gitPath: conf.get("idf.gitPath" + winFlag)
+    gitPath: conf.get("idf.gitPath" + winFlag),
   };
 }

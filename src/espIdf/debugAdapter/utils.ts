@@ -144,15 +144,19 @@ export function readMemoryChunks(
     return new Promise((resolve, reject) => {
       const addr = "0x" + r.base.toString(16);
       session
-        .customRequest("readMemory", { memoryReference: addr, count: r.length, offset: 0 })
+        .customRequest("readMemory", {
+          memoryReference: addr,
+          count: r.length,
+          offset: 0,
+        })
         .then(
           (result) => {
             let dst = r.base - startAddr;
             const bytes = [];
             const numBytes = result.data[0].contents.length / 2;
             const data = result.data[0].contents;
-            for (let i = 0, d = 0; i < numBytes; i++, d +=2) {
-              bytes.push([`${data[d]}${data[d+1]}`]);
+            for (let i = 0, d = 0; i < numBytes; i++, d += 2) {
+              bytes.push([`${data[d]}${data[d + 1]}`]);
             }
             for (const byte of bytes) {
               storeTo[dst++] = byte;

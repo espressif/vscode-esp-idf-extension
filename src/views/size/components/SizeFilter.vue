@@ -26,7 +26,6 @@
   </nav>
 </template>
 
-
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Mutation, State } from "vuex-class";

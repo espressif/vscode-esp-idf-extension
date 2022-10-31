@@ -68,11 +68,9 @@ export function getDocsLocaleLang() {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
     localeLang = localeConf.locale === "zh-CN" ? "zh_CN" : "en";
   } catch (error) {
-    Logger.error(
-      "Error getting current vscode language",
-      error,
-      { tags: [fileTag] }
-    );
+    Logger.error("Error getting current vscode language", error, {
+      tags: [fileTag],
+    });
   }
   return localeLang;
 }

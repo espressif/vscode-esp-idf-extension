@@ -37,7 +37,7 @@ export type CoreELFGenerationOptions = {
 };
 
 export class ESPCoreDumpPyTool {
-  public tag:string = "ESP-IDF Core Dump";
+  public tag: string = "ESP-IDF Core Dump";
   private readonly toolPath: string;
   constructor(IDFPath: string) {
     this.toolPath = join(
@@ -68,14 +68,10 @@ export class ESPCoreDumpPyTool {
       );
       return true;
     } catch (error) {
-      Logger.error(
-        "espcoredump.py failed",
-        error,
-        { 
-          output: resp.toString(),
-          tag: this.tag
-        }
-      );
+      Logger.error("espcoredump.py failed", error, {
+        output: resp.toString(),
+        tag: this.tag,
+      });
       return false;
     }
   }

@@ -2,7 +2,9 @@
   <div id="app">
     <div class="centerize">
       <logo class="m-1" />
-      <h1 class="title is-spaced mbottom">Welcome to Espressif IDF extension</h1>
+      <h1 class="title is-spaced mbottom">
+        Welcome to Espressif IDF extension
+      </h1>
     </div>
     <div class="level">
       <div class="level-left columns">

@@ -3,10 +3,10 @@ name: UI Test
 on:
   push:
     branches:
-    - master
+      - master
   pull_request:
     branches:
-    - master
+      - master
 
 jobs:
   ui_test:
@@ -27,6 +27,6 @@ jobs:
       - name: Upload screenshots
         uses: actions/upload-artifact@v2
         if: failure()
-        with: 
+        with:
           name: screenshots
           path: test-resources/screenshots/*.png

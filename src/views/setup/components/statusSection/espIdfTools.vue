@@ -25,7 +25,6 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import toolDownload from "../toolDownload.vue";
@@ -34,8 +33,8 @@ import { State } from "vuex-class";
 
 @Component({
   components: {
-    toolDownload
-  }
+    toolDownload,
+  },
 })
 export default class EspIdfToolsStatus extends Vue {
   @State("toolsResults") private storeToolsResults: IEspIdfTool[];

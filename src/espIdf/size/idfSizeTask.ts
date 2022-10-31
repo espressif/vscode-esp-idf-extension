@@ -46,10 +46,7 @@ export class IdfSizeTask {
     ) as string;
     const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
-    this.buildDirPath = readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
+    this.buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {

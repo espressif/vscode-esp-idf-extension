@@ -46,7 +46,9 @@ export class AbstractCloning {
       treeKill(this.cloneProcess.pid, "SIGKILL");
       this.cloneProcess = undefined;
       OutputChannel.appendLine(`\n❌ [${this.name} Cloning] : Stopped!\n`);
-      Logger.info(`\n❌ [${this.name} Cloning] : Stopped!\n`, { tags: [fileTag] });
+      Logger.info(`\n❌ [${this.name} Cloning] : Stopped!\n`, {
+        tags: [fileTag],
+      });
     }
   }
 
@@ -71,7 +73,7 @@ export class AbstractCloning {
 
       this.cloneProcess.stderr.on("data", (data) => {
         OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString(), { tags:[fileTag] });
+        Logger.info(data.toString(), { tags: [fileTag] });
         const errRegex = /\b(Error)\b/g;
         if (errRegex.test(data.toString())) {
           reject(data.toString());
@@ -133,7 +135,7 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `${this.name} clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("Cloning error", new Error(msg), [fileTag] );
+          Logger.errorNotify("Cloning error", new Error(msg), [fileTag]);
           return reject(new Error(msg));
         }
         return resolve();

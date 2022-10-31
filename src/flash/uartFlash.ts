@@ -38,10 +38,7 @@ export async function flashCommand(
   encryptPartitions: boolean
 ) {
   let continueFlag = true;
-  const buildPath = readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
+  const buildPath = readParameter("idf.buildPath", workspace) as string;
   const buildFiles = await readdir(buildPath);
   const binFiles = buildFiles.filter(
     (fileName) => fileName.endsWith(".bin") === true
@@ -89,7 +86,7 @@ export async function flashCommand(
     }
     FlashTask.isFlashing = false;
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
-      const dfuTag:string = "DFU Flash";
+      const dfuTag: string = "DFU Flash";
       return Logger.errorNotify(
         "No DFU capable USB device available found",
         error,
@@ -97,11 +94,7 @@ export async function flashCommand(
       );
     }
     if (error.message === "FLASH_TERMINATED") {
-      return Logger.errorNotify(
-        "Flashing has been stopped!",
-        error,
-        [fileTag]
-      );
+      return Logger.errorNotify("Flashing has been stopped!", error, [fileTag]);
     }
     if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
       return Logger.errorNotify(
@@ -120,11 +113,9 @@ export async function flashCommand(
         [fileTag]
       );
     }
-    Logger.errorNotify(
-      "Failed to flash because of some unusual error",
-      error,
-      [fileTag]
-    );
+    Logger.errorNotify("Failed to flash because of some unusual error", error, [
+      fileTag,
+    ]);
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

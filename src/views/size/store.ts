@@ -69,7 +69,7 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "requestInitialValues",
     });
-  }
+  },
 };
 
 export const mutations: MutationTree<IState> = {
@@ -84,7 +84,10 @@ export const mutations: MutationTree<IState> = {
       const archiveFileName = file.split(":");
       const archiveName = archiveFileName[0];
       const fileName = archiveFileName[1];
-      if (newState.archives[archiveName] && !newState.archives[archiveName].files) {
+      if (
+        newState.archives[archiveName] &&
+        !newState.archives[archiveName].files
+      ) {
         Vue.set(newState.archives[archiveName], "files", {});
       }
       Vue.set(newState.archives[archiveName].files, fileName, files[file]);
@@ -122,7 +125,7 @@ export const mutations: MutationTree<IState> = {
         toggleVisibility
       );
     });
-  }
+  },
 };
 
 export const sizeStore: StoreOptions<IState> = {

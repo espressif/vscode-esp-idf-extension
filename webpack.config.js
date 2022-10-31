@@ -100,13 +100,7 @@ const webViewConfig = {
       "partition-table",
       "main.ts"
     ),
-    welcomePage: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "welcome",
-      "main.ts"
-    ),
+    welcomePage: path.resolve(__dirname, "src", "views", "welcome", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

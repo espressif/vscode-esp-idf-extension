@@ -27,7 +27,7 @@ export class MdfCloning extends AbstractCloning {
 }
 
 export async function getEspMdf(workspace: Uri) {
-  const gitPath = await readParameter("idf.gitPath", workspace) || "git";
+  const gitPath = (await readParameter("idf.gitPath", workspace)) || "git";
   const adfInstaller = new MdfCloning(gitPath);
   await adfInstaller.getRepository("idf.espMdfPath", workspace);
 }

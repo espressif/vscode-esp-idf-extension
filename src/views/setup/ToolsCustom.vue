@@ -5,7 +5,10 @@
         <label for="idf-version-select" class="label">ESP-IDF Tools</label>
         <div class="control">
           <div class="select">
-            <select v-model="selectedIdfTools" data-config-id="select-esp-idf-tools">
+            <select
+              v-model="selectedIdfTools"
+              data-config-id="select-esp-idf-tools"
+            >
               <option value="toolsDownload">Download ESP-IDF Tools</option>
               <option value="toolsExisting">Use existing ESP-IDF Tools</option>
             </select>

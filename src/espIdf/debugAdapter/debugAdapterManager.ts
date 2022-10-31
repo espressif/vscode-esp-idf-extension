@@ -342,11 +342,7 @@ export class DebugAdapterManager extends EventEmitter {
         return resultGdbInitPath;
       }
     } catch (error) {
-      Logger.errorNotify(
-        "Error creating gdbinit file",
-        error,
-        [this.classTag]
-      );
+      Logger.errorNotify("Error creating gdbinit file", error, [this.classTag]);
     }
     return;
   }

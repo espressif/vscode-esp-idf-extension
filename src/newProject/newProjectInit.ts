@@ -42,7 +42,7 @@ export interface INewProjectArgs {
 export async function getNewProjectArgs(
   extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri,
+  workspace: Uri
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];

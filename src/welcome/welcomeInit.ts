@@ -28,7 +28,7 @@ export interface IWelcomeArgs {
 
 export async function getWelcomePageInitialValues(
   progress: Progress<{ message: string; increment: number }>,
-  workspace?: Uri,
+  workspace?: Uri
 ) {
   progress.report({ increment: 20, message: "Getting extension version..." });
   const extensionVersion = packageJson.version as string;

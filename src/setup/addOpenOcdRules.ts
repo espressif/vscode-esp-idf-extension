@@ -30,11 +30,14 @@ export async function getOpenOcdRules(workspace: Uri) {
   if (!modifiedEnv.OPENOCD_SCRIPTS) {
     throw new Error("OPENOCD_SCRIPTS environment variables is not defined");
   }
-  const openOCDRulesPath = join(dirname(modifiedEnv.OPENOCD_SCRIPTS), "contrib", "60-openocd.rules");
+  const openOCDRulesPath = join(
+    dirname(modifiedEnv.OPENOCD_SCRIPTS),
+    "contrib",
+    "60-openocd.rules"
+  );
   const doesRulesPathExists = await pathExists(openOCDRulesPath);
   if (!doesRulesPathExists) {
     throw new Error(`${openOCDRulesPath} doesn't exists.`);
-
   }
   SetupPanel.postMessage({
     command: "setOpenOcdRulesPath",
