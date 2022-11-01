@@ -26,6 +26,7 @@ export async function checkLaunchJson(
   currentWorkspace: Uri
 ) {
   if (!currentWorkspace) {
+    reportedResult.launchJson = "No workspace folder is opened";
     return;
   }
   const launchJsonPath = join(
@@ -42,6 +43,7 @@ export async function checkCCppPropertiesJson(
   currentWorkspace: Uri
 ) {
   if (!currentWorkspace) {
+    reportedResult.cCppPropertiesJson = "No workspace folder is opened";
     return;
   }
   const cCppPropertiesJsonPath = join(

@@ -56,7 +56,7 @@
   "espIdf.flashBinaryToPartition.title": "Programar binarios a la partición...",
   "espIdf.customTask.title": "Ejecutar tarea personalizada",
   "espIdf.welcome.title": "Bienvenido/a",
-  "debug.initConfig.name": "Lanzar ESP-IDF:",
+  "debug.initConfig.name": "Lanzar Depuracion ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",
   "param.customAdapterTargetName": "Custom target para el ESP-IDF Debug Adapter",

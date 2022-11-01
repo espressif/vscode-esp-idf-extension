@@ -32,7 +32,7 @@ export async function getPythonPackages(
   const parsedPkgsListMatches = rawPythonPackagesList.match(/\[.*\]/g);
   if (parsedPkgsListMatches && parsedPkgsListMatches.length) {
     reportedResult.configurationSettings.pythonPackages = JSON.parse(
-      parsedPkgsListMatches[0]
+      parsedPkgsListMatches[parsedPkgsListMatches.length - 1]
     );
   }
 }

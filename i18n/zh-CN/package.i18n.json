@@ -56,7 +56,7 @@
   "espIdf.welcome.title": "欢迎",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
-  "debug.initConfig.name": "ESP-IDF：启动",
+  "debug.initConfig.name": "ESP-IDF调试 启动",
   "debug.initConfig.description": "启用 ESP-IDF 项目的新配置",
   "param.adapterTargetName": "ESP-IDF 调试适配器的目标名称",
   "param.customAdapterTargetName": "ESP-IDF 调试适配器的自定义目标名称",
