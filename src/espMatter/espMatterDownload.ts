@@ -17,7 +17,11 @@
  */
 import { pathExists } from "fs-extra";
 import { join } from "path";
+import { spawn } from "child_process";
 import {
+  CancellationToken,
+  Progress,
+  ProgressLocation,
   ShellExecution,
   ShellExecutionOptions,
   TaskPanelKind,
@@ -25,11 +29,14 @@ import {
   TaskRevealKind,
   TaskScope,
   Uri,
+  window,
 } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
+import { OutputChannel } from "../logger/outputChannel";
+import { PackageProgress } from "../PackageProgress";
 
 const fileTag: string = "ESP Matter";
 
@@ -51,7 +58,7 @@ export class EspMatterCloning extends AbstractCloning {
     return new ShellExecution(`source ${bootstrapFilePath}`, shellOptions);
   }
 
-  public async startBootstrap() {
+  public async startBootstrap(onlyActivate: boolean = false) {
     if (EspMatterCloning.isBuildingGn) {
       throw new Error("ALREADY_BUILDING");
     }
@@ -68,7 +75,7 @@ export class EspMatterCloning extends AbstractCloning {
       "connectedhomeip",
       "connectedhomeip"
     );
-    const bootstrapFilePath = join(workingDir, "scripts", "bootstrap.sh");
+    const bootstrapFilePath = join(workingDir, "scripts", onlyActivate ? "activate.sh" : "bootstrap.sh");
     const bootstrapFilePathExists = await pathExists(bootstrapFilePath);
     if (!bootstrapFilePathExists) {
       return;
@@ -106,15 +113,130 @@ export class EspMatterCloning extends AbstractCloning {
       matterBootstrapPresentationOptions
     );
   }
+
+  public async initEsp32PlatformSubmodules(
+    espMatterDir: string,
+  ) {
+    OutputChannel.appendLine('Downloading ESP-Matter ESP32 platform submodules');
+    await window.withProgress(
+      {
+        cancellable: true,
+        location: ProgressLocation.Notification,
+        title: 'Checking out ESP32 platform specific submodules',
+      },
+      async (
+        progress: Progress<{ message: string; increment: number }>,
+        cancelToken: CancellationToken
+      ) => {
+        try {
+          cancelToken.onCancellationRequested((e) => {
+            this.cancel();
+          });
+          await this.checkoutEsp32PlatformSubmodules(espMatterDir, undefined, progress);
+          Logger.infoNotify(`ESP32 platform specific submodules checked out successfully`);
+        } catch (error) {
+          OutputChannel.appendLine(error.message);
+          Logger.errorNotify(error.message, error);
+        }
+      }
+    );
+  }
+
+  public async checkoutEsp32PlatformSubmodules(
+    espMatterDir: string,
+    pkgProgress?: PackageProgress,
+    progress?: Progress<{ message?: string; increment?: number }>,
+  ) {
+     return new Promise<void>((resolve, reject) => {
+      const checkoutProcess = spawn(
+        join(
+          espMatterDir,
+          "connectedhomeip",
+          "connectedhomeip",
+          "scripts",
+          "checkout_submodules.py"
+        ),
+        [
+          "--platform",
+          "esp32",
+          "--shallow"
+        ],
+        { cwd: espMatterDir }
+      );
+
+      checkoutProcess.stderr.on("data", (data) => {
+        OutputChannel.appendLine(data.toString());
+        Logger.info(data.toString());
+        const errRegex = /\b(Error)\b/g;
+        if (errRegex.test(data.toString())) {
+          reject(data.toString());
+        }
+        const progressRegex = /(\d+)(\.\d+)?%/g;
+        const matches = data.toString().match(progressRegex);
+        if (matches) {
+          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
+          if (progress) {
+            progress.report({
+              message: progressMsg,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = matches[matches.length - 1];
+          }
+        } else if (data.toString().indexOf("Cloning into") !== -1) {
+          let detailMsg = " " + data.toString();
+          if (progress) {
+            progress.report({
+              message: `${data.toString()}`,
+            });
+          }
+          if (pkgProgress) {
+            pkgProgress.Progress = detailMsg;
+          }
+        }
+      });
+
+      checkoutProcess.on("exit", (code, signal) => {
+        if (!signal && code !== 0) {
+          const msg = `ESP32 platform submodules clone has exit with ${code}`;
+          OutputChannel.appendLine(msg);
+          Logger.errorNotify("ESP32 platform submodules cloning error", new Error(msg));
+          return reject(new Error(msg));
+        }
+        return resolve();
+      });
+    });
+  }
 }
 
 export async function getEspMatter(workspace?: Uri) {
   const gitPath =
     (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
+  const installAllSubmodules = await window.showQuickPick(
+      [
+        {
+          label: `No, download ESP32 platform specific submodules only`,
+          target: "false",
+        },
+        {
+          label: "Yes, download all Matter submodules",
+          target: "true",
+        },
+      ],
+      { placeHolder: `Download all Matter submodules?` }
+    );
+  
   try {
-    await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
-    await espMatterInstaller.startBootstrap();
+    if (installAllSubmodules.target === "true") {
+      await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
+      await espMatterInstaller.startBootstrap();
+    } else {
+      await espMatterInstaller.getRepository("idf.espMatterPath", workspace, false);
+      await espMatterInstaller.getSubmodules(readParameter("idf.espMatterPath", workspace));
+      await espMatterInstaller.initEsp32PlatformSubmodules(readParameter("idf.espMatterPath", workspace));
+      await espMatterInstaller.startBootstrap(true);
+    }
     await TaskManager.runTasks();
     EspMatterCloning.isBuildingGn = false;
   } catch (error) {

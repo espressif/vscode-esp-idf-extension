@@ -1215,16 +1215,18 @@
           {
             "name": "%debug.initConfig.name%",
             "type": "espidf",
-            "request": "launch",
-            "preLaunchTask": "adapter"
+            "request": "launch"
           }
         ],
         "configurationSnippets": [
           {
-            "name": "%debug.initConfig.name%",
-            "type": "espidf",
-            "request": "launch",
-            "preLaunchTask": "adapter"
+            "label": "%debug.initConfig.name%",
+            "body": {
+              "name": "%debug.initConfig.name%",
+              "type": "espidf",
+              "request": "launch"
+            },
+            "description": "%debug.initConfig.description%"
           }
         ]
       }
