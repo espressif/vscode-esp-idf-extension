@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 8th January 2021 5:34:24 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,7 +49,7 @@ export const defaultBoards = [
   } as IdfBoard,
   {
     name: "ESP32-S3 chip (via builtin USB-JTAG)",
-    description: "ESP32-S3 used with ESP-PROG board",
+    description: "ESP32-S3 debugging via builtin USB-JTAG",
     target: "esp32s3",
     configFiles: ["board/esp32s3-builtin.cfg"],
   } as IdfBoard,
@@ -104,6 +104,15 @@ export async function getBoards(openOcdScriptsPath: string = "") {
         configFiles: b.config_files,
       } as IdfBoard;
     });
+    const tmpS3Board = {
+      name: "ESP32-S3 chip (via builtin USB-JTAG)",
+      description: "ESP32-S3 debugging via builtin USB-JTAG",
+      target: "esp32s3",
+      configFiles: ["board/esp32s3-builtin.cfg"],
+    } as IdfBoard;
+    if (espBoards.findIndex((b) => b.name === tmpS3Board.name) === -1) {
+      espBoards.push(tmpS3Board);
+    }
     const emptyBoard = {
       name: "Custom board",
       description: "No board selected",

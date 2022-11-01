@@ -106,6 +106,15 @@ export async function setIdfTarget(placeHolderMsg: string) {
             `ESP-IDF board not selected. Remember to set the configuration files for OpenOCD with idf.openOcdConfigs`
           );
         } else if (selectedBoard && selectedBoard.target) {
+          if (selectedBoard.label.indexOf("Custom board") !== -1) {
+            const inputBoard = await window.showInputBox({
+              placeHolder: "Enter comma separated configuration files",
+              value: selectedBoard.target.join(","),
+            });
+            if (inputBoard) {
+              selectedBoard.target = inputBoard.split(",");
+            }
+          }
           await writeParameter(
             "idf.openOcdConfigs",
             selectedBoard.target,

@@ -1683,6 +1683,17 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!selectedBoard) {
         return;
       }
+
+      if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
+        const inputBoard = await vscode.window.showInputBox({
+          placeHolder: "Enter comma separated configuration files",
+          value: selectedBoard.target.configFiles.join(","),
+        });
+        if (inputBoard) {
+          selectedBoard.target.configFiles = inputBoard.split(",");
+        }
+      }
+
       const target = idfConf.readParameter("idf.saveScope");
       if (
         !PreCheck.isWorkspaceFolderOpen() &&
