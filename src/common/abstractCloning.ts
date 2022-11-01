@@ -61,21 +61,16 @@ export class AbstractCloning {
     return new Promise<void>((resolve, reject) => {
       this.cloneProcess = spawn(
         this.gitBinPath,
-        recursiveDownload ? [
-          "clone",
-          "--recursive",
-          "--progress",
-          "-b",
-          this.branchToUse,
-          this.GITHUB_REPO,
-        ]
-        : [
-          "clone",
-          "--progress",
-          "-b",
-          this.branchToUse,
-          this.GITHUB_REPO,
-        ],
+        recursiveDownload
+          ? [
+              "clone",
+              "--recursive",
+              "--progress",
+              "-b",
+              this.branchToUse,
+              this.GITHUB_REPO,
+            ]
+          : ["clone", "--progress", "-b", this.branchToUse, this.GITHUB_REPO],
         { cwd: installDir }
       );
 
@@ -151,7 +146,11 @@ export class AbstractCloning {
     });
   }
 
-  public async getRepository(configurationId: string, workspace?: Uri, recursiveDownload?: boolean) {
+  public async getRepository(
+    configurationId: string,
+    workspace?: Uri,
+    recursiveDownload?: boolean
+  ) {
     const toolsDir = await idfConf.readParameter("idf.toolsPath", workspace);
     const installDir = await window.showQuickPick(
       [
@@ -225,7 +224,12 @@ export class AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.downloadByCloning(installDirPath, undefined, progress, recursiveDownload);
+          await this.downloadByCloning(
+            installDirPath,
+            undefined,
+            progress,
+            recursiveDownload
+          );
           const target = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(configurationId, resultingPath, target);
           Logger.infoNotify(`${this.name} has been installed`, [fileTag]);
@@ -240,19 +244,12 @@ export class AbstractCloning {
   public downloadSubmodules(
     repoRootDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return new Promise<void>((resolve, reject) => {
       const checkoutProcess = spawn(
         this.gitBinPath,
-        [
-          "submodule",
-          "update",
-          "--init",
-          "--depth",
-          "1",
-          "--progress",
-        ],
+        ["submodule", "update", "--init", "--depth", "1", "--progress"],
         { cwd: repoRootDir }
       );
 
@@ -292,7 +289,9 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("Submodules cloning error", new Error(msg));
+          Logger.errorNotify("Submodules cloning error", new Error(msg), [
+            fileTag,
+          ]);
           return reject(new Error(msg));
         }
         return resolve();
@@ -300,9 +299,7 @@ export class AbstractCloning {
     });
   }
 
-  public async getSubmodules(
-    repoRootDir: string,
-  ) {
+  public async getSubmodules(repoRootDir: string) {
     const repoName = /[^/]*$/.exec(repoRootDir)[0];
     OutputChannel.appendLine(`Downloading ${repoName} sumbodules`);
     await window.withProgress(
@@ -320,10 +317,12 @@ export class AbstractCloning {
             this.cancel();
           });
           await this.downloadSubmodules(repoRootDir, undefined, progress);
-          Logger.infoNotify(`${repoName} sumbodules checked out successfully`);
+          Logger.infoNotify(`${repoName} sumbodules checked out successfully`, [
+            fileTag,
+          ]);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, [fileTag]);
         }
       }
     );

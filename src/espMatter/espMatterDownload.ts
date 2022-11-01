@@ -75,7 +75,11 @@ export class EspMatterCloning extends AbstractCloning {
       "connectedhomeip",
       "connectedhomeip"
     );
-    const bootstrapFilePath = join(workingDir, "scripts", onlyActivate ? "activate.sh" : "bootstrap.sh");
+    const bootstrapFilePath = join(
+      workingDir,
+      "scripts",
+      onlyActivate ? "activate.sh" : "bootstrap.sh"
+    );
     const bootstrapFilePathExists = await pathExists(bootstrapFilePath);
     if (!bootstrapFilePathExists) {
       return;
@@ -114,15 +118,15 @@ export class EspMatterCloning extends AbstractCloning {
     );
   }
 
-  public async initEsp32PlatformSubmodules(
-    espMatterDir: string,
-  ) {
-    OutputChannel.appendLine('Downloading ESP-Matter ESP32 platform submodules');
+  public async initEsp32PlatformSubmodules(espMatterDir: string) {
+    OutputChannel.appendLine(
+      "Downloading ESP-Matter ESP32 platform submodules"
+    );
     await window.withProgress(
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: 'Checking out ESP32 platform specific submodules',
+        title: "Checking out ESP32 platform specific submodules",
       },
       async (
         progress: Progress<{ message: string; increment: number }>,
@@ -132,11 +136,18 @@ export class EspMatterCloning extends AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.checkoutEsp32PlatformSubmodules(espMatterDir, undefined, progress);
-          Logger.infoNotify(`ESP32 platform specific submodules checked out successfully`);
+          await this.checkoutEsp32PlatformSubmodules(
+            espMatterDir,
+            undefined,
+            progress
+          );
+          Logger.infoNotify(
+            `ESP32 platform specific submodules checked out successfully`,
+            [fileTag]
+          );
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, [fileTag]);
         }
       }
     );
@@ -145,9 +156,9 @@ export class EspMatterCloning extends AbstractCloning {
   public async checkoutEsp32PlatformSubmodules(
     espMatterDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
-     return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const checkoutProcess = spawn(
         join(
           espMatterDir,
@@ -156,11 +167,7 @@ export class EspMatterCloning extends AbstractCloning {
           "scripts",
           "checkout_submodules.py"
         ),
-        [
-          "--platform",
-          "esp32",
-          "--shallow"
-        ],
+        ["--platform", "esp32", "--shallow"],
         { cwd: espMatterDir }
       );
 
@@ -200,7 +207,11 @@ export class EspMatterCloning extends AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `ESP32 platform submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("ESP32 platform submodules cloning error", new Error(msg));
+          Logger.errorNotify(
+            "ESP32 platform submodules cloning error",
+            new Error(msg),
+            [fileTag]
+          );
           return reject(new Error(msg));
         }
         return resolve();
@@ -214,27 +225,35 @@ export async function getEspMatter(workspace?: Uri) {
     (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   const installAllSubmodules = await window.showQuickPick(
-      [
-        {
-          label: `No, download ESP32 platform specific submodules only`,
-          target: "false",
-        },
-        {
-          label: "Yes, download all Matter submodules",
-          target: "true",
-        },
-      ],
-      { placeHolder: `Download all Matter submodules?` }
-    );
-  
+    [
+      {
+        label: `No, download ESP32 platform specific submodules only`,
+        target: "false",
+      },
+      {
+        label: "Yes, download all Matter submodules",
+        target: "true",
+      },
+    ],
+    { placeHolder: `Download all Matter submodules?` }
+  );
+
   try {
     if (installAllSubmodules.target === "true") {
       await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
       await espMatterInstaller.startBootstrap();
     } else {
-      await espMatterInstaller.getRepository("idf.espMatterPath", workspace, false);
-      await espMatterInstaller.getSubmodules(readParameter("idf.espMatterPath", workspace));
-      await espMatterInstaller.initEsp32PlatformSubmodules(readParameter("idf.espMatterPath", workspace));
+      await espMatterInstaller.getRepository(
+        "idf.espMatterPath",
+        workspace,
+        false
+      );
+      await espMatterInstaller.getSubmodules(
+        readParameter("idf.espMatterPath", workspace)
+      );
+      await espMatterInstaller.initEsp32PlatformSubmodules(
+        readParameter("idf.espMatterPath", workspace)
+      );
       await espMatterInstaller.startBootstrap(true);
     }
     await TaskManager.runTasks();
