@@ -25,6 +25,7 @@ import { createFlashModel } from "./flashModelBuilder";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
+import { getEspTool } from "../utils";
 
 export async function flashCommand(
   cancelToken: CancellationToken,
@@ -62,7 +63,9 @@ export async function flashCommand(
       port,
       flashBaudRate
     );
-    flashTask = new FlashTask(workspace, idfPathDir, model, encryptPartitions);
+    const gitPath = readParameter("idf.gitPath", workspace) as string;
+    const esptoolPath = await getEspTool(idfPathDir, gitPath);
+    flashTask = new FlashTask(workspace, esptoolPath, model, encryptPartitions);
     const customTask = new CustomTask(workspace);
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
@@ -93,15 +96,6 @@ export async function flashCommand(
     if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
       return Logger.errorNotify(
         "Flash (.bin) files don't exists or can't be accessed!",
-        error
-      );
-    }
-    if (
-      error.code === "ENOENT" ||
-      error.message === "SCRIPT_PERMISSION_ERROR"
-    ) {
-      return Logger.errorNotify(
-        `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
         error
       );
     }

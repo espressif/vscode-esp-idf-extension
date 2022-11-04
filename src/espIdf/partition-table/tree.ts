@@ -35,6 +35,7 @@ import { Logger } from "../../logger/logger";
 import {
   appendIdfAndToolsToPath,
   getConfigValueFromSDKConfig,
+  getEspTool,
   PreCheck,
   spawn,
 } from "../../utils";
@@ -133,13 +134,8 @@ export class PartitionTreeDataProvider
         "partitionTable.csv"
       );
 
-      const esptoolPath = join(
-        idfPath,
-        "components",
-        "esptool_py",
-        "esptool",
-        "esptool.py"
-      );
+      const gitPath = readParameter("idf.gitPath", workspace) as string;
+      const esptoolPath = await getEspTool(idfPath, gitPath);
 
       const genEsp32PartPath = join(
         idfPath,
@@ -151,7 +147,7 @@ export class PartitionTreeDataProvider
       await spawn(
         pythonBinPath,
         [
-          esptoolPath,
+          ...esptoolPath,
           "-p",
           serialPort,
           "read_flash",

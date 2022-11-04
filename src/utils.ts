@@ -41,6 +41,7 @@ import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
+import { R_OK } from "constants";
 
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
@@ -383,10 +384,10 @@ export function readComponentsDirs(filePath): IdfComponent[] {
     const idfCommand = stats.isDirectory()
       ? void 0
       : {
-          arguments: [vscode.Uri.file(path.join(filePath, file))],
-          command: "espIdf.openIdfDocument",
-          title: openComponentMsg,
-        };
+        arguments: [vscode.Uri.file(path.join(filePath, file))],
+        command: "espIdf.openIdfDocument",
+        title: openComponentMsg,
+      };
     const component = new IdfComponent(
       file,
       isCollapsable,
@@ -418,9 +419,9 @@ export function execChildProcess(
   const execOpts: childProcess.ExecOptions = opts
     ? opts
     : {
-        cwd: workingDirectory,
-        maxBuffer: 500 * 1024,
-      };
+      cwd: workingDirectory,
+      maxBuffer: 500 * 1024,
+    };
   return new Promise<string>((resolve, reject) => {
     childProcess.exec(
       processStr,
@@ -482,6 +483,18 @@ export async function getToolsJsonPath(newIdfPath: string, gitPath: string) {
     }
   });
   return jsonToUse;
+}
+
+export async function getEspTool(idfPath: string, gitPath: string): Promise<string[]> {
+  const espIdfVersion = await getEspIdfVersion(idfPath, gitPath);
+  console.log(espIdfVersion.localeCompare("5.0"));
+  return espIdfVersion.localeCompare("5.0") >= 0
+    ? ["-m", "esptool"]
+    : [path.join(idfPath,
+      "components",
+      "esptool_py",
+      "esptool",
+      "esptool.py")];
 }
 
 export function getHttpsProxyAgent(): HttpsProxyAgent {
@@ -932,17 +945,22 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     pathToGitDir = path.dirname(gitPath);
   }
 
+  // let IDF_ADD_PATHS_EXTRAS = path.join(
+  //   modifiedEnv.IDF_PATH,
+  //   "components",
+  //   "esptool_py",
+  //   "esptool"
+  // );
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
-    "esptool_py",
-    "esptool"
-  );
-  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
-    modifiedEnv.IDF_PATH,
-    "components",
     "espcoredump"
-  )}`;
+  );
+  // let IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
+  //   modifiedEnv.IDF_PATH,
+  //   "components",
+  //   "espcoredump"
+  // )}`;
   IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
     modifiedEnv.IDF_PATH,
     "components",
@@ -1106,8 +1124,8 @@ export function compareVersion(v1: string, v2: string) {
   return v1Parts.length === v2Parts.length
     ? 0
     : v1Parts.length < v2Parts.length
-    ? -1
-    : 1;
+      ? -1
+      : 1;
 }
 
 /**
@@ -1152,9 +1170,8 @@ export function markdownToWebviewHtml(
     const altText = encodedMatch[0].match(/(?:alt=&quot;)(.*?)(?:&quot;)/);
     const absPath = `<img src="${panel.webview.asWebviewUri(
       vscode.Uri.file(path.resolve(projectPath, pathToResolve[1]))
-    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${
-      width && width.length > 0 ? `width="${width[1]}"` : ""
-    } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
+    )}" ${height && height.length > 0 ? `height="${height[1]}"` : ""} ${width && width.length > 0 ? `width="${width[1]}"` : ""
+      } ${altText && altText.length > 0 ? `alt="${altText[1]}"` : ""} >`;
     cleanHtml = cleanHtml.replace(encodedMatch[0], absPath);
   }
   cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");

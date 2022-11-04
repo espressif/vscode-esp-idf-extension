@@ -34,16 +34,12 @@ import { createFlashModel } from "../flash/flashModelBuilder";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile, getEspTool } from "../utils";
 
 export async function validateReqs(
   buildDirPath: string,
-  esptoolPath: string,
   flasherArgsJsonPath: string
 ) {
-  if (!canAccessFile(esptoolPath, constants.R_OK)) {
-    throw new Error("SCRIPT_PERMISSION_ERROR");
-  }
   const buildDirExists = await pathExists(buildDirPath);
   if (!buildDirExists) {
     throw new Error(`Build folder doesn't exist. Build first.`);
@@ -82,14 +78,9 @@ export async function mergeFlashBinaries(
     wsFolder
   ) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
-  const esptoolPath = join(
-    idfPath,
-    "components",
-    "esptool_py",
-    "esptool",
-    "esptool.py"
-  );
-  await validateReqs(buildDirPath, esptoolPath, flasherArgsJsonPath);
+  const gitPath = readParameter("idf.gitPath", wsFolder) as string;
+  const esptoolPath = await getEspTool(idfPath, gitPath);
+  await validateReqs(buildDirPath, flasherArgsJsonPath);
 
   const flashModel = await createFlashModel(
     flasherArgsJsonPath,
@@ -142,7 +133,7 @@ export async function mergeFlashBinaries(
 
 export async function getMergeExecution(
   buildDir: string,
-  esptoolPath: string,
+  esptoolPath: string[],
   model: FlashModel,
   wsFolder: Uri
 ) {
@@ -162,9 +153,9 @@ export async function getMergeExecution(
   return new ProcessExecution(pythonBinPath, mergeArgs, options);
 }
 
-export function getMergeArgs(toolPath: string, model: FlashModel) {
+export function getMergeArgs(toolPath: string[], model: FlashModel) {
   const mergeArgs = [
-    toolPath,
+    ...toolPath,
     "--chip",
     "esp32",
     "merge_bin",

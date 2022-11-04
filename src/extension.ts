@@ -597,13 +597,8 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as string;
       const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
-      const flashScriptPath = path.join(
-        idfPathDir,
-        "components",
-        "esptool_py",
-        "esptool",
-        "esptool.py"
-      );
+      const gitPath = idfConf.readParameter("idf.gitPath", workspaceRoot) as string;
+      const esptoolPath = await utils.getEspTool(idfPathDir, gitPath);
 
       vscode.window.withProgress(
         {
@@ -620,7 +615,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ) => {
           try {
             const result = await utils.execChildProcess(
-              `${pythonBinPath} ${flashScriptPath} -p ${port} erase_flash`,
+              `${pythonBinPath} ${esptoolPath.join(" ")} -p ${port} erase_flash`,
               process.cwd(),
               OutputChannel.init(),
               null,

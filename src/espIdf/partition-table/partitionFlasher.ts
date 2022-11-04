@@ -20,7 +20,7 @@ import { basename, join } from "path";
 import { Progress, ProgressLocation, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { appendIdfAndToolsToPath, getEspTool, spawn } from "../../utils";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -42,17 +42,12 @@ export async function flashBinaryToPartition(
           "idf.pythonBinPath",
           workspaceFolder
         ) as string;
-        const esptoolPath = join(
-          idfPath,
-          "components",
-          "esptool_py",
-          "esptool",
-          "esptool.py"
-        );
+        const gitPath = readParameter("idf.gitPath", workspaceFolder) as string;
+        const esptoolPath = await getEspTool(idfPath, gitPath);
 
         await spawn(
           pythonBinPath,
-          [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
+          [...esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
           {
             cwd: workspaceFolder.fsPath,
             env: modifiedEnv,

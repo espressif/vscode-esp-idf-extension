@@ -21,7 +21,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile, getEspIdfVersion } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
@@ -29,25 +29,19 @@ import { ESP } from "../config";
 export class FlashTask {
   public static isFlashing: boolean;
   private workspaceUri: vscode.Uri;
-  private flashScriptPath: string;
+  private flashScriptPath: string[];
   private model: FlashModel;
   private buildDirPath: string;
   private encryptPartitions: boolean;
 
   constructor(
     workspace: vscode.Uri,
-    idfPath: string,
+    esptoolPath: string[],
     model: FlashModel,
     encryptPartitions: boolean
   ) {
     this.workspaceUri = workspace;
-    this.flashScriptPath = join(
-      idfPath,
-      "components",
-      "esptool_py",
-      "esptool",
-      "esptool.py"
-    );
+    this.flashScriptPath = esptoolPath;
     this.model = model;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
@@ -61,9 +55,6 @@ export class FlashTask {
   }
 
   private verifyArgs() {
-    if (!canAccessFile(this.flashScriptPath, constants.R_OK)) {
-      throw new Error("SCRIPT_PERMISSION_ERROR");
-    }
     for (const flashFile of this.model.flashSections) {
       if (
         !canAccessFile(
@@ -162,9 +153,9 @@ export class FlashTask {
     );
   }
 
-  public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {
+  public getFlasherArgs(toolPath: string[], replacePathSep: boolean = false) {
     const flasherArgs = [
-      toolPath,
+      ...toolPath,
       "-p",
       this.model.port,
       "-b",
