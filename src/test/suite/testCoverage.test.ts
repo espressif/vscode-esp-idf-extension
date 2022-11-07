@@ -12,10 +12,10 @@ import {
 suite("Test Coverage Unit Tests", () => {
   const workspace = vscode.Uri.file(join(__dirname, "../../../testFiles/gcov"));
   test("gcov executables based on idfTarget", () => {
-    const esp32c3 = getGcovExecutable("esp32c3")
-    const esp32s2 = getGcovExecutable("esp32s2")
-    const esp32s3 = getGcovExecutable("esp32s3")
-    const esp32 = getGcovExecutable("esp32")
+    const esp32c3 = getGcovExecutable("esp32c3");
+    const esp32s2 = getGcovExecutable("esp32s2");
+    const esp32s3 = getGcovExecutable("esp32s3");
+    const esp32 = getGcovExecutable("esp32");
 
     assert.equal(esp32c3, "riscv32-esp-elf-gcov");
     assert.equal(esp32s2, "xtensa-esp32s2-elf-gcov");
