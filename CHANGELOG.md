@@ -17,6 +17,29 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.5.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.5.1)
+
+ ### Features and enhancements
+
+ - [Use embed git for ESP-IDF Tools install ](https://github.com/espressif/vscode-esp-idf-extension/pull/783)
+ - [Add flash button in partition table editor](https://github.com/espressif/vscode-esp-idf-extension/pull/774)
+ - [Remove managed components on full clean command](https://github.com/espressif/vscode-esp-idf-extension/pull/793)
+ - [Allow user to customize the build directory path](https://github.com/espressif/vscode-esp-idf-extension/pull/794)
+ - [Light ESP-Matter download](https://github.com/espressif/vscode-esp-idf-extension/pull/820) Thanks @Diegorro98!
+ - [Add input for custom openOCD board](https://github.com/espressif/vscode-esp-idf-extension/pull/830)
+ - [Add variables parsing and view binary data in debugging session](https://github.com/espressif/vscode-esp-idf-extension/pull/831)
+
+ ### Bug Fixes
+
+ - [Add quotes for constraint file](https://github.com/espressif/vscode-esp-idf-extension/pull/790)
+ - [Fix OpenOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/806)
+ - [Fixed default branch for esp-matter](https://github.com/espressif/vscode-esp-idf-extension/pull/809) Thanks @Diegorro98!
+ - [Anonimize doctor command home path](https://github.com/espressif/vscode-esp-idf-extension/pull/805)
+ - [Fix pigweed path](https://github.com/espressif/vscode-esp-idf-extension/pull/816) Thanks @Diegorro98!
+ - Update [qemu version](https://github.com/espressif/vscode-esp-idf-extension/pull/818) and [add linux-tools-virtual-package](https://github.com/espressif/vscode-esp-idf-extension/pull/817) Thanks @biggates!
+ - [Fix ESP-IDF any for IDF Tools](https://github.com/espressif/vscode-esp-idf-extension/pull/821)
+ - [Fix empty workspace folder doctor command output](https://github.com/espressif/vscode-esp-idf-extension/pull/825)
+
 ## [1.5.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.5.0)
 
  ### Features and enhancements
