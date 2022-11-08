@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "Espressif IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
