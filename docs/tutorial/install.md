@@ -75,3 +75,16 @@
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
+
+
+# Installing Nightly Build
+To install the nightly build follow the instructions below.
+
+Nightly builds are available on <a href="https://github.com/espressif/vscode-esp-idf-extension/actions/workflows/ci.yml">GitHub</a>. Click on the most recent (the top-most) run and scroll down to the Artifacts section to download the `esp-idf-extension.vsix` file
+
+- Open VS Code
+- Go to Extensions
+- Click on the `...` from the top and choose `Install from VSIX...`
+- Browse to the VSIX file you downloaded
+- Wait for the extension to install
+- Click the Reload button on the VS Code notification that appears
