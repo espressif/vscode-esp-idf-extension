@@ -149,12 +149,13 @@ export class BuildTask {
         "-DPYTHON_DEPS_CHECKED=1",
         "-DESP_PLATFORM=1",
       ];
-      compilerArgs.push(
-        "-B",
-        this.buildDirPath,
-        "-S",
-        this.curWorkspace.fsPath
-      );
+      if (compilerArgs.indexOf("-B") === -1) {
+        compilerArgs.push("-B", this.buildDirPath);
+      }
+
+      if (compilerArgs.indexOf("-S") === -1) {
+        compilerArgs.push("-S", this.curWorkspace.fsPath);
+      }
       const enableCCache = idfConf.readParameter(
         "idf.enableCCache",
         this.curWorkspace
@@ -162,7 +163,7 @@ export class BuildTask {
       if (enableCCache && compilerArgs && compilerArgs.length) {
         const indexOfCCache = compilerArgs.indexOf("-DCCACHE_ENABLE=1");
         if (indexOfCCache === -1) {
-          compilerArgs.splice(compilerArgs.length - 1, 0, "-DCCACHE_ENABLE=1");
+          compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
       const compileExecution = this.getShellExecution(compilerArgs, options);
