@@ -69,7 +69,7 @@ export class IDFMonitor {
       "--toolchain-prefix",
       this.config.toolchainPrefix,
     ];
-    if (this.config.idfVersion >= "4.2") {
+    if (this.config.idfVersion >= "4.3") {
       args.push("--target", this.config.idfTarget);
     }
     if (this.config.wsPort) {
