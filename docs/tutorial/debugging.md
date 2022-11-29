@@ -151,7 +151,7 @@ You can send any GDB commands in the Debug console with `--exec COMMAND`. You ne
 
 More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
 
-Our extension implements a `ESP Peripheral View` tree view in the `Run and debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
+Our extension implements a `ESP Peripheral View` tree view in the `Run and debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting in [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
 You can start a monitor session that can capture fatal error events with `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command and, if configured in your project's sdkconfig, trigger the start of a debug session for GDB remote protocol server (GDBStub) or [ESP-IDF Core Dump](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump) when an error is found. Read more in the [panic handler documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler).
 
