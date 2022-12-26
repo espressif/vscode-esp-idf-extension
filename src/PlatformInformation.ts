@@ -40,14 +40,17 @@ export class PlatformInformation {
   public get platformToUse(): string {
     switch (this.platform) {
       case "darwin":
-        return "macos";
+        return this.architecture === "arm64" ? "macos-arm64": "macos";
       case "win32":
         return this.architecture === "x86" ? "win32" : "win64";
       case "linux":
         switch (this.architecture) {
           case "arm64":
+          case "armv8l":
+          case "aarch64":
             return "linux-arm64";
           case "armel":
+          case "armv7l":
             return "linux-armel";
           case "armhf":
             return "linux-armhf";
