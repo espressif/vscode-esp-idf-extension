@@ -40,7 +40,7 @@ export class PlatformInformation {
   public get platformToUse(): string {
     switch (this.platform) {
       case "darwin":
-        return this.architecture === "arm64" ? "macos-arm64": "macos";
+        return this.architecture === "arm64" ? "macos-arm64" : "macos";
       case "win32":
         return this.architecture === "x86" ? "win32" : "win64";
       case "linux":
