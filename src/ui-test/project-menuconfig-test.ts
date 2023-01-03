@@ -38,6 +38,7 @@ describe("SDKConfig Editor", () => {
   });
 
   it("find Save button works", async () => {
+    await new Promise((res) => setTimeout(res, 10000));
     const element = await view.findWebElement(By.id("searchbar-save"));
     expect(await element.getText()).has.string("Save");
   });
