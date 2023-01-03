@@ -19,6 +19,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV DISPLAY=":99"
 ENV CODE_TESTS_PATH="out/test"
+ENV CODE_VERSION="min"
 
 ENV NODE_VERSION=14.2.0
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
