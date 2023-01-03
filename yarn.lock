@@ -187,7 +187,7 @@
   dependencies:
     htmlparser2 "^6.0.0"
 
-"@types/selenium-webdriver@^4.1.1":
+"@types/selenium-webdriver@^4.1.9":
   version "4.1.10"
   resolved "https://registry.yarnpkg.com/@types/selenium-webdriver/-/selenium-webdriver-4.1.10.tgz#a33299c40afa8dfbd948c8dd338608b163f7c062"
   integrity sha512-o6ARpkBI8J0b+jhLjXF46rYc8Vsb5CLrRetyA3V3qUPVDwNjPDyHZsZOCFSXH0KPZ6lIn2BfP1xVEPnO+AQy5w==
@@ -989,6 +989,13 @@ brace-expansion@^1.1.7:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
 
+brace-expansion@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-2.0.1.tgz#1edc459e0f0c548486ecf9fc99f2221364b9a0ae"
+  integrity sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==
+  dependencies:
+    balanced-match "^1.0.0"
+
 braces@^2.3.1, braces@^2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/braces/-/braces-2.3.2.tgz#5979fd3f14cd531565e5fa2df1abfff1dfaee729"
@@ -1551,20 +1558,20 @@ commander@^7.0.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz#a36cb57d0b501ce108e4d20559a150a391d97ab7"
   integrity sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==
 
-commander@^8.0.0:
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-8.3.0.tgz#4837ea1b2da67b9c616a67afbb0fafee567bca66"
-  integrity sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==
+commander@^9.4.1:
+  version "9.4.1"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-9.4.1.tgz#d1dd8f2ce6faf93147295c0df13c7c21141cfbdd"
+  integrity sha512-5EEkTNyHNGFPD2H+c/dXXfQZYa/scCKasxWcXJaWnNJ99pnQN9Vnmqow+p+PlFPE63Q6mThaZws1T+HxfpgtPw==
 
 commondir@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
   integrity sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==
 
-compare-versions@^3.5.1, compare-versions@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-3.6.0.tgz#1a5689913685e5a87637b8d3ffca75514ec41d62"
-  integrity sha512-W6Af2Iw1z4CB7q4uU4hv646dW9GQuBM+YpC0UvUCWSD8w90SJjp+ujJuXaEMtAXBtSqGfMPuFOVn4/+FlaqfBA==
+compare-versions@^5.0.1:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-5.0.3.tgz#a9b34fea217472650ef4a2651d905f42c28ebfd7"
+  integrity sha512-4UZlZP8Z99MGEY+Ovg/uJxJuvoXuN4M6B3hKaiackiHrgzQFEe3diJi1mf1PNHbFujM7FvLrK2bpgIaImbtZ1A==
 
 component-emitter@^1.2.1:
   version "1.3.0"
@@ -2633,7 +2640,7 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@^10.0.0:
+fs-extra@^10.1.0:
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.1.0.tgz#02873cfbc4084dde127eaa5f9905eef2325d1abf"
   integrity sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==
@@ -2838,7 +2845,7 @@ glob@7.2.0:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^7.0.3, glob@^7.0.6, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.7:
+glob@^7.0.3, glob@^7.0.6, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4:
   version "7.2.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.2.3.tgz#b8df0fb802bbfa8e89bd1d938b4e16578ed44f2b"
   integrity sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==
@@ -2849,6 +2856,17 @@ glob@^7.0.3, glob@^7.0.6, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, gl
     minimatch "^3.1.1"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
+
+glob@^8.0.3:
+  version "8.0.3"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-8.0.3.tgz#415c6eb2deed9e502c68fa44a272e6da6eeca42e"
+  integrity sha512-ull455NHSHI/Y1FqGaaYFaLGkNMMJbavMrEGFXG/PGrg6y7sutWHUHrz6gy6WEBH6akM1M414dWKCNs+IhKdiQ==
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^5.0.1"
+    once "^1.3.0"
 
 global-modules@^1.0.0:
   version "1.0.0"
@@ -2888,7 +2906,7 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-got@^11.8.2:
+got@^11.8.6:
   version "11.8.6"
   resolved "https://registry.yarnpkg.com/got/-/got-11.8.6.tgz#276e827ead8772eddbcfc97170590b841823233a"
   integrity sha512-6tfZ91bOr7bOXnK7PRDCGBLa1H4U080YHNaAQ2KsMGlLEzRbk44nsZF2E1IeRc3vtJHPVbKCYgdFbaGO2ljd8g==
@@ -3095,10 +3113,10 @@ hosted-git-info@^4.0.2:
   dependencies:
     lru-cache "^6.0.0"
 
-hpagent@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/hpagent/-/hpagent-0.1.2.tgz#cab39c66d4df2d4377dbd212295d878deb9bdaa9"
-  integrity sha512-ePqFXHtSQWAFXYmj+JtOTHr84iNrII4/QRlAAPPE+zqnKy4xJo7Ie1Y4kC7AdB+LxLxSTTzBMASsEcy0q8YyvQ==
+hpagent@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/hpagent/-/hpagent-1.2.0.tgz#0ae417895430eb3770c03443456b8d90ca464903"
+  integrity sha512-A91dYTeIB6NoXG+PxTQpCCDDnfHsW9kc06Lvpu1TEe9gnd6ZFeiBoRO9JvzEv6xK7EX97/dUE8g/vBMTqTS3CA==
 
 html-minifier-terser@^5.0.1:
   version "5.1.1"
@@ -4198,6 +4216,13 @@ minimatch@^3.0.3, minimatch@^3.0.4, minimatch@^3.1.1:
   dependencies:
     brace-expansion "^1.1.7"
 
+minimatch@^5.0.1:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-5.1.2.tgz#0939d7d6f0898acbd1508abe534d1929368a8fff"
+  integrity sha512-bNH9mmM9qsJ2X4r2Nat1B//1dJVcn3+iBLa3IgqJ7EbGaDNepL9QSHOxN4ng33s52VMMhhIfgCYDk3C4ZmlDAg==
+  dependencies:
+    brace-expansion "^2.0.1"
+
 minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.6:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.7.tgz#daa1c4d91f507390437c6a8bc01078e7000c4d18"
@@ -4288,16 +4313,16 @@ mock-require@^3.0.3:
     get-caller-file "^1.0.2"
     normalize-path "^2.1.1"
 
-monaco-page-objects@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/monaco-page-objects/-/monaco-page-objects-2.0.1.tgz#f4b11b960ced2a47b65fbe1d3b788778f4a836da"
-  integrity sha512-OL2vzqA0YkKozdEEwj3fBYyJsv2jWZrG8nlKfho5epe//FQ7sY7QzaJ8OtfBD5mYGT7mwV1O649A/E33D5H6kA==
+monaco-page-objects@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/monaco-page-objects/-/monaco-page-objects-3.2.1.tgz#37080964512ea0634b34349893756a06cd0dd08b"
+  integrity sha512-kzzzuLCNl4AdVjaVw+2V2rAF7ueYlepnh5Ssd/clyUwy2WQqLauCIqGkCIZPSvfRlK42y6abXPJ4c8YWPm12TQ==
   dependencies:
     clipboardy "^2.3.0"
     clone-deep "^4.0.1"
-    compare-versions "^3.5.1"
-    fs-extra "^10.0.0"
-    ts-essentials "^8.0.0"
+    compare-versions "^5.0.1"
+    fs-extra "^10.1.0"
+    ts-essentials "^9.3.0"
 
 move-concurrently@^1.0.1:
   version "1.0.1"
@@ -5604,7 +5629,7 @@ schema-utils@^3.0.0:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-selenium-webdriver@^4.2.0:
+selenium-webdriver@^4.6.1:
   version "4.7.1"
   resolved "https://registry.yarnpkg.com/selenium-webdriver/-/selenium-webdriver-4.7.1.tgz#29be9eaac1bd5aa37728c3e5cca352b1e98ec85d"
   integrity sha512-IfTM9OE8HtCKjOJwyudbAVtAHQKOJK8mu2qrXXbKyj4lqgXF+2lYW4rSZXCV6SLQRWZ+DVGkomCmFzq5orD/ZA==
@@ -6294,10 +6319,10 @@ truncate-utf8-bytes@^1.0.0:
   dependencies:
     utf8-byte-length "^1.0.1"
 
-ts-essentials@^8.0.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/ts-essentials/-/ts-essentials-8.1.0.tgz#bc982b242db226b84c89477d3d42630ee2954513"
-  integrity sha512-34xALeQADWRYq9kbtprP4KdpTQ3v3BBIs/U4SpaP+C4++B8ijXY5NnILRJLchQVMzw7YBzKuGMUMrI9uT+ALVw==
+ts-essentials@^9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/ts-essentials/-/ts-essentials-9.3.0.tgz#7e639c1a76b1805c3c60d6e1b5178da2e70aea02"
+  integrity sha512-XeiCboEyBG8UqXZtXl59bWEi4ZgOqRsogFDI6WDGIF1LmzbYiAkIwjkXN6zZWWl4re/lsOqMlYfe8KA0XiiEPw==
 
 ts-loader@^8.0.2:
   version "8.4.0"
@@ -6528,7 +6553,7 @@ unset-value@^1.0.0:
     has-value "^0.3.1"
     isobject "^3.0.0"
 
-unzip-stream@^0.3.0:
+unzip-stream@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/unzip-stream/-/unzip-stream-0.3.1.tgz#2333b5cd035d29db86fb701ca212cf8517400083"
   integrity sha512-RzaGXLNt+CW+T41h1zl6pGz3EaeVhYlK+rdAap+7DxW5kqsqePO8kRtWPaCiVqdhZc86EctSPVYNix30YOMzmw==
@@ -6697,7 +6722,7 @@ vm-browserify@^1.0.1:
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
 
-vsce@^2.3.0:
+vsce@^2.14.0:
   version "2.15.0"
   resolved "https://registry.yarnpkg.com/vsce/-/vsce-2.15.0.tgz#4a992e78532092a34a755143c6b6c2cabcb7d729"
   integrity sha512-P8E9LAZvBCQnoGoizw65JfGvyMqNGlHdlUXD1VAuxtvYAaHBKLBdKPnpy60XKVDAkQCfmMu53g+gq9FM+ydepw==
@@ -6749,31 +6774,31 @@ vsce@^2.6.3, vsce@^2.6.7:
     yauzl "^2.3.1"
     yazl "^2.2.2"
 
-vscode-extension-tester-locators@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/vscode-extension-tester-locators/-/vscode-extension-tester-locators-2.0.0.tgz#c389dc26a348abf64b261924d09b3bb9b20b2912"
-  integrity sha512-ljmevi7R1K5uCiMpstKydh/sCA9TEiohxLmzX30ZZU5qE/ZNWz/5oLrxTdqN3EcSVW9ZXhExvrQFvHoYZxy9Ng==
+vscode-extension-tester-locators@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/vscode-extension-tester-locators/-/vscode-extension-tester-locators-3.2.1.tgz#a2c3d25c3f4aeca04b26cc327324e62cc6c47246"
+  integrity sha512-wdiEZyRR2BiaZ4meG5TRHTZFkmgy8OLL45Frijv1T/oPmLAIlneL1LL9fQ8a9JvqKVeapvjvPwoXePDoHKPjbQ==
 
-vscode-extension-tester@^4.3.0:
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-4.4.1.tgz#de8bff7307d80592a36c796d77cbf7116b1b4b18"
-  integrity sha512-CaxWk41sX1Q9rycFCN6GRmNzjY3DJl5dxVknbLxVbjeR9g0Qam+dIajVQIeHsdUVEKJdfPCA8xbpJOyl/bUFnA==
+vscode-extension-tester@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/vscode-extension-tester/-/vscode-extension-tester-5.2.1.tgz#1f6f7db74d827ad4d946e36b6be61e9c47798fb3"
+  integrity sha512-GEiZXfpAQx75P+ROrHwPESh0jC0TQ2KqOfWE5vb580uWxXmdVMRzoDvxo4I28BFze1nLqAsQ1puVQpaIjQq3pg==
   dependencies:
-    "@types/selenium-webdriver" "^4.1.1"
-    commander "^8.0.0"
-    compare-versions "^3.6.0"
-    fs-extra "^10.0.0"
-    glob "^7.1.7"
-    got "^11.8.2"
-    hpagent "^0.1.2"
+    "@types/selenium-webdriver" "^4.1.9"
+    commander "^9.4.1"
+    compare-versions "^5.0.1"
+    fs-extra "^10.1.0"
+    glob "^8.0.3"
+    got "^11.8.6"
+    hpagent "^1.2.0"
     js-yaml "^4.1.0"
-    monaco-page-objects "^2.0.1"
+    monaco-page-objects "^3.2.1"
     sanitize-filename "^1.6.3"
-    selenium-webdriver "^4.2.0"
+    selenium-webdriver "^4.6.1"
     targz "^1.0.1"
-    unzip-stream "^0.3.0"
-    vsce "^2.3.0"
-    vscode-extension-tester-locators "^2.0.0"
+    unzip-stream "^0.3.1"
+    vsce "^2.14.0"
+    vscode-extension-tester-locators "^3.2.1"
 
 vscode-jsonrpc@^4.0.0:
   version "4.0.0"
