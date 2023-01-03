@@ -25,7 +25,7 @@ describe("SDKConfig Editor", () => {
   before(async function () {
     this.timeout(100000);
     await new Workbench().executeCommand("espIdf.menuconfig.start");
-    await new Promise((res) => setTimeout(res, 70000));
+    await new Promise((res) => setTimeout(res, 50000));
     view = new WebView();
     await view.switchToFrame();
   });
@@ -38,7 +38,6 @@ describe("SDKConfig Editor", () => {
   });
 
   it("find Save button works", async () => {
-    await new Promise((res) => setTimeout(res, 10000));
     const element = await view.findWebElement(By.id("searchbar-save"));
     expect(await element.getText()).has.string("Save");
   });
