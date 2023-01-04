@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 16th July 2019 1:38:00 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { existsSync, readdirSync } from "fs";
+import { existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import * as vscode from "vscode";
 import { PreCheck } from "../../../utils";
@@ -129,7 +129,9 @@ export class AppTraceArchiveTreeDataProvider
     } else {
       appTraceArchiveNode.iconPath = new vscode.ThemeIcon("archive");
     }
-    appTraceArchiveNode.description = this.sinceAgo(name[1].split(".trace")[0]);
+    const traceSize = statSync(appTraceArchiveNode.filePath);
+    appTraceArchiveNode.description = `${this.sinceAgo(name[1].split(".trace")[0])} ${traceSize.size}B`;
+    appTraceArchiveNode.tooltip = `${label} has ${traceSize.size} bytes (${this.sinceAgo(name[1].split(".trace")[0])})`;
     return appTraceArchiveNode;
   }
   private sinceAgo(epoch: string): string {
