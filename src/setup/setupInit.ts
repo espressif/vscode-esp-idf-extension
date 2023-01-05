@@ -318,7 +318,13 @@ export async function getSetupInitialValues(
         prevInstall.toolsResults
       );
 
-      if (cmakeFromToolsIndex !== -1) {
+      const canAccessCMake = await utils.isBinInPath(
+        "cmake",
+        extensionPath,
+        process.env
+      );
+
+      if (cmakeFromToolsIndex !== -1 || canAccessCMake) {
         prevInstall.toolsResults.splice(cmakeFromToolsIndex, 1);
       } else {
         setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
@@ -331,7 +337,13 @@ export async function getSetupInitialValues(
         prevInstall.toolsResults
       );
 
-      if (ninjaFromToolsIndex !== -1) {
+      const canAccessNinja = await utils.isBinInPath(
+        "ninja",
+        extensionPath,
+        process.env
+      );
+
+      if (ninjaFromToolsIndex !== -1 || canAccessNinja) {
         prevInstall.toolsResults.splice(ninjaFromToolsIndex, 1);
       } else {
         setupInitArgs.onReqPkgs = setupInitArgs.onReqPkgs
