@@ -86,6 +86,7 @@
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:espIdf.getEspMatter",
+    "onCommand:espIdf.installEspMatterPyReqs",
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
     "onCommand:espIdf.webview.nvsPartitionEditor",
@@ -1031,6 +1032,10 @@
       {
         "command": "espIdf.getEspMatter",
         "title": "%espIdf.getEspMatter.title%"
+      },
+      {
+        "command": "espIdf.installEspMatterPyReqs",
+        "title": "%espIdf.installEspMatterPyReqs.title%"
       },
       {
         "command": "espIdf.installPyReqs",
