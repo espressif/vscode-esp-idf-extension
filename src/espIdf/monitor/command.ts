@@ -59,7 +59,7 @@ export async function createNewIdfMonitor(
     );
   }
   let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-    workspaceFolder.fsPath
+    workspaceFolder
   );
   const pythonBinPath = readParameter(
     "idf.pythonBinPath",

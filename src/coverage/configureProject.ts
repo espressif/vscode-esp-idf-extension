@@ -32,31 +32,31 @@ import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDo
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_DEST_TRAX",
-    workspacePath.fsPath
+    workspacePath
   );
   const appTraceEnable = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ENABLE",
-    workspacePath.fsPath
+    workspacePath
   );
   const appTraceLockEnable = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_LOCK_ENABLE",
-    workspacePath.fsPath
+    workspacePath
   );
   const onPanicHostFlushTmo = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ONPANIC_HOST_FLUSH_TMO",
-    workspacePath.fsPath
+    workspacePath
   );
   const postmortemFlushThresh = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_POSTMORTEM_FLUSH_THRESH",
-    workspacePath.fsPath
+    workspacePath
   );
   const appTracePendingDataSizeMax = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_PENDING_DATA_SIZE_MAX",
-    workspacePath.fsPath
+    workspacePath
   );
   const appTraceGcovEnable = getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_GCOV_ENABLE",
-    workspacePath.fsPath
+    workspacePath
   );
 
   const isGcovEnabled =
