@@ -324,12 +324,17 @@ export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
     workspacePath.fsPath,
     "SDKCONFIG"
   );
-  if (sdkconfigFilePath && sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1) {
+  if (
+    sdkconfigFilePath &&
+    sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1
+  ) {
     const buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       workspacePath
     ) as string;
-    sdkconfigFilePath = sdkconfigFilePath.replace("${CMAKE_BINARY_DIR}", buildDirPath).replace(/"/g, "");
+    sdkconfigFilePath = sdkconfigFilePath
+      .replace("${CMAKE_BINARY_DIR}", buildDirPath)
+      .replace(/"/g, "");
   }
   if (!sdkconfigFilePath) {
     const modifiedEnv = appendIdfAndToolsToPath(workspacePath);
