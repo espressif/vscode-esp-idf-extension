@@ -389,6 +389,12 @@
             "description": "%param.espMatterPath%",
             "scope": "resource"
           },
+          "idf.espMatterDevicePath": {
+            "type": "string",
+            "default": "${env:ESP_MATTER_DEVICE_PATH}",
+            "description": "%param.espMatterDevicePath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
@@ -417,6 +423,12 @@
             "type": "string",
             "default": "${env:ESP_MATTER_PATH}",
             "description": "%param.espMatterPath%",
+            "scope": "resource"
+          },
+          "idf.espMatterDevicePathWin": {
+            "type": "string",
+            "default": "${env:ESP_MATTER_DEVICE_PATH}",
+            "description": "%param.espMatterDevicePath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
@@ -1140,6 +1152,11 @@
       {
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.setMatterDevicePath",
+        "title": "%espIdf.setMatterDevicePath.title%",
         "category": "ESP-IDF"
       }
     ],

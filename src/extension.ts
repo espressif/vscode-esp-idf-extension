@@ -698,6 +698,60 @@ export async function activate(context: vscode.ExtensionContext) {
     getEspMatter(workspaceRoot)
   );
 
+  registerIDFCommand("espIdf.setMatterDevicePath", async () => {
+    const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+    let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+      placeHolder: `Pick Workspace Folder to which settings should be applied`,
+    });
+    if (!workspaceFolder) {
+      return;
+    }
+    const matterPathDir = idfConf.readParameter(
+      "idf.espMatterPath",
+      workspaceFolder
+    ) as string;
+    const devicesContainerPath = path.join(
+      matterPathDir,
+      "device_hal",
+      "device"
+    );
+    let devicesToPick: string[] = [];
+    const doesDevicesPathExists = await pathExists(devicesContainerPath);
+    if (doesDevicesPathExists) {
+      const devicesFromEspMatter = utils.getDirectories(devicesContainerPath);
+      devicesToPick = [...devicesFromEspMatter];
+    }
+    devicesToPick = devicesToPick.concat(
+      "Enter ESP_MATTER_DEVICE_PATH manually..."
+    );
+    const selectedDevice = await vscode.window.showQuickPick(devicesToPick);
+    if (!selectedDevice) {
+      return;
+    }
+    if (devicesToPick[devicesToPick.length - 1] === selectedDevice) {
+      const customMatterDevicePath = await vscode.window.showInputBox({
+        placeHolder: "Enter ESP_MATTER_DEVICE_PATH path",
+        value: devicesContainerPath,
+      });
+      if (!customMatterDevicePath) {
+        return;
+      }
+      await idfConf.writeParameter(
+        "idf.espMatterDevicePath",
+        customMatterDevicePath,
+        configurationTarget,
+        workspaceFolder.uri
+      );
+    } else {
+      await idfConf.writeParameter(
+        "idf.espMatterDevicePath",
+        path.join(devicesContainerPath, selectedDevice),
+        configurationTarget,
+        workspaceFolder.uri
+      );
+    }
+  });
+
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
       SerialPort.shared().promptUserToSelect(workspaceRoot)
