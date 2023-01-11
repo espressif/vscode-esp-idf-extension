@@ -129,6 +129,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-ADF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
+| Install ESP-Matter                                      |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU server                                      |                                        |                                           |
 | Launch QEMU debug session                               |                                        |                                           |
@@ -146,6 +147,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Select where to save configuration settings             |                                        |                                           |
 | Set default sdkconfig file in project                   |                                        |                                           |
 | Set Espressif device target                             |                                        |                                           |
+| Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)     |                                        |                                           |
 | Show Examples Projects                                  |                                        |                                           |
 | Show ninja build summary                                |                                        |                                           |
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
@@ -161,9 +163,11 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 
 3. The **Install ESP-ADF** will clone ESP-ADF inside the selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 
-4. The **Install ESP-MDF** will clone ESP-MDF inside the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+4. The **Install ESP-Matter** will clone ESP-Matter inside the selected directory and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows) configuration setting. The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter.
 
-5. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF or ESP-MDF directory if related configuration settings are correctly defined.
+5. The **Install ESP-MDF** will clone ESP-MDF inside the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
+
+6. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are correctly defined.
 
 # Commands for tasks.json and launch.json
 

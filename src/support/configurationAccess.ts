@@ -46,6 +46,10 @@ export async function getConfigurationAccess(
     reportedResult.configurationSettings.espMatterPath,
     constants.R_OK
   );
+  reportedResult.configurationAccess.espMatterDevicePath = canAccessFile(
+    reportedResult.configurationSettings.espMatterDevicePath,
+    constants.R_OK
+  );
   reportedResult.configurationAccess.pythonBinPath = canAccessFile(
     reportedResult.configurationSettings.pythonBinPath,
     constants.X_OK

@@ -20,7 +20,6 @@ import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
 import { reportObj } from "./types";
 
 export async function writeTextReport(
@@ -45,6 +44,7 @@ export async function writeTextReport(
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
+  output += `ESP-Matter device Path (idf.espMatterDevicePath) ${reportedResult.configurationSettings.espMatterDevicePath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   output += `Custom extra vars (idf.customExtraVars) ${reportedResult.configurationSettings.customExtraVars}${EOL}`;
   output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
@@ -57,6 +57,7 @@ export async function writeTextReport(
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
   output += `Access to ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
   output += `Access to ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
+  output += `Access to ESP-Matter Path (idf.espMatterDevicePath) ${reportedResult.configurationAccess.espMatterDevicePath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
@@ -71,6 +72,7 @@ export async function writeTextReport(
   output += `Spaces in ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
   output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
   output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
+  output += `Spaces in ESP-Matter Path (idf.espMatterDevicePath) ${reportedResult.configurationSpacesValidation.espMatterDevicePath}${EOL}`;
   output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationSpacesValidation.customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
