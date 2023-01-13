@@ -506,6 +506,12 @@
             "description": "%param.cmakeCompilerArgs%",
             "scope": "resource"
           },
+          "idf.sdkconfigDefaults": {
+            "type":"array",
+            "default": [],
+            "description": "%param.sdkconfigDefaults%",
+            "scope": "resource"
+          },
           "idf.ninjaArgs": {
             "type": "array",
             "default": [],

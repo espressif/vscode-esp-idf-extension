@@ -95,6 +95,7 @@
   "param.postFlashTask": "Опубликовать настраиваемую задачу Flash",
   "param.customTask": "Специальная задача",
   "param.buildPath": "Имя каталога сборки CMake",
+  "param.sdkconfigDefaults": "Список значений по умолчанию sdkconfig для начальной конфигурации сборки",
   "param.svdFile": "Файл SVD для разрешения периферийного представления ESP-IDF в представлении отладки",
   "param.deleteComponentsOnFullClean": "Удалить manage_components при полной очистке проекта.",
   "view.components.name": "Компоненты проекта",

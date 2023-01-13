@@ -156,6 +156,17 @@ export class BuildTask {
       if (compilerArgs.indexOf("-S") === -1) {
         compilerArgs.push("-S", this.curWorkspace.fsPath);
       }
+
+      const sdkconfigDefaults =
+        (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+
+      if (sdkconfigDefaults && sdkconfigDefaults.length) {
+        compilerArgs.push(
+          "-D",
+          `SDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(";")}"`
+        );
+      }
+
       const enableCCache = idfConf.readParameter(
         "idf.enableCCache",
         this.curWorkspace

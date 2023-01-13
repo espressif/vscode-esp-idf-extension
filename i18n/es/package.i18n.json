@@ -95,6 +95,7 @@
   "param.postFlashTask": "Post build tarea personalizada",
   "param.customTask": "Tarea personalizada",
   "param.buildPath": "Nombre del directorio de construcción de CMake",
+  "param.sdkconfigDefaults": "Lista de valores por defecto para crear el archivo sdkconfig",
   "param.svdFile": "Archivo SVD para la vista de perifericos en ventana de depuracion",
   "param.deleteComponentsOnFullClean": "Borrar managed_components en el comando limpiar proyecto",
   "view.components.name": "Componentes de proyecto",
