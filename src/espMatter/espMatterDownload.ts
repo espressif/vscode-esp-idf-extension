@@ -37,6 +37,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
+import { installEspMatterPyReqs } from "../pythonManager";
 
 export class EspMatterCloning extends AbstractCloning {
   public static isBuildingGn: boolean;
@@ -109,17 +110,20 @@ export class EspMatterCloning extends AbstractCloning {
   public async initEsp32PlatformSubmodules(
     espMatterDir: string,
   ) {
-    OutputChannel.appendLine('Downloading ESP-Matter ESP32 platform submodules');
+    OutputChannel.appendLine('Downloading Matter ESP32 platform submodules');
     await window.withProgress(
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: 'Checking out ESP32 platform specific submodules',
+        title: 'Installing ESP-Matter',
       },
       async (
-        progress: Progress<{ message: string; increment: number }>,
+        progress: Progress<{ message: string; increment?: number }>,
         cancelToken: CancellationToken
       ) => {
+        progress.report({
+          message: `Checking out ESP32 platform specific submodules`,
+        });
         try {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
@@ -201,8 +205,52 @@ export class EspMatterCloning extends AbstractCloning {
   }
 }
 
+export async function installPythonReqs(
+  espMatterPath: string,
+  gitPath: string,
+  workspace?: Uri
+) {
+  const espIdfPath = readParameter("idf.espIdfPath", workspace)
+  const pyPath = readParameter( "idf.pythonBinPath", workspace);
+  const containerPath =
+    process.platform === "win32"
+      ? process.env.USERPROFILE
+      : process.env.HOME;
+  const confToolsPath = readParameter("idf.toolsPath", workspace);
+  const toolsPath =
+    confToolsPath ||
+    process.env.IDF_TOOLS_PATH ||
+    join(containerPath, ".espressif");
+  await window.withProgress(
+    {
+      cancellable: true,
+      location: ProgressLocation.Notification,
+      title: 'Installing ESP-Matter',
+    },
+    async (
+      progress: Progress<{ message: string; increment?: number }>,
+      cancelToken: CancellationToken
+    ) => {
+      progress.report({
+        message: `Installing Python Requirements...`,
+      });
+      await installEspMatterPyReqs(
+        espIdfPath,
+        toolsPath,
+        espMatterPath,
+        pyPath,
+        gitPath,
+        undefined,
+        OutputChannel.init(),
+        cancelToken
+      );
+    }
+  );
+}
+
 export async function getEspMatter(workspace?: Uri) {
   const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
+  var espMatterPath;
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   const installAllSubmodules = await window.showQuickPick(
       [
@@ -221,11 +269,13 @@ export async function getEspMatter(workspace?: Uri) {
   try {
     if (installAllSubmodules.target === "true") {
       await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
+      espMatterPath = readParameter("idf.espMatterPath", workspace);
       await espMatterInstaller.startBootstrap();
     } else {
       await espMatterInstaller.getRepository("idf.espMatterPath", workspace, false);
-      await espMatterInstaller.getSubmodules(readParameter("idf.espMatterPath", workspace));
-      await espMatterInstaller.initEsp32PlatformSubmodules(readParameter("idf.espMatterPath", workspace));
+      espMatterPath = readParameter("idf.espMatterPath", workspace);
+      await espMatterInstaller.getSubmodules(espMatterPath);
+      await espMatterInstaller.initEsp32PlatformSubmodules(espMatterPath);
       await espMatterInstaller.startBootstrap(true);
     }
     await TaskManager.runTasks();
@@ -239,7 +289,21 @@ export async function getEspMatter(workspace?: Uri) {
         error
       );
     }
-    Logger.errorNotify(msg, error);
     EspMatterCloning.isBuildingGn = false;
+    return Logger.errorNotify(msg, error);
   }
+
+  try {
+    await installPythonReqs(espMatterPath, gitPath, workspace);
+  } catch (error) {
+    const msg = error.message
+      ? error.message
+      : typeof error === "string"
+      ? error
+      : "Error installing ESP-Matter Python Requirements";
+    return Logger.errorNotify(msg, error);
+  }
+  window.showInformationMessage(
+    "ESP-Matter has been successfully installed"
+  );
 }
