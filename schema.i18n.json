@@ -111,6 +111,7 @@
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
     "espIdf.getEspMatter.title",
+    "espIdf.installEspMatterPyReqs.title",
     "espIdf.installPyReqs.title",
     "espIdf.openDocUrl.title",
     "espIdf.clearDocsSearchResult.title",

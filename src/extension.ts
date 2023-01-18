@@ -77,7 +77,10 @@ import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
-import { installPythonEnvFromIdfTools } from "./pythonManager";
+import {
+  installEspMatterPyReqs,
+  installPythonEnvFromIdfTools,
+} from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
 import { seachInEspDocs } from "./espIdf/documentation/getSearchResults";
@@ -1262,6 +1265,76 @@ export async function activate(context: vscode.ExtensionContext) {
               : typeof error === "string"
               ? error
               : "Error installing Python requirements";
+            Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.installEspMatterPyReqs", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF:",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            const espIdfPath = idfConf.readParameter(
+              "idf.espIdfPath",
+              workspaceRoot
+            ) as string;
+            const gitPath =
+              (idfConf.readParameter("idf.gitPath", workspaceRoot) as string) ||
+              "git";
+            const containerPath =
+              process.platform === "win32"
+                ? process.env.USERPROFILE
+                : process.env.HOME;
+            const confToolsPath = idfConf.readParameter(
+              "idf.toolsPath",
+              workspaceRoot
+            ) as string;
+            const toolsPath =
+              confToolsPath ||
+              process.env.IDF_TOOLS_PATH ||
+              path.join(containerPath, ".espressif");
+            const espMatterPath = idfConf.readParameter(
+              "idf.espMatterPath",
+              workspaceRoot
+            ) as string;
+            const pyPath = idfConf.readParameter(
+              "idf.pythonBinPath",
+              workspaceRoot
+            ) as string;
+            progress.report({
+              message: `Installing ESP-Matter Python Requirements...`,
+            });
+            await installEspMatterPyReqs(
+              espIdfPath,
+              toolsPath,
+              espMatterPath,
+              pyPath,
+              gitPath,
+              undefined,
+              OutputChannel.init(),
+              cancelToken
+            );
+
+            vscode.window.showInformationMessage(
+              "ESP-Matter Python Requirements have been installed"
+            );
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : typeof error === "string"
+              ? error
+              : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error);
           }
         }

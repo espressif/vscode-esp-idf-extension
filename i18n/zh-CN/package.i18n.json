@@ -33,6 +33,7 @@
   "espIdf.getEspAdf.title": "ESP-IDF: 安装 ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: 安装 ESP-MDF",
   "espIdf.getEspMatter.title": "ESP-IDF: 安装 ESP-Matter",
+  "espIdf.installEspMatterPyReqs.title": "ESP-IDF: 安装 ESP-Matter Python 包",
   "espIdf.installPyReqs.title": "ESP-IDF: 安装 ESP-IDF 扩展 Python 包",
   "espIdf.openDocUrl.title": "ESP-IDF: 打开 ESP-IDF 文档...",
   "espIdf.doctorCommand.title": "ESP-IDF: 诊断命令",

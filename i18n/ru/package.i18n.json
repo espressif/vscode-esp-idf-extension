@@ -33,6 +33,7 @@
   "espIdf.getEspAdf.title": "ESP-IDF: Установить ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Установить ESP-MDF",
   "espIdf.getEspMatter.title": "ESP-IDF: Установить ESP-Matter",
+  "espIdf.installEspMatterPyReqs.title": "ESP-IDF: Установите пакеты Python ESP-Matter",
   "espIdf.installPyReqs.title": "ESP-IDF: Установите пакеты Python расширения ESP-IDF",
   "espIdf.openDocUrl.title": "ESP-IDF: Открыть документацию ...",
   "espIdf.doctorCommand.title": "ESP-IDF: Команда врача",
