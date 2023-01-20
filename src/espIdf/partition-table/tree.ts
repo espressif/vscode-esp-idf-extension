@@ -104,7 +104,7 @@ export class PartitionTreeDataProvider
       if (partitionTableOffsetOption.target.indexOf("sdkconfig") !== -1) {
         partitionTableOffset = getConfigValueFromSDKConfig(
           "CONFIG_PARTITION_TABLE_OFFSET",
-          workspace.fsPath
+          workspace
         );
       } else if (partitionTableOffsetOption.target.indexOf("custom") !== -1) {
         partitionTableOffset = await window.showInputBox({

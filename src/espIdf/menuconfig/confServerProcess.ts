@@ -26,6 +26,7 @@ import { OutputChannel } from "../../logger/outputChannel";
 import {
   appendIdfAndToolsToPath,
   delConfigFile,
+  getSDKConfigFilePath,
   isStringNotEmpty,
 } from "../../utils";
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
@@ -260,7 +261,7 @@ export class ConfserverProcess {
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
     const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceFolder) as string;
-    this.configFile = path.join(workspaceFolder.fsPath, "sdkconfig");
+    this.configFile = getSDKConfigFilePath(workspaceFolder);
 
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";

@@ -2434,7 +2434,7 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         }
         let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-          workspaceRoot.fsPath
+          workspaceRoot
         );
         const pythonBinPath = idfConf.readParameter(
           "idf.pythonBinPath",
@@ -2625,7 +2625,7 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
           const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM",
-            workspaceRoot.fsPath
+            workspaceRoot
           );
           if (isCustomPartitionTableEnabled !== "y") {
             throw new Error(
@@ -2635,7 +2635,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
           let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
-            workspaceRoot.fsPath
+            workspaceRoot
           );
           partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
           if (!utils.isStringNotEmpty(partitionTableFilePath)) {

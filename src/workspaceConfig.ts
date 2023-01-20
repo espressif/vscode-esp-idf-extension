@@ -20,6 +20,7 @@ import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
+import { getSDKConfigFilePath } from "./utils";
 
 export function initSelectedWorkspace(status: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
@@ -80,37 +81,22 @@ export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
   statusItem: vscode.StatusBarItem
 ) {
-  const doesSdkconfigExists = await pathExists(
-    path.join(workspacePath.fsPath, "sdkconfig")
-  );
-  const doesSdkconfigDefaultExists = await pathExists(
-    path.join(workspacePath.fsPath, "sdkconfig.defaults")
-  );
-  if (!doesSdkconfigExists && !doesSdkconfigDefaultExists) {
+  let sdkConfigPath = getSDKConfigFilePath(workspacePath);
+  const doesSdkconfigExists = await pathExists(sdkConfigPath);
+  if (!doesSdkconfigExists) {
     return;
   }
-  let sdkconfigToUse: string = doesSdkconfigExists
-    ? "sdkconfig"
-    : doesSdkconfigDefaultExists
-    ? "sdkconfig.defaults"
-    : "";
-  if (sdkconfigToUse) {
-    const idfTarget = utils
-      .getConfigValueFromSDKConfig(
-        "CONFIG_IDF_TARGET",
-        workspacePath.fsPath,
-        sdkconfigToUse
-      )
-      .replace(/\"/g, "");
-    if (!idfTarget) {
-      return;
-    }
-    await writeParameter(
-      "idf.adapterTargetName",
-      idfTarget,
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      workspacePath
-    );
-    statusItem.text = "$(circuit-board) " + idfTarget;
+  const idfTarget = utils
+    .getConfigValueFromSDKConfig("CONFIG_IDF_TARGET", workspacePath)
+    .replace(/\"/g, "");
+  if (!idfTarget) {
+    return;
   }
+  await writeParameter(
+    "idf.adapterTargetName",
+    idfTarget,
+    vscode.ConfigurationTarget.WorkspaceFolder,
+    workspacePath
+  );
+  statusItem.text = "$(circuit-board) " + idfTarget;
 }

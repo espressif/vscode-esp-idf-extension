@@ -308,12 +308,52 @@ export async function copyFromSrcProject(
   await copy(srcDirPath, destinationDir.fsPath);
 }
 
+export function getVariableFromCMakeLists(workspacePath: string, key: string) {
+  const cmakeListsFilePath = path.join(workspacePath, "CMakeLists.txt");
+  if (!canAccessFile(cmakeListsFilePath, fs.constants.R_OK)) {
+    throw new Error("CMakeLists.txt file doesn't exists or can't be read");
+  }
+  const cmakeListsContent = readFileSync(cmakeListsFilePath);
+  const regexExp = new RegExp(`(?:set|SET)\\(${key} (.*)\\)`);
+  const match = cmakeListsContent.match(regexExp);
+  return match ? match[1] : "";
+}
+
+export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
+  let sdkconfigFilePath = getVariableFromCMakeLists(
+    workspacePath.fsPath,
+    "SDKCONFIG"
+  );
+  if (
+    sdkconfigFilePath &&
+    sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1
+  ) {
+    const buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      workspacePath
+    ) as string;
+    sdkconfigFilePath = sdkconfigFilePath
+      .replace("${CMAKE_BINARY_DIR}", buildDirPath)
+      .replace(/"/g, "");
+  }
+  if (!sdkconfigFilePath) {
+    const modifiedEnv = appendIdfAndToolsToPath(workspacePath);
+    sdkconfigFilePath = modifiedEnv.SDKCONFIG;
+  }
+  if (!sdkconfigFilePath) {
+    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
+  }
+  if (!sdkconfigFilePath) {
+    sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig.defaults");
+  }
+  return sdkconfigFilePath;
+}
+
 export function getConfigValueFromSDKConfig(
   key: string,
-  workspacePath: string,
-  sdkconfigFileName: string = "sdkconfig"
+  workspacePath: vscode.Uri
 ): string {
-  const sdkconfigFilePath = path.join(workspacePath, sdkconfigFileName);
+  const sdkconfigFilePath = getSDKConfigFilePath(workspacePath);
   if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
@@ -323,7 +363,7 @@ export function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export function getMonitorBaudRate(workspacePath: string) {
+export function getMonitorBaudRate(workspacePath: vscode.Uri) {
   let sdkMonitorBaudRate: string = "";
   try {
     sdkMonitorBaudRate = getConfigValueFromSDKConfig(
@@ -340,7 +380,7 @@ export function getMonitorBaudRate(workspacePath: string) {
 }
 
 export function delConfigFile(workspaceRoot: vscode.Uri) {
-  const sdkconfigFile = path.join(workspaceRoot.fsPath, "sdkconfig");
+  const sdkconfigFile = getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);
 }
 
