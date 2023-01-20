@@ -13,6 +13,8 @@
 
 Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf)
 
+**Nightly builds** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a> or <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension-open.vsix.zip">OpenVSX</a>.
+
 Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly use the extension.
 
 <a href="https://youtu.be/Lc6ausiKvQM">

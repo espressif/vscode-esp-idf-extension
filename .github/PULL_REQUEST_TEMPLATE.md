@@ -2,7 +2,7 @@
 
 Please include a summary of the change and which issue is fixed.
 
-Fixes # ([VSC-XXX](https://jira.espressif.com:8443/browse/VSC-XXX))
+Fixes #XXX
 
 ## Type of change
 
