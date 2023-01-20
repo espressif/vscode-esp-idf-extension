@@ -36,7 +36,18 @@ export const CMakeListEditorState: IState = {
   elements: [],
   emptyElements: [],
   fileName: "",
-  selectedElementToAdd: undefined,
+  selectedElementToAdd: {
+    canHaveMany:  false,
+    default: "",
+    isComponentElement: false,
+    regex: "",
+    template: "",
+    title: "",
+    type: "",
+    typeValue: "",
+    value: [],
+    variable: ""
+  },
   textDictionary: {
     add: "Add",
     discard: "Discard",

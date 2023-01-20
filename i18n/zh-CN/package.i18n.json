@@ -56,6 +56,7 @@
   "espIdf.setMatterDevicePath.title": "设置ESP-MATTER设备路径 (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "执行自定义任务",
   "espIdf.welcome.title": "欢迎",
+  "espIdf.projectConfigurationEditor.title": "打开项目配置",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF调试 启动",

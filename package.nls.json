@@ -56,6 +56,7 @@
   "espIdf.setMatterDevicePath.title": "Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Execute custom task",
   "espIdf.welcome.title": "Welcome",
+  "espIdf.projectConfigurationEditor.title": "Open Project Configuration",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "ESP-IDF Debug: Launch",

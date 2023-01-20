@@ -58,6 +58,7 @@
   "espIdf.setMatterDevicePath.title": "Definir la ruta de ESP-MATTER Device (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Ejecutar tarea personalizada",
   "espIdf.welcome.title": "Bienvenido/a",
+  "espIdf.projectConfigurationEditor.title": "Abrir configuracion de proyecto",
   "debug.initConfig.name": "Lanzar Depuracion ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",
