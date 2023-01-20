@@ -568,7 +568,7 @@ export async function getElfFilePath(
     if (!canAccessFile(buildDir, fs.constants.R_OK)) {
       throw new Error("Build is required once to generate the ELF File");
     }
-
+    projectName = await getProjectName(buildDir);
     const elfFilePath = path.join(buildDir, `${projectName}.elf`);
     if (!canAccessFile(elfFilePath, fs.constants.R_OK)) {
       throw new Error(`Failed to access .elf file at ${elfFilePath}`);

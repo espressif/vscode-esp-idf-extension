@@ -127,6 +127,7 @@ export class QemuManager extends EventEmitter {
         "esp32",
         "-drive",
         "file=build/merged_qemu.bin,if=mtd,format=raw",
+        "-monitor stdio"
       ],
       tcpPort: readParameter("idf.qemuTcpPort", workspaceFolder),
       workspaceFolder

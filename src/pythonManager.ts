@@ -223,6 +223,59 @@ export async function installExtensionPyReqs(
   );
 }
 
+export async function installEspMatterPyReqs(
+  espDir: string,
+  idfToolsDir: string,
+  espMatterDir: string,
+  pythonBinPath: string,
+  gitPath: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  const opts = { env: modifiedEnv };
+  const pyEnvPath = await getPythonEnvPath(
+    espDir,
+    idfToolsDir,
+    pythonBinPath,
+    gitPath
+  );
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+  const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
+
+  const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
+  const matterRequirements = path.join(espMatterDir, "requirements.txt");
+  if (!utils.canAccessFile(matterRequirements, constants.R_OK)) {
+    Logger.warnNotify(matterRequirements + reqDoesNotExists);
+    if (channel) {
+      channel.appendLine(matterRequirements + reqDoesNotExists);
+    }
+    throw new Error();
+  }
+  const installMatterPyPkgsMsg = `Installing ESP-Matter python packages in ${virtualEnvPython} ...\n`;
+  Logger.info(installMatterPyPkgsMsg);
+  if (pyTracker) {
+    pyTracker.Log = installMatterPyPkgsMsg;
+  }
+  if (channel) {
+    channel.appendLine(installMatterPyPkgsMsg + "\n");
+  }
+  await execProcessWithLog(
+    `"${virtualEnvPython}" -m pip install --upgrade --no-warn-script-location -r "${matterRequirements}"`,
+    idfToolsDir,
+    pyTracker,
+    channel,
+    opts,
+    cancelToken
+  );
+  return virtualEnvPython;
+}
 export async function execProcessWithLog(
   cmd: string,
   workDir: string,
