@@ -1386,6 +1386,7 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "ansi-to-html": "^0.6.11",
     "axios": "^0.21.2",
     "bignumber.js": "^9.0.1",
