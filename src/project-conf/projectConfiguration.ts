@@ -16,17 +16,10 @@
  * limitations under the License.
  */
 
-import { readFile } from "fs-extra";
-import { parse } from "@iarna/toml";
+import { readFile, writeFile } from "fs-extra";
+import { JsonMap, parse, stringify } from "@iarna/toml";
 
-export class ProjectConfigurationElement {
-  public default: string;
-  public title: string;
-  public type: string;
-  public value: string[];
-}
-
-export interface ProjectConfElement {
+export interface ProjectConfElement extends JsonMap {
   build: {
     compileArgs: string[];
     ninjaArgs: string[];
@@ -47,6 +40,39 @@ export interface ProjectConfElement {
     postBuild: string;
     postFlash: string;
   };
+}
+
+export function createNewProjectConfElement() {
+  return {
+    build: {
+      compileArgs: [],
+      ninjaArgs: [],
+      buildDirectoryPath: "",
+      sdkconfigDefaults: []
+    },
+    env: {},
+    flashBaudRate: "",
+    idfTarget: "",
+    openOCD: {
+      debugLevel: 0,
+      configs: [],
+      args: []
+    },
+    tasks: {
+      preBuild: "",
+      preFlash: "",
+      postBuild: "",
+      postFlash: ""
+    }
+  } as ProjectConfElement;
+}
+
+export async function addEmptyProjectConfElement(filePath: string) {
+  const newElement: ProjectConfElement = createNewProjectConfElement();
+  const confList = await getConfAsObj(filePath);
+  confList["NEW_ITEM"] = newElement;
+  const confStr = stringify(confList);
+  await writeFile(filePath, confStr);
 }
 
 export async function getConfAsObj(filePath: string) {

@@ -9,6 +9,7 @@
 import { Component, Emit, Prop, Vue } from "vue-property-decorator";
 import ArrayElement from "./ArrayElement.vue";
 import StringElement from "./StringElement.vue";
+import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
 
 @Component({
   components: {
@@ -17,7 +18,7 @@ import StringElement from "./StringElement.vue";
   }
 })
 export default class projectConfElem extends Vue {
-  @Prop() public el: projectConfElement;
+  @Prop() public el: ProjectConfElement;
 
   @Emit("delete")
   deleteElem() {}

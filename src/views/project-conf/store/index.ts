@@ -57,7 +57,7 @@ try {
 
 export const actions: ActionTree<IState, any> = {
   requestInitValues(context) {
-    vscode.postMessage({ command: "load" })
+    vscode.postMessage({ command: "requestInitialValues" })
   }
 };
 

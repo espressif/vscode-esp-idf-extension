@@ -126,7 +126,13 @@ import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
-import { getConfAsObj } from "./project-conf/projectConfiguration";
+import {
+  addEmptyProjectConfElement,
+  createNewProjectConfElement,
+  getConfAsObj,
+  ProjectConfElement,
+} from "./project-conf/projectConfiguration";
+import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -887,10 +893,84 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.projectConfigurationPanel", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        if (projectConfigurationPanel.isCreatedAndHidden()) {
+          projectConfigurationPanel.createOrShow(context.extensionPath);
+          return;
+        }
+        await vscode.window.withProgress(
+          {
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: "ESP-IDF: Project Configuration",
+          },
+          async (
+            progress: vscode.Progress<{ message: string; increment: number }>
+          ) => {
+            try {
+              const projectConfPath = path.join(
+                workspaceRoot.fsPath,
+                "esp-idf.toml"
+              );
+              const doesProjectConf = await pathExists(projectConfPath);
+              let projectConfObj: { [key: string]: ProjectConfElement };
+              if (!doesProjectConf) {
+                projectConfObj = { NEW_CONF: createNewProjectConfElement() };
+              } else {
+                projectConfObj = await getConfAsObj(projectConfPath);
+              }
+              projectConfigurationPanel.createOrShow(
+                context.extensionPath,
+                projectConfObj,
+                projectConfPath
+              );
+            } catch (error) {
+              Logger.errorNotify(error.message, error);
+            }
+          }
+        );
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
+    });
+  });
+
   registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       const projectConfPath = path.join(workspaceRoot.fsPath, "esp-idf.toml");
       const result = await getConfAsObj(projectConfPath);
+      const selectConfigMsg = locDic.localize(
+        "extension.selectConfigMessage",
+        "Select option to define its path :"
+      );
+      let quickPickItems = Object.keys(result).map((k) => {
+        return {
+          description: k,
+          label: `Configuration ${k}`,
+          target: k,
+        };
+      });
+      quickPickItems = quickPickItems.concat({
+        description: "addEmpty",
+        label: "Add empty value",
+        target: "AddEmpty",
+      });
+      const option = await vscode.window.showQuickPick(quickPickItems, {
+        placeHolder: selectConfigMsg,
+      });
+      if (!option) {
+        const noOptionMsg = locDic.localize(
+          "extension.noOptionMessage",
+          "No option selected."
+        );
+        Logger.infoNotify(noOptionMsg);
+        return;
+      }
+      if (option.target === "AddEmpty") {
+        await addEmptyProjectConfElement(projectConfPath);
+      }
     });
   });
 
