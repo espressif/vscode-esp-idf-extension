@@ -75,7 +75,6 @@
   "param.espAdfPath": "Ruta del entorno de trabajo ESP-ADF (ADF_PATH)",
   "param.espMdfPath": "Ruta del entorno de trabajo ESP-MDF (MDF_PATH)",
   "param.espMatterPath": "Ruta del entorno del trabajo ESP-Matter (ESP_MATTER_PATH)",
-  "param.espMatterDevicePath": "Ruta del entorno del trabajo de dispositivo ESP-Matter (ESP_MATTER_DEVICE_PATH)",
   "param.cmakeCompilerArgs": "Argumentos para la tarea de compilación CMake",
   "param.ninjaArgs": "Argumentos para la tarea de construcción Ninja",
   "param.useIDFKConfigStyle": "Habilitar/Deshabilitar validación de estilo ESP-IDF para archivos Kconfig",

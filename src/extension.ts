@@ -706,50 +706,23 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!workspaceFolder) {
       return;
     }
-    const matterPathDir = idfConf.readParameter(
-      "idf.espMatterPath",
-      workspaceFolder
-    ) as string;
-    const devicesContainerPath = path.join(
-      matterPathDir,
-      "device_hal",
-      "device"
-    );
-    let devicesToPick: string[] = [];
-    const doesDevicesPathExists = await pathExists(devicesContainerPath);
-    if (doesDevicesPathExists) {
-      const devicesFromEspMatter = utils.getDirectories(devicesContainerPath);
-      devicesToPick = [...devicesFromEspMatter];
-    }
-    devicesToPick = devicesToPick.concat(
-      "Enter ESP_MATTER_DEVICE_PATH manually..."
-    );
-    const selectedDevice = await vscode.window.showQuickPick(devicesToPick);
-    if (!selectedDevice) {
+    const customMatterDevicePath = await vscode.window.showInputBox({
+      placeHolder: "Enter ESP_MATTER_DEVICE_PATH path",
+    });
+    if (!customMatterDevicePath) {
       return;
     }
-    if (devicesToPick[devicesToPick.length - 1] === selectedDevice) {
-      const customMatterDevicePath = await vscode.window.showInputBox({
-        placeHolder: "Enter ESP_MATTER_DEVICE_PATH path",
-        value: devicesContainerPath,
-      });
-      if (!customMatterDevicePath) {
-        return;
-      }
-      await idfConf.writeParameter(
-        "idf.espMatterDevicePath",
-        customMatterDevicePath,
-        configurationTarget,
-        workspaceFolder.uri
-      );
-    } else {
-      await idfConf.writeParameter(
-        "idf.espMatterDevicePath",
-        path.join(devicesContainerPath, selectedDevice),
-        configurationTarget,
-        workspaceFolder.uri
-      );
-    }
+    const customVarsString = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceFolder
+    ) as { [key: string]: string };
+    customVarsString["ESP_MATTER_DEVICE_PATH"] = customMatterDevicePath;
+    await idfConf.writeParameter(
+      "idf.customExtraVars",
+      customVarsString,
+      configurationTarget,
+      workspaceFolder.uri
+    );
   });
 
   registerIDFCommand("espIdf.selectPort", () => {

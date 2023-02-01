@@ -136,16 +136,14 @@ These settings are specific to [Application Log Tracing](./HEAP_TRACING.md).
 
 These settings allow to support additional frameworks together with ESP-IDF:
 
-| Setting ID                   | Description                                                      |
-| ---------------------------- | ---------------------------------------------------------------- |
-| `idf.espAdfPath`             | Path to locate ESP-ADF framework (ADF_PATH)                      |
-| `idf.espAdfPathWin`          | Path to locate ESP-ADF framework in Windows (ADF_PATH)           |
-| `idf.espMdfPath`             | Path to locate ESP-MDF framework (MDF_PATH)                      |
-| `idf.espMdfPathWin`          | Path to locate ESP-MDF framework in Windows (MDF_PATH)           |
-| `idf.espMatterPath`          | Path to locate ESP-Matter framework (ESP_MATTER_PATH)            |
-| `idf.espMatterPathWin`       | Path to locate ESP-Matter framework in Windows (ESP_MATTER_PATH) |
-| `idf.espMatterDevicePath`    | Path to locate ESP-Matter device (ESP_MATTER_PATH)               |
-| `idf.espMatterDevicePathWin` | Path to locate ESP-Matter device in Windows (ESP_MATTER_PATH)    |
+| Setting ID             | Description                                                      |
+| ---------------------- | ---------------------------------------------------------------- |
+| `idf.espAdfPath`       | Path to locate ESP-ADF framework (ADF_PATH)                      |
+| `idf.espAdfPathWin`    | Path to locate ESP-ADF framework in Windows (ADF_PATH)           |
+| `idf.espMdfPath`       | Path to locate ESP-MDF framework (MDF_PATH)                      |
+| `idf.espMdfPathWin`    | Path to locate ESP-MDF framework in Windows (MDF_PATH)           |
+| `idf.espMatterPath`    | Path to locate ESP-Matter framework (ESP_MATTER_PATH)            |
+| `idf.espMatterPathWin` | Path to locate ESP-Matter framework in Windows (ESP_MATTER_PATH) |
 
 The **Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
 The **Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).

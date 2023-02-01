@@ -389,12 +389,6 @@
             "description": "%param.espMatterPath%",
             "scope": "resource"
           },
-          "idf.espMatterDevicePath": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_DEVICE_PATH}",
-            "description": "%param.espMatterDevicePath%",
-            "scope": "resource"
-          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
@@ -423,12 +417,6 @@
             "type": "string",
             "default": "${env:ESP_MATTER_PATH}",
             "description": "%param.espMatterPath%",
-            "scope": "resource"
-          },
-          "idf.espMatterDevicePathWin": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_DEVICE_PATH}",
-            "description": "%param.espMatterDevicePath%",
             "scope": "resource"
           },
           "idf.toolsPathWin": {
@@ -520,7 +508,7 @@
             "scope": "resource"
           },
           "idf.sdkconfigDefaults": {
-            "type":"array",
+            "type": "array",
             "default": [],
             "description": "%param.sdkconfigDefaults%",
             "scope": "resource"
@@ -544,9 +532,14 @@
             "scope": "resource"
           },
           "idf.customExtraVars": {
-            "type": "string",
             "description": "%param.exportVars%",
-            "scope": "resource"
+            "scope": "resource",
+            "type": "object",
+            "default": {},
+            "additionalProperties": {
+              "type": "string",
+              "description": "Env value"
+            }
           },
           "idf.useIDFKconfigStyle": {
             "type": "boolean",

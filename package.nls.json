@@ -71,7 +71,6 @@
   "param.espAdfPath": "Path to locate ESP-ADF framework (ADF_PATH)",
   "param.espMdfPath": "Path to locate ESP-MDF framework (MDF_PATH)",
   "param.espMatterPath": "Path to locate ESP-Matter framework (ESP_MATTER_PATH)",
-  "param.espMatterDevicePath": "Path to locate ESP-Matter device (ESP_MATTER_DEVICE_PATH)",
   "param.toolsPath": "Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)",
   "param.exportPaths": "Paths to be appended to PATH",
   "param.exportVars": "Variables to be added to system environment variables",

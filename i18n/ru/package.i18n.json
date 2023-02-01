@@ -71,7 +71,6 @@
   "param.espAdfPath": "Путь фреймворка ESP-ADF (ADF_PATH)",
   "param.espMdfPath": "Путь фреймворка ESP-MDF (MDF_PATH)",
   "param.espMatterPath": "Путь фреймворка ESP-Matter (ESP_MATTER_PATH)",
-  "param.espMatterDevicePath": "Путь фреймворка ESP-Matter device (ESP_MATTER_DEVICE_PATH)",
   "param.toolsPath": "Путь инструментов ESP-IDF (IDF_TOOLS_PATH)",
   "param.exportPaths": "Пути, добавляемые к PATH",
   "param.exportVars": "Переменные, которые нужно добавить к системным переменным окружения",

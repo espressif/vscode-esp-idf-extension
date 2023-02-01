@@ -147,7 +147,6 @@
     "param.espAdfPath",
     "param.espMdfPath",
     "param.espMatterPath",
-    "param.espMatterDevicePath",
     "param.toolsPath",
     "param.exportPaths",
     "param.exportVars",

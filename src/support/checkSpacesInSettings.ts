@@ -32,10 +32,6 @@ export function checkSpacesInSettings(reportedResult: reportObj) {
     reportedResult.configurationSettings.espMatterPath
   );
 
-  reportedResult.configurationSpacesValidation.espMatterDevicePath = checkSpacesInPath(
-    reportedResult.configurationSettings.espMatterDevicePath
-  );
-
   reportedResult.configurationSpacesValidation.espMdfPath = checkSpacesInPath(
     reportedResult.configurationSettings.espMdfPath
   );
