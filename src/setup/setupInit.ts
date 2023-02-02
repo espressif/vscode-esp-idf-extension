@@ -36,7 +36,7 @@ export interface ISetupInitArgs {
   espIdfVersion: string;
   espToolsPath: string;
   exportedPaths: string;
-  exportedVars: string;
+  exportedVars: { [key: string]: string };
   espIdfVersionsList: IEspIdfLink[];
   espIdfTagsList: IEspIdfLink[];
   gitPath: string;
@@ -448,7 +448,7 @@ export async function saveSettings(
   espIdfPath: string,
   pythonBinPath: string,
   exportedPaths: string,
-  exportedVars: string,
+  exportedVars: { [key: string]: string },
   toolsPath: string,
   gitPath: string
 ) {

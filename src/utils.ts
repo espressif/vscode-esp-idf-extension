@@ -897,16 +897,15 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     curWorkspace
   );
 
-  const customVarsString = idfConf.readParameter(
+  const customVars = idfConf.readParameter(
     "idf.customExtraVars",
     curWorkspace
   ) as { [key: string]: string };
-  if (customVarsString) {
+  if (customVars) {
     try {
-      // const customVars = JSON.parse(customVarsString);
-      for (const envVar in customVarsString) {
+      for (const envVar in customVars) {
         if (envVar) {
-          modifiedEnv[envVar] = customVarsString[envVar];
+          modifiedEnv[envVar] = customVars[envVar];
         }
       }
     } catch (error) {

@@ -273,7 +273,7 @@ export class IdfToolsManager {
   }
 
   public async exportVars(basePath: string, onReqPkgs?: string[]) {
-    const exportedVars = {};
+    const exportedVars: { [key: string]: string } = {};
     const pkgs = await this.getPackageList(onReqPkgs);
     for (const pkg of pkgs) {
       const pkgVars = this.exportVarsForPkg(pkg, basePath);
@@ -283,7 +283,7 @@ export class IdfToolsManager {
         }
       });
     }
-    return JSON.stringify(exportedVars);
+    return exportedVars;
   }
 
   public exportVarsForPkg(pkg: IPackage, basePath: string) {

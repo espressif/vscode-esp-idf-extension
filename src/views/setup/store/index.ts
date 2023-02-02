@@ -32,7 +32,7 @@ export interface IState {
   espIdfVersionList: IEspIdfLink[];
   espIdfTags: IEspIdfLink[];
   exportedToolsPaths: string;
-  exportedVars: string;
+  exportedVars: { [key: string]: string };
   gitVersion: string;
   hasPrerequisites: boolean;
   idfDownloadStatus: IDownload;
@@ -71,7 +71,7 @@ export const setupState: IState = {
   espIdfVersionList: [],
   espIdfTags: [],
   exportedToolsPaths: "",
-  exportedVars: "",
+  exportedVars: {},
   gitVersion: "",
   hasPrerequisites: false,
   idfDownloadStatus: {

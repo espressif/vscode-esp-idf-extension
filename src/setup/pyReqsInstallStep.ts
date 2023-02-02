@@ -26,7 +26,7 @@ export async function createPyReqs(
   toolsPath: string,
   pyPath: string,
   exportPaths: string,
-  exportVars: string,
+  exportVars: { [key: string]: string },
   gitPath: string,
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken
