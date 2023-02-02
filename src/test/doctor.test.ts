@@ -170,7 +170,7 @@ suite("Doctor command tests", () => {
       reportObj.configurationSettings.customExtraPaths,
       settingsJsonObj["idf.customExtraPaths"]
     );
-    assert.equal(
+    assert.deepEqual(
       reportObj.configurationSettings.customExtraVars,
       settingsJsonObj["idf.customExtraVars"]
     );
