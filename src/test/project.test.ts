@@ -161,7 +161,7 @@ suite("Project tests", () => {
     assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
     assert.equal(
       newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"],
-      process.env.OPENOCD_SCRIPTS
+      "${env:OPENOCD_SCRIPTS}"
     );
   });
 
