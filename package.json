@@ -508,7 +508,7 @@
             "scope": "resource"
           },
           "idf.sdkconfigDefaults": {
-            "type":"array",
+            "type": "array",
             "default": [],
             "description": "%param.sdkconfigDefaults%",
             "scope": "resource"
@@ -532,9 +532,14 @@
             "scope": "resource"
           },
           "idf.customExtraVars": {
-            "type": "string",
             "description": "%param.exportVars%",
-            "scope": "resource"
+            "scope": "resource",
+            "type": "object",
+            "default": {},
+            "additionalProperties": {
+              "type": "string",
+              "description": "Env value"
+            }
           },
           "idf.useIDFKconfigStyle": {
             "type": "boolean",
@@ -1140,6 +1145,11 @@
       {
         "command": "espIdf.welcome.start",
         "title": "%espIdf.welcome.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.setMatterDevicePath",
+        "title": "%espIdf.setMatterDevicePath.title%",
         "category": "ESP-IDF"
       }
     ],

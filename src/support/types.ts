@@ -34,7 +34,7 @@ export class Configuration {
   espMdfPath: string;
   espMatterPath: string;
   customExtraPaths: string;
-  customExtraVars: string;
+  customExtraVars: { [key: string]: string };
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];
   serialPort: string;

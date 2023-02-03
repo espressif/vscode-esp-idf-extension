@@ -53,6 +53,7 @@
   "espIdf.createDevContainer.title": "Добавить конфигурацию контейнера докеров",
   "espIdf.partition.table.refresh.title": "Обновить таблицу разделов",
   "espIdf.flashBinaryToPartition.title": "Прошить двоичный файл для раздела ...",
+  "espIdf.setMatterDevicePath.title": "Установить путь к устройству ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Выполнить настраиваемую задачу",
   "espIdf.welcome.title": "Добро пожаловать",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",

@@ -32,7 +32,7 @@ export async function setCurrentSettingsInTemplate(
   const adfPathDir = readParameter("idf.espAdfPath", workspace);
   const mdfPathDir = readParameter("idf.espMdfPath", workspace);
   const extraPaths = readParameter("idf.customExtraPaths", workspace);
-  const extraVars = readParameter("idf.customExtraVars", workspace) as string;
+  const extraVars = readParameter("idf.customExtraVars", workspace);
   const toolsDir = readParameter("idf.toolsPath", workspace);
   const pyPath = readParameter("idf.pythonBinPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";

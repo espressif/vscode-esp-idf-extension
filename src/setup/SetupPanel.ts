@@ -447,7 +447,7 @@ export class SetupPanel {
         return prev + path.delimiter + curr.path;
       }, "")
       .slice(1);
-    const exportedVars = {};
+    const exportedVars: { [key: string]: string } = {};
     for (let tool of toolsInfo) {
       for (let envKey of Object.keys(tool.env)) {
         if (Object.keys(exportedVars).indexOf(envKey) === -1) {
@@ -455,8 +455,7 @@ export class SetupPanel {
         }
       }
     }
-    const exportedVarsStr = JSON.stringify(exportedVars);
-    return { exportedPaths, exportedVars: exportedVarsStr };
+    return { exportedPaths, exportedVars };
   }
 
   private async installEspIdfTools(
@@ -522,7 +521,7 @@ export class SetupPanel {
     toolsPath: string,
     pyPath: string,
     exportPaths: string,
-    exportVars: string,
+    exportVars: { [key: string]: string },
     gitPath: string
   ) {
     return await vscode.window.withProgress(

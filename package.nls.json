@@ -53,6 +53,7 @@
   "espIdf.createDevContainer.title": "Add docker container configuration",
   "espIdf.partition.table.refresh.title": "Refresh partition table",
   "espIdf.flashBinaryToPartition.title": "Flash binary to partition...",
+  "espIdf.setMatterDevicePath.title": "Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Execute custom task",
   "espIdf.welcome.title": "Welcome",
   "esp.component-manager.ui.show.title": "Show Component Registry",

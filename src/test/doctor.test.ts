@@ -170,7 +170,7 @@ suite("Doctor command tests", () => {
       reportObj.configurationSettings.customExtraPaths,
       settingsJsonObj["idf.customExtraPaths"]
     );
-    assert.equal(
+    assert.deepEqual(
       reportObj.configurationSettings.customExtraVars,
       settingsJsonObj["idf.customExtraVars"]
     );
@@ -307,7 +307,12 @@ suite("Doctor command tests", () => {
     expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
-    expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
+    if (reportObj.configurationSettings.customExtraVars && Object.keys(reportObj.configurationSettings.customExtraVars)) {
+      expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
+      for (let key in reportObj.configurationSettings.customExtraVars) {
+        expectedOutput += `${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;
+      }
+    }
     expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;

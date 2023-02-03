@@ -36,7 +36,7 @@ export interface ISetupInitArgs {
   espIdfVersion: string;
   espToolsPath: string;
   exportedPaths: string;
-  exportedVars: string;
+  exportedVars: { [key: string]: string };
   espIdfVersionsList: IEspIdfLink[];
   espIdfTagsList: IEspIdfLink[];
   gitPath: string;
@@ -260,7 +260,12 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
     return false;
   }
   let requirements: string;
-  requirements = path.join(espIdfPath, "tools", "requirements", "requirements.core.txt");
+  requirements = path.join(
+    espIdfPath,
+    "tools",
+    "requirements",
+    "requirements.core.txt"
+  );
   const coreRequirementsExists = await pathExists(requirements);
   if (!coreRequirementsExists) {
     requirements = path.join(espIdfPath, "requirements.txt");
@@ -287,7 +292,7 @@ export async function getSetupInitialValues(
 ) {
   progress.report({ increment: 20, message: "Getting ESP-IDF versions..." });
   const espIdfVersionsList = await getEspIdfVersions(extensionPath);
-  progress.report({ increment: 10, message: "Getting ESP-IDF Tags"});
+  progress.report({ increment: 10, message: "Getting ESP-IDF Tags" });
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
@@ -382,6 +387,30 @@ function getToolIndex(toolName: string, toolsResults: IEspIdfTool[]) {
     : -1;
 }
 
+function updateCustomExtraVars(workspaceFolder: Uri) {
+  const extraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  );
+  if (typeof extraVars === "string") {
+    try {
+      const extraVarsObj = JSON.parse(extraVars);
+      const target = idfConf.readParameter("idf.saveScope");
+      idfConf.writeParameter(
+        "idf.customExtraVars",
+        extraVarsObj,
+        target,
+        workspaceFolder
+      );
+    } catch (err) {
+      const msg = err.message
+        ? err.message
+        : "Error changing idf.customExtraVars from string to object";
+      Logger.errorNotify(msg, err);
+    }
+  }
+}
+
 export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
@@ -397,6 +426,11 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     "idf.customExtraPaths",
     workspaceFolder
   ) as string;
+
+  // FIX idf.customExtraVars from string to object
+  // REMOVE THIS LINE after next release
+  updateCustomExtraVars(workspaceFolder);
+
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   const gitPath =
     idfConf.readParameter("idf.gitPath", workspaceFolder) || "git";
@@ -448,7 +482,7 @@ export async function saveSettings(
   espIdfPath: string,
   pythonBinPath: string,
   exportedPaths: string,
-  exportedVars: string,
+  exportedVars: { [key: string]: string },
   toolsPath: string,
   gitPath: string
 ) {
@@ -499,4 +533,3 @@ export async function saveSettings(
   );
   window.showInformationMessage("ESP-IDF has been configured");
 }
-

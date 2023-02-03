@@ -159,12 +159,9 @@ suite("Project tests", () => {
     assert.ok(newSettingsJson["idf.pythonBinPath"].indexOf("python") !== -1);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
     assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
-    const newSettingsJsonVars = JSON.parse(
-      newSettingsJson["idf.customExtraVars"]
-    );
     assert.equal(
-      newSettingsJsonVars["OPENOCD_SCRIPTS"],
-      process.env.OPENOCD_SCRIPTS
+      newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"],
+      "${env:OPENOCD_SCRIPTS}"
     );
   });
 

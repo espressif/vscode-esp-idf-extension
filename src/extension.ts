@@ -698,6 +698,33 @@ export async function activate(context: vscode.ExtensionContext) {
     getEspMatter(workspaceRoot)
   );
 
+  registerIDFCommand("espIdf.setMatterDevicePath", async () => {
+    const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+    let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
+      placeHolder: `Pick Workspace Folder to which settings should be applied`,
+    });
+    if (!workspaceFolder) {
+      return;
+    }
+    const customMatterDevicePath = await vscode.window.showInputBox({
+      placeHolder: "Enter ESP_MATTER_DEVICE_PATH path",
+    });
+    if (!customMatterDevicePath) {
+      return;
+    }
+    const customVarsString = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceFolder
+    ) as { [key: string]: string };
+    customVarsString["ESP_MATTER_DEVICE_PATH"] = customMatterDevicePath;
+    await idfConf.writeParameter(
+      "idf.customExtraVars",
+      customVarsString,
+      configurationTarget,
+      workspaceFolder.uri
+    );
+  });
+
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
       SerialPort.shared().promptUserToSelect(workspaceRoot)

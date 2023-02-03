@@ -55,6 +55,7 @@
   "esp.component-manager.cli.addDependencyError": "Error al agregar dependencias al componente",
   "espIdf.partition.table.refresh.title": "Actualizar tabla de particiones",
   "espIdf.flashBinaryToPartition.title": "Programar binarios a la partición...",
+  "espIdf.setMatterDevicePath.title": "Definir la ruta de ESP-MATTER Device (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Ejecutar tarea personalizada",
   "espIdf.welcome.title": "Bienvenido/a",
   "debug.initConfig.name": "Lanzar Depuracion ESP-IDF:",

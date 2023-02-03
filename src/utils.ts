@@ -897,13 +897,12 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     curWorkspace
   );
 
-  const customVarsString = idfConf.readParameter(
+  const customVars = idfConf.readParameter(
     "idf.customExtraVars",
     curWorkspace
-  ) as string;
-  if (customVarsString) {
+  ) as { [key: string]: string };
+  if (customVars) {
     try {
-      const customVars = JSON.parse(customVarsString);
       for (const envVar in customVars) {
         if (envVar) {
           modifiedEnv[envVar] = customVars[envVar];
@@ -915,18 +914,18 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   }
 
   const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+    process.platform === "win32" ? modifiedEnv.USERPROFILE : modifiedEnv.HOME;
   const defaultEspIdfPath = path.join(containerPath, "esp", "esp-idf");
 
   const idfPathDir = idfConf.readParameter("idf.espIdfPath", curWorkspace);
   modifiedEnv.IDF_PATH =
-    idfPathDir || process.env.IDF_PATH || defaultEspIdfPath;
+    idfPathDir || modifiedEnv.IDF_PATH || defaultEspIdfPath;
 
   const adfPathDir = idfConf.readParameter("idf.espAdfPath", curWorkspace);
-  modifiedEnv.ADF_PATH = adfPathDir || process.env.ADF_PATH;
+  modifiedEnv.ADF_PATH = adfPathDir || modifiedEnv.ADF_PATH;
 
   const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
-  modifiedEnv.MDF_PATH = mdfPathDir || process.env.MDF_PATH;
+  modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
 
   const defaultToolsPath = path.join(containerPath, ".espressif");
   const toolsPath = idfConf.readParameter(
@@ -935,7 +934,7 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   ) as string;
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
   const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
-  modifiedEnv.ESP_MATTER_PATH = matterPathDir || process.env.ESP_MATTER_PATH;
+  modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
 
   let pathToPigweed: string;
 
@@ -948,12 +947,6 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "cipd",
       "packages",
       "pigweed"
-    );
-    modifiedEnv.ESP_MATTER_DEVICE_PATH = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "device_hal",
-      "device",
-      "m5stack"
     );
   }
 

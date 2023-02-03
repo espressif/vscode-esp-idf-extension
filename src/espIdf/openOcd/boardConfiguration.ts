@@ -71,12 +71,11 @@ export function getOpenOcdScripts(workspace: Uri): string {
   const customExtraVars = idfConf.readParameter(
     "idf.customExtraVars",
     workspace
-  );
+  ) as { [key: string]: string };
   let openOcdScriptsPath: string;
   try {
-    const jsonDict = JSON.parse(customExtraVars);
-    openOcdScriptsPath = jsonDict.hasOwnProperty("OPENOCD_SCRIPTS")
-      ? jsonDict.OPENOCD_SCRIPTS
+    openOcdScriptsPath = customExtraVars.hasOwnProperty("OPENOCD_SCRIPTS")
+      ? customExtraVars.OPENOCD_SCRIPTS
       : process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
       : undefined;

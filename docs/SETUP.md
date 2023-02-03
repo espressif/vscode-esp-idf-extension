@@ -77,7 +77,9 @@ MacOS/Linux
 {
   "idf.espIdfPath": "path/to/esp-idf",
   "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"OPENOCD_FOLDER/share/openocd/scripts\"}",
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
+  },
   "idf.pythonBinPath": "PYTHON_INTERPRETER",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
@@ -93,7 +95,9 @@ Windows
 {
   "idf.espIdfPathWin": "path/to/esp-idf",
   "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"OPENOCD_FOLDER/share/openocd/scripts\"}",
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
+  },
   "idf.pythonBinPathWin": "PYTHON_INTERPRETER",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
@@ -165,10 +169,12 @@ you need to set in `idf.customExtraPaths`:
 C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin;C:\Users\myUser\.espressif\tools\xtensa-esp32\version\xtensa-esp32\bin
 ```
 
-`idf.customExtraVars` is an stringified JSON object saved in Visual Studio Code's settings.json (**Make sure to replace \${TOOL_PATH} with the existing tool directory path**):
+`idf.customExtraVars` is an JSON object saved in Visual Studio Code's settings.json (**Make sure to replace \${TOOL_PATH} with the existing tool directory path**):
 
-```
-"idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"/home/myUser/.espressif/tools/openocd-esp32/version/openocd-esp32/share/openocd/scripts\"}"
+```json
+"idf.customExtraVars": {
+  "OPENOCD_SCRIPTS":"/home/myUser/.espressif/tools/openocd-esp32/version/openocd-esp32/share/openocd/scripts"
+  }
 ```
 
 The list of required ESP-IDF Tools (`idf.customExtraPaths`) and environment variables (`idf.customExtraVars`) can be found in `$IDF_PATH/tools/tools.json`
