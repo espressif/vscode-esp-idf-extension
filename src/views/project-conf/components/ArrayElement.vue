@@ -1,12 +1,11 @@
 <template>
-  <div>
+  <div class="array-element">
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.id" class="label">{{ el.title }} </label>
-        <a class="delete" @click="del"></a>
+        <label class="label">{{ el.title }} </label>
       </div>
       <ul>
-        <li v-for="v in el.value" :key="v" class="field is-grouped">
+        <li v-for="v in el.values" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
             <iconify-icon icon="close" />
@@ -33,12 +32,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
-export default class CMakeListsArrayElement extends Vue {
-  @Prop() public el: CmakeListsElement;
+export default class ArrayElement extends Vue {
+  @Prop() public el: { title: string; values: string[] };
   private valueToPush: string;
 
   get elementValueToPush() {
@@ -48,20 +46,17 @@ export default class CMakeListsArrayElement extends Vue {
     this.valueToPush = newVal;
   }
 
-  public removeFromArray(value) {
-    const index = this.el.value.indexOf(value);
-    this.el.value.splice(index, 1);
+  public removeFromArray(value: string) {
+    const index = this.el.values.indexOf(value);
+    this.el.values.splice(index, 1);
   }
 
   public addToArray() {
     if (!!this.valueToPush) {
-      this.el.value.push(this.valueToPush);
+      this.el.values.push(this.valueToPush);
       this.valueToPush = "";
     }
   }
-
-  @Emit("delete")
-  del() {}
 }
 </script>
 
@@ -71,5 +66,8 @@ export default class CMakeListsArrayElement extends Vue {
 }
 li.is-grouped .icon {
   margin-bottom: 0.5em;
+}
+.icon:hover {
+  background-color: var(--vscode-button-background);
 }
 </style>

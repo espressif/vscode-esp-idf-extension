@@ -1,9 +1,8 @@
 <template>
-  <div class="cmake-element">
+  <div class="project-element">
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.id" class="label">{{ el.title }} </label>
-        <a class="delete" @click="del"></a>
+        <label :for="el.value" class="label">{{ el.title }} </label>
       </div>
     </div>
     <div class="field">
@@ -15,14 +14,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class CMakeListElement extends Vue {
-  @Prop() public el: CmakeListsElement;
+  @Prop() public el: { title: string; value: string };
 
-  @Emit("delete")
-  del() {}
+  del() {
+    this.el.value = "";
+  }
 }
 </script>

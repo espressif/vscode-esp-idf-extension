@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 6th January 2023 3:56:21 pm
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,32 +19,52 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import { ActionTree, MutationTree, StoreOptions } from "vuex";
+import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
 
 Vue.use(Vuex);
 
 export interface IState {
-  elements: {}[];
-  emptyElements: {}[];
-  selectedElement: {};
+  elements: { [key: string]: ProjectConfElement };
+  emptyElement: ProjectConfElement;
   textDictionary: {
     add: string;
     save: string;
     discard: string;
     title: string;
-  }
+  };
 }
 
-export const projectConfigState : IState = {
-  elements: [],
-  emptyElements: [],
-  selectedElement: {},
+export const projectConfigState: IState = {
+  elements: {},
+  emptyElement: {
+    build: {
+      compileArgs: [],
+      ninjaArgs: [],
+      buildDirectoryPath: "",
+      sdkconfigDefaults: [],
+    },
+    env: {},
+    flashBaudRate: "",
+    idfTarget: "",
+    openOCD: {
+      debugLevel: 0,
+      configs: [],
+      args: [],
+    },
+    tasks: {
+      preBuild: "",
+      preFlash: "",
+      postBuild: "",
+      postFlash: "",
+    },
+  },
   textDictionary: {
     add: "Add",
     discard: "Discard",
     save: "Save",
-    title: "Project Configuration"
-  }
-}
+    title: "Project Configuration",
+  },
+};
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -57,8 +77,14 @@ try {
 
 export const actions: ActionTree<IState, any> = {
   requestInitValues(context) {
-    vscode.postMessage({ command: "requestInitialValues" })
-  }
+    vscode.postMessage({ command: "requestInitialValues" });
+  },
+  saveChanges(context) {
+    vscode.postMessage({
+      command: "saveProjectConfFile",
+      confList: context.state.elements,
+    });
+  },
 };
 
 export const mutations: MutationTree<IState> = {
@@ -66,13 +92,23 @@ export const mutations: MutationTree<IState> = {
     const newState = state;
     newState.textDictionary = textDictionary;
     state = { ...newState };
-  }
-}
+  },
+  setConfigList(state, confList) {
+    const newState = state;
+    newState.elements = confList;
+    state = { ...newState };
+  },
+  addNewConfigToList(state, confKey: string) {
+    const newState = state;
+    newState.elements[confKey] = state.emptyElement;
+    state = { ...newState };
+  },
+};
 
 export const options: StoreOptions<IState> = {
   actions,
   mutations,
-  state: projectConfigState
+  state: projectConfigState,
 };
 
 export const store = new Vuex.Store(options);

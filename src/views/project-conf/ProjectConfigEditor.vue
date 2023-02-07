@@ -6,32 +6,7 @@
 
     <div class="field level">
       <div class="level-left align-flex-end">
-        <div class="level-item">
-          <div class="field">
-            <div class="control">
-              <label for="" class="label is-small">New element</label>
-            </div>
-            <div class="control">
-              <div class="select">
-                <select v-model="elementToAdd">
-                  <option v-for="el in emptyElements" :key="el.id" :value="el">
-                    {{ el.title }}
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="level-item">
-          <div class="field">
-            <div class="control">
-              <button class="button" @click="addElement">
-                {{ add }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <div class="level-item"></div>
       </div>
 
       <div class="level-right">
@@ -55,13 +30,33 @@
     </div>
 
     <div class="notification">
-      <projectConfElem
-        v-for="(el, i) in elements"
-        :key="el.id"
-        :el="el"
-        @delete="deleteEl(i)"
-       ></projectConfElem>
+      <label :for="keyToAdd" class="label">Enter new configuration name</label>
+      <div class="field">
+        <div class="control">
+          <input
+            type="text is-small"
+            v-model="keyToAdd"
+            class="input"
+            @keyup.enter="addElement"
+          />
+        </div>
+      </div>
+      <div class="field">
+        <div class="control">
+          <button class="button" @click="addElement">
+            {{ add }}
+          </button>
+        </div>
+      </div>
     </div>
+
+    <projectConfElem
+      v-for="confKey in Object.keys(elements)"
+      :key="confKey"
+      :el="elements[confKey]"
+      :title="confKey"
+      @delete="deleteElem(confKey)"
+    ></projectConfElem>
   </div>
 </template>
 
@@ -69,20 +64,22 @@
 import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import projectConfElem from "./components/projectConfElem.vue";
+import { ProjectConfElement } from "../..//project-conf/projectConfiguration";
 
 @Component({
   components: {
     projectConfElem,
-  }
+  },
 })
 export default class ProjectConfigEditor extends Vue {
-  @State('elements') private storeElements: projectConfElem[];
-  @State("emptyElements") private storeEmptyElements: projectConfElem[];
-  @State("selectedElement") private storeSelectedElement: projectConfElem;
+  @State("elements") private storeElements: {
+    [key: string]: ProjectConfElement;
+  };
   @State("textDictionary") private storeTextDictionary;
   @Action private requestInitValues: () => void;
   @Action private saveChanges: () => void;
-  @Mutation setElementToAdd: (el: projectConfElem) => void;
+  @Mutation private addNewConfigToList: (confKey: string) => void;
+  private keyToAdd: string = "";
 
   get add() {
     return this.storeTextDictionary.add;
@@ -93,7 +90,7 @@ export default class ProjectConfigEditor extends Vue {
   }
 
   get cancel() {
-    return this.storeTextDictionary.cancel;
+    return this.storeTextDictionary.discard;
   }
 
   get title() {
@@ -104,25 +101,18 @@ export default class ProjectConfigEditor extends Vue {
     return this.storeElements;
   }
 
-  get emptyElements() {
-    return this.storeEmptyElements;
+  addElement() {
+    this.addNewConfigToList(this.keyToAdd);
+    this.keyToAdd = "";
   }
 
-  get elementToAdd() {
-    return this.storeSelectedElement;
-  }
-  set elementToAdd(el: projectConfElem) {
-    this.setElementToAdd(el);
-  }
-
-  deleteElem(i: number) {
-    this.storeElements.splice(i, 1);
+  deleteElem(k: string) {
+    this.$delete(this.storeElements, k);
   }
 
   mounted() {
     this.requestInitValues();
   }
-
 }
 </script>
 

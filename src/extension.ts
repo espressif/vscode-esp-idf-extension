@@ -893,7 +893,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.projectConfigurationPanel", async () => {
+  registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
         if (projectConfigurationPanel.isCreatedAndHidden()) {
@@ -937,7 +937,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
+  registerIDFCommand("espIdf.projectConf", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       const projectConfPath = path.join(workspaceRoot.fsPath, "esp-idf.toml");
       const result = await getConfAsObj(projectConfPath);

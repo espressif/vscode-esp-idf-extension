@@ -42,7 +42,10 @@ window.addEventListener("message", (event) => {
         store.commit("command", message.value);
       }
       break;
-  
+    case "initialLoad":
+      if (message.confList) {
+        store.commit("setConfigList", message.confList);
+      }
     default:
       break;
   }

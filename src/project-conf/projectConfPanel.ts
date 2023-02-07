@@ -88,7 +88,7 @@ export class projectConfigurationPanel {
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
-      Uri.file(join(extensionPath, "dist", "views", "project-conf-bundle.js"))
+      Uri.file(join(extensionPath, "dist", "views", "project_conf-bundle.js"))
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
