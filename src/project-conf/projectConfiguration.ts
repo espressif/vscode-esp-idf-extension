@@ -29,6 +29,7 @@ export interface ProjectConfElement extends JsonMap {
   env: { [key: string]: string };
   flashBaudRate: string;
   idfTarget: string;
+  customIdfTarget: string;
   openOCD: {
     debugLevel: number;
     configs: string[];
@@ -53,6 +54,7 @@ export function createNewProjectConfElement() {
     env: {},
     flashBaudRate: "",
     idfTarget: "",
+    customIdfTarget: "",
     openOCD: {
       debugLevel: 0,
       configs: [],
@@ -95,6 +97,7 @@ export async function getConfAsObj(filePath: string) {
       },
       flashBaudRate: confObj[confKey]["flashBaudRate"],
       idfTarget: confObj[confKey]["idfTarget"],
+      customIdfTarget: confObj[confKey]["customIdfTarget"],
       openOCD: {
         args: confObj[confKey]["openOCD"]
           ? confObj[confKey]["openOCD"]["args"]

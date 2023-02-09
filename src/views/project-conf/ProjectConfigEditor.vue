@@ -53,7 +53,7 @@
     <projectConfElem
       v-for="confKey in Object.keys(elements)"
       :key="confKey"
-      :el="elements[confKey]"
+      :el.sync="elements[confKey]"
       :title="confKey"
       @delete="deleteElem(confKey)"
     ></projectConfElem>

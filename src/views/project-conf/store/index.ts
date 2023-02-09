@@ -46,6 +46,7 @@ export const projectConfigState: IState = {
     env: {},
     flashBaudRate: "",
     idfTarget: "",
+    customIdfTarget: "",
     openOCD: {
       debugLevel: 0,
       configs: [],
@@ -82,7 +83,7 @@ export const actions: ActionTree<IState, any> = {
   saveChanges(context) {
     vscode.postMessage({
       command: "saveProjectConfFile",
-      confList: context.state.elements,
+      confDict: context.state.elements,
     });
   },
 };
@@ -103,6 +104,15 @@ export const mutations: MutationTree<IState> = {
     newState.elements[confKey] = state.emptyElement;
     state = { ...newState };
   },
+  updateConfigElement(state, payload: {confKey: string, sections: string[], newValue: any}) {
+    const newState = state;
+    if (payload.sections && payload.sections.length === 1) {
+      newState.elements[payload.confKey][payload.sections[0]] = payload.newValue;
+    } else if (payload.sections && payload.sections.length === 2) {
+      newState.elements[payload.confKey][payload.sections[0]][payload.sections[1]] = payload.newValue;
+    }
+    state = { ...newState };
+  }
 };
 
 export const options: StoreOptions<IState> = {
