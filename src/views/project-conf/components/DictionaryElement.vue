@@ -2,21 +2,21 @@
   <div class="dictionary-element">
     <div class="field">
       <div class="control is-flex">
-        <label class="label">{{ el.title }} </label>
+        <label class="label">{{ title }} </label>
       </div>
       <ul class="small-margin">
         <li
-          v-for="confKey in Object.keys(el.elements)"
+          v-for="confKey in Object.keys(elements)"
           :key="confKey"
           class="field is-grouped"
         >
           <div class="control is-flex">
-            <label :for="el.value" class="label">{{ confKey }} :</label>
+            <label :for="elements[confKey]" class="label">{{ confKey }} :</label>
           </div>
           <div class="control">
             <input
               type="text is-small"
-              v-model="el.elements[confKey]"
+              v-model="elements[confKey]"
               class="input"
             />
           </div>
@@ -50,7 +50,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class DictionaryElement extends Vue {
-  @Prop() public el: { title: string; elements: { [key: string]: string } };
+  @Prop() public title: string;
+  @Prop() public elements: { [key: string]: string };
   private valueToPush: string = "";
 
   get keyToAdd() {
@@ -61,12 +62,12 @@ export default class DictionaryElement extends Vue {
   }
 
   public removeElement(dictKey: string) {
-    this.$delete(this.el.elements, dictKey);
+    this.$delete(this.elements, dictKey);
   }
 
   public addToDictionary() {
     if (this.valueToPush != "") {
-      this.el.elements[this.valueToPush] = "";
+      this.elements[this.valueToPush] = "";
       this.valueToPush = "";
     }
   }

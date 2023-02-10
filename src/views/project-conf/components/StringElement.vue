@@ -2,12 +2,12 @@
   <div class="project-element">
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.value" class="label">{{ el.title }} </label>
+        <label :for="value" class="label">{{ title }} </label>
       </div>
     </div>
     <div class="field">
       <div class="control">
-        <input type="text is-small" v-model="el.value" class="input" />
+        <input type="text is-small" v-model="stringValue" class="input" />
       </div>
     </div>
   </div>
@@ -18,10 +18,16 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class CMakeListElement extends Vue {
-  @Prop() public el: { title: string; value: string };
+  @Prop() public title: string;
+  @Prop() public value: string;
+  @Prop() public updateMethod: (sections: string[], newValue: any) => void;
+  @Prop() public sections: string[];
 
-  del() {
-    this.el.value = "";
+  get stringValue() {
+    return this.value;
+  }
+  set stringValue(newVal: any) {
+    this.updateMethod(this.sections, newVal);
   }
 }
 </script>

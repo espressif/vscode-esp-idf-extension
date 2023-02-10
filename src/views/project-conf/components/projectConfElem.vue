@@ -5,29 +5,36 @@
     <label class="is-size-4 has-text-weight-bold">Build</label>
     <div class="small-margin">
       <ArrayElement
-        :el="{ title: 'Compile arguments', values: el.build.compileArgs }"
+        title="Compile arguments"
+        :values="el.build.compileArgs"
+        :sections="['build', 'debugLevel']"
+        :updateMethod="updateElement"
       />
       <ArrayElement
-        :el="{ title: 'Ninja arguments', values: el.build.ninjaArgs }"
+        title="Ninja arguments"
+        :values="el.build.ninjaArgs"
+        :sections="['build', 'ninjaArgs']"
+        :updateMethod="updateElement"
       />
       <StringElement
-        :el="{
-          title: 'Build Directory path',
-          value: el.build.buildDirectoryPath,
-        }"
+        title="Build Directory path"
+        :value="el.build.buildDirectoryPath"
+        :sections="['build', 'buildDirectoryPath']"
+        :updateMethod="updateElement"
       />
       <ArrayElement
-        :el="{
-          title: 'sdkconfig defaults',
-          values: el.build.sdkconfigDefaults,
-        }"
+        title="sdkconfig defaults"
+        :values="el.build.sdkconfigDefaults"
+        :sections="['build', 'sdkconfigDefaults']"
+        :updateMethod="updateElement"
       />
     </div>
-    <DictionaryElement
-      :el="{ title: 'Environment variables', elements: el.env }"
-    />
+    <DictionaryElement title="Environment variables" :elements="el.env" />
     <StringElement
-      :el="{ title: 'Flash baud rate', value: el.flashBaudRate }"
+      title="Flash baud rate"
+      :value="el.flashBaudRate"
+      :sections="['flashBaudRate']"
+      :updateMethod="updateElement"
     />
     <SelectElement
       :selectValue.sync="el.idfTarget"
@@ -49,18 +56,36 @@
         :sections="['openOCD', 'debugLevel']"
         :updateMethod="updateElement"
       />
-      <ArrayElement
-        :el="{ title: 'Config files', values: el.openOCD.configs }"
-      />
-      <ArrayElement :el="{ title: 'Arguments', values: el.openOCD.args }" />
+      <ArrayElement title="Config files" :values="el.openOCD.configs" />
+      <ArrayElement title="Arguments" :values="el.openOCD.args" />
     </div>
 
     <label class="is-size-4 has-text-weight-bold">Tasks</label>
     <div class="small-margin">
-      <StringElement :el="{ title: 'Pre Build', value: el.tasks.preBuild }" />
-      <StringElement :el="{ title: 'Pre Flash', value: el.tasks.preFlash }" />
-      <StringElement :el="{ title: 'Post Build', value: el.tasks.postBuild }" />
-      <StringElement :el="{ title: 'Post Flash', value: el.tasks.postFlash }" />
+      <StringElement
+        title="Pre Build"
+        :value="el.tasks.preBuild"
+        :sections="['tasks', 'preBuild']"
+        :updateMethod="updateElement"
+      />
+      <StringElement
+        title="Pre Flash"
+        :value="el.tasks.preFlash"
+        :sections="['tasks', 'preFlash']"
+        :updateMethod="updateElement"
+      />
+      <StringElement
+        title="Post Build"
+        :value="el.tasks.postBuild"
+        :sections="['tasks', 'postBuild']"
+        :updateMethod="updateElement"
+      />
+      <StringElement
+        title="Post Flash"
+        :value="el.tasks.postFlash"
+        :sections="['tasks', 'postFlash']"
+        :updateMethod="updateElement"
+      />
     </div>
   </div>
 </template>

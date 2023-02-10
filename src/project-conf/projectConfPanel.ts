@@ -116,6 +116,7 @@ export class projectConfigurationPanel {
     filePath: string,
     projectConfDict: { [key: string]: ProjectConfElement }
   ) {
+    // clean empty elements
     const confStr = stringify(projectConfDict);
     await writeFile(filePath, confStr);
   }

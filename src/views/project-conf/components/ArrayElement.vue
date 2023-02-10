@@ -2,10 +2,10 @@
   <div class="array-element">
     <div class="field">
       <div class="control is-flex">
-        <label class="label">{{ el.title }} </label>
+        <label class="label">{{ title }} </label>
       </div>
       <ul>
-        <li v-for="v in el.values" :key="v" class="field is-grouped">
+        <li v-for="v in values" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
             <iconify-icon icon="close" />
@@ -36,7 +36,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class ArrayElement extends Vue {
-  @Prop() public el: { title: string; values: string[] };
+  @Prop() public title: string;
+  @Prop() public values: string[];
   private valueToPush: string;
 
   get elementValueToPush() {
@@ -47,13 +48,13 @@ export default class ArrayElement extends Vue {
   }
 
   public removeFromArray(value: string) {
-    const index = this.el.values.indexOf(value);
-    this.el.values.splice(index, 1);
+    const index = this.values.indexOf(value);
+    this.values.splice(index, 1);
   }
 
   public addToArray() {
     if (!!this.valueToPush) {
-      this.el.values.push(this.valueToPush);
+      this.values.push(this.valueToPush);
       this.valueToPush = "";
     }
   }

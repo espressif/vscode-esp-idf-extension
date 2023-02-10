@@ -970,6 +970,13 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       if (option.target === "AddEmpty") {
         await addEmptyProjectConfElement(projectConfPath);
+      } else {
+        await idfConf.writeParameter(
+          "idf.selectedProjectConfiguration",
+          option.target,
+          vscode.ConfigurationTarget.WorkspaceFolder,
+          workspaceRoot
+        );
       }
     });
   });
@@ -1122,6 +1129,21 @@ export async function activate(context: vscode.ExtensionContext) {
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
         statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      }
+    } else if (e.affectsConfiguration("idf.selectedProjectConfiguration")) {
+      let projectConf = idfConf.readParameter(
+        "idf.selectedProjectConfiguration",
+        workspaceRoot
+      ) as string;
+      if (statusBarItems["projectConf"]) {
+        statusBarItems["projectConf"].text = "$(gear)" + projectConf;
+      } else {
+        statusBarItems["projectConf"] = createStatusBarItem(
+          "$(gear)" + projectConf,
+          "ESP-IDF Select project configuration",
+          "espIdf.projectConf",
+          100
+        );
       }
     } else if (e.affectsConfiguration("openocd.tcl.host")) {
       const tclHost = idfConf.readParameter(
@@ -2991,6 +3013,10 @@ function creatCmdsStatusBarItems() {
     "idf.flashType",
     workspaceRoot
   ) as string;
+  let projectConf = idfConf.readParameter(
+    "idf.selectedProjectConfiguration",
+    workspaceRoot
+  );
   if (idfTarget === "custom") {
     idfTarget = idfConf.readParameter(
       "idf.customAdapterTargetName",
@@ -3003,8 +3029,17 @@ function creatCmdsStatusBarItems() {
     "$(plug)" + port,
     "ESP-IDF Select port to use (COM, tty, usbserial)",
     "espIdf.selectPort",
-    100
+    101
   );
+
+  if (projectConf) {
+    statusBarItems["projectConf"] = createStatusBarItem(
+      "$(gear)" + projectConf,
+      "ESP-IDF Select project configuration",
+      "espIdf.projectConf",
+      100
+    );
+  }
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,

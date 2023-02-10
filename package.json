@@ -820,6 +820,12 @@
             "default": false,
             "scope": "resource",
             "description": "%param.deleteComponentsOnFullClean%"
+          },
+          "idf.selectedProjectConfiguration": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "Selected project configuration"
           }
         }
       }
@@ -1155,6 +1161,11 @@
       {
         "command": "espIdf.projectConfigurationEditor",
         "title": "%espIdf.projectConfigurationEditor.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.projectConf",
+        "title": "Select project configuration",
         "category": "ESP-IDF"
       }
     ],
