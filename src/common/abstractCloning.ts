@@ -301,12 +301,12 @@ export class AbstractCloning {
     repoRootDir: string,
   ) {
     const repoName = /[^/]*$/.exec(repoRootDir)[0];
-    OutputChannel.appendLine(`Downloading ${repoName} sumbodules`);
+    OutputChannel.appendLine(`Downloading ${repoName} submodules`);
     await window.withProgress(
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: `Checking out ${repoName} sumbodules`,
+        title: `Checking out ${repoName} submodules`,
       },
       async (
         progress: Progress<{ message: string; increment: number }>,
@@ -317,7 +317,7 @@ export class AbstractCloning {
             this.cancel();
           });
           await this.downloadSubmodules(repoRootDir, undefined, progress);
-          Logger.infoNotify(`${repoName} sumbodules checked out successfully`);
+          Logger.infoNotify(`${repoName} submodules checked out successfully`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
           Logger.errorNotify(error.message, error);
