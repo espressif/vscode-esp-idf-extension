@@ -825,7 +825,7 @@
             "type": "string",
             "default": "",
             "scope": "resource",
-            "description": "Selected project configuration"
+            "description": "%param.selectedProjectConfiguration%"
           }
         }
       }
@@ -1165,7 +1165,7 @@
       },
       {
         "command": "espIdf.projectConf",
-        "title": "Select project configuration",
+        "title": "%espIdf.projectConf.title%",
         "category": "ESP-IDF"
       }
     ],
