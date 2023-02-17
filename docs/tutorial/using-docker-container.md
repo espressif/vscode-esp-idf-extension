@@ -85,8 +85,8 @@ As the distribution Ubuntu 20.04 has been updated to version 2, so it needs to m
 From windows side this tool should be already configured. However `usbipd` still need to be installed on the WSL, that is, open the WSL from Windows menu and then type in the following the commands separately:
 
 ```c
-apt install linux-tools-5.4.0-77-generic hwdata
-update-alternatives --install /usr/local/bin/usbip usbip /usr/lib/linux-tools/5.4.0-77-generic/usbip 20
+sudo apt install linux-tools-virtual hwdata
+sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
 ```
 
 If any errors are found, try updating apt-get packages first.
