@@ -163,7 +163,6 @@
     "param.uncoveredLightTheme",
     "param.uncoveredDarkTheme",
     "param.sdkconfigDefaults",
-    "param.selectedProjectConfiguration",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",

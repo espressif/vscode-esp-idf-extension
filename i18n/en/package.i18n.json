@@ -99,7 +99,6 @@
   "param.svdFile": "SVD file to resolve ESP-IDF Peripheral view in Debug view",
   "param.deleteComponentsOnFullClean": "Delete managed_components on full clean project command",
   "param.sdkconfigDefaults": "List of sdkconfig default values for initial build configuration",
-  "param.selectedProjectConfiguration": "Selected project configuration",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

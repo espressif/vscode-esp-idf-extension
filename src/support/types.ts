@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import { ProjectConfElement } from "../project-conf/projectConfiguration";
+
 export class ConfigurationAccess {
   espIdfPath: boolean;
   espAdfPath: boolean;
@@ -96,12 +98,14 @@ export class reportObj {
   launchJson: string;
   cCppPropertiesJson: any;
   pipVersion: execResult;
+  projectConfigurations: { [key: string]: ProjectConfElement };
   pythonVersion: execResult;
   pythonPackages: execResult;
   idfCheckRequirements: execResult;
   extensionRequirements: execResult;
   debugAdapterRequirements: execResult;
   formatedOutput: string;
+  selectedProjectConfiguration: string;
   systemInfo: SystemInfo;
   workspaceFolder: string;
 }

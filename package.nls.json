@@ -116,7 +116,6 @@
   "param.launchMonitorOnDebugSession.title": "Start IDF Monitor along with ESP-IDF Debug Adapter session",
   "param.enableIdfComponentManager.title": "Enable IDF Component Manager in build task",
   "param.enableCCache.title": "Enable CCache in build task",
-  "param.selectedProjectConfiguration": "Selected project configuration",
   "esp.rainmaker.backend.sync.title": "Sync with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.connect.title": "Connect with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Account",

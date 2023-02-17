@@ -16,6 +16,7 @@ import * as vscode from "vscode";
 import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { ESP } from "./config";
+import { ProjectConfElement } from "./project-conf/projectConfiguration";
 
 const locDic = new LocDictionary(__filename);
 
@@ -29,14 +30,67 @@ export function addWinIfRequired(param: string) {
   return param;
 }
 
+export function parameterToProjectConfigMap(param: string) {
+  if (!ESP.ProjectConfiguration.store) {
+    return "";
+  }
+  const currentProjectConfKey = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+  if (!currentProjectConfKey) {
+    return "";
+  }
+  const currentProjectConf = ESP.ProjectConfiguration.store.get<
+    ProjectConfElement
+  >(currentProjectConfKey);
+  if (!currentProjectConf) {
+    return "";
+  }
+  switch (param) {
+    case "idf.cmakeCompilerArgs":
+      return currentProjectConf.build.compileArgs;
+    case "idf.ninjaArgs":
+      return currentProjectConf.build.ninjaArgs;
+    case "idf.buildPath":
+      return currentProjectConf.build.buildDirectoryPath;
+    case "idf.sdkconfigDefaults":
+      return currentProjectConf.build.sdkconfigDefaults;
+    case "idf.customExtraVars":
+      return currentProjectConf.env;
+    case "idf.flashBaudRate":
+      return currentProjectConf.flashBaudRate;
+    case "idf.adapterTargetName":
+      return currentProjectConf.idfTarget;
+    case "idf.customAdapterTargetName":
+      return currentProjectConf.customIdfTarget;
+    case "idf.openOcdDebugLevel":
+      return currentProjectConf.openOCD.debugLevel;
+    case "idf.openOcdConfigs":
+      return currentProjectConf.openOCD.configs;
+    case "idf.openOcdLaunchArgs":
+      return currentProjectConf.openOCD.args;
+    case "idf.preBuildTask":
+      return currentProjectConf.tasks.preBuild;
+    case "idf.postBuildTask":
+      return currentProjectConf.tasks.postBuild;
+    case "idf.preFlashTask":
+      return currentProjectConf.tasks.preBuild;
+    case "idf.postFlashTask":
+      return currentProjectConf.tasks.postFlash;
+    default:
+      return "";
+  }
+}
+
 export function readParameter(
   param: string,
   scope?: vscode.ConfigurationScope
 ) {
   const paramUpdated = addWinIfRequired(param);
-  const paramValue = vscode.workspace
-    .getConfiguration("", scope)
-    .get(paramUpdated);
+  let paramValue = parameterToProjectConfigMap(param);
+  paramValue =
+    paramValue ||
+    vscode.workspace.getConfiguration("", scope).get(paramUpdated);
   if (typeof paramValue === "undefined") {
     return "";
   }

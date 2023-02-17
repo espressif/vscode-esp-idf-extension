@@ -126,13 +126,8 @@ import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
-import {
-  addEmptyProjectConfElement,
-  createNewProjectConfElement,
-  getConfAsObj,
-  ProjectConfElement,
-} from "./project-conf/projectConfiguration";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
+import { ProjectConfigStore } from "./project-conf";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -256,6 +251,7 @@ export async function activate(context: vscode.ExtensionContext) {
   ESP.Rainmaker.store = RainmakerStore.init(context);
 
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
   // Create a status bar item with current workspace
 
@@ -910,21 +906,9 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              const projectConfPath = path.join(
-                workspaceRoot.fsPath,
-                "esp-idf.toml"
-              );
-              const doesProjectConf = await pathExists(projectConfPath);
-              let projectConfObj: { [key: string]: ProjectConfElement };
-              if (!doesProjectConf) {
-                projectConfObj = { NEW_CONF: createNewProjectConfElement() };
-              } else {
-                projectConfObj = await getConfAsObj(projectConfPath);
-              }
               projectConfigurationPanel.createOrShow(
                 context.extensionPath,
-                projectConfObj,
-                projectConfPath
+                statusBarItems["projectConf"]
               );
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -939,23 +923,27 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.projectConf", async () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const projectConfPath = path.join(workspaceRoot.fsPath, "esp-idf.toml");
-      const result = await getConfAsObj(projectConfPath);
+      const projectConfigurations = ESP.ProjectConfiguration.store.getKeys();
+      if (!projectConfigurations) {
+        const emptyOption = await vscode.window.showInformationMessage(
+          "No project configuration found",
+          "Open editor"
+        );
+        if (emptyOption === "Open editor") {
+          vscode.commands.executeCommand("espIdf.projectConfigurationEditor");
+        }
+        return;
+      }
       const selectConfigMsg = locDic.localize(
         "extension.selectConfigMessage",
-        "Select option to define its path :"
+        "Select configuration to use:"
       );
-      let quickPickItems = Object.keys(result).map((k) => {
+      let quickPickItems = projectConfigurations.map((k) => {
         return {
           description: k,
           label: `Configuration ${k}`,
           target: k,
         };
-      });
-      quickPickItems = quickPickItems.concat({
-        description: "addEmpty",
-        label: "Add empty value",
-        target: "AddEmpty",
       });
       const option = await vscode.window.showQuickPick(quickPickItems, {
         placeHolder: selectConfigMsg,
@@ -968,16 +956,19 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.infoNotify(noOptionMsg);
         return;
       }
-      if (option.target === "AddEmpty") {
-        await addEmptyProjectConfElement(projectConfPath);
-      } else {
-        await idfConf.writeParameter(
-          "idf.selectedProjectConfiguration",
-          option.target,
-          vscode.ConfigurationTarget.WorkspaceFolder,
-          workspaceRoot
-        );
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.SELECTED_CONFIG,
+        option.target
+      );
+      if (statusBarItems["projectConf"]) {
+        statusBarItems["projectConf"].dispose();
       }
+      statusBarItems["projectConf"] = createStatusBarItem(
+        "$(gear)" + option.target,
+        "ESP-IDF Select project configuration",
+        "espIdf.projectConf",
+        100
+      );
     });
   });
 
@@ -1129,21 +1120,6 @@ export async function activate(context: vscode.ExtensionContext) {
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
         statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
-      }
-    } else if (e.affectsConfiguration("idf.selectedProjectConfiguration")) {
-      let projectConf = idfConf.readParameter(
-        "idf.selectedProjectConfiguration",
-        workspaceRoot
-      ) as string;
-      if (statusBarItems["projectConf"]) {
-        statusBarItems["projectConf"].text = "$(gear)" + projectConf;
-      } else {
-        statusBarItems["projectConf"] = createStatusBarItem(
-          "$(gear)" + projectConf,
-          "ESP-IDF Select project configuration",
-          "espIdf.projectConf",
-          100
-        );
       }
     } else if (e.affectsConfiguration("openocd.tcl.host")) {
       const tclHost = idfConf.readParameter(
@@ -3013,9 +2989,8 @@ function creatCmdsStatusBarItems() {
     "idf.flashType",
     workspaceRoot
   ) as string;
-  let projectConf = idfConf.readParameter(
-    "idf.selectedProjectConfiguration",
-    workspaceRoot
+  let projectConf = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
   );
   if (idfTarget === "custom") {
     idfTarget = idfConf.readParameter(

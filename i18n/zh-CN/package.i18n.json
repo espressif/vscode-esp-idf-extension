@@ -100,7 +100,6 @@
   "param.customTask": "自定义任务",
   "param.buildPath": "CMake生成目录的名称",
   "param.sdkconfigDefaults": "初始生成配置的sdkconfig默认值列表",
-  "param.selectedProjectConfiguration": "所选项目配置",
   "param.svdFile": "用于在调试视图中解析ESP-IDF外围视图的奇异值分解文件",
   "param.deleteComponentsOnFullClean": "完全清除项目命令时删除managed_components",
   "view.components.name": "项目组件",

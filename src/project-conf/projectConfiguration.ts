@@ -16,10 +16,7 @@
  * limitations under the License.
  */
 
-import { readFile, writeFile } from "fs-extra";
-import { JsonMap, parse, stringify } from "@iarna/toml";
-
-export interface ProjectConfElement extends JsonMap {
+export interface ProjectConfElement {
   build: {
     compileArgs: string[];
     ninjaArgs: string[];
@@ -49,7 +46,7 @@ export function createNewProjectConfElement() {
       compileArgs: [],
       ninjaArgs: [],
       buildDirectoryPath: "",
-      sdkconfigDefaults: []
+      sdkconfigDefaults: [],
     },
     env: {},
     flashBaudRate: "",
@@ -58,81 +55,13 @@ export function createNewProjectConfElement() {
     openOCD: {
       debugLevel: 0,
       configs: [],
-      args: []
+      args: [],
     },
     tasks: {
       preBuild: "",
       preFlash: "",
       postBuild: "",
-      postFlash: ""
-    }
+      postFlash: "",
+    },
   } as ProjectConfElement;
-}
-
-export async function addEmptyProjectConfElement(filePath: string) {
-  const newElement: ProjectConfElement = createNewProjectConfElement();
-  const confList = await getConfAsObj(filePath);
-  confList["NEW_ITEM"] = newElement;
-  const confStr = stringify(confList);
-  await writeFile(filePath, confStr);
-}
-
-export async function getConfAsObj(filePath: string) {
-  const confStr = await readFile(filePath, "utf8");
-  const confObj = parse(confStr);
-  console.log(confObj);
-  const projectConfDict: { [key: string]: ProjectConfElement } = {};
-  Object.keys(confObj).map((confKey: string) => {
-    projectConfDict[confKey] = {
-      build: {
-        compileArgs: confObj[confKey]["build"]
-          ? confObj[confKey]["build"]["compileArgs"]
-          : null,
-        ninjaArgs: confObj[confKey]["build"]
-          ? confObj[confKey]["build"]["ninjaArgs"]
-          : null,
-        buildDirectoryPath: confObj[confKey]["build"]
-          ? confObj[confKey]["build"]["buildDirectoryPath"]
-          : null,
-      },
-      flashBaudRate: confObj[confKey]["flashBaudRate"],
-      idfTarget: confObj[confKey]["idfTarget"],
-      customIdfTarget: confObj[confKey]["customIdfTarget"],
-      openOCD: {
-        args: confObj[confKey]["openOCD"]
-          ? confObj[confKey]["openOCD"]["args"]
-          : null,
-        configs: confObj[confKey]["openOCD"]
-          ? confObj[confKey]["openOCD"]["configs"]
-          : null,
-        debugLevel: confObj[confKey]["openOCD"]
-          ? confObj[confKey]["openOCD"]["debugLevel"]
-          : null,
-      },
-      tasks: {
-        preBuild: confObj[confKey]["tasks"]
-          ? confObj[confKey]["tasks"]["preBuild"]
-          : null,
-        preFlash: confObj[confKey]["tasks"]
-          ? confObj[confKey]["tasks"]["preFlash"]
-          : null,
-        postBuild: confObj[confKey]["tasks"]
-          ? confObj[confKey]["tasks"]["postBuild"]
-          : null,
-        postFlash: confObj[confKey]["tasks"]
-          ? confObj[confKey]["tasks"]["postFlash"]
-          : null,
-      },
-    } as ProjectConfElement;
-    if (confObj[confKey]["env"]) {
-      projectConfDict[confKey]["env"] = {};
-      Object.keys(confObj[confKey]["env"]).map((envKey) => {
-        projectConfDict[confKey]["env"][envKey] =
-          confObj[confKey]["env"][envKey];
-      });
-    }
-  });
-  // const confObj = parse(confStr); // read file Object
-  // console.log(confObj);
-  return projectConfDict;
 }

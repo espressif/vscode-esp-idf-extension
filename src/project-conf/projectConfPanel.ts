@@ -17,22 +17,25 @@
  */
 
 import { ProjectConfElement } from "./projectConfiguration";
-import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+import {
+  Disposable,
+  StatusBarItem,
+  Uri,
+  ViewColumn,
+  WebviewPanel,
+  window,
+} from "vscode";
 import { LocDictionary } from "../localizationDictionary";
 import { join } from "path";
-import { stringify } from "@iarna/toml";
-import { writeFile } from "fs-extra";
+import { ProjectConfigStore } from ".";
+import { ESP } from "../config";
 
 const locDic = new LocDictionary("projectConfigurationPanel");
 
 export class projectConfigurationPanel {
   public static currentPanel: projectConfigurationPanel | undefined;
 
-  public static createOrShow(
-    extensionPath: string,
-    projectConfDict?: { [key: string]: ProjectConfElement },
-    projectConfPath?: string
-  ) {
+  public static createOrShow(extensionPath: string, barItem?: StatusBarItem) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : ViewColumn.One;
@@ -43,8 +46,7 @@ export class projectConfigurationPanel {
       projectConfigurationPanel.currentPanel = new projectConfigurationPanel(
         extensionPath,
         column,
-        projectConfDict,
-        projectConfPath
+        barItem
       );
     }
   }
@@ -63,8 +65,7 @@ export class projectConfigurationPanel {
   constructor(
     private extensionPath: string,
     column: ViewColumn,
-    projectConfDict: { [key: string]: ProjectConfElement },
-    projectConfPath: string
+    private barItem?: StatusBarItem
   ) {
     const projectConfPanelTitle = locDic.localize(
       "projectConfigurationPanel.panelName",
@@ -92,6 +93,17 @@ export class projectConfigurationPanel {
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
+    let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
+    let projectConfObj: { [key: string]: ProjectConfElement } = {};
+
+    if (projectConfKeys && projectConfKeys.length) {
+      for (const confKey of projectConfKeys) {
+        projectConfObj[confKey] = ESP.ProjectConfiguration.store.get<
+          ProjectConfElement
+        >(confKey);
+      }
+    }
+
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "command":
@@ -99,11 +111,11 @@ export class projectConfigurationPanel {
         case "requestInitialValues":
           this.panel.webview.postMessage({
             command: "initialLoad",
-            confList: projectConfDict,
+            confList: projectConfObj,
           });
           break;
         case "saveProjectConfFile":
-          await this.saveProjectConfFile(projectConfPath, message.confDict);
+          await this.saveProjectConfFile(message.confDict);
           break;
         default:
           break;
@@ -112,13 +124,46 @@ export class projectConfigurationPanel {
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
   }
 
-  private async saveProjectConfFile(
-    filePath: string,
-    projectConfDict: { [key: string]: ProjectConfElement }
-  ) {
-    // clean empty elements
-    const confStr = stringify(projectConfDict);
-    await writeFile(filePath, confStr);
+  private async clearProjectConfFile() {
+    let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
+    if (projectConfKeys && projectConfKeys.length) {
+      for (const confKey of projectConfKeys) {
+        ESP.ProjectConfiguration.store.clear(confKey);
+      } 
+    }
+  }
+
+  private clearSelectedProject(projectKeys: string[]) {
+    const isSelectedProjectInKeys = projectKeys.indexOf(
+      ESP.ProjectConfiguration.SELECTED_CONFIG
+    );
+    if (isSelectedProjectInKeys === -1) {
+      ESP.ProjectConfiguration.store.clear(
+        ESP.ProjectConfiguration.SELECTED_CONFIG
+      );
+      if (this.barItem) {
+        this.barItem.dispose();
+      }
+    }
+  }
+
+  private async saveProjectConfFile(projectConfDict: {
+    [key: string]: ProjectConfElement;
+  }) {
+    this.clearProjectConfFile();
+    const projectConfKeys = Object.keys(projectConfDict);
+    this.clearSelectedProject(projectConfKeys);
+    for (const confKey of projectConfKeys) {
+      ESP.ProjectConfiguration.store.set(confKey, projectConfDict[confKey]);
+    }
+    projectConfKeys && projectConfKeys.length
+      ? ESP.ProjectConfiguration.store.set(
+          ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY,
+          projectConfKeys
+        )
+      : ESP.ProjectConfiguration.store.clear(
+          ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY
+        );
   }
 
   private createSetupHtml(scriptPath: Uri): string {
