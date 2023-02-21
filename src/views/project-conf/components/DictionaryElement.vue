@@ -1,5 +1,5 @@
 <template>
-  <div class="dictionary-element">
+  <div class="block">
     <div class="field">
       <div class="control is-flex">
         <label class="label">{{ title }} </label>

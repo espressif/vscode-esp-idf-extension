@@ -6,44 +6,43 @@
     <div class="small-margin">
       <ArrayElement
         title="Compile arguments"
-        :values="el.build.compileArgs"
-        :sections="['build', 'debugLevel']"
-        :updateMethod="updateElement"
+        :values.sync="el.build.compileArgs"
+        :sections="['build', 'compileArgs']"
+        :addValue="addValueToArray"
+        :removeValue="removeValueFromArray"
       />
       <ArrayElement
         title="Ninja arguments"
-        :values="el.build.ninjaArgs"
+        :values.sync="el.build.ninjaArgs"
         :sections="['build', 'ninjaArgs']"
-        :updateMethod="updateElement"
+        :addValue="addValueToArray"
+        :removeValue="removeValueFromArray"
       />
       <StringElement
         title="Build Directory path"
-        :value="el.build.buildDirectoryPath"
+        :value.sync="el.build.buildDirectoryPath"
         :sections="['build', 'buildDirectoryPath']"
         :updateMethod="updateElement"
+        :openMethod="openBuildDir"
       />
       <ArrayElement
         title="sdkconfig defaults"
-        :values="el.build.sdkconfigDefaults"
+        :values.sync="el.build.sdkconfigDefaults"
         :sections="['build', 'sdkconfigDefaults']"
-        :updateMethod="updateElement"
+        :addValue="addValueToArray"
+        :removeValue="removeValueFromArray"
       />
     </div>
-    <DictionaryElement title="Environment variables" :elements="el.env" />
-    <StringElement
-      title="Flash baud rate"
-      :value="el.flashBaudRate"
-      :sections="['flashBaudRate']"
+    <DictionaryElement
+      title="Environment variables"
+      :elements="el.env"
+      :sections="['env']"
       :updateMethod="updateElement"
     />
-    <SelectElement
-      :selectValue.sync="el.idfTarget"
-      :options="idfTargetOptions"
-      :customOption="idfTargetCustom"
-      :customValueModel.sync="el.customIdfTarget"
-      title="IDF Target"
-      :sections="['idfTarget']"
-      :customValueSections="['customIdfTarget']"
+    <StringElement
+      title="Flash baud rate"
+      :value.sync="el.flashBaudRate"
+      :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
 
@@ -56,8 +55,20 @@
         :sections="['openOCD', 'debugLevel']"
         :updateMethod="updateElement"
       />
-      <ArrayElement title="Config files" :values="el.openOCD.configs" />
-      <ArrayElement title="Arguments" :values="el.openOCD.args" />
+      <ArrayElement
+        title="Config files"
+        :values="el.openOCD.configs"
+        :sections="['openOCD', 'configs']"
+        :addValue="addValueToArray"
+        :removeValue="removeValueFromArray"
+      />
+      <ArrayElement
+        title="Arguments"
+        :values="el.openOCD.args"
+        :sections="['openOCD', 'args']"
+        :addValue="addValueToArray"
+        :removeValue="removeValueFromArray"
+      />
     </div>
 
     <label class="is-size-4 has-text-weight-bold">Tasks</label>
@@ -92,7 +103,7 @@
 
 <script lang="ts">
 import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { Mutation } from "vuex-class";
+import { Action, Mutation } from "vuex-class";
 import ArrayElement from "./ArrayElement.vue";
 import DictionaryElement from "./DictionaryElement.vue";
 import SelectElement from "./SelectElement.vue";
@@ -108,12 +119,26 @@ import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
   },
 })
 export default class projectConfElem extends Vue {
+  @Action private openBuildPath: (payload: {
+    confKey: string;
+    sections: string[];
+  }) => void;
   @Prop() public el: ProjectConfElement;
   @Prop() public title: string;
   @Mutation updateConfigElement: (payload: {
     confKey: string;
     sections: string[];
     newValue: any;
+  }) => void;
+  @Mutation addValueToConfigElement: (payload: {
+    confKey: string;
+    sections: string[];
+    valueToAdd: any;
+  }) => void;
+  @Mutation removeValueFromConfigElement: (payload: {
+    confKey: string;
+    sections: string[];
+    index: any;
   }) => void;
 
   openOcdDebugLevelOptions: { name: string; value: number }[] = [
@@ -124,23 +149,24 @@ export default class projectConfElem extends Vue {
     { name: "Verbose", value: 4 },
   ];
 
-  idfTargetOptions: { name: string; value: string }[] = [
-    { name: "ESP32", value: "esp32" },
-    { name: "ESP32 S2", value: "esp32s2" },
-    { name: "ESP32 S3", value: "esp32s3" },
-    { name: "ESP32 C3", value: "esp32c3" },
-    { name: "Custom", value: "custom" },
-  ];
-
-  idfTargetCustom = { name: "Custom", value: "custom" };
-
-  isIdfTargetCustom() {
-    console.log(this.el.idfTarget);
-    return this.el.idfTarget === "custom";
-  }
-
   updateElement(sections: string[], newValue: any) {
     this.updateConfigElement({ confKey: this.title, sections, newValue });
+  }
+
+  openBuildDir(sections: string[]) {
+    this.openBuildPath({ confKey: this.title, sections });
+  }
+
+  addValueToArray(sections: string[], newValue: any) {
+    this.addValueToConfigElement({
+      confKey: this.title,
+      sections,
+      valueToAdd: newValue,
+    });
+  }
+
+  removeValueFromArray(sections: string[], index: number) {
+    this.removeValueFromConfigElement({ confKey: this.title, sections, index });
   }
 
   @Emit("delete")

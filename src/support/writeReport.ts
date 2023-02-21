@@ -126,8 +126,6 @@ export async function writeTextReport(
         }
       }
       output += `Flash baud rate: ${reportedResult.projectConfigurations[key].flashBaudRate}${EOL}`;
-      output += `IDF Target: ${reportedResult.projectConfigurations[key].idfTarget}${EOL}`;
-      output += `Custom IDF Target: ${reportedResult.projectConfigurations[key].customIdfTarget}${EOL}`;
 
       if (reportedResult.projectConfigurations[key].openOCD) {
         output += `---- OpenOCD section ----${EOL}`;

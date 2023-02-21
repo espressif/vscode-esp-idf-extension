@@ -25,8 +25,6 @@ export interface ProjectConfElement {
   };
   env: { [key: string]: string };
   flashBaudRate: string;
-  idfTarget: string;
-  customIdfTarget: string;
   openOCD: {
     debugLevel: number;
     configs: string[];
@@ -38,30 +36,4 @@ export interface ProjectConfElement {
     postBuild: string;
     postFlash: string;
   };
-}
-
-export function createNewProjectConfElement() {
-  return {
-    build: {
-      compileArgs: [],
-      ninjaArgs: [],
-      buildDirectoryPath: "",
-      sdkconfigDefaults: [],
-    },
-    env: {},
-    flashBaudRate: "",
-    idfTarget: "",
-    customIdfTarget: "",
-    openOCD: {
-      debugLevel: 0,
-      configs: [],
-      args: [],
-    },
-    tasks: {
-      preBuild: "",
-      preFlash: "",
-      postBuild: "",
-      postFlash: "",
-    },
-  } as ProjectConfElement;
 }

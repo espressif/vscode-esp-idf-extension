@@ -1,5 +1,5 @@
 <template>
-  <div class="select-element">
+  <div class="block">
     <div class="field">
       <label class="label">{{ title }}</label>
       <div class="control">

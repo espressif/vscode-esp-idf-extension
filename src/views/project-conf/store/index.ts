@@ -35,7 +35,7 @@ export interface IState {
 }
 
 export const projectConfigState: IState = {
-  elements: {},
+  elements: Object.create(null),
   emptyElement: {
     build: {
       compileArgs: [],
@@ -45,8 +45,6 @@ export const projectConfigState: IState = {
     },
     env: {},
     flashBaudRate: "",
-    idfTarget: "",
-    customIdfTarget: "",
     openOCD: {
       debugLevel: 0,
       configs: [],
@@ -86,6 +84,13 @@ export const actions: ActionTree<IState, any> = {
       confDict: context.state.elements,
     });
   },
+  openBuildPath(context, payload: { confKey: string; sections: string[] }) {
+    vscode.postMessage({
+      command: "openBuildPath",
+      sectionsKeys: payload.sections,
+      confKey: payload.confKey,
+    });
+  },
 };
 
 export const mutations: MutationTree<IState> = {
@@ -100,19 +105,91 @@ export const mutations: MutationTree<IState> = {
     state = { ...newState };
   },
   addNewConfigToList(state, confKey: string) {
-    const newState = state;
-    newState.elements[confKey] = state.emptyElement;
-    state = { ...newState };
+    let newConf = {
+      build: {
+        compileArgs: [],
+        ninjaArgs: [],
+        buildDirectoryPath: "",
+        sdkconfigDefaults: [],
+      },
+      env: {},
+      flashBaudRate: "",
+      openOCD: {
+        debugLevel: 0,
+        configs: [],
+        args: [],
+      },
+      tasks: {
+        preBuild: "",
+        preFlash: "",
+        postBuild: "",
+        postFlash: "",
+      },
+    } as ProjectConfElement;
+    Vue.set(state.elements, confKey, newConf);
   },
-  updateConfigElement(state, payload: {confKey: string, sections: string[], newValue: any}) {
+  updateConfigElement(
+    state,
+    payload: { confKey: string; sections: string[]; newValue: any }
+  ) {
     const newState = state;
     if (payload.sections && payload.sections.length === 1) {
-      newState.elements[payload.confKey][payload.sections[0]] = payload.newValue;
-    } else if (payload.sections && payload.sections.length === 2) {
-      newState.elements[payload.confKey][payload.sections[0]][payload.sections[1]] = payload.newValue;
+      newState.elements[payload.confKey][payload.sections[0]] =
+        payload.newValue;
+    } else if (
+      payload.sections &&
+      payload.sections.length === 2 &&
+      Object.keys(newState.elements[payload.confKey]).indexOf(
+        payload.sections[0]
+      ) !== -1
+    ) {
+      newState.elements[payload.confKey][payload.sections[0]][
+        payload.sections[1]
+      ] = payload.newValue;
     }
     state = { ...newState };
-  }
+  },
+  addValueToConfigElement(
+    state,
+    payload: { confKey: string; sections: string[]; valueToAdd: any }
+  ) {
+    if (payload.sections && payload.sections.length === 1) {
+      state.elements[payload.confKey][payload.sections[0]].push(
+        payload.valueToAdd
+      );
+    } else if (
+      payload.sections &&
+      payload.sections.length === 2 &&
+      Object.keys(state.elements[payload.confKey]).indexOf(
+        payload.sections[0]
+      ) !== -1
+    ) {
+      state.elements[payload.confKey][payload.sections[0]][
+        payload.sections[1]
+      ].push(payload.valueToAdd);
+    }
+  },
+  removeValueFromConfigElement(
+    state,
+    payload: { confKey: string; sections: string[]; index: number }
+  ) {
+    if (payload.sections && payload.sections.length === 1) {
+      state.elements[payload.confKey][payload.sections[0]].splice(
+        payload.index,
+        1
+      );
+    } else if (
+      payload.sections &&
+      payload.sections.length === 2 &&
+      Object.keys(state.elements[payload.confKey]).indexOf(
+        payload.sections[0]
+      ) !== -1
+    ) {
+      state.elements[payload.confKey][payload.sections[0]][
+        payload.sections[1]
+      ].splice(payload.index, 1);
+    }
+  },
 };
 
 export const options: StoreOptions<IState> = {

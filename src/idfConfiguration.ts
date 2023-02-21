@@ -48,27 +48,33 @@ export function parameterToProjectConfigMap(param: string) {
   }
   switch (param) {
     case "idf.cmakeCompilerArgs":
-      return currentProjectConf.build.compileArgs;
+      return currentProjectConf.build.compileArgs.length
+        ? currentProjectConf.build.compileArgs
+        : "";
     case "idf.ninjaArgs":
-      return currentProjectConf.build.ninjaArgs;
+      return currentProjectConf.build.ninjaArgs.length
+        ? currentProjectConf.build.ninjaArgs
+        : "";
     case "idf.buildPath":
       return currentProjectConf.build.buildDirectoryPath;
     case "idf.sdkconfigDefaults":
-      return currentProjectConf.build.sdkconfigDefaults;
+      return currentProjectConf.build.sdkconfigDefaults.length
+        ? currentProjectConf.build.sdkconfigDefaults
+        : "";
     case "idf.customExtraVars":
       return currentProjectConf.env;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
-    case "idf.adapterTargetName":
-      return currentProjectConf.idfTarget;
-    case "idf.customAdapterTargetName":
-      return currentProjectConf.customIdfTarget;
     case "idf.openOcdDebugLevel":
       return currentProjectConf.openOCD.debugLevel;
     case "idf.openOcdConfigs":
-      return currentProjectConf.openOCD.configs;
+      return currentProjectConf.openOCD.configs.length
+        ? currentProjectConf.openOCD.configs
+        : "";
     case "idf.openOcdLaunchArgs":
-      return currentProjectConf.openOCD.args;
+      return currentProjectConf.openOCD.args.length
+        ? currentProjectConf.openOCD.args
+        : "";
     case "idf.preBuildTask":
       return currentProjectConf.tasks.preBuild;
     case "idf.postBuildTask":

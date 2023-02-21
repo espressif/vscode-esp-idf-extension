@@ -30,7 +30,7 @@
     </div>
 
     <div class="notification">
-      <label :for="keyToAdd" class="label">Enter new configuration name</label>
+      <label :for="keyToAdd" class="label">Enter new profile configuration name</label>
       <div class="field">
         <div class="control">
           <input

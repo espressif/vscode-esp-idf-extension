@@ -27,7 +27,6 @@ import {
 } from "vscode";
 import { LocDictionary } from "../localizationDictionary";
 import { join } from "path";
-import { ProjectConfigStore } from ".";
 import { ESP } from "../config";
 
 const locDic = new LocDictionary("projectConfigurationPanel");
@@ -35,7 +34,10 @@ const locDic = new LocDictionary("projectConfigurationPanel");
 export class projectConfigurationPanel {
   public static currentPanel: projectConfigurationPanel | undefined;
 
-  public static createOrShow(extensionPath: string, barItem?: StatusBarItem) {
+  public static createOrShow(
+    extensionPath: string,
+    configBarItem?: StatusBarItem
+  ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : ViewColumn.One;
@@ -46,7 +48,7 @@ export class projectConfigurationPanel {
       projectConfigurationPanel.currentPanel = new projectConfigurationPanel(
         extensionPath,
         column,
-        barItem
+        configBarItem
       );
     }
   }
@@ -65,7 +67,7 @@ export class projectConfigurationPanel {
   constructor(
     private extensionPath: string,
     column: ViewColumn,
-    private barItem?: StatusBarItem
+    private configBarItem?: StatusBarItem
   ) {
     const projectConfPanelTitle = locDic.localize(
       "projectConfigurationPanel.panelName",
@@ -117,6 +119,17 @@ export class projectConfigurationPanel {
         case "saveProjectConfFile":
           await this.saveProjectConfFile(message.confDict);
           break;
+        case "openBuildPath":
+          let buildPath = await this.openFolder();
+          if (buildPath) {
+            this.panel.webview.postMessage({
+              command: "setBuildPath",
+              confKey: message.confKey,
+              buildPath: buildPath,
+              sectionsKeys: message.sectionsKeys,
+            });
+          }
+          break;
         default:
           break;
       }
@@ -129,20 +142,32 @@ export class projectConfigurationPanel {
     if (projectConfKeys && projectConfKeys.length) {
       for (const confKey of projectConfKeys) {
         ESP.ProjectConfiguration.store.clear(confKey);
-      } 
+      }
+    }
+  }
+
+  private async openFolder() {
+    const selectedFolder = await window.showOpenDialog({
+      canSelectFolders: true,
+      canSelectFiles: false,
+      canSelectMany: false,
+    });
+    if (selectedFolder && selectedFolder.length > 0) {
+      return selectedFolder[0].fsPath;
     }
   }
 
   private clearSelectedProject(projectKeys: string[]) {
-    const isSelectedProjectInKeys = projectKeys.indexOf(
+    const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
       ESP.ProjectConfiguration.SELECTED_CONFIG
     );
+    const isSelectedProjectInKeys = projectKeys.indexOf(selectedConfig);
     if (isSelectedProjectInKeys === -1) {
       ESP.ProjectConfiguration.store.clear(
         ESP.ProjectConfiguration.SELECTED_CONFIG
       );
-      if (this.barItem) {
-        this.barItem.dispose();
+      if (this.configBarItem) {
+        this.configBarItem.dispose();
       }
     }
   }
@@ -156,14 +181,12 @@ export class projectConfigurationPanel {
     for (const confKey of projectConfKeys) {
       ESP.ProjectConfiguration.store.set(confKey, projectConfDict[confKey]);
     }
-    projectConfKeys && projectConfKeys.length
-      ? ESP.ProjectConfiguration.store.set(
-          ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY,
-          projectConfKeys
-        )
-      : ESP.ProjectConfiguration.store.clear(
-          ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY
-        );
+    if (projectConfKeys && projectConfKeys.length) {
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY,
+        projectConfKeys
+      );
+    }
   }
 
   private createSetupHtml(scriptPath: Uri): string {

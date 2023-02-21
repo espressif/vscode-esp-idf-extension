@@ -969,6 +969,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "espIdf.projectConf",
         100
       );
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });
 
