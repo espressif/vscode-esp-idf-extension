@@ -19,8 +19,8 @@ sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-
 To complete the `usbipd` installation, the user needs to run the following commands on WSL with sudo privileges:
 
 ```c
-apt install linux-tools-5.4.0-77-generic hwdata
-update-alternatives --install /usr/local/bin/usbip usbip /usr/lib/linux-tools/5.4.0-77-generic/usbip 20
+sudo apt install linux-tools-virtual hwdata
+sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
 ```
 
 if errors occurred during the installation, run the following command as below:
