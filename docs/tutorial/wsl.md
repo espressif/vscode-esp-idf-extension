@@ -77,7 +77,7 @@ From windows side this tool should be already configured. However `usbipd` still
 
 ```c
 sudo apt install linux-tools-virtual hwdata
-sudo update-alternatives --install /usr/local/bin/usbip usbip 'ls /usr/lib/linux-tools/*/usbip | tail -n1' 20
+sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
 ```
 
 If any errors are found, try updating apt-get packages first.

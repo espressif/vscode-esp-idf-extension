@@ -20,7 +20,7 @@ To complete the `usbipd` installation, the user needs to run the following comma
 
 ```c
 sudo apt install linux-tools-virtual hwdata
-sudo update-alternatives --install /usr/local/bin/usbip usbip 'ls /usr/lib/linux-tools/*/usbip | tail -n1' 20
+sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
 ```
 
 if errors occurred during the installation, run the following command as below:
