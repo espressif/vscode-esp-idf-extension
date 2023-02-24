@@ -241,6 +241,46 @@ export class SetupPanel {
             );
           }
           break;
+        case "useIdfSetup":
+          if (message.selectedIdfSetup) {
+            this.panel.webview.postMessage({
+              command: "updateIdfGitStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateIdfPythonStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateEspIdfStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updateEspIdfToolsStatus",
+              status: StatusType.installed,
+            });
+            this.panel.webview.postMessage({
+              command: "updatePyVEnvStatus",
+              status: StatusType.started,
+            });
+            this.panel.webview.postMessage({
+              command: "goToCustomPage",
+              installing: true,
+              page: "/status",
+            });
+            await installExtensionPyReqs(
+             
+            );
+            await saveSettings(
+              
+            );
+            this.panel.webview.postMessage({
+              command: "setIsInstalled",
+              isInstalled: true,
+            });
+            await this.getOpenOcdRulesPath();
+          }
+          break;
         case "usePreviousSettings":
           if (
             setupArgs.espIdfPath &&

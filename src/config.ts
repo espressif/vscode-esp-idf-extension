@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { ExtensionConfigStore } from "./common/store";
 import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
 import { RainmakerStore } from "./rainmaker/store";
 
@@ -29,6 +30,11 @@ export namespace ESP {
     JTAG = "JTAG",
     UART = "UART",
     DFU = "DFU",
+  }
+
+  export namespace GlobalConfiguration {
+    export let store: ExtensionConfigStore;
+    export const IDF_SETUPS = "IDF_SETUPS";
   }
 
   export const platformDepConfigurations: string[] = [

@@ -22,19 +22,26 @@ import {
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfTags, getEspIdfVersions } from "./espIdfVersionList";
-import { IEspIdfLink } from "../views/setup/types";
+import { IdfSetup, IEspIdfLink } from "../views/setup/types";
 import { getPythonList } from "./installPyReqs";
 import { pathExists } from "fs-extra";
 import path from "path";
 import { getPythonEnvPath } from "../pythonManager";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
+import {
+  getPropertyFromJson,
+  getSelectedIdfInstalled,
+  loadEspIdfJson,
+} from "./espIdfJson";
+import { ESP } from "../config";
+import { createIdfSetup, getPreviousIdfSetups } from "./existingIdfSetups";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
   espIdfVersion: string;
   espToolsPath: string;
+  existingIdfSetups: IdfSetup[];
   exportedPaths: string;
   exportedVars: { [key: string]: string };
   espIdfVersionsList: IEspIdfLink[];
@@ -109,10 +116,11 @@ export async function checkPreviousInstall(
       espToolsPath: toolsPath,
       espIdfPath: undefined,
       espIdfVersion: undefined,
-      exportedPaths: undefined,
-      exportedVars: undefined,
       espIdfVersionsList: undefined,
       espIdfTagsList: undefined,
+      existingIdfSetups: undefined,
+      exportedPaths: undefined,
+      exportedVars: undefined,
       gitPath,
       gitVersion,
       hasPrerequisites: undefined,
@@ -296,11 +304,14 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
+  const idfSetups = getPreviousIdfSetups();
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
+    existingIdfSetups: idfSetups,
     pythonVersions,
   } as ISetupInitArgs;
+
   try {
     progress.report({
       increment: 10,
@@ -531,5 +542,6 @@ export async function saveSettings(
     confTarget,
     workspaceFolder ? workspaceFolder.uri : undefined
   );
+  await createIdfSetup(espIdfPath, toolsPath, pythonBinPath);
   window.showInformationMessage("ESP-IDF has been configured");
 }

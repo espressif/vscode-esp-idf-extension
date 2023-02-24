@@ -217,6 +217,12 @@ export const actions: ActionTree<IState, any> = {
       command: "usePreviousSettings",
     });
   },
+  useIdfSetup(context, payload: string) {
+    vscode.postMessage({
+      command: "useIdfSetup",
+      selectedIdfSetup: payload
+    })
+  }
 };
 
 export const mutations: MutationTree<IState> = {
