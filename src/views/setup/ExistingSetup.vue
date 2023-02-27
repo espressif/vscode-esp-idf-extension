@@ -1,21 +1,19 @@
 <template>
-  <div class="existing-setup">
+  <div class="centerize notification">
     <div
       class="notification install-choice"
-      v-for="prevSetup in idfSetups"
+      v-for="(prevSetup, i) in idfSetups"
       :key="prevSetup.id"
-      @click.once="useIdfSetup(prevSetup.id)"
+      :data-config-id="prevSetup.idfPath"
+      @click.once="useIdfSetup(i)"
     >
-      <label
-        :for="prevSetup.id"
-        class="subtitle"
-        :data-config-id="prevSetup.id"
-      >
-        {{ prevSetup.id }}</label
+      <label :for="prevSetup.id" class="subtitle">
+        {{ prevSetup.idfPath }}</label
       >
       <p>IDF Version {{ prevSetup.version }}</p>
       <p>Python: {{ prevSetup.python }}</p>
       <p>IDF Tools Path: {{ prevSetup.toolsPath }}</p>
+      <p>Git path: {{ prevSetup.gitPath }}</p>
     </div>
   </div>
 </template>
@@ -27,7 +25,7 @@ import { IdfSetup } from "./types";
 
 @Component
 export default class existingSetup extends Vue {
-  @State("existingIdfSetups") private storeIdfSetups: IdfSetup[];
+  @State("idfSetups") private storeIdfSetups: IdfSetup[];
   @Action useIdfSetup: (id: number) => void;
 
   get idfSetups() {

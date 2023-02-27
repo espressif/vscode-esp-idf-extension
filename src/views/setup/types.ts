@@ -24,7 +24,8 @@ export interface IdfSetup {
   version: string;
   python: string;
   toolsPath: string;
-  path: string;
+  idfPath: string;
+  gitPath: string;
 }
 
 export enum IdfMirror {
@@ -60,4 +61,5 @@ export enum StatusType {
 export enum SetupMode {
   advanced,
   express,
+  existing
 }

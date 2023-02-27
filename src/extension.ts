@@ -79,7 +79,7 @@ import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
   installEspMatterPyReqs,
-  installPythonEnvFromIdfTools,
+  installExtensionPyReqs,
 } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
@@ -125,6 +125,7 @@ import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
+import { ExtensionConfigStore } from "./common/store";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -246,6 +247,8 @@ export async function activate(context: vscode.ExtensionContext) {
   };
   // init rainmaker cache store
   ESP.Rainmaker.store = RainmakerStore.init(context);
+
+  ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
 
   // Create a status bar item with current workspace
 
@@ -1252,9 +1255,6 @@ export async function activate(context: vscode.ExtensionContext) {
               "idf.espIdfPath",
               workspaceRoot
             ) as string;
-            const gitPath =
-              (idfConf.readParameter("idf.gitPath", workspaceRoot) as string) ||
-              "git";
             const containerPath =
               process.platform === "win32"
                 ? process.env.USERPROFILE
@@ -1272,16 +1272,14 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             ) as string;
             progress.report({
-              message: `Installing ESP-IDF Python Requirements...`,
+              message: `Installing ESP-IDF extension Python Requirements...`,
             });
-            await installPythonEnvFromIdfTools(
+            await installExtensionPyReqs(
+              pyPath,
               espIdfPath,
               toolsPath,
               undefined,
-              pyPath,
-              gitPath,
-              OutputChannel.init(),
-              cancelToken
+              OutputChannel.init()
             );
             vscode.window.showInformationMessage(
               "ESP-IDF Python Requirements has been installed"
@@ -1316,9 +1314,6 @@ export async function activate(context: vscode.ExtensionContext) {
               "idf.espIdfPath",
               workspaceRoot
             ) as string;
-            const gitPath =
-              (idfConf.readParameter("idf.gitPath", workspaceRoot) as string) ||
-              "git";
             const containerPath =
               process.platform === "win32"
                 ? process.env.USERPROFILE
@@ -1347,7 +1342,6 @@ export async function activate(context: vscode.ExtensionContext) {
               toolsPath,
               espMatterPath,
               pyPath,
-              gitPath,
               undefined,
               OutputChannel.init(),
               cancelToken

@@ -39,16 +39,18 @@ export function getPreviousIdfSetups() {
 export async function createIdfSetup(
   idfPath: string,
   toolsPath: string,
-  pythonPath: string
+  pythonPath: string,
+  gitPath: string
 ) {
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
   const newIdfSetup: IdfSetup = {
     id: idfSetupId,
-    version: idfVersion,
-    path: idfPath,
+    idfPath,
+    gitPath,
     toolsPath,
     python: pythonPath,
+    version: idfVersion,
   };
   addIdfSetup(newIdfSetup);
 }
@@ -73,7 +75,8 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
     for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
       idfSetups.push({
         id: idfInstalledKey,
-        path: espIdfJson.idfInstalled[idfInstalledKey].path,
+        idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
+        gitPath: espIdfJson.gitPath,
         python: espIdfJson.idfInstalled[idfInstalledKey].python,
         version: espIdfJson.idfInstalled[idfInstalledKey].version,
         toolsPath: toolsPath,

@@ -24,6 +24,8 @@ import Home from "./Home.vue";
 import Install from "./Install.vue";
 // @ts-ignore
 import Status from "./Status.vue";
+// @ts-ignore
+import ExistingSetup from "./ExistingSetup.vue";
 import IconifyIcon from "@iconify/vue";
 import check from "@iconify-icons/codicon/check";
 import close from "@iconify-icons/codicon/close";
@@ -41,6 +43,7 @@ Vue.component("iconify-icon", IconifyIcon);
 
 const routes = [
   { path: "/", component: Home },
+  { path: "/existingsetup", component: ExistingSetup },
   { path: "/autoinstall", component: Install },
   { path: "/custom", component: ToolsCustom },
   { path: "/status", component: Status },
@@ -86,8 +89,8 @@ window.addEventListener("message", (event) => {
       if (msg.idfTags) {
         store.commit("setEspIdfTagsList", msg.idfTags);
       }
-      if (msg.idfVersion) {
-        store.commit("setIdfVersion", msg.idfVersion);
+      if (msg.idfSetups) {
+        store.commit("setIdfSetups", msg.idfSetups);
       }
       if (msg.pyVersionList) {
         store.commit("setPyVersionsList", msg.pyVersionList);
@@ -100,12 +103,6 @@ window.addEventListener("message", (event) => {
       }
       if (msg.espIdfContainer) {
         store.commit("setEspIdfContainerPath", msg.espIdfContainer);
-      }
-      if (msg.pyBinPath) {
-        store.commit("setManualPyPath", msg.pyBinPath);
-      }
-      if (msg.toolsResults) {
-        store.commit("setToolsResult", msg.toolsResults);
       }
       if (msg.hasPrerequisites) {
         store.commit("setHasPrerequisites", msg.hasPrerequisites);
@@ -121,11 +118,6 @@ window.addEventListener("message", (event) => {
       if (typeof msg.errorMsg !== "undefined") {
         store.commit("setEspIdfErrorStatus", msg.errorMsg);
         store.commit("setIsIdfInstalling", false);
-      }
-      break;
-    case "setIdfVersion":
-      if (msg.idfVersion) {
-        store.commit("setIdfVersion", msg.idfVersion);
       }
       break;
     case "setIsIdfInstalling":
