@@ -17,6 +17,33 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.0)
+
+ ### Features and enhancements
+
+ - [Add nightly documentation install instructions](https://github.com/espressif/vscode-esp-idf-extension/pull/839)
+ - [Add linux archs to platforms](https://github.com/espressif/vscode-esp-idf-extension/pull/859)
+ - [Add ESP-Matter Python packages install](https://github.com/espressif/vscode-esp-idf-extension/pull/869) Thanks @Diegorro98 !
+ - [Add Nightly build links](https://github.com/espressif/vscode-esp-idf-extension/pull/874)
+ - [Add Watch variables expansion in debugging view](https://github.com/espressif/vscode-esp-idf-extension/pull/860)
+ - [Add multiple sdkconfig support](https://github.com/espressif/vscode-esp-idf-extension/pull/870)
+ - [Save and select multiple existing ESP-IDF setups in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/898)
+ - [Use multiple configurations for same ESP-IDF project with Project configuration wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/882)
+
+ ### Bug Fixes
+
+ - [Fix build arguments order](https://github.com/espressif/vscode-esp-idf-extension/pull/848)
+ - [Add Target to IDF Monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/850)
+ - [Add Dispose sdk config command in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/849)
+ - [Fix app trace project elf file reference](https://github.com/espressif/vscode-esp-idf-extension/pull/864)
+ - [Fix QEMU monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/863)
+ - [Fix nightly link bot comment](https://github.com/espressif/vscode-esp-idf-extension/commit/6e688150b8fd8798376258358f974e5384760dc4)
+ - [Fix ESP Matter device path hard set](https://github.com/espressif/vscode-esp-idf-extension/pull/871)
+ - [Fix submodules typo](https://github.com/espressif/vscode-esp-idf-extension/pull/888) Thanks @ttytyper !
+ - [Fix WSL usbipd install docs](https://github.com/espressif/vscode-esp-idf-extension/pull/892) Thanks @@ronger-x !
+ - [Fix linux-tools references](https://github.com/espressif/vscode-esp-idf-extension/pull/894)
+ - [Fix Kconfig server directory output](https://github.com/espressif/vscode-esp-idf-extension/pull/895)
+
 ## [1.5.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.5.1)
 
  ### Features and enhancements

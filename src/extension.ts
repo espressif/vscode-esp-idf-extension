@@ -889,6 +889,13 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
+    if (statusBarItems["projectConf"]) {
+      statusBarItems["projectConf"].dispose();
+      statusBarItems["projectConf"] = undefined;
+    }
+  });
+
   registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
@@ -906,10 +913,7 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              projectConfigurationPanel.createOrShow(
-                context.extensionPath,
-                statusBarItems["projectConf"]
-              );
+              projectConfigurationPanel.createOrShow(context.extensionPath);
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }
