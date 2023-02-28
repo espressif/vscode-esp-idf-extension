@@ -18,8 +18,8 @@
 
 import { ProjectConfElement } from "./projectConfiguration";
 import {
+  commands,
   Disposable,
-  StatusBarItem,
   Uri,
   ViewColumn,
   WebviewPanel,
@@ -36,7 +36,6 @@ export class projectConfigurationPanel {
 
   public static createOrShow(
     extensionPath: string,
-    configBarItem?: StatusBarItem
   ) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
@@ -48,7 +47,6 @@ export class projectConfigurationPanel {
       projectConfigurationPanel.currentPanel = new projectConfigurationPanel(
         extensionPath,
         column,
-        configBarItem
       );
     }
   }
@@ -67,7 +65,6 @@ export class projectConfigurationPanel {
   constructor(
     private extensionPath: string,
     column: ViewColumn,
-    private configBarItem?: StatusBarItem
   ) {
     const projectConfPanelTitle = locDic.localize(
       "projectConfigurationPanel.panelName",
@@ -166,9 +163,7 @@ export class projectConfigurationPanel {
       ESP.ProjectConfiguration.store.clear(
         ESP.ProjectConfiguration.SELECTED_CONFIG
       );
-      if (this.configBarItem) {
-        this.configBarItem.dispose();
-      }
+      commands.executeCommand("espIdf.rmProjectConfStatusBar");
     }
   }
 
