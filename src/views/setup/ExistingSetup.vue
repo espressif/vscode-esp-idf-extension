@@ -5,7 +5,7 @@
       v-for="(prevSetup, i) in idfSetups"
       :key="prevSetup.id"
       :data-config-id="prevSetup.idfPath"
-      @click.once="useIdfSetup(i)"
+      @click="useIdfSetup(i)"
     >
       <label :for="prevSetup.id" class="subtitle">
         {{ prevSetup.idfPath }}</label
