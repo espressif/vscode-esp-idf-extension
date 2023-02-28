@@ -51,7 +51,7 @@
     </div>
 
     <projectConfElem
-      v-for="confKey in Object.keys(elements)"
+      v-for="confKey in Object.keys(elements).reverse()"
       :key="confKey"
       :el.sync="elements[confKey]"
       :title="confKey"
