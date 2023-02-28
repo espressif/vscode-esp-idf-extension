@@ -55,9 +55,13 @@ export async function installPyReqs(
     Logger.info(msg);
     return;
   }
-  const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(sysPyBinPath, workingDir);
+  const isNotVirtualEnv = await pythonManager.checkIfNotVirtualEnv(
+    sysPyBinPath,
+    workingDir
+  );
   if (!isNotVirtualEnv) {
-    const msg = "Selected python is from a virtual environment. Choose system python";
+    const msg =
+      "Selected python is from a virtual environment. Choose system python";
     sendPyReqLog(msg);
     OutputChannel.appendLine(msg);
     Logger.info(msg);
@@ -97,15 +101,13 @@ export async function installPyReqs(
 export async function installExtensionPyReqs(
   idfToolsDir: string,
   pythonBinPath: string,
-  espIdfPath: string,
-  gitPath: string
+  espIdfPath: string
 ) {
   const logTracker = new PyReqLog(sendPyReqLog);
   await pythonManager.installExtensionPyReqs(
     pythonBinPath,
     espIdfPath,
     idfToolsDir,
-    gitPath,
     logTracker,
     OutputChannel.init()
   );

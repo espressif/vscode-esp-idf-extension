@@ -19,6 +19,15 @@ export interface IEspIdfLink {
   url: string;
 }
 
+export interface IdfSetup {
+  id: string;
+  version: string;
+  python: string;
+  toolsPath: string;
+  idfPath: string;
+  gitPath: string;
+}
+
 export enum IdfMirror {
   Espressif,
   Github,
@@ -52,4 +61,5 @@ export enum StatusType {
 export enum SetupMode {
   advanced,
   express,
+  existing
 }

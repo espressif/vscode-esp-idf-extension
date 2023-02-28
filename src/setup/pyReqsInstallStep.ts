@@ -28,6 +28,7 @@ export async function createPyReqs(
   exportPaths: string,
   exportVars: { [key: string]: string },
   gitPath: string,
+  saveScope: vscode.ConfigurationTarget,
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken
 ) {
@@ -49,7 +50,8 @@ export async function createPyReqs(
     exportPaths,
     exportVars,
     toolsPath,
-    gitPath
+    gitPath,
+    saveScope
   );
   let idfPathVersion = await getEspIdfVersion(idfPath, gitPath);
   await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath, gitPath);

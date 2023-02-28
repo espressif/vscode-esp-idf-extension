@@ -19,6 +19,7 @@ import {
   IdfMirror,
   IEspIdfLink,
   IEspIdfTool,
+  IdfSetup,
   IDownload,
   SetupMode,
   StatusType,
@@ -38,7 +39,7 @@ export interface IState {
   idfDownloadStatus: IDownload;
   idfGitDownloadStatus: IDownload;
   idfPythonDownloadStatus: IDownload;
-  idfVersion: string;
+  idfSetups: IdfSetup[];
   isEspIdfValid: boolean;
   isIdfInstalling: boolean;
   isIdfInstalled: boolean;
@@ -49,6 +50,7 @@ export interface IState {
   pyExecErrorStatus: string;
   pyReqsLog: string;
   pyVersionsList: string[];
+  saveScope: number;
   selectedEspIdfVersion: IEspIdfLink;
   selectedIdfMirror: IdfMirror;
   selectedSysPython: string;
@@ -89,7 +91,7 @@ export const setupState: IState = {
     progress: "",
     progressDetail: "",
   },
-  idfVersion: "",
+  idfSetups: [],
   isEspIdfValid: false,
   isIdfInstalling: false,
   isIdfInstalled: false,
@@ -100,6 +102,7 @@ export const setupState: IState = {
   pyExecErrorStatus: "",
   pyReqsLog: "",
   pyVersionsList: [],
+  saveScope: 1,
   selectedEspIdfVersion: {
     filename: "",
     mirror: "",
@@ -157,6 +160,7 @@ export const actions: ActionTree<IState, any> = {
       selectedPyPath: pyPath,
       setupMode: context.state.setupMode,
       toolsPath: context.state.toolsFolder,
+      saveScope: context.state.saveScope
     });
   },
   installEspIdfTools(context) {
@@ -171,6 +175,7 @@ export const actions: ActionTree<IState, any> = {
       mirror: context.state.selectedIdfMirror,
       pyPath,
       toolsPath: context.state.toolsFolder,
+      saveScope: context.state.saveScope
     });
   },
   openEspIdfFolder() {
@@ -210,11 +215,19 @@ export const actions: ActionTree<IState, any> = {
       pyBinPath: pyPath,
       tools: context.state.toolsResults,
       toolsPath: context.state.toolsFolder,
+      saveScope: context.state.saveScope
     });
   },
   useDefaultSettings() {
     vscode.postMessage({
       command: "usePreviousSettings",
+    });
+  },
+  useIdfSetup(context, payload: number) {
+    vscode.postMessage({
+      command: "useIdfSetup",
+      selectedIdfSetup: payload,
+      saveScope: context.state.saveScope
     });
   },
 };
@@ -278,9 +291,9 @@ export const mutations: MutationTree<IState> = {
     newState.idfDownloadStatus.progressDetail = progressDetail;
     Object.assign(state, newState);
   },
-  setIdfVersion(state, idfVersion) {
+  setIdfSetups(state, idfSetups: IdfSetup[]) {
     const newState = state;
-    newState.idfVersion = idfVersion;
+    newState.idfSetups = idfSetups;
     Object.assign(state, newState);
   },
   setIsIdfInstalled(state, isInstalled: boolean) {
@@ -329,6 +342,11 @@ export const mutations: MutationTree<IState> = {
     if (pyVersionsList && pyVersionsList.length > 0) {
       newState.selectedSysPython = pyVersionsList[0];
     }
+    Object.assign(state, newState);
+  },
+  setSaveScope(state, newSaveScope: number) {
+    const newState = state;
+    newState.saveScope = newSaveScope;
     Object.assign(state, newState);
   },
   setSelectedEspIdfVersion(state, selectedEspIdfVersion: IEspIdfLink) {

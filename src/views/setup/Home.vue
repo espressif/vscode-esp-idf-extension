@@ -35,6 +35,7 @@
         </p>
         <p>are installed before choosing the setup mode.</p>
         <h2 class="subtitle">Choose a setup mode.</h2>
+        <selectSaveScope />
       </div>
       <div
         class="notification install-choice"
@@ -45,10 +46,8 @@
           >EXPRESS</label
         >
         <p name="express">
-          Fastest option. Choose ESP-IDF version and python version to create
-          ESP-IDF python virtual environment. ESP-IDF Tools will be installed in
-          <span class="span-path">{{ toolsFolder }}</span
-          >.
+          Fastest option. Choose ESP-IDF, ESP-IDF Tools directory and python executable to create
+          ESP-IDF.
         </p>
       </div>
       <div
@@ -60,49 +59,43 @@
           >ADVANCED</label
         >
         <p name="advanced">
-          Configurable option. Choose ESP-IDF version and python version to
-          create ESP-IDF python virtual environment. Choose ESP-IDF Tools
-          install directory or manually input each existing ESP-IDF tool path.
+          Configurable option. Choose ESP-IDF, ESP-IDF Tools directory and python executable to
+          create ESP-IDF. <br>
+          Can choose ESP-IDF Tools download or manually input each existing ESP-IDF tool path.
         </p>
       </div>
       <div
         class="notification install-choice"
-        @click.once="useDefaultSettings"
-        v-if="isPreviousSetupValid"
+        @click="goTo('/existingsetup', setupMode.existing)"
         id="existing-install-btn"
       >
         <label for="existing" class="subtitle" data-config-id="existing-setup"
           >USE EXISTING SETUP</label
         >
-        <p>
-          We have found ESP-IDF version: {{ idfVersion }} @<span
-            class="span-path"
-            >{{ espIdf }}</span
-          >
-          and ESP-IDF tools in @<span class="span-path"> {{ toolsFolder }}</span
-          >. Click here to use them.
-        </p>
+        <p>Select existing ESP-IDF setup saved in the extension.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
-import { IEspIdfTool, SetupMode } from "./types";
+import { SetupMode } from "./types";
 import { router } from "./main";
+import selectSaveScope from "./components/selectSaveScope.vue";
 
-@Component
+@Component({
+  components: {
+    selectSaveScope
+  }
+})
 export default class Home extends Vue {
   @Action requestInitialValues;
   @Action useDefaultSettings;
   @Mutation setSetupMode;
   @State("hasPrerequisites") private storeHasPrerequisites: boolean;
-  @State("idfVersion") private storeIdfVersion: string;
   @State("manualPythonPath") storeManualSysPython: string;
-  @State("toolsResults") private storeToolsResults: IEspIdfTool[];
-  @State("toolsFolder") private storeToolsFolder: string;
   @State("espIdf") private storeEspIdf: string;
   @State("platform") private storePlatform: string;
 
@@ -114,37 +107,12 @@ export default class Home extends Vue {
     return this.storeHasPrerequisites;
   }
 
-  get idfVersion() {
-    return this.storeIdfVersion;
-  }
-
   get platform() {
     return this.storePlatform;
   }
 
-  get isPreviousSetupValid() {
-    if (this.storeToolsResults.length === 0) {
-      return false;
-    }
-    const failedToolsResult = this.storeToolsResults.filter(
-      (tInfo) => !tInfo.doesToolExist
-    );
-    if (
-      this.storeManualSysPython &&
-      this.storeToolsResults.length > 0 &&
-      failedToolsResult.length === 0
-    ) {
-      return true;
-    }
-    return false;
-  }
-
   get setupMode() {
     return SetupMode;
-  }
-
-  get toolsFolder() {
-    return this.storeToolsFolder;
   }
 
   mounted() {

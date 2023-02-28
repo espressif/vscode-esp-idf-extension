@@ -39,9 +39,9 @@ export interface IEspIdfTool {
 }
 
 export class IdfToolsManager {
-  public static async createIdfToolsManager(idfPath: string, gitPath: string) {
+  public static async createIdfToolsManager(idfPath: string) {
     const platformInfo = await PlatformInformation.GetPlatformInformation();
-    const toolsJsonPath = await utils.getToolsJsonPath(idfPath, gitPath);
+    const toolsJsonPath = await utils.getToolsJsonPath(idfPath);
     const toolsObj = await readJSON(toolsJsonPath);
     const idfToolsManager = new IdfToolsManager(
       toolsObj,
@@ -318,8 +318,9 @@ export class IdfToolsManager {
         );
       });
       const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
-      const isToolVersionCorrect =
-        expectedVersions.indexOf(versions[pkg.name]) > -1;
+      let isToolVersionCorrect =
+        expectedVersions.indexOf(versions[pkg.name]) > -1 ||
+        versions[pkg.name] === "No command version";
       const versionToUse = this.getVersionToUse(pkg);
       let pkgExportedPath: string = "";
       let pkgVars = pkg.export_vars;

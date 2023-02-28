@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { LocDictionary } from "../localizationDictionary";
-import { ISetupInitArgs, saveSettings } from "./setupInit";
+import { ISetupInitArgs } from "./setupInit";
 import {
   IdfMirror,
   IEspIdfLink,
@@ -24,10 +24,9 @@ import {
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
-import vscode, { Uri } from "vscode";
+import vscode, { ConfigurationTarget, Uri } from "vscode";
 import { expressInstall } from "./espIdfDownloadStep";
 import { IdfToolsManager } from "../idfToolsManager";
-import { installExtensionPyReqs } from "./installPyReqs";
 import { OutputChannel } from "../logger/outputChannel";
 import { Logger } from "../logger/logger";
 import { createPyReqs } from "./pyReqsInstallStep";
@@ -35,6 +34,7 @@ import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
 import { checkSpacesInPath } from "../utils";
+import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -119,7 +119,6 @@ export class SetupPanel {
             await this.checkRequiredTools(
               message.espIdf,
               message.toolsPath,
-              setupArgs.gitPath,
               setupArgs.onReqPkgs
             );
           }
@@ -129,6 +128,7 @@ export class SetupPanel {
             message.espIdfContainer &&
             message.selectedEspIdfVersion &&
             message.toolsPath &&
+            message.saveScope &&
             typeof message.selectedPyPath !== undefined &&
             typeof message.manualEspIdfPath !== undefined &&
             typeof message.mirror !== undefined &&
@@ -148,6 +148,7 @@ export class SetupPanel {
               message.manualEspIdfPath,
               message.espIdfContainer,
               message.mirror,
+              message.saveScope,
               message.setupMode,
               setupArgs.onReqPkgs
             );
@@ -158,6 +159,7 @@ export class SetupPanel {
             message.espIdf &&
             message.pyPath &&
             message.toolsPath &&
+            message.saveScope &&
             typeof message.mirror !== undefined
           ) {
             await this.installEspIdfTools(
@@ -166,6 +168,7 @@ export class SetupPanel {
               message.toolsPath,
               setupArgs.gitPath,
               message.mirror,
+              message.saveScope,
               setupArgs.onReqPkgs
             );
           }
@@ -207,14 +210,12 @@ export class SetupPanel {
             espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
-            idfVersion: setupArgs.espIdfVersion,
             idfVersions: setupArgs.espIdfVersionsList,
             idfTags: setupArgs.espIdfTagsList,
+            idfSetups: setupArgs.existingIdfSetups,
             pathSep,
             platform: process.platform,
-            pyBinPath: setupArgs.pyBinPath,
             pyVersionList: setupArgs.pythonVersions,
-            toolsResults: setupArgs.toolsResults,
           });
           break;
         case "saveCustomSettings":
@@ -222,7 +223,8 @@ export class SetupPanel {
             message.espIdfPath &&
             message.toolsPath &&
             message.pyBinPath &&
-            message.tools
+            message.tools &&
+            message.saveScope
           ) {
             const { exportedPaths, exportedVars } = this.getCustomSetupSettings(
               message.tools
@@ -237,17 +239,15 @@ export class SetupPanel {
               message.pyBinPath,
               exportedPaths,
               exportedVars,
-              setupArgs.gitPath
+              setupArgs.gitPath,
+              message.saveScope
             );
           }
           break;
-        case "usePreviousSettings":
+        case "useIdfSetup":
           if (
-            setupArgs.espIdfPath &&
-            setupArgs.pyBinPath &&
-            setupArgs.exportedPaths &&
-            setupArgs.exportedVars &&
-            setupArgs.espToolsPath
+            typeof message.selectedIdfSetup !== undefined &&
+            message.saveScope
           ) {
             this.panel.webview.postMessage({
               command: "updateIdfGitStatus",
@@ -260,6 +260,12 @@ export class SetupPanel {
             this.panel.webview.postMessage({
               command: "updateEspIdfStatus",
               status: StatusType.installed,
+            });
+            SetupPanel.postMessage({
+              command: "setEspIdfErrorStatus",
+              errorMsg: `ESP-IDF is installed in ${
+                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+              }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -274,19 +280,9 @@ export class SetupPanel {
               installing: true,
               page: "/status",
             });
-            await installExtensionPyReqs(
-              setupArgs.espToolsPath,
-              setupArgs.pyBinPath,
-              setupArgs.espIdfPath,
-              setupArgs.gitPath
-            );
-            await saveSettings(
-              setupArgs.espIdfPath,
-              setupArgs.pyBinPath,
-              setupArgs.exportedPaths,
-              setupArgs.exportedVars,
-              setupArgs.espToolsPath,
-              setupArgs.gitPath
+            await useIdfSetupSettings(
+              setupArgs.existingIdfSetups[message.selectedIdfSetup],
+              message.saveScope
             );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
@@ -346,6 +342,7 @@ export class SetupPanel {
     espIdfPath: string,
     idfContainerPath: string,
     mirror: IdfMirror,
+    saveScope: vscode.ConfigurationTarget,
     setupMode: SetupMode,
     onReqPkgs?: string[]
   ) {
@@ -389,6 +386,7 @@ export class SetupPanel {
             idfContainerPath,
             toolsPath,
             mirror,
+            saveScope,
             setupMode,
             idfGitPath,
             progress,
@@ -405,13 +403,9 @@ export class SetupPanel {
   private async checkRequiredTools(
     idfPath: string,
     toolsInfo: IEspIdfTool[],
-    gitPath: string,
     onReqPkgs?: string[]
   ) {
-    const toolsManager = await IdfToolsManager.createIdfToolsManager(
-      idfPath,
-      gitPath
-    );
+    const toolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
     const pathToVerify = toolsInfo
       .reduce((prev, curr, i) => {
         return prev + path.delimiter + curr.path;
@@ -464,6 +458,7 @@ export class SetupPanel {
     toolsPath: string,
     gitPath: string,
     mirror: IdfMirror,
+    saveScope: vscode.ConfigurationTarget,
     onReqPkgs?: string[]
   ) {
     return await vscode.window.withProgress(
@@ -505,6 +500,7 @@ export class SetupPanel {
             pyPath,
             gitPath,
             mirror,
+            saveScope,
             progress,
             cancelToken,
             onReqPkgs
@@ -522,7 +518,8 @@ export class SetupPanel {
     pyPath: string,
     exportPaths: string,
     exportVars: { [key: string]: string },
-    gitPath: string
+    gitPath: string,
+    saveScope: ConfigurationTarget
   ) {
     return await vscode.window.withProgress(
       {
@@ -547,6 +544,7 @@ export class SetupPanel {
             exportPaths,
             exportVars,
             gitPath,
+            saveScope,
             progress,
             cancelToken
           );

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Sunday, 10th May 2020 11:33:22 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,12 +19,10 @@ import * as vscode from "vscode";
 import {
   getSetupInitialValues,
   isCurrentInstallValid,
-  saveSettings,
 } from "./setup/setupInit";
 import { Logger } from "./logger/logger";
-import { OutputChannel } from "./logger/outputChannel";
-import { installExtensionPyReqs } from "./pythonManager";
 import { readParameter } from "./idfConfiguration";
+import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
 
 export async function checkExtensionSettings(
   extensionPath: string,
@@ -51,40 +49,24 @@ export async function checkExtensionSettings(
           progress,
           workspace
         );
+        if (showSetupWindow && !setupArgs.hasPrerequisites) {
+          vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
+          return;
+        }
         if (
           setupArgs.espIdfPath &&
           setupArgs.espToolsPath &&
-          setupArgs.pyBinPath &&
-          setupArgs.exportedPaths &&
-          setupArgs.exportedVars &&
-          setupArgs.gitPath
+          setupArgs.existingIdfSetups &&
+          setupArgs.existingIdfSetups.length
         ) {
-          if (showSetupWindow && !setupArgs.hasPrerequisites) {
-            vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
-            return;
-          }
           progress.report({
             increment: 5,
             message: "ESP-IDF and tools found, configuring the extension...",
           });
-          await installExtensionPyReqs(
-            setupArgs.pyBinPath,
-            setupArgs.espIdfPath,
-            setupArgs.espToolsPath,
-            setupArgs.gitPath,
-            undefined,
-            OutputChannel.init(),
-            { env: process.env, cwd: workspace.fsPath },
-            cancelToken
-          );
-          await saveSettings(
-            setupArgs.espIdfPath,
-            setupArgs.pyBinPath,
-            setupArgs.exportedPaths,
-            setupArgs.exportedVars,
-            setupArgs.espToolsPath,
-            setupArgs.gitPath
-          );
+          const confTarget = readParameter(
+            "idf.saveScope"
+          ) as vscode.ConfigurationTarget;
+          await useIdfSetupSettings(setupArgs.existingIdfSetups[0], confTarget);
         } else if (
           typeof process.env.WEB_IDE === "undefined" &&
           showSetupWindow

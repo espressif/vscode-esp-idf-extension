@@ -509,8 +509,8 @@ export function execChildProcess(
   });
 }
 
-export async function getToolsJsonPath(newIdfPath: string, gitPath: string) {
-  const espIdfVersion = await getEspIdfVersion(newIdfPath, gitPath);
+export async function getToolsJsonPath(newIdfPath: string) {
+  const espIdfVersion = await getEspIdfFromCMake(newIdfPath);
   let jsonToUse: string = path.join(newIdfPath, "tools", "tools.json");
   await pathExists(jsonToUse).then((exists) => {
     if (!exists) {

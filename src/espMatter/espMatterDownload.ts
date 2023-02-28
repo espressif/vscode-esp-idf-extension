@@ -207,7 +207,6 @@ export class EspMatterCloning extends AbstractCloning {
 
 export async function installPythonReqs(
   espMatterPath: string,
-  gitPath: string,
   workspace?: Uri
 ) {
   const espIdfPath = readParameter("idf.espIdfPath", workspace)
@@ -239,7 +238,6 @@ export async function installPythonReqs(
         toolsPath,
         espMatterPath,
         pyPath,
-        gitPath,
         undefined,
         OutputChannel.init(),
         cancelToken
@@ -250,7 +248,7 @@ export async function installPythonReqs(
 
 export async function getEspMatter(workspace?: Uri) {
   const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
-  var espMatterPath;
+  let espMatterPath;
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   const installAllSubmodules = await window.showQuickPick(
       [
@@ -294,7 +292,7 @@ export async function getEspMatter(workspace?: Uri) {
   }
 
   try {
-    await installPythonReqs(espMatterPath, gitPath, workspace);
+    await installPythonReqs(espMatterPath, workspace);
   } catch (error) {
     const msg = error.message
       ? error.message

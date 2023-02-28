@@ -26,6 +26,8 @@ import {
 import { downloadInstallIdfVersion } from "./espIdfDownload";
 import { Logger } from "../logger/logger";
 import { downloadIdfTools } from "./toolsDownloadStep";
+import { join } from "path";
+import { IdfToolsManager } from "../idfToolsManager";
 
 export async function expressInstall(
   selectedIdfVersion: IEspIdfLink,
@@ -34,6 +36,7 @@ export async function expressInstall(
   idfContainerPath: string,
   toolsPath: string,
   mirror: IdfMirror,
+  saveScope: vscode.ConfigurationTarget,
   setupMode: SetupMode,
   gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
@@ -75,10 +78,6 @@ export async function expressInstall(
     selectedFolder: idfPath,
   });
   SetupPanel.postMessage({
-    command: "setIdfVersion",
-    idfVersion,
-  });
-  SetupPanel.postMessage({
     command: "updateEspIdfStatus",
     status: StatusType.installed,
   });
@@ -95,6 +94,22 @@ export async function expressInstall(
       command: "updatePythonPath",
       selectedPyPath: pyPath,
     });
+    const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+      espIdfPath
+    );
+    const exportedToolsPaths = await idfToolsManager.exportPathsInString(
+      join(toolsPath, "tools"),
+      onReqPkgs
+    );
+    const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
+      join(toolsPath, "tools"),
+      exportedToolsPaths,
+      onReqPkgs
+    );
+    SetupPanel.postMessage({
+      command: "setRequiredToolsInfo",
+      toolsInfo,
+    });
     SetupPanel.postMessage({
       command: "goToCustomPage",
       installing: false,
@@ -108,6 +123,7 @@ export async function expressInstall(
     pyPath,
     gitPath,
     mirror,
+    saveScope,
     progress,
     cancelToken,
     onReqPkgs

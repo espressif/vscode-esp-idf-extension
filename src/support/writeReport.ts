@@ -46,9 +46,9 @@ export async function writeTextReport(
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (reportedResult.configurationSettings.customExtraVars && Object.keys(reportedResult.configurationSettings.customExtraVars)) {
-    output += `Custom extra vars (idf.customExtraVars) ${reportedResult.configurationSettings.customExtraVars}${EOL}`;
+    output += `Custom extra vars (idf.customExtraVars)${EOL}`;
     for (let key in reportedResult.configurationSettings.customExtraVars) {
-      output += `${key}: ${reportedResult.configurationSettings.customExtraVars[key]}${EOL}`;
+      output += `    ${key}: ${reportedResult.configurationSettings.customExtraVars[key]}${EOL}`;
     }
   }
   output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;

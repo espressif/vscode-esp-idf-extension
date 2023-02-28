@@ -82,12 +82,7 @@ export async function installPythonEnvFromIdfTools(
     modifiedEnv.PYTHONNOUSERSITE = "1";
   }
 
-  const pyEnvPath = await getPythonEnvPath(
-    espDir,
-    idfToolsDir,
-    pythonBinPath,
-    gitPath
-  );
+  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
 
   await execProcessWithLog(
     `"${pythonBinPath}" -m pip install --user virtualenv`,
@@ -125,7 +120,6 @@ export async function installPythonEnvFromIdfTools(
     virtualEnvPython,
     espDir,
     idfToolsDir,
-    gitPath,
     pyTracker,
     channel,
     { env: modifiedEnv },
@@ -138,7 +132,6 @@ export async function installExtensionPyReqs(
   virtualEnvPython: string,
   espDir: string,
   idfToolsDir: string,
-  gitPath: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
   opts?: { env: NodeJS.ProcessEnv; cwd?: string },
@@ -176,7 +169,7 @@ export async function installExtensionPyReqs(
   if (channel) {
     channel.appendLine(installExtensionPyPkgsMsg + "\n");
   }
-  const espIdfVersion = await utils.getEspIdfVersion(espDir, gitPath);
+  const espIdfVersion = await utils.getEspIdfFromCMake(espDir);
   const constrainsFile = path.join(
     idfToolsDir,
     `espidf.constraints.v${espIdfVersion}.txt`
@@ -228,7 +221,6 @@ export async function installEspMatterPyReqs(
   idfToolsDir: string,
   espMatterDir: string,
   pythonBinPath: string,
-  gitPath: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
   cancelToken?: CancellationToken
@@ -237,12 +229,7 @@ export async function installEspMatterPyReqs(
     Object.assign({}, process.env)
   );
   const opts = { env: modifiedEnv };
-  const pyEnvPath = await getPythonEnvPath(
-    espDir,
-    idfToolsDir,
-    pythonBinPath,
-    gitPath
-  );
+  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
@@ -303,8 +290,7 @@ export async function execProcessWithLog(
 export async function getPythonEnvPath(
   espIdfDir: string,
   idfToolsDir: string,
-  pythonBin: string,
-  gitPath: string
+  pythonBin: string
 ) {
   const pythonVersion = (
     await utils.execChildProcess(
@@ -312,7 +298,7 @@ export async function getPythonEnvPath(
       espIdfDir
     )
   ).replace(/(\n|\r|\r\n)/gm, "");
-  const fullEspIdfVersion = await utils.getEspIdfVersion(espIdfDir, gitPath);
+  const fullEspIdfVersion = await utils.getEspIdfFromCMake(espIdfDir);
   const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
   const espIdfVersion =
     majorMinorMatches && majorMinorMatches.length > 0

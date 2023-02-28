@@ -308,9 +308,9 @@ suite("Doctor command tests", () => {
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
     if (reportObj.configurationSettings.customExtraVars && Object.keys(reportObj.configurationSettings.customExtraVars)) {
-      expectedOutput += `Custom extra vars (idf.customExtraVars) ${reportObj.configurationSettings.customExtraVars}${os.EOL}`;
+      expectedOutput += `Custom extra vars (idf.customExtraVars)${os.EOL}`;
       for (let key in reportObj.configurationSettings.customExtraVars) {
-        expectedOutput += `${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;
+        expectedOutput += `    ${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;
       }
     }
     expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
