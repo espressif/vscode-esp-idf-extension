@@ -126,6 +126,8 @@ import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
+import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
+import { ProjectConfigStore } from "./project-conf";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -249,6 +251,7 @@ export async function activate(context: vscode.ExtensionContext) {
   ESP.Rainmaker.store = RainmakerStore.init(context);
 
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
   // Create a status bar item with current workspace
 
@@ -883,6 +886,90 @@ export async function activate(context: vscode.ExtensionContext) {
             : "Error at defining framework path.";
         Logger.errorNotify(errMsg, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.projectConfigurationEditor", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      try {
+        if (projectConfigurationPanel.isCreatedAndHidden()) {
+          projectConfigurationPanel.createOrShow(context.extensionPath);
+          return;
+        }
+        await vscode.window.withProgress(
+          {
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: "ESP-IDF: Project Configuration",
+          },
+          async (
+            progress: vscode.Progress<{ message: string; increment: number }>
+          ) => {
+            try {
+              projectConfigurationPanel.createOrShow(
+                context.extensionPath,
+                statusBarItems["projectConf"]
+              );
+            } catch (error) {
+              Logger.errorNotify(error.message, error);
+            }
+          }
+        );
+      } catch (error) {
+        Logger.errorNotify(error.message, error);
+      }
+    });
+  });
+
+  registerIDFCommand("espIdf.projectConf", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const projectConfigurations = ESP.ProjectConfiguration.store.getKeys();
+      if (!projectConfigurations) {
+        const emptyOption = await vscode.window.showInformationMessage(
+          "No project configuration found",
+          "Open editor"
+        );
+        if (emptyOption === "Open editor") {
+          vscode.commands.executeCommand("espIdf.projectConfigurationEditor");
+        }
+        return;
+      }
+      const selectConfigMsg = locDic.localize(
+        "extension.selectConfigMessage",
+        "Select configuration to use:"
+      );
+      let quickPickItems = projectConfigurations.map((k) => {
+        return {
+          description: k,
+          label: `Configuration ${k}`,
+          target: k,
+        };
+      });
+      const option = await vscode.window.showQuickPick(quickPickItems, {
+        placeHolder: selectConfigMsg,
+      });
+      if (!option) {
+        const noOptionMsg = locDic.localize(
+          "extension.noOptionMessage",
+          "No option selected."
+        );
+        Logger.infoNotify(noOptionMsg);
+        return;
+      }
+      ESP.ProjectConfiguration.store.set(
+        ESP.ProjectConfiguration.SELECTED_CONFIG,
+        option.target
+      );
+      if (statusBarItems["projectConf"]) {
+        statusBarItems["projectConf"].dispose();
+      }
+      statusBarItems["projectConf"] = createStatusBarItem(
+        "$(gear)" + option.target,
+        "ESP-IDF Select project configuration",
+        "espIdf.projectConf",
+        100
+      );
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });
 
@@ -2903,6 +2990,9 @@ function creatCmdsStatusBarItems() {
     "idf.flashType",
     workspaceRoot
   ) as string;
+  let projectConf = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
   if (idfTarget === "custom") {
     idfTarget = idfConf.readParameter(
       "idf.customAdapterTargetName",
@@ -2915,8 +3005,17 @@ function creatCmdsStatusBarItems() {
     "$(plug)" + port,
     "ESP-IDF Select port to use (COM, tty, usbserial)",
     "espIdf.selectPort",
-    100
+    101
   );
+
+  if (projectConf) {
+    statusBarItems["projectConf"] = createStatusBarItem(
+      "$(gear)" + projectConf,
+      "ESP-IDF Select project configuration",
+      "espIdf.projectConf",
+      100
+    );
+  }
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,

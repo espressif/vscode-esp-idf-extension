@@ -35,6 +35,7 @@ import { writeTextReport } from "./writeReport";
 import { checkSystemInfo } from "./checkSystemInfo";
 import { checkCCppPropertiesJson, checkLaunchJson } from "./checkVscodeFiles";
 import { checkSpacesInSettings } from "./checkSpacesInSettings";
+import { getProjectConfigurations, getSelectedProjectConfiguration } from "./projectConfiguration";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -56,6 +57,8 @@ export async function generateConfigurationReport(
   await checkDebugAdapterRequirements(reportedResult, context);
   await checkLaunchJson(reportedResult, currentWorkspace);
   await checkCCppPropertiesJson(reportedResult, currentWorkspace);
+  getProjectConfigurations(reportedResult);
+  getSelectedProjectConfiguration(reportedResult);
   const reportOutput = await writeTextReport(reportedResult, context);
   await vscode.env.clipboard.writeText(reportOutput);
   reportedResult.formatedOutput = reportOutput;

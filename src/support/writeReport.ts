@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th December 2020 5:07:59 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,7 +27,7 @@ export async function writeTextReport(
   context: vscode.ExtensionContext
 ) {
   reportedResult = replaceUserPath(reportedResult);
-  
+
   let output = `---------------------------------------------- ESP-IDF Extension for Visual Studio Code report ---------------------------------------------${EOL}`;
   const lineBreak = `--------------------------------------------------------------------------------------------------------------------------------------------${EOL}`;
   output += `OS ${reportedResult.systemInfo.platform} ${reportedResult.systemInfo.architecture} ${reportedResult.systemInfo.systemName} ${EOL}`;
@@ -76,7 +76,8 @@ export async function writeTextReport(
   output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
   output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
   output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
-  for (let key in reportedResult.configurationSpacesValidation.customExtraPaths) {
+  for (let key in reportedResult.configurationSpacesValidation
+    .customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
   output += `Spaces in Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
@@ -102,6 +103,46 @@ export async function writeTextReport(
       ? reportedResult.pipVersion.result
       : reportedResult.pipVersion.output
   }${EOL}`;
+  output += `-------------------------------------------------- Project configuration settings ----------------------------------------------------------${EOL}`;
+  if (reportedResult.selectedProjectConfiguration) {
+    output += `Selected configuration: ${reportedResult.selectedProjectConfiguration}${EOL}${EOL}`;
+  }
+  if (reportedResult.projectConfigurations) {
+    for (let key of Object.keys(reportedResult.projectConfigurations)) {
+      output += `Configuration name: ${key}${EOL}`;
+      if (reportedResult.projectConfigurations[key].build) {
+        output += `---- Build section ----${EOL}`;
+        output += `     Compile Arguments: ${reportedResult.projectConfigurations[key].build.compileArgs}${EOL}`;
+        output += `     Ninja Arguments: ${reportedResult.projectConfigurations[key].build.ninjaArgs}${EOL}`;
+        output += `     Build directory path: ${reportedResult.projectConfigurations[key].build.buildDirectoryPath}${EOL}`;
+        output += `     SDKConfig defaults : ${reportedResult.projectConfigurations[key].build.sdkconfigDefaults}${EOL}`;
+      }
+      if (reportedResult.projectConfigurations[key].env) {
+        output += `---- Environment variables section ----${EOL}`;
+        for (const envKey of Object.keys(
+          reportedResult.projectConfigurations[key].env
+        )) {
+          output += `     ${envKey}: ${reportedResult.projectConfigurations[key].env[envKey]}${EOL}`;
+        }
+      }
+      output += `Flash baud rate: ${reportedResult.projectConfigurations[key].flashBaudRate}${EOL}`;
+
+      if (reportedResult.projectConfigurations[key].openOCD) {
+        output += `---- OpenOCD section ----${EOL}`;
+        output += `     Debug level: ${reportedResult.projectConfigurations[key].openOCD.debugLevel}${EOL}`;
+        output += `     Configuration files: ${reportedResult.projectConfigurations[key].openOCD.configs}${EOL}`;
+        output += `     Launch arguments: ${reportedResult.projectConfigurations[key].openOCD.args}${EOL}`;
+      }
+
+      if (reportedResult.projectConfigurations[key].tasks) {
+        output += `---- Tasks section ----${EOL}`;
+        output += `     Pre build task: ${reportedResult.projectConfigurations[key].tasks.preBuild}${EOL}`;
+        output += `     Post build task: ${reportedResult.projectConfigurations[key].tasks.postBuild}${EOL}`;
+        output += `     Pre flash task: ${reportedResult.projectConfigurations[key].tasks.preFlash}${EOL}`;
+        output += `     Post flash task: ${reportedResult.projectConfigurations[key].tasks.postFlash}${EOL}`;
+      }
+    }
+  }
   output += `-------------------------------------------------- Python packages in idf.pythonBinPath ----------------------------------------------------${EOL}`;
   if (reportedResult.configurationSettings.pythonPackages) {
     for (let pkg of reportedResult.configurationSettings.pythonPackages) {
@@ -162,14 +203,14 @@ export function replaceUserPath(report: reportObj): reportObj {
   const strReport = JSON.stringify(report);
 
   // Replacing all home paths (based on OS) with '...' using es6 syntax. Can be replaced with one line using .replaceAll() when we will update the version of ECMAScript to 2021 or higher
-  let re = new RegExp(process.env.HOME, 'g');
-  if(process.env.windir) {
-    const reWin = new RegExp('\\\\', 'g');
-    const result = process.env.HOMEPATH.replace(reWin, '\\\\\\\\')
-    re = new RegExp(result, 'g');
+  let re = new RegExp(process.env.HOME, "g");
+  if (process.env.windir) {
+    const reWin = new RegExp("\\\\", "g");
+    const result = process.env.HOMEPATH.replace(reWin, "\\\\\\\\");
+    re = new RegExp(result, "g");
   }
-  const parsedReport = strReport.replace(re, '<HOMEPATH>');
-  Logger.warnNotify(parsedReport, {tag: 'DOCTOR COMMAND'});
+  const parsedReport = strReport.replace(re, "<HOMEPATH>");
+  Logger.warnNotify(parsedReport, { tag: "DOCTOR COMMAND" });
 
   return JSON.parse(parsedReport);
 }

@@ -18,6 +18,7 @@
 
 import { ExtensionConfigStore } from "./common/store";
 import { IEspIdfDocVersion } from "./espIdf/documentation/getDocsVersion";
+import { ProjectConfigStore } from "./project-conf";
 import { RainmakerStore } from "./rainmaker/store";
 
 export namespace ESP {
@@ -25,6 +26,12 @@ export namespace ESP {
   export const extensionID = "espressif.esp-idf-extension";
   export const HTTP_USER_AGENT =
     "vscode.extensions.espressif.esp-idf.extension/1.0.0 axios-client";
+
+  export namespace ProjectConfiguration {
+    export let store: ProjectConfigStore;
+    export const CONFIGURATION_LIST_KEY = "PROJECT_CONFIGURATION_KEYS";
+    export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
+  }
 
   export enum FlashType {
     JTAG = "JTAG",

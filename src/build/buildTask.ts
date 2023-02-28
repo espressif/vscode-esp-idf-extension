@@ -140,7 +140,7 @@ export class BuildTask {
       : vscode.TaskRevealKind.Silent;
 
     if (!cmakeCacheExists) {
-      const compilerArgs = (idfConf.readParameter(
+      let compilerArgs = (idfConf.readParameter(
         "idf.cmakeCompilerArgs",
         this.curWorkspace
       ) as Array<string>) || [
@@ -149,9 +149,11 @@ export class BuildTask {
         "-DPYTHON_DEPS_CHECKED=1",
         "-DESP_PLATFORM=1",
       ];
-      if (compilerArgs.indexOf("-B") === -1) {
-        compilerArgs.push("-B", this.buildDirPath);
+      let buildPathArgsIndex = compilerArgs.indexOf("-B");
+      if (buildPathArgsIndex !== -1) {
+        compilerArgs.splice(buildPathArgsIndex, 2);
       }
+      compilerArgs.push("-B", this.buildDirPath);
 
       if (compilerArgs.indexOf("-S") === -1) {
         compilerArgs.push("-S", this.curWorkspace.fsPath);
@@ -160,7 +162,11 @@ export class BuildTask {
       const sdkconfigDefaults =
         (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
-      if (sdkconfigDefaults && sdkconfigDefaults.length) {
+      if (
+        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") !== -1 &&
+        sdkconfigDefaults &&
+        sdkconfigDefaults.length
+      ) {
         compilerArgs.push(
           "-D",
           `SDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(";")}"`
@@ -196,6 +202,7 @@ export class BuildTask {
         ["espIdf"],
         compilePresentationOptions
       );
+      compilerArgs = [];
     }
 
     const buildArgs =

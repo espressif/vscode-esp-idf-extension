@@ -37,6 +37,10 @@ export async function setTargetInIDF(
     ConfserverProcess.dispose();
   }
   const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder.uri);
+  const buildDirPath = readParameter(
+    "idf.buildPath",
+    workspaceFolder.uri
+  ) as string;
   const idfPy = join(idfPathDir, "tools", "idf.py");
   const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder.uri);
   modifiedEnv.IDF_TARGET = undefined;
@@ -44,7 +48,7 @@ export async function setTargetInIDF(
     "idf.enableCCache",
     workspaceFolder.uri
   ) as boolean;
-  const setTargetArgs: string[] = [idfPy];
+  const setTargetArgs: string[] = [idfPy, "-B", buildDirPath];
   if (enableCCache) {
     modifiedEnv.IDF_CCACHE_ENABLE = "1";
   } else {
