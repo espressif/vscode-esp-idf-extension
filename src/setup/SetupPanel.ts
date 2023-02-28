@@ -245,7 +245,10 @@ export class SetupPanel {
           }
           break;
         case "useIdfSetup":
-          if (message.selectedIdfSetup && message.saveScope) {
+          if (
+            typeof message.selectedIdfSetup !== undefined &&
+            message.saveScope
+          ) {
             this.panel.webview.postMessage({
               command: "updateIdfGitStatus",
               status: StatusType.installed,
