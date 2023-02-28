@@ -102,8 +102,10 @@ export default class ProjectConfigEditor extends Vue {
   }
 
   addElement() {
-    this.addNewConfigToList(this.keyToAdd);
-    this.keyToAdd = "";
+    if (this.keyToAdd !== "") {
+      this.addNewConfigToList(this.keyToAdd);
+      this.keyToAdd = "";
+    }
   }
 
   deleteElem(k: string) {

@@ -187,6 +187,7 @@ export class projectConfigurationPanel {
         projectConfKeys
       );
     }
+    window.showInformationMessage("Project Configuration changes has been saved");
   }
 
   private createSetupHtml(scriptPath: Uri): string {
