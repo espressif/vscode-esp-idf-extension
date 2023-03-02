@@ -98,7 +98,7 @@ export default class Row extends Vue {
         "test",
       ];
     } else if (this.sType === "data") {
-      return ["fat", "ota", "phy", "nvs", "nvs_keys", "spiffs"];
+      return ["fat", "ota", "phy", "nvs", "nvs_keys", "spiffs","coredump"];
     }
     return [];
   }
