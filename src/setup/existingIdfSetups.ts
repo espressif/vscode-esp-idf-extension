@@ -20,8 +20,9 @@ import { ESP } from "../config";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 import { getIdfMd5sum, loadEspIdfJson } from "./espIdfJson";
+import { checkIdfSetup } from "./setupValidation/espIdfSetup";
 
-export function getPreviousIdfSetups() {
+export async function getPreviousIdfSetups() {
   const setupKeys = ESP.GlobalConfiguration.store.getIdfSetupKeys();
   const idfSetups: IdfSetup[] = [];
   for (let idfSetupKey of setupKeys) {
@@ -29,11 +30,20 @@ export function getPreviousIdfSetups() {
       idfSetupKey,
       undefined
     );
+    idfSetup.isValid = await checkIdfSetup(idfSetup);
+    idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
     if (idfSetup) {
       idfSetups.push(idfSetup);
     }
   }
   return idfSetups;
+}
+
+export async function clearPreviousIdfSetups() {
+  const setupKeys = ESP.GlobalConfiguration.store.getIdfSetupKeys();
+  for (let idfSetupKey of setupKeys) {
+    ESP.GlobalConfiguration.store.clear(idfSetupKey);
+  }
 }
 
 export async function createIdfSetup(
@@ -51,7 +61,9 @@ export async function createIdfSetup(
     toolsPath,
     python: pythonPath,
     version: idfVersion,
+    isValid: false
   };
+  newIdfSetup.isValid = await checkIdfSetup(newIdfSetup);
   addIdfSetup(newIdfSetup);
 }
 
@@ -73,14 +85,17 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
   ) {
     let idfSetups: IdfSetup[] = [];
     for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
-      idfSetups.push({
+      let setupConf: IdfSetup = {
         id: idfInstalledKey,
         idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
         gitPath: espIdfJson.gitPath,
         python: espIdfJson.idfInstalled[idfInstalledKey].python,
         version: espIdfJson.idfInstalled[idfInstalledKey].version,
         toolsPath: toolsPath,
-      });
+        isValid: false
+      } as IdfSetup;
+      setupConf.isValid = await checkIdfSetup(setupConf);
+      idfSetups.push(setupConf);
     }
     return idfSetups;
   }
