@@ -35,6 +35,7 @@ import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
 import { checkSpacesInPath } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
+import { clearPreviousIdfSetups } from "./existingIdfSetups";
 
 const locDic = new LocDictionary("SetupPanel");
 
@@ -290,6 +291,9 @@ export class SetupPanel {
             });
             await this.getOpenOcdRulesPath();
           }
+          break;
+        case "cleanIdfSetups":
+          await clearPreviousIdfSetups();
           break;
         default:
           break;

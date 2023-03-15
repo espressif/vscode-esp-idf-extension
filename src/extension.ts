@@ -128,6 +128,7 @@ import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
+import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -803,6 +804,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectConfTarget", () => {
     idfConf.chooseConfigurationTarget();
+  });
+
+  registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
+    await clearPreviousIdfSetups();
   });
 
   registerIDFCommand("espIdf.setPath", () => {

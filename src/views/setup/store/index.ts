@@ -160,7 +160,7 @@ export const actions: ActionTree<IState, any> = {
       selectedPyPath: pyPath,
       setupMode: context.state.setupMode,
       toolsPath: context.state.toolsFolder,
-      saveScope: context.state.saveScope
+      saveScope: context.state.saveScope,
     });
   },
   installEspIdfTools(context) {
@@ -175,7 +175,7 @@ export const actions: ActionTree<IState, any> = {
       mirror: context.state.selectedIdfMirror,
       pyPath,
       toolsPath: context.state.toolsFolder,
-      saveScope: context.state.saveScope
+      saveScope: context.state.saveScope,
     });
   },
   openEspIdfFolder() {
@@ -215,7 +215,7 @@ export const actions: ActionTree<IState, any> = {
       pyBinPath: pyPath,
       tools: context.state.toolsResults,
       toolsPath: context.state.toolsFolder,
-      saveScope: context.state.saveScope
+      saveScope: context.state.saveScope,
     });
   },
   useDefaultSettings() {
@@ -227,7 +227,12 @@ export const actions: ActionTree<IState, any> = {
     vscode.postMessage({
       command: "useIdfSetup",
       selectedIdfSetup: payload,
-      saveScope: context.state.saveScope
+      saveScope: context.state.saveScope,
+    });
+  },
+  cleanIdfSetups() {
+    vscode.postMessage({
+      command: "cleanIdfSetups",
     });
   },
 };
