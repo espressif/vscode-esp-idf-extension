@@ -59,6 +59,9 @@ export async function useIdfSetupSettings(
 
 export async function checkIdfSetup(setupConf: IdfSetup) {
   try {
+    if (!setupConf.idfPath) {
+      return false;
+    }
     const doesIdfPathExists = await pathExists(setupConf.idfPath);
     if (!doesIdfPathExists) {
       return false;

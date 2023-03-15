@@ -230,7 +230,8 @@ export const actions: ActionTree<IState, any> = {
       saveScope: context.state.saveScope,
     });
   },
-  cleanIdfSetups() {
+  cleanIdfSetups(context) {
+    context.state.idfSetups = [];
     vscode.postMessage({
       command: "cleanIdfSetups",
     });

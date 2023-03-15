@@ -30,9 +30,9 @@ export async function getPreviousIdfSetups() {
       idfSetupKey,
       undefined
     );
-    idfSetup.isValid = await checkIdfSetup(idfSetup);
-    idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
     if (idfSetup) {
+      idfSetup.isValid = await checkIdfSetup(idfSetup);
+      idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
       idfSetups.push(idfSetup);
     }
   }
@@ -44,6 +44,7 @@ export async function clearPreviousIdfSetups() {
   for (let idfSetupKey of setupKeys) {
     ESP.GlobalConfiguration.store.clear(idfSetupKey);
   }
+  ESP.GlobalConfiguration.store.clear(ESP.GlobalConfiguration.IDF_SETUPS);
 }
 
 export async function createIdfSetup(
