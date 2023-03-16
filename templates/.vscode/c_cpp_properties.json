@@ -3,8 +3,6 @@
     {
       "name": "ESP-IDF",
       "compilerPath": "${default}",
-      "cStandard": "c11",
-      "cppStandard": "c++17",
       "includePath": [
         "${config:idf.espIdfPath}/components/**",
         "${config:idf.espIdfPathWin}/components/**",
