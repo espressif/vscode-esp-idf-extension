@@ -3168,7 +3168,11 @@ function createQemuMonitor(noReset: boolean = false) {
       workspaceRoot
     ) as number;
     const serialPort = `socket://localhost:${qemuTcpPort}`;
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
+    const idfMonitor = await createNewIdfMonitor(
+      workspaceRoot,
+      noReset,
+      serialPort
+    );
     monitorTerminal = idfMonitor.start();
   });
 }
