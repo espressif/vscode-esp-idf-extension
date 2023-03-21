@@ -1216,7 +1216,7 @@ export async function activate(context: vscode.ExtensionContext) {
           useMonitorWithDebug
         ) {
           isMonitorLaunchedByDebug = true;
-          createMonitor();
+          createMonitor(true);
         }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
@@ -2600,6 +2600,7 @@ export async function activate(context: vscode.ExtensionContext) {
           toolchainPrefix,
           idfMonitorToolPath,
           idfVersion,
+          noReset: false,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
@@ -3155,7 +3156,7 @@ const flash = (
   });
 };
 
-function createQemuMonitor() {
+function createQemuMonitor(noReset: boolean = false) {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
@@ -3167,7 +3168,7 @@ function createQemuMonitor() {
       workspaceRoot
     ) as number;
     const serialPort = `socket://localhost:${qemuTcpPort}`;
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot, serialPort);
+    const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
     monitorTerminal = idfMonitor.start();
   });
 }
@@ -3304,9 +3305,9 @@ function createIdfTerminal() {
   });
 }
 
-function createMonitor() {
+function createMonitor(noReset: boolean = false) {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot);
+    const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
     monitorTerminal = idfMonitor.start();
   });
 }
