@@ -820,6 +820,12 @@
             "default": false,
             "scope": "resource",
             "description": "%param.deleteComponentsOnFullClean%"
+          },
+          "idf.monitorStartDelayBeforeDebug": {
+            "type": "number",
+            "default": 5000,
+            "scope": "resource",
+            "description": "%param.monitorStartDelayBeforeDebug%"
           }
         }
       }

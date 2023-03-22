@@ -102,6 +102,7 @@
   "param.sdkconfigDefaults": "Lista de valores por defecto para crear el archivo sdkconfig",
   "param.svdFile": "Archivo SVD para la vista de perifericos en ventana de depuracion",
   "param.deleteComponentsOnFullClean": "Borrar managed_components en el comando limpiar proyecto",
+  "param.monitorStartDelayBeforeDebug": "Retraso para iniciar la sesión de depuración luego de IDF Monitor (ms)",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

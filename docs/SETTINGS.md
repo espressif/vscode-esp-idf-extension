@@ -103,6 +103,7 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                   |                           |
 | `idf.telemetry`                        | Enable Telemetry                                                            | User, Remote or Workspace |
 | `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`) | User, Remote or Workspace |
+| `idf.monitorStartDelayBeforeDebug`     | Delay to start debug session after IDF monitor execution                    | User, Remote or Workspace |
 
 ## Custom tasks for build and flash tasks
 

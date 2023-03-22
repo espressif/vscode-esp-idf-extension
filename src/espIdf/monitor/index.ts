@@ -70,7 +70,7 @@ export class IDFMonitor {
       "--toolchain-prefix",
       this.config.toolchainPrefix,
     ];
-    if (this.config.noReset && this.config.idfVersion >= "4.3") {
+    if (this.config.noReset && this.config.idfVersion >= "5.0") {
       args.splice(2, 0, "--no-reset");
     }
     if (this.config.idfVersion >= "4.3") {

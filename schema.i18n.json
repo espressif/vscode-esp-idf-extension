@@ -163,6 +163,7 @@
     "param.uncoveredLightTheme",
     "param.uncoveredDarkTheme",
     "param.sdkconfigDefaults",
+    "param.monitorStartDelayBeforeDebug",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",
