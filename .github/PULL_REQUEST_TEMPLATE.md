@@ -12,6 +12,18 @@ Please delete options that are not relevant.
 - Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - This change requires a documentation update
 
+## Steps to test this pull request
+
+Provide a list of steps to test changes in this PR and required output
+
+1. Click on "Command"
+2. Execute action.
+3. Observe results.
+
+- Expected behaviour:
+
+- Expected output:
+
 ## How has this been tested?
 
 Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
