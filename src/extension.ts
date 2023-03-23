@@ -1175,7 +1175,7 @@ export async function activate(context: vscode.ExtensionContext) {
           useMonitorWithDebug
         ) {
           isMonitorLaunchedByDebug = true;
-          createMonitor(true);
+          await createIdfMonitor(true);
         }
         if (
           launchMode === "auto" &&
@@ -1244,23 +1244,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
     createDebugAdapterTracker(session: vscode.DebugSession) {
       return {
-        onWillReceiveMessage: (m) => {
-          const useMonitorWithDebug = idfConf.readParameter(
-            "idf.launchMonitorOnDebugSession",
-            workspaceRoot
-          );
-          if (
-            m &&
-            m.command &&
-            m.command === "stackTrace" &&
-            (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
-              session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
-            monitorTerminal &&
-            useMonitorWithDebug
-          ) {
-            isMonitorLaunchedByDebug = true;
-          }
-        },
+        onWillReceiveMessage: (m) => {},
       };
     },
   });
@@ -3311,23 +3295,27 @@ function createIdfTerminal() {
 
 function createMonitor(noReset: boolean = false) {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
-    monitorTerminal = idfMonitor.start();
-    if (noReset) {
-      const idfPath = idfConf.readParameter(
-        "idf.espIdfPath",
-        workspaceRoot
-      ) as string;
-      const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-      if (idfVersion <= "5.0") {
-        const monitorDelay = idfConf.readParameter(
-          "idf.monitorStartDelayBeforeDebug",
-          workspaceRoot
-        ) as number;
-        await utils.sleep(monitorDelay);
-      }
-    }
+    await createIdfMonitor(noReset);
   });
+}
+
+async function createIdfMonitor(noReset: boolean = false) {
+  const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
+  monitorTerminal = idfMonitor.start();
+  if (noReset) {
+    const idfPath = idfConf.readParameter(
+      "idf.espIdfPath",
+      workspaceRoot
+    ) as string;
+    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+    if (idfVersion <= "5.0") {
+      const monitorDelay = idfConf.readParameter(
+        "idf.monitorStartDelayBeforeDebug",
+        workspaceRoot
+      ) as number;
+      await utils.sleep(monitorDelay);
+    }
+  }
 }
 
 export function deactivate() {
