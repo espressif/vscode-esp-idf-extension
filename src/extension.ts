@@ -3314,14 +3314,17 @@ function createMonitor(noReset: boolean = false) {
     const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
     monitorTerminal = idfMonitor.start();
     if (noReset) {
-      const idfPath = idfConf.readParameter("idf.espIdfPath", workspaceRoot) as string;
+      const idfPath = idfConf.readParameter(
+        "idf.espIdfPath",
+        workspaceRoot
+      ) as string;
       const idfVersion = await utils.getEspIdfFromCMake(idfPath);
       if (idfVersion <= "5.0") {
         const monitorDelay = idfConf.readParameter(
           "idf.monitorStartDelayBeforeDebug",
           workspaceRoot
         ) as number;
-        await utils.sleep(monitorDelay); 
+        await utils.sleep(monitorDelay);
       }
     }
   });
