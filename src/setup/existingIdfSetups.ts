@@ -17,6 +17,7 @@
  */
 
 import { ESP } from "../config";
+import { Logger } from "../logger/logger";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 import { getIdfMd5sum, loadEspIdfJson } from "./espIdfJson";
@@ -30,10 +31,18 @@ export async function getPreviousIdfSetups() {
       idfSetupKey,
       undefined
     );
-    if (idfSetup) {
-      idfSetup.isValid = await checkIdfSetup(idfSetup);
-      idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
-      idfSetups.push(idfSetup);
+    if (idfSetup && idfSetup.idfPath) {
+      try {
+        idfSetup.isValid = await checkIdfSetup(idfSetup);
+        idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
+        idfSetups.push(idfSetup);
+      } catch (err) {
+        const msg = err.message
+          ? err.message
+          : "Error checkIdfSetup in getPreviousIdfSetups";
+        Logger.error(msg, err);
+        ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id)
+      }
     }
   }
   return idfSetups;
@@ -62,7 +71,7 @@ export async function createIdfSetup(
     toolsPath,
     python: pythonPath,
     version: idfVersion,
-    isValid: false
+    isValid: false,
   };
   newIdfSetup.isValid = await checkIdfSetup(newIdfSetup);
   addIdfSetup(newIdfSetup);
@@ -93,9 +102,17 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         python: espIdfJson.idfInstalled[idfInstalledKey].python,
         version: espIdfJson.idfInstalled[idfInstalledKey].version,
         toolsPath: toolsPath,
-        isValid: false
+        isValid: false,
       } as IdfSetup;
-      setupConf.isValid = await checkIdfSetup(setupConf);
+      try {
+        setupConf.isValid = await checkIdfSetup(setupConf);
+      } catch (err) {
+        const msg = err.message
+          ? err.message
+          : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
+        Logger.error(msg, err);
+        setupConf.isValid = false;
+      }
       idfSetups.push(setupConf);
     }
     return idfSetups;
