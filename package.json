@@ -1387,7 +1387,7 @@
     "vue-style-loader": "^4.1.2",
     "vue-template-compiler": "^2.6.10",
     "vuex-class": "^0.3.2",
-    "webpack": "4",
+    "webpack": "5",
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
@@ -1401,11 +1401,14 @@
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",
     "marked": "^4.0.12",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "plotly.js-dist": "^1.54.1",
     "postcss": "^8.4.6",
     "sanitize-html": "^2.7.0",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
+    "util": "^0.12.5",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vscode-nls": "^4.0.0",
