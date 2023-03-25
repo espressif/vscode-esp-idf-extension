@@ -65,6 +65,18 @@ export const defaultBoards = [
     target: "esp32c3",
     configFiles: ["board/esp32c3-builtin.cfg"],
   } as IdfBoard,
+  {
+    name: "ESP32-C6 chip (via ESP-PROG)",
+    description: "ESP32-C6 used with ESP-PROG board",
+    target: "esp32c6",
+    configFiles: ["board/esp32c6-ftdi.cfg"],
+  } as IdfBoard,
+  {
+    name: "ESP32-C6 chip (via builtin USB-JTAG)",
+    description: "ESP32-C6 debugging via builtin USB-JTAG",
+    target: "esp32c6",
+    configFiles: ["board/esp32c6-builtin.cfg"],
+  } as IdfBoard,
 ];
 
 export function getOpenOcdScripts(workspace: Uri): string {

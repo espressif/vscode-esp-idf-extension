@@ -82,6 +82,22 @@
           "config_files": [
               "board/esp32c3-builtin.cfg"
           ]
+      },
+      {
+        "name": "ESP32-C6 chip (via ESP-PROG)",
+        "description": "ESP32-C6 used with ESP-PROG board",
+        "target": "esp32c6",
+        "config_files": [
+            "board/esp32c6-ftdi.cfg"
+        ]
+      },
+      {
+        "name": "ESP32-C6 chip (via builtin USB-JTAG)",
+        "description": "ESP32-C6 debugging via builtin USB-JTAG",
+        "target": "esp32c6",
+        "config_files": [
+            "board/esp32c6-builtin.cfg"
+        ]
       }
   ],
   "options": [
