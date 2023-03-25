@@ -4,7 +4,8 @@
       { "id": "esp32", "name": "ESP32" },
       { "id": "esp32s2", "name": "ESP32-S2" },
       { "id": "esp32s3", "name": "ESP32-S3" },
-      { "id": "esp32c3", "name": "ESP32-C3" }
+      { "id": "esp32c3", "name": "ESP32-C3" },
+      { "id": "esp32c6", "name": "ESP32-C6" }
   ],
   "boards" : [
       {
