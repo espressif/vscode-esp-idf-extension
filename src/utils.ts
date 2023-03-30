@@ -252,6 +252,7 @@ export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
   switch (idfTarget) {
     case "esp32c2":
     case "esp32c3":
+    case "esp32c6":
     case "esp32h2":
       return `riscv32-esp-elf-${tool}`;
     case "esp32":

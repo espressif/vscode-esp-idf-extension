@@ -4,7 +4,8 @@
       { "id": "esp32", "name": "ESP32" },
       { "id": "esp32s2", "name": "ESP32-S2" },
       { "id": "esp32s3", "name": "ESP32-S3" },
-      { "id": "esp32c3", "name": "ESP32-C3" }
+      { "id": "esp32c3", "name": "ESP32-C3" },
+      { "id": "esp32c6", "name": "ESP32-C6" }
   ],
   "boards" : [
       {
@@ -82,6 +83,22 @@
           "config_files": [
               "board/esp32c3-builtin.cfg"
           ]
+      },
+      {
+        "name": "ESP32-C6 chip (via ESP-PROG)",
+        "description": "ESP32-C6 used with ESP-PROG board",
+        "target": "esp32c6",
+        "config_files": [
+            "board/esp32c6-ftdi.cfg"
+        ]
+      },
+      {
+        "name": "ESP32-C6 chip (via builtin USB-JTAG)",
+        "description": "ESP32-C6 debugging via builtin USB-JTAG",
+        "target": "esp32c6",
+        "config_files": [
+            "board/esp32c6-builtin.cfg"
+        ]
       }
   ],
   "options": [
