@@ -51,6 +51,7 @@
   "espIdf.monitorQemu.title": "Monitor QEMU device",
   "espIdf.qemuDebug.title": "Launch QEMU debug session",
   "espIdf.createDevContainer.title": "Add docker container configuration",
+  "espIdf.clearSavedIdfSetups.title": "Clear saved IDF setups",
   "espIdf.partition.table.refresh.title": "Refresh partition table",
   "espIdf.flashBinaryToPartition.title": "Flash binary to partition...",
   "espIdf.setMatterDevicePath.title": "Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)",

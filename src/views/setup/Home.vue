@@ -72,7 +72,7 @@
         <label for="existing" class="subtitle" data-config-id="existing-setup"
           >USE EXISTING SETUP</label
         >
-        <p>Select existing ESP-IDF setup saved in the extension.</p>
+        <p>Select existing ESP-IDF setup saved in the extension or find ESP-IDF in your system.</p>
       </div>
     </div>
   </div>
