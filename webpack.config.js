@@ -4,13 +4,6 @@ const TSLintPlugin = require("tslint-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 
-const packageConfig = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
-);
-const externals = Object.keys(packageConfig.dependencies);
-externals.push("commonjs");
-externals.push("vscode");
-
 const extensionConfig = {
   entry: {
     extension: path.resolve(__dirname, "src", "extension.ts"),
@@ -28,7 +21,17 @@ const extensionConfig = {
     __filename: true,
   },
   devtool: "source-map",
-  externals: ["commonjs", "vscode"],
+  externals: {
+    vscode: "commonjs vscode",
+    "utf-8-validate": "utf-8-validate",
+    "applicationinsights-native-metrics":
+      "commonjs applicationinsights-native-metrics",
+    "@opentelemetry/tracing": "commonjs @opentelemetry/tracing",
+    "@opentelemetry/instrumentation": "commonjs @opentelemetry/instrumentation",
+    "@azure/opentelemetry-instrumentation-azure-sdk":
+      "commonjs @azure/opentelemetry-instrumentation-azure-sdk",
+    "@azure/functions-core": "@azure/functions-core",
+  },
   module: {
     rules: [
       {
@@ -107,13 +110,7 @@ const webViewConfig = {
       "project-conf",
       "main.ts"
     ),
-    welcomePage: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "welcome",
-      "main.ts"
-    ),
+    welcomePage: path.resolve(__dirname, "src", "views", "welcome", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),

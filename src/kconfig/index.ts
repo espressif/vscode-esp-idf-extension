@@ -22,7 +22,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-} from "vscode-languageclient";
+} from "vscode-languageclient/node";
 import { join } from "path";
 
 export class KconfigLangClient {

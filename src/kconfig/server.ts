@@ -21,15 +21,16 @@ import {
   DidChangeConfigurationNotification,
   InitializeParams,
   ProposedFeatures,
-  TextDocument,
   TextDocumentPositionParams,
   TextDocuments,
-} from "vscode-languageserver";
+  TextDocumentSyncKind,
+} from "vscode-languageserver/node";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import { Stack } from "../stack";
 
 const connection = createConnection(ProposedFeatures.all);
 
-const documents: TextDocuments = new TextDocuments();
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -58,7 +59,7 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: true,
       },
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Incremental,
     },
   };
 });

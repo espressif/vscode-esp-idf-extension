@@ -18,6 +18,7 @@
 
 import TelemetryReporter from "@vscode/extension-telemetry";
 import { extensions } from "vscode";
+import { ESP } from "../config";
 import { Logger } from "../logger/logger";
 
 export class Telemetry {
@@ -31,13 +32,11 @@ export class Telemetry {
     return this.instance;
   }
   private constructor(isEnabled: boolean) {
-    const extensionID = "espressif.esp-idf-extension";
-    const extension = extensions.getExtension(extensionID);
-    const version = extension.packageJSON.version;
+    const extension = extensions.getExtension(ESP.extensionID);
     const key = extension.packageJSON.azure.insight.key;
 
     try {
-      Telemetry.reporter = new TelemetryReporter(extensionID, version, key);
+      Telemetry.reporter = new TelemetryReporter(key);
       Telemetry.enabled =
         isEnabled && process.env["VSCODE_EXTENSION_MODE"] !== "development";
     } catch (error) {
