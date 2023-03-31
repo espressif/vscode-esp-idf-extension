@@ -137,6 +137,7 @@
     "espIdf.projectConfigurationEditor.title",
     "espIdf.projectConf.title",
     "espIdf.clearSavedIdfSetups.title",
+    "espIdf.flashWithWebserial.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

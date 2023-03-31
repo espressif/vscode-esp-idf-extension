@@ -129,6 +129,7 @@ import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
+import { flashWithWebSerial } from "./flash/webserial";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -194,6 +195,11 @@ const openFolderCheck = [
 const webIdeCheck = [
   PreCheck.notUsingWebIde,
   cmdNotForWebIdeMsg,
+] as utils.PreCheckInput;
+
+const enableOnWebIde = [
+  PreCheck.enableOnWebOnly,
+  "Selected command is only available in Web",
 ] as utils.PreCheckInput;
 
 const minOpenOcdVersionCheck = async function () {
@@ -740,6 +746,12 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
       SerialPort.shared().promptUserToSelect(workspaceRoot)
     );
+  });
+
+  registerIDFCommand("espIdf.flashWithWebserial", async () => {
+    PreCheck.perform([openFolderCheck, enableOnWebIde], async () => {
+      await flashWithWebSerial(workspaceRoot);
+    })
   });
 
   registerIDFCommand("espIdf.customTask", async () => {

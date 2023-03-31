@@ -59,6 +59,7 @@
   "espIdf.projectConfigurationEditor.title": "Открыть конфигурацию проекта",
   "espIdf.projectConf.title": "Выберите конфигурацию проекта",
   "espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки IDF",
+  "espIdf.flashWithWebserial.title": "Flash с WebSerial",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "Отладка ESP-IDF: запуск",

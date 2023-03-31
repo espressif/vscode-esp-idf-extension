@@ -87,6 +87,10 @@ export class PreCheck {
   public static notUsingWebIde(): boolean {
     return process.env.WEB_IDE ? false : true;
   }
+
+  public static enableOnWebOnly(): boolean {
+    return vscode.env.appHost.indexOf("desktop") === -1;
+  }
   public static openOCDVersionValidator(
     minVersion: string,
     currentVersion: string
