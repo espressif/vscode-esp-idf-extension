@@ -81,6 +81,9 @@ export class IdfToolsManager {
                   return (
                     platOverride.platforms.indexOf(
                       this.platformInfo.platformToUse
+                    ) !== -1 ||
+                    platOverride.platforms.indexOf(
+                      this.platformInfo.fallbackPlatform
                     ) !== -1
                   );
                 }
@@ -140,6 +143,9 @@ export class IdfToolsManager {
         (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
         ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf(
+            this.platformInfo.fallbackPlatform
+          ) > -1 ||
           Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
@@ -151,7 +157,11 @@ export class IdfToolsManager {
     const linkInfo =
       Object.getOwnPropertyNames(versions[0]).indexOf("any") > -1
         ? (versions[0]["any"] as IFileInfo)
-        : (versions[0][this.platformInfo.platformToUse] as IFileInfo);
+        : Object.getOwnPropertyNames(versions[0]).indexOf(
+            this.platformInfo.platformToUse
+          ) > -1
+        ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
+        : (versions[0][this.platformInfo.fallbackPlatform] as IFileInfo);
     return linkInfo;
   }
 
@@ -171,6 +181,9 @@ export class IdfToolsManager {
         (Object.getOwnPropertyNames(value).indexOf(
           this.platformInfo.platformToUse
         ) > -1 ||
+          Object.getOwnPropertyNames(value).indexOf(
+            this.platformInfo.fallbackPlatform
+          ) > -1 ||
           Object.getOwnPropertyNames(value).indexOf("any") > -1)
       );
     });
@@ -314,6 +327,9 @@ export class IdfToolsManager {
         return (
           Object.getOwnPropertyNames(version).indexOf(
             this.platformInfo.platformToUse
+          ) > -1 ||
+          Object.getOwnPropertyNames(version).indexOf(
+            this.platformInfo.fallbackPlatform
           ) > -1
         );
       });

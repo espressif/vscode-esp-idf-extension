@@ -81,6 +81,7 @@ suite("IDF Tools Manager Tests", async () => {
     architecture: "x86_64",
     platform: "darwin",
     platformToUse: "macos",
+    fallbackPlatform: "macos",
   };
   const output = OutputChannel.init();
   const idfToolsManager = new IdfToolsManager(
