@@ -1048,9 +1048,11 @@ export async function isBinInPath(
       result.toString() === "" ||
       result.toString().indexOf("Could not find files") < 0
     ) {
-      return binaryName.localeCompare(result.toString().trim()) === 0
+      // Sometimes multiple paths can be returned. They are separated by new lines, get only the first one
+      const selectedResult = result.toString().split("\n")[0].trim();
+      return binaryName.localeCompare(selectedResult) === 0
         ? ""
-        : result.toString().trim();
+        : selectedResult;
     }
   } catch (error) {
     Logger.error(`Cannot access filePath: ${binaryName}`, error);
