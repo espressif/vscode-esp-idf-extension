@@ -826,6 +826,12 @@
             "default": 5000,
             "scope": "resource",
             "description": "%param.monitorStartDelayBeforeDebug%"
+          },
+          "idf.monitorNoReset": {
+            "type": "boolean",
+            "default": false,
+            "scope": "resource",
+            "description": "%param.monitorNoReset%"
           }
         }
       }

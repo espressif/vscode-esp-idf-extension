@@ -100,6 +100,7 @@
   "param.buildPath": "Name of CMake build directory",
   "param.sdkconfigDefaults": "List of sdkconfig default values for initial build configuration",
   "param.monitorStartDelayBeforeDebug": "Delay to start debug session after IDF monitor execution (ms)",
+  "param.monitorNoReset": "Enable no-reset flag to IDF Monitor",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

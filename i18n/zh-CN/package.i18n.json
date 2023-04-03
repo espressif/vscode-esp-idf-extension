@@ -103,6 +103,7 @@
   "param.svdFile": "用于在调试视图中解析ESP-IDF外围视图的奇异值分解文件",
   "param.deleteComponentsOnFullClean": "完全清除项目命令时删除managed_components",
   "param.monitorStartDelayBeforeDebug": "IDF监视器执行后延迟启动调试会话 (ms)",
+  "param.monitorNoReset": "对IDF监视器启用无重置标志",
   "view.components.name": "项目组件",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "刷新跟踪归档列表",

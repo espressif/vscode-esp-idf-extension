@@ -103,6 +103,7 @@
   "param.svdFile": "Файл SVD для разрешения периферийного представления ESP-IDF в представлении отладки",
   "param.deleteComponentsOnFullClean": "Удалить manage_components при полной очистке проекта.",
   "param.monitorStartDelayBeforeDebug": "Задержка запуска сеанса отладки после выполнения монитора IDF (мс)",
+  "param.monitorNoReset": "Включить флаг отсутствия сброса для монитора IDF",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",

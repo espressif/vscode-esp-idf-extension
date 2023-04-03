@@ -3293,8 +3293,12 @@ function createIdfTerminal() {
   });
 }
 
-function createMonitor(noReset: boolean = false) {
+function createMonitor() {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    const noReset = idfConf.readParameter(
+      "idf.monitorNoReset",
+      workspaceRoot
+    ) as boolean;
     await createIdfMonitor(noReset);
   });
 }
