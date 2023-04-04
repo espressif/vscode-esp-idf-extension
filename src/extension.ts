@@ -2576,6 +2576,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+        const noReset = idfConf.readParameter(
+          "idf.monitorNoReset",
+          workspaceRoot
+        ) as boolean;
         const monitor = new IDFMonitor({
           port,
           baudRate: sdkMonitorBaudRate,
@@ -2584,7 +2588,7 @@ export async function activate(context: vscode.ExtensionContext) {
           toolchainPrefix,
           idfMonitorToolPath,
           idfVersion,
-          noReset: false,
+          noReset,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
