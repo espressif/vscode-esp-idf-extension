@@ -263,6 +263,68 @@ export async function installEspMatterPyReqs(
   );
   return virtualEnvPython;
 }
+
+export async function installMatterZapCli(
+  espDir: string,
+  idfToolsDir: string,
+  espMatterDir: string,
+  pythonBinPath: string,
+  pyTracker?: PyReqLog,
+  channel?: OutputChannel,
+  cancelToken?: CancellationToken
+) {
+  const matterDir = path.join(
+    espMatterDir,
+    "connectedhomeip",
+    "connectedhomeip"
+  );
+
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  const opts = { env: modifiedEnv };
+  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+  const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
+
+  const pyFileDoesNotExists = " doesn't exist. Make sure the path is correct.";
+  const zapDownloadPyFile = path.join(
+    matterDir,
+    "scripts",
+    "tools",
+    "zap",
+    "zap_download.py"
+  );
+  if (!utils.canAccessFile(zapDownloadPyFile, constants.R_OK)) {
+    Logger.warnNotify(zapDownloadPyFile + pyFileDoesNotExists);
+    if (channel) {
+      channel.appendLine(zapDownloadPyFile + pyFileDoesNotExists);
+    }
+    throw new Error();
+  }
+  const installMatterZapCliPyPkgsMsg = `Installing zap-cli...\n`;
+  Logger.info(installMatterZapCliPyPkgsMsg);
+  if (pyTracker) {
+    pyTracker.Log = installMatterZapCliPyPkgsMsg;
+  }
+  if (channel) {
+    channel.appendLine(installMatterZapCliPyPkgsMsg + "\n");
+  }
+  return (
+    await execProcessWithLog(
+      `"${virtualEnvPython}" "${matterDir}/scripts/tools/zap/zap_download.py" --sdk-root "${matterDir}" --zap RELEASE --zap-version v2023.03.27-nightly --extract-root .zap  2>/dev/null | cut -d= -f2`,
+      matterDir,
+      pyTracker,
+      channel,
+      opts,
+      cancelToken
+    )
+  ).replace(/(\n|\r)+$/, "");
+}
+
 export async function execProcessWithLog(
   cmd: string,
   workDir: string,
@@ -285,6 +347,7 @@ export async function execProcessWithLog(
   if (channel) {
     channel.appendLine(processResult + "\n");
   }
+  return processResult;
 }
 
 export async function getPythonEnvPath(
