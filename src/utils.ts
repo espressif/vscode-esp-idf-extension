@@ -250,17 +250,16 @@ export async function setCCppPropertiesJsonCompilerPath(
 
 export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
   switch (idfTarget) {
-    case "esp32c2":
-    case "esp32c3":
-    case "esp32c6":
-    case "esp32h2":
-      return `riscv32-esp-elf-${tool}`;
     case "esp32":
     case "esp32s2":
     case "esp32s3":
       return `xtensa-${idfTarget}-elf-${tool}`;
+    case "esp32c2":
+    case "esp32c3":
+    case "esp32c6":
+    case "esp32h2":
     default:
-      return undefined;
+      return `riscv32-esp-elf-${tool}`;
   }
 }
 
@@ -321,10 +320,18 @@ export function getVariableFromCMakeLists(workspacePath: string, key: string) {
 }
 
 export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
-  let sdkconfigFilePath = getVariableFromCMakeLists(
-    workspacePath.fsPath,
-    "SDKCONFIG"
-  );
+  let sdkconfigFilePath = "";
+  try {
+    sdkconfigFilePath = getVariableFromCMakeLists(
+      workspacePath.fsPath,
+      "SDKCONFIG"
+    );
+  } catch (error) {
+    const errMsg = error.message
+      ? error.message
+      : `CMakeLists.txt file doesn't exists or can't be read`;
+    Logger.info(errMsg, error);
+  }
   if (
     sdkconfigFilePath &&
     sdkconfigFilePath.indexOf("${CMAKE_BINARY_DIR}") !== -1

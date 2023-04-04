@@ -64,6 +64,17 @@ export class PlatformInformation {
     }
   }
 
+  public get fallbackPlatform(): string {
+    switch (this.platform) {
+      case "darwin":
+        return "macos";
+      case "win32":
+        return this.architecture === "x86" ? "win32" : "win64";
+      default:
+        return "linux-amd64";
+    }
+  }
+
   public static GetUnknownArchitecture(): string {
     return "Unknown";
   }
