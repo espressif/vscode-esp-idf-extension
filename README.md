@@ -6,7 +6,8 @@
 
 [![Tutorials](https://img.shields.io/badge/-Tutorials-red)](./docs/tutorial/toc.md)
 [![Documentation](https://img.shields.io/badge/Documentation-blue)](./docs/ONBOARDING.md)
-[![ESP32](https://img.shields.io/badge/Supported%20Chip-ESP32%20ESP32--S2%20ESP32--S3%20ESP32--C3-red)](./docs/HARDWARE_SUPPORT.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-red)](./README.md#Troubleshooting)
+[![ESP32](https://img.shields.io/badge/Supported%20Chips-red)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
@@ -54,10 +55,8 @@ Check all the [documentation](./docs/ONBOARDING.md).
 - Download and install [Visual Studio Code](https://code.visualstudio.com/).
 - Then
   - Either open Visual Studio Code and create a workspace folder.
-  - Run `code ${YOUR_PROJECT_DIR}` from the command line.
+  - Run `code ${YOUR_PROJECT_DIR}` from a command line terminal.
 - Install this extension in your Visual Studio Code.
-
-## Prerequisites
 
 There are few dependencies required in your system and available in environment variable PATH before installing this extension. Please review the following documentation.
 
@@ -69,13 +68,13 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
 
 > **NOTE:** Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
 
-> **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the additional requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
+> **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the [WSL tutorial](docs/tutorial/wsl.md) for an step by step instruction or check the requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
 
 - (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings.
 
   > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information. Default is User settings.
 
-- On the first time using the extension, press <kbd>F1</kbd> and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. **NOTE: Make sure that there is no spaces in any configured path since [ESP-IDF build system doesn't support spaces yet.](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#start-a-project)**. 
+- On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. **NOTE: Make sure that there is no spaces in any configured path since [ESP-IDF build system doesn't support spaces yet.](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#start-a-project)**.
 
   > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension setup and configuration.
 

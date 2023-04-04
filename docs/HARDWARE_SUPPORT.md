@@ -1,9 +1,17 @@
 # Current chips supported in this extension
 
-[ESP32](https://www.espressif.com/en/products/socs/esp32-s2)
+[ESP32](https://www.espressif.com/en/products/socs/esp32)
+[ESP32-C2](https://www.espressif.com/en/products/socs/esp32-c2)
+[ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3)
+[ESP32-C6](https://www.espressif.com/en/products/socs/esp32-c6)
 [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2)
 [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3)
-[ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3)
+[ESP32-H2](https://www.espressif.com/en/products/socs/esp32-h2)
+
+The chips supported in the extension are directly dependent on the ESP-IDF and OpenOCD version you are using:
+
+- The list of OpenOCD configuration boards is obtained from `$OPENOCD_SCRIPTS/esp-config.json` where `$OPENOCD_SCRIPTS` is your OpenOCD Scripts path.
+- The list of IDF Targets is obtained from the `idf.py --list-targets` command from the configured ESP-IDF in this extension.
 
 In addition to ESP-IDF chips, there are several boards configurations files implemented for OpenOCD. The `idf.openOcdConfigs` configuration setting is used by this extension to set OpenOCD Configuration files for the OpenOCD server executed within the extension. Here is more information about [OpenOCD Configuration targets](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 

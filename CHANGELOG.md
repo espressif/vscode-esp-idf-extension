@@ -17,6 +17,25 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.1)
+
+ ### Features and enhancements
+
+ - [Add coredump as data subtype](https://github.com/espressif/vscode-esp-idf-extension/pull/901) Thanks @ramiws !
+ - [Use webpack 5](https://github.com/espressif/vscode-esp-idf-extension/pull/916) Thanks @Spacefish !
+ - [Add ESP32 C6 boards](https://github.com/espressif/vscode-esp-idf-extension/pull/917) Thanks @Spacefish !
+ - [Add unit test and end to end testing docs](https://github.com/espressif/vscode-esp-idf-extension/pull/912)
+ - [Update platform on ESP-Matter shallow cloning](https://github.com/espressif/vscode-esp-idf-extension/pull/923) Thanks @Diegorro98 !
+ - [Add zap-cli install in ESP-Matter install](https://github.com/espressif/vscode-esp-idf-extension/pull/925) Thanks @Diegorro98 !
+
+ ### Bug Fixes
+
+ - [Show only valid ESP-IDF setups](https://github.com/espressif/vscode-esp-idf-extension/pull/908)
+ - [Update non root dockerfile](https://github.com/espressif/vscode-esp-idf-extension/pull/910)
+ - [Fix wrong binaries multiple options](https://github.com/espressif/vscode-esp-idf-extension/pull/920) Thanks @jmigual !
+ - [Fix CMakeLists launch error](https://github.com/espressif/vscode-esp-idf-extension/pull/909)
+ - [Fix target reset on IDF Monitor when debug session starts](https://github.com/espressif/vscode-esp-idf-extension/pull/914)
+
 ## [1.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.0)
 
  ### Features and enhancements

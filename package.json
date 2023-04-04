@@ -24,7 +24,12 @@
     "Debuggers"
   ],
   "keywords": [
+    "arduino-esp32",
+    "bluetooth",
     "ESP-IDF",
+    "ESP-ADF",
+    "ESP-MDF",
+    "ESP-matter",
     "ESP",
     "Espressif",
     "ESP32",
@@ -40,6 +45,7 @@
     "esp32h2",
     "esp32s2",
     "esp32s3",
+    "matter",
     "iot",
     "wifi",
     "soc"
