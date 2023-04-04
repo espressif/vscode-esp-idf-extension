@@ -31,6 +31,7 @@ const locDic = new LocDictionary(__filename);
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
+  noReset: boolean = false,
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -58,9 +59,7 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-    workspaceFolder
-  );
+  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
   const pythonBinPath = readParameter(
     "idf.pythonBinPath",
     workspaceFolder
@@ -98,6 +97,7 @@ export async function createNewIdfMonitor(
     idfTarget,
     idfMonitorToolPath,
     idfVersion,
+    noReset,
     elfFilePath,
     workspaceFolder,
     toolchainPrefix,
