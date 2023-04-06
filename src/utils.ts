@@ -945,7 +945,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
   
   if (modifiedEnv.ESP_MATTER_PATH) {
-   modifiedEnv.ZAP_INSTALL_PATH = path.join(modifiedEnv.ESP_MATTER_PATH, ".zap");
+   modifiedEnv.ZAP_INSTALL_PATH = path.join(
+      modifiedEnv.ESP_MATTER_PATH,
+      ".zap"
+    );
   }
 
   let pathToPigweed: string;
