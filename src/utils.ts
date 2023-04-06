@@ -956,6 +956,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "packages",
       "pigweed"
     );
+    modifiedEnv.ZAP_INSTALL_PATH = path.join(
+      modifiedEnv.ESP_MATTER_PATH,
+      ".zap"
+    );
   }
 
   modifiedEnv.PYTHON =
