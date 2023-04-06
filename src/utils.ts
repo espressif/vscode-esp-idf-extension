@@ -943,13 +943,6 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
   const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
   modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
-  
-  if (modifiedEnv.ESP_MATTER_PATH) {
-   modifiedEnv.ZAP_INSTALL_PATH = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      ".zap"
-    );
-  }
 
   let pathToPigweed: string;
 
@@ -962,6 +955,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "cipd",
       "packages",
       "pigweed"
+    );
+    modifiedEnv.ZAP_INSTALL_PATH = path.join(
+      modifiedEnv.ESP_MATTER_PATH,
+      ".zap"
     );
   }
 
