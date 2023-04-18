@@ -55,7 +55,7 @@ export class IdfSizeTask {
   public async getShellExecution(options: ShellExecutionOptions) {
     const mapFilePath = await this.mapFilePath();
     return new ShellExecution(
-      `${this.pythonBinPath} ${this.idfSizePath} ${mapFilePath}`,
+      `${this.pythonBinPath} ${this.idfSizePath} \\"${mapFilePath}\\"`,
       options
     );
   }

@@ -153,10 +153,10 @@ export class BuildTask {
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
-      compilerArgs.push("-B", this.buildDirPath);
+      compilerArgs.push(`-B=\\"${this.buildDirPath}\\"`);
 
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push("-S", this.curWorkspace.fsPath);
+        compilerArgs.push(`-S=\\"${this.curWorkspace.fsPath}\\"`);
       }
 
       const sdkconfigDefaults =
