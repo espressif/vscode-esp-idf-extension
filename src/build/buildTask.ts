@@ -153,10 +153,19 @@ export class BuildTask {
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
-      compilerArgs.push(`-B=\\"${this.buildDirPath}\\"`);
 
+      const buidCommand =
+        process.platform === "win32"
+          ? `-B=\\"${this.buildDirPath}\\"`
+          : `-B="${this.buildDirPath}"`;
+      compilerArgs.push(buidCommand);
+
+      const curWorkspaceCommand =
+        process.platform === "win32"
+          ? `-S=\\"${this.curWorkspace.fsPath}\\"`
+          : `-S="${this.curWorkspace.fsPath}"`;
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push(`-S=\\"${this.curWorkspace.fsPath}\\"`);
+        compilerArgs.push(curWorkspaceCommand);
       }
 
       const sdkconfigDefaults =

@@ -46,18 +46,16 @@ export class IdfSizeTask {
     ) as string;
     const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
-    this.buildDirPath = readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
+    this.buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {
     const mapFilePath = await this.mapFilePath();
-    return new ShellExecution(
-      `${this.pythonBinPath} ${this.idfSizePath} \\"${mapFilePath}\\"`,
-      options
-    );
+    const command =
+      process.platform === "win32"
+        ? `${this.pythonBinPath} ${this.idfSizePath} \\"${mapFilePath}\\"`
+        : `${this.pythonBinPath} ${this.idfSizePath} "${mapFilePath}"`;
+    return new ShellExecution(command, options);
   }
 
   private async mapFilePath() {
