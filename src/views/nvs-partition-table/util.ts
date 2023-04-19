@@ -129,10 +129,8 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
   return;
 }
 
-export const expectedHeader = "key,type,encoding,value";
-
 export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
-  let csv = expectedHeader + EOL;
+  let csv = `key, type, encoding, value ${EOL}`;
   for (const row of rows) {
     if (
       row.key === "" &&
@@ -150,13 +148,17 @@ export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
 export function csv2Json(csv: string) {
   const rows = new Array<NvsPartitionTable.IRow>();
   const lines = csv.split(EOL);
-  const header = lines.shift();
-  if (header !== expectedHeader) {
+  const header = lines.shift().trim();
+  // key, type, encoding, value
+  const matches = csv.match(
+    /\s*key,\s*type,\s*encoding,\s*value/g
+  );
+  if (!matches || !matches.length) {
     console.log("Not a NVS partition table csv, skipping...");
     return rows;
   }
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i] === "") {
+    if (lines[i] === "" || lines[i].startsWith("#")) {
       continue;
     }
     let cols = lines[i].split(",");
