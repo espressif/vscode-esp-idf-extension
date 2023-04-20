@@ -1,4 +1,4 @@
-key,type,encoding,value
+key, type, encoding, value 
 namespace_name,namespace,,
 key1,data,u8,1
 key2,file,string,/path/to/file
