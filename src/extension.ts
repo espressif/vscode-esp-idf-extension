@@ -1042,6 +1042,10 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           paramName = "idf.flashBaudRate";
           break;
+        case "monitorBaudRate":
+          msg = "Enter monitor baud rate";
+          paramName = "idf.monitorBaudRate";
+          break;
         case "openOcdConfig":
           msg = locDic.localize(
             "extension.enterOpenOcdConfigMessage",

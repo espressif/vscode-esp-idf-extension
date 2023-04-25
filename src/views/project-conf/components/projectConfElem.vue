@@ -45,6 +45,12 @@
       :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
+    <StringElement
+      title="Monitor baud rate"
+      :value.sync="el.monitorBaudRate"
+      :sections="['monitorBaudRate']"
+      :updateMethod="updateElement"
+    />
 
     <label class="is-size-4 has-text-weight-bold">OpenOCD</label>
     <div class="small-margin">

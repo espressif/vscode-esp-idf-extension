@@ -45,6 +45,7 @@ export const projectConfigState: IState = {
     },
     env: {},
     flashBaudRate: "",
+    monitorBaudRate: "",
     openOCD: {
       debugLevel: 0,
       configs: [],
@@ -114,6 +115,7 @@ export const mutations: MutationTree<IState> = {
       },
       env: {},
       flashBaudRate: "",
+      monitorBaudRate: "",
       openOCD: {
         debugLevel: 0,
         configs: [],
