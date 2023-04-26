@@ -22,7 +22,7 @@ import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { getSDKConfigFilePath } from "./utils";
 
-export function initSelectedWorkspace(status: vscode.StatusBarItem) {
+export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
   updateIdfComponentsTree(workspaceRoot);
   const workspaceFolderInfo = {
@@ -31,7 +31,9 @@ export function initSelectedWorkspace(status: vscode.StatusBarItem) {
     tooltip: vscode.workspace.workspaceFolders[0].uri.fsPath,
     text: "${file-directory}",
   };
-  utils.updateStatus(status, workspaceFolderInfo);
+  if (status) {
+    utils.updateStatus(status, workspaceFolderInfo);
+  }
   return workspaceRoot;
 }
 
@@ -79,7 +81,7 @@ export function getProjectName(buildDir: string): Promise<string> {
 
 export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
-  statusItem: vscode.StatusBarItem
+  statusItem?: vscode.StatusBarItem
 ) {
   let sdkConfigPath = getSDKConfigFilePath(workspacePath);
   const doesSdkconfigExists = await pathExists(sdkConfigPath);
@@ -98,5 +100,7 @@ export async function getIdfTargetFromSdkconfig(
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspacePath
   );
-  statusItem.text = "$(circuit-board) " + idfTarget;
+  if (statusItem) {
+    statusItem.text = "$(circuit-board) " + idfTarget;
+  }
 }

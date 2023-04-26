@@ -257,7 +257,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Create a status bar item with current workspace
 
   // Status Bar Item with common commands
-  statusBarItems = creatCmdsStatusBarItems();
+  statusBarItems = createCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
@@ -298,8 +298,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-    statusBarItems["port"].text =
-      "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+    if (statusBarItems && statusBarItems["port"]) {
+      statusBarItems["port"].text =
+        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+    }
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -353,8 +355,10 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot,
             statusBarItems["target"]
           );
-          statusBarItems["port"].text =
-            "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+          if (statusBarItems && statusBarItems["port"]) {
+            statusBarItems["port"].text =
+              "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+          }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -773,8 +777,10 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot,
           statusBarItems["target"]
         );
-        statusBarItems["port"].text =
-          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+        if (statusBarItems && statusBarItems["port"]) {
+          statusBarItems["port"].text =
+            "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+        }
         updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -1081,7 +1087,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    if (e.affectsConfiguration("idf.openOcdConfigs")) {
+    if (e.affectsConfiguration("idf.enableStatusBar")) {
+      const enableStatusBar = idfConf.readParameter(
+        "idf.enableStatusBar",
+        workspaceRoot
+      ) as boolean;
+      if (enableStatusBar) {
+        statusBarItems = createCmdsStatusBarItems();
+      } else if (!enableStatusBar) {
+        for (let statusItem in statusBarItems) {
+          statusBarItems[statusItem].dispose();
+          statusBarItems[statusItem] = undefined;
+        }
+      }
+    } else if (e.affectsConfiguration("idf.openOcdConfigs")) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs",
         workspaceRoot
@@ -1105,7 +1124,9 @@ export async function activate(context: vscode.ExtensionContext) {
         target: idfTarget,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
-      statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      if (statusBarItems && statusBarItems["target"]) {
+        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      }
     } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
@@ -1113,8 +1134,10 @@ export async function activate(context: vscode.ExtensionContext) {
         tcpPort: idfConf.readParameter("idf.qemuTcpPort", workspaceRoot),
       } as IQemuOptions);
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
-      statusBarItems["port"].text =
-        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+      if (statusBarItems && statusBarItems["port"]) {
+        statusBarItems["port"].text =
+          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+      }
     } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
@@ -1129,7 +1152,9 @@ export async function activate(context: vscode.ExtensionContext) {
           target: idfTarget,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
-        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+        if (statusBarItems && statusBarItems["target"]) {
+          statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+        }
       }
     } else if (e.affectsConfiguration("openocd.tcl.host")) {
       const tclHost = idfConf.readParameter(
@@ -1154,7 +1179,9 @@ export async function activate(context: vscode.ExtensionContext) {
         "idf.flashType",
         workspaceRoot
       ) as string;
-      statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+      if (statusBarItems && statusBarItems["flashType"]) {
+        statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+      }
     } else if (e.affectsConfiguration("idf.buildPath")) {
       updateIdfComponentsTree(workspaceRoot);
     }
@@ -2981,7 +3008,13 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-function creatCmdsStatusBarItems() {
+function createCmdsStatusBarItems() {
+  const enableStatusBar = idfConf.readParameter(
+    "idf.enableStatusBar"
+  ) as boolean;
+  if (!enableStatusBar) {
+    return {};
+  }
   const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   let flashType = idfConf.readParameter(

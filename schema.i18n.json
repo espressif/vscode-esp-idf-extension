@@ -220,6 +220,7 @@
     "param.preFlashTask",
     "param.postFlashTask",
     "param.svdFile",
-    "param.deleteComponentsOnFullClean"
+    "param.deleteComponentsOnFullClean",
+    "param.enableStatusBar.title"
   ]
 }

@@ -105,6 +105,7 @@
   "param.deleteComponentsOnFullClean": "Удалить manage_components при полной очистке проекта.",
   "param.monitorStartDelayBeforeDebug": "Задержка запуска сеанса отладки после выполнения монитора IDF (мс)",
   "param.monitorNoReset": "Включить флаг отсутствия сброса для монитора IDF",
+  "param.enableStatusBar.title": "Включить элементы строки состояния расширения ESP-IDF",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",
