@@ -52,6 +52,7 @@ These settings are specific to the ESP32 Chip/ Board
 | `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                             |                           |
 | `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                     |                           |
 | `idf.flashBaudRate`                              | Flash Baud rate                                                                  |                           |
+| `idf.monitorBaudRate`                            | Monitor Baud rate                                                                |                           |
 | `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder              |                           |
 | `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs |                           |
 | `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                         |                           |
@@ -70,11 +71,11 @@ This is how the extension uses them:
    > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your project** command and [ESP-IDF Debug](./DEBUGGING.md).
-   > **NOTE** The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
-4. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
-5. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
-6. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
-7. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
+4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
+5. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+6. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
+7. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
+8. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code coverage Specific Settings
 

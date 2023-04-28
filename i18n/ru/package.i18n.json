@@ -69,6 +69,7 @@
   "param.openOcdLaunchArgs": "Аргументы для запуска openOCD из этого расширения",
   "param.port": "Путь к выбранному порту устройства",
   "param.flashBaudRate": "Скорость загрузки прошивки ESP-IDF",
+  "param.monitorBaudRate": "Скорость передачи данных монитора ESP-IDF",
   "param.pythonBinPath": "Абсолютный путь интерпретатора Python для ESP-IDF",
   "param.espIdfPath": "Путь фреймворкa ESP-IDF (IDF_PATH)",
   "param.espAdfPath": "Путь фреймворка ESP-ADF (ADF_PATH)",

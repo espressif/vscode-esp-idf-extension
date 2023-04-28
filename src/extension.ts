@@ -1042,6 +1042,10 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           paramName = "idf.flashBaudRate";
           break;
+        case "monitorBaudRate":
+          msg = "Enter monitor baud rate";
+          paramName = "idf.monitorBaudRate";
+          break;
         case "openOcdConfig":
           msg = locDic.localize(
             "extension.enterOpenOcdConfigMessage",
@@ -3166,6 +3170,10 @@ function createQemuMonitor(noReset: boolean = false) {
       noReset,
       serialPort
     );
+    if (monitorTerminal) {
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+      monitorTerminal.dispose();
+    }
     monitorTerminal = idfMonitor.start();
   });
 }
@@ -3205,6 +3213,10 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
             message: "Launching monitor...",
             increment: 10,
           });
+          if (monitorTerminal) {
+            monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+            monitorTerminal.dispose();
+          }
           createMonitor();
         }
       }
@@ -3314,6 +3326,10 @@ function createMonitor() {
 
 async function createIdfMonitor(noReset: boolean = false) {
   const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
+  if (monitorTerminal) {
+    monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+    monitorTerminal.dispose();
+  }
   monitorTerminal = idfMonitor.start();
   if (noReset) {
     const idfPath = idfConf.readParameter(

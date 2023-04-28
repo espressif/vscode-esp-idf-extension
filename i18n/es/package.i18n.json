@@ -68,6 +68,7 @@
   "param.openOcdConfigFilesList": "Lista de archivos de connfiguracion en el directorio OpenOCD Scripts",
   "param.openOcdLaunchArgs": "Argumentos para lanzar openOCD desde esta extensión",
   "param.flashBaudRate": "ESP-IDF Tasa de baudios para flash",
+  "param.monitorBaudRate": "ESP-IDF Tasa de baudios para monitoreo",
   "param.port": "Ruta del puerto serial del dispositivo ESP-IDF",
   "param.pythonBinPath": "Ruta absoluta del ejecutable Python para ESP-IDF",
   "param.toolsPath": "Ruta de las herramientas de ESP-IDF (IDF_TOOLS_PATH)",

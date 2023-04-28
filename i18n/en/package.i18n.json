@@ -69,6 +69,7 @@
   "param.openOcdLaunchArgs": "Arguments to launch openOCD from this extension",
   "param.port": "Path of selected device port",
   "param.flashBaudRate": "ESP-IDF Flash Baud rate",
+  "param.monitorBaudRate": "ESP-IDF Monitor Baud rate",
   "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python Scripts",
   "param.espIdfPath": "Path to locate ESP-IDF framework (IDF_PATH)",
   "param.espAdfPath": "Path to locate ESP-ADF framework (ADF_PATH)",
