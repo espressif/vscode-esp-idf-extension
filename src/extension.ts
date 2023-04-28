@@ -2188,25 +2188,45 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!binPath) {
         return;
       }
+      let items = [];
       const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
       if (!partitionsInDevice) {
         vscode.window.showInformationMessage("No partition found");
-        return;
+      } else {
+        for (let devicePartition of partitionsInDevice) {
+          const item = {
+            label: devicePartition.name,
+            target: devicePartition.offset,
+            description: devicePartition.description,
+          };
+          items.push(item);
+        }
       }
-      let items = [];
-      for (let devicePartition of partitionsInDevice) {
-        const item = {
-          label: devicePartition.name,
-          target: devicePartition.offset,
-          description: devicePartition.description,
-        };
-        items.push(item);
-      }
+      items.push({
+        label: "Custom offset",
+        target: "custom",
+        description: "Enter a custom offset",
+      });
       const partitionAction = await vscode.window.showQuickPick(items, {
         placeHolder: "Select a partition to use",
       });
       if (!partitionAction) {
         return;
+      }
+      if (partitionAction.target === "custom") {
+        const customOffset = await vscode.window.showInputBox({
+          placeHolder: "Enter custom partition table offset",
+          value: "",
+          validateInput: (text) => {
+            return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
+              ? null
+              : "The value is not a valid hexadecimal number";
+          },
+        });
+        if (!customOffset) {
+          return;
+        }
+        partitionAction.target = customOffset;
       }
       await flashBinaryToPartition(
         partitionAction.target,
