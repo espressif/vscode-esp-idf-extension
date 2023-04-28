@@ -28,7 +28,6 @@ import search from "@iconify-icons/codicon/search";
 import fileZip from "@iconify-icons/codicon/file-zip";
 import chevronDown from "@iconify-icons/codicon/chevron-down";
 import chevronUp from "@iconify-icons/codicon/chevron-up";
-import { isNumber } from "util";
 IconifyIcon.addIcon("symbol-event", symbolEvent);
 IconifyIcon.addIcon("refresh", refresh);
 IconifyIcon.addIcon("server", server);

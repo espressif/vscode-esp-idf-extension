@@ -54,7 +54,6 @@
 </template>
 
 <script lang="ts">
-import { isNumber } from "util";
 import { Component, Vue } from "vue-property-decorator";
 import { State } from "vuex-class";
 
@@ -63,7 +62,7 @@ export default class Overview extends Vue {
   @State("overviewData") storeOverviewData;
 
   convertToKB(byte: number) {
-    return isNumber(byte) ? Math.round(byte / 1024) : 0;
+    return typeof byte === "number" ? Math.round(byte / 1024) : 0;
   }
 
   get overviewData() {

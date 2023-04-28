@@ -58,14 +58,13 @@
 </template>
 
 <script lang="ts">
-import { isNumber } from "util";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
 export default class FileTable extends Vue {
   @Prop() archiveInfo;
   convertToSpacedString(byte: number) {
-    return isNumber(byte) ? byte.toLocaleString("en-US").replace(/,/g, " ") : 0;
+    return typeof byte === "number" ? byte.toLocaleString("en-US").replace(/,/g, " ") : 0;
   }
 
   getArchiveFileProp(fileInfo, firstProp, secondProp) {
