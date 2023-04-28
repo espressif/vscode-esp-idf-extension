@@ -103,6 +103,7 @@
   "param.sdkconfigDefaults": "List of sdkconfig default values for initial build configuration",
   "param.monitorStartDelayBeforeDebug": "Delay to start debug session after IDF monitor execution (ms)",
   "param.monitorNoReset": "Enable no-reset flag to IDF Monitor",
+  "param.enableStatusBar.title": "Enable ESP-IDF extension status bar items",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

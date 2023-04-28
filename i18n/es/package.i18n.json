@@ -106,6 +106,7 @@
   "param.deleteComponentsOnFullClean": "Borrar managed_components en el comando limpiar proyecto",
   "param.monitorStartDelayBeforeDebug": "Retraso para iniciar la sesión de depuración luego de IDF Monitor (ms)",
   "param.monitorNoReset": "Habilitar no-reset en el IDF Monitor",
+  "param.enableStatusBar.title": "Habilitar elementos de la barra de estatus de la extension ESP-IDF",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

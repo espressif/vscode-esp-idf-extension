@@ -846,6 +846,12 @@
             "default": false,
             "scope": "resource",
             "description": "%param.monitorNoReset%"
+          },
+          "idf.enableStatusBar": {
+            "type": "boolean",
+            "description": "%param.enableStatusBar.title%",
+            "scope": "resource",
+            "default": true
           }
         }
       }
