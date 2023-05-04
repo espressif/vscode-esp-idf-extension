@@ -178,7 +178,6 @@ const webViewConfig = {
     },
     fallback: {
       "os": require.resolve("os-browserify/browser"),
-      "util": require.resolve("util"),
       "path": require.resolve("path-browserify")
     }
   },

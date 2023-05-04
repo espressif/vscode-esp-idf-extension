@@ -1445,7 +1445,6 @@
     "sanitize-html": "^2.7.0",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
-    "util": "^0.12.5",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vscode-nls": "^4.0.0",
