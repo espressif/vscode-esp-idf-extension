@@ -21,6 +21,7 @@ import { Progress, ProgressLocation, Uri, window } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -50,7 +51,7 @@ export async function flashBinaryToPartition(
           "esptool.py"
         );
 
-        await spawn(
+        const flashingOutput = await spawn(
           pythonBinPath,
           [esptoolPath, "-p", serialPort, "write_flash", offset, binPath],
           {
@@ -64,7 +65,7 @@ export async function flashBinaryToPartition(
       } catch (error) {
         let msg = error.message
           ? error.message
-          : "Error getting partitions from device";
+          : "Error flashing binary to device";
         Logger.errorNotify(msg, error);
       }
     }
