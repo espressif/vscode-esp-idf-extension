@@ -17,6 +17,22 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.2)
+
+ ### Features and enhancements
+
+ - [add idf monitorBaudRate setting](https://github.com/espressif/vscode-esp-idf-extension/pull/951)
+ - [add idf enableStatusBar setting to show status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/953)
+ - [Add custom offset to flash binaries to IDF serial port](https://github.com/espressif/vscode-esp-idf-extension/pull/957)
+
+  ### Bug Fixes
+
+  - [use idf showOnboardingOnInit on extension activate](https://github.com/espressif/vscode-esp-idf-extension/pull/950)
+  - [add container user to dialout group](https://github.com/espressif/vscode-esp-idf-extension/pull/944)
+  - [Trim NVS partition CLRF](https://github.com/espressif/vscode-esp-idf-extension/pull/945)
+  - [Fix GUI Size UI](https://github.com/espressif/vscode-esp-idf-extension/pull/955)
+  - [remove virtualenv install from setup workflow](https://github.com/espressif/vscode-esp-idf-extension/pull/956)
+
 ## [1.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.1)
 
  ### Features and enhancements
