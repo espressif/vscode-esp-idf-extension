@@ -372,7 +372,10 @@ export function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export function getMonitorBaudRate(workspacePath: vscode.Uri, idfVersion: string) {
+export function getMonitorBaudRate(
+  workspacePath: vscode.Uri,
+  idfVersion: string
+) {
   let sdkMonitorBaudRate = "";
   if (idfVersion >= "5.0") {
     sdkMonitorBaudRate = idfConf.readParameter(
