@@ -464,7 +464,7 @@
           },
           "idf.monitorBaudRate": {
             "type": "string",
-            "default": "460800",
+            "default": "115200",
             "description": "%param.monitorBaudRate%",
             "scope": "resource"
           },

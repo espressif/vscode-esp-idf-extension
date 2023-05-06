@@ -59,7 +59,6 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
   const pythonBinPath = readParameter(
     "idf.pythonBinPath",
     workspaceFolder
@@ -72,6 +71,7 @@ export async function createNewIdfMonitor(
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder, idfVersion);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(

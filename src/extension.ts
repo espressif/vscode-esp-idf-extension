@@ -2585,9 +2585,6 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error("NOT_SELECTED_PORT")
           );
         }
-        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-          workspaceRoot
-        );
         const pythonBinPath = idfConf.readParameter(
           "idf.pythonBinPath",
           workspaceRoot
@@ -2632,6 +2629,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+          workspaceRoot,
+          idfVersion
+        );
         const noReset = idfConf.readParameter(
           "idf.monitorNoReset",
           workspaceRoot
