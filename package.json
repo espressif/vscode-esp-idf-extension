@@ -852,6 +852,12 @@
             "description": "%param.enableStatusBar.title%",
             "scope": "resource",
             "default": true
+          },
+          "idf.enableSizeTaskAfterBuildTask": {
+            "type": "boolean",
+            "description": "%param.enableSizeTaskAfterBuildTask.title%",
+            "scope": "resource",
+            "default": true
           }
         }
       }

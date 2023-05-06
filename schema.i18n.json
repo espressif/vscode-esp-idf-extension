@@ -222,6 +222,7 @@
     "param.postFlashTask",
     "param.svdFile",
     "param.deleteComponentsOnFullClean",
-    "param.enableStatusBar.title"
+    "param.enableStatusBar.title",
+    "param.enableSizeTaskAfterBuildTask.title"
   ]
 }
