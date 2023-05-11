@@ -21,7 +21,8 @@ export class AdfCloning extends AbstractCloning {
       "https://github.com/espressif/esp-adf.git",
       "ESP-ADF",
       "master",
-      gitBinPath
+      gitBinPath,
+      "https://gitee.com/EspressifSystems/esp-adf.git"
     );
   }
 }

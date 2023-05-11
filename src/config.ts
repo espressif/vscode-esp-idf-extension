@@ -39,6 +39,11 @@ export namespace ESP {
     DFU = "DFU",
   }
 
+  export enum IdfMirror {
+    Espressif,
+    Github,
+  }
+
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
     export const IDF_SETUPS = "IDF_SETUPS";

@@ -28,7 +28,7 @@ import { PackageError } from "./packageError";
 import { PackageProgress } from "./PackageProgress";
 import { PackageManagerWebError } from "./packageWebError";
 import * as utils from "./utils";
-import { IdfMirror } from "./views/setup/types";
+import { ESP } from "./config";
 
 export class DownloadManager {
   constructor(
@@ -43,7 +43,7 @@ export class DownloadManager {
   public downloadPackages(
     idfToolsManager: IdfToolsManager,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
-    mirror: IdfMirror,
+    mirror: ESP.IdfMirror,
     pkgsProgress?: PackageProgress[],
     cancelToken?: vscode.CancellationToken,
     onReqPkgs?: string[]
@@ -77,7 +77,7 @@ export class DownloadManager {
 
   public async downloadPackage(
     idfToolsManager: IdfToolsManager,
-    mirror: IdfMirror,
+    mirror: ESP.IdfMirror,
     pkg: IPackage,
     progressCount: string,
     progress: vscode.Progress<{ message?: string; increment?: number }>,
@@ -87,7 +87,7 @@ export class DownloadManager {
     progress.report({ message: `Downloading ${progressCount}: ${pkg.name}` });
     this.appendChannel(`Downloading ${pkg.description}`);
     const urlInfoToUse = idfToolsManager.obtainUrlInfoForPlatform(pkg);
-    if (mirror == IdfMirror.Espressif) {
+    if (mirror == ESP.IdfMirror.Espressif) {
       urlInfoToUse.url = idfToolsManager.applyGithubAssetsMapping(
         urlInfoToUse.url
       );

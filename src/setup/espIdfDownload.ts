@@ -15,11 +15,12 @@
 import path from "path";
 import * as utils from "../utils";
 import { Logger } from "../logger/logger";
+import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import { DownloadManager } from "../downloadManager";
 import { InstallManager } from "../installManager";
 import { PackageProgress } from "../PackageProgress";
-import { IdfMirror, IEspIdfLink } from "../views/setup/types";
+import { IEspIdfLink } from "../views/setup/types";
 import {
   sendEspIdfDownloadDetail,
   sendEspIdfDownloadProgress,
@@ -37,7 +38,8 @@ export class EspIdfCloning extends AbstractCloning {
       "https://github.com/espressif/esp-idf.git",
       "ESP-IDF",
       branchName,
-      gitBinPath
+      gitBinPath,
+      "https://gitee.com/EspressifSystems/esp-idf.git"
     );
   }
 }
@@ -45,7 +47,7 @@ export class EspIdfCloning extends AbstractCloning {
 export async function downloadInstallIdfVersion(
   idfVersion: IEspIdfLink,
   destPath: string,
-  mirror: IdfMirror,
+  mirror: ESP.IdfMirror,
   gitPath?: string,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
@@ -89,7 +91,7 @@ export async function downloadInstallIdfVersion(
         espIdfCloning.cancel();
       });
     }
-    await espIdfCloning.downloadByCloning(destPath, pkgProgress);
+    await espIdfCloning.downloadByCloning(destPath, pkgProgress, undefined, undefined, mirror);
     cancelDisposable.dispose();
   } else {
     const downloadByHttpMsg = `Downloading ESP-IDF ${idfVersion.name}...`;
@@ -99,7 +101,7 @@ export async function downloadInstallIdfVersion(
       progress.report({ message: downloadByHttpMsg });
     }
     const urlToUse =
-      mirror === IdfMirror.Github ? idfVersion.url : idfVersion.mirror;
+      mirror === ESP.IdfMirror.Github ? idfVersion.url : idfVersion.mirror;
     await downloadManager.downloadWithRetries(
       urlToUse,
       destPath,
