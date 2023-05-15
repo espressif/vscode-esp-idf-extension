@@ -71,7 +71,7 @@ export async function buildCommand(
       ) as string;
       if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
         return Logger.warnNotify(
-          "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+          "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"
         );
       }
       const adapterTargetName = readParameter("idf.adapterTargetName", workspace) as string;

@@ -188,7 +188,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.stderr.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        OutputChannel.append(data.toString(), "Debug Adapter");
+        OutputChannel.appendLine(data.toString(), "Debug Adapter");
         Logger.info(data.toString());
         this.emit("error", data, this.chan);
       });
@@ -196,7 +196,7 @@ export class DebugAdapterManager extends EventEmitter {
       this.adapter.stdout.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data) : data;
         this.sendToOutputChannel(data);
-        OutputChannel.append(data.toString(), "Debug Adapter");
+        OutputChannel.appendLine(data.toString(), "Debug Adapter");
         Logger.info(data.toString());
         this.emit("data", this.chan);
         if (data.toString().trim().endsWith("DEBUG_ADAPTER_READY2CONNECT")) {

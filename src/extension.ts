@@ -549,9 +549,9 @@ export async function activate(context: vscode.ExtensionContext) {
       ) as string;
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
-        return Logger.warnNotify(
-          `There is no build directory to clean, exiting!`
-        );
+        const errStr = "There is no build directory to clean, exiting!";
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
       if (ConfserverProcess.exists()) {
         const closingSDKConfigMsg = `Trying to delete the build folder. Closing existing SDK Configuration editor process...`;
@@ -565,14 +565,14 @@ export async function activate(context: vscode.ExtensionContext) {
         constants.R_OK
       );
       if (!doesCmakeCacheExists) {
-        return Logger.warnNotify(
-          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
-        );
+        const errStr = `There is no CMakeCache.txt. Please try to delete the build directory manually.`;
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
       if (BuildTask.isBuilding || FlashTask.isFlashing) {
-        return Logger.warnNotify(
-          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
-        );
+        const errStr = `There is a build or flash task running. Wait for it to finish or cancel them before clean.`;
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
 
       try {
@@ -592,6 +592,7 @@ export async function activate(context: vscode.ExtensionContext) {
           }
         }
       } catch (error) {
+        OutputChannel.appendLineAndShow(error.message);
         Logger.errorNotify(error.message, error);
       }
     });
@@ -2429,7 +2430,7 @@ export async function activate(context: vscode.ExtensionContext) {
             accountDetails.password
           );
           await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify("Rainmaker Cloud Linking Success!!");
+          Logger.infoNotify("Rainmaker Cloud Linking Success!");
         } catch (error) {
           return Logger.errorNotify(
             "Failed to login with Rainmaker Cloud, double check your id and password",
@@ -2949,7 +2950,7 @@ export async function activate(context: vscode.ExtensionContext) {
               await RainmakerAPIClient.exchangeCodeForTokens(code);
               await rainMakerTreeDataProvider.refresh();
               Logger.infoNotify(
-                "Rainmaker Cloud is connected successfully (via OAuth)!!"
+                "Rainmaker Cloud is connected successfully (via OAuth)!"
               );
             }
           );

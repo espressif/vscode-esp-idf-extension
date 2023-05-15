@@ -138,7 +138,7 @@ export function spawn(
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
-    OutputChannel.append(data.toString());
+    OutputChannel.appendLine(data.toString());
   };
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));

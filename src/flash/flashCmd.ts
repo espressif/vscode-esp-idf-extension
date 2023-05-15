@@ -27,6 +27,7 @@ import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
 import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
+import { OutputChannel } from "../logger/outputChannel";
 
 const locDic = new LocDictionary(__filename);
 
@@ -41,6 +42,8 @@ export async function verifyCanFlash(
       "flash.waitProcessIsFinishedMessage",
       "Wait for ESP-IDF task to finish"
     );
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(waitProcessIsFinishedMsg, "Flash");
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time")
@@ -52,36 +55,50 @@ export async function verifyCanFlash(
     workspace
   ) as string;
   if (!(await pathExists(buildPath))) {
+    const errStr = `Build is required before Flashing, ${buildPath} can't be accessed`;
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.errorNotify(
-      `Build is required before Flashing, ${buildPath} can't be accessed`,
+      errStr,
       new Error("BUILD_PATH_ACCESS_ERROR")
     );
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
-    return Logger.warnNotify(
-      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
-    );
+    const errStr = "flasher_args.json file is missing from the build directory, can't proceed, please build properly!";
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
+    return Logger.warnNotify(errStr);
   }
   const projectName = await getProjectName(buildPath);
   if (!(await pathExists(join(buildPath, `${projectName}.elf`)))) {
-    return Logger.warnNotify(
-      `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`
-    );
+    const errStr = `Can't proceed with flashing, since project elf file (${projectName}.elf) is missing from the build dir. (${buildPath})`;
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
+    return Logger.warnNotify(errStr);
   }
   if (!port) {
     try {
       await vscode.commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error);
+      const errStr = "Unable to execute the command: espIdf.selectPort";
+      OutputChannel.show();
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      Logger.error(errStr, error);
     }
+    const errStr = "Select a port before flashing";
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.errorNotify(
-      "Select a serial port before flashing",
+      errStr,
       new Error("NOT_SELECTED_PORT")
     );
   }
   if (!flashBaudRate) {
+    const errStr = "Select a baud rate before flashing";
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.errorNotify(
-      "Select a baud rate before flashing",
+      errStr,
       new Error("NOT_SELECTED_BAUD_RATE")
     );
   }
@@ -90,8 +107,11 @@ export async function verifyCanFlash(
     const data = await getDfuList(workspace);
     const listDfu = await listAvailableDfuDevices(data);
     if (!listDfu) {
+      const errStr = "No DFU capable USB device available found";
+      OutputChannel.show();
+      OutputChannel.appendLineAndShow(errStr, "Flash");
       return Logger.errorNotify(
-        "No DFU capable USB device available found",
+        errStr,
         new Error("NO_DFU_DEVICES_FOUND")
       );
     }
