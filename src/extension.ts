@@ -2630,8 +2630,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
         let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-          workspaceRoot,
-          idfVersion
+          workspaceRoot
         );
         const noReset = idfConf.readParameter(
           "idf.monitorNoReset",

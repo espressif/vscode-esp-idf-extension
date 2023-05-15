@@ -71,7 +71,7 @@ export async function createNewIdfMonitor(
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder, idfVersion);
+  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
