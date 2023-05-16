@@ -75,7 +75,7 @@ export class IDFMonitor {
     if (this.config.wsPort) {
       args.push("--ws", `ws://localhost:${this.config.wsPort}`);
     }
-    args.push(this.config.elfFilePath);
+    args.push(`"${this.config.elfFilePath}"`);
     const envSetCmd = process.platform === "win32" ? "set" : "export";
     this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
     this.terminal.sendText(args.join(" "));
