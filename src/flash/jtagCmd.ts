@@ -52,7 +52,6 @@ export async function jtagFlashCommand(workspace: Uri) {
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
-  buildPath = buildPath.replace(/ /g, "\ ");
   try {
     customTask.addCustomTask(CustomTaskType.PreFlash);
     await customTask.runTasks(CustomTaskType.PreFlash);
