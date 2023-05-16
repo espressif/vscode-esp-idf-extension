@@ -154,10 +154,16 @@ export class BuildTask {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
 
-      const buidCommand =`-B="${this.buildDirPath}"`;
+      const buidCommand =
+        process.platform === "win32"
+          ? `-B=\\"${this.buildDirPath}\\"`
+          : `-B="${this.buildDirPath}"`;
       compilerArgs.push(buidCommand);
 
-      const curWorkspaceCommand =`-S="${this.curWorkspace.fsPath}"`
+      const curWorkspaceCommand =
+        process.platform === "win32"
+          ? `-S=\\"${this.curWorkspace.fsPath}\\"`
+          : `-S="${this.curWorkspace.fsPath}"`;
       if (compilerArgs.indexOf("-S") === -1) {
         compilerArgs.push(curWorkspaceCommand);
       }
