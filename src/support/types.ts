@@ -43,6 +43,8 @@ export class Configuration {
   openOcdConfigs: string[];
   toolsPath: string;
   gitPath: string;
+  customTerminalExecutable: string;
+  customTerminalExecutableArgs: string[];
 }
 
 export class ConfigurationSpacesValidation {

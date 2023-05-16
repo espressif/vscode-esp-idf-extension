@@ -81,6 +81,21 @@ export class EspMatterCloning extends AbstractCloning {
     const shellOptions: ShellExecutionOptions = {
       cwd: workingDir,
     };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      this.currWorkspace
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.currWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      shellOptions.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      shellOptions.shellArgs = shellExecutableArgs;
+    }
+    
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
     const isSilentMode = readParameter("idf.notificationSilentMode", this.currWorkspace);
     const showTaskOutput = isSilentMode

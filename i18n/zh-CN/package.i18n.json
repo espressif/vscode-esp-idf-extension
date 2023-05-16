@@ -122,6 +122,8 @@
   "param.notificationSilentMode": "禁用所有 ESP-IDF 扩展通知(排除错误通知)",
   "param.saveScope": "将 ESP-IDF 命令将配置保存到 vscode.ConfigurationTarget。全局 = 1, 工作区= 2, 工作区文件夹=3",
   "param.rainmaker.api.server_url": "ESP-Rainmaker 云服务器地址",
+  "param.customTerminalExecutable.title": "用于扩展任务的自定义可执行文件",
+  "param.customTerminalExecutableArgs.title": "扩展任务的自定义可执行文件的参数列表",
   "esp.rainmaker.backend.sync.title": "同步到 ESP-Rainmaker 云服务器",
   "esp.rainmaker.backend.connect.title": "连接到 ESP-Rainmaker 云服务器",
   "esp.rainmaker.backend.logout.title": "取消关联 ESP-Rainmaker 帐户",

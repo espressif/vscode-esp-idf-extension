@@ -858,6 +858,18 @@
             "description": "%param.enableSizeTaskAfterBuildTask.title%",
             "scope": "resource",
             "default": true
+          },
+          "idf.customTerminalExecutable": {
+            "type": "string",
+            "description": "%param.customTerminalExecutable.title%",
+            "scope": "resource",
+            "default": ""
+          },
+          "idf.customTerminalExecutableArgs": {
+            "type": "array",
+            "description": "%param.customTerminalExecutableArgs.title%",
+            "scope": "resource",
+            "default": []
           }
         }
       }

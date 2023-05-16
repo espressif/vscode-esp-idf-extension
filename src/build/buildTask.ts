@@ -131,6 +131,22 @@ export class BuildTask {
       cwd: this.buildDirPath,
       env: modifiedEnv,
     };
+    const shellExecutablePath = idfConf.readParameter(
+      "idf.customTerminalExecutable",
+      this.curWorkspace
+    ) as string;
+    const shellExecutableArgs = idfConf.readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.curWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
+
     const isSilentMode = idfConf.readParameter(
       "idf.notificationSilentMode",
       this.curWorkspace
@@ -235,6 +251,21 @@ export class BuildTask {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
     };
+
+    const shellExecutablePath = idfConf.readParameter(
+      "idf.customTerminalExecutable",
+      this.curWorkspace
+    ) as string;
+    const shellExecutableArgs = idfConf.readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.curWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
 
     const isSilentMode = idfConf.readParameter(
       "idf.notificationSilentMode",
