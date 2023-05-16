@@ -59,7 +59,7 @@ export async function writeTextReport(
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }
-  if (reportedResult.configurationSettings.customTerminalExecutableArgs) {
+  if (reportedResult.configurationSettings.customTerminalExecutableArgs && Object.keys(reportedResult.configurationSettings.customTerminalExecutableArgs)) {
     output += `Custom terminal executable args (idf.customTerminalExecutableArgs)${EOL}`;
     for (let k = 0; k < reportedResult.configurationSettings.customTerminalExecutableArgs.length; k++) {
       output += `    ${k}: ${reportedResult.configurationSettings.customTerminalExecutableArgs[k]}${EOL}`;
