@@ -378,7 +378,6 @@ export class SetupPanel {
             idfPythonPath = embedPaths.idfPythonPath;
           }
           this.checkSpacesInPaths(
-            espIdfPath,
             toolsPath,
             idfGitPath,
             idfPythonPath
@@ -493,7 +492,6 @@ export class SetupPanel {
             idfPythonPath = embedPaths.idfPythonPath;
           }
           this.checkSpacesInPaths(
-            idfPath,
             toolsPath,
             idfGitPath,
             idfPythonPath
@@ -586,19 +584,14 @@ export class SetupPanel {
   }
 
   private checkSpacesInPaths(
-    idfPath: string,
     idfToolsPath: string,
     gitPath: string,
     pythonBinPath: string
   ) {
-    const doesIdfPathHasSpaces = checkSpacesInPath(idfPath);
     const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
     const doesGitPathHasSpaces = checkSpacesInPath(gitPath);
     const doesPythonBinPath = checkSpacesInPath(pythonBinPath);
     let pathHasSpaces = "";
-    if (doesIdfPathHasSpaces) {
-      pathHasSpaces = `${idfPath} has spaces. Use another location. (IDF_PATH_WITH_SPACES)`;
-    }
     if (doesIdfToolsPathHasSpaces) {
       pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
     }
