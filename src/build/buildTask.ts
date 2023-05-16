@@ -82,12 +82,12 @@ export class BuildTask {
       this.curWorkspace
     ) as string;
     return new vscode.ShellExecution(
-      `${pythonBinPath} ${join(
-        this.idfPathDir,
+      `"${pythonBinPath}" ${join(
+        `${this.idfPathDir}`,
         "tools",
         "mkdfu.py"
-      )} write -o ${join(this.buildDirPath, "dfu.bin")} --json ${join(
-        this.buildDirPath,
+      )} write -o ${join(`"${this.buildDirPath}"`, "dfu.bin")} --json ${join(
+        `"${this.buildDirPath}"`,
         "flasher_args.json"
       )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
       options
