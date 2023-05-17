@@ -751,7 +751,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.flashWithWebserial", async () => {
     PreCheck.perform([openFolderCheck, enableOnWebIde], async () => {
       await flashWithWebSerial(workspaceRoot);
-    })
+    });
   });
 
   registerIDFCommand("espIdf.customTask", async () => {
