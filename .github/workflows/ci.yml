@@ -18,10 +18,10 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Setup Node.js 14
+      - name: Setup Node.js 16
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install Node Dependencies
         run: yarn
