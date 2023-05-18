@@ -82,14 +82,14 @@ export class BuildTask {
       this.curWorkspace
     ) as string;
     return new vscode.ShellExecution(
-      `"${pythonBinPath}" ${join(
-        `${this.idfPathDir}`,
+      `"${pythonBinPath}" "${join(
+        this.idfPathDir,
         "tools",
         "mkdfu.py"
-      )} write -o ${join(`"${this.buildDirPath}"`, "dfu.bin")} --json ${join(
-        `"${this.buildDirPath}"`,
+      )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
+        this.buildDirPath,
         "flasher_args.json"
-      )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
+      )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
       options
     );
   }
@@ -154,16 +154,10 @@ export class BuildTask {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
 
-      const buidCommand =
-        process.platform === "win32"
-          ? `-B=\\"${this.buildDirPath}\\"`
-          : `-B="${this.buildDirPath}"`;
+      const buidCommand =`-B="${this.buildDirPath}"`;
       compilerArgs.push(buidCommand);
 
-      const curWorkspaceCommand =
-        process.platform === "win32"
-          ? `-S=\\"${this.curWorkspace.fsPath}\\"`
-          : `-S="${this.curWorkspace.fsPath}"`;
+      const curWorkspaceCommand =`-S="${this.curWorkspace.fsPath}"`
       if (compilerArgs.indexOf("-S") === -1) {
         compilerArgs.push(curWorkspaceCommand);
       }
