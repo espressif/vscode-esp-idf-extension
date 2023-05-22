@@ -21,6 +21,7 @@ import {
   Progress,
   ProgressLocation,
   Uri,
+  commands,
   window,
 } from "vscode";
 import { OutputChannel } from "../logger/outputChannel";
@@ -57,13 +58,20 @@ export async function flashWithWebSerial(workspace: Uri) {
         }>,
         cancelToken: CancellationToken
       ) => {
-        if (!navigator.serial) {
-          return undefined;
+        const portInfo = (await commands.executeCommand(
+          "workbench.experimental.requestSerialPort"
+        )) as SerialPortInfo;
+        if (!portInfo) {
+          return;
         }
-        const port = await navigator.serial.requestPort();
-        if (!port) {
-          return undefined;
-        }
+        const ports = await navigator.serial.getPorts();
+        let port = ports.find((item) => {
+          const info = item.getInfo();
+          return (
+            info.usbVendorId === portInfo.usbVendorId &&
+            info.usbProductId === portInfo.usbProductId
+          );
+        });
         const transport = new Transport(port);
         const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
         const outputChnl = OutputChannel.init();
