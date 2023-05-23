@@ -107,6 +107,7 @@
   "param.monitorStartDelayBeforeDebug": "Задержка запуска сеанса отладки после выполнения монитора IDF (мс)",
   "param.monitorNoReset": "Включить флаг отсутствия сброса для монитора IDF",
   "param.enableStatusBar.title": "Включить элементы строки состояния расширения ESP-IDF",
+  "param.enableSizeTaskAfterBuildTask.title": "Включить задачу размера IDF после задачи сборки",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",
