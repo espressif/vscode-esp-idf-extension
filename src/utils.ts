@@ -964,7 +964,12 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     );
     modifiedEnv.ZAP_INSTALL_PATH = path.join(
       modifiedEnv.ESP_MATTER_PATH,
-      ".zap"
+      "connectedhomeip",
+      "connectedhomeip",
+      ".environment",
+      "cipd",
+      "packages",
+      "zap"
     );
   }
 

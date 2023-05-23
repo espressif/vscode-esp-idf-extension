@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { move, pathExists, chmod, remove } from "fs-extra";
+import { pathExists } from "fs-extra";
 import { join } from "path";
 import { spawn } from "child_process";
 import {
@@ -37,7 +37,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
-import { installEspMatterPyReqs, installMatterZapCli } from "../pythonManager";
+import { installEspMatterPyReqs } from "../pythonManager";
 import { platform } from "os";
 
 export class EspMatterCloning extends AbstractCloning {
@@ -252,64 +252,6 @@ export async function installPythonReqs(
   );
 }
 
-export async function installZapCli(
-  espMatterPath: string,
-  workspace?: Uri
-) {
-  const espIdfPath = readParameter("idf.espIdfPath", workspace)
-  const pyPath = readParameter( "idf.pythonBinPath", workspace);
-  const containerPath =
-    process.platform === "win32"
-      ? process.env.USERPROFILE
-      : process.env.HOME;
-  const confToolsPath = readParameter("idf.toolsPath", workspace);
-  const toolsPath =
-    confToolsPath ||
-    process.env.IDF_TOOLS_PATH ||
-    join(containerPath, ".espressif");
-  await window.withProgress(
-    {
-      cancellable: true,
-      location: ProgressLocation.Notification,
-      title: 'Installing ESP-Matter',
-    },
-    async (
-      progress: Progress<{ message: string; increment?: number }>,
-      cancelToken: CancellationToken
-    ) => {
-      progress.report({
-        message: `Installing zap-cli...`,
-      });
-      const zapCliPath = await installMatterZapCli(
-        espIdfPath,
-        toolsPath,
-        espMatterPath,
-        pyPath,
-        undefined,
-        OutputChannel.init(),
-        cancelToken
-      );
-
-      const zapCliExists = await pathExists(zapCliPath);
-      if (zapCliExists) {
-        const espMatterZapCliPath = join(espMatterPath, ".zap");
-        const espMatterZapCliExists = await pathExists(espMatterZapCliPath);
-        if (espMatterZapCliExists) {
-          await remove(espMatterZapCliPath);
-        }
-        await move(zapCliPath, espMatterZapCliPath);
-        await chmod(join(espMatterZapCliPath, "zap-cli"), 0o755);
-      }
-      else
-      {
-        const msg = `zap-cli installation failed\n`;
-        OutputChannel.appendLine(msg);
-        Logger.errorNotify("zap-cli installation error", new Error(msg));
-      }
-    }
-  );
-}
-
 export async function getEspMatter(workspace?: Uri) {
   const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
   let espMatterPath;
@@ -352,17 +294,6 @@ export async function getEspMatter(workspace?: Uri) {
       );
     }
     EspMatterCloning.isBuildingGn = false;
-    return Logger.errorNotify(msg, error);
-  }
-
-  try {
-    await installZapCli(espMatterPath, workspace);
-  } catch (error) {
-    const msg = error.message
-      ? error.message
-      : typeof error === "string"
-      ? error
-      : "Error installing zap-cli";
     return Logger.errorNotify(msg, error);
   }
 
