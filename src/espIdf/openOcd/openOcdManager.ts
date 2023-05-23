@@ -224,10 +224,10 @@ export class OpenOCDManager extends EventEmitter {
         )}`;
         const err = new Error(errorMsg);
         Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
-        OutputChannel.append(`❌ ${errStr}`, "OpenOCD");
+        OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
-      OutputChannel.append(errStr, "OpenOCD");
+      OutputChannel.appendLine(errStr, "OpenOCD");
       Logger.info(errStr);
     });
     this.server.stdout.on("data", (data) => {

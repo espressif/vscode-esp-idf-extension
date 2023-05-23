@@ -59,7 +59,7 @@ export async function validateReqs(
   const flasherArgsJsonExists = await pathExists(flasherArgsJsonPath);
   if (!flasherArgsJsonExists) {
     throw new Error(
-      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!!"
+      "flasher_args.json file is missing from the build directory, can't proceed, please build properly!"
     );
   }
 }

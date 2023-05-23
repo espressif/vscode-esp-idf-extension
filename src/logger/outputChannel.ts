@@ -38,6 +38,11 @@ export class OutputChannel {
     OutputChannel.instance.append(message);
   }
 
+  public static appendLineAndShow(message: string, name?: string) {
+    OutputChannel.appendLine(message, name || undefined);
+    OutputChannel.show();
+  }
+
   public static end() {
     OutputChannel.checkInitialized();
     OutputChannel.instance.dispose();

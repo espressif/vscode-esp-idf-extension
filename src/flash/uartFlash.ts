@@ -25,6 +25,7 @@ import { createFlashModel } from "./flashModelBuilder";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
+import { OutputChannel } from "../logger/outputChannel";
 
 export async function flashCommand(
   cancelToken: CancellationToken,
@@ -45,8 +46,11 @@ export async function flashCommand(
     (fileName) => fileName.endsWith(".bin") === true
   );
   if (binFiles.length === 0) {
+    const errStr = `Build is required before Flashing, .bin file can't be accessed`;
+    OutputChannel.show();
+    OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.errorNotify(
-      `Build is required before Flashing, .bin file can't be accessed`,
+      errStr,
       new Error("BIN_FILE_ACCESS_ERROR")
     );
   }
@@ -73,26 +77,36 @@ export async function flashCommand(
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;
-      Logger.infoNotify("Flash Done ⚡️");
+      const msg = "Flash Done ⚡️";
+      OutputChannel.appendLineAndShow(msg, "Flash");
+      Logger.infoNotify(msg);
     }
     TaskManager.disposeListeners();
   } catch (error) {
     if (error.message === "ALREADY_FLASHING") {
-      return Logger.errorNotify("Already one flash process is running!", error);
+      const errStr = "Already one flash process is running!";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      return Logger.errorNotify(errStr, error);
     }
     FlashTask.isFlashing = false;
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
+      const errStr = "No DFU capable USB device available found";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
       return Logger.errorNotify(
-        "No DFU capable USB device available found",
+        errStr,
         error
       );
     }
     if (error.message === "FLASH_TERMINATED") {
-      return Logger.errorNotify("Flashing has been stopped!", error);
+      const errStr = "Flashing has been stopped!";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      return Logger.errorNotify(errStr, error);
     }
     if (error.message === "SECTION_BIN_FILE_NOT_ACCESSIBLE") {
+      const errStr = "Flash (.bin) files don't exists or can't be accessed!";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
       return Logger.errorNotify(
-        "Flash (.bin) files don't exists or can't be accessed!",
+        errStr,
         error
       );
     }
@@ -100,12 +114,16 @@ export async function flashCommand(
       error.code === "ENOENT" ||
       error.message === "SCRIPT_PERMISSION_ERROR"
     ) {
+      const errStr = `Make sure you have the esptool.py installed and set in $PATH with proper permission`;
+      OutputChannel.appendLineAndShow(errStr, "Flash");
       return Logger.errorNotify(
-        `Make sure you have the esptool.py installed and set in $PATH with proper permission`,
+        errStr,
         error
       );
     }
-    Logger.errorNotify("Failed to flash because of some unusual error", error);
+    const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
+    OutputChannel.appendLineAndShow(errStr, "Flash");
+    Logger.errorNotify(errStr, error);
     continueFlag = false;
   }
   FlashTask.isFlashing = false;
