@@ -23,12 +23,9 @@ import {
   Uri,
   commands,
   window,
+  workspace,
 } from "vscode";
-import { OutputChannel } from "../logger/outputChannel";
 import { ESPLoader, IEspLoaderTerminal, Transport } from "esptool-js";
-import { readParameter } from "../idfConfiguration";
-import { createReadStream, pathExists, readJSON } from "fs-extra";
-import { join, parse } from "path";
 import { enc, MD5 } from "crypto-js";
 
 export interface PartitionInfo {
@@ -72,9 +69,11 @@ export async function flashWithWebSerial(workspace: Uri) {
             info.usbProductId === portInfo.usbProductId
           );
         });
+        if (!port) {
+          return;
+        }
         const transport = new Transport(port);
-        const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
-        const outputChnl = OutputChannel.init();
+        const outputChnl = window.createOutputChannel("ESP-IDF Webserial");
         const clean = () => {
           outputChnl.clear();
         };
@@ -90,49 +89,68 @@ export async function flashWithWebSerial(workspace: Uri) {
           write,
           writeLine,
         };
-        this.esploader = new ESPLoader(
+
+        const flashBaudRate = await window.showQuickPick(
+          [
+            { description: "115200", label: "115200", target: 115200 },
+            { description: "230400", label: "230400", target: 230400 },
+            { description: "460800", label: "460800", target: 460800 },
+            { description: "921600", label: "921600", target: 921600 },
+          ],
+          { placeHolder: "Select baud rate" }
+        );
+        if (!flashBaudRate) {
+          return;
+        }
+        const esploader = new ESPLoader(
           transport,
-          flashBaudRate,
+          flashBaudRate.target,
           loaderTerminal
         );
-        const chip = await this.esploader.main_fn();
-        const message = await getFlashSectionsForCurrentWorkspace(workspace);
+        const chip = await esploader.main_fn();
+        const flashSectionsMessage = await getFlashSectionsForCurrentWorkspace(
+          workspace
+        );
 
-        await this.esploader.write_flash(
-          message.sections,
-          message.flashSize,
-          message.flashMode,
-          message.flashFreq,
+        await esploader.write_flash(
+          flashSectionsMessage.sections,
+          flashSectionsMessage.flashSize,
+          flashSectionsMessage.flashMode,
+          flashSectionsMessage.flashFreq,
           undefined,
           undefined,
           (fileIndex: number, written: number, total: number) => {
             progress.report({
-              message: `${message.sections[fileIndex].data} (${written}/${total})`,
+              message: `${flashSectionsMessage.sections[fileIndex].data} (${written}/${total})`,
             });
           },
           (image: string) => MD5(enc.Latin1.parse(image)).toString()
         );
       }
     );
-  } catch (error) {}
+  } catch (error: any) {
+    const outputChnl = window.createOutputChannel("ESP-IDF Webserial");
+    const errMsg = error && error.message ? error.message : error;
+    outputChnl.appendLine(errMsg);
+  }
 }
 
-async function getFlashSectionsForCurrentWorkspace(workspace: Uri) {
-  const flashInfoFileName = join(
-    workspace.fsPath,
+async function getFlashSectionsForCurrentWorkspace(workspaceFolder: Uri) {
+  const flashInfoFileName = Uri.joinPath(
+    workspaceFolder,
     "build",
-    this.flashInfoFileName
+    "flasher_args.json"
   );
-  const isBuilt = await pathExists(flashInfoFileName);
-  if (!isBuilt) {
+  const FlasherArgsContent = await workspace.fs.readFile(flashInfoFileName);
+  if (!FlasherArgsContent) {
     throw new Error("Build before flashing");
   }
-  const flashFileJson = await readJSON(flashInfoFileName);
+  const flashFileJson = JSON.parse(FlasherArgsContent.toString());
   const binPromises: Promise<PartitionInfo>[] = [];
   Object.keys(flashFileJson["flash_files"]).forEach((offset) => {
-    const fileName = parse(flashFileJson["flash_files"][offset]).name;
-    const filePath = join(
-      workspace.fsPath,
+    const fileName = flashFileJson["flash_files"][offset].name;
+    const filePath = Uri.joinPath(
+      workspaceFolder,
       "build",
       flashFileJson["flash_files"][offset]
     );
@@ -148,27 +166,12 @@ async function getFlashSectionsForCurrentWorkspace(workspace: Uri) {
   return message;
 }
 
-async function readFileIntoBuffer(
-  filePath: string,
-  name: string,
-  offset: string
-) {
-  return new Promise<PartitionInfo>((resolve, reject) => {
-    const fileBuffer: Buffer[] = new Array<Buffer>();
-    const stream = createReadStream(filePath);
-    stream.on("data", (chunk: Buffer) => {
-      fileBuffer.push(chunk);
-    });
-    stream.on("end", () => {
-      const fileBufferResult: PartitionInfo = {
-        data: Buffer.concat(fileBuffer).toString(),
-        name,
-        address: parseInt(offset),
-      };
-      return resolve(fileBufferResult);
-    });
-    stream.on("error", (err) => {
-      return reject(err);
-    });
-  });
+async function readFileIntoBuffer(filePath: Uri, name: string, offset: string) {
+  const fileBuffer = await workspace.fs.readFile(filePath);
+  const fileBufferResult: PartitionInfo = {
+    data: fileBuffer.toString(),
+    name,
+    address: parseInt(offset),
+  };
+  return fileBufferResult;
 }
