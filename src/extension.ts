@@ -431,14 +431,6 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
   vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {
-    const terminalPid = await terminal.processId;
-    const monitorTerminalPid = monitorTerminal
-      ? await monitorTerminal.processId
-      : -1;
-    if (monitorTerminalPid === terminalPid) {
-      monitorTerminal = undefined;
-      kill(monitorTerminalPid, "SIGKILL");
-    }
   });
 
   registerIDFCommand("espIdf.createFiles", async () => {
@@ -1280,7 +1272,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
     createDebugAdapterTracker(session: vscode.DebugSession) {
       return {
-        onWillReceiveMessage: (m) => {},
+        onWillReceiveMessage: (m) => { },
       };
     },
   });
@@ -1399,8 +1391,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : typeof error === "string"
-              ? error
-              : "Error installing Python requirements";
+                ? error
+                : "Error installing Python requirements";
             Logger.errorNotify(msg, error);
           }
         }
@@ -1465,8 +1457,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : typeof error === "string"
-              ? error
-              : "Error installing ESP-Matter Python Requirements";
+                ? error
+                : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error);
           }
         }
@@ -1654,10 +1646,10 @@ export async function activate(context: vscode.ExtensionContext) {
               setupArgs = setupArgs
                 ? setupArgs
                 : await getSetupInitialValues(
-                    context.extensionPath,
-                    progress,
-                    workspaceRoot
-                  );
+                  context.extensionPath,
+                  progress,
+                  workspaceRoot
+                );
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -2053,8 +2045,8 @@ export async function activate(context: vscode.ExtensionContext) {
         typeof appTraceTreeDataProvider.appTraceButton.label === "string"
           ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
           : appTraceTreeDataProvider.appTraceButton.label.label.match(
-              /start/gi
-            );
+            /start/gi
+          );
       if (appTraceLabel) {
         await appTraceManager.start(workspaceRoot);
       } else {
@@ -2072,8 +2064,8 @@ export async function activate(context: vscode.ExtensionContext) {
           typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
             ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
             : appTraceTreeDataProvider.heapTraceButton.label.label.match(
-                /start/gi
-              );
+              /start/gi
+            );
         if (heapTraceLabel) {
           await gdbHeapTraceManager.start(workspaceRoot);
         } else {
@@ -3225,7 +3217,7 @@ function createQemuMonitor(noReset: boolean = false) {
     );
     if (monitorTerminal) {
       monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-      monitorTerminal.dispose();
+      monitorTerminal.sendText(`exit`);
     }
     monitorTerminal = idfMonitor.start();
   });
@@ -3268,7 +3260,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           });
           if (monitorTerminal) {
             monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-            monitorTerminal.dispose();
+            monitorTerminal.sendText(`exit`);
           }
           createMonitor();
         }
@@ -3381,7 +3373,7 @@ async function createIdfMonitor(noReset: boolean = false) {
   const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-    monitorTerminal.dispose();
+    monitorTerminal.sendText(`exit`);
   }
   monitorTerminal = idfMonitor.start();
   if (noReset) {
