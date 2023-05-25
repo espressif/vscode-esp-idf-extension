@@ -82,7 +82,7 @@ export class BuildTask {
       this.curWorkspace
     ) as string;
     return new vscode.ShellExecution(
-      `"${pythonBinPath}" "${join(
+      `${pythonBinPath} "${join(
         this.idfPathDir,
         "tools",
         "mkdfu.py"
