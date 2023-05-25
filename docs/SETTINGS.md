@@ -47,21 +47,21 @@ This is how the extension uses them:
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting                                          | Description                                                                      | Scope                     |
-| ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                             |                           |
-| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                     |                           |
-| `idf.flashBaudRate`                              | Flash Baud rate                                                                  |                           |
-| `idf.monitorBaudRate`                            | Monitor Baud rate                                                                |                           |
-| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder              |                           |
-| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs |                           |
-| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                         |                           |
-| `idf.port`                                       | Path of selected device port                                                     |                           |
-| `idf.portWin`                                    | Path of selected device port in Windows                                          |                           |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                | User, Remote or Workspace |
-| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                             | User, Remote or Workspace |
-| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                             | User, Remote or Workspace |
-| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                | User, Remote or Workspace |
+| Setting                                          | Description                                                                            | Scope                     |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------- |
+| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                                   |                           |
+| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                           |                           |
+| `idf.flashBaudRate`                              | Flash Baud rate                                                                        |                           |
+| `idf.monitorBaudRate`                            | Monitor Baud rate (Empty by default to use sdkconfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
+| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
+| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs       |                           |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                               |                           |
+| `idf.port`                                       | Path of selected device port                                                           |                           |
+| `idf.portWin`                                    | Path of selected device port in Windows                                                |                           |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                      | User, Remote or Workspace |
+| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                                   | User, Remote or Workspace |
+| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                                   | User, Remote or Workspace |
+| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                      | User, Remote or Workspace |
 
 This is how the extension uses them:
 

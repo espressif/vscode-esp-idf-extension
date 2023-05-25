@@ -373,21 +373,22 @@ export function getConfigValueFromSDKConfig(
 }
 
 export function getMonitorBaudRate(workspacePath: vscode.Uri) {
-  let sdkMonitorBaudRate: string = idfConf.readParameter(
-    "idf.monitorBaudRate",
-    workspacePath
-  ) as string;
+  let sdkMonitorBaudRate = "";
   try {
+    sdkMonitorBaudRate = idfConf.readParameter(
+      "idf.monitorBaudRate",
+      workspacePath
+    ) as string;
     if (!sdkMonitorBaudRate) {
       sdkMonitorBaudRate = getConfigValueFromSDKConfig(
-        "CONFIG_ESPTOOLPY_MONITOR_BAUD",
+        "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
         workspacePath
       );
     }
   } catch (error) {
     const errMsg = error.message
       ? error.message
-      : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
+      : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
     Logger.error(errMsg, error);
   }
   return sdkMonitorBaudRate;

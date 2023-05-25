@@ -430,16 +430,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
-  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {
-    const terminalPid = await terminal.processId;
-    const monitorTerminalPid = monitorTerminal
-      ? await monitorTerminal.processId
-      : -1;
-    if (monitorTerminalPid === terminalPid) {
-      monitorTerminal = undefined;
-      kill(monitorTerminalPid, "SIGKILL");
-    }
-  });
+  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
 
   registerIDFCommand("espIdf.createFiles", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -2586,9 +2577,6 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error("NOT_SELECTED_PORT")
           );
         }
-        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-          workspaceRoot
-        );
         const pythonBinPath = idfConf.readParameter(
           "idf.pythonBinPath",
           workspaceRoot
@@ -2633,6 +2621,9 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+          workspaceRoot
+        );
         const noReset = idfConf.readParameter(
           "idf.monitorNoReset",
           workspaceRoot
@@ -3226,7 +3217,7 @@ function createQemuMonitor(noReset: boolean = false) {
     );
     if (monitorTerminal) {
       monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-      monitorTerminal.dispose();
+      monitorTerminal.sendText(`exit`);
     }
     monitorTerminal = idfMonitor.start();
   });
@@ -3269,7 +3260,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           });
           if (monitorTerminal) {
             monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-            monitorTerminal.dispose();
+            monitorTerminal.sendText(`exit`);
           }
           createMonitor();
         }
@@ -3382,7 +3373,7 @@ async function createIdfMonitor(noReset: boolean = false) {
   const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-    monitorTerminal.dispose();
+    monitorTerminal.sendText(`exit`);
   }
   monitorTerminal = idfMonitor.start();
   if (noReset) {

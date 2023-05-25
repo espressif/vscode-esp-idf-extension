@@ -56,9 +56,9 @@ export class IDFMonitor {
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
     const baudRateToUse =
+      this.config.baudRate ||
       modifiedEnv.IDF_MONITOR_BAUD ||
       modifiedEnv.MONITORBAUD ||
-      this.config.baudRate ||
       "115200";
     const args = [
       this.config.pythonBinPath,
