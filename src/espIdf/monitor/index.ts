@@ -61,7 +61,7 @@ export class IDFMonitor {
       "115200";
     const args = [
       this.config.pythonBinPath,
-      this.config.idfMonitorToolPath,
+      `"${this.config.idfMonitorToolPath}"`,
       "-p",
       this.config.port,
       "-b",
@@ -77,7 +77,7 @@ export class IDFMonitor {
     }
     args.push(`"${this.config.elfFilePath}"`);
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+    this.terminal.sendText(`${envSetCmd} IDF_PATH="${modifiedEnv.IDF_PATH}"`);
     this.terminal.sendText(args.join(" "));
     return this.terminal;
   }
