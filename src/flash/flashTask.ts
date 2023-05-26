@@ -155,10 +155,10 @@ export class FlashTask {
       );
     }
     return new vscode.ShellExecution(
-      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
+      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D "${join(
         this.buildDirPath,
         "dfu.bin"
-      )}`
+      )}"`
     );
   }
 
