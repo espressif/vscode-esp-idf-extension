@@ -90,6 +90,14 @@ export async function createNewIdfMonitor(
   const projectName = await getProjectName(buildDirPath);
   const elfFilePath = join(buildDirPath, `${projectName}.elf`);
   const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
+  const shellPath = readParameter(
+    "idf.customTerminalExecutable",
+    workspaceFolder
+  ) as string;
+  const shellExecutableArgs = readParameter(
+    "idf.customTerminalExecutableArgs",
+    workspaceFolder
+  ) as string[];
   const monitor = new IDFMonitor({
     port,
     baudRate: sdkMonitorBaudRate,
@@ -101,6 +109,8 @@ export async function createNewIdfMonitor(
     elfFilePath,
     workspaceFolder,
     toolchainPrefix,
+    shellPath,
+    shellExecutableArgs
   });
   return monitor;
 }

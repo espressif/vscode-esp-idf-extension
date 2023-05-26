@@ -56,6 +56,12 @@ export async function writeTextReport(
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
+  if (reportedResult.configurationSettings.customTerminalExecutable) {
+    output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
+  }
+  if (reportedResult.configurationSettings.customTerminalExecutableArgs && reportedResult.configurationSettings.customTerminalExecutableArgs.length) {
+    output += `Custom terminal executable args (idf.customTerminalExecutableArgs)${reportedResult.configurationSettings.customTerminalExecutableArgs}${EOL}`;
+  }
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
   output += `Access to ESP-ADF Path (idf.espAdfPath) ${reportedResult.configurationAccess.espAdfPath}${EOL}`;
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;

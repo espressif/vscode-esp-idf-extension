@@ -122,6 +122,8 @@
   "param.enableCCache.title": "Enable CCache in build task",
   "param.monitorStartDelayBeforeDebug": "Delay to start debug session after IDF monitor execution (ms)",
   "param.monitorNoReset": "Enable no-reset flag to IDF Monitor",
+  "param.customTerminalExecutable.title": "Custom executable for extensions tasks",
+  "param.customTerminalExecutableArgs.title": "List of arguments for the custom executable for extension tasks",
   "esp.rainmaker.backend.sync.title": "Sync with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.connect.title": "Connect with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Account",

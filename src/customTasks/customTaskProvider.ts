@@ -87,6 +87,20 @@ export class CustomTask {
       cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,
     };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      this.currentWorkspace
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.currentWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
     const isSilentMode = readParameter(
       "idf.notificationSilentMode",
       this.currentWorkspace

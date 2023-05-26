@@ -2628,6 +2628,14 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.monitorNoReset",
           workspaceRoot
         ) as boolean;
+        const shellPath = idfConf.readParameter(
+          "idf.customTerminalExecutable",
+          workspaceRoot
+        ) as string;
+        const shellExecutableArgs = idfConf.readParameter(
+          "idf.customTerminalExecutableArgs",
+          workspaceRoot
+        ) as string[];
         const monitor = new IDFMonitor({
           port,
           baudRate: sdkMonitorBaudRate,
@@ -2640,6 +2648,8 @@ export async function activate(context: vscode.ExtensionContext) {
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
+          shellPath,
+          shellExecutableArgs,
         });
         if (wsServer) {
           wsServer.close();

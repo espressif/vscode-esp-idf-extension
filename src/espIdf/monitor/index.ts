@@ -31,6 +31,8 @@ export interface MonitorConfig {
   toolchainPrefix: string;
   wsPort?: number;
   workspaceFolder: Uri;
+  shellPath: string;
+  shellExecutableArgs: string[];
 }
 
 export class IDFMonitor {
@@ -50,8 +52,8 @@ export class IDFMonitor {
         modifiedEnv.IDF_PATH ||
         process.cwd(),
       strictEnv: true,
-      shellArgs: [],
-      shellPath: env.shell,
+      shellArgs: this.config.shellExecutableArgs || [],
+      shellPath: this.config.shellPath || env.shell,
     });
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);

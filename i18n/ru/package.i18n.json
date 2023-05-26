@@ -122,6 +122,8 @@
   "param.notificationSilentMode": "Отключите все уведомления расширения ESP-IDF (за исключением уведомлений об ошибках)",
   "param.saveScope": "Куда сохранять конфигурацию с помощью команд ESP-IDF с числовым значением vscode.ConfigurationTarget. Глобально = 1, Рабочая область = 2, Папка рабочей области = 3",
   "param.rainmaker.api.server_url": "URL облачного сервера ESP-Rainmaker",
+  "param.customTerminalExecutable.title": "Пользовательский исполняемый файл для задач расширения",
+  "param.customTerminalExecutableArgs.title": "Список аргументов для пользовательского исполняемого файла для задач расширения",
   "esp.rainmaker.backend.sync.title": "Синхронизация с облачным сервером ESP-Rainmaker",
   "esp.rainmaker.backend.connect.title": "Подключится к облачному серверу ESP-Rainmaker",
   "esp.rainmaker.backend.logout.title": "Отвязать аккаунт Rainmaker",
