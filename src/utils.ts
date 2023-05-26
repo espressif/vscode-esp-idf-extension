@@ -701,7 +701,7 @@ export async function getEspIdfVersion(workingDir: string, gitPath: string) {
       throw new Error("Git is not found in current environment");
     }
     const rawEspIdfVersion = await execChildProcess(
-      `"${gitPath}" describe --tags`,
+      `'${gitPath}' describe --tags`,
       workingDir
     );
     const espIdfVersionMatch = rawEspIdfVersion.match(
