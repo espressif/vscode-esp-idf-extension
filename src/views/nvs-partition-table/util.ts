@@ -130,7 +130,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
 }
 
 export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
-  let csv = `key, type, encoding, value ${EOL}`;
+  let csv = `key,type,encoding,value${EOL}`;
   for (const row of rows) {
     if (
       row.key === "" &&

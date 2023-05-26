@@ -17,6 +17,20 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.3)
+
+ ### Features and enhancements
+
+ - [Add idf.enableSizeTaskAfterBuildTask to enable disable Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/965)
+ - [Zap Install no longer needed](https://github.com/espressif/vscode-esp-idf-extension/pull/967) Thanks @Diegorro98 !
+ - [Add consistency messages for flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/971)
+ - [Add idf.customTerminalExecutable and idf.customTerminalExecutableArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/973)
+
+  ### Bug Fixes
+
+  - [Fix default monitor baud rate](https://github.com/espressif/vscode-esp-idf-extension/pull/964)
+  - [Fix NVS editor spaces](https://github.com/espressif/vscode-esp-idf-extension/pull/977)
+
 ## [1.6.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.2)
 
  ### Features and enhancements
