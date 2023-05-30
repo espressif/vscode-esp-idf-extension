@@ -377,11 +377,6 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          this.checkSpacesInPaths(
-            toolsPath,
-            idfGitPath,
-            idfPythonPath
-          );
           await expressInstall(
             selectedIdfVersion,
             idfPythonPath,
@@ -491,11 +486,6 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          this.checkSpacesInPaths(
-            toolsPath,
-            idfGitPath,
-            idfPythonPath
-          );
           await downloadIdfTools(
             idfPath,
             toolsPath,
@@ -581,31 +571,6 @@ export class SetupPanel {
     ) as vscode.ConfigurationTarget;
     await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
-  }
-
-  private checkSpacesInPaths(
-    idfToolsPath: string,
-    gitPath: string,
-    pythonBinPath: string
-  ) {
-    const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
-    const doesGitPathHasSpaces = checkSpacesInPath(gitPath);
-    const doesPythonBinPath = checkSpacesInPath(pythonBinPath);
-    let pathHasSpaces = "";
-    if (doesIdfToolsPathHasSpaces) {
-      pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
-    }
-    if (doesGitPathHasSpaces) {
-      pathHasSpaces = `${gitPath} has spaces. Use another location. (GIT_PATH_WITH_SPACES)`;
-    }
-    if (doesPythonBinPath) {
-      pathHasSpaces = `${pythonBinPath} has spaces. Use another location. (PYTHON_BIN_PATH_WITH_SPACES)`;
-    }
-    if (pathHasSpaces) {
-      OutputChannel.appendLine(pathHasSpaces);
-      Logger.infoNotify(pathHasSpaces);
-      throw new Error(pathHasSpaces);
-    }
   }
 
   private async getOpenOcdRulesPath() {
