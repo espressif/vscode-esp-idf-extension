@@ -52,7 +52,8 @@ export class TaskManager {
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {
         if (
-          e.execution && e.execution.task.definition.taskId.indexOf(
+          e.execution &&
+          e.execution.task.definition.taskId.indexOf(
             newTask.definition.taskId
           ) !== -1
         ) {
@@ -89,7 +90,8 @@ export class TaskManager {
       let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
       const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
         if (
-          e.execution && e.execution.task.definition.taskId.indexOf(
+          e.execution &&
+          e.execution.task.definition.taskId.indexOf(
             lastExecution.task.definition.taskId
           ) !== -1
         ) {
