@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 27th September 2019 9:59:57 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +52,7 @@ export class TaskManager {
     return new Promise<void>((resolve, reject) => {
       vscode.tasks.onDidEndTask((e) => {
         if (
-          e.execution.task.definition.taskId.indexOf(
+          e.execution && e.execution.task.definition.taskId.indexOf(
             newTask.definition.taskId
           ) !== -1
         ) {
@@ -83,10 +83,13 @@ export class TaskManager {
 
   public static async runTasks() {
     return new Promise<void>(async (resolve, reject) => {
+      if (TaskManager.tasks.length === 0) {
+        return resolve();
+      }
       let lastExecution = await vscode.tasks.executeTask(TaskManager.tasks[0]);
       const taskDisposable = vscode.tasks.onDidEndTaskProcess(async (e) => {
         if (
-          e.execution.task.definition.taskId.indexOf(
+          e.execution && e.execution.task.definition.taskId.indexOf(
             lastExecution.task.definition.taskId
           ) !== -1
         ) {
