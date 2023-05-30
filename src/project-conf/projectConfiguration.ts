@@ -25,6 +25,7 @@ export interface ProjectConfElement {
   };
   env: { [key: string]: string };
   flashBaudRate: string;
+  idfTarget: string;
   monitorBaudRate: string;
   openOCD: {
     debugLevel: number;

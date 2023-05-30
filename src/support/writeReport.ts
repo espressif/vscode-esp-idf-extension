@@ -45,7 +45,10 @@ export async function writeTextReport(
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
-  if (reportedResult.configurationSettings.customExtraVars && Object.keys(reportedResult.configurationSettings.customExtraVars)) {
+  if (
+    reportedResult.configurationSettings.customExtraVars &&
+    Object.keys(reportedResult.configurationSettings.customExtraVars)
+  ) {
     output += `Custom extra vars (idf.customExtraVars)${EOL}`;
     for (let key in reportedResult.configurationSettings.customExtraVars) {
       output += `    ${key}: ${reportedResult.configurationSettings.customExtraVars[key]}${EOL}`;
@@ -59,7 +62,10 @@ export async function writeTextReport(
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }
-  if (reportedResult.configurationSettings.customTerminalExecutableArgs && reportedResult.configurationSettings.customTerminalExecutableArgs.length) {
+  if (
+    reportedResult.configurationSettings.customTerminalExecutableArgs &&
+    reportedResult.configurationSettings.customTerminalExecutableArgs.length
+  ) {
     output += `Custom terminal executable args (idf.customTerminalExecutableArgs)${reportedResult.configurationSettings.customTerminalExecutableArgs}${EOL}`;
   }
   output += `-------------------------------------------------------- Configurations access -------------------------------------------------------------${EOL}`;
@@ -132,6 +138,8 @@ export async function writeTextReport(
         }
       }
       output += `Flash baud rate: ${reportedResult.projectConfigurations[key].flashBaudRate}${EOL}`;
+      output += `IDF Target: ${reportedResult.projectConfigurations[key].idfTarget}${EOL}`;
+      output += `Monitor baud rate: ${reportedResult.projectConfigurations[key].monitorBaudRate}${EOL}`;
 
       if (reportedResult.projectConfigurations[key].openOCD) {
         output += `---- OpenOCD section ----${EOL}`;
@@ -192,6 +200,8 @@ export async function writeTextReport(
     output += `Latest error at ${
       reportedResult.latestError.message
         ? reportedResult.latestError.message
+        : typeof reportedResult.latestError === "string"
+        ? reportedResult.latestError
         : "Unknown error in ESP-IDF doctor command"
     }${EOL}`;
   }

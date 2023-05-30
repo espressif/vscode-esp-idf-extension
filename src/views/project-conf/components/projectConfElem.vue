@@ -45,6 +45,13 @@
       :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
+    <SelectElement
+        :selectValue.sync="el.idfTarget"
+        title="IDF Target"
+        :options="idfTargets"
+        :sections="['idfTarget']"
+        :updateMethod="updateElement"
+      />
     <StringElement
       title="Monitor baud rate"
       :value.sync="el.monitorBaudRate"
@@ -153,6 +160,16 @@ export default class projectConfElem extends Vue {
     { name: "Info", value: 2 },
     { name: "Debug", value: 3 },
     { name: "Verbose", value: 4 },
+  ];
+
+  idfTargets: { name: string; value: string }[] = [
+    { name: "esp32", value: "esp32"},
+    { name: "ESP32 S2", value: "esp32s2"},
+    { name: "ESP32 S3", value: "esp32s3"},
+    { name: "ESP32 C2", value: "esp32c2"},
+    { name: "ESP32 C3", value: "esp32c3"},
+    { name: "ESP32 C6", value: "esp32c6"},
+    { name: "ESP32 H2", value: "esp32h2"},
   ];
 
   updateElement(sections: string[], newValue: any) {
