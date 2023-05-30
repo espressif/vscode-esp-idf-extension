@@ -60,7 +60,7 @@ export class IDFMonitor {
       this.config.baudRate ||
       "115200";
     const args = [
-      this.config.pythonBinPath,
+      `"${this.config.pythonBinPath}"`,
       `"${this.config.idfMonitorToolPath}"`,
       "-p",
       this.config.port,
