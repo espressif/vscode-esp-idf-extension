@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../config";
+import { pathExists, readJson, writeJson } from "fs-extra";
+import { ProjectConfElement } from "./projectConfiguration";
 
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -48,4 +50,59 @@ export class ProjectConfigStore {
       undefined
     );
   }
+}
+
+export async function getProjectConfigurationElements(workspaceFolder: Uri) {
+  const projectConfFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+  const doesPathExists = await pathExists(projectConfFilePath.fsPath);
+  if (!doesPathExists) {
+    return {};
+  }
+  const projectConfJson = await readJson(projectConfFilePath.fsPath);
+
+  const projectConfElements: { [key: string]: ProjectConfElement } = {};
+
+  Object.keys(projectConfJson).forEach((elem) => {
+    projectConfElements[elem] = {
+      build: {
+        compileArgs: projectConfJson[elem].build?.compileArgs,
+        ninjaArgs: projectConfJson[elem].build?.ninjaArgs,
+        buildDirectoryPath: projectConfJson[elem].build?.buildDirectoryPath,
+        sdkconfigDefaults: projectConfJson[elem].build?.sdkconfigDefaults,
+      },
+      env: projectConfJson[elem].env,
+      flashBaudRate: projectConfJson[elem].flashBaudRate,
+      idfTarget: projectConfJson[elem].idfTarget,
+      monitorBaudRate: projectConfJson[elem].monitorBaudRate,
+      openOCD: {
+        debugLevel: projectConfJson[elem].openOCD?.debugLevel,
+        configs: projectConfJson[elem].openOCD?.configs,
+        args: projectConfJson[elem].openOCD?.args,
+      },
+      tasks: {
+        preBuild: projectConfJson[elem].tasks?.preBuild,
+        preFlash: projectConfJson[elem].tasks?.preFlash,
+        postBuild: projectConfJson[elem].tasks?.postBuild,
+        postFlash: projectConfJson[elem].tasks?.postFlash,
+      },
+    } as ProjectConfElement;
+  });
+
+  return projectConfElements;
+}
+
+export async function saveProjectConfFile(
+  workspaceFolder: Uri,
+  projectConfElements: { [key: string]: ProjectConfElement }
+) {
+  const projectConfFilePath = Uri.joinPath(
+    workspaceFolder,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+  await writeJson(projectConfFilePath.fsPath, projectConfElements, {
+    spaces: 2,
+  });
 }
