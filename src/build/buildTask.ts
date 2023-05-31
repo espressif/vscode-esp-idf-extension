@@ -81,17 +81,17 @@ export class BuildTask {
       "idf.pythonBinPath",
       this.curWorkspace
     ) as string;
-    return new vscode.ShellExecution(
-      `""${pythonBinPath}" "${join(
-        this.idfPathDir,
-        "tools",
-        "mkdfu.py"
-      )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
-        this.buildDirPath,
-        "flasher_args.json"
-      )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}"`,
-      options
-    );
+    const command = `"${pythonBinPath}" "${join(
+      this.idfPathDir,
+      "tools",
+      "mkdfu.py"
+    )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
+      this.buildDirPath,
+      "flasher_args.json"
+    )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}`;
+    return process.platform === "win32" ? 
+      new vscode.ShellExecution(`"${command}"`,options)
+      : new vscode.ShellExecution(command,options);
   }
 
   public async build() {

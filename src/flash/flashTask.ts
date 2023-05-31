@@ -150,9 +150,10 @@ export class FlashTask {
         this.workspaceUri
       ) as string;
       const idfPy = path.join(idfPathDir, "tools", "idf.py");
-      return new vscode.ShellExecution(
-        `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`
-      );
+      const command = `"${pythonPath}" "${idfPy}" dfu-flash --path ${selectedDfuPath}`;
+      return process.platform === "win32" ?
+        new vscode.ShellExecution(command)
+        : new vscode.ShellExecution(`"${command}"`);
     }
     return new vscode.ShellExecution(
       `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D "${join(
