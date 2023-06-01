@@ -72,6 +72,7 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
         ninjaArgs: projectConfJson[elem].build?.ninjaArgs,
         buildDirectoryPath: projectConfJson[elem].build?.buildDirectoryPath,
         sdkconfigDefaults: projectConfJson[elem].build?.sdkconfigDefaults,
+        sdkconfigFilePath: projectConfJson[elem].build?.sdkconfigFilePath
       },
       env: projectConfJson[elem].env,
       flashBaudRate: projectConfJson[elem].flashBaudRate,

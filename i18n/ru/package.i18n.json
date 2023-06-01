@@ -108,6 +108,7 @@
   "param.monitorNoReset": "Включить флаг отсутствия сброса для монитора IDF",
   "param.enableStatusBar.title": "Включить элементы строки состояния расширения ESP-IDF",
   "param.enableSizeTaskAfterBuildTask.title": "Включить задачу размера IDF после задачи сборки",
+  "param.sdkconfigFilePath.title": "абсолютный путь к файлу sdkconfig",
   "view.components.name": "Компоненты проекта",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Обновить список архива трассировки",

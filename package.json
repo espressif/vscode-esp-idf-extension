@@ -870,6 +870,12 @@
             "description": "%param.customTerminalExecutableArgs.title%",
             "scope": "resource",
             "default": []
+          },
+          "idf.sdkconfigFilePath": {
+            "type": "string",
+            "description": "%param.sdkconfigFilePath.title%",
+            "scope": "resource",
+            "default": ""
           }
         }
       }

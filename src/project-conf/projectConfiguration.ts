@@ -22,6 +22,7 @@ export interface ProjectConfElement {
     ninjaArgs: string[];
     buildDirectoryPath: string;
     sdkconfigDefaults: string[];
+    sdkconfigFilePath: string;
   };
   env: { [key: string]: string };
   flashBaudRate: string;

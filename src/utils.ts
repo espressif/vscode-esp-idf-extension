@@ -1056,6 +1056,11 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     modifiedEnv.IDF_COMPONENT_MANAGER = "1";
   }
 
+  let sdkconfigFilePath = idfConf.readParameter("idf.sdkconfigFilePath") as string;
+  if (sdkconfigFilePath) {
+    modifiedEnv.SDKCONFIG = sdkconfigFilePath;
+  }
+
   return modifiedEnv;
 }
 

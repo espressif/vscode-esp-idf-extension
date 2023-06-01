@@ -42,6 +42,7 @@ export const projectConfigState: IState = {
       ninjaArgs: [],
       buildDirectoryPath: "",
       sdkconfigDefaults: [],
+      sdkconfigFilePath: ""
     },
     env: {},
     flashBaudRate: "",
@@ -113,6 +114,7 @@ export const mutations: MutationTree<IState> = {
         ninjaArgs: [],
         buildDirectoryPath: "",
         sdkconfigDefaults: [],
+        sdkconfigFilePath: ""
       },
       env: {},
       flashBaudRate: "",

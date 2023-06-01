@@ -110,6 +110,7 @@
   "param.enableSizeTaskAfterBuildTask.title": "Habilitar la tarea de IDF Size luego de la tarea IDF Build",
   "param.customTerminalExecutable.title": "Ejecutable personalizado para las tareas de la extensión ESP-IDF",
   "param.customTerminalExecutableArgs.title": "Lista de argumentos para el ejecutble personalizado de tareas de la extensión ESP-IDF",
+  "param.sdkconfigFilePath.title": "Ruta absoluta de archivo sdkconfig",
   "view.components.name": "Componentes de proyecto",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",
