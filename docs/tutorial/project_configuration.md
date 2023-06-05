@@ -48,4 +48,9 @@ The default case, without using any project configuration editor setting would b
 
 7. These profiles and each profile settings are going to be saved in the `/path/to/current/project/esp_idf_project_configuration.json`.
 
-The production environment could be split into multiple production profiles, as it is done in the [ESP-IDF CMake Multiple configuration example](https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config) by separating common sdkconfig settings in a `sdkconfig.prod_common` and product specific settings 
+The production environment could be split into multiple production profiles, as it is done in the [ESP-IDF CMake Multiple configuration example](https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config) and the [multiple configuration tutorial](./multiple_config.md) by separating common sdkconfig settings in a `sdkconfig.prod_common` and product specific settings in `sdkconfig.prod1` and `sdkconfig.prod2` respectively. Multiple sdkconfig defaults files can be specified in the project configuration editor profile `sdkconfig defaults` field as `sdkconfig.prod_common;sdkconfig.prod1` where the values are loaded in order as explained in [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults).
+
+
+This is just an example of the possibility of this project configuration editor. You can define multiple settings for different kinds of development scenarios such as testing, profiling, etc.
+
+
