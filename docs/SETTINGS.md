@@ -143,18 +143,21 @@ These settings are specific to [Application Log Tracing](./HEAP_TRACING.md).
 
 These settings allow to support additional frameworks together with ESP-IDF:
 
-| Setting ID             | Description                                                      |
-| ---------------------- | ---------------------------------------------------------------- |
-| `idf.espAdfPath`       | Path to locate ESP-ADF framework (ADF_PATH)                      |
-| `idf.espAdfPathWin`    | Path to locate ESP-ADF framework in Windows (ADF_PATH)           |
-| `idf.espMdfPath`       | Path to locate ESP-MDF framework (MDF_PATH)                      |
-| `idf.espMdfPathWin`    | Path to locate ESP-MDF framework in Windows (MDF_PATH)           |
-| `idf.espMatterPath`    | Path to locate ESP-Matter framework (ESP_MATTER_PATH)            |
-| `idf.espMatterPathWin` | Path to locate ESP-Matter framework in Windows (ESP_MATTER_PATH) |
+| Setting ID                | Description                                                      |
+| ------------------------- | ---------------------------------------------------------------- |
+| `idf.espAdfPath`          | Path to locate ESP-ADF framework (ADF_PATH)                      |
+| `idf.espAdfPathWin`       | Path to locate ESP-ADF framework in Windows (ADF_PATH)           |
+| `idf.espMdfPath`          | Path to locate ESP-MDF framework (MDF_PATH)                      |
+| `idf.espMdfPathWin`       | Path to locate ESP-MDF framework in Windows (MDF_PATH)           |
+| `idf.espMatterPath`       | Path to locate ESP-Matter framework (ESP_MATTER_PATH)            |
+| `idf.espMatterPathWin`    | Path to locate ESP-Matter framework in Windows (ESP_MATTER_PATH) |
+| `idf.espRainmakerPath`    | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH)  |
+| `idf.espRainmakerPathWin` | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH)  |
 
 The **Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
 The **Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
 The **Install ESP-Matter** command will clone ESP-Matter and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows). The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter.
+The **Install ESP-Rainmaker** command will clone ESP-Rainmaker and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 
 The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set.
 

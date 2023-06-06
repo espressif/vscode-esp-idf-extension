@@ -132,6 +132,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
 | Install ESP-Matter                                      |                                        |                                           |
+| Install ESP-Rainmaker                                   |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU server                                      |                                        |                                           |
 | Launch QEMU debug session                               |                                        |                                           |
