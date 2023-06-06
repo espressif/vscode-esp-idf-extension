@@ -129,6 +129,7 @@ import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
+import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -699,6 +700,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMatter", async () =>
     getEspMatter(workspaceRoot)
+  );
+
+  registerIDFCommand("espIdf.getEspRainmaker", async () =>
+    getEspRainmaker(workspaceRoot)
   );
 
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {

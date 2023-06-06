@@ -93,6 +93,7 @@
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:espIdf.getEspMatter",
+    "onCommand:espIdf.getEspRainmaker",
     "onCommand:espIdf.installEspMatterPyReqs",
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
@@ -1105,6 +1106,11 @@
       {
         "command": "espIdf.getEspMatter",
         "title": "%espIdf.getEspMatter.title%"
+      },
+      {
+        "command": "espIdf.getEspRainmaker",
+        "title": "%espIdf.getEspRainmaker.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.installEspMatterPyReqs",

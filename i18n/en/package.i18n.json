@@ -33,6 +33,7 @@
   "espIdf.getEspAdf.title": "ESP-IDF: Install ESP-ADF",
   "espIdf.getEspMdf.title": "ESP-IDF: Install ESP-MDF",
   "espIdf.getEspMatter.title": "ESP-IDF: Install ESP-Matter",
+  "espIdf.getEspRainmaker.title": "Install ESP-Rainmaker",
   "espIdf.installEspMatterPyReqs.title": "ESP-IDF: Install ESP-Matter Python Packages",
   "espIdf.installPyReqs.title": "ESP-IDF: Install ESP-IDF extension Python Packages",
   "espIdf.openDocUrl.title": "ESP-IDF: Open ESP-IDF Documentation...",
