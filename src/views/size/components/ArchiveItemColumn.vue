@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts">
-import { isNumber } from "util";
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component
@@ -21,7 +20,7 @@ export default class ArchiveItemColumn extends Vue {
   @Prop() propName: string;
 
   convertToKB(byte: number) {
-    return isNumber(byte) ? Math.round(byte / 1024) : 0;
+    return typeof byte === "number" ? Math.round(byte / 1024) : 0;
   }
 }
 </script>

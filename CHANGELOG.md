@@ -17,6 +17,55 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.3)
+
+ ### Features and enhancements
+
+ - [Add idf.enableSizeTaskAfterBuildTask to enable disable Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/965)
+ - [Zap Install no longer needed](https://github.com/espressif/vscode-esp-idf-extension/pull/967) Thanks @Diegorro98 !
+ - [Add consistency messages for flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/971)
+ - [Add idf.customTerminalExecutable and idf.customTerminalExecutableArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/973)
+
+  ### Bug Fixes
+
+  - [Fix default monitor baud rate](https://github.com/espressif/vscode-esp-idf-extension/pull/964)
+  - [Fix NVS editor spaces](https://github.com/espressif/vscode-esp-idf-extension/pull/977)
+
+## [1.6.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.2)
+
+ ### Features and enhancements
+
+ - [add idf monitorBaudRate setting](https://github.com/espressif/vscode-esp-idf-extension/pull/951)
+ - [add idf enableStatusBar setting to show status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/953)
+ - [Add custom offset to flash binaries to IDF serial port](https://github.com/espressif/vscode-esp-idf-extension/pull/957)
+
+  ### Bug Fixes
+
+  - [use idf showOnboardingOnInit on extension activate](https://github.com/espressif/vscode-esp-idf-extension/pull/950)
+  - [add container user to dialout group](https://github.com/espressif/vscode-esp-idf-extension/pull/944)
+  - [Trim NVS partition CLRF](https://github.com/espressif/vscode-esp-idf-extension/pull/945)
+  - [Fix GUI Size UI](https://github.com/espressif/vscode-esp-idf-extension/pull/955)
+  - [remove virtualenv install from setup workflow](https://github.com/espressif/vscode-esp-idf-extension/pull/956)
+
+## [1.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.1)
+
+ ### Features and enhancements
+
+ - [Add coredump as data subtype](https://github.com/espressif/vscode-esp-idf-extension/pull/901) Thanks @ramiws !
+ - [Use webpack 5](https://github.com/espressif/vscode-esp-idf-extension/pull/916) Thanks @Spacefish !
+ - [Add ESP32 C6 boards](https://github.com/espressif/vscode-esp-idf-extension/pull/917) Thanks @Spacefish !
+ - [Add unit test and end to end testing docs](https://github.com/espressif/vscode-esp-idf-extension/pull/912)
+ - [Update platform on ESP-Matter shallow cloning](https://github.com/espressif/vscode-esp-idf-extension/pull/923) Thanks @Diegorro98 !
+ - [Add zap-cli install in ESP-Matter install](https://github.com/espressif/vscode-esp-idf-extension/pull/925) Thanks @Diegorro98 !
+
+ ### Bug Fixes
+
+ - [Show only valid ESP-IDF setups](https://github.com/espressif/vscode-esp-idf-extension/pull/908)
+ - [Update non root dockerfile](https://github.com/espressif/vscode-esp-idf-extension/pull/910)
+ - [Fix wrong binaries multiple options](https://github.com/espressif/vscode-esp-idf-extension/pull/920) Thanks @jmigual !
+ - [Fix CMakeLists launch error](https://github.com/espressif/vscode-esp-idf-extension/pull/909)
+ - [Fix target reset on IDF Monitor when debug session starts](https://github.com/espressif/vscode-esp-idf-extension/pull/914)
+
 ## [1.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.0)
 
  ### Features and enhancements

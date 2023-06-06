@@ -69,6 +69,20 @@ export class IdfSizeTask {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
     };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      this.curWorkspace
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.curWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
     const sizeExecution = await this.getShellExecution(options);
     const isSilentMode = readParameter(
       "idf.notificationSilentMode",

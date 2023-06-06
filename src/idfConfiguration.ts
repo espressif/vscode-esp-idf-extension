@@ -65,6 +65,8 @@ export function parameterToProjectConfigMap(param: string) {
       return currentProjectConf.env;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
+    case "idf.monitorBaudRate":
+      return currentProjectConf.monitorBaudRate;
     case "idf.openOcdDebugLevel":
       return currentProjectConf.openOCD.debugLevel;
     case "idf.openOcdConfigs":

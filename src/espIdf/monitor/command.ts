@@ -31,6 +31,7 @@ const locDic = new LocDictionary(__filename);
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
+  noReset: boolean = false,
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -58,9 +59,6 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-    workspaceFolder
-  );
   const pythonBinPath = readParameter(
     "idf.pythonBinPath",
     workspaceFolder
@@ -73,6 +71,7 @@ export async function createNewIdfMonitor(
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
@@ -91,6 +90,14 @@ export async function createNewIdfMonitor(
   const projectName = await getProjectName(buildDirPath);
   const elfFilePath = join(buildDirPath, `${projectName}.elf`);
   const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
+  const shellPath = readParameter(
+    "idf.customTerminalExecutable",
+    workspaceFolder
+  ) as string;
+  const shellExecutableArgs = readParameter(
+    "idf.customTerminalExecutableArgs",
+    workspaceFolder
+  ) as string[];
   const monitor = new IDFMonitor({
     port,
     baudRate: sdkMonitorBaudRate,
@@ -98,9 +105,12 @@ export async function createNewIdfMonitor(
     idfTarget,
     idfMonitorToolPath,
     idfVersion,
+    noReset,
     elfFilePath,
     workspaceFolder,
     toolchainPrefix,
+    shellPath,
+    shellExecutableArgs
   });
   return monitor;
 }

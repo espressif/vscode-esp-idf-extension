@@ -85,24 +85,6 @@ export async function installPythonEnvFromIdfTools(
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
 
   await execProcessWithLog(
-    `"${pythonBinPath}" -m pip install --user virtualenv`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    { env: modifiedEnv },
-    cancelToken
-  );
-
-  await execProcessWithLog(
-    `"${pythonBinPath}" -m virtualenv "${pyEnvPath}" -p "${pythonBinPath}"`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    { env: modifiedEnv },
-    cancelToken
-  );
-
-  await execProcessWithLog(
     `"${pythonBinPath}" "${idfToolsPyPath}" install-python-env`,
     idfToolsDir,
     pyTracker,

@@ -38,6 +38,7 @@ import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
 import { installEspMatterPyReqs } from "../pythonManager";
+import { platform } from "os";
 
 export class EspMatterCloning extends AbstractCloning {
   public static isBuildingGn: boolean;
@@ -80,6 +81,21 @@ export class EspMatterCloning extends AbstractCloning {
     const shellOptions: ShellExecutionOptions = {
       cwd: workingDir,
     };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      this.currWorkspace
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.currWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      shellOptions.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      shellOptions.shellArgs = shellExecutableArgs;
+    }
+    
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
     const isSilentMode = readParameter("idf.notificationSilentMode", this.currWorkspace);
     const showTaskOutput = isSilentMode
@@ -144,20 +160,25 @@ export class EspMatterCloning extends AbstractCloning {
     progress?: Progress<{ message?: string; increment?: number }>,
   ) {
      return new Promise<void>((resolve, reject) => {
+      const matterDir = join(
+        espMatterDir,
+        "connectedhomeip",
+        "connectedhomeip"
+      )
+
       const checkoutProcess = spawn(
         join(
-          espMatterDir,
-          "connectedhomeip",
-          "connectedhomeip",
+          matterDir,
           "scripts",
           "checkout_submodules.py"
         ),
         [
           "--platform",
           "esp32",
+          platform(),
           "--shallow"
         ],
-        { cwd: espMatterDir }
+        { cwd: matterDir}
       );
 
       checkoutProcess.stderr.on("data", (data) => {

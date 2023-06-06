@@ -144,6 +144,7 @@
     "param.openOcdConfigFilesList",
     "param.openOcdLaunchArgs",
     "param.flashBaudRate",
+    "param.monitorBaudRate",
     "param.port",
     "param.pythonBinPath",
     "param.espIdfPath",
@@ -164,6 +165,8 @@
     "param.uncoveredLightTheme",
     "param.uncoveredDarkTheme",
     "param.sdkconfigDefaults",
+    "param.monitorStartDelayBeforeDebug",
+    "param.monitorNoReset",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",
@@ -218,6 +221,8 @@
     "param.preFlashTask",
     "param.postFlashTask",
     "param.svdFile",
-    "param.deleteComponentsOnFullClean"
+    "param.deleteComponentsOnFullClean",
+    "param.enableStatusBar.title",
+    "param.enableSizeTaskAfterBuildTask.title"
   ]
 }

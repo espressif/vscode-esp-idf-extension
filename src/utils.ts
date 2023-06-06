@@ -138,6 +138,7 @@ export function spawn(
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
+    OutputChannel.appendLine(data.toString());
   };
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
@@ -372,16 +373,22 @@ export function getConfigValueFromSDKConfig(
 }
 
 export function getMonitorBaudRate(workspacePath: vscode.Uri) {
-  let sdkMonitorBaudRate: string = "";
+  let sdkMonitorBaudRate = "";
   try {
-    sdkMonitorBaudRate = getConfigValueFromSDKConfig(
-      "CONFIG_ESPTOOLPY_MONITOR_BAUD",
+    sdkMonitorBaudRate = idfConf.readParameter(
+      "idf.monitorBaudRate",
       workspacePath
-    );
+    ) as string;
+    if (!sdkMonitorBaudRate) {
+      sdkMonitorBaudRate = getConfigValueFromSDKConfig(
+        "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
+        workspacePath
+      );
+    }
   } catch (error) {
     const errMsg = error.message
       ? error.message
-      : "Error reading CONFIG_ESPTOOLPY_MONITOR_BAUD from sdkconfig";
+      : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
     Logger.error(errMsg, error);
   }
   return sdkMonitorBaudRate;
@@ -955,6 +962,15 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "cipd",
       "packages",
       "pigweed"
+    );
+    modifiedEnv.ZAP_INSTALL_PATH = path.join(
+      modifiedEnv.ESP_MATTER_PATH,
+      "connectedhomeip",
+      "connectedhomeip",
+      ".environment",
+      "cipd",
+      "packages",
+      "zap"
     );
   }
 

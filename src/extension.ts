@@ -257,7 +257,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Create a status bar item with current workspace
 
   // Status Bar Item with common commands
-  statusBarItems = creatCmdsStatusBarItems();
+  statusBarItems = createCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
@@ -298,8 +298,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-    statusBarItems["port"].text =
-      "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+    if (statusBarItems && statusBarItems["port"]) {
+      statusBarItems["port"].text =
+        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+    }
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
@@ -353,8 +355,10 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot,
             statusBarItems["target"]
           );
-          statusBarItems["port"].text =
-            "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+          if (statusBarItems && statusBarItems["port"]) {
+            statusBarItems["port"].text =
+              "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+          }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -426,16 +430,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
-  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {
-    const terminalPid = await terminal.processId;
-    const monitorTerminalPid = monitorTerminal
-      ? await monitorTerminal.processId
-      : -1;
-    if (monitorTerminalPid === terminalPid) {
-      monitorTerminal = undefined;
-      kill(monitorTerminalPid, "SIGKILL");
-    }
-  });
+  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
 
   registerIDFCommand("espIdf.createFiles", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -545,9 +540,9 @@ export async function activate(context: vscode.ExtensionContext) {
       ) as string;
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
-        return Logger.warnNotify(
-          `There is no build directory to clean, exiting!`
-        );
+        const errStr = "There is no build directory to clean, exiting!";
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
       if (ConfserverProcess.exists()) {
         const closingSDKConfigMsg = `Trying to delete the build folder. Closing existing SDK Configuration editor process...`;
@@ -561,14 +556,14 @@ export async function activate(context: vscode.ExtensionContext) {
         constants.R_OK
       );
       if (!doesCmakeCacheExists) {
-        return Logger.warnNotify(
-          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
-        );
+        const errStr = `There is no CMakeCache.txt. Please try to delete the build directory manually.`;
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
       if (BuildTask.isBuilding || FlashTask.isFlashing) {
-        return Logger.warnNotify(
-          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
-        );
+        const errStr = `There is a build or flash task running. Wait for it to finish or cancel them before clean.`;
+        OutputChannel.appendLineAndShow(errStr);
+        return Logger.warnNotify(errStr);
       }
 
       try {
@@ -588,6 +583,7 @@ export async function activate(context: vscode.ExtensionContext) {
           }
         }
       } catch (error) {
+        OutputChannel.appendLineAndShow(error.message);
         Logger.errorNotify(error.message, error);
       }
     });
@@ -773,8 +769,10 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot,
           statusBarItems["target"]
         );
-        statusBarItems["port"].text =
-          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+        if (statusBarItems && statusBarItems["port"]) {
+          statusBarItems["port"].text =
+            "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+        }
         updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -1042,6 +1040,10 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           paramName = "idf.flashBaudRate";
           break;
+        case "monitorBaudRate":
+          msg = "Enter monitor baud rate";
+          paramName = "idf.monitorBaudRate";
+          break;
         case "openOcdConfig":
           msg = locDic.localize(
             "extension.enterOpenOcdConfigMessage",
@@ -1081,7 +1083,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
-    if (e.affectsConfiguration("idf.openOcdConfigs")) {
+    if (e.affectsConfiguration("idf.enableStatusBar")) {
+      const enableStatusBar = idfConf.readParameter(
+        "idf.enableStatusBar",
+        workspaceRoot
+      ) as boolean;
+      if (enableStatusBar) {
+        statusBarItems = createCmdsStatusBarItems();
+      } else if (!enableStatusBar) {
+        for (let statusItem in statusBarItems) {
+          statusBarItems[statusItem].dispose();
+          statusBarItems[statusItem] = undefined;
+        }
+      }
+    } else if (e.affectsConfiguration("idf.openOcdConfigs")) {
       const openOcdConfigFilesList = idfConf.readParameter(
         "idf.openOcdConfigs",
         workspaceRoot
@@ -1105,7 +1120,9 @@ export async function activate(context: vscode.ExtensionContext) {
         target: idfTarget,
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
-      statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      if (statusBarItems && statusBarItems["target"]) {
+        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+      }
     } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
@@ -1113,8 +1130,10 @@ export async function activate(context: vscode.ExtensionContext) {
         tcpPort: idfConf.readParameter("idf.qemuTcpPort", workspaceRoot),
       } as IQemuOptions);
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
-      statusBarItems["port"].text =
-        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+      if (statusBarItems && statusBarItems["port"]) {
+        statusBarItems["port"].text =
+          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+      }
     } else if (e.affectsConfiguration("idf.customAdapterTargetName")) {
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
@@ -1129,7 +1148,9 @@ export async function activate(context: vscode.ExtensionContext) {
           target: idfTarget,
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
-        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+        if (statusBarItems && statusBarItems["target"]) {
+          statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+        }
       }
     } else if (e.affectsConfiguration("openocd.tcl.host")) {
       const tclHost = idfConf.readParameter(
@@ -1154,7 +1175,9 @@ export async function activate(context: vscode.ExtensionContext) {
         "idf.flashType",
         workspaceRoot
       ) as string;
-      statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+      if (statusBarItems && statusBarItems["flashType"]) {
+        statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+      }
     } else if (e.affectsConfiguration("idf.buildPath")) {
       updateIdfComponentsTree(workspaceRoot);
     }
@@ -1170,6 +1193,18 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
         const launchMode = session.configuration.mode || "auto";
+        const useMonitorWithDebug = idfConf.readParameter(
+          "idf.launchMonitorOnDebugSession",
+          workspaceRoot
+        );
+        if (
+          (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
+            session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+          useMonitorWithDebug
+        ) {
+          isMonitorLaunchedByDebug = true;
+          await createIdfMonitor(true);
+        }
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
@@ -1211,18 +1246,6 @@ export async function activate(context: vscode.ExtensionContext) {
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
         }
-        const useMonitorWithDebug = idfConf.readParameter(
-          "idf.launchMonitorOnDebugSession",
-          workspaceRoot
-        );
-        if (
-          (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
-            session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
-          useMonitorWithDebug
-        ) {
-          isMonitorLaunchedByDebug = true;
-          createMonitor();
-        }
         return new vscode.DebugAdapterServer(portToUse);
       } catch (error) {
         const errMsg =
@@ -1249,23 +1272,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
     createDebugAdapterTracker(session: vscode.DebugSession) {
       return {
-        onWillReceiveMessage: (m) => {
-          const useMonitorWithDebug = idfConf.readParameter(
-            "idf.launchMonitorOnDebugSession",
-            workspaceRoot
-          );
-          if (
-            m &&
-            m.command &&
-            m.command === "stackTrace" &&
-            (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
-              session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
-            monitorTerminal &&
-            useMonitorWithDebug
-          ) {
-            monitorTerminal.show();
-          }
-        },
+        onWillReceiveMessage: (m) => {},
       };
     },
   });
@@ -2173,25 +2180,45 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!binPath) {
         return;
       }
+      let items = [];
       const partitionsInDevice = partitionTableTreeDataProvider.getChildren();
       if (!partitionsInDevice) {
         vscode.window.showInformationMessage("No partition found");
-        return;
+      } else {
+        for (let devicePartition of partitionsInDevice) {
+          const item = {
+            label: devicePartition.name,
+            target: devicePartition.offset,
+            description: devicePartition.description,
+          };
+          items.push(item);
+        }
       }
-      let items = [];
-      for (let devicePartition of partitionsInDevice) {
-        const item = {
-          label: devicePartition.name,
-          target: devicePartition.offset,
-          description: devicePartition.description,
-        };
-        items.push(item);
-      }
+      items.push({
+        label: "Custom offset",
+        target: "custom",
+        description: "Enter a custom offset",
+      });
       const partitionAction = await vscode.window.showQuickPick(items, {
         placeHolder: "Select a partition to use",
       });
       if (!partitionAction) {
         return;
+      }
+      if (partitionAction.target === "custom") {
+        const customOffset = await vscode.window.showInputBox({
+          placeHolder: "Enter custom partition table offset",
+          value: "",
+          validateInput: (text) => {
+            return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
+              ? null
+              : "The value is not a valid hexadecimal number";
+          },
+        });
+        if (!customOffset) {
+          return;
+        }
+        partitionAction.target = customOffset;
       }
       await flashBinaryToPartition(
         partitionAction.target,
@@ -2394,7 +2421,7 @@ export async function activate(context: vscode.ExtensionContext) {
             accountDetails.password
           );
           await rainMakerTreeDataProvider.refresh();
-          Logger.infoNotify("Rainmaker Cloud Linking Success!!");
+          Logger.infoNotify("Rainmaker Cloud Linking Success!");
         } catch (error) {
           return Logger.errorNotify(
             "Failed to login with Rainmaker Cloud, double check your id and password",
@@ -2550,9 +2577,6 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error("NOT_SELECTED_PORT")
           );
         }
-        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
-          workspaceRoot
-        );
         const pythonBinPath = idfConf.readParameter(
           "idf.pythonBinPath",
           workspaceRoot
@@ -2597,6 +2621,21 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+          workspaceRoot
+        );
+        const noReset = idfConf.readParameter(
+          "idf.monitorNoReset",
+          workspaceRoot
+        ) as boolean;
+        const shellPath = idfConf.readParameter(
+          "idf.customTerminalExecutable",
+          workspaceRoot
+        ) as string;
+        const shellExecutableArgs = idfConf.readParameter(
+          "idf.customTerminalExecutableArgs",
+          workspaceRoot
+        ) as string[];
         const monitor = new IDFMonitor({
           port,
           baudRate: sdkMonitorBaudRate,
@@ -2605,9 +2644,12 @@ export async function activate(context: vscode.ExtensionContext) {
           toolchainPrefix,
           idfMonitorToolPath,
           idfVersion,
+          noReset,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
+          shellPath,
+          shellExecutableArgs,
         });
         if (wsServer) {
           wsServer.close();
@@ -2909,7 +2951,7 @@ export async function activate(context: vscode.ExtensionContext) {
               await RainmakerAPIClient.exchangeCodeForTokens(code);
               await rainMakerTreeDataProvider.refresh();
               Logger.infoNotify(
-                "Rainmaker Cloud is connected successfully (via OAuth)!!"
+                "Rainmaker Cloud is connected successfully (via OAuth)!"
               );
             }
           );
@@ -2992,7 +3034,13 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-function creatCmdsStatusBarItems() {
+function createCmdsStatusBarItems() {
+  const enableStatusBar = idfConf.readParameter(
+    "idf.enableStatusBar"
+  ) as boolean;
+  if (!enableStatusBar) {
+    return {};
+  }
   const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   let flashType = idfConf.readParameter(
@@ -3160,7 +3208,7 @@ const flash = (
   });
 };
 
-function createQemuMonitor() {
+function createQemuMonitor(noReset: boolean = false) {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
@@ -3172,7 +3220,15 @@ function createQemuMonitor() {
       workspaceRoot
     ) as number;
     const serialPort = `socket://localhost:${qemuTcpPort}`;
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot, serialPort);
+    const idfMonitor = await createNewIdfMonitor(
+      workspaceRoot,
+      noReset,
+      serialPort
+    );
+    if (monitorTerminal) {
+      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+      monitorTerminal.sendText(`exit`);
+    }
     monitorTerminal = idfMonitor.start();
   });
 }
@@ -3212,6 +3268,10 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
             message: "Launching monitor...",
             increment: 10,
           });
+          if (monitorTerminal) {
+            monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+            monitorTerminal.sendText(`exit`);
+          }
           createMonitor();
         }
       }
@@ -3311,9 +3371,35 @@ function createIdfTerminal() {
 
 function createMonitor() {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    const idfMonitor = await createNewIdfMonitor(workspaceRoot);
-    monitorTerminal = idfMonitor.start();
+    const noReset = idfConf.readParameter(
+      "idf.monitorNoReset",
+      workspaceRoot
+    ) as boolean;
+    await createIdfMonitor(noReset);
   });
+}
+
+async function createIdfMonitor(noReset: boolean = false) {
+  const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
+  if (monitorTerminal) {
+    monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+    monitorTerminal.sendText(`exit`);
+  }
+  monitorTerminal = idfMonitor.start();
+  if (noReset) {
+    const idfPath = idfConf.readParameter(
+      "idf.espIdfPath",
+      workspaceRoot
+    ) as string;
+    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+    if (idfVersion <= "5.0") {
+      const monitorDelay = idfConf.readParameter(
+        "idf.monitorStartDelayBeforeDebug",
+        workspaceRoot
+      ) as number;
+      await utils.sleep(monitorDelay);
+    }
+  }
 }
 
 export function deactivate() {

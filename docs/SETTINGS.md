@@ -47,20 +47,21 @@ This is how the extension uses them:
 
 These settings are specific to the ESP32 Chip/ Board
 
-| Setting                                          | Description                                                                      | Scope                     |
-| ------------------------------------------------ | -------------------------------------------------------------------------------- | ------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                             |                           |
-| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                     |                           |
-| `idf.flashBaudRate`                              | Flash Baud rate                                                                  |                           |
-| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder              |                           |
-| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs |                           |
-| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                         |                           |
-| `idf.port`                                       | Path of selected device port                                                     |                           |
-| `idf.portWin`                                    | Path of selected device port in Windows                                          |                           |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                | User, Remote or Workspace |
-| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                             | User, Remote or Workspace |
-| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                             | User, Remote or Workspace |
-| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                | User, Remote or Workspace |
+| Setting                                          | Description                                                                            | Scope                     |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------- |
+| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                                   |                           |
+| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                           |                           |
+| `idf.flashBaudRate`                              | Flash Baud rate                                                                        |                           |
+| `idf.monitorBaudRate`                            | Monitor Baud rate (Empty by default to use sdkconfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
+| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
+| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs       |                           |
+| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                               |                           |
+| `idf.port`                                       | Path of selected device port                                                           |                           |
+| `idf.portWin`                                    | Path of selected device port in Windows                                                |                           |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                      | User, Remote or Workspace |
+| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                                   | User, Remote or Workspace |
+| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                                   | User, Remote or Workspace |
+| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                      | User, Remote or Workspace |
 
 This is how the extension uses them:
 
@@ -70,11 +71,11 @@ This is how the extension uses them:
    > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your project** command and [ESP-IDF Debug](./DEBUGGING.md).
-   > **NOTE** The ESP-IDF Monitor default baud rate value is taken from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
-4. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
-5. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
-6. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
-7. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
+4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
+5. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+6. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
+7. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
+8. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code coverage Specific Settings
 
@@ -91,18 +92,24 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ## Extension Behaviour Settings
 
-| Setting ID                             | Description                                                                 | Scope                     |
-| -------------------------------------- | --------------------------------------------------------------------------- | ------------------------- |
-| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)               | User, Remote or Workspace |
-| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                   |                           |
-| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                     |                           |
-| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`)    | User, Remote or Workspace |
-| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                   | User, Remote or Workspace |
-| `idf.saveScope`                        | Where to save extension settings                                            | User, Remote or Workspace |
-| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)                  |                           |
-| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                   |                           |
-| `idf.telemetry`                        | Enable Telemetry                                                            | User, Remote or Workspace |
-| `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`) | User, Remote or Workspace |
+| Setting ID                             | Description                                                                    | Scope                     |
+| -------------------------------------- | ------------------------------------------------------------------------------ | ------------------------- |
+| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)                  | User, Remote or Workspace |
+| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                      |                           |
+| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                        |                           |
+| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`)       | User, Remote or Workspace |
+| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                      | User, Remote or Workspace |
+| `idf.saveScope`                        | Where to save extension settings                                               | User, Remote or Workspace |
+| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)                     |                           |
+| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                      |                           |
+| `idf.telemetry`                        | Enable Telemetry                                                               | User, Remote or Workspace |
+| `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`)    | User, Remote or Workspace |
+| `idf.monitorNoReset`                   | Enable no-reset flag to IDF Monitor (default `false`)                          | User, Remote or Workspace |
+| `idf.monitorStartDelayBeforeDebug`     | Delay to start debug session after IDF monitor execution                       | User, Remote or Workspace |
+| `idf.enableStatusBar`                  | Show or hide the extension status bar items                                    | User, Remote or Workspace |
+| `idf.enableSizeTaskAfterBuildTask`     | Enable IDF Size task to be executed after IDF Build task                       | User, Remote or Workspace |
+| `idf.customTerminalExecutable`         | Absolute path to shell terminal executable to use (default to vscode Terminal) | User, Remote or Workspace |
+| `idf.customTerminalExecutableArgs`     | Shell arguments for idf.customTerminalExecutable                               | User, Remote or Workspace |
 
 ## Custom tasks for build and flash tasks
 

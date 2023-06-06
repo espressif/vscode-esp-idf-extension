@@ -27,6 +27,8 @@ export function initializeReportObject() {
     espMatterPath: undefined,
     customExtraPaths: undefined,
     customExtraVars: undefined,
+    customTerminalExecutable: undefined,
+    customTerminalExecutableArgs: undefined,
     pythonBinPath: undefined,
     pythonPackages: undefined,
     serialPort: undefined,

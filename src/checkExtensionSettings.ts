@@ -29,6 +29,9 @@ export async function checkExtensionSettings(
   workspace: vscode.Uri
 ) {
   const showSetupWindow = readParameter("idf.showOnboardingOnInit") as boolean;
+  if (!showSetupWindow) {
+    return;
+  }
   const isExtensionConfigured = await isCurrentInstallValid(workspace);
   if (isExtensionConfigured) {
     return;
@@ -49,10 +52,6 @@ export async function checkExtensionSettings(
           progress,
           workspace
         );
-        if (showSetupWindow && !setupArgs.hasPrerequisites) {
-          vscode.commands.executeCommand("espIdf.setup.start", setupArgs);
-          return;
-        }
         if (
           setupArgs.espIdfPath &&
           setupArgs.espToolsPath &&

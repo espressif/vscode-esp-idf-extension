@@ -25,11 +25,14 @@ export interface MonitorConfig {
   idfMonitorToolPath: string;
   idfTarget: string;
   idfVersion: string;
+  noReset: boolean;
   port: string;
   pythonBinPath: string;
   toolchainPrefix: string;
   wsPort?: number;
   workspaceFolder: Uri;
+  shellPath: string;
+  shellExecutableArgs: string[];
 }
 
 export class IDFMonitor {
@@ -49,15 +52,15 @@ export class IDFMonitor {
         modifiedEnv.IDF_PATH ||
         process.cwd(),
       strictEnv: true,
-      shellArgs: [],
-      shellPath: env.shell,
+      shellArgs: this.config.shellExecutableArgs || [],
+      shellPath: this.config.shellPath || env.shell,
     });
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
     const baudRateToUse =
+      this.config.baudRate ||
       modifiedEnv.IDF_MONITOR_BAUD ||
       modifiedEnv.MONITORBAUD ||
-      this.config.baudRate ||
       "115200";
     const args = [
       `"${this.config.pythonBinPath}"`,
@@ -69,6 +72,9 @@ export class IDFMonitor {
       "--toolchain-prefix",
       this.config.toolchainPrefix,
     ];
+    if (this.config.noReset && this.config.idfVersion >= "5.0") {
+      args.splice(2, 0, "--no-reset");
+    }
     if (this.config.idfVersion >= "4.3") {
       args.push("--target", this.config.idfTarget);
     }

@@ -13,7 +13,7 @@
 </p>
 
 6. (OPTIONAL) Press <kbd>F1</kbd> and type **ESP-IDF: Select where to save configuration settings**, which can be User settings, Workspace settings or workspace folder settings. Please take a look at [Working with multiple projects](../MULTI_PROJECTS.md) for more information. Default is User settings.
-7. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option.
+7. In Visual Studio Code, select menu "View" and "Command Palette" and type [configure esp-idf extension]. After, choose the **ESP-IDF: Configure ESP-IDF extension** option. You can also choose where to save settings in the setup wizard.
 8. Now the setup wizard window will be shown with several setup options: **Express**, **Advanced** or **Use existing setup**.
 
 > **NOTE**: **Use existing setup** setup mode option is only shown if:

@@ -26,14 +26,15 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { TaskManager } from "../taskManager";
 import { Uri } from "vscode";
 import { join } from "path";
+import { OutputChannel } from "../logger/outputChannel";
 
 export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
-    return Logger.warnNotify(
-      "Can't perform JTag flash, because OpenOCD server is not running!!"
-    );
+    const errStr = "Can't perform JTag flash, because OpenOCD server is not running!";
+    OutputChannel.appendLineAndShow(errStr, "Flash");
+    return Logger.warnNotify(errStr);
   }
   FlashTask.isFlashing = true;
   const host = readParameter("openocd.tcl.host", workspace);
@@ -60,9 +61,12 @@ export async function jtagFlashCommand(workspace: Uri) {
     );
     customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);
-    Logger.infoNotify("⚡️ Flashed Successfully (JTag)");
+    const msg = "⚡️ Flashed Successfully (JTag)";
+    OutputChannel.appendLineAndShow(msg, "Flash");
+    Logger.infoNotify(msg);
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
+    OutputChannel.appendLine(msg, "Flash");
     Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
     continueFlag = false;
   }
