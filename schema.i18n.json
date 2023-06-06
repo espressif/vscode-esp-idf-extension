@@ -151,6 +151,7 @@
     "param.espAdfPath",
     "param.espMdfPath",
     "param.espMatterPath",
+    "param.espRainmakerPath",
     "param.toolsPath",
     "param.exportPaths",
     "param.exportVars",

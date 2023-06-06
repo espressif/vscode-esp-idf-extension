@@ -1689,6 +1689,9 @@ export async function activate(context: vscode.ExtensionContext) {
             const matterPathDir = idfConf.readParameter(
               "idf.espMatterPath"
             ) as string;
+            const rainmakerPathDir = idfConf.readParameter(
+              "idf.espRainmakerPath"
+            ) as string;
 
             const pickItems = [];
             const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
@@ -1723,6 +1726,16 @@ export async function activate(context: vscode.ExtensionContext) {
                 description: "ESP-Matter",
                 label: `Use current ESP-Matter (${matterPathDir})`,
                 target: matterPathDir,
+              });
+            }
+            const doestEspRainmakerPathExists = await utils.dirExistPromise(
+              rainmakerPathDir
+            );
+            if (doestEspRainmakerPathExists) {
+              pickItems.push({
+                description: "ESP-Rainmaker",
+                label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
+                target: rainmakerPathDir,
               });
             }
             const examplesFolder = await vscode.window.showQuickPick(

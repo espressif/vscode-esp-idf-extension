@@ -402,6 +402,12 @@
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
+          "idf.espRainmakerPath": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
+            "scope": "resource"
+          },
           "idf.espIdfPathWin": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -430,6 +436,12 @@
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
+            "scope": "resource"
+          },
+          "idf.espRainmakerPathWin": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
             "scope": "resource"
           },
           "idf.port": {

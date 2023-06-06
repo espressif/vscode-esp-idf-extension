@@ -79,6 +79,7 @@
   "param.espAdfPath": "ADF_PATH 的路径",
   "param.espMdfPath": "MDF_PATH 的路径",
   "param.espMatterPath": "ESP_MATTER_PATH 的路径",
+  "param.espRainmakerPath": "RMAKER_PATH 的路径",
   "param.useIDFKConfigStyle": "启用/禁用 ESP-IDF Kconfig 文件的样式验证",
   "param.showOnboardingOnInit": "在扩展激活时显示 ESP-IDF 配置窗口",
   "param.cmakeCompilerArgs": "CMake 编译任务的参数",
