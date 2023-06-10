@@ -105,6 +105,8 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 | `idf.telemetry`                        | Enable Telemetry                                                               | User, Remote or Workspace |
 | `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`)    | User, Remote or Workspace |
 | `idf.monitorNoReset`                   | Enable no-reset flag to IDF Monitor (default `false`)                          | User, Remote or Workspace |
+| `idf.monitorEnableTimestamps`          | Enable timestamps in IDF Monitor (default `false`)                             | User, Remote or Workspace |
+| `idf.monitorCustomTimestampFormat`     | Custom timestamp format in IDF Monitor                                         | User, Remote or Workspace |
 | `idf.monitorStartDelayBeforeDebug`     | Delay to start debug session after IDF monitor execution                       | User, Remote or Workspace |
 | `idf.enableStatusBar`                  | Show or hide the extension status bar items                                    | User, Remote or Workspace |
 | `idf.enableSizeTaskAfterBuildTask`     | Enable IDF Size task to be executed after IDF Build task                       | User, Remote or Workspace |

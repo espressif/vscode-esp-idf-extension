@@ -26,6 +26,8 @@ export interface MonitorConfig {
   idfTarget: string;
   idfVersion: string;
   noReset: boolean;
+  enableTimestamps: boolean;
+  customTimestampFormat: string;
   port: string;
   pythonBinPath: string;
   toolchainPrefix: string;
@@ -74,6 +76,12 @@ export class IDFMonitor {
     ];
     if (this.config.noReset && this.config.idfVersion >= "5.0") {
       args.splice(2, 0, "--no-reset");
+    }
+    if (this.config.enableTimestamps) {
+      args.push("--timestamps");
+    }
+    if (this.config.customTimestampFormat.length > 0) {
+      args.push("--timestamp-format", JSON.stringify(this.config.customTimestampFormat));
     }
     if (this.config.idfVersion >= "4.3") {
       args.push("--target", this.config.idfTarget);
