@@ -21,6 +21,8 @@ import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
 import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
+import { ComponentManagerUIPanel } from "../component-manager/panel";
+import { OutputChannel } from "../logger/outputChannel";
 
 const locDic = new LocDictionary("ExamplesPanel");
 
@@ -159,6 +161,14 @@ export class ExamplesPlanel {
             }
           }
           break;
+        case "showRegistry":
+          const emptyURI: vscode.Uri = undefined;
+          try {
+            ComponentManagerUIPanel.show(extensionPath, emptyURI);
+          } catch (error) {
+            OutputChannel.appendLine(error.message);
+            Logger.errorNotify(error.message, error);
+          }
         default:
           return;
       }
