@@ -127,7 +127,10 @@ import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
-import { ProjectConfigStore } from "./project-conf";
+import {
+  getProjectConfigurationElements,
+  ProjectConfigStore,
+} from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 
 // Global variables shared by commands
@@ -903,7 +906,10 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       try {
         if (projectConfigurationPanel.isCreatedAndHidden()) {
-          projectConfigurationPanel.createOrShow(context.extensionPath);
+          projectConfigurationPanel.createOrShow(
+            context.extensionPath,
+            workspaceRoot
+          );
           return;
         }
         await vscode.window.withProgress(
@@ -916,7 +922,10 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              projectConfigurationPanel.createOrShow(context.extensionPath);
+              projectConfigurationPanel.createOrShow(
+                context.extensionPath,
+                workspaceRoot
+              );
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }
@@ -930,7 +939,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.projectConf", async () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const projectConfigurations = ESP.ProjectConfiguration.store.getKeys();
+      const projectConfigurations = await getProjectConfigurationElements(
+        workspaceRoot
+      );
       if (!projectConfigurations) {
         const emptyOption = await vscode.window.showInformationMessage(
           "No project configuration found",
@@ -945,7 +956,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "extension.selectConfigMessage",
         "Select configuration to use:"
       );
-      let quickPickItems = projectConfigurations.map((k) => {
+      let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
           label: `Configuration ${k}`,
@@ -966,6 +977,10 @@ export async function activate(context: vscode.ExtensionContext) {
       ESP.ProjectConfiguration.store.set(
         ESP.ProjectConfiguration.SELECTED_CONFIG,
         option.target
+      );
+      ESP.ProjectConfiguration.store.set(
+        option.target,
+        projectConfigurations[option.target]
       );
       if (statusBarItems["projectConf"]) {
         statusBarItems["projectConf"].dispose();

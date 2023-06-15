@@ -108,6 +108,7 @@
   "param.monitorNoReset": "对IDF监视器启用无重置标志",
   "param.enableStatusBar.title": "启用ESP-IDF扩展状态栏项目",
   "param.enableSizeTaskAfterBuildTask.title": "在生成任务后启用IDF大小任务",
+  "param.sdkconfigFilePath.title": "sdkconfig文件绝对路径",
   "view.components.name": "项目组件",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "刷新跟踪归档列表",

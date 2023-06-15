@@ -19,7 +19,9 @@
 13. [New project wizard](./tutorial/new_project_wizard.md)
 14. [Developing on Docker Container](./tutorial/using-docker-container.md)
 15. [Developing on WSL](./tutorial/wsl.md)
-16. [Open existing ESP-IDF project](./existing_idf_project.md)
+16. [Open existing ESP-IDF project](./tutorial/existing_idf_project.md)
+17. [Using the project configuration](./tutorial/project_configuration.md) editor.
+18. Using [multiple build configuration](./tutorial/multiple_config.md) with the project configuration editor
 
 ## Documentation
 

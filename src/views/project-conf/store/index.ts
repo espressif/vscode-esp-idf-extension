@@ -42,9 +42,11 @@ export const projectConfigState: IState = {
       ninjaArgs: [],
       buildDirectoryPath: "",
       sdkconfigDefaults: [],
+      sdkconfigFilePath: ""
     },
     env: {},
     flashBaudRate: "",
+    idfTarget: "",
     monitorBaudRate: "",
     openOCD: {
       debugLevel: 0,
@@ -112,9 +114,11 @@ export const mutations: MutationTree<IState> = {
         ninjaArgs: [],
         buildDirectoryPath: "",
         sdkconfigDefaults: [],
+        sdkconfigFilePath: ""
       },
       env: {},
       flashBaudRate: "",
+      idfTarget: "",
       monitorBaudRate: "",
       openOCD: {
         debugLevel: 0,

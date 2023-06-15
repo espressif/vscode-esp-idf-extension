@@ -223,6 +223,7 @@
     "param.svdFile",
     "param.deleteComponentsOnFullClean",
     "param.enableStatusBar.title",
-    "param.enableSizeTaskAfterBuildTask.title"
+    "param.enableSizeTaskAfterBuildTask.title",
+    "param.sdkconfigFilePath.title"
   ]
 }

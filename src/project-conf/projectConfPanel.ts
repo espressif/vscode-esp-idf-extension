@@ -28,15 +28,14 @@ import {
 import { LocDictionary } from "../localizationDictionary";
 import { join } from "path";
 import { ESP } from "../config";
+import { getProjectConfigurationElements, saveProjectConfFile } from ".";
 
 const locDic = new LocDictionary("projectConfigurationPanel");
 
 export class projectConfigurationPanel {
   public static currentPanel: projectConfigurationPanel | undefined;
 
-  public static createOrShow(
-    extensionPath: string,
-  ) {
+  public static createOrShow(extensionPath: string, workspaceFolder: Uri) {
     const column = window.activeTextEditor
       ? window.activeTextEditor.viewColumn
       : ViewColumn.One;
@@ -47,6 +46,7 @@ export class projectConfigurationPanel {
       projectConfigurationPanel.currentPanel = new projectConfigurationPanel(
         extensionPath,
         column,
+        workspaceFolder
       );
     }
   }
@@ -65,6 +65,7 @@ export class projectConfigurationPanel {
   constructor(
     private extensionPath: string,
     column: ViewColumn,
+    private workspaceFolder: Uri
   ) {
     const projectConfPanelTitle = locDic.localize(
       "projectConfigurationPanel.panelName",
@@ -92,18 +93,10 @@ export class projectConfigurationPanel {
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
 
-    let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
-    let projectConfObj: { [key: string]: ProjectConfElement } = {};
-
-    if (projectConfKeys && projectConfKeys.length) {
-      for (const confKey of projectConfKeys) {
-        projectConfObj[confKey] = ESP.ProjectConfiguration.store.get<
-          ProjectConfElement
-        >(confKey);
-      }
-    }
-
     this.panel.webview.onDidReceiveMessage(async (message) => {
+      let projectConfObj = await getProjectConfigurationElements(
+        this.workspaceFolder
+      );
       switch (message.command) {
         case "command":
           break;
@@ -158,6 +151,7 @@ export class projectConfigurationPanel {
     const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
       ESP.ProjectConfiguration.SELECTED_CONFIG
     );
+    ESP.ProjectConfiguration.store.clear(selectedConfig);
     const isSelectedProjectInKeys = projectKeys.indexOf(selectedConfig);
     if (isSelectedProjectInKeys === -1) {
       ESP.ProjectConfiguration.store.clear(
@@ -173,16 +167,10 @@ export class projectConfigurationPanel {
     this.clearProjectConfFile();
     const projectConfKeys = Object.keys(projectConfDict);
     this.clearSelectedProject(projectConfKeys);
-    for (const confKey of projectConfKeys) {
-      ESP.ProjectConfiguration.store.set(confKey, projectConfDict[confKey]);
-    }
-    if (projectConfKeys && projectConfKeys.length) {
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY,
-        projectConfKeys
-      );
-    }
-    window.showInformationMessage("Project Configuration changes has been saved");
+    await saveProjectConfFile(this.workspaceFolder, projectConfDict);
+    window.showInformationMessage(
+      "Project Configuration changes has been saved"
+    );
   }
 
   private createSetupHtml(scriptPath: Uri): string {
