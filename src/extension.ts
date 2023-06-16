@@ -3218,7 +3218,11 @@ const flash = (
   });
 };
 
-function createQemuMonitor(noReset: boolean = false, enableTimestamps: boolean = false, customTimestampFormat: string = "") {
+function createQemuMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
@@ -3399,8 +3403,17 @@ function createMonitor() {
   });
 }
 
-async function createIdfMonitor(noReset: boolean = false, enableTimestamps: boolean = false, customTimestampFormat: string = "") {
-  const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset, enableTimestamps, customTimestampFormat);
+async function createIdfMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
+  const idfMonitor = await createNewIdfMonitor(
+    workspaceRoot,
+    noReset,
+    enableTimestamps,
+    customTimestampFormat
+  );
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     monitorTerminal.sendText(`exit`);
