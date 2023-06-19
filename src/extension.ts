@@ -1733,10 +1733,10 @@ export async function activate(context: vscode.ExtensionContext) {
                 target: matterPathDir,
               });
             }
-            const doestEspRainmakerPathExists = await utils.dirExistPromise(
+            const doesEspRainmakerPathExists = await utils.dirExistPromise(
               rainmakerPathDir
             );
-            if (doestEspRainmakerPathExists) {
+            if (doesEspRainmakerPathExists) {
               pickItems.push({
                 description: "ESP-Rainmaker",
                 label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
