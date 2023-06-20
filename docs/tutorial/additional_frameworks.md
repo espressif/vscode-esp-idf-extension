@@ -10,6 +10,8 @@ Besides ESP-IDF, you can install other frameworks to extend the extension functi
 
 3. [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) with this extension using the **Install ESP-Matter** command, which will clone ESP-Matter to the selected directory and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows) configuration setting. The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter.
 
+4. [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
+
 > **NOTE:** You can also just set each configuration setting with the framework directory path if you already have them. For example, on Visual Studio Code menu `View` -> `Command Palette..`. -> type `Preferences: Open Settings (UI)` and search for ESP-ADF to manually set this path.
 
 > **NOTE:** Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.

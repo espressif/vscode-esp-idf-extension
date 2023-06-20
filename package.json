@@ -93,6 +93,7 @@
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:espIdf.getEspMatter",
+    "onCommand:espIdf.getEspRainmaker",
     "onCommand:espIdf.installEspMatterPyReqs",
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
@@ -402,6 +403,12 @@
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
+          "idf.espRainmakerPath": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
+            "scope": "resource"
+          },
           "idf.espIdfPathWin": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -430,6 +437,12 @@
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
+            "scope": "resource"
+          },
+          "idf.espRainmakerPathWin": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -1099,6 +1112,11 @@
       {
         "command": "espIdf.getEspMatter",
         "title": "%espIdf.getEspMatter.title%"
+      },
+      {
+        "command": "espIdf.getEspRainmaker",
+        "title": "%espIdf.getEspRainmaker.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.installEspMatterPyReqs",
