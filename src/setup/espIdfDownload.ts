@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import path from "path";
 import * as utils from "../utils";
 import { Logger } from "../logger/logger";
 import { ESP } from "../config";
@@ -31,6 +30,7 @@ import { ensureDir, move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
 import { CancellationToken, Progress } from "vscode";
 import { Disposable } from "vscode-languageclient";
+import { delimiter, dirname, join } from "path";
 
 export class EspIdfCloning extends AbstractCloning {
   constructor(branchName: string, gitBinPath: string = "git") {
@@ -52,9 +52,9 @@ export async function downloadInstallIdfVersion(
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
-  const downloadedZipPath = path.join(destPath, idfVersion.filename);
+  const downloadedZipPath = join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
-  const expectedDirectory = path.join(destPath, "esp-idf");
+  const expectedDirectory = join(destPath, "esp-idf");
   await ensureDir(destPath);
   const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
   if (expectedDirExists) {
@@ -91,7 +91,45 @@ export async function downloadInstallIdfVersion(
         espIdfCloning.cancel();
       });
     }
-    await espIdfCloning.downloadByCloning(destPath, pkgProgress, undefined, undefined, mirror);
+
+    await espIdfCloning.downloadByCloning(
+      destPath,
+      pkgProgress,
+      progress,
+      mirror !== ESP.IdfMirror.Espressif,
+      mirror
+    );
+    if (mirror === ESP.IdfMirror.Espressif) {
+      const scriptFileExt = process.platform === "win32" ? "bat" : "sh";
+      const submoduleUpdateScript = join(
+        utils.extensionContext.extensionPath,
+        "external",
+        "gitee",
+        `submodule-update.${scriptFileExt}`
+      );
+      const shellBin = process.platform === "win32" ? "cmd.exe" : "bash";
+      let pathToGitDir = "";
+      if (gitPath && gitPath !== "git") {
+        pathToGitDir = dirname(gitPath);
+      }
+      let pathNameInEnv: string;
+      if (process.platform === "win32") {
+        pathNameInEnv = "Path";
+      } else {
+        pathNameInEnv = "PATH";
+      }
+      const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+        Object.assign({}, process.env)
+      );
+      if (pathToGitDir) {
+        modifiedEnv[pathNameInEnv] =
+          pathToGitDir + delimiter + modifiedEnv[pathNameInEnv];
+      }
+      await utils.spawn(shellBin, ["-c", submoduleUpdateScript], {
+        cwd: join(destPath, "esp-idf"),
+        env: modifiedEnv
+      });
+    }
     cancelDisposable.dispose();
   } else {
     const downloadByHttpMsg = `Downloading ESP-IDF ${idfVersion.name}...`;
