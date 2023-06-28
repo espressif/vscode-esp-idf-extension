@@ -100,35 +100,11 @@ export async function downloadInstallIdfVersion(
       mirror
     );
     if (mirror === ESP.IdfMirror.Espressif) {
-      const scriptFileExt = process.platform === "win32" ? "bat" : "sh";
-      const submoduleUpdateScript = join(
-        utils.extensionContext.extensionPath,
-        "external",
-        "gitee",
-        `submodule-update.${scriptFileExt}`
+      await espIdfCloning.updateSubmodules(
+        expectedDirectory,
+        pkgProgress,
+        progress
       );
-      const shellBin = process.platform === "win32" ? "cmd.exe" : "bash";
-      let pathToGitDir = "";
-      if (gitPath && gitPath !== "git") {
-        pathToGitDir = dirname(gitPath);
-      }
-      let pathNameInEnv: string;
-      if (process.platform === "win32") {
-        pathNameInEnv = "Path";
-      } else {
-        pathNameInEnv = "PATH";
-      }
-      const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
-        Object.assign({}, process.env)
-      );
-      if (pathToGitDir) {
-        modifiedEnv[pathNameInEnv] =
-          pathToGitDir + delimiter + modifiedEnv[pathNameInEnv];
-      }
-      await utils.spawn(shellBin, ["-c", submoduleUpdateScript], {
-        cwd: join(destPath, "esp-idf"),
-        env: modifiedEnv
-      });
     }
     cancelDisposable.dispose();
   } else {
