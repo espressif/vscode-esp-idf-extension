@@ -69,7 +69,7 @@ export async function expressInstall(
       cancelToken
     );
   }
-  const idfVersion = await utils.getEspIdfVersion(idfPath, gitPath);
+  const idfVersion = await utils.getEspIdfFromCMake(idfPath);
   if (idfVersion === "x.x") {
     throw new Error("Invalid ESP-IDF");
   }

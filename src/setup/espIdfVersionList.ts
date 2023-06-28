@@ -17,7 +17,7 @@ import { EOL, tmpdir } from "os";
 import { Logger } from "../logger/logger";
 import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
-import { IEspIdfLink } from "../views/setup/types";
+import { IEspIdfLink, IdfMirror } from "../views/setup/types";
 import { ESP } from "../config";
 import axios from "axios";
 
@@ -69,12 +69,14 @@ export async function downloadEspIdfVersionList(
   }
 }
 
-export async function getEspIdfTags() {
+export async function getEspIdfTags(mirror: IdfMirror = IdfMirror.Github) {
   try {
-    const idfTagsResponse = await axios.get(
-      "https://api.github.com/repos/espressif/esp-idf/tags"
-    );
-    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name );
+    const urlToUse =
+      mirror === IdfMirror.Github
+        ? "https://api.github.com/repos/espressif/esp-idf/tags"
+        : "https://gitee.com/api/v5/repos/EspressifSystems/esp-idf/tags";
+    const idfTagsResponse = await axios.get(urlToUse);
+    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);
   } catch (error) {
     OutputChannel.appendLine(`Error getting ESP-IDF Tags. Error: ${error}`);

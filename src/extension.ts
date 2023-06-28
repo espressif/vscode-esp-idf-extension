@@ -217,7 +217,7 @@ const minIdfVersionCheck = async function (
     workspace
   ) as string;
   const gitPath = idfConf.readParameter("idf.gitPath", workspace) || "git";
-  const currentVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
+  const currentVersion = await utils.getEspIdfFromCMake(espIdfPath);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
