@@ -69,12 +69,9 @@ export async function downloadEspIdfVersionList(
   }
 }
 
-export async function getEspIdfTags(mirror: IdfMirror = IdfMirror.Github) {
+export async function getEspIdfTags() {
   try {
-    const urlToUse =
-      mirror === IdfMirror.Github
-        ? "https://api.github.com/repos/espressif/esp-idf/tags"
-        : "https://gitee.com/api/v5/repos/EspressifSystems/esp-idf/tags";
+    const urlToUse = "https://api.github.com/repos/espressif/esp-idf/tags";
     const idfTagsResponse = await axios.get<{ name: string }[]>(urlToUse);
     const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);

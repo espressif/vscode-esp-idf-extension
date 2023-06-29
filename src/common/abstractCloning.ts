@@ -27,6 +27,7 @@ import {
 import * as idfConf from "../idfConfiguration";
 import { PackageProgress } from "../PackageProgress";
 import { ESP } from "../config";
+import { EOL } from "os";
 
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
@@ -242,9 +243,9 @@ export class AbstractCloning {
       repoPath,
       OutputChannel.init()
     );
-    const lines = gitModules.split("\n");
+    const lines = gitModules.split(EOL);
 
-    function getSubmoduleUrl(line) {
+    function getSubmoduleUrl(line: string) {
       const matches = line.match(
         /^submodule\.([^.]*)\.(?:url=)..\/..\/(.*).git$/
       );
