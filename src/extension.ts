@@ -3347,7 +3347,8 @@ async function selectFlashMethod() {
   await idfConf.writeParameter(
     "idf.flashType",
     newFlashType,
-    vscode.ConfigurationTarget.WorkspaceFolder
+    vscode.ConfigurationTarget.WorkspaceFolder,
+    workspaceRoot
   );
   return newFlashType;
 }

@@ -2,7 +2,7 @@
   <img src="./media/espressif_icon.png" alt="espressif logo" title="Espressif" align="right" height="60" />
 </a>
 
-# ESP-IDF VS Code Extension
+# ESP-IDF Visual Studio Code Extension
 
 [![Tutorials](https://img.shields.io/badge/-Tutorials-red)](./docs/tutorial/toc.md)
 [![Documentation](https://img.shields.io/badge/Documentation-blue)](./docs/ONBOARDING.md)
@@ -14,17 +14,9 @@
 
 Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf)
 
-**NOTICE**: The `idf.customExtraVars` have change from string to object. Please run the `ESP-IDF: Configure ESP-IDF extension` to update the value.
-
-**Nightly builds** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a> or <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension-open.vsix.zip">OpenVSX</a>.
+**Nightly builds** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a> or <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension-open.vsix.zip">OpenVSX</a>. You can use this VSIX to test the current github master of the extension by pressing <kbd>F1</kbd> and type `Install from VSIX` and then select the downloaded `.vsix` file to install.
 
 Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly use the extension.
-
-<a href="https://youtu.be/Lc6ausiKvQM">
-  <p align="center">
-    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
-  </p>
-</a>
 
 # Tutorials
 
@@ -64,7 +56,7 @@ There are few dependencies required in your system and available in environment 
 - Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
 - For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
 
-Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itself (existing ESP-IDF installation may also be reused) using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md).
+Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itself (existing ESP-IDF installation may also be reused) using the **ESP-IDF: Configure ESP-IDF extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md) or following the [install tutorial](./docs/tutorial/install.md).
 
 > **NOTE:** Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
 
@@ -76,7 +68,7 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
 
 - On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. **NOTE: Make sure that there is no spaces in any configured path since [ESP-IDF build system doesn't support spaces yet.](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#start-a-project)**.
 
-  > **NOTE:** Please take a look at [SETUP](./docs/SETUP.md) documentation or the [Install](./docs/tutorial/install.md) tutorial for details about extension setup and configuration.
+  > **NOTE:** Please take a look at [Install tutorial](./docs/tutorial/install.md) documentation or the [Setup documentation](./docs/SETUP.md) for details about extension setup and configuration.
 
 - Press <kbd>F1</kbd> and type **ESP-IDF: Show Examples Projects** to create a new project from ESP-IDF examples.
 
@@ -88,10 +80,11 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select port to use:** and choosing the serial port your device is connected.
-- Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command. If you are using one of our boards, use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
+- Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif device target** command.
+- Use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
 - When you are ready, build your project by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your project**.
 - Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method and Flash** to select either UART or JTAG. You can also use the **ESP-IDF: Flash (UART) your project** or **ESP-IDF: Flash (with JTag)** directly.
-  > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
+  > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting in the current workspace folder's settings.json.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
 - If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
@@ -221,7 +214,7 @@ If something is not working please check for any error on one of these:
 
 4. In Visual Studio Code, select menu "Help" -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
 
-5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and WorkspaceFolder so make sure your project has the right settings. The doctor command might give the values from user settings instead of the workspace folder settings.
+5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and Workspace Folder so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
 
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
