@@ -108,6 +108,8 @@
   "param.deleteComponentsOnFullClean": "Borrar managed_components en el comando limpiar proyecto",
   "param.monitorStartDelayBeforeDebug": "Retraso para iniciar la sesión de depuración luego de IDF Monitor (ms)",
   "param.monitorNoReset": "Habilitar no-reset en el IDF Monitor",
+  "param.monitorEnableTimestamps": "Habilitar marcas de tiempo en IDF Monitor",
+  "param.monitorCustomTimestampFormat": "Formato de marca de tiempo personalizado en IDF Monitor",
   "param.enableStatusBar.title": "Habilitar elementos de la barra de estatus de la extension ESP-IDF",
   "param.enableSizeTaskAfterBuildTask.title": "Habilitar la tarea de IDF Size luego de la tarea IDF Build",
   "param.customTerminalExecutable.title": "Ejecutable personalizado para las tareas de la extensión ESP-IDF",

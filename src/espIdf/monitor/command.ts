@@ -32,6 +32,8 @@ const locDic = new LocDictionary(__filename);
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
   noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = "",
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -106,6 +108,8 @@ export async function createNewIdfMonitor(
     idfMonitorToolPath,
     idfVersion,
     noReset,
+    enableTimestamps,
+    customTimestampFormat,
     elfFilePath,
     workspaceFolder,
     toolchainPrefix,

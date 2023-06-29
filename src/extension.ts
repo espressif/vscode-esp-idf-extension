@@ -2661,6 +2661,14 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.monitorNoReset",
           workspaceRoot
         ) as boolean;
+        const enableTimestamps = idfConf.readParameter(
+          "idf.monitorEnableTimestamps",
+          workspaceRoot
+        ) as boolean;
+        const customTimestampFormat = idfConf.readParameter(
+          "idf.monitorCustomTimestampFormat",
+          workspaceRoot
+        ) as string;
         const shellPath = idfConf.readParameter(
           "idf.customTerminalExecutable",
           workspaceRoot
@@ -2678,6 +2686,8 @@ export async function activate(context: vscode.ExtensionContext) {
           idfMonitorToolPath,
           idfVersion,
           noReset,
+          enableTimestamps,
+          customTimestampFormat,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
@@ -3241,7 +3251,11 @@ const flash = (
   });
 };
 
-function createQemuMonitor(noReset: boolean = false) {
+function createQemuMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
@@ -3256,6 +3270,8 @@ function createQemuMonitor(noReset: boolean = false) {
     const idfMonitor = await createNewIdfMonitor(
       workspaceRoot,
       noReset,
+      enableTimestamps,
+      customTimestampFormat,
       serialPort
     );
     if (monitorTerminal) {
@@ -3408,12 +3424,29 @@ function createMonitor() {
       "idf.monitorNoReset",
       workspaceRoot
     ) as boolean;
-    await createIdfMonitor(noReset);
+    const enableTimestamps = idfConf.readParameter(
+      "idf.monitorEnableTimestamps",
+      workspaceRoot
+    ) as boolean;
+    const customTimestampFormat = idfConf.readParameter(
+      "idf.monitorCustomTimestampFormat",
+      workspaceRoot
+    ) as string;
+    await createIdfMonitor(noReset, enableTimestamps, customTimestampFormat);
   });
 }
 
-async function createIdfMonitor(noReset: boolean = false) {
-  const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
+async function createIdfMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
+  const idfMonitor = await createNewIdfMonitor(
+    workspaceRoot,
+    noReset,
+    enableTimestamps,
+    customTimestampFormat
+  );
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     monitorTerminal.sendText(`exit`);

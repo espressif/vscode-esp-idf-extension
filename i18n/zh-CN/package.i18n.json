@@ -108,6 +108,8 @@
   "param.deleteComponentsOnFullClean": "完全清除项目命令时删除managed_components",
   "param.monitorStartDelayBeforeDebug": "IDF监视器执行后延迟启动调试会话 (ms)",
   "param.monitorNoReset": "对IDF监视器启用无重置标志",
+  "param.monitorEnableTimestamps": "在IDF监视器中启用时间戳",
+  "param.monitorCustomTimestampFormat": "IDF监视器中的自定义时间戳格式",
   "param.enableStatusBar.title": "启用ESP-IDF扩展状态栏项目",
   "param.enableSizeTaskAfterBuildTask.title": "在生成任务后启用IDF大小任务",
   "param.sdkconfigFilePath.title": "sdkconfig文件绝对路径",

@@ -169,6 +169,8 @@
     "param.sdkconfigDefaults",
     "param.monitorStartDelayBeforeDebug",
     "param.monitorNoReset",
+    "param.monitorEnableTimestamps",
+    "param.monitorCustomTimestampFormat",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",

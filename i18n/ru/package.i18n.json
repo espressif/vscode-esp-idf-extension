@@ -108,6 +108,8 @@
   "param.deleteComponentsOnFullClean": "Удалить manage_components при полной очистке проекта.",
   "param.monitorStartDelayBeforeDebug": "Задержка запуска сеанса отладки после выполнения монитора IDF (мс)",
   "param.monitorNoReset": "Включить флаг отсутствия сброса для монитора IDF",
+  "param.monitorEnableTimestamps": "Включить временные метки в монитора IDF",
+  "param.monitorCustomTimestampFormat": "Пользовательский формат временной метки в монитора IDF",
   "param.enableStatusBar.title": "Включить элементы строки состояния расширения ESP-IDF",
   "param.enableSizeTaskAfterBuildTask.title": "Включить задачу размера IDF после задачи сборки",
   "param.sdkconfigFilePath.title": "абсолютный путь к файлу sdkconfig",
