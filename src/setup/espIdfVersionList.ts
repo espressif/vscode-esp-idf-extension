@@ -75,11 +75,22 @@ export async function getEspIdfTags(mirror: IdfMirror = IdfMirror.Github) {
       mirror === IdfMirror.Github
         ? "https://api.github.com/repos/espressif/esp-idf/tags"
         : "https://gitee.com/api/v5/repos/EspressifSystems/esp-idf/tags";
-    const idfTagsResponse = await axios.get(urlToUse);
+    const idfTagsResponse = await axios.get<{ name: string }[]>(urlToUse);
     const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);
   } catch (error) {
     OutputChannel.appendLine(`Error getting ESP-IDF Tags. Error: ${error}`);
+    try {
+      const idfTagsResponse = await axios.get<{ name: string }[]>(
+        "https://gitee.com/api/v5/repos/EspressifSystems/esp-idf/tags"
+      );
+      const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
+      return createEspIdfLinkList(tagsStrList);
+    } catch (fallbackError) {
+      OutputChannel.appendLine(
+        `Error getting Gitee ESP-IDF Tags. Error: ${fallbackError}`
+      );
+    }
   }
 }
 
