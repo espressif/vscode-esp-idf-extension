@@ -17,146 +17,161 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.4](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.4)
+
+### Features and enhancements
+
+- [Add IDF Target to project configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/983)
+- [Add ESP-IDF Rainmaker download and build support](https://github.com/espressif/vscode-esp-idf-extension/pull/988)
+- [Add IDF Monitor timestamps settings](https://github.com/espressif/vscode-esp-idf-extension/pull/989) Thanks @boarchuz !
+
+### Bug Fixes
+
+- [Fix resolve task manager](https://github.com/espressif/vscode-esp-idf-extension/pull/982)
+- [Increase input width in sdk configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/991)
+- [Update debug adapter breakpoint on running debug session](https://github.com/espressif/vscode-esp-idf-extension/pull/997)
+- [Update IDF embed git and python versions](https://github.com/espressif/vscode-esp-idf-extension/pull/999)
+
 ## [1.6.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.3)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [Add idf.enableSizeTaskAfterBuildTask to enable disable Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/965)
- - [Zap Install no longer needed](https://github.com/espressif/vscode-esp-idf-extension/pull/967) Thanks @Diegorro98 !
- - [Add consistency messages for flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/971)
- - [Add idf.customTerminalExecutable and idf.customTerminalExecutableArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/973)
+- [Add idf.enableSizeTaskAfterBuildTask to enable disable Size task](https://github.com/espressif/vscode-esp-idf-extension/pull/965)
+- [Zap Install no longer needed](https://github.com/espressif/vscode-esp-idf-extension/pull/967) Thanks @Diegorro98 !
+- [Add consistency messages for flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/971)
+- [Add idf.customTerminalExecutable and idf.customTerminalExecutableArgs](https://github.com/espressif/vscode-esp-idf-extension/pull/973)
 
-  ### Bug Fixes
+### Bug Fixes
 
-  - [Fix default monitor baud rate](https://github.com/espressif/vscode-esp-idf-extension/pull/964)
-  - [Fix NVS editor spaces](https://github.com/espressif/vscode-esp-idf-extension/pull/977)
+- [Fix default monitor baud rate](https://github.com/espressif/vscode-esp-idf-extension/pull/964)
+- [Fix NVS editor spaces](https://github.com/espressif/vscode-esp-idf-extension/pull/977)
 
 ## [1.6.2](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.2)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [add idf monitorBaudRate setting](https://github.com/espressif/vscode-esp-idf-extension/pull/951)
- - [add idf enableStatusBar setting to show status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/953)
- - [Add custom offset to flash binaries to IDF serial port](https://github.com/espressif/vscode-esp-idf-extension/pull/957)
+- [add idf monitorBaudRate setting](https://github.com/espressif/vscode-esp-idf-extension/pull/951)
+- [add idf enableStatusBar setting to show status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/953)
+- [Add custom offset to flash binaries to IDF serial port](https://github.com/espressif/vscode-esp-idf-extension/pull/957)
 
-  ### Bug Fixes
+### Bug Fixes
 
-  - [use idf showOnboardingOnInit on extension activate](https://github.com/espressif/vscode-esp-idf-extension/pull/950)
-  - [add container user to dialout group](https://github.com/espressif/vscode-esp-idf-extension/pull/944)
-  - [Trim NVS partition CLRF](https://github.com/espressif/vscode-esp-idf-extension/pull/945)
-  - [Fix GUI Size UI](https://github.com/espressif/vscode-esp-idf-extension/pull/955)
-  - [remove virtualenv install from setup workflow](https://github.com/espressif/vscode-esp-idf-extension/pull/956)
+- [use idf showOnboardingOnInit on extension activate](https://github.com/espressif/vscode-esp-idf-extension/pull/950)
+- [add container user to dialout group](https://github.com/espressif/vscode-esp-idf-extension/pull/944)
+- [Trim NVS partition CLRF](https://github.com/espressif/vscode-esp-idf-extension/pull/945)
+- [Fix GUI Size UI](https://github.com/espressif/vscode-esp-idf-extension/pull/955)
+- [remove virtualenv install from setup workflow](https://github.com/espressif/vscode-esp-idf-extension/pull/956)
 
 ## [1.6.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.1)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [Add coredump as data subtype](https://github.com/espressif/vscode-esp-idf-extension/pull/901) Thanks @ramiws !
- - [Use webpack 5](https://github.com/espressif/vscode-esp-idf-extension/pull/916) Thanks @Spacefish !
- - [Add ESP32 C6 boards](https://github.com/espressif/vscode-esp-idf-extension/pull/917) Thanks @Spacefish !
- - [Add unit test and end to end testing docs](https://github.com/espressif/vscode-esp-idf-extension/pull/912)
- - [Update platform on ESP-Matter shallow cloning](https://github.com/espressif/vscode-esp-idf-extension/pull/923) Thanks @Diegorro98 !
- - [Add zap-cli install in ESP-Matter install](https://github.com/espressif/vscode-esp-idf-extension/pull/925) Thanks @Diegorro98 !
+- [Add coredump as data subtype](https://github.com/espressif/vscode-esp-idf-extension/pull/901) Thanks @ramiws !
+- [Use webpack 5](https://github.com/espressif/vscode-esp-idf-extension/pull/916) Thanks @Spacefish !
+- [Add ESP32 C6 boards](https://github.com/espressif/vscode-esp-idf-extension/pull/917) Thanks @Spacefish !
+- [Add unit test and end to end testing docs](https://github.com/espressif/vscode-esp-idf-extension/pull/912)
+- [Update platform on ESP-Matter shallow cloning](https://github.com/espressif/vscode-esp-idf-extension/pull/923) Thanks @Diegorro98 !
+- [Add zap-cli install in ESP-Matter install](https://github.com/espressif/vscode-esp-idf-extension/pull/925) Thanks @Diegorro98 !
 
- ### Bug Fixes
+### Bug Fixes
 
- - [Show only valid ESP-IDF setups](https://github.com/espressif/vscode-esp-idf-extension/pull/908)
- - [Update non root dockerfile](https://github.com/espressif/vscode-esp-idf-extension/pull/910)
- - [Fix wrong binaries multiple options](https://github.com/espressif/vscode-esp-idf-extension/pull/920) Thanks @jmigual !
- - [Fix CMakeLists launch error](https://github.com/espressif/vscode-esp-idf-extension/pull/909)
- - [Fix target reset on IDF Monitor when debug session starts](https://github.com/espressif/vscode-esp-idf-extension/pull/914)
+- [Show only valid ESP-IDF setups](https://github.com/espressif/vscode-esp-idf-extension/pull/908)
+- [Update non root dockerfile](https://github.com/espressif/vscode-esp-idf-extension/pull/910)
+- [Fix wrong binaries multiple options](https://github.com/espressif/vscode-esp-idf-extension/pull/920) Thanks @jmigual !
+- [Fix CMakeLists launch error](https://github.com/espressif/vscode-esp-idf-extension/pull/909)
+- [Fix target reset on IDF Monitor when debug session starts](https://github.com/espressif/vscode-esp-idf-extension/pull/914)
 
 ## [1.6.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.0)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [Add nightly documentation install instructions](https://github.com/espressif/vscode-esp-idf-extension/pull/839)
- - [Add linux archs to platforms](https://github.com/espressif/vscode-esp-idf-extension/pull/859)
- - [Add ESP-Matter Python packages install](https://github.com/espressif/vscode-esp-idf-extension/pull/869) Thanks @Diegorro98 !
- - [Add Nightly build links](https://github.com/espressif/vscode-esp-idf-extension/pull/874)
- - [Add Watch variables expansion in debugging view](https://github.com/espressif/vscode-esp-idf-extension/pull/860)
- - [Add multiple sdkconfig support](https://github.com/espressif/vscode-esp-idf-extension/pull/870)
- - [Save and select multiple existing ESP-IDF setups in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/898)
- - [Use multiple configurations for same ESP-IDF project with Project configuration wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/882)
+- [Add nightly documentation install instructions](https://github.com/espressif/vscode-esp-idf-extension/pull/839)
+- [Add linux archs to platforms](https://github.com/espressif/vscode-esp-idf-extension/pull/859)
+- [Add ESP-Matter Python packages install](https://github.com/espressif/vscode-esp-idf-extension/pull/869) Thanks @Diegorro98 !
+- [Add Nightly build links](https://github.com/espressif/vscode-esp-idf-extension/pull/874)
+- [Add Watch variables expansion in debugging view](https://github.com/espressif/vscode-esp-idf-extension/pull/860)
+- [Add multiple sdkconfig support](https://github.com/espressif/vscode-esp-idf-extension/pull/870)
+- [Save and select multiple existing ESP-IDF setups in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/898)
+- [Use multiple configurations for same ESP-IDF project with Project configuration wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/882)
 
- ### Bug Fixes
+### Bug Fixes
 
- - [Fix build arguments order](https://github.com/espressif/vscode-esp-idf-extension/pull/848)
- - [Add Target to IDF Monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/850)
- - [Add Dispose sdk config command in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/849)
- - [Fix app trace project elf file reference](https://github.com/espressif/vscode-esp-idf-extension/pull/864)
- - [Fix QEMU monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/863)
- - [Fix nightly link bot comment](https://github.com/espressif/vscode-esp-idf-extension/commit/6e688150b8fd8798376258358f974e5384760dc4)
- - [Fix ESP Matter device path hard set](https://github.com/espressif/vscode-esp-idf-extension/pull/871)
- - [Fix submodules typo](https://github.com/espressif/vscode-esp-idf-extension/pull/888) Thanks @ttytyper !
- - [Fix WSL usbipd install docs](https://github.com/espressif/vscode-esp-idf-extension/pull/892) Thanks @@ronger-x !
- - [Fix linux-tools references](https://github.com/espressif/vscode-esp-idf-extension/pull/894)
- - [Fix Kconfig server directory output](https://github.com/espressif/vscode-esp-idf-extension/pull/895)
+- [Fix build arguments order](https://github.com/espressif/vscode-esp-idf-extension/pull/848)
+- [Add Target to IDF Monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/850)
+- [Add Dispose sdk config command in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/849)
+- [Fix app trace project elf file reference](https://github.com/espressif/vscode-esp-idf-extension/pull/864)
+- [Fix QEMU monitor](https://github.com/espressif/vscode-esp-idf-extension/pull/863)
+- [Fix nightly link bot comment](https://github.com/espressif/vscode-esp-idf-extension/commit/6e688150b8fd8798376258358f974e5384760dc4)
+- [Fix ESP Matter device path hard set](https://github.com/espressif/vscode-esp-idf-extension/pull/871)
+- [Fix submodules typo](https://github.com/espressif/vscode-esp-idf-extension/pull/888) Thanks @ttytyper !
+- [Fix WSL usbipd install docs](https://github.com/espressif/vscode-esp-idf-extension/pull/892) Thanks @@ronger-x !
+- [Fix linux-tools references](https://github.com/espressif/vscode-esp-idf-extension/pull/894)
+- [Fix Kconfig server directory output](https://github.com/espressif/vscode-esp-idf-extension/pull/895)
 
 ## [1.5.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.5.1)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [Use embed git for ESP-IDF Tools install ](https://github.com/espressif/vscode-esp-idf-extension/pull/783)
- - [Add flash button in partition table editor](https://github.com/espressif/vscode-esp-idf-extension/pull/774)
- - [Remove managed components on full clean command](https://github.com/espressif/vscode-esp-idf-extension/pull/793)
- - [Allow user to customize the build directory path](https://github.com/espressif/vscode-esp-idf-extension/pull/794)
- - [Light ESP-Matter download](https://github.com/espressif/vscode-esp-idf-extension/pull/820) Thanks @Diegorro98!
- - [Add input for custom openOCD board](https://github.com/espressif/vscode-esp-idf-extension/pull/830)
- - [Add variables parsing and view binary data in debugging session](https://github.com/espressif/vscode-esp-idf-extension/pull/831)
+- [Use embed git for ESP-IDF Tools install ](https://github.com/espressif/vscode-esp-idf-extension/pull/783)
+- [Add flash button in partition table editor](https://github.com/espressif/vscode-esp-idf-extension/pull/774)
+- [Remove managed components on full clean command](https://github.com/espressif/vscode-esp-idf-extension/pull/793)
+- [Allow user to customize the build directory path](https://github.com/espressif/vscode-esp-idf-extension/pull/794)
+- [Light ESP-Matter download](https://github.com/espressif/vscode-esp-idf-extension/pull/820) Thanks @Diegorro98!
+- [Add input for custom openOCD board](https://github.com/espressif/vscode-esp-idf-extension/pull/830)
+- [Add variables parsing and view binary data in debugging session](https://github.com/espressif/vscode-esp-idf-extension/pull/831)
 
- ### Bug Fixes
+### Bug Fixes
 
- - [Add quotes for constraint file](https://github.com/espressif/vscode-esp-idf-extension/pull/790)
- - [Fix OpenOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/806)
- - [Fixed default branch for esp-matter](https://github.com/espressif/vscode-esp-idf-extension/pull/809) Thanks @Diegorro98!
- - [Anonimize doctor command home path](https://github.com/espressif/vscode-esp-idf-extension/pull/805)
- - [Fix pigweed path](https://github.com/espressif/vscode-esp-idf-extension/pull/816) Thanks @Diegorro98!
- - Update [qemu version](https://github.com/espressif/vscode-esp-idf-extension/pull/818) and [add linux-tools-virtual-package](https://github.com/espressif/vscode-esp-idf-extension/pull/817) Thanks @biggates!
- - [Fix ESP-IDF any for IDF Tools](https://github.com/espressif/vscode-esp-idf-extension/pull/821)
- - [Fix empty workspace folder doctor command output](https://github.com/espressif/vscode-esp-idf-extension/pull/825)
+- [Add quotes for constraint file](https://github.com/espressif/vscode-esp-idf-extension/pull/790)
+- [Fix OpenOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/806)
+- [Fixed default branch for esp-matter](https://github.com/espressif/vscode-esp-idf-extension/pull/809) Thanks @Diegorro98!
+- [Anonimize doctor command home path](https://github.com/espressif/vscode-esp-idf-extension/pull/805)
+- [Fix pigweed path](https://github.com/espressif/vscode-esp-idf-extension/pull/816) Thanks @Diegorro98!
+- Update [qemu version](https://github.com/espressif/vscode-esp-idf-extension/pull/818) and [add linux-tools-virtual-package](https://github.com/espressif/vscode-esp-idf-extension/pull/817) Thanks @biggates!
+- [Fix ESP-IDF any for IDF Tools](https://github.com/espressif/vscode-esp-idf-extension/pull/821)
+- [Fix empty workspace folder doctor command output](https://github.com/espressif/vscode-esp-idf-extension/pull/825)
 
 ## [1.5.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.5.0)
 
- ### Features and enhancements
+### Features and enhancements
 
- - [Disassembly view](https://github.com/espressif/vscode-esp-idf-extension/pull/670)
- - [Customize build folder directory](https://github.com/espressif/vscode-esp-idf-extension/pull/668)
- - [Add unit test for getGcovExecutable function](https://github.com/espressif/vscode-esp-idf-extension/commit/9e4ca9c509af2f1a020def50370e305d4aa623d1)
- - [Docker container tutorial for the extension](https://github.com/espressif/vscode-esp-idf-extension/pull/693) Thanks @xiaolongba !
- - [Use esp-idf constraints file for python packages](https://github.com/espressif/vscode-esp-idf-extension/pull/700)
- - [Add esp32s3 default board](https://github.com/espressif/vscode-esp-idf-extension/pull/724)
- - [Remove powershell wrapper for WSL](https://github.com/espressif/vscode-esp-idf-extension/pull/734)
- - [Add C Code in Disassembly view](https://github.com/espressif/vscode-esp-idf-extension/pull/741)
- - [Unified ESP-IDF Output channel](https://github.com/espressif/vscode-esp-idf-extension/pull/716)
- - [Add ESP-Matter framework support](https://github.com/espressif/vscode-esp-idf-extension/pull/547)
- - [Add ESP-IDF tags for older ESP-IDF versions download in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/747)
- - [Add DFU documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/752)
- - [Add existing project tutorial](https://github.com/espressif/vscode-esp-idf-extension/pull/771)
- - [Add preview targets support in idf.py set-target](https://github.com/espressif/vscode-esp-idf-extension/pull/767)
- - [Peripheral Register view](https://github.com/espressif/vscode-esp-idf-extension/pull/755)
- - [Add custom openOCD server launch arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/777)
+- [Disassembly view](https://github.com/espressif/vscode-esp-idf-extension/pull/670)
+- [Customize build folder directory](https://github.com/espressif/vscode-esp-idf-extension/pull/668)
+- [Add unit test for getGcovExecutable function](https://github.com/espressif/vscode-esp-idf-extension/commit/9e4ca9c509af2f1a020def50370e305d4aa623d1)
+- [Docker container tutorial for the extension](https://github.com/espressif/vscode-esp-idf-extension/pull/693) Thanks @xiaolongba !
+- [Use esp-idf constraints file for python packages](https://github.com/espressif/vscode-esp-idf-extension/pull/700)
+- [Add esp32s3 default board](https://github.com/espressif/vscode-esp-idf-extension/pull/724)
+- [Remove powershell wrapper for WSL](https://github.com/espressif/vscode-esp-idf-extension/pull/734)
+- [Add C Code in Disassembly view](https://github.com/espressif/vscode-esp-idf-extension/pull/741)
+- [Unified ESP-IDF Output channel](https://github.com/espressif/vscode-esp-idf-extension/pull/716)
+- [Add ESP-Matter framework support](https://github.com/espressif/vscode-esp-idf-extension/pull/547)
+- [Add ESP-IDF tags for older ESP-IDF versions download in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/747)
+- [Add DFU documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/752)
+- [Add existing project tutorial](https://github.com/espressif/vscode-esp-idf-extension/pull/771)
+- [Add preview targets support in idf.py set-target](https://github.com/espressif/vscode-esp-idf-extension/pull/767)
+- [Peripheral Register view](https://github.com/espressif/vscode-esp-idf-extension/pull/755)
+- [Add custom openOCD server launch arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/777)
 
- ### Bug Fixes
+### Bug Fixes
 
- - [Fix port on status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/662)
- - [Clean terminal output before build task](https://github.com/espressif/vscode-esp-idf-extension/pull/692)
- - [Fix release branch option to use git clone](https://github.com/espressif/vscode-esp-idf-extension/pull/696)
- - [Fix write configuration settings to use current workspace](https://github.com/espressif/vscode-esp-idf-extension/pull/701)
- - [Fix no-stub esptool flash argument](https://github.com/espressif/vscode-esp-idf-extension/pull/702)
- - [Close IDF Monitor before erase flash task](https://github.com/espressif/vscode-esp-idf-extension/pull/705)
- - [Add encrypt and refactor to single flash command](https://github.com/espressif/vscode-esp-idf-extension/pull/719)
- - [Fix partition table explorer issues](https://github.com/espressif/vscode-esp-idf-extension/pull/726) Thanks @boarchuz !
- - [Fix doc link for project creation template](https://github.com/espressif/vscode-esp-idf-extension/pull/729) Thanks @hassandraga !
- - [Fix pythonBinPath in DFU Flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/740)
- - [Add idf.gitPathWin to avoid WSL issues](https://github.com/espressif/vscode-esp-idf-extension/pull/737)
- - [Add spiffs and fat as partition table data subtypes](https://github.com/espressif/vscode-esp-idf-extension/pull/745)
- - [Fix problem matcher regex for tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/749)
- - [Add space validation in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/761)
- - [Fix doctor command core python requirements](https://github.com/espressif/vscode-esp-idf-extension/pull/766)
- - [Fix tar xz extraction](https://github.com/espressif/vscode-esp-idf-extension/pull/776)
- - [Update problem matcher regex](https://github.com/espressif/vscode-esp-idf-extension/pull/779)
- - [Update Pull request template](https://github.com/espressif/vscode-esp-idf-extension/pull/753)
+- [Fix port on status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/662)
+- [Clean terminal output before build task](https://github.com/espressif/vscode-esp-idf-extension/pull/692)
+- [Fix release branch option to use git clone](https://github.com/espressif/vscode-esp-idf-extension/pull/696)
+- [Fix write configuration settings to use current workspace](https://github.com/espressif/vscode-esp-idf-extension/pull/701)
+- [Fix no-stub esptool flash argument](https://github.com/espressif/vscode-esp-idf-extension/pull/702)
+- [Close IDF Monitor before erase flash task](https://github.com/espressif/vscode-esp-idf-extension/pull/705)
+- [Add encrypt and refactor to single flash command](https://github.com/espressif/vscode-esp-idf-extension/pull/719)
+- [Fix partition table explorer issues](https://github.com/espressif/vscode-esp-idf-extension/pull/726) Thanks @boarchuz !
+- [Fix doc link for project creation template](https://github.com/espressif/vscode-esp-idf-extension/pull/729) Thanks @hassandraga !
+- [Fix pythonBinPath in DFU Flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/740)
+- [Add idf.gitPathWin to avoid WSL issues](https://github.com/espressif/vscode-esp-idf-extension/pull/737)
+- [Add spiffs and fat as partition table data subtypes](https://github.com/espressif/vscode-esp-idf-extension/pull/745)
+- [Fix problem matcher regex for tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/749)
+- [Add space validation in Setup Wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/761)
+- [Fix doctor command core python requirements](https://github.com/espressif/vscode-esp-idf-extension/pull/766)
+- [Fix tar xz extraction](https://github.com/espressif/vscode-esp-idf-extension/pull/776)
+- [Update problem matcher regex](https://github.com/espressif/vscode-esp-idf-extension/pull/779)
+- [Update Pull request template](https://github.com/espressif/vscode-esp-idf-extension/pull/753)
 
 ## [1.4.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.4.0)
 
@@ -246,6 +261,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Update MacOS default keyboard shortcuts](https://github.com/espressif/vscode-esp-idf-extension/pull/493)
 - [Use process execution instead of shell for flashing task](https://github.com/espressif/vscode-esp-idf-extension/pull/469)
 - Windows fixes for [gcovr](https://github.com/espressif/vscode-esp-idf-extension/pull/509) and [qemu](https://github.com/espressif/vscode-esp-idf-extension/pull/510)
+
 ## [1.1.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.1.1)
 
 ### Features and enhancements
@@ -272,7 +288,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Testing Docker image and doctor command testing](https://github.com/espressif/vscode-esp-idf-extension/pull/365)
 - [ESP-IDF Examples recursive subcategories shown in side menu](https://github.com/espressif/vscode-esp-idf-extension/pull/412)
 - Add [ESP-IDF: Configure project for coverage](https://github.com/espressif/vscode-esp-idf-extension/pull/354) to set sdkconfig values for Code coverage
-- Use [embed python and embed git for windows](https://github.com/espressif/vscode-esp-idf-extension/pull/416) in extension setup. 
+- Use [embed python and embed git for windows](https://github.com/espressif/vscode-esp-idf-extension/pull/416) in extension setup.
 
 ### Bug Fixes
 
@@ -280,7 +296,6 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Enable IDF Component manager configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/389)
 - [Fix openOCD default boards configuration files](https://github.com/espressif/vscode-esp-idf-extension/pull/391)
 - [Fix binaries included in flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/406)
-
 
 ## [1.0.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.3)
 
