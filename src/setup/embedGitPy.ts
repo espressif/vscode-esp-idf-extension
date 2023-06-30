@@ -29,7 +29,7 @@ import {
 } from "./webviewMsgMethods";
 import { OutputChannel } from "../logger/outputChannel";
 import { pathExists } from "fs-extra";
-import { checkGitExists } from "../utils";
+import { checkGitExists, spawn } from "../utils";
 import { checkPythonExists } from "../pythonManager";
 import { ESP } from "../config";
 import { Logger } from "../logger/logger";
@@ -163,5 +163,6 @@ export async function installIdfPython(
   const extractePyDestMsg = `Extracted ${idfPyDestPath} ...`;
   progress.report({ message: extractePyDestMsg });
   OutputChannel.appendLine(extractePyDestMsg);
+  await spawn(join(idfPyDestPath, "python.exe"), ["-m", "ensurepip", "--upgrade"], { cwd: idfPyDestPath });
   return join(idfPyDestPath, "python.exe");
 }

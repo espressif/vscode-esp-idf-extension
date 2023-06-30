@@ -30,6 +30,7 @@ import {
   TaskScope,
   Uri,
   window,
+  workspace,
 } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
 import { readParameter } from "../idfConfiguration";
@@ -63,7 +64,10 @@ export class EspMatterCloning extends AbstractCloning {
     if (EspMatterCloning.isBuildingGn) {
       throw new Error("ALREADY_BUILDING");
     }
-    const matterPathDir = readParameter("idf.espMatterPath", this.currWorkspace);
+    const matterPathDir = readParameter(
+      "idf.espMatterPath",
+      this.currWorkspace
+    );
     const espMatterPathExists = await pathExists(matterPathDir);
     if (!espMatterPathExists) {
       return;
@@ -73,7 +77,11 @@ export class EspMatterCloning extends AbstractCloning {
       "connectedhomeip",
       "connectedhomeip"
     );
-    const bootstrapFilePath = join(workingDir, "scripts", onlyActivate ? "activate.sh" : "bootstrap.sh");
+    const bootstrapFilePath = join(
+      workingDir,
+      "scripts",
+      onlyActivate ? "activate.sh" : "bootstrap.sh"
+    );
     const bootstrapFilePathExists = await pathExists(bootstrapFilePath);
     if (!bootstrapFilePathExists) {
       return;
@@ -96,9 +104,15 @@ export class EspMatterCloning extends AbstractCloning {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       shellOptions.shellArgs = shellExecutableArgs;
     }
-    
+    const curWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === this.currWorkspace
+    );
+
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
-    const isSilentMode = readParameter("idf.notificationSilentMode", this.currWorkspace);
+    const isSilentMode = readParameter(
+      "idf.notificationSilentMode",
+      this.currWorkspace
+    );
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -116,7 +130,7 @@ export class EspMatterCloning extends AbstractCloning {
         command: "ESP-Matter Bootstrap",
         taskId: "idf-bootstrap-task",
       },
-      TaskScope.Workspace,
+      curWorkspaceFolder || TaskScope.Workspace,
       "ESP-Matter Bootstrap",
       buildGnExec,
       ["espIdf"],
@@ -124,15 +138,13 @@ export class EspMatterCloning extends AbstractCloning {
     );
   }
 
-  public async initEsp32PlatformSubmodules(
-    espMatterDir: string,
-  ) {
-    OutputChannel.appendLine('Downloading Matter ESP32 platform submodules');
+  public async initEsp32PlatformSubmodules(espMatterDir: string) {
+    OutputChannel.appendLine("Downloading Matter ESP32 platform submodules");
     await window.withProgress(
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: 'Installing ESP-Matter',
+        title: "Installing ESP-Matter",
       },
       async (
         progress: Progress<{ message: string; increment?: number }>,
@@ -145,8 +157,14 @@ export class EspMatterCloning extends AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.checkoutEsp32PlatformSubmodules(espMatterDir, undefined, progress);
-          Logger.infoNotify(`ESP32 platform specific submodules checked out successfully`);
+          await this.checkoutEsp32PlatformSubmodules(
+            espMatterDir,
+            undefined,
+            progress
+          );
+          Logger.infoNotify(
+            `ESP32 platform specific submodules checked out successfully`
+          );
         } catch (error) {
           OutputChannel.appendLine(error.message);
           Logger.errorNotify(error.message, error);
@@ -158,28 +176,19 @@ export class EspMatterCloning extends AbstractCloning {
   public async checkoutEsp32PlatformSubmodules(
     espMatterDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
-     return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const matterDir = join(
         espMatterDir,
         "connectedhomeip",
         "connectedhomeip"
-      )
+      );
 
       const checkoutProcess = spawn(
-        join(
-          matterDir,
-          "scripts",
-          "checkout_submodules.py"
-        ),
-        [
-          "--platform",
-          "esp32",
-          platform(),
-          "--shallow"
-        ],
-        { cwd: matterDir}
+        join(matterDir, "scripts", "checkout_submodules.py"),
+        ["--platform", "esp32", platform(), "--shallow"],
+        { cwd: matterDir }
       );
 
       checkoutProcess.stderr.on("data", (data) => {
@@ -218,7 +227,10 @@ export class EspMatterCloning extends AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `ESP32 platform submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("ESP32 platform submodules cloning error", new Error(msg));
+          Logger.errorNotify(
+            "ESP32 platform submodules cloning error",
+            new Error(msg)
+          );
           return reject(new Error(msg));
         }
         return resolve();
@@ -231,12 +243,10 @@ export async function installPythonReqs(
   espMatterPath: string,
   workspace?: Uri
 ) {
-  const espIdfPath = readParameter("idf.espIdfPath", workspace)
-  const pyPath = readParameter( "idf.pythonBinPath", workspace);
+  const espIdfPath = readParameter("idf.espIdfPath", workspace);
+  const pyPath = readParameter("idf.pythonBinPath", workspace);
   const containerPath =
-    process.platform === "win32"
-      ? process.env.USERPROFILE
-      : process.env.HOME;
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const confToolsPath = readParameter("idf.toolsPath", workspace);
   const toolsPath =
     confToolsPath ||
@@ -246,7 +256,7 @@ export async function installPythonReqs(
     {
       cancellable: true,
       location: ProgressLocation.Notification,
-      title: 'Installing ESP-Matter',
+      title: "Installing ESP-Matter",
     },
     async (
       progress: Progress<{ message: string; increment?: number }>,
@@ -269,30 +279,35 @@ export async function installPythonReqs(
 }
 
 export async function getEspMatter(workspace?: Uri) {
-  const gitPath = (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
+  const gitPath =
+    (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
   let espMatterPath;
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   const installAllSubmodules = await window.showQuickPick(
-      [
-        {
-          label: `No, download ESP32 platform specific submodules only`,
-          target: "false",
-        },
-        {
-          label: "Yes, download all Matter submodules",
-          target: "true",
-        },
-      ],
-      { placeHolder: `Download all Matter submodules?` }
-    );
-  
+    [
+      {
+        label: `No, download ESP32 platform specific submodules only`,
+        target: "false",
+      },
+      {
+        label: "Yes, download all Matter submodules",
+        target: "true",
+      },
+    ],
+    { placeHolder: `Download all Matter submodules?` }
+  );
+
   try {
     if (installAllSubmodules.target === "true") {
       await espMatterInstaller.getRepository("idf.espMatterPath", workspace);
       espMatterPath = readParameter("idf.espMatterPath", workspace);
       await espMatterInstaller.startBootstrap();
     } else {
-      await espMatterInstaller.getRepository("idf.espMatterPath", workspace, false);
+      await espMatterInstaller.getRepository(
+        "idf.espMatterPath",
+        workspace,
+        false
+      );
       espMatterPath = readParameter("idf.espMatterPath", workspace);
       await espMatterInstaller.getSubmodules(espMatterPath);
       await espMatterInstaller.initEsp32PlatformSubmodules(espMatterPath);
@@ -323,7 +338,5 @@ export async function getEspMatter(workspace?: Uri) {
       : "Error installing ESP-Matter Python Requirements";
     return Logger.errorNotify(msg, error);
   }
-  window.showInformationMessage(
-    "ESP-Matter has been successfully installed"
-  );
+  window.showInformationMessage("ESP-Matter has been successfully installed");
 }

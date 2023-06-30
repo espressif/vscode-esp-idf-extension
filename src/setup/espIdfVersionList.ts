@@ -39,13 +39,12 @@ export async function downloadEspIdfVersionList(
   extensionPath: string
 ) {
   try {
-    const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
-    const downloadMessage = await downloadManager.downloadFile(
+    await downloadManager.downloadWithRetries(
       ESP.URL.IDF_VERSIONS,
-      0,
-      tmpdir()
+      tmpdir(),
+      undefined
     );
-    Logger.info(downloadMessage.statusMessage);
+    const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
     const fileContent = await readFile(idfVersionList);
     const versionList = fileContent.toString().trim().split("\n");
     return createEspIdfLinkList(versionList);
