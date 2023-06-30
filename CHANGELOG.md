@@ -24,6 +24,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add IDF Target to project configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/983)
 - [Add ESP-IDF Rainmaker download and build support](https://github.com/espressif/vscode-esp-idf-extension/pull/988)
 - [Add IDF Monitor timestamps settings](https://github.com/espressif/vscode-esp-idf-extension/pull/989) Thanks @boarchuz !
+- [Add gitee mirrors for git cloning when using Espressif Download Server](https://github.com/espressif/vscode-esp-idf-extension/pull/972)
 
 ### Bug Fixes
 
