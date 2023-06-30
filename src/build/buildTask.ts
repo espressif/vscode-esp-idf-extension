@@ -147,6 +147,10 @@ export class BuildTask {
       options.shellArgs = shellExecutableArgs;
     }
 
+    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.curWorkspace
+    );
+
     const isSilentMode = idfConf.readParameter(
       "idf.notificationSilentMode",
       this.curWorkspace
@@ -212,7 +216,7 @@ export class BuildTask {
           command: "ESP-IDF Compile",
           taskId: "idf-compile-task",
         },
-        vscode.TaskScope.Workspace,
+        curWorkspaceFolder || vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
         ["espIdf"],
@@ -234,7 +238,7 @@ export class BuildTask {
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },
-      vscode.TaskScope.Workspace,
+      curWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
       ["espIdf"],
@@ -267,6 +271,10 @@ export class BuildTask {
       options.shellArgs = shellExecutableArgs;
     }
 
+    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.curWorkspace
+    );
+
     const isSilentMode = idfConf.readParameter(
       "idf.notificationSilentMode",
       this.curWorkspace
@@ -288,7 +296,7 @@ export class BuildTask {
         command: "ESP-IDF Write DFU.bin",
         taskId: "idf-write-dfu-task",
       },
-      vscode.TaskScope.Workspace,
+      curWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Write DFU.bin",
       writeExecution,
       ["espIdf"],

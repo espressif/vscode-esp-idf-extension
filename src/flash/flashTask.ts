@@ -85,6 +85,9 @@ export class FlashTask {
       "idf.notificationSilentMode",
       this.workspaceUri
     ) as boolean;
+    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.workspaceUri
+    );
     const showTaskOutput = isSilentMode
       ? vscode.TaskRevealKind.Always
       : vscode.TaskRevealKind.Silent;
@@ -107,7 +110,7 @@ export class FlashTask {
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
-      vscode.TaskScope.Workspace,
+      curWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
       ["espIdf"],

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th June 2021 9:47:52 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +28,7 @@ import {
   TaskRevealKind,
   TaskScope,
   Uri,
+  workspace,
 } from "vscode";
 import { FlashModel } from "../flash/flashModel";
 import { createFlashModel } from "../flash/flashModelBuilder";
@@ -77,10 +78,7 @@ export async function mergeFlashBinaries(
   const idfPath = readParameter("idf.espIdfPath", wsFolder);
   const port = readParameter("idf.port", wsFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
-  const buildDirPath = readParameter(
-    "idf.buildPath",
-    wsFolder
-  ) as string;
+  const buildDirPath = readParameter("idf.buildPath", wsFolder) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
   const esptoolPath = join(
     idfPath,
@@ -105,7 +103,10 @@ export async function mergeFlashBinaries(
     }
   }
 
-  const isSilentMode = readParameter("idf.notificationSilentMode", wsFolder) as boolean;
+  const isSilentMode = readParameter(
+    "idf.notificationSilentMode",
+    wsFolder
+  ) as boolean;
   const showTaskOutput = isSilentMode
     ? TaskRevealKind.Always
     : TaskRevealKind.Silent;
@@ -114,6 +115,9 @@ export async function mergeFlashBinaries(
     esptoolPath,
     flashModel,
     wsFolder
+  );
+  const curWorkspaceFolder = workspace.workspaceFolders.find(
+    (w) => w.uri === this.curWorkspace
   );
   const mergePresentationOptions = {
     reveal: showTaskOutput,
@@ -127,7 +131,7 @@ export async function mergeFlashBinaries(
       command: "Merge flash binaries",
       taskId: "idf-mergeBin-task",
     },
-    TaskScope.Workspace,
+    curWorkspaceFolder || TaskScope.Workspace,
     "Merge flash binaries",
     mergeExecution,
     ["espIdf"],

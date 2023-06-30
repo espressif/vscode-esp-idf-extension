@@ -26,6 +26,7 @@ import {
   TaskRevealKind,
   TaskScope,
   Uri,
+  workspace,
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
@@ -46,10 +47,7 @@ export class IdfSizeTask {
     ) as string;
     const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
-    this.buildDirPath = readParameter(
-      "idf.buildPath",
-      workspacePath
-    ) as string;
+    this.buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {
@@ -91,6 +89,9 @@ export class IdfSizeTask {
       "idf.notificationSilentMode",
       this.curWorkspace
     ) as boolean;
+    const curWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === this.curWorkspace
+    );
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -102,7 +103,7 @@ export class IdfSizeTask {
     } as TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Size", taskId: "idf-size-task" },
-      TaskScope.Workspace,
+      curWorkspaceFolder || TaskScope.Workspace,
       "ESP-IDF Size",
       sizeExecution,
       ["espIdf"],

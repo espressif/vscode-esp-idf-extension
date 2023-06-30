@@ -30,7 +30,7 @@ export class TaskManager {
 
   public static addTask(
     taskDefinition: IdfTaskDefinition,
-    scope: vscode.TaskScope,
+    scope: vscode.WorkspaceFolder | vscode.TaskScope,
     name: string,
     execution:
       | vscode.ShellExecution
