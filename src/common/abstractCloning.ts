@@ -15,7 +15,7 @@ import { spawn, ChildProcess } from "child_process";
 import { join, basename } from "path";
 import treeKill from "tree-kill";
 import { Logger } from "../logger/logger";
-import { checkGitExists, dirExistPromise } from "../utils";
+import { checkGitExists, dirExistPromise, execChildProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import {
   CancellationToken,
@@ -26,18 +26,23 @@ import {
 } from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { PackageProgress } from "../PackageProgress";
+import { ESP } from "../config";
+import { EOL } from "os";
 
 export class AbstractCloning {
   private cloneProcess: ChildProcess;
   private readonly GITHUB_REPO: string;
+  private readonly GITEE_REPO: string;
 
   constructor(
     githubRepository: string,
     private name: string,
     private branchToUse: string,
-    private gitBinPath: string = "git"
+    private gitBinPath: string = "git",
+    giteeRepository?: string
   ) {
     this.GITHUB_REPO = githubRepository;
+    this.GITEE_REPO = giteeRepository;
   }
 
   public cancel() {
@@ -53,102 +58,33 @@ export class AbstractCloning {
     installDir: string,
     pkgProgress?: PackageProgress,
     progress?: Progress<{ message?: string; increment?: number }>,
-    recursiveDownload: boolean = true
+    recursiveDownload: boolean = true,
+    mirror: ESP.IdfMirror = ESP.IdfMirror.Github
   ) {
-    return new Promise<void>((resolve, reject) => {
-      this.cloneProcess = spawn(
-        this.gitBinPath,
-        recursiveDownload ? [
-          "clone",
-          "--recursive",
-          "--progress",
-          "-b",
-          this.branchToUse,
-          this.GITHUB_REPO,
-        ]
-        : [
-          "clone",
-          "--progress",
-          "-b",
-          this.branchToUse,
-          this.GITHUB_REPO,
-        ],
-        { cwd: installDir }
-      );
-
-      this.cloneProcess.stderr.on("data", (data) => {
-        OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString());
-        const errRegex = /\b(Error)\b/g;
-        if (errRegex.test(data.toString())) {
-          reject(data.toString());
-        }
-        const progressRegex = /(\d+)(\.\d+)?%/g;
-        const matches = data.toString().match(progressRegex);
-        if (matches) {
-          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
-          if (progress) {
-            progress.report({
-              message: progressMsg,
-            });
-          }
-          if (pkgProgress) {
-            pkgProgress.Progress = matches[matches.length - 1];
-          }
-        } else if (data.toString().indexOf("Cloning into") !== -1) {
-          let detailMsg = " " + data.toString();
-          if (progress) {
-            progress.report({
-              message: `${data.toString()}`,
-            });
-          }
-          if (pkgProgress) {
-            pkgProgress.Progress = detailMsg;
-          }
-        }
-      });
-
-      this.cloneProcess.stdout.on("data", (data) => {
-        OutputChannel.appendLine(data.toString());
-        Logger.info(data.toString());
-        const progressRegex = /(\d+)(\.\d+)?%/g;
-        const matches = data.toString().match(progressRegex);
-        if (matches) {
-          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
-          if (progress) {
-            progress.report({
-              message: progressMsg,
-            });
-          }
-          if (pkgProgress) {
-            pkgProgress.Progress = matches[matches.length - 1];
-          }
-        } else if (data.toString().indexOf("Cloning into") !== -1) {
-          let detailMsg = " " + data.toString();
-          if (progress) {
-            progress.report({
-              message: `${data.toString()}`,
-            });
-          }
-          if (pkgProgress) {
-            pkgProgress.Progress = detailMsg;
-          }
-        }
-      });
-
-      this.cloneProcess.on("exit", (code, signal) => {
-        if (!signal && code !== 0) {
-          const msg = `${this.name} clone has exit with ${code}`;
-          OutputChannel.appendLine(msg);
-          Logger.errorNotify("Cloning error", new Error(msg));
-          return reject(new Error(msg));
-        }
-        return resolve();
-      });
-    });
+    const args = ["clone"];
+    if (recursiveDownload) {
+      args.push("--recursive");
+    }
+    args.push(
+      "--progress",
+      "-b",
+      this.branchToUse,
+      mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO
+    );
+    return this.spawnWithProgress(
+      this.gitBinPath,
+      args,
+      installDir,
+      pkgProgress,
+      progress
+    );
   }
 
-  public async getRepository(configurationId: string, workspace?: Uri, recursiveDownload?: boolean) {
+  public async getRepository(
+    configurationId: string,
+    workspace?: Uri,
+    recursiveDownload?: boolean
+  ) {
     const toolsDir = await idfConf.readParameter("idf.toolsPath", workspace);
     const installDir = await window.showQuickPick(
       [
@@ -165,6 +101,24 @@ export class AbstractCloning {
       { placeHolder: `Select a directory to save ${this.name}` }
     );
     if (!installDir) {
+      return;
+    }
+
+    let mirrorOption = await window.showQuickPick(
+      [
+        {
+          label: `Use Github`,
+          target: ESP.IdfMirror.Github,
+        },
+        {
+          label: "Use Gitee",
+          target: ESP.IdfMirror.Espressif,
+        },
+      ],
+      { placeHolder: `Select a source mirror to use` }
+    );
+
+    if (!mirrorOption) {
       return;
     }
 
@@ -222,7 +176,13 @@ export class AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
-          await this.downloadByCloning(installDirPath, undefined, progress, recursiveDownload);
+          await this.downloadByCloning(
+            installDirPath,
+            undefined,
+            progress,
+            recursiveDownload,
+            mirrorOption.target
+          );
           const target = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(configurationId, resultingPath, target);
           Logger.infoNotify(`${this.name} has been installed`);
@@ -237,55 +197,159 @@ export class AbstractCloning {
   public downloadSubmodules(
     repoRootDir: string,
     pkgProgress?: PackageProgress,
-    progress?: Progress<{ message?: string; increment?: number }>,
+    progress?: Progress<{ message?: string; increment?: number }>
+  ) {
+    return this.spawnWithProgress(
+      this.gitBinPath,
+      ["submodule", "update", "--init", "--depth", "1", "--progress"],
+      repoRootDir,
+      pkgProgress,
+      progress
+    );
+  }
+
+  public async updateSubmodules(
+    repoPath: string,
+    pkgProgress?: PackageProgress,
+    progress?: Progress<{ message?: string; increment?: number }>
+  ) {
+    const REPOS_ARRAY = [
+      "esp-idf",
+      "espressifsystems",
+      "esp-rainmaker",
+      "espressifsystems",
+      "esp-insights",
+      "espressifsystems",
+      "esp-qcloud",
+      "espressifsystems",
+      "esp-sr",
+      "esp-components",
+      "esp-adf-libs",
+      "esp-components",
+      "esp32-camera",
+      "esp-components",
+      "esp-rainmaker-common",
+      "esp-components",
+      "esp-dl",
+      "esp-components",
+    ];
+    await execChildProcess(
+      `${this.gitBinPath} submodule init`,
+      repoPath,
+      OutputChannel.init()
+    );
+    const gitModules = await execChildProcess(
+      `${this.gitBinPath} config -f .gitmodules --list`,
+      repoPath,
+      OutputChannel.init()
+    );
+    const lines = gitModules.split(EOL);
+
+    function getSubmoduleUrl(line: string) {
+      const matches = line.match(
+        /^submodule\.([^.]*)\.(?:url=)..\/..\/(.*).git$/
+      );
+      if (matches) {
+        const [, subPath, url] = matches;
+        return { subPath, url };
+      }
+      return null;
+    }
+
+    for (const l of lines) {
+      const submoduleUrl = getSubmoduleUrl(l);
+      if (submoduleUrl) {
+        let { subPath, url } = submoduleUrl;
+        let subUrl = "";
+
+        for (let i = 0; i < REPOS_ARRAY.length; i += 2) {
+          const repo = REPOS_ARRAY[i];
+          const group = REPOS_ARRAY[i + 1];
+
+          if (url.includes(repo)) {
+            subUrl = `https://gitee.com/${group}/${repo}`;
+            break;
+          } else {
+            // gitee url is case sensitive
+            if (url.includes("unity")) {
+              subUrl = "https://gitee.com/esp-submodules/Unity";
+              break;
+            }
+            if (url.includes("cexception")) {
+              subUrl = "https://gitee.com/esp-submodules/CException";
+              break;
+            }
+            url = url.replace(/.*\//, "").replace(/.*\./, "");
+            subUrl = `https://gitee.com/esp-submodules/${url}`;
+          }
+        }
+
+        await execChildProcess(
+          `${this.gitBinPath} config submodule.${subPath}.url ${subUrl}`,
+          repoPath,
+          OutputChannel.init()
+        );
+      }
+    }
+    await this.spawnWithProgress(
+      this.gitBinPath,
+      ["submodule", "update", "--progress"],
+      repoPath,
+      pkgProgress,
+      progress
+    );
+    await this.spawnWithProgress(
+      this.gitBinPath,
+      ["submodule", "foreach", "git", "submodule", "update"],
+      repoPath,
+      pkgProgress,
+      progress
+    );
+  }
+
+  public spawnWithProgress(
+    cmd: string,
+    args: string[],
+    currentWorkDirectory: string,
+    pkgProgress?: PackageProgress,
+    progress?: Progress<{ message?: string; increment?: number }>
   ) {
     return new Promise<void>((resolve, reject) => {
-      const checkoutProcess = spawn(
-        this.gitBinPath,
-        [
-          "submodule",
-          "update",
-          "--init",
-          "--depth",
-          "1",
-          "--progress",
-        ],
-        { cwd: repoRootDir }
-      );
+      this.cloneProcess = spawn(cmd, args, { cwd: currentWorkDirectory });
 
-      checkoutProcess.stderr.on("data", (data) => {
+      const handleSpawnOutput: (chunk: any) => void = (data) => {
         OutputChannel.appendLine(data.toString());
         Logger.info(data.toString());
         const errRegex = /\b(Error)\b/g;
         if (errRegex.test(data.toString())) {
           reject(data.toString());
         }
-        const progressRegex = /(\d+)(\.\d+)?%/g;
-        const matches = data.toString().match(progressRegex);
-        if (matches) {
-          let progressMsg = `Downloading ${matches[matches.length - 1]}`;
+        const output = data.toString().trim();
+        const progressPattern = /(?:Counting|Compressing|Receiving|Resolving) objects:\s+(\d+%) \(\d+\/\d+\)/g;
+        let match: RegExpExecArray;
+
+        while ((match = progressPattern.exec(output)) !== null) {
           if (progress) {
             progress.report({
-              message: progressMsg,
+              message: match[0],
             });
           }
           if (pkgProgress) {
-            pkgProgress.Progress = matches[matches.length - 1];
-          }
-        } else if (data.toString().indexOf("Cloning into") !== -1) {
-          let detailMsg = " " + data.toString();
-          if (progress) {
-            progress.report({
-              message: `${data.toString()}`,
-            });
-          }
-          if (pkgProgress) {
-            pkgProgress.Progress = detailMsg;
+            pkgProgress.Progress = `${match[1]}`;
+            pkgProgress.ProgressDetail = match[0];
           }
         }
-      });
 
-      checkoutProcess.on("exit", (code, signal) => {
+        if (pkgProgress && data.toString().indexOf("Cloning into") !== -1) {
+          pkgProgress.Progress = `0%`;
+          pkgProgress.ProgressDetail = data.toString();
+        }
+      };
+
+      this.cloneProcess.stdout.on("data", handleSpawnOutput);
+      this.cloneProcess.stderr.on("data", handleSpawnOutput);
+
+      this.cloneProcess.on("exit", (code, signal) => {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
@@ -297,9 +361,7 @@ export class AbstractCloning {
     });
   }
 
-  public async getSubmodules(
-    repoRootDir: string,
-  ) {
+  public async getSubmodules(repoRootDir: string) {
     const repoName = /[^/]*$/.exec(repoRootDir)[0];
     OutputChannel.appendLine(`Downloading ${repoName} submodules`);
     await window.withProgress(

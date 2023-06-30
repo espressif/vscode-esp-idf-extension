@@ -21,7 +21,8 @@ export class MdfCloning extends AbstractCloning {
       "https://github.com/espressif/esp-mdf.git",
       "ESP-MDF",
       "master",
-      gitBinPath
+      gitBinPath,
+      "https://gitee.com/EspressifSystems/esp-mdf.git"
     );
   }
 }

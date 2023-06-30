@@ -14,10 +14,11 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import { ESP } from "../config";
 import { IdfToolsManager } from "../idfToolsManager";
 import { SetupPanel } from "./SetupPanel";
 import { downloadEspIdfTools } from "./toolInstall";
-import { IdfMirror, StatusType } from "../views/setup/types";
+import { StatusType } from "../views/setup/types";
 import { createPyReqs } from "./pyReqsInstallStep";
 
 export async function downloadIdfTools(
@@ -25,7 +26,7 @@ export async function downloadIdfTools(
   toolsPath: string,
   pyPath: string,
   gitPath: string,
-  mirror: IdfMirror,
+  mirror: ESP.IdfMirror,
   saveScope: vscode.ConfigurationTarget,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,

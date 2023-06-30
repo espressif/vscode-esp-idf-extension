@@ -2,20 +2,20 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 2nd June 2020 10:57:18 am
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { checkGitExists, getEspIdfVersion } from "../../utils";
+import { checkGitExists, getEspIdfFromCMake } from "../../utils";
 import { spawn, ChildProcess } from "child_process";
 import * as idfConf from "../../idfConfiguration";
 import * as treeKill from "tree-kill";
@@ -31,7 +31,11 @@ export class ArduinoComponentInstaller {
   private readonly projectDir: string;
   private gitBinPath: string;
 
-  constructor(espIdfPath: string, projectDir: string, gitBinPath: string = "git") {
+  constructor(
+    espIdfPath: string,
+    projectDir: string,
+    gitBinPath: string = "git"
+  ) {
     this.espIdfPath = espIdfPath;
     this.projectDir = projectDir;
     this.gitBinPath = gitBinPath;
@@ -93,8 +97,7 @@ export class ArduinoComponentInstaller {
     if (typeof espIdfPath === "undefined" || espIdfPath === "") {
       espIdfPath = this.espIdfPath || process.env.IDF_PATH;
     }
-
-    const idfVersion = await getEspIdfVersion(espIdfPath, this.gitBinPath);
+    const idfVersion = await getEspIdfFromCMake(espIdfPath);
     const majorMinorMatches = idfVersion.match(/([0-9]+\.[0-9]+).*/);
     const espIdfVersion =
       majorMinorMatches && majorMinorMatches.length > 0
