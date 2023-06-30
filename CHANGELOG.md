@@ -32,6 +32,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Increase input width in sdk configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/991)
 - [Update debug adapter breakpoint on running debug session](https://github.com/espressif/vscode-esp-idf-extension/pull/997)
 - [Update IDF embed git and python versions](https://github.com/espressif/vscode-esp-idf-extension/pull/999)
+- [Fix workspace folder scope in tasks addTask, add IDF Monitor timestamps IDF version validation](https://github.com/espressif/vscode-esp-idf-extension/pull/1001)
 
 ## [1.6.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.3)
 
