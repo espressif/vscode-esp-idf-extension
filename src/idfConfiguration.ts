@@ -263,6 +263,9 @@ export function resolveVariables(
     if (scope && match.indexOf("workspaceFolder") > 0) {
       return scope instanceof vscode.Uri ? scope.fsPath : scope.uri.fsPath;
     }
+    if (match.indexOf("execPath") > 0) {
+      return process.execPath;
+    }
     return match;
   });
 }
