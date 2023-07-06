@@ -29,6 +29,7 @@ import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
+import { OutputChannel } from "../logger/outputChannel";
 
 const locDic = new LocDictionary(__filename);
 
@@ -91,18 +92,26 @@ export async function buildCommand(
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
-      Logger.infoNotify("Build Successfully");
+      const msg = "Build Successfully";
+      OutputChannel.appendLine(msg, "Build")
+      Logger.infoNotify(msg);
       TaskManager.disposeListeners();
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify("Already a build is running!", error);
+      let msg = "Already a build is running!";
+      OutputChannel.appendLine(msg, "Build")
+      return Logger.errorNotify(msg, error);
     }
     if (error.message === "BUILD_TERMINATED") {
-      return Logger.warnNotify(`Build is Terminated`);
+      let msg = "Build is Terminated";
+      OutputChannel.appendLine(msg, "Build");
+      return Logger.warnNotify(msg);
     }
+    let msg = "Something went wrong while trying to build the project";
+    OutputChannel.appendLine(msg, "Build");
     Logger.errorNotify(
-      "Something went wrong while trying to build the project",
+      msg,
       error
     );
     continueFlag = false;
