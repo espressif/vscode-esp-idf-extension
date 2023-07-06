@@ -1219,3 +1219,12 @@ export function markdownToWebviewHtml(
   cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
   return cleanHtml;
 }
+
+export function isPowershellUser() {
+  const config = vscode.workspace.getConfiguration('terminal.integrated');
+  const defaultTerminal = config.get('defaultProfile.windows');
+  if(defaultTerminal && defaultTerminal === "PowerShell") {
+    return true;
+  }
+  return false;
+}

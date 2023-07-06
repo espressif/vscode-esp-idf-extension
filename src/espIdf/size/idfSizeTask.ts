@@ -30,7 +30,7 @@ import {
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath } from "../../utils";
+import { appendIdfAndToolsToPath, isPowershellUser } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
 export class IdfSizeTask {
@@ -52,15 +52,12 @@ export class IdfSizeTask {
   }
 
   public async getShellExecution(options: ShellExecutionOptions) {
-    const config = workspace.getConfiguration('terminal.integrated');
-    const defaultTerminal = config.get('defaultProfile.windows');
     const mapFilePath = await this.mapFilePath();
     let command = `""${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}""`
 
-    if (defaultTerminal === "PowerShell") {
+    if (isPowershellUser()) {
       //The & operator tells PowerShell to execute the string as a command.
       command = `& '${this.pythonBinPath}' '${this.idfSizePath}' '${mapFilePath}'`;
-
     }
     
     return new ShellExecution(command, options);
