@@ -170,12 +170,27 @@ export class BuildTask {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
 
-      const buidCommand =`-B="${this.buildDirPath}"`;
-      compilerArgs.push(buidCommand);
+      const config = vscode.workspace.getConfiguration('terminal.integrated');
+      const defaultTerminal = config.get('defaultProfile.windows');
 
-      const curWorkspaceCommand =`-S="${this.curWorkspace.fsPath}"`
-      if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push(curWorkspaceCommand);
+      if (defaultTerminal === "PowerShell") {
+
+        const buidCommand =`-B '${this.buildDirPath}'`;
+        compilerArgs.push(buidCommand);
+        const curWorkspaceCommand =`-S '${this.curWorkspace.fsPath}'`
+        if (compilerArgs.indexOf("-S") === -1) {
+          compilerArgs.push(curWorkspaceCommand);
+        }
+
+      } else {
+
+        const buidCommand =`-B="${this.buildDirPath}"`;
+        compilerArgs.push(buidCommand);
+        const curWorkspaceCommand =`-S="${this.curWorkspace.fsPath}"`
+        if (compilerArgs.indexOf("-S") === -1) {
+          compilerArgs.push(curWorkspaceCommand);
+        }
+
       }
 
       const sdkconfigDefaults =
