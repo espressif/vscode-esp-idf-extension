@@ -3327,7 +3327,7 @@ async function startFlashing(
 
   if (flashType === ESP.FlashType.JTAG) {
     const openOcdMinCheck = await minOpenOcdVersionCheck();
-    PreCheck.perform([openOcdMinCheck], async () => {
+    return PreCheck.perform([openOcdMinCheck], async () => {
       return await jtagFlashCommand(workspaceRoot);
     });
   } else {
