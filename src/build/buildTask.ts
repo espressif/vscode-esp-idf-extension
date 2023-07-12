@@ -21,7 +21,7 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { appendIdfAndToolsToPath, isBinInPath, isPowershellUser } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
@@ -81,14 +81,26 @@ export class BuildTask {
       "idf.pythonBinPath",
       this.curWorkspace
     ) as string;
-    const command = `"${pythonBinPath}" "${join(
-      this.idfPathDir,
-      "tools",
-      "mkdfu.py"
-    )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
-      this.buildDirPath,
-      "flasher_args.json"
-    )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}`;
+    // For PowerShell users, single quotes needs to be used and & before the command
+    const command = isPowershellUser() ? 
+      `& '${pythonBinPath}' '${join(
+        this.idfPathDir,
+        'tools',
+        'mkdfu.py'
+      )}' write -o '${join(this.buildDirPath, 'dfu.bin')}' --json '${join(
+        this.buildDirPath,
+        'flasher_args.json'
+      )}' --pid ${selectedDFUAdapterId(this.adapterTargetName)}`
+    :
+      `"${pythonBinPath}" "${join(
+        this.idfPathDir,
+        "tools",
+        "mkdfu.py"
+      )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
+        this.buildDirPath,
+        "flasher_args.json"
+      )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}`;
+    
     return process.platform === "win32" ? 
       new vscode.ShellExecution(`"${command}"`,options)
       : new vscode.ShellExecution(command,options);
