@@ -134,6 +134,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import { UnitTest } from "./espIdf/unitTest/adapter";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -313,6 +314,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
+  let unitTestController = new UnitTest(context);
   // Add delete or update new sources in CMakeLists.txt of same folder
   const newSrcWatcher = vscode.workspace.createFileSystemWatcher(
     "**/*.{c,cpp,cc,S}",

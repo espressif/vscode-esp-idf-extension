@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.68.0"
   },
   "repository": {
     "type": "git",
@@ -913,6 +913,18 @@
             "description": "%param.sdkconfigFilePath.title%",
             "scope": "resource",
             "default": ""
+          },
+          "idf.testFileRegex": {
+            "description": "Regex against which test source files should match.",
+            "type": "string",
+            "default": "test_",
+            "scope": "resource"
+          },
+          "idf.testCaseRegex":{
+            "description": "Test case regex which test should match",
+            "default": "TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)",
+            "type": "string",
+            "scope": "resource"
           }
         }
       }
@@ -1495,7 +1507,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.32.0",
+    "@types/vscode": "^1.59.0",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
