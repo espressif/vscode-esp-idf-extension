@@ -30,8 +30,9 @@ import {
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath, isPowershellUser } from "../../utils";
+import { appendIdfAndToolsToPath, getUserShell, isPowershellUser } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
+import { get } from "http";
 
 export class IdfSizeTask {
   private curWorkspace: Uri;
@@ -53,15 +54,27 @@ export class IdfSizeTask {
 
   public async getShellExecution(options: ShellExecutionOptions) {
     const mapFilePath = await this.mapFilePath();
-    let command = `""${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}""`
-
-    if (isPowershellUser()) {
-      //The & operator tells PowerShell to execute the string as a command.
-      command = `& '${this.pythonBinPath}' '${this.idfSizePath}' '${mapFilePath}'`;
-    }
+    const userShell = getUserShell();
     
+    let command: string;
+
+    switch(userShell) {
+      case "PowerShell":
+        // the & operator tells PowerShell to execute the string as a command.
+        command = `& '${this.pythonBinPath}' '${this.idfSizePath}' '${mapFilePath}'`;
+        break;
+      case "Command Prompt":
+        command = `""${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}""`;
+        break;
+      case "bash":
+      case "zsh":
+      default:
+        command = `"${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}"`;
+        break;
+    }
+
     return new ShellExecution(command, options);
-  }
+}
 
   private async mapFilePath() {
     const projectName = await getProjectName(this.buildDirPath);
