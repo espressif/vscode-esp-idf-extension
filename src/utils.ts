@@ -696,45 +696,6 @@ export function getSubProjects(dir: string): string[] {
   }
 }
 
-export async function getEspIdfVersion(workingDir: string, gitPath: string) {
-  try {
-    const doesWorkingDirExists = await pathExists(workingDir);
-    if (!doesWorkingDirExists) {
-      Logger.info(`${workingDir} does not exists to get ESP-IDF version.`);
-      return "x.x";
-    }
-    const gitVersion = await checkGitExists(workingDir, gitPath);
-    if (!gitVersion || gitVersion === "Not found") {
-      throw new Error("Git is not found in current environment");
-    }
-    const rawEspIdfVersion = await execChildProcess(
-      `'${gitPath}' describe --tags`,
-      workingDir
-    );
-    const espIdfVersionMatch = rawEspIdfVersion.match(
-      /v(\d+)(?:\.)?(\d+)?(?:\.)?(\d+)?.*/
-    );
-    if (espIdfVersionMatch && espIdfVersionMatch.length > 0) {
-      let espVersion: string = "";
-      for (let i = 1; i < espIdfVersionMatch.length; i++) {
-        if (espIdfVersionMatch[i]) {
-          espVersion = `${espVersion}.${espIdfVersionMatch[i]}`;
-        }
-      }
-      return espVersion.substr(1);
-    } else {
-      return "x.x";
-    }
-  } catch (error) {
-    const espIdfVersionFromCmake = await getEspIdfFromCMake(workingDir);
-    if (espIdfVersionFromCmake) {
-      return espIdfVersionFromCmake;
-    }
-    Logger.info(error);
-    return "x.x";
-  }
-}
-
 export async function getEspIdfFromCMake(espIdfPath: string) {
   const versionFilePath = path.join(
     espIdfPath,
