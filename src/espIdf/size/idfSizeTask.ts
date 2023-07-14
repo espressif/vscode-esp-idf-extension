@@ -25,7 +25,6 @@ import {
   TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
-  workspace,
   Uri,
   workspace,
 } from "vscode";
