@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { appendIdfAndToolsToPath, isPowershellUser } from "../../utils";
+import { get } from "http";
+import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { window, Terminal, Uri, env } from "vscode";
 
 export interface MonitorConfig {
@@ -82,12 +83,16 @@ export class IDFMonitor {
       args.push("--ws", `ws://localhost:${this.config.wsPort}`);
     }
     args.push(`"${this.config.elfFilePath}"`);
-    if(isPowershellUser()) {
+    if(getUserShell() === "PowerShell") {
       // The & operator tells PowerShell to execute all the elements args as a command.
       args.unshift("&");
     }
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+    if(getUserShell() === "bash" || getUserShell() === "zsh") {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH="${modifiedEnv.IDF_PATH}"`);
+    } else {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+    }
     this.terminal.sendText(args.join(" "));
     return this.terminal;
   }
