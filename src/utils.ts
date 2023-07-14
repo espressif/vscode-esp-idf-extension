@@ -1221,27 +1221,24 @@ export function markdownToWebviewHtml(
 }
 
 export function getUserShell() {
-  const config = vscode.workspace.getConfiguration('terminal.integrated');
-  const shellWindows = config.get('defaultProfile.windows') as string;
-  const shellMac = config.get('defaultProfile.osx') as string;
-  const shellLinux = config.get('defaultProfile.linux') as string;
+  const config = vscode.workspace.getConfiguration("terminal.integrated");
+  const shellWindows = config.get("defaultProfile.windows") as string;
+  const shellMac = config.get("defaultProfile.osx") as string;
+  const shellLinux = config.get("defaultProfile.linux") as string;
 
   // list of shells to check
   const shells = ["PowerShell", "Command Prompt", "bash", "zsh"];
 
   // if user's shell is in the list, return it
-  for(let i = 0; i < shells.length; i++) {
-      if (shellWindows && shellWindows.includes(shells[i])) {
-          return shells[i];
-      }
-      else if (shellMac && shellMac.includes(shells[i])) {
-          return shells[i];
-      }
-      else if (shellLinux && shellLinux.includes(shells[i])) {
-          return shells[i];
-      }
+  for (let i = 0; i < shells.length; i++) {
+    if (shellWindows && shellWindows.includes(shells[i])) {
+      return shells[i];
+    } else if (shellMac && shellMac.includes(shells[i])) {
+      return shells[i];
+    } else if (shellLinux && shellLinux.includes(shells[i])) {
+      return shells[i];
+    }
   }
   // if no match, return null
   return null;
 }
-
