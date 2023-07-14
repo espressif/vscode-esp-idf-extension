@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { delimiter } from "path";
+import { ESP } from "../config";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
 import { DownloadManager } from "../downloadManager";
@@ -25,12 +26,11 @@ import {
   sendPkgDownloadFailed,
 } from "./webviewMsgMethods";
 import { CancellationToken, Progress } from "vscode";
-import { IdfMirror } from "../views/setup/types";
 
 export async function downloadEspIdfTools(
   installDir: string,
   idfToolsManager: IdfToolsManager,
-  mirror: IdfMirror,
+  mirror: ESP.IdfMirror,
   progress: Progress<{ message: string; increment?: number }>,
   pythonBinPath: string,
   cancelToken?: CancellationToken,

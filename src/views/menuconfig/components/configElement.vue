@@ -207,6 +207,9 @@ input[type="number"]::-webkit-inner-spin-button {
   transition: max-height 0.2s ease-out;
   margin: 10px;
 }
+.input {
+  width: 30rem;
+}
 .input,
 .select {
   border-color: var(--vscode-input-background);

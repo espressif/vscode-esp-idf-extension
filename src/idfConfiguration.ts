@@ -65,6 +65,8 @@ export function parameterToProjectConfigMap(param: string) {
       return currentProjectConf.env;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
+    case "idf.adapterTargetName":
+      return currentProjectConf.idfTarget;
     case "idf.monitorBaudRate":
       return currentProjectConf.monitorBaudRate;
     case "idf.openOcdDebugLevel":
@@ -85,6 +87,8 @@ export function parameterToProjectConfigMap(param: string) {
       return currentProjectConf.tasks.preBuild;
     case "idf.postFlashTask":
       return currentProjectConf.tasks.postFlash;
+    case "idf.sdkconfigFilePath":
+      return currentProjectConf.build.sdkconfigFilePath;
     default:
       return "";
   }
@@ -258,6 +262,9 @@ export function resolveVariables(
     }
     if (scope && match.indexOf("workspaceFolder") > 0) {
       return scope instanceof vscode.Uri ? scope.fsPath : scope.uri.fsPath;
+    }
+    if (match.indexOf("execPath") > 0) {
+      return process.execPath;
     }
     return match;
   });

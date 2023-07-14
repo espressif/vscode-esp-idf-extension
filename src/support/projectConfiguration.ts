@@ -20,18 +20,19 @@ import { ESP } from "../config";
 import { ProjectConfElement } from "../project-conf/projectConfiguration";
 import { reportObj } from "./types";
 
-export function getProjectConfigurations(reportedResult: reportObj) {
-  let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
-  let projectConfObj: { [key: string]: ProjectConfElement } = {};
-
-  if (projectConfKeys && projectConfKeys.length) {
-    for (const confKey of projectConfKeys) {
-      projectConfObj[confKey] = ESP.ProjectConfiguration.store.get<
-        ProjectConfElement
-      >(confKey);
-    }
+export async function getProjectConfigurations(reportedResult: reportObj) {
+  const currentProjectConfKey = ESP.ProjectConfiguration.store.get<string>(
+    ESP.ProjectConfiguration.SELECTED_CONFIG
+  );
+  if (!currentProjectConfKey) {
+    return "";
   }
-  reportedResult.projectConfigurations = projectConfObj;
+  const currentProjectConf = ESP.ProjectConfiguration.store.get<
+    ProjectConfElement
+  >(currentProjectConfKey);
+  reportedResult.projectConfigurations = {
+    currentProjectConfKey: currentProjectConf,
+  };
 }
 
 export function getSelectedProjectConfiguration(reportedResult: reportObj) {

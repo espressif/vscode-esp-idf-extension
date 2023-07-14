@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { extensionContext, getConfigValueFromSDKConfig, getEspIdfVersion } from "../utils";
+import { extensionContext, getConfigValueFromSDKConfig, getEspIdfFromCMake } from "../utils";
 import { readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
@@ -112,8 +112,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
   const idfPath =
     readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
-  const gitPath = readParameter("idf.gitPath", workspacePath) || "git";
-  let idfVersion = "v" + (await getEspIdfVersion(idfPath, gitPath));
+  let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = readParameter("idf.adapterTargetName", workspacePath);
   if (idfTarget === "custom") {
     idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);

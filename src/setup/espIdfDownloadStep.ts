@@ -14,11 +14,11 @@
 
 import { pathExists } from "fs-extra";
 import * as vscode from "vscode";
+import { ESP } from "../config";
 import { checkPythonExists, checkPipExists } from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import * as utils from "../utils";
 import {
-  IdfMirror,
   IEspIdfLink,
   SetupMode,
   StatusType,
@@ -35,7 +35,7 @@ export async function expressInstall(
   espIdfPath: string,
   idfContainerPath: string,
   toolsPath: string,
-  mirror: IdfMirror,
+  mirror: ESP.IdfMirror,
   saveScope: vscode.ConfigurationTarget,
   setupMode: SetupMode,
   gitPath?: string,
@@ -69,7 +69,7 @@ export async function expressInstall(
       cancelToken
     );
   }
-  const idfVersion = await utils.getEspIdfVersion(idfPath, gitPath);
+  const idfVersion = await utils.getEspIdfFromCMake(idfPath);
   if (idfVersion === "x.x") {
     throw new Error("Invalid ESP-IDF");
   }

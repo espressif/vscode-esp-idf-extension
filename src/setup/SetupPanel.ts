@@ -15,12 +15,12 @@
 import { LocDictionary } from "../localizationDictionary";
 import { ISetupInitArgs } from "./setupInit";
 import {
-  IdfMirror,
   IEspIdfLink,
   IEspIdfTool,
   SetupMode,
   StatusType,
 } from "../views/setup/types";
+import { ESP } from "../config";
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
@@ -345,7 +345,7 @@ export class SetupPanel {
     pyPath: string,
     espIdfPath: string,
     idfContainerPath: string,
-    mirror: IdfMirror,
+    mirror: ESP.IdfMirror,
     saveScope: vscode.ConfigurationTarget,
     setupMode: SetupMode,
     onReqPkgs?: string[]
@@ -455,7 +455,7 @@ export class SetupPanel {
     pyPath: string,
     toolsPath: string,
     gitPath: string,
-    mirror: IdfMirror,
+    mirror: ESP.IdfMirror,
     saveScope: vscode.ConfigurationTarget,
     onReqPkgs?: string[]
   ) {

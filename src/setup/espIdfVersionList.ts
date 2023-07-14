@@ -17,7 +17,7 @@ import { EOL, tmpdir } from "os";
 import { Logger } from "../logger/logger";
 import { readFile } from "fs-extra";
 import { OutputChannel } from "../logger/outputChannel";
-import { IEspIdfLink } from "../views/setup/types";
+import { IEspIdfLink, IdfMirror } from "../views/setup/types";
 import { ESP } from "../config";
 import axios from "axios";
 
@@ -39,13 +39,12 @@ export async function downloadEspIdfVersionList(
   extensionPath: string
 ) {
   try {
-    const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
-    const downloadMessage = await downloadManager.downloadFile(
+    await downloadManager.downloadWithRetries(
       ESP.URL.IDF_VERSIONS,
-      0,
-      tmpdir()
+      tmpdir(),
+      undefined
     );
-    Logger.info(downloadMessage.statusMessage);
+    const idfVersionList = path.join(tmpdir(), "idf_versions.txt");
     const fileContent = await readFile(idfVersionList);
     const versionList = fileContent.toString().trim().split("\n");
     return createEspIdfLinkList(versionList);
@@ -71,13 +70,23 @@ export async function downloadEspIdfVersionList(
 
 export async function getEspIdfTags() {
   try {
-    const idfTagsResponse = await axios.get(
-      "https://api.github.com/repos/espressif/esp-idf/tags"
-    );
-    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name );
+    const urlToUse = "https://api.github.com/repos/espressif/esp-idf/tags";
+    const idfTagsResponse = await axios.get<{ name: string }[]>(urlToUse);
+    const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);
   } catch (error) {
     OutputChannel.appendLine(`Error getting ESP-IDF Tags. Error: ${error}`);
+    try {
+      const idfTagsResponse = await axios.get<{ name: string }[]>(
+        "https://gitee.com/api/v5/repos/EspressifSystems/esp-idf/tags"
+      );
+      const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
+      return createEspIdfLinkList(tagsStrList);
+    } catch (fallbackError) {
+      OutputChannel.appendLine(
+        `Error getting Gitee ESP-IDF Tags. Error: ${fallbackError}`
+      );
+    }
   }
 }
 

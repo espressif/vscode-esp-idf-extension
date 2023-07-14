@@ -27,6 +27,7 @@ import {
   TaskScope,
   workspace,
   Uri,
+  workspace,
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
@@ -107,6 +108,9 @@ export class IdfSizeTask {
       "idf.notificationSilentMode",
       this.curWorkspace
     ) as boolean;
+    const curWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === this.curWorkspace
+    );
     const showTaskOutput = isSilentMode
       ? TaskRevealKind.Always
       : TaskRevealKind.Silent;
@@ -118,7 +122,7 @@ export class IdfSizeTask {
     } as TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Size", taskId: "idf-size-task" },
-      TaskScope.Workspace,
+      curWorkspaceFolder || TaskScope.Workspace,
       "ESP-IDF Size",
       sizeExecution,
       ["espIdf"],

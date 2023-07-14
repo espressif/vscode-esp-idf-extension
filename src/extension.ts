@@ -127,8 +127,12 @@ import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
-import { ProjectConfigStore } from "./project-conf";
+import {
+  getProjectConfigurationElements,
+  ProjectConfigStore,
+} from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
+import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -217,7 +221,7 @@ const minIdfVersionCheck = async function (
     workspace
   ) as string;
   const gitPath = idfConf.readParameter("idf.gitPath", workspace) || "git";
-  const currentVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
+  const currentVersion = await utils.getEspIdfFromCMake(espIdfPath);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
@@ -701,6 +705,10 @@ export async function activate(context: vscode.ExtensionContext) {
     getEspMatter(workspaceRoot)
   );
 
+  registerIDFCommand("espIdf.getEspRainmaker", async () =>
+    getEspRainmaker(workspaceRoot)
+  );
+
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {
     const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
     let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
@@ -903,7 +911,10 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       try {
         if (projectConfigurationPanel.isCreatedAndHidden()) {
-          projectConfigurationPanel.createOrShow(context.extensionPath);
+          projectConfigurationPanel.createOrShow(
+            context.extensionPath,
+            workspaceRoot
+          );
           return;
         }
         await vscode.window.withProgress(
@@ -916,7 +927,10 @@ export async function activate(context: vscode.ExtensionContext) {
             progress: vscode.Progress<{ message: string; increment: number }>
           ) => {
             try {
-              projectConfigurationPanel.createOrShow(context.extensionPath);
+              projectConfigurationPanel.createOrShow(
+                context.extensionPath,
+                workspaceRoot
+              );
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }
@@ -930,7 +944,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.projectConf", async () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const projectConfigurations = ESP.ProjectConfiguration.store.getKeys();
+      const projectConfigurations = await getProjectConfigurationElements(
+        workspaceRoot
+      );
       if (!projectConfigurations) {
         const emptyOption = await vscode.window.showInformationMessage(
           "No project configuration found",
@@ -945,7 +961,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "extension.selectConfigMessage",
         "Select configuration to use:"
       );
-      let quickPickItems = projectConfigurations.map((k) => {
+      let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
           label: `Configuration ${k}`,
@@ -966,6 +982,10 @@ export async function activate(context: vscode.ExtensionContext) {
       ESP.ProjectConfiguration.store.set(
         ESP.ProjectConfiguration.SELECTED_CONFIG,
         option.target
+      );
+      ESP.ProjectConfiguration.store.set(
+        option.target,
+        projectConfigurations[option.target]
       );
       if (statusBarItems["projectConf"]) {
         statusBarItems["projectConf"].dispose();
@@ -1689,6 +1709,9 @@ export async function activate(context: vscode.ExtensionContext) {
             const matterPathDir = idfConf.readParameter(
               "idf.espMatterPath"
             ) as string;
+            const rainmakerPathDir = idfConf.readParameter(
+              "idf.espRainmakerPath"
+            ) as string;
 
             const pickItems = [];
             const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
@@ -1723,6 +1746,16 @@ export async function activate(context: vscode.ExtensionContext) {
                 description: "ESP-Matter",
                 label: `Use current ESP-Matter (${matterPathDir})`,
                 target: matterPathDir,
+              });
+            }
+            const doesEspRainmakerPathExists = await utils.dirExistPromise(
+              rainmakerPathDir
+            );
+            if (doesEspRainmakerPathExists) {
+              pickItems.push({
+                description: "ESP-Rainmaker",
+                label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
+                target: rainmakerPathDir,
               });
             }
             const examplesFolder = await vscode.window.showQuickPick(
@@ -2628,6 +2661,14 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.monitorNoReset",
           workspaceRoot
         ) as boolean;
+        const enableTimestamps = idfConf.readParameter(
+          "idf.monitorEnableTimestamps",
+          workspaceRoot
+        ) as boolean;
+        const customTimestampFormat = idfConf.readParameter(
+          "idf.monitorCustomTimestampFormat",
+          workspaceRoot
+        ) as string;
         const shellPath = idfConf.readParameter(
           "idf.customTerminalExecutable",
           workspaceRoot
@@ -2645,6 +2686,8 @@ export async function activate(context: vscode.ExtensionContext) {
           idfMonitorToolPath,
           idfVersion,
           noReset,
+          enableTimestamps,
+          customTimestampFormat,
           elfFilePath,
           wsPort,
           workspaceFolder: workspaceRoot,
@@ -3208,7 +3251,11 @@ const flash = (
   });
 };
 
-function createQemuMonitor(noReset: boolean = false) {
+function createQemuMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
@@ -3223,6 +3270,8 @@ function createQemuMonitor(noReset: boolean = false) {
     const idfMonitor = await createNewIdfMonitor(
       workspaceRoot,
       noReset,
+      enableTimestamps,
+      customTimestampFormat,
       serialPort
     );
     if (monitorTerminal) {
@@ -3298,7 +3347,8 @@ async function selectFlashMethod() {
   await idfConf.writeParameter(
     "idf.flashType",
     newFlashType,
-    vscode.ConfigurationTarget.WorkspaceFolder
+    vscode.ConfigurationTarget.WorkspaceFolder,
+    workspaceRoot
   );
   return newFlashType;
 }
@@ -3375,12 +3425,29 @@ function createMonitor() {
       "idf.monitorNoReset",
       workspaceRoot
     ) as boolean;
-    await createIdfMonitor(noReset);
+    const enableTimestamps = idfConf.readParameter(
+      "idf.monitorEnableTimestamps",
+      workspaceRoot
+    ) as boolean;
+    const customTimestampFormat = idfConf.readParameter(
+      "idf.monitorCustomTimestampFormat",
+      workspaceRoot
+    ) as string;
+    await createIdfMonitor(noReset, enableTimestamps, customTimestampFormat);
   });
 }
 
-async function createIdfMonitor(noReset: boolean = false) {
-  const idfMonitor = await createNewIdfMonitor(workspaceRoot, noReset);
+async function createIdfMonitor(
+  noReset: boolean = false,
+  enableTimestamps: boolean = false,
+  customTimestampFormat: string = ""
+) {
+  const idfMonitor = await createNewIdfMonitor(
+    workspaceRoot,
+    noReset,
+    enableTimestamps,
+    customTimestampFormat
+  );
   if (monitorTerminal) {
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     monitorTerminal.sendText(`exit`);

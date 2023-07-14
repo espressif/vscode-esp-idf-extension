@@ -24,6 +24,7 @@ import {
   TaskRevealKind,
   TaskScope,
   Uri,
+  workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
@@ -115,13 +116,16 @@ export class CustomTask {
       clear: false,
       panel: TaskPanelKind.Dedicated
     } as TaskPresentationOptions;
+    const curWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
+    );
     TaskManager.addTask(
       {
         type: "esp-idf",
         command: `ESP-IDF ${taskName}`,
         taskId: `idf-${taskType}-task`,
       },
-      TaskScope.Workspace,
+      curWorkspaceFolder || TaskScope.Workspace,
       `ESP-IDF ${taskName}`,
       customExecution,
       ["espIdf"],

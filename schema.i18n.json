@@ -111,6 +111,7 @@
     "espIdf.getEspAdf.title",
     "espIdf.getEspMdf.title",
     "espIdf.getEspMatter.title",
+    "espIdf.getEspRainmaker.title",
     "espIdf.installEspMatterPyReqs.title",
     "espIdf.installPyReqs.title",
     "espIdf.openDocUrl.title",
@@ -151,6 +152,7 @@
     "param.espAdfPath",
     "param.espMdfPath",
     "param.espMatterPath",
+    "param.espRainmakerPath",
     "param.toolsPath",
     "param.exportPaths",
     "param.exportVars",
@@ -167,6 +169,8 @@
     "param.sdkconfigDefaults",
     "param.monitorStartDelayBeforeDebug",
     "param.monitorNoReset",
+    "param.monitorEnableTimestamps",
+    "param.monitorCustomTimestampFormat",
     "view.components.name",
     "configuration.title",
     "espIdf.apptrace.archive.refresh.title",
@@ -223,6 +227,7 @@
     "param.svdFile",
     "param.deleteComponentsOnFullClean",
     "param.enableStatusBar.title",
-    "param.enableSizeTaskAfterBuildTask.title"
+    "param.enableSizeTaskAfterBuildTask.title",
+    "param.sdkconfigFilePath.title"
   ]
 }

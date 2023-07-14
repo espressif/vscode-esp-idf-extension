@@ -31,12 +31,19 @@ export namespace ESP {
     export let store: ProjectConfigStore;
     export const CONFIGURATION_LIST_KEY = "PROJECT_CONFIGURATION_KEYS";
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
+    export const PROJECT_CONFIGURATION_FILENAME =
+      "esp_idf_project_configuration.json";
   }
 
   export enum FlashType {
     JTAG = "JTAG",
     UART = "UART",
     DFU = "DFU",
+  }
+
+  export enum IdfMirror {
+    Espressif,
+    Github,
   }
 
   export namespace GlobalConfiguration {
@@ -50,6 +57,7 @@ export namespace ESP {
     "idf.espAdfPath",
     "idf.espMatterPath",
     "idf.espMdfPath",
+    "idf.espRainmakerPath",
     "idf.gitPath",
     "idf.pythonBinPath",
     "idf.port",
@@ -81,12 +89,12 @@ export namespace ESP {
     export const IDF_VERSIONS =
       "https://dl.espressif.com/dl/esp-idf/idf_versions.txt";
     export namespace IDF_EMBED_GIT {
-      export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-2.30.1-win64.zip`;
-      export const VERSION = "2.30.1";
+      export const VERSION = "2.39.2";
+      export const IDF_EMBED_GIT_URL = `https://dl.espressif.com/dl/idf-git/idf-git-${VERSION}-win64.zip`;
     }
     export namespace IDF_EMBED_PYTHON {
-      export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-3.8.7-embed-win64.zip`;
-      export const VERSION = "3.8.7";
+      export const VERSION = "3.11.2";
+      export const IDF_EMBED_PYTHON_URL = `https://dl.espressif.com/dl/idf-python/idf-python-${VERSION}-embed-win64.zip`;
     }
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";

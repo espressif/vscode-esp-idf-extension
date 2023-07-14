@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "Espressif IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -93,6 +93,7 @@
     "onCommand:espIdf.getEspAdf",
     "onCommand:espIdf.getEspMdf",
     "onCommand:espIdf.getEspMatter",
+    "onCommand:espIdf.getEspRainmaker",
     "onCommand:espIdf.installEspMatterPyReqs",
     "onCommand:espIdf.installPyReqs",
     "onCommand:esp.webview.open.partition-table",
@@ -402,6 +403,12 @@
             "description": "%param.toolsPath%",
             "scope": "resource"
           },
+          "idf.espRainmakerPath": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
+            "scope": "resource"
+          },
           "idf.espIdfPathWin": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -430,6 +437,12 @@
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
             "description": "%param.toolsPath%",
+            "scope": "resource"
+          },
+          "idf.espRainmakerPathWin": {
+            "type": "string",
+            "default": "${env:RMAKER_PATH}",
+            "description": "%param.espRainmakerPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -847,6 +860,18 @@
             "scope": "resource",
             "description": "%param.monitorNoReset%"
           },
+          "idf.monitorEnableTimestamps": {
+            "type": "boolean",
+            "default": false,
+            "scope": "resource",
+            "description": "%param.monitorEnableTimestamps%"
+          },
+          "idf.monitorCustomTimestampFormat": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "description": "%param.monitorCustomTimestampFormat%"
+          },
           "idf.enableStatusBar": {
             "type": "boolean",
             "description": "%param.enableStatusBar.title%",
@@ -870,6 +895,12 @@
             "description": "%param.customTerminalExecutableArgs.title%",
             "scope": "resource",
             "default": []
+          },
+          "idf.sdkconfigFilePath": {
+            "type": "string",
+            "description": "%param.sdkconfigFilePath.title%",
+            "scope": "resource",
+            "default": ""
           }
         }
       }
@@ -1093,6 +1124,11 @@
       {
         "command": "espIdf.getEspMatter",
         "title": "%espIdf.getEspMatter.title%"
+      },
+      {
+        "command": "espIdf.getEspRainmaker",
+        "title": "%espIdf.getEspRainmaker.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.installEspMatterPyReqs",

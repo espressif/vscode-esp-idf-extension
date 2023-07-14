@@ -7,17 +7,18 @@ Use the `ESP-IDF: Open Project Configuration` to manage the project configuratio
 `idf.cmakeCompilerArgs`
 `idf.ninjaArgs`
 `idf.buildPath`
+`idf.sdkconfigFilePath`
 `idf.sdkconfigDefaults`
 
 `idf.customExtraVars`
 `idf.adapterTargetName`
-`idf.customAdapterTargetName`
+`idf.flashBaudRate`
+`idf.monitorBaudRate`
 
 `idf.openOcdDebugLevel`
 `idf.openOcdConfigs`
 `idf.openOcdLaunchArgs`
 
-`idf.customTask`
 `idf.preBuildTask`
 `idf.postBuildTask`
 `idf.preFlashTask`

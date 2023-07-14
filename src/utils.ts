@@ -942,6 +942,12 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
   modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
 
+  const rainmakerPathDir = idfConf.readParameter(
+    "idf.espRainmakerPath",
+    curWorkspace
+  );
+  modifiedEnv.RMAKER_PATH = rainmakerPathDir || modifiedEnv.RMAKER_PATH;
+
   const defaultToolsPath = path.join(containerPath, ".espressif");
   const toolsPath = idfConf.readParameter(
     "idf.toolsPath",
@@ -1054,6 +1060,13 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
 
   if (enableComponentManager) {
     modifiedEnv.IDF_COMPONENT_MANAGER = "1";
+  }
+
+  let sdkconfigFilePath = idfConf.readParameter(
+    "idf.sdkconfigFilePath"
+  ) as string;
+  if (sdkconfigFilePath) {
+    modifiedEnv.SDKCONFIG = sdkconfigFilePath;
   }
 
   return modifiedEnv;

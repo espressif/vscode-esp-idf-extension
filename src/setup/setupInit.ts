@@ -251,12 +251,10 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   updateCustomExtraVars(workspaceFolder);
 
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
-  const gitPath =
-    idfConf.readParameter("idf.gitPath", workspaceFolder) || "git";
-  let idfPathVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
+  let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
-    idfPathVersion = await utils.getEspIdfVersion(espIdfPath, gitPath);
+    idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   }
   if (idfPathVersion === "x.x") {
     return false;
