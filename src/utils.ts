@@ -1220,15 +1220,6 @@ export function markdownToWebviewHtml(
   return cleanHtml;
 }
 
-export function isPowershellUser() {
-  const config = vscode.workspace.getConfiguration('terminal.integrated');
-  const defaultTerminal = config.get('defaultProfile.windows');
-  if(defaultTerminal && defaultTerminal === "PowerShell") {
-    return true;
-  }
-  return false;
-}
-
 export function getUserShell() {
   const config = vscode.workspace.getConfiguration('terminal.integrated');
   const shellWindows = config.get('defaultProfile.windows') as string;

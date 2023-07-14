@@ -30,7 +30,7 @@ import {
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath, getUserShell, isPowershellUser } from "../../utils";
+import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import { get } from "http";
 

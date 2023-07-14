@@ -21,7 +21,7 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath, isPowershellUser } from "../utils";
+import { appendIdfAndToolsToPath, isBinInPath, getUserShell } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
@@ -82,7 +82,7 @@ export class BuildTask {
       this.curWorkspace
     ) as string;
     // For PowerShell users, single quotes needs to be used and & before the command
-    const command = isPowershellUser() ? 
+    const command = (getUserShell() === "PowerShell") ? 
       `& '${pythonBinPath}' '${join(
         this.idfPathDir,
         'tools',

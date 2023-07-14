@@ -21,7 +21,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile, isPowershellUser } from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile, getUserShell } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
@@ -160,7 +160,7 @@ export class FlashTask {
       "dfu.bin"
     )}"`;
     // replaces double quotes with single quotes for PowerShell users
-    if(isPowershellUser()){
+    if(getUserShell() === "PowerShell"){
       command = command.replace(/"/g, "'");
     }
     return new vscode.ShellExecution(command);
