@@ -19,6 +19,7 @@ import { TestItem, Uri } from "vscode";
 
 export interface EspIdfTestItem {
   id: string;
+  testName: string;
   type: string;
   label: string;
   children?: EspIdfTestItem[];

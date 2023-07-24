@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import { lstat, readFile, readdir } from "fs-extra";
-import { basename, relative, resolve } from "path";
+import { readFile } from "fs-extra";
+import { basename } from "path";
 import {
   ExtensionContext,
   TestController,
@@ -30,10 +30,10 @@ import {
   TestItem,
   TestMessage,
   workspace,
-  RelativePattern,
 } from "vscode";
 import { EspIdfTestItem, idfTestData } from "./tree";
 import { readParameter } from "../../idfConfiguration";
+import { configurePyTestUnitApp, runPyTestWithTestCase } from "./testExecution";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
@@ -41,6 +41,7 @@ const unitTestControllerLabel = "ESP-IDF Unit test controller";
 export class UnitTest {
   public unitTestController: TestController;
   private testCaseRegex: RegExp;
+  private components: string[];
 
   constructor(context: ExtensionContext) {
     this.unitTestController = tests.createTestController(
@@ -54,34 +55,105 @@ export class UnitTest {
       cancelToken?: CancellationToken
     ) => {
       const fileList = await this.getFileList();
+      this.components = await this.getTestComponents(fileList);
       await this.loadTests(fileList);
+    };
+
+    const runHandler = async (
+      request: TestRunRequest,
+      cancelToken: CancellationToken
+    ) => {
+      const testRun = this.unitTestController.createTestRun(request);
+      const queue: TestItem[] = [];
+
+      if (request.include) {
+        request.include.forEach((test) => queue.push(test));
+      } else {
+        this.unitTestController.items.forEach((t) => queue.push(t));
+      }
+
+      const workspaceFolder = workspace.workspaceFolders
+        ? workspace.workspaceFolders[0]
+        : undefined;
+
+      if (!workspaceFolder) {
+        return;
+      }
+      const unitTestAppUri = await configurePyTestUnitApp(
+        workspaceFolder.uri,
+        this.components,
+        cancelToken
+      );
+
+      while (queue.length > 0 && !cancelToken.isCancellationRequested) {
+        const test = queue.pop();
+
+        if (request.exclude?.includes(test)) {
+          continue;
+        }
+
+        const idfTestitem = idfTestData.get(test);
+
+        if (testRun.token.isCancellationRequested) {
+          testRun.skipped(test);
+        } else if (idfTestitem.type !== "suite") {
+          testRun.appendOutput(`Running ${test.id}\r\n`);
+          testRun.started(test);
+          const startTime = Date.now();
+          try {
+            const result = await runPyTestWithTestCase(
+              unitTestAppUri,
+              idfTestitem.testName,
+              cancelToken
+            );
+            result
+              ? testRun.passed(test, Date.now() - startTime)
+              : testRun.failed(
+                  test,
+                  new TestMessage("Error in test"),
+                  Date.now() - startTime
+                );
+          } catch (error) {
+            testRun.failed(
+              test,
+              new TestMessage(error.message),
+              Date.now() - startTime
+            );
+          }
+          testRun.appendOutput(`Completed ${test.id}\r\n`);
+        }
+        test.children.forEach((t) => queue.push(t));
+      }
+      testRun.end();
     };
 
     this.unitTestController.createRunProfile(
       "Run Tests",
       TestRunProfileKind.Run,
-      this.runHandler,
+      runHandler,
       true,
       undefined,
-      true
+      false
     );
 
     this.unitTestController.resolveHandler = async (item: TestItem) => {
       if (!item) {
         const fileList = await this.getFileList();
+        this.components = await this.getTestComponents(fileList);
         await this.loadTests(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
       for (const child of espIdfTestItem.children) {
-        item.children.add(
-          this.unitTestController.createTestItem(
-            child.id,
-            child.label,
-            child.uri
-          )
+        const childItem = this.unitTestController.createTestItem(
+          child.id,
+          child.label,
+          child.uri
         );
+        item.children.add(childItem);
+        idfTestData.set(childItem, child);
       }
+      idfTestData.set(item, espIdfTestItem);
       this.unitTestController.items.add(item);
     };
     context.subscriptions.push(this.unitTestController);
@@ -109,49 +181,10 @@ export class UnitTest {
       filePath: file.fsPath,
       children: [],
       uri: file,
+      testName: "TEST_ALL",
     };
+    idfTestData.set(testItem, espIdfTestItem);
     return { testItem, espIdfTestItem };
-  }
-
-  async runHandler(request: TestRunRequest, cancelToken: CancellationToken) {
-    const testRun = this.unitTestController.createTestRun(request);
-    const queue: TestItem[] = [];
-
-    if (request.include) {
-      request.include.forEach((test) => queue.push(test));
-    } else {
-      this.unitTestController.items.forEach((t) => queue.push(t));
-    }
-
-    while (queue.length > 0 && !cancelToken.isCancellationRequested) {
-      const test = queue.pop();
-
-      if (request.exclude?.includes(test)) {
-        continue;
-      }
-
-      const idfTestitem = idfTestData.get(test);
-      if (testRun.token.isCancellationRequested) {
-        testRun.skipped(test);
-      } else {
-        testRun.appendOutput(`Running ${test.id}\r\n`);
-        testRun.started(test);
-        const startTime = Date.now();
-        try {
-          // add actual test execution here
-          testRun.passed(test, Date.now() - startTime);
-        } catch (error) {
-          testRun.failed(
-            test,
-            new TestMessage(error.message),
-            Date.now() - startTime
-          );
-        }
-        testRun.appendOutput(`Completed ${test.id}\r\n`);
-      }
-      test.children.forEach((t) => queue.push(t));
-    }
-    testRun.end();
   }
 
   private async getFileList(): Promise<Uri[]> {
@@ -159,12 +192,23 @@ export class UnitTest {
 
     try {
       const fileRegexStr = readParameter("idf.testFileRegex") as string;
-      files = await workspace.findFiles("**/test_*.c");
+      files = await workspace.findFiles("**/test/test_*.c");
     } catch (err) {
       window.showErrorMessage("Cannot find test result path!", err);
       return [];
     }
     return files;
+  }
+
+  private async getTestComponents(files: Uri[]): Promise<string[]> {
+    let componentsList: string[] = [];
+    files.map((match) => {
+      const componentName = basename(match.fsPath.split("/test/test_")[0]);
+      if (!componentsList.includes(componentName)) {
+        componentsList.push(componentName);
+      }
+    });
+    return componentsList;
   }
 
   async getTestsForFile(file: Uri) {
@@ -175,6 +219,7 @@ export class UnitTest {
       label: fileLabel,
       filePath: file.fsPath,
       children: [],
+      testName: "TEST_ALL",
     };
     const testRegex = new RegExp(this.testCaseRegex, "gm");
     const fileText = await readFile(file.fsPath, "utf8");
@@ -188,11 +233,12 @@ export class UnitTest {
         match[0].substring(0, match[0].search(/\S/g)).split("\n").length -
         1;
       currentTestSuiteInfo.children.push({
-        type: "test",
         id: file.toString() + "::" + testName,
         label: testLabel,
-        uri: file,
         line: line,
+        uri: file,
+        testName,
+        type: "test",
       } as EspIdfTestItem);
       match = testRegex.exec(fileText);
     }
