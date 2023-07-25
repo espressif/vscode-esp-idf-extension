@@ -98,39 +98,45 @@ export class ComponentManagerUIPanel {
   }
 
   private async onMessage(message: IMessage) {
-    switch (message.message) {
-      case "install":
-        if (!message.dependency) return;
-        const component = message.component || "main";
-        addDependency(this.workspaceRoot, message.dependency, component);
-        break;
-  
-      case "create-project-from-example":
-        if (!message.example) return;
-  
-        const selectedFolder = await vscode.window.showOpenDialog({
-          canSelectFolders: true,
-          canSelectFiles: false,
-          canSelectMany: false,
-        });
-        
-        if (!selectedFolder) return;
-  
+  switch (message.message) {
+    case "install":
+      if (!message.dependency) return;
+      const component = message.component || "main";
+      addDependency(this.workspaceRoot, message.dependency, component);
+      break;
+
+    case "create-project-from-example":
+      if (!message.example) return;
+
+      const selectedFolder = await vscode.window.showOpenDialog({
+        canSelectFolders: true,
+        canSelectFiles: false,
+        canSelectMany: false,
+      });
+      
+      if(!selectedFolder) {
+        return;
+      }
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Creating project...",
+        cancellable: false
+      }, async () => {
         await createProject(selectedFolder[0], message.example);
-  
         const match = message.example.match(/(?<=:).*/);
-        if (!match) return;
-  
+        if(!match) {
+          return;
+        }
         let projectName = (process.platform === "win32" ? "\\" : "/") + match[0];
         const projectPath = vscode.Uri.file(selectedFolder[0].fsPath + projectName);
-  
         await vscode.commands.executeCommand("vscode.openFolder", projectPath ,{ forceNewWindow: true});
-        break;
-  
-      default:
-        break;
-    }
+      });
+      break;
+
+    default:
+      break;
   }
+}
 
   private initWebView(url: string): string {
     return `<!DOCTYPE html>
