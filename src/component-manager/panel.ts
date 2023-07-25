@@ -107,8 +107,6 @@ export class ComponentManagerUIPanel {
   
       case "create-project-from-example":
         if (!message.example) return;
-
-        vscode.window.showErrorMessage("This is an error, Radu");
   
         const selectedFolder = await vscode.window.showOpenDialog({
           canSelectFolders: true,
@@ -126,7 +124,7 @@ export class ComponentManagerUIPanel {
         let projectName = (process.platform === "win32" ? "\\" : "/") + match[0];
         const projectPath = vscode.Uri.file(selectedFolder[0].fsPath + projectName);
   
-        vscode.commands.executeCommand("vscode.openFolder", projectPath);
+        await vscode.commands.executeCommand("vscode.openFolder", projectPath ,{ forceNewWindow: true});
         break;
   
       default:
