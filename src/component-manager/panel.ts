@@ -20,7 +20,15 @@ import { join } from "path";
 import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { ESP } from "../config";
 import { readParameter } from "../idfConfiguration";
-import { addDependency } from "./utils";
+import { addDependency, createProject } from "./utils";
+import * as vscode from "vscode";
+
+interface IMessage {
+  message: string;
+  example?: string;
+  dependency?: string;
+  component?: string;
+}
 
 export class ComponentManagerUIPanel {
   private static instance: ComponentManagerUIPanel;
@@ -88,18 +96,44 @@ export class ComponentManagerUIPanel {
     );
     this.panel.webview.html = this.initWebView(url);
   }
-  private onMessage(message: any) {
+
+  private async onMessage(message: IMessage) {
     switch (message.message) {
       case "install":
-        if (message.dependency) {
-          const component = message.component || "main";
-          addDependency(this.workspaceRoot, message.dependency, component);
-        }
+        if (!message.dependency) return;
+        const component = message.component || "main";
+        addDependency(this.workspaceRoot, message.dependency, component);
         break;
+  
+      case "create-project-from-example":
+        if (!message.example) return;
+
+        vscode.window.showErrorMessage("This is an error, Radu");
+  
+        const selectedFolder = await vscode.window.showOpenDialog({
+          canSelectFolders: true,
+          canSelectFiles: false,
+          canSelectMany: false,
+        });
+        
+        if (!selectedFolder) return;
+  
+        await createProject(selectedFolder[0], message.example);
+  
+        const match = message.example.match(/(?<=:).*/);
+        if (!match) return;
+  
+        let projectName = (process.platform === "win32" ? "\\" : "/") + match[0];
+        const projectPath = vscode.Uri.file(selectedFolder[0].fsPath + projectName);
+  
+        vscode.commands.executeCommand("vscode.openFolder", projectPath);
+        break;
+  
       default:
         break;
     }
   }
+
   private initWebView(url: string): string {
     return `<!DOCTYPE html>
 <html lang="en">
