@@ -44,5 +44,6 @@
 - [Setup Process](./SETUP.md)
 - [SystemView Tracing](./SYS_VIEW_TRACING_VIEWER.md)
 - [Rainmaker](./ESP_RAINMAKER.md)
-- [Working with Multiple Projects](./MULTI_PROJECTS.md)
+- [Unit testing with ESP-IDF and Unity](./UNIT_TESTING.md)
+- [Working with multiple projects](./MULTI_PROJECTS.md)
 - [WSL](./WSL.md)

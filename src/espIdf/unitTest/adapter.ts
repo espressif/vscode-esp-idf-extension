@@ -31,31 +31,42 @@ import {
   TestMessage,
   workspace,
 } from "vscode";
-import { EspIdfTestItem, idfTestData } from "./tree";
+import { EspIdfTestItem, idfTestData } from "./types";
 import { readParameter } from "../../idfConfiguration";
-import { configurePyTestUnitApp, runPyTestWithTestCase } from "./testExecution";
+import { runPyTestWithTestCase } from "./testExecution";
+import { configurePyTestUnitApp } from "./configure";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
 
 export class UnitTest {
   public unitTestController: TestController;
-  private testCaseRegex: RegExp;
-  private components: string[];
+  private testComponents: string[];
+  private unitTestAppUri: Uri;
 
   constructor(context: ExtensionContext) {
     this.unitTestController = tests.createTestController(
       unitTestControllerId,
       unitTestControllerLabel
     );
-    const testCaseRegexStr = readParameter("idf.testCaseRegex") as string;
-    this.testCaseRegex = new RegExp(testCaseRegexStr);
 
     this.unitTestController.refreshHandler = async (
       cancelToken?: CancellationToken
     ) => {
       const fileList = await this.getFileList();
-      this.components = await this.getTestComponents(fileList);
+      this.testComponents = await this.getTestComponents(fileList);
+      const workspaceFolder = workspace.workspaceFolders
+        ? workspace.workspaceFolders[0]
+        : undefined;
+
+      if (!workspaceFolder) {
+        return;
+      }
+      this.unitTestAppUri = await configurePyTestUnitApp(
+        workspaceFolder.uri,
+        this.testComponents,
+        cancelToken
+      );
       await this.loadTests(fileList);
     };
 
@@ -72,18 +83,20 @@ export class UnitTest {
         this.unitTestController.items.forEach((t) => queue.push(t));
       }
 
-      const workspaceFolder = workspace.workspaceFolders
-        ? workspace.workspaceFolders[0]
-        : undefined;
+      if (!this.unitTestAppUri) {
+        const workspaceFolder = workspace.workspaceFolders
+          ? workspace.workspaceFolders[0]
+          : undefined;
 
-      if (!workspaceFolder) {
-        return;
+        if (!workspaceFolder) {
+          return;
+        }
+        this.unitTestAppUri = await configurePyTestUnitApp(
+          workspaceFolder.uri,
+          this.testComponents,
+          cancelToken
+        );
       }
-      const unitTestAppUri = await configurePyTestUnitApp(
-        workspaceFolder.uri,
-        this.components,
-        cancelToken
-      );
 
       while (queue.length > 0 && !cancelToken.isCancellationRequested) {
         const test = queue.pop();
@@ -102,7 +115,7 @@ export class UnitTest {
           const startTime = Date.now();
           try {
             const result = await runPyTestWithTestCase(
-              unitTestAppUri,
+              this.unitTestAppUri,
               idfTestitem.testName,
               cancelToken
             );
@@ -139,8 +152,8 @@ export class UnitTest {
     this.unitTestController.resolveHandler = async (item: TestItem) => {
       if (!item) {
         const fileList = await this.getFileList();
-        this.components = await this.getTestComponents(fileList);
         await this.loadTests(fileList);
+        this.testComponents = await this.getTestComponents(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
@@ -189,9 +202,7 @@ export class UnitTest {
 
   private async getFileList(): Promise<Uri[]> {
     let files: Uri[] = [];
-
     try {
-      const fileRegexStr = readParameter("idf.testFileRegex") as string;
       files = await workspace.findFiles("**/test/test_*.c");
     } catch (err) {
       window.showErrorMessage("Cannot find test result path!", err);
@@ -201,14 +212,12 @@ export class UnitTest {
   }
 
   private async getTestComponents(files: Uri[]): Promise<string[]> {
-    let componentsList: string[] = [];
-    files.map((match) => {
+    let componentsList: Set<string> = new Set<string>();
+    files.forEach((match) => {
       const componentName = basename(match.fsPath.split("/test/test_")[0]);
-      if (!componentsList.includes(componentName)) {
-        componentsList.push(componentName);
-      }
+      componentsList.add(componentName);
     });
-    return componentsList;
+    return Array.from(componentsList);
   }
 
   async getTestsForFile(file: Uri) {
@@ -221,7 +230,7 @@ export class UnitTest {
       children: [],
       testName: "TEST_ALL",
     };
-    const testRegex = new RegExp(this.testCaseRegex, "gm");
+    const testRegex = new RegExp("TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)", "gm");
     const fileText = await readFile(file.fsPath, "utf8");
     let match = testRegex.exec(fileText);
     while (match != null) {

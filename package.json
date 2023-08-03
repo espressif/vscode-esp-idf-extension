@@ -913,18 +913,6 @@
             "description": "%param.sdkconfigFilePath.title%",
             "scope": "resource",
             "default": ""
-          },
-          "idf.testFileRegex": {
-            "description": "Regex against which test source files should match.",
-            "type": "string",
-            "default": "test_",
-            "scope": "resource"
-          },
-          "idf.testCaseRegex":{
-            "description": "Test case regex which test should match",
-            "default": "TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)",
-            "type": "string",
-            "scope": "resource"
           }
         }
       }
