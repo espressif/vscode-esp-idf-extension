@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import { get } from "http";
 import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { window, Terminal, Uri, env } from "vscode";
 
