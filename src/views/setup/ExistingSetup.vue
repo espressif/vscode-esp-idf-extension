@@ -44,7 +44,6 @@ import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IdfSetup, SetupMode } from "./types";
 import { router } from "./main";
-import { isVersionLowerThan5 as isVersionLessThan5Util } from "./utils";
 
 @Component
 export default class existingSetup extends Vue {
@@ -61,8 +60,11 @@ export default class existingSetup extends Vue {
     return SetupMode;
   }
 
-  isVersionLowerThan5(version) {
-    return isVersionLessThan5Util(version);
+  isVersionLowerThan5(version: string): boolean {
+    if (!version) return false;
+    const versionParts = version.split(".");
+    const majorVersion = Number(versionParts[0]);
+    return majorVersion < 5;
   }
 
   goTo(route: string, setupMode: SetupMode) {

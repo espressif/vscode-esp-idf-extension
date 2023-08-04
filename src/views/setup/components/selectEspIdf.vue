@@ -69,7 +69,6 @@ import { Component, Vue } from "vue-property-decorator";
 import { IdfMirror, IEspIdfLink } from "../types";
 import { State, Action, Mutation } from "vuex-class";
 import folderOpen from "./folderOpen.vue";
-import { isVersionLowerThan5 } from '../utils';
 
 @Component({
   components: {
@@ -142,8 +141,22 @@ export default class SelectEspIdf extends Vue {
     this.setShowIdfTagList(showTags);
   }
   get isVersionLowerThan5() {
-    return isVersionLowerThan5(this.selectedIdfVersion);
+  if (this.selectedIdfVersion && this.selectedIdfVersion.name) {
+    // Regular expression to match the version number in the format vX.X.X or release/vX.X
+    const match = this.selectedIdfVersion.name.match(/v(\d+(\.\d+)?(\.\d+)?)/);
+    
+    // If a version number was found, parse it
+    if (match) {
+      const versionNumber = parseFloat(match[1]);
+      // Return true if versionNumber is less than 5
+      return versionNumber < 5;
+    } else {
+      // If no version number found, assume it's a development branch and return false
+      return false;
+    }
   }
+  return false;
+}
 
   public clearIDfErrorStatus() {
     this.setEspIdfErrorStatus("");
