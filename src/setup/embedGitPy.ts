@@ -68,7 +68,7 @@ export async function installIdfGit(
     if (!binVersion || binVersion === "Not found") {
       const msg = `Using existing ${idfGitDestPath}`;
       OutputChannel.appendLine(msg);
-      Logger.info(msg)
+      Logger.info(msg);
       return resultGitPath;
     }
   }
@@ -108,28 +108,33 @@ export async function installIdfGit(
 
 export async function installIdfPython(
   idfToolsDir: string,
+  idfVersion: string,
   progress?: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
   const downloadManager = new DownloadManager(idfToolsDir);
   const installManager = new InstallManager(idfToolsDir);
-  const idfPyZipPath = join(
-    idfToolsDir,
-    "dist",
-    basename(ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL)
-  );
+  const pythonURLToUse =
+    idfVersion >= "5.0"
+      ? ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL
+      : ESP.URL.OLD_IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL;
+  const idfPyZipPath = join(idfToolsDir, "dist", basename(pythonURLToUse));
   const pkgProgress = new PackageProgress(
-    basename(ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL),
+    basename(pythonURLToUse),
     sendIdfPythonDownloadProgress,
     null,
     sendIdfPythonDownloadDetail,
     null
   );
+  const pythonVersionToUse =
+    idfVersion >= "5.0"
+      ? ESP.URL.IDF_EMBED_PYTHON.VERSION
+      : ESP.URL.OLD_IDF_EMBED_PYTHON.VERSION;
   const idfPyDestPath = join(
     idfToolsDir,
     "tools",
     "idf-python",
-    ESP.URL.IDF_EMBED_PYTHON.VERSION
+    pythonVersionToUse
   );
   const pyPathExists = await pathExists(idfPyDestPath);
   if (pyPathExists) {
@@ -148,7 +153,7 @@ export async function installIdfPython(
   if (!pyZipPathExists) {
     progress.report({ message: `Downloading ${idfPyZipPath}...` });
     await downloadManager.downloadWithRetries(
-      ESP.URL.IDF_EMBED_PYTHON.IDF_EMBED_PYTHON_URL,
+      pythonURLToUse,
       join(idfToolsDir, "dist"),
       pkgProgress,
       cancelToken
@@ -163,6 +168,10 @@ export async function installIdfPython(
   const extractePyDestMsg = `Extracted ${idfPyDestPath} ...`;
   progress.report({ message: extractePyDestMsg });
   OutputChannel.appendLine(extractePyDestMsg);
-  await spawn(join(idfPyDestPath, "python.exe"), ["-m", "ensurepip", "--upgrade"], { cwd: idfPyDestPath });
+  await spawn(
+    join(idfPyDestPath, "python.exe"),
+    ["-m", "ensurepip", "--upgrade"],
+    { cwd: idfPyDestPath }
+  );
   return join(idfPyDestPath, "python.exe");
 }
