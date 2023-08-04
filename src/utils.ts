@@ -1195,7 +1195,7 @@ export function markdownToWebviewHtml(
 }
 
 export function getUserShell() {
-  if(idfConf.readParameter("idf.customTerminalExecutable")) {
+  if (idfConf.readParameter("idf.customTerminalExecutable")) {
     return "custom";
   }
   const config = vscode.workspace.getConfiguration("terminal.integrated");
