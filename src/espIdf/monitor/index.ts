@@ -102,7 +102,7 @@ export class IDFMonitor {
       args.unshift("&");
     }
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    if(getUserShell() === "bash" || getUserShell() === "zsh") {
+    if(getUserShell() === "bash" || getUserShell() === "zsh" || getUserShell() === "custom") {
       this.terminal.sendText(`${envSetCmd} IDF_PATH="${modifiedEnv.IDF_PATH}"`);
     } else {
       this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);

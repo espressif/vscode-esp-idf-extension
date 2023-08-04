@@ -68,6 +68,7 @@ export class IdfSizeTask {
         break;
       case "bash":
       case "zsh":
+      case "custom":
       default:
         command = `"${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}"`;
         break;

@@ -31,6 +31,9 @@
         <p>Python path: {{ prevSetup.python }}</p>
         <p>IDF Tools path: {{ prevSetup.toolsPath }}</p>
         <p>Git path: {{ prevSetup.gitPath }}</p>
+        <div v-if="isVersionLowerThan5(prevSetup.version)">
+          <span class="warning-text">Whitespaces in project, ESP-IDF and ESP Tools paths are not supported in versions lower than 5.0</span>
+        </div>
       </div>
     </div>
   </div>
@@ -41,6 +44,7 @@ import { Component, Vue } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
 import { IdfSetup, SetupMode } from "./types";
 import { router } from "./main";
+import { isVersionLowerThan5 as isVersionLessThan5Util } from "./utils";
 
 @Component
 export default class existingSetup extends Vue {
@@ -55,6 +59,10 @@ export default class existingSetup extends Vue {
 
   get setupMode() {
     return SetupMode;
+  }
+
+  isVersionLowerThan5(version) {
+    return isVersionLessThan5Util(version);
   }
 
   goTo(route: string, setupMode: SetupMode) {

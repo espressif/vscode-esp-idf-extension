@@ -1195,6 +1195,9 @@ export function markdownToWebviewHtml(
 }
 
 export function getUserShell() {
+  if(idfConf.readParameter("idf.customTerminalExecutable")) {
+    return "custom";
+  }
   const config = vscode.workspace.getConfiguration("terminal.integrated");
   const shellWindows = config.get("defaultProfile.windows") as string;
   const shellMac = config.get("defaultProfile.osx") as string;

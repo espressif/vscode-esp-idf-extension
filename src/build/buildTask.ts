@@ -186,10 +186,7 @@ export class BuildTask {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
 
-      const config = vscode.workspace.getConfiguration('terminal.integrated');
-      const defaultTerminal = config.get('defaultProfile.windows');
-
-      if (defaultTerminal === "PowerShell") {
+      if (getUserShell() === "PowerShell") {
 
         const buidCommand =`-B '${this.buildDirPath}'`;
         compilerArgs.push(buidCommand);
