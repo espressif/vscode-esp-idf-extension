@@ -32,7 +32,7 @@
     - Choose the location for ESP-IDF Tools and python virtual environment (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
       > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
 
-
+> **NOTE**: If you want to use an ESP-IDF version < 5.0, make sure that IDF_PATH and IDF_TOOLS_PATH doesn't have any spaces since they were no suported in previous versions.
 <p>
   <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
 </p>
@@ -64,8 +64,9 @@
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
 </p>
 
+> **NOTE**: > The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path. Again, if chose an ESP-IDF version < 5.0, make sure each ESP-IDF tool path doesn't have any spaces, since they were no suported in previous versions..
 
-1.  Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
+15.  Now that the extension setup is finally done, check the [basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 
 > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review [vscode settings precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
 

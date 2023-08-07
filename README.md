@@ -66,7 +66,8 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
 
   > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information. Default is User settings.
 
-- On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. **NOTE: Make sure that there is no spaces in any configured path since [ESP-IDF build system doesn't support spaces yet.](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#start-a-project)**.
+- On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. 
+  > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
   > **NOTE:** Please take a look at [Install tutorial](./docs/tutorial/install.md) documentation or the [Setup documentation](./docs/SETUP.md) for details about extension setup and configuration.
 
