@@ -168,10 +168,18 @@ export async function installIdfPython(
   const extractePyDestMsg = `Extracted ${idfPyDestPath} ...`;
   progress.report({ message: extractePyDestMsg });
   OutputChannel.appendLine(extractePyDestMsg);
-  await spawn(
-    join(idfPyDestPath, "python.exe"),
-    ["-m", "ensurepip", "--upgrade"],
-    { cwd: idfPyDestPath }
-  );
+  if (idfVersion >= "5.0") {
+    await spawn(
+      join(idfPyDestPath, "python.exe"),
+      ["-m", "ensurepip", "--upgrade"],
+      { cwd: idfPyDestPath }
+    );
+  } else {
+    await spawn(join(idfPyDestPath, "python.exe"),
+    ["-m", "pip", "install", "virtualenv"],
+    {cwd : idfPyDestPath}
+    );
+  }
+  
   return join(idfPyDestPath, "python.exe");
 }

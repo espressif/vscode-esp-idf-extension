@@ -264,9 +264,8 @@ export class SetupPanel {
             });
             SetupPanel.postMessage({
               command: "setEspIdfErrorStatus",
-              errorMsg: `ESP-IDF is installed in ${
-                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
-              }`,
+              errorMsg: `ESP-IDF is installed in ${setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+                }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -375,7 +374,7 @@ export class SetupPanel {
             } else if (selectedIdfVersion.filename === "master") {
               idfVersion = "5.1";
             } else {
-              const matches = selectedIdfVersion.name.match(/v(.+)/g);
+              const matches = selectedIdfVersion.name.split(" ")[0].match(/v(.+)/);
               if (matches && matches.length) {
                 idfVersion = matches[1];
               } else {
@@ -391,8 +390,9 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
+          const pathToCheck = selectedIdfVersion.filename === "manual" ? espIdfPath : idfContainerPath;
           this.checkSpacesInPaths(
-            espIdfPath,
+            pathToCheck,
             toolsPath,
             idfGitPath,
             idfPythonPath
