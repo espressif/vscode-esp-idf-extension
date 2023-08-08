@@ -268,6 +268,11 @@ export const mutations: MutationTree<IState> = {
     newState.espIdfErrorStatus = '';
     Object.assign(state, newState);
   },
+  setEspIdfErrorStatus(state, errorStatus: string) {
+    const newState = state;
+    newState.espIdfErrorStatus = errorStatus;
+    Object.assign(state, newState);
+  },
   setEspIdfVersionList(state, espIdfVersionList: IEspIdfLink[]) {
     const newState = state;
     newState.espIdfVersionList = espIdfVersionList;
@@ -344,6 +349,11 @@ export const mutations: MutationTree<IState> = {
   setPlatform(state, platform: string) {
     const newState = state;
     newState.platform = platform;
+    Object.assign(state, newState);
+  },
+  setPyExecErrorStatus(state, errorStatus: string) {
+    const newState = state;
+    newState.pyExecErrorStatus = errorStatus;
     Object.assign(state, newState);
   },
   setPyReqsLog(state, pyReqsLog: string) {
