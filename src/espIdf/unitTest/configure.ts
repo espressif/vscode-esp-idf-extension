@@ -144,7 +144,7 @@ export async function installPyTestPackages(
 
   await runTaskForCommand(
     workspaceFolder,
-    `"${pythonBinPath}" -m pip install --upgrade --no-warn-script-location -r "${requirementsPath}"`,
+    `"${pythonBinPath}" -m pip install --upgrade --no-warn-script-location -r "${requirementsPath}" --extra-index-url https://dl.espressif.com/pypi`,
     "Install Pytest",
     cancelToken
   );
