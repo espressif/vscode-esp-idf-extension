@@ -436,7 +436,8 @@ export class SetupPanel {
     );
     const updatedToolsInfo = toolsInfo.map((tool) => {
       const isToolVersionCorrect =
-        tool.expected.indexOf(foundVersions[tool.name]) > -1;
+        tool.expected.indexOf(foundVersions[tool.name]) > -1  ||
+        (foundVersions[tool.name] && foundVersions[tool.name] === "No command version");
       tool.doesToolExist = isToolVersionCorrect;
       if (isToolVersionCorrect) {
         tool.progress = "100.00%";
