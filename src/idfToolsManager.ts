@@ -59,7 +59,7 @@ export class IdfToolsManager {
     private platformInfo: PlatformInformation,
     private toolsManagerChannel: vscode.OutputChannel,
     public espIdfPath: string
-  ) {}
+  ) { }
 
   public getPackageList(onReqPkgs?: string[]): Promise<IPackage[]> {
     return new Promise<IPackage[]>((resolve, reject) => {
@@ -158,10 +158,10 @@ export class IdfToolsManager {
       Object.getOwnPropertyNames(versions[0]).indexOf("any") > -1
         ? (versions[0]["any"] as IFileInfo)
         : Object.getOwnPropertyNames(versions[0]).indexOf(
-            this.platformInfo.platformToUse
-          ) > -1
-        ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
-        : (versions[0][this.platformInfo.fallbackPlatform] as IFileInfo);
+          this.platformInfo.platformToUse
+        ) > -1
+          ? (versions[0][this.platformInfo.platformToUse] as IFileInfo)
+          : (versions[0][this.platformInfo.fallbackPlatform] as IFileInfo);
     return linkInfo;
   }
 
@@ -336,7 +336,7 @@ export class IdfToolsManager {
       const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
       let isToolVersionCorrect =
         expectedVersions.indexOf(versions[pkg.name]) > -1 ||
-        versions[pkg.name] === "No command version";
+        (versions[pkg.name] && versions[pkg.name] === "No command version");
       const versionToUse = this.getVersionToUse(pkg);
       let pkgExportedPath: string = "";
       let pkgVars = pkg.export_vars;

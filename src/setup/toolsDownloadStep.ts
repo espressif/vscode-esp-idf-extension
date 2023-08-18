@@ -43,7 +43,7 @@ export async function downloadIdfTools(
   );
   const requiredTools = await idfToolsManager.getRequiredToolsInfo(
     toolsPath,
-    exportPaths,
+    undefined,
     onReqPkgs
   );
   SetupPanel.postMessage({
