@@ -35,6 +35,7 @@ import { EspIdfTestItem, idfTestData } from "./types";
 import { readParameter } from "../../idfConfiguration";
 import { runPyTestWithTestCase } from "./testExecution";
 import { configurePyTestUnitApp } from "./configure";
+import { getFileList, getTestComponents } from "./utils";
 
 const unitTestControllerId = "IDF_UNIT_TEST_CONTROLLER";
 const unitTestControllerLabel = "ESP-IDF Unit test controller";
@@ -53,8 +54,8 @@ export class UnitTest {
     this.unitTestController.refreshHandler = async (
       cancelToken?: CancellationToken
     ) => {
-      const fileList = await this.getFileList();
-      this.testComponents = await this.getTestComponents(fileList);
+      const fileList = await getFileList();
+      this.testComponents = await getTestComponents(fileList);
       const workspaceFolder = workspace.workspaceFolders
         ? workspace.workspaceFolders[0]
         : undefined;
@@ -151,9 +152,9 @@ export class UnitTest {
 
     this.unitTestController.resolveHandler = async (item: TestItem) => {
       if (!item) {
-        const fileList = await this.getFileList();
+        const fileList = await getFileList();
         await this.loadTests(fileList);
-        this.testComponents = await this.getTestComponents(fileList);
+        this.testComponents = await getTestComponents(fileList);
         return;
       }
       const espIdfTestItem = await this.getTestsForFile(item.uri);
@@ -198,26 +199,6 @@ export class UnitTest {
     };
     idfTestData.set(testItem, espIdfTestItem);
     return { testItem, espIdfTestItem };
-  }
-
-  private async getFileList(): Promise<Uri[]> {
-    let files: Uri[] = [];
-    try {
-      files = await workspace.findFiles("**/test/test_*.c");
-    } catch (err) {
-      window.showErrorMessage("Cannot find test result path!", err);
-      return [];
-    }
-    return files;
-  }
-
-  private async getTestComponents(files: Uri[]): Promise<string[]> {
-    let componentsList: Set<string> = new Set<string>();
-    files.forEach((match) => {
-      const componentName = basename(match.fsPath.split("/test/test_")[0]);
-      componentsList.add(componentName);
-    });
-    return Array.from(componentsList);
   }
 
   async getTestsForFile(file: Uri) {

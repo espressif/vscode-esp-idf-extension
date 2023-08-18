@@ -135,6 +135,13 @@ import {
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { UnitTest } from "./espIdf/unitTest/adapter";
+import {
+  buildFlashTestApp,
+  checkPytestRequirements,
+  copyTestAppProject,
+  installPyTestPackages,
+} from "./espIdf/unitTest/configure";
+import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1547,6 +1554,91 @@ export async function activate(context: vscode.ExtensionContext) {
               ? error
               : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.installPyTest", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      try {
+        const isPyTestInstalled = await checkPytestRequirements(workspaceRoot);
+        if (isPyTestInstalled) {
+          return Logger.infoNotify(
+            "PyTest python packages are already installed."
+          );
+        }
+      } catch (error) {
+        const msg =
+          error && error.message
+            ? error.message
+            : "Error checking PyTest python packages";
+        OutputChannel.appendLine(msg, "idf-unit-test");
+        Logger.error(msg, error);
+      }
+
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF:",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            await installPyTestPackages(workspaceRoot, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error installing PyTest python packages";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.buildFlashUnitTestApp", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Building unit test app and flashing",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            let unitTestAppUri = vscode.Uri.joinPath(
+              workspaceRoot,
+              "unity-app"
+            );
+            const doesUnitTestAppExists = await pathExists(
+              unitTestAppUri.fsPath
+            );
+            if (!doesUnitTestAppExists) {
+              const unitTestFiles = await getFileList();
+              const testComponents = await getTestComponents(unitTestFiles);
+              unitTestAppUri = await copyTestAppProject(
+                workspaceRoot,
+                testComponents
+              );
+            }
+            await buildFlashTestApp(unitTestAppUri, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error build or flashing PyTest Unit App for project";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error);
           }
         }
       );

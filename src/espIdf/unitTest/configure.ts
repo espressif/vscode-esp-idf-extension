@@ -151,30 +151,30 @@ export async function installPyTestPackages(
 }
 
 export async function buildFlashTestApp(
-  workspaceFolder: Uri,
+  unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  const flashType = readParameter("idf.flashType", workspaceFolder);
-  let canContinue = await buildCommand(workspaceFolder, cancelToken, flashType);
+  const flashType = readParameter("idf.flashType", unitTestAppDirPath);
+  let canContinue = await buildCommand(unitTestAppDirPath, cancelToken, flashType);
   if (!canContinue) {
     return;
   }
-  const port = readParameter("idf.port", workspaceFolder);
-  const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
-  const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
-  const canFlash = await verifyCanFlash(flashBaudRate, port, workspaceFolder);
+  const port = readParameter("idf.port", unitTestAppDirPath);
+  const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
+  const idfPathDir = readParameter("idf.espIdfPath", unitTestAppDirPath) as string;
+  const canFlash = await verifyCanFlash(flashBaudRate, port, unitTestAppDirPath);
   if (!canFlash) {
     return;
   }
   if (flashType === ESP.FlashType.JTAG) {
-    canContinue = await jtagFlashCommand(workspaceFolder);
+    canContinue = await jtagFlashCommand(unitTestAppDirPath);
   } else {
     canContinue = await flashCommand(
       cancelToken,
       flashBaudRate,
       idfPathDir,
       port,
-      workspaceFolder,
+      unitTestAppDirPath,
       flashType,
       false
     );

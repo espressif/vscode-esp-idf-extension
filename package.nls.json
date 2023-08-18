@@ -56,6 +56,8 @@
   "espIdf.clearSavedIdfSetups.title": "Clear Saved ESP-IDF Setups",
   "espIdf.partition.table.refresh.title": "Refresh Partition Table",
   "espIdf.flashBinaryToPartition.title": "Flash Binary to Partition...",
+  "espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Build and flash unit test app for testing",
+  "espIdf.unitTest.installPyTest.title": "Unit Test: Install ESP-IDF PyTest  requirements",
   "espIdf.setMatterDevicePath.title": "Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)",
   "espIdf.customTask.title": "Execute Custom Task",
   "espIdf.welcome.title": "Welcome",

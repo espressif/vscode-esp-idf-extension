@@ -61,6 +61,8 @@
   "espIdf.projectConfigurationEditor.title": "Open Project Configuration",
   "espIdf.projectConf.title": "Select project configuration",
   "espIdf.clearSavedIdfSetups.title": "Clear saved IDF setups",
+  "espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Build and flash unit test app for testing",
+  "espIdf.unitTest.installPyTest.title": "Unit Test: Install ESP-IDF PyTest  requirements",
   "esp.component-manager.ui.show.title": "Show Component Registry",
   "esp.component-manager.cli.addDependencyError": "Error encountered while adding dependency to the component",
   "debug.initConfig.name": "ESP-IDF Debug: Launch",
