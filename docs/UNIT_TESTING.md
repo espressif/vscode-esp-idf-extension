@@ -39,11 +39,15 @@ When the user click on the Testing Tab in the Activity bar, the extension will t
 
 1. Check that PyTest requirements from ESP-IDF are satisfied.
 
-Unit tests in this extension requires [ESP-IDF PyTest requirements](https://github.com/espressif/esp-idf/blob/master/tools/requirements/requirements.pytest.txt) to be installed in your Python virtual environment.
+  > **NOTE:** Unit tests in this extension requires [ESP-IDF PyTest requirements](https://github.com/espressif/esp-idf/blob/master/tools/requirements/requirements.pytest.txt) to be installed in your Python virtual environment.
+
+  > **NOTE:** You can also install the PyTest requirements with the `ESP-IDF Unit Test: Install ESP-IDF PyTest requirements` extension command.
 
 2. Install ESP-IDF PyTest requirements if they are not found in the python current virtual environment specified in `idf.pythonBinPath` configuration setting in settings.json.
 
 3. Copy the unity-app from the extension template and add the test components to the main CMakeLists.txt `TEST_COMPONENTS` cmake variable. The extension unity-app is a basic ESP-IDF application with a unity menu that will be built and flashed on the current `idf.port` with all test cases that were found during exploration step.
+
+  > **NOTE:** You can also create, build and flash the unity test application using the `ESP-IDF Unit Test: Install ESP-IDF PyTest requirements` extension command, which will copy build and flash to your device the generated unit testing application.
 
 4. Runs [pytest-embedded](https://docs.espressif.com/projects/pytest-embedded/en/latest/index.html), a plugin that extends PyTest to run on esp-idf devices and output the results as XML file in the unity-app directory. This is executed as an extension task and the output shown in the terminal (similar to Build and Flash tasks).
 
