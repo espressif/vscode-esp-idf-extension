@@ -243,7 +243,7 @@ export const mutations: MutationTree<IState> = {
     const newState = { ...state };
     newState.espIdf = espIdf;
   
-    const errorStatus = checkVersionAndPath(newState.selectedEspIdfVersion.name, espIdf);
+    const errorStatus = validatePathForVersion(newState.selectedEspIdfVersion.name, espIdf);
     if (errorStatus) {
       newState.espIdfErrorStatus = errorStatus;
       Object.assign(state, newState);
@@ -258,7 +258,7 @@ export const mutations: MutationTree<IState> = {
     const newState = { ...state };
     newState.espIdfContainer = espIdfContainer;
   
-    const errorStatus = checkVersionAndPath(newState.selectedEspIdfVersion.name, espIdfContainer);
+    const errorStatus = validatePathForVersion(newState.selectedEspIdfVersion.name, espIdfContainer);
     if (errorStatus) {
       newState.espIdfErrorStatus = errorStatus;
       Object.assign(state, newState);
@@ -379,9 +379,9 @@ export const mutations: MutationTree<IState> = {
     newState.selectedEspIdfVersion = selectedEspIdfVersion;
     newState.idfDownloadStatus.id = selectedEspIdfVersion.name;
   
-    let errorStatus = checkVersionAndPath(selectedEspIdfVersion.name, newState.espIdf);
+    let errorStatus = validatePathForVersion(selectedEspIdfVersion.name, newState.espIdf);
     if (!errorStatus) {
-      errorStatus = checkVersionAndPath(selectedEspIdfVersion.name, newState.espIdfContainer);
+      errorStatus = validatePathForVersion(selectedEspIdfVersion.name, newState.espIdfContainer);
     }
   
     if (errorStatus) {
@@ -412,7 +412,7 @@ export const mutations: MutationTree<IState> = {
     const newState = { ...state };
     newState.toolsFolder = toolsFolder;
 
-    const errorStatus = checkVersionAndPath(state.selectedEspIdfVersion.name, toolsFolder);
+    const errorStatus = validatePathForVersion(state.selectedEspIdfVersion.name, toolsFolder);
 
     if (errorStatus) {
       newState.pyExecErrorStatus = errorStatus;
@@ -546,23 +546,20 @@ export const store = new Store(setupStore);
 
 // Helper functions
 
-// check the version and if a given path contains any whitespace
-export function checkVersionAndPath(versionName: string, path?: string): string {
+export function isVersionLowerThan5(versionName: string): boolean {
   if (versionName) {
-      // Regular expression to match the version number in the format vX.X.X or release/vX.X
-      const match = versionName.match(/v(\d+(\.\d+)?(\.\d+)?)/);
-      if (match) {
-          const versionNumber = parseFloat(match[1]);
+    const match = versionName.match(/v(\d+(\.\d+)?(\.\d+)?)/);
+    if (match) {
+      const versionNumber = parseFloat(match[1]);
+      return versionNumber < 5;
+    }
+  }
+  return false;
+}
 
-          if (versionNumber < 5) {
-              // If path is provided, check for whitespaces
-              if (path && /\s/.test(path)) {
-                  return "Whitespaces in path are not supported in versions lower than 5.0";
-              }
-              // If no path is provided, simply inform that the version is less than 5
-              return "Version is lower than 5.0";
-          }
-      }
+export function validatePathForVersion(versionName: string, path: string): string {
+  if (isVersionLowerThan5(versionName) && /\s/.test(path)) {
+    return "Whitespaces in path are not supported in versions lower than 5.0";
   }
   return '';
 }
