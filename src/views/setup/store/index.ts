@@ -547,19 +547,22 @@ export const store = new Store(setupStore);
 // Helper functions
 
 // check the version and if a given path contains any whitespace
-function checkVersionAndPath(versionName: string, path: string) {
+export function checkVersionAndPath(versionName: string, path?: string): string {
   if (versionName) {
-    // Regular expression to match the version number in the format vX.X.X or release/vX.X
-    const match = versionName.match(/v(\d+(\.\d+)?(\.\d+)?)/);
-    if (match) {
-      const versionNumber = parseFloat(match[1]);
+      // Regular expression to match the version number in the format vX.X.X or release/vX.X
+      const match = versionName.match(/v(\d+(\.\d+)?(\.\d+)?)/);
+      if (match) {
+          const versionNumber = parseFloat(match[1]);
 
-      // Check if version is less than 5 and path contains whitespace
-      if (versionNumber < 5 && /\s/.test(path)) {
-        return "Whitespaces in path are not supported in versions lower than 5.0";
+          if (versionNumber < 5) {
+              // If path is provided, check for whitespaces
+              if (path && /\s/.test(path)) {
+                  return "Whitespaces in path are not supported in versions lower than 5.0";
+              }
+              // If no path is provided, simply inform that the version is less than 5
+              return "Version is lower than 5.0";
+          }
       }
-    }
   }
-
   return '';
 }

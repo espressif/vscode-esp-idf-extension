@@ -39,7 +39,7 @@
           </select>
         </div>
         <div v-if="isVersionLowerThan5">
-          <span class="warning-text">Whitespaces in project, ESP-IDF and ESP Tools paths are not supported in versions lower than 5.0</span>
+          <span class="warning-text">Whitespaces in project, ESP-IDF or ESP Tools paths are not supported in versions lower than 5.0</span>
         </div>
       </div>
     </div>
@@ -69,6 +69,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import { IdfMirror, IEspIdfLink } from "../types";
 import { State, Action, Mutation } from "vuex-class";
 import folderOpen from "./folderOpen.vue";
+import { isVersionLowerThan5 } from "../store";
 
 @Component({
   components: {
@@ -98,7 +99,7 @@ export default class SelectEspIdf extends Vue {
     const hasWhitespace = this.validatePathForWhitespace(this.espIdf, this.espIdfContainer);
 
     if (hasWhitespace && this.isVersionLowerThan5) {
-      this.setEspIdfErrorStatus("Whitespaces in project, ESP-IDF and ESP Tools paths are not supported in versions lower than 5.0");
+      this.setEspIdfErrorStatus("Whitespaces in project, ESP-IDF or ESP Tools paths are not supported in versions lower than 5.0");
     } else {
       this.clearIDfErrorStatus();
     }
@@ -154,21 +155,10 @@ export default class SelectEspIdf extends Vue {
   }
   get isVersionLowerThan5() {
     if (this.selectedIdfVersion && this.selectedIdfVersion.name) {
-      // Regular expression to match the version number in the format vX.X.X or release/vX.X
-      const match = this.selectedIdfVersion.name.match(/v(\d+(\.\d+)?(\.\d+)?)/);
-      
-      // If a version number was found, parse it
-      if (match) {
-        const versionNumber = parseFloat(match[1]);
-        // Return true if versionNumber is less than 5
-        return versionNumber < 5;
-      } else {
-        // If no version number found, assume it's a development branch and return false
-        return false;
-      }
+      return isVersionLowerThan5(this.selectedIdfVersion.name);
     }
     return false;
-  }
+}
 
   private validatePathForWhitespace(...paths: string[]): boolean {
       // Check all provided paths for whitespaces
