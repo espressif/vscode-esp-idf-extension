@@ -1381,12 +1381,12 @@
       },
       {
         "command": "espIdf.installEspIdf",
-        "title": "Install ESP-IDF command",
+        "title": "%espIdf.installEspIdf.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.useEspIdfJsonSetup",
-        "title": "Use ESP-IDF setup",
+        "title": "%espIdf.useEspIdfJsonSetup.title%",
         "category": "ESP-IDF"
       }
     ],

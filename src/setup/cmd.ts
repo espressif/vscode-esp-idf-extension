@@ -31,17 +31,39 @@ import { downloadInstallIdfVersion } from "./espIdfDownload";
 import { IdfToolsManager } from "../idfToolsManager";
 import { join } from "path";
 import { saveSettings } from "./setupInit";
-import { getUnixPythonList, installExtensionPyReqs, installPythonEnvFromIdfTools } from "../pythonManager";
+import {
+  getUnixPythonList,
+  installExtensionPyReqs,
+  installPythonEnvFromIdfTools,
+} from "../pythonManager";
 import { loadIdfSetupsFromEspIdfJson } from "./existingIdfSetups";
 import { OutputChannel } from "../logger/outputChannel";
 import { downloadEspIdfTools } from "./toolInstall";
 import { isBinInPath } from "../utils";
+import { pathExists } from "fs-extra";
 
 export async function useExistingEspIdfJsonSetup() {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const toolsPath = join(containerPath, ".espressif");
+  let toolsPath = join(containerPath, ".espressif");
+  const actualToolsPath = await openFolder(
+    "Where to save ESP-IDF Tools? (IDF_TOOLS_PATH)"
+  );
+  if (actualToolsPath) {
+    toolsPath = actualToolsPath;
+  }
+  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
+  const espIdfJsonExists = await pathExists(espIdfJsonPath);
+  if (!espIdfJsonExists) {
+    Logger.infoNotify(`${espIdfJsonPath} doesn't exists.`);
+    OutputChannel.appendLineAndShow(`${espIdfJsonPath} doesn't exists.`);
+    return;
+  }
   const idfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
+  if (!idfSetups) {
+    OutputChannel.appendLineAndShow("No IDF Setups found");
+     return;
+  }
   let quickPickItems = idfSetups.map((idfSetup) => {
     return {
       description: idfSetup.idfPath,
@@ -55,6 +77,7 @@ export async function useExistingEspIdfJsonSetup() {
   });
   if (!espIdfVersion) {
     Logger.infoNotify("No ESP-IDF version selected.");
+    OutputChannel.appendLineAndShow("No ESP-IDF version selected.");
     return;
   }
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
@@ -78,6 +101,20 @@ export async function useExistingEspIdfJsonSetup() {
   );
 }
 
+export async function openFolder(openLabel: string) {
+  const selectedFolder = await window.showOpenDialog({
+    canSelectFolders: true,
+    canSelectFiles: false,
+    canSelectMany: false,
+    openLabel,
+  });
+  if (selectedFolder && selectedFolder.length > 0) {
+    return selectedFolder[0].fsPath;
+  } else {
+    window.showInformationMessage("No folder selected");
+  }
+}
+
 export async function downloadEspIdf(extensionPath: Uri) {
   const espIdfVersions = await getEspIdfVersions(extensionPath.fsPath);
 
@@ -93,8 +130,30 @@ export async function downloadEspIdf(extensionPath: Uri) {
     placeHolder: "Select ESP-IDF version",
   });
   if (!espIdfVersion) {
-    Logger.infoNotify("No ESP-IDF version selected.");
+    window.showInformationMessage("No ESP-IDF version selected.");
     return;
+  }
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+
+  let destPath = join(containerPath, "esp");
+  let toolsPath = join(containerPath, ".espressif");
+  let espIdfPath = "";
+
+  if (espIdfVersion.filename === "manual") {
+    espIdfPath = await openFolder("Select ESP-IDF (IDF_PATH)");
+  } else {
+    const actualDestPath = await openFolder("Where to save ESP-IDF?");
+    if (actualDestPath) {
+      destPath = actualDestPath;
+    }
+  }
+
+  const actualToolsPath = await openFolder(
+    "Choose ESP-IDF Tools (IDF_TOOLS_PATH)"
+  );
+  if (actualToolsPath) {
+    toolsPath = actualToolsPath;
   }
 
   const mirror = await window.showQuickPick(
@@ -114,14 +173,10 @@ export async function downloadEspIdf(extensionPath: Uri) {
   );
 
   if (!mirror) {
-    Logger.infoNotify("No mirror selected.");
+    window.showInformationMessage("No mirror selected.");
     return;
   }
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
 
-  const destPath = join(containerPath, "esp");
-  const toolsPath = join(containerPath, ".espressif");
   let idfGitPath = "git";
   let idfPythonPath = "";
 
@@ -152,26 +207,22 @@ export async function downloadEspIdf(extensionPath: Uri) {
           extensionPath.fsPath,
           process.env
         );
-  
+
         if (canAccessCMake === "") {
-          onReqPkgs = onReqPkgs
-            ? [...onReqPkgs, "cmake"]
-            : ["cmake"];
+          onReqPkgs = onReqPkgs ? [...onReqPkgs, "cmake"] : ["cmake"];
         }
-  
+
         const canAccessNinja = await isBinInPath(
           "ninja",
           extensionPath.fsPath,
           process.env
         );
-  
+
         if (canAccessNinja === "") {
-          onReqPkgs = onReqPkgs
-            ? [...onReqPkgs, "ninja"]
-            : ["ninja"];
+          onReqPkgs = onReqPkgs ? [...onReqPkgs, "ninja"] : ["ninja"];
         }
       } else {
-        const pythonList = await getUnixPythonList(toolsPath);
+        const pythonList = await getUnixPythonList(extensionPath.fsPath);
         let pythonItems = pythonList.map((pyVer) => {
           return {
             description: "",
@@ -184,28 +235,24 @@ export async function downloadEspIdf(extensionPath: Uri) {
         });
 
         if (!selectPyVersion) {
+          window.showInformationMessage("No python selected");
           return;
         }
         idfPythonPath = selectPyVersion.target;
       }
 
-      const espIdfPath = await downloadInstallIdfVersion(
-        espIdfVersion,
-        destPath,
-        mirror.target,
-        idfGitPath,
-        progress,
-        cancelToken
-      );
+      if (espIdfVersion.filename !== "manual") {
+        espIdfPath = await downloadInstallIdfVersion(
+          espIdfVersion,
+          destPath,
+          mirror.target,
+          idfGitPath,
+          progress,
+          cancelToken
+        );
+      }
       const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
         espIdfPath
-      );
-      const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-        join(toolsPath, "tools"),
-        ["cmake", "ninja"]
-      );
-      const exportedVars = await idfToolsManager.exportVars(
-        join(toolsPath, "tools")
       );
 
       await downloadEspIdfTools(
@@ -234,6 +281,15 @@ export async function downloadEspIdf(extensionPath: Uri) {
         toolsPath,
         undefined,
         OutputChannel.init()
+      );
+
+      const exportedToolsPaths = await idfToolsManager.exportPathsInString(
+        join(toolsPath, "tools"),
+        onReqPkgs
+      );
+      const exportedVars = await idfToolsManager.exportVars(
+        join(toolsPath, "tools"),
+        onReqPkgs
       );
 
       await saveSettings(
