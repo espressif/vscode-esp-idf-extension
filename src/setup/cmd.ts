@@ -47,7 +47,7 @@ export async function useExistingEspIdfJsonSetup() {
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   let toolsPath = join(containerPath, ".espressif");
   const actualToolsPath = await openFolder(
-    "Where to save ESP-IDF Tools? (IDF_TOOLS_PATH)"
+    "Choose ESP-IDF Tools (.espressif directory)"
   );
   if (actualToolsPath) {
     toolsPath = actualToolsPath;
@@ -62,7 +62,7 @@ export async function useExistingEspIdfJsonSetup() {
   const idfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
   if (!idfSetups) {
     OutputChannel.appendLineAndShow("No IDF Setups found");
-     return;
+    return;
   }
   let quickPickItems = idfSetups.map((idfSetup) => {
     return {
