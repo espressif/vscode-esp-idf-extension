@@ -71,6 +71,7 @@ export async function createProject(
   try {
     const idfPathDir = readParameter("idf.espIdfPath");
     const idfPy = join(idfPathDir, "tools", "idf.py");
+    const modifiedEnv = appendIdfAndToolsToPath(workspace);
     const pythonBinPath = readParameter("idf.pythonBinPath") as string;
 
     if (!existsSync(idfPathDir) || !existsSync(idfPy) || !existsSync(pythonBinPath)) {
@@ -84,7 +85,7 @@ export async function createProject(
       createProjectCommand,
       {
         cwd: workspace.fsPath,
-        env: process.env,
+        env: modifiedEnv,
       }
     );
 
