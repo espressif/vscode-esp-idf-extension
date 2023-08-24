@@ -336,7 +336,7 @@ export class IdfToolsManager {
       const expectedVersions = pkgVersionsForPlatform.map((p) => p.name);
       let isToolVersionCorrect =
         expectedVersions.indexOf(versions[pkg.name]) > -1 ||
-        versions[pkg.name] === "No command version";
+        (versions[pkg.name] && versions[pkg.name] === "No command version");
       const versionToUse = this.getVersionToUse(pkg);
       let pkgExportedPath: string = "";
       let pkgVars = pkg.export_vars;

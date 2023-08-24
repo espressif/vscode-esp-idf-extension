@@ -33,7 +33,7 @@ import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
-import { checkSpacesInPath } from "../utils";
+import { checkSpacesInPath, getEspIdfFromCMake } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 import { clearPreviousIdfSetups } from "./existingIdfSetups";
 
@@ -264,9 +264,8 @@ export class SetupPanel {
             });
             SetupPanel.postMessage({
               command: "setEspIdfErrorStatus",
-              errorMsg: `ESP-IDF is installed in ${
-                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
-              }`,
+              errorMsg: `ESP-IDF is installed in ${setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+                }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -369,16 +368,31 @@ export class SetupPanel {
           let idfPythonPath = pyPath,
             idfGitPath = "git";
           if (process.platform === "win32") {
+            let idfVersion = "";
+            if (selectedIdfVersion.filename === "manual") {
+              idfVersion = await getEspIdfFromCMake(espIdfPath);
+            } else if (selectedIdfVersion.filename === "master") {
+              idfVersion = "5.1";
+            } else {
+              const matches = selectedIdfVersion.name.split(" ")[0].match(/v(.+)/);
+              if (matches && matches.length) {
+                idfVersion = matches[1];
+              } else {
+                idfVersion = "5.0";
+              }
+            }
             const embedPaths = await this.installEmbedPyGit(
               toolsPath,
+              idfVersion,
               progress,
               cancelToken
             );
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
+          const pathToCheck = selectedIdfVersion.filename === "manual" ? espIdfPath : idfContainerPath;
           this.checkSpacesInPaths(
-            espIdfPath,
+            pathToCheck,
             toolsPath,
             idfGitPath,
             idfPythonPath
@@ -422,7 +436,8 @@ export class SetupPanel {
     );
     const updatedToolsInfo = toolsInfo.map((tool) => {
       const isToolVersionCorrect =
-        tool.expected.indexOf(foundVersions[tool.name]) > -1;
+        tool.expected.indexOf(foundVersions[tool.name]) > -1  ||
+        (foundVersions[tool.name] && foundVersions[tool.name] === "No command version");
       tool.doesToolExist = isToolVersionCorrect;
       if (isToolVersionCorrect) {
         tool.progress = "100.00%";
@@ -484,8 +499,10 @@ export class SetupPanel {
           let idfPythonPath = pyPath,
             idfGitPath = gitPath || "/usr/bin/git";
           if (process.platform === "win32") {
+            const idfVersion = await getEspIdfFromCMake(idfPath);
             const embedPaths = await this.installEmbedPyGit(
               toolsPath,
+              idfVersion,
               progress,
               cancelToken
             );
@@ -561,6 +578,7 @@ export class SetupPanel {
 
   private async installEmbedPyGit(
     toolsPath: string,
+    idfVersion: string,
     progress: vscode.Progress<{ message: string; increment?: number }>,
     cancelToken: vscode.CancellationToken
   ) {
@@ -571,6 +589,7 @@ export class SetupPanel {
     });
     const idfPythonPath = await installIdfPython(
       toolsPath,
+      idfVersion,
       progress,
       cancelToken
     );
