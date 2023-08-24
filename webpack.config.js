@@ -111,7 +111,7 @@ const webViewConfig = {
       __dirname,
       "src",
       "views",
-      "welcome",
+      "NewWelcome",
       "main.ts"
     ),
   },

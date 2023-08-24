@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Monday, 29th November 2021 3:08:47 pm
- * Copyright 2021 Espressif Systems (Shanghai) CO LTD
+ * File Created: Wednesday, 23rd August 2023 2:50:54 pm
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-import Vue from "vue";
-import Vuex from "vuex";
-import { store } from "./store";
-// @ts-ignore
+import { createApp } from "vue";
+import { createPinia } from "pinia";
 import App from "./App.vue";
-import IconifyIcon from "@iconify/vue";
+import { useWelcomeStore } from "./store";
+import { addIcon } from "@iconify/vue";
 import comment from "@iconify-icons/codicon/comment-discussion";
 import folder from "@iconify-icons/codicon/folder";
 import folderOpened from "@iconify-icons/codicon/folder-opened";
@@ -30,22 +29,22 @@ import newFolder from "@iconify-icons/codicon/new-folder";
 import gear from "@iconify-icons/codicon/gear";
 import beaker from "@iconify-icons/codicon/beaker";
 import typeHierarchy from "@iconify-icons/codicon/type-hierarchy";
-IconifyIcon.addIcon("beaker", beaker);
-IconifyIcon.addIcon("comment", comment);
-IconifyIcon.addIcon("folder", folder);
-IconifyIcon.addIcon("folder-opened", folderOpened);
-IconifyIcon.addIcon("gear", gear);
-IconifyIcon.addIcon("github", github);
-IconifyIcon.addIcon("new-folder", newFolder);
-IconifyIcon.addIcon("type-hierarchy", typeHierarchy);
-Vue.component("iconify-icon", IconifyIcon);
+addIcon("beaker", beaker);
+addIcon("comment", comment);
+addIcon("folder", folder);
+addIcon("folder-opened", folderOpened);
+addIcon("gear", gear);
+addIcon("github", github);
+addIcon("new-folder", newFolder);
+addIcon("type-hierarchy", typeHierarchy);
 
-const app = new Vue({
-  components: { App },
-  el: "#app",
-  store,
-  template: "<App />",
-});
+
+const app = createApp(App);
+const pinia = createPinia();
+
+app.use(pinia);
+app.mount("#app");
+const store = useWelcomeStore();
 
 window.addEventListener("message", (event) => {
   const msg = event.data;
@@ -53,13 +52,13 @@ window.addEventListener("message", (event) => {
     case "initialLoad":
       console.log(msg);
       if (msg.extensionVersion) {
-        store.commit("setExtensionVersion", msg.extensionVersion);
+        store.extensionVersion = msg.extensionVersion;
       }
       if (msg.espIdf) {
-        store.commit("setEspIdf", msg.espIdf);
+        store.espIdf = msg.espIdf;
       }
       if (msg.showOnInit) {
-        store.commit("setShowOnInit", msg.showOnInit);
+        store.showOnInit = msg.showOnInit;
       }
       break;
 

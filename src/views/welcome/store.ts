@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Monday, 29th November 2021 3:11:24 pm
- * Copyright 2021 Espressif Systems (Shanghai) CO LTD
+ * File Created: Wednesday, 23rd August 2023 5:27:30 pm
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Vue from "vue";
-import Vuex from "vuex";
-import { ActionTree, Store, StoreOptions, MutationTree } from "vuex";
 
-export interface IState {
-  espIdf: string;
-  extensionVersion: string;
-  showOnInit: boolean;
-}
-
-export const welcomeState: IState = {
-  espIdf: "",
-  extensionVersion: "",
-  showOnInit: true,
-};
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -40,69 +28,67 @@ try {
   console.error(error);
 }
 
-export const actions: ActionTree<IState, any> = {
-  exploreComponents() {
+export interface IState {
+  espIdf: string;
+  extensionVersion: string;
+  showOnInit: boolean;
+}
+
+export const useWelcomeStore = defineStore("welcome", () => {
+  const espIdf = ref("");
+  const extensionVersion = ref("");
+  const showOnInit = ref(true);
+
+  function exploreComponents() {
     vscode.postMessage({
       command: "exploreComponents",
     });
-  },
-  openImportProject() {
+  }
+
+  function openImportProject() {
     vscode.postMessage({
       command: "importProject",
     });
-  },
-  openNewProjectPanel() {
+  }
+
+  function openNewProjectPanel() {
     vscode.postMessage({
       command: "newProject",
     });
-  },
-  openSetupPanel() {
+  }
+  function openSetupPanel() {
     vscode.postMessage({
       command: "configureExtension",
     });
-  },
-  openShowExamplesPanel() {
+  }
+  function openShowExamplesPanel() {
     vscode.postMessage({
       command: "showExamples",
     });
-  },
-  requestInitValues() {
+  }
+  function requestInitValues() {
     vscode.postMessage({
       command: "requestInitialValues",
     });
-  },
-  updateShowOnboardingOnInit(context) {
+  }
+
+  function updateShowOnboardingOnInit() {
     vscode.postMessage({
       command: "updateShowOnboardingOnInit",
-      showOnInit: context.state.showOnInit,
+      showOnInit: showOnInit,
     });
-  },
-};
+  }
 
-export const mutations: MutationTree<IState> = {
-  setEspIdf(state, espIdf) {
-    const newState = state;
-    newState.espIdf = espIdf;
-    Object.assign(state, newState);
-  },
-  setExtensionVersion(state, extensionVersion) {
-    const newState = state;
-    newState.extensionVersion = extensionVersion;
-    Object.assign(state, newState);
-  },
-  setShowOnInit(state, showOnInit) {
-    const newState = state;
-    newState.showOnInit = showOnInit;
-    Object.assign(state, newState);
-  },
-};
-
-export const welcomeStore: StoreOptions<IState> = {
-  actions,
-  mutations,
-  state: welcomeState,
-};
-
-Vue.use(Vuex);
-
-export const store = new Store(welcomeStore);
+  return {
+    espIdf,
+    extensionVersion,
+    showOnInit,
+    exploreComponents,
+    openImportProject,
+    openNewProjectPanel,
+    openSetupPanel,
+    openShowExamplesPanel,
+    requestInitValues,
+    updateShowOnboardingOnInit
+  };
+});

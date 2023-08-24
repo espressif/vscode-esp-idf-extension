@@ -1,7 +1,26 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { onMounted } from "vue";
+import { useCMakeListsEditorStore } from "./store";
+
+const store = useCMakeListsEditorStore();
+let {
+  elements,
+  emptyElements,
+  fileName,
+  selectedElementToAdd,
+  textDictionary,
+} = storeToRefs(store);
+
+onMounted(() => {
+  store.requestInitValues();
+})
+</script>
+
 <template>
   <div class="section">
     <div class="control centerize">
-      <h2 class="title is-spaced">{{ title }}</h2>
+      <h2 class="title is-spaced">{{ textDictionary.title }}</h2>
       <h4 class="subtitle is-spaced">{{ fileName }}</h4>
     </div>
 
@@ -14,8 +33,12 @@
             </div>
             <div class="control">
               <div class="select">
-                <select v-model="elementToAdd">
-                  <option v-for="el in emptyElements" :key="el.id" :value="el">
+                <select v-model="selectedElementToAdd.title">
+                  <option
+                    v-for="el in emptyElements"
+                    :key="el.title"
+                    :value="el.title"
+                  >
                     {{ el.title }}
                   </option>
                 </select>
@@ -26,8 +49,11 @@
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button class="button" @click="addElement">
-                {{ add }}
+              <button
+                class="button"
+                @click="elements.push(selectedElementToAdd)"
+              >
+                {{ textDictionary.add }}
               </button>
             </div>
           </div>
@@ -37,15 +63,17 @@
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button class="button" @click="saveChanges">{{ save }}</button>
+              <button class="button" @click="store.saveChanges">
+                {{ textDictionary.save }}
+              </button>
             </div>
           </div>
         </div>
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button class="button" @click="requestInitValues">
-                {{ cancel }}
+              <button class="button" @click="store.requestInitValues">
+                {{ textDictionary.discard }}
               </button>
             </div>
           </div>
@@ -55,78 +83,13 @@
     <div class="notification">
       <CMakeElem
         v-for="(elem, i) in elements"
-        :key="elem.id"
+        :key="elem.title"
         :el="elem"
-        @delete="deleteElem(i)"
+        @delete="elements.splice(i, 1)"
       ></CMakeElem>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import { CmakeListsElement } from "../../cmake/cmakeListsElement";
-import CMakeElem from "./components/CMakeListsElement.vue";
-
-@Component({
-  components: {
-    CMakeElem,
-  },
-})
-export default class CMakeListsEditor extends Vue {
-  @State("elements") private storeElements: CmakeListsElement[];
-  @State("emptyElements") private storeEmptyElements: CmakeListsElement[];
-  @State("fileName") private storeFileName: string;
-  @State("selectedElementToAdd") storeSelectedElementToAdd: CmakeListsElement;
-  @State("textDictionary") private storeTextDictionary;
-  @Action private requestInitValues: () => void;
-  @Action private saveChanges: () => void;
-  @Mutation setSelectedElementToAdd: (el: CmakeListsElement) => void;
-
-  get add() {
-    return this.storeTextDictionary.add;
-  }
-  get elements() {
-    return this.storeElements;
-  }
-  get fileName() {
-    return this.storeFileName;
-  }
-  get save() {
-    return this.storeTextDictionary.save;
-  }
-  get cancel() {
-    return this.storeTextDictionary.discard;
-  }
-  get title() {
-    return this.storeTextDictionary.title;
-  }
-
-  get emptyElements() {
-    return this.storeEmptyElements;
-  }
-
-  get elementToAdd() {
-    return this.storeSelectedElementToAdd;
-  }
-  set elementToAdd(el: CmakeListsElement) {
-    this.setSelectedElementToAdd(el);
-  }
-
-  addElement() {
-    this.storeElements.push(this.elementToAdd);
-  }
-
-  deleteElem(i: number) {
-    this.storeElements.splice(i, 1);
-  }
-
-  private mounted() {
-    this.requestInitValues();
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";
