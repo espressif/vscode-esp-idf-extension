@@ -185,12 +185,12 @@ export class BuildTask {
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
-
+      // Encapsulation with "" needed as well in case of multiple spaces in paths
       if (getUserShell() === "PowerShell") {
 
-        const buidCommand =`-B '${this.buildDirPath}'`;
+        const buidCommand =`-B "'${this.buildDirPath}'"`;
         compilerArgs.push(buidCommand);
-        const curWorkspaceCommand =`-S '${this.curWorkspace.fsPath}'`
+        const curWorkspaceCommand =`-S "'${this.curWorkspace.fsPath}'"`
         if (compilerArgs.indexOf("-S") === -1) {
           compilerArgs.push(curWorkspaceCommand);
         }

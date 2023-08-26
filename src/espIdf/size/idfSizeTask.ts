@@ -60,7 +60,7 @@ export class IdfSizeTask {
     switch(userShell) {
       case "PowerShell":
         // the & operator tells PowerShell to execute the string as a command.
-        command = `& '${this.pythonBinPath}' '${this.idfSizePath}' '${mapFilePath}'`;
+        command = `& "'${this.pythonBinPath}'" "'${this.idfSizePath}'" "'${mapFilePath}'"`;
         break;
       case "Command Prompt":
         command = `""${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}""`;
