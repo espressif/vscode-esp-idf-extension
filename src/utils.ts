@@ -231,18 +231,23 @@ export async function setCCppPropertiesJsonCompilerPath(
   const modifiedEnv = appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
-  const compilerPath = await isBinInPath(
+  const compilerAbsolutePath = await isBinInPath(
     gccTool,
     curWorkspaceFsPath.fsPath,
     modifiedEnv
   );
+
   const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
   if (
     cCppPropertiesJson &&
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
-    cCppPropertiesJson.configurations[0].compilerPath = compilerPath;
+    let compilerRelativePath = compilerAbsolutePath.split(
+      modifiedEnv.IDF_TOOLS_PATH
+    )[1];
+    cCppPropertiesJson.configurations[0].compilerPath =
+      "${config:idf.toolsPath}" + compilerRelativePath;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });

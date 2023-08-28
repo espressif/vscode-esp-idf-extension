@@ -97,13 +97,9 @@ export async function expressInstall(
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       espIdfPath
     );
-    const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-      join(toolsPath, "tools"),
-      onReqPkgs
-    );
     const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
       join(toolsPath, "tools"),
-      exportedToolsPaths,
+      undefined,
       onReqPkgs
     );
     SetupPanel.postMessage({

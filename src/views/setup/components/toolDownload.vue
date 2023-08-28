@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="progressText">
-      <span v-if="tool.progress === '100.00%'">
+      <span v-if="tool.progress === '100.00%' && isInstallationCompleted">
         <span>Checksum :</span>
         {{ tool.hashResult ? "OK" : "Invalid" }}
         <br />

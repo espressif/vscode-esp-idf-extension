@@ -74,12 +74,16 @@ suite("Project tests", () => {
     const templateCCppPropertiesJsonJson = await readJson(
       join(templateFolder, ".vscode", "c_cpp_properties.json")
     );
-    const compilerPath = await isBinInPath(
+    const compilerAbsolutePath = await isBinInPath(
       "xtensa-esp32-elf-gcc",
       targetFolder,
       process.env
     );
-    templateCCppPropertiesJsonJson.configurations[0].compilerPath = compilerPath;
+    let compilerRelativePath = compilerAbsolutePath.split(
+      process.env.IDF_TOOLS_PATH
+    )[1];
+    templateCCppPropertiesJsonJson.configurations[0].compilerPath =
+      "${config:idf.toolsPath}" + compilerRelativePath;
     const targetCCppPropertiesJsonJson = await readJson(
       join(targetFolder, ".vscode", "c_cpp_properties.json")
     );
