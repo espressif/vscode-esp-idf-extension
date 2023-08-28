@@ -390,12 +390,6 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          const pathToCheck = selectedIdfVersion.filename === "manual" ? espIdfPath : idfContainerPath;
-          this.checkSpacesInPaths(
-            pathToCheck,
-            toolsPath,
-            idfGitPath,
-            idfPythonPath
           await expressInstall(
             selectedIdfVersion,
             idfPythonPath,
