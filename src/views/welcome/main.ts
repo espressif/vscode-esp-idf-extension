@@ -38,7 +38,6 @@ addIcon("github", github);
 addIcon("new-folder", newFolder);
 addIcon("type-hierarchy", typeHierarchy);
 
-
 const app = createApp(App);
 const pinia = createPinia();
 

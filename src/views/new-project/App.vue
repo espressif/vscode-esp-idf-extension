@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <div id="init">
     <div class="control">
@@ -8,13 +10,6 @@
     </transition>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-
-export default class App extends Vue {}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

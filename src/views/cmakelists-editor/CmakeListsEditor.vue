@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useCMakeListsEditorStore } from "./store";
+import { CmakeListsElement } from "../../cmake/cmakeListsElement";
 
 const store = useCMakeListsEditorStore();
 let {
@@ -14,7 +15,7 @@ let {
 
 onMounted(() => {
   store.requestInitValues();
-})
+});
 </script>
 
 <template>
@@ -81,12 +82,12 @@ onMounted(() => {
       </div>
     </div>
     <div class="notification">
-      <CMakeElem
+      <CmakeListsElement
         v-for="(elem, i) in elements"
         :key="elem.title"
         :el="elem"
         @delete="elements.splice(i, 1)"
-      ></CMakeElem>
+      ></CmakeListsElement>
     </div>
   </div>
 </template>

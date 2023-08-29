@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import IdfComponent from "./IdfComponent.vue";
+import { useNewProjectStore } from "../store";
+import { storeToRefs } from "pinia";
+import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
+const store = useNewProjectStore();
+
+let {
+  currentComponentPath,
+  components,
+} = storeToRefs(store);
+
+let folderIcon = "folder";
+
+function addToComponentList() {
+    if (this.storeCurrentComponentPath.trim() != "") {
+      const component: IComponent = {
+        name: currentComponentPath.value,
+        path: currentComponentPath.value,
+      };
+      store.components.push(component);
+      store.currentComponentPath = "";
+    }
+  }
+</script>
+
 <template>
   <div id="components">
     <div class="field">
@@ -17,7 +43,7 @@
               :icon="folderIcon"
               @mouseover="folderIcon = 'folder-opened'"
               @mouseout="folderIcon = 'folder'"
-              v-on:click="openComponentFolder"
+              v-on:click="store.openComponentFolder"
             />
           </div>
         </div>
@@ -29,59 +55,13 @@
       </div>
     </div>
     <IdfComponent
-      v-for="idfComp in components"
+      v-for="(idfComp, index) in components"
       :comp="idfComp"
       :key="idfComp.name"
+      :removeComponent="(comp) => components.splice(index, 1)"
     />
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import folderOpen from "./folderOpen.vue";
-import IdfComponent from "./IdfComponent.vue";
-import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
-
-@Component({
-  components: {
-    folderOpen,
-    IdfComponent,
-  },
-})
-export default class Components extends Vue {
-  public folderIcon = "folder";
-  @Action private openComponentFolder;
-  @Mutation private addComponent;
-  @State("components") private storeComponents: IdfComponent[];
-  @State("currentComponentPath") private storeCurrentComponentPath: string;
-  @Mutation private setCurrentComponentPath;
-
-  get components() {
-    return this.storeComponents;
-  }
-
-  get currentComponentPath() {
-    return this.storeCurrentComponentPath;
-  }
-
-  set currentComponentPath(newPath: string) {
-    this.setCurrentComponentPath(newPath);
-  }
-
-  private addToComponentList() {
-    if (this.storeCurrentComponentPath.trim() != "") {
-      const component: IComponent = {
-        name: this.storeCurrentComponentPath,
-        path: this.storeCurrentComponentPath,
-      };
-      this.addComponent(component);
-      this.setCurrentComponentPath("");
-    }
-  }
-}
-</script>
 
 <style scoped>
 #components {

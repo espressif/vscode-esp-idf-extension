@@ -1,33 +1,25 @@
-<template>
-  <div>
-    <search-bar />
-    <div id="main" class="columns">
-      <div class="sidenav column is-narrow">
-        <ul>
-          <sidenav-el v-for="menu in menuItems" :key="menu.id" :menu="menu" />
-        </ul>
-      </div>
-
-      <div
-        class="config-list column"
-        v-scroll:throttle="{ fn: onScroll, throttle: 100 }"
-      >
-        <config-el
-          v-for="config in items"
-          :key="config.id"
-          :config.sync="config"
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
-<script lang="ts">
-import "reflect-metadata";
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted } from "vue";
+import { useMenuconfigStore } from "./store";
 import { Menu } from "../../espIdf/menuconfig/Menu";
+import ConfigElement from "./components/configElement.vue";
+import SearchBar from "./components/SearchBar.vue";
+import SideNavItem from "./components/SideNavItem.vue";
+
+const store = useMenuconfigStore();
+
+function throttle<T extends (...args: any[]) => void>(fn: T, wait: number) {
+  let throttled = false;
+  return function (this: any, ...args: Parameters<T>) {
+    if (!throttled) {
+      fn.apply(this, args);
+      throttled = true;
+      setTimeout(() => {
+        throttled = false;
+      }, wait);
+    }
+  } as T;
+}
 
 function filterItems(items: Menu[], searchString: string) {
   const filteredItems: Menu[] = [];
@@ -58,55 +50,88 @@ function filterItems(items: Menu[], searchString: string) {
   return filteredItems;
 }
 
-@Component
-export default class Menuconfig extends Vue {
-  @State("items") private storeItems!: Menu[];
-  @State private searchString!: string;
-  @Action private requestInitValues;
+const items = computed(() => {
+  if (store.searchString !== "") {
+    let searchStrMatch = /^(?:CONFIG_)?(.+)/.exec(store.searchString);
+    let searchMatch =
+      searchStrMatch && searchStrMatch.length > 1
+        ? searchStrMatch[1].toLowerCase()
+        : store.searchString.toLowerCase();
+    return filterItems(store.items, searchMatch);
+  }
+  return store.items;
+});
 
-  get items() {
-    if (this.searchString !== "") {
-      let searchStrMatch = /^(?:CONFIG_)?(.+)/.exec(this.searchString);
-      let searchMatch =
-        searchStrMatch && searchStrMatch.length > 1
-          ? searchStrMatch[1].toLowerCase()
-          : this.searchString.toLowerCase();
-      return filterItems(this.storeItems, searchMatch);
+const menuItems = computed(() => {
+  return store.items.filter((i) => i.type === "menu");
+});
+
+function onScroll() {
+  Array.from(document.querySelectorAll(".sidenav li")).forEach((el) => {
+    const sectionId: string = el.getAttribute("href") || "";
+    const refElement = document.querySelector(sectionId);
+    const topbar = document.querySelector("#topbar") as HTMLElement;
+    if (
+      refElement &&
+      topbar &&
+      refElement.getBoundingClientRect().top -
+        topbar.getBoundingClientRect().bottom <
+        topbar.offsetHeight
+    ) {
+      Array.from(document.querySelectorAll(".sidenav li")).forEach((menu) =>
+        menu.classList.remove("selectedSection")
+      );
+      el.classList.add("selectedSection");
+    } else {
+      el.classList.remove("selectedSection");
     }
-    return this.storeItems;
-  }
-
-  get menuItems() {
-    return this.storeItems.filter((i) => i.type === "menu");
-  }
-
-  public onScroll() {
-    Array.from(document.querySelectorAll(".sidenav li")).forEach((el) => {
-      const sectionId: string = el.getAttribute("href") || "";
-      const refElement = document.querySelector(sectionId);
-      const topbar = document.querySelector("#topbar") as HTMLElement;
-      if (
-        refElement &&
-        topbar &&
-        refElement.getBoundingClientRect().top -
-          topbar.getBoundingClientRect().bottom <
-          topbar.offsetHeight
-      ) {
-        Array.from(document.querySelectorAll(".sidenav li")).forEach((menu) =>
-          menu.classList.remove("selectedSection")
-        );
-        el.classList.add("selectedSection");
-      } else {
-        el.classList.remove("selectedSection");
-      }
-    });
-  }
-
-  private mounted() {
-    this.requestInitValues();
-  }
+  });
 }
+
+const throttledScrollHandler = throttle((event) => {
+  onScroll();
+}, 100);
+
+const handleScroll = (event) => {
+  throttledScrollHandler(event);
+};
+
+onMounted(() => {
+  store.requestInitValues();
+  const scrollableDiv = document.getElementById("scrollable");
+  if (scrollableDiv) {
+    scrollableDiv.addEventListener("scroll", handleScroll);
+  }
+});
+
+onUnmounted(() => {
+  const scrollableDiv = document.getElementById("scrollable");
+  if (scrollableDiv) {
+    scrollableDiv.removeEventListener("scroll", handleScroll);
+  }
+});
 </script>
+
+<template>
+  <div>
+    <SearchBar />
+    <div id="main" class="columns">
+      <div class="sidenav column is-narrow">
+        <ul>
+          <SideNavItem v-for="menu in menuItems" :key="menu.id" :menu="menu" />
+        </ul>
+      </div>
+
+      <div id="scrollable" class="config-list column" @scroll="handleScroll">
+        <ConfigElement
+          v-for="config in items"
+          :key="config.id"
+          :config.sync="config"
+        />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useNewProjectStore } from "./store";
+import { computed, onMounted } from "vue";
+const store = useNewProjectStore();
+
+const {
+  boards,
+  openOcdConfigFiles,
+  projectName,
+  containerDirectory,
+  selectedBoard,
+  selectedPort,
+  serialPortList,
+  target,
+  targetList
+
+} = storeToRefs(store);
+
+const showCustomBoardInput = computed(() => {
+    const showTarget =
+      boards.value.length === 0 ||
+      (selectedBoard && selectedBoard.value.name === "Custom board");
+    return showTarget;
+  })
+</script>
+
 <template>
   <div class="configure notification">
     <div class="field">
@@ -16,8 +43,7 @@
     <folderOpen
       propLabel="Enter Project directory"
       :propModel.sync="containerDirectory"
-      :propMutate="setContainerDirectory"
-      :openMethod="openProjectDirectory"
+      :openMethod="store.openProjectDirectory"
       :staticText="projectName"
     />
 
@@ -94,107 +120,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import folderOpen from "./components/folderOpen.vue";
-import IdfComponents from "./components/IdfComponents.vue";
-import { IdfBoard } from "../../espIdf/openOcd/boardConfiguration";
-
-@Component({
-  components: {
-    folderOpen,
-    IdfComponents,
-  },
-})
-export default class Configure extends Vue {
-  @Action openProjectDirectory;
-  @Action private requestInitialValues;
-  @Mutation setContainerDirectory;
-  @Mutation setOpenOcdConfigFiles;
-  @Mutation setProjectName;
-  @Mutation setSelectedBoard;
-  @Mutation setSelectedPort;
-  @Mutation setTarget;
-  @State("boards") private storeBoards: IdfBoard[];
-  @State("containerDirectory") private storeContainerDirectory;
-  @State("projectName") private storeProjectName;
-  @State("openOcdConfigFiles") private storeOpenOcdConfigFiles;
-  @State("selectedBoard") private storeSelectedBoard: IdfBoard;
-  @State("selectedPort") private storeSelectedPort;
-  @State("serialPortList") private storeSerialPortList: string[];
-  @State("targetList") private storeTargetList: IdfBoard[];
-  @State("target") private storeTarget: IdfBoard;
-
-  get boards() {
-    return this.storeBoards;
-  }
-
-  get containerDirectory() {
-    return this.storeContainerDirectory;
-  }
-
-  get projectName() {
-    return this.storeProjectName;
-  }
-  set projectName(newVal: string) {
-    this.setProjectName(newVal);
-  }
-
-  get openOcdConfigFiles() {
-    return this.storeOpenOcdConfigFiles;
-  }
-  set openOcdConfigFiles(newVal: string) {
-    this.setOpenOcdConfigFiles(newVal);
-  }
-
-  get serialPortList() {
-    return this.storeSerialPortList;
-  }
-
-  get selectedBoard() {
-    return this.storeSelectedBoard;
-  }
-  set selectedBoard(board: IdfBoard) {
-    this.setSelectedBoard(board);
-    const selectedTarget = this.storeTargetList.find(
-      (idfTarget) => idfTarget.target === board.target
-    );
-    this.setTarget(selectedTarget);
-    this.setOpenOcdConfigFiles(board.configFiles.join(","));
-  }
-
-  get selectedPort() {
-    return this.storeSelectedPort;
-  }
-  set selectedPort(newVal: string) {
-    this.setSelectedPort(newVal);
-  }
-
-  get showCustomBoardInput() {
-    const showTarget =
-      this.boards.length === 0 ||
-      (this.selectedBoard && this.selectedBoard.name === "Custom board");
-    return showTarget;
-  }
-
-  get targetList() {
-    return this.storeTargetList;
-  }
-
-  get target() {
-    return this.storeTarget;
-  }
-  set target(newVal: IdfBoard) {
-    this.setTarget(newVal);
-    this.setOpenOcdConfigFiles(newVal.configFiles.join(","));
-  }
-  private mounted() {
-    this.requestInitialValues();
-  }
-}
-</script>
 
 <style lang="scss">
 .centerize {

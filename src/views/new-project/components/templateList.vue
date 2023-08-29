@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import { IExample, IExampleCategory } from '../../../examples/Example';
+import TemplateList from './templateList.vue';
+import { useNewProjectStore } from '../store';
+import { storeToRefs } from 'pinia';
+
+const store = useNewProjectStore();
+
+const { selectedTemplate } = storeToRefs(store);
+
+const props = defineProps<{
+  node: IExampleCategory
+}>();
+
+function toggleTemplateDetail(template: IExample) {
+    if (template.path !== store.selectedTemplate.path) {
+      store.selectedTemplate = template;
+      store.templateDetail = "No README.md available for this project.";
+      store.getTemplateDetail({ pathToOpen: template.path });
+    } else {
+      store.hasTemplateDetail = !store.hasTemplateDetail;
+    }
+  }
+</script>
+
 <template>
   <li>
     <h3 class="category is-3" v-text="node.name"></h3>
@@ -25,36 +50,3 @@
   </li>
 </template>
 
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { IExampleCategory, IExample } from "../../../examples/Example";
-import { Action, Mutation, State } from "vuex-class";
-
-@Component({
-  components: {
-    TemplateList: () => import("./templateList.vue"),
-  },
-})
-export default class TemplateList extends Vue {
-  @Action private getTemplateDetail;
-  @Mutation private setSelectedTemplate;
-  @Mutation private setTemplateDetail;
-  @Mutation private showTemplateDetail;
-  @State("selectedTemplate") private storeSelectedTemplate: IExample;
-  @Prop() node: IExampleCategory;
-
-  get selectedTemplate() {
-    return this.storeSelectedTemplate;
-  }
-
-  public toggleTemplateDetail(template: IExample) {
-    if (template.path !== this.storeSelectedTemplate.path) {
-      this.setSelectedTemplate(template);
-      this.setTemplateDetail("No README.md available for this project.");
-      this.getTemplateDetail({ pathToOpen: template.path });
-    } else {
-      this.showTemplateDetail();
-    }
-  }
-}
-</script>
