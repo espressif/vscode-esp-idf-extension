@@ -161,7 +161,7 @@ The **Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`id
 The **Install ESP-Matter** command will clone ESP-Matter and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows). The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter.
 The **Install ESP-Rainmaker** command will clone ESP-Rainmaker and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 
-The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set.
+The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set, or to create projects from examples found in the Component Registry.
 
 ## Use of environment variables in ESP-IDF settings.json and tasks.json
 

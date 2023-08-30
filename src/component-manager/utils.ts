@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { existsSync } from 'fs';
 import { Logger } from "../logger/logger";
 import { spawn, appendIdfAndToolsToPath } from "../utils";
 import { LocDictionary } from "../localizationDictionary";
@@ -57,6 +58,48 @@ export async function addDependency(
         "idfpy.commandError",
         `Error encountered while adding dependency ${dependency} to the component "${component}"`
       )
+    );
+    Logger.error(error.message, error);
+    throw throwableError;
+  }
+}
+
+export async function createProject(
+  workspace: Uri,
+  example: string
+): Promise<void> {
+  try {
+    const idfPathDir = readParameter("idf.espIdfPath");
+    const idfPy = join(idfPathDir, "tools", "idf.py");
+    const modifiedEnv = appendIdfAndToolsToPath(workspace);
+    const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+
+    if (!existsSync(idfPathDir) || !existsSync(idfPy) || !existsSync(pythonBinPath)) {
+      throw new Error('The paths to idf, idf.py or pythonBin do not exist.');
+    }
+
+    const createProjectCommand: string[] = [idfPy, "create-project-from-example", `${example}`];
+    
+    const createProjectResult = await spawn(
+      pythonBinPath,
+      createProjectCommand,
+      {
+        cwd: workspace.fsPath,
+        env: modifiedEnv,
+      }
+    );
+
+    Logger.infoNotify(
+      `Creating project from ${example}"`
+    );
+    Logger.info(createProjectResult.toString());
+
+  } catch (error) {
+    const throwableError = new Error(
+      `${locDict.localize(
+        "idfpy.commandError",
+        `Error encountered while creating project from example ${example}"`
+      )}. Original error: ${error.message}`
     );
     Logger.error(error.message, error);
     throw throwableError;

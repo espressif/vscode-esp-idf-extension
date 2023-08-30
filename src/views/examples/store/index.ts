@@ -66,6 +66,11 @@ export const mutations: MutationTree<IState> = {
 };
 
 export const actions: ActionTree<IState, any> = {
+  showRegistry() {
+    vscode.postMessage({
+      command: "showRegistry",
+    });
+  },
   getExamplesList() {
     vscode.postMessage({ command: "getExamplesList" });
   },

@@ -1,6 +1,7 @@
 <template>
   <div id="examples-window">
     <div id="sidenav" class="content">
+      <p>For external components examples, check <a v-on:click="showRegistry">IDF Component Registry</a></p>
       <ul>
         <ExampleList :node="exampleRootPath" :key="exampleRootPath.name" />
       </ul>
@@ -45,6 +46,7 @@ export default class Examples extends Vue {
   @State("selectedExample") private storeSelectedExample;
   @Action("openExample") private storeOpenExample;
   @Action private getExamplesList;
+  @Action private showRegistry;
 
   get selectedExample() {
     return this.storeSelectedExample;
