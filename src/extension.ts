@@ -13,6 +13,7 @@
 // limitations under the License.
 
 "use strict";
+import * as os from 'os';
 import * as path from "path";
 import * as vscode from "vscode";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
@@ -133,6 +134,8 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import * as yaml from 'js-yaml';
+import * as fs from 'fs';
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3011,6 +3014,27 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
   await checkExtensionSettings(context.extensionPath, workspaceRoot);
+
+  // ERROR HINTS
+
+	const treeDataProvider = new ErrorHintProvider(context);
+  vscode.window.registerTreeDataProvider('errorHints', treeDataProvider);
+
+  vscode.commands.registerCommand('espIdf.searchError', async () => {
+      const errorMsg = await vscode.window.showInputBox({ placeHolder: 'Enter the error message' });
+      if (errorMsg) {
+          treeDataProvider.searchError(errorMsg, workspaceRoot);
+      }
+  });
+
+  vscode.commands.registerCommand('espIdf.promptErrorSearch', async () => {
+    const errorMsg = await vscode.window.showInputBox({
+      placeHolder: 'Enter the error message'
+    });
+    if (errorMsg) {
+      treeDataProvider.searchError(errorMsg, workspaceRoot);
+    }
+  });
 }
 
 function validateInputForRainmakerDeviceParam(
@@ -3530,4 +3554,141 @@ class IdfDebugConfigurationProvider
     }
     return config;
   }
+}
+
+class ReHintPair {
+    constructor(public re: string, public hint: string) { }
+}
+
+class ErrorHint {
+  public type: 'error' | 'hint';
+  public children: ErrorHint[] = [];
+
+  constructor(public label: string, type: 'error' | 'hint') {
+      this.type = type;
+  }
+
+  addChild(child: ErrorHint) {
+      this.children.push(child);
+  }
+}
+
+class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
+	constructor(private context: vscode.ExtensionContext) { }
+	private _onDidChangeTreeData: vscode.EventEmitter<ErrorHint | undefined | null | void> = new vscode.EventEmitter<ErrorHint | undefined | null | void>();
+	readonly onDidChangeTreeData: vscode.Event<ErrorHint | undefined | null | void> = this._onDidChangeTreeData.event;
+
+	private data: ErrorHint[] = [];
+
+  searchError(errorMsg: string, workspace) {
+    console.log(`Searching for: ${errorMsg}`);
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath", workspace) as string;
+    const hintsPath = getHintsYmlPath(espIdfPath);
+    const fileContents = fs.readFileSync(hintsPath, 'utf-8');
+    const hintsData = yaml.load(fileContents);
+
+    const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
+
+    this.data = [];
+    for (const hintPair of reHintsPairArray) {
+      const match = new RegExp(errorMsg).exec(hintPair.re);
+      if (match) {
+          let finalHint = hintPair.hint;
+          if (hintPair.hint.includes("{}")) {
+              // Replace {} with the exact matched portion of the error message if match_to_output is true
+              finalHint = hintPair.hint.replace("{}", match[0]);
+          }
+          const error = new ErrorHint(hintPair.re, 'error');
+          const hint = new ErrorHint(hintPair.hint, 'hint');
+          error.addChild(hint); // Nesting hint inside error
+          this.data.push(error);
+        console.log(`Found error: ${hintPair.re}`);
+        console.log(`Found hint: ${hintPair.hint}`);
+      }
+    }
+
+    if (!this.data.length) {
+      console.log('No hints found');
+      this.data.push(new ErrorHint(`No hints found for ${errorMsg}`, 'error'));
+    }
+
+    this._onDidChangeTreeData.fire();
+  }
+
+  private loadHints(hintsArray: any): ReHintPair[] {
+    let reHintsPairArray: ReHintPair[] = [];
+
+    for (const entry of hintsArray) {
+        if (entry.variables && entry.variables.length) {
+            for (const variableSet of entry.variables) {
+                const reVariables = variableSet.re_variables;
+                const hintVariables = variableSet.hint_variables;
+
+                let re = this.formatEntry(reVariables, entry.re);
+                let hint = this.formatEntry(hintVariables, entry.hint);
+
+                reHintsPairArray.push(new ReHintPair(re, hint));
+            }
+        } else {
+            let re = String(entry.re);
+            let hint = String(entry.hint);
+
+            if (entry.match_to_output) {
+                // if match_to_output is true, we need a way to get the exact matched portion from the error message.
+                // So, we leave {} as it is in the 're', so that we can replace it during the matching process.
+            } else {
+                re = this.formatEntry([], re);
+                hint = this.formatEntry([], hint);
+            }
+
+            reHintsPairArray.push(new ReHintPair(re, hint));
+        }
+    }
+
+    return reHintsPairArray;
+  } 
+
+  private formatEntry(vars: string[], entry: string): string {
+      let i = 0;
+      // entry = entry.replace(/'/g, "''");
+      while (entry.includes("{}")) {
+          entry = entry.replace("{}", "{" + i++ + "}");
+      }
+      const result = entry.replace(/\{(\d+)\}/g, (_, idx) => vars[Number(idx)] || "");
+      return result;
+  }
+
+  getTreeItem(element: ErrorHint): vscode.TreeItem {
+    let treeItem = new vscode.TreeItem(element.label);
+
+    if (element.type === 'error') {
+        if (element.label.startsWith("No hints found")) {
+          treeItem.label = `⚠️ ${element.label}`
+            // treeItem.iconPath = new vscode.ThemeIcon("warning");
+        } else {
+            treeItem.label = `🔍 ${element.label}`;
+            // treeItem.iconPath = new vscode.ThemeIcon("error");
+            treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded; // Ensure errors are expanded by default
+        }
+    } else if (element.type === 'hint') {
+        // treeItem.label = `💡 [HINT] ${element.label}`;
+        treeItem.label = `💡 ${element.label}`;
+        // treeItem.iconPath = new vscode.ThemeIcon("info");
+    }
+
+    return treeItem;
+  }
+
+  getChildren(element?: ErrorHint): Thenable<ErrorHint[]> {
+    if (element) {
+        return Promise.resolve(element.children); // Return children if there's a parent element
+    } else {
+        return Promise.resolve(this.data);
+    }
+  }
+}
+
+function getHintsYmlPath(espIdfPath: string): string {
+  const separator = os.platform() === 'win32' ? '\\' : '/';
+  return `${espIdfPath}${separator}tools${separator}idf_py_actions${separator}hints.yml`;
 }

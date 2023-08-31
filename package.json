@@ -136,6 +136,13 @@
       }
     ],
     "viewsContainers": {
+      "panel": [
+        {
+					"id": "espIdfHints",
+					"title": "ESP-IDF",
+					"icon": "media/dep.svg"
+				}
+      ],
       "activitybar": [
         {
           "id": "idfViewController",
@@ -145,6 +152,11 @@
       ]
     },
     "views": {
+      "espIdfHints": [{
+				"id": "errorHints",
+                "name": "Error Hints",
+                "title": "Error Hints ($errorHints.count$)"
+			}],
       "debug": [
         {
           "name": "ESP Peripheral View",
@@ -199,7 +211,18 @@
       }
     ],
     "menus": {
+      "editor/title": [
+				{
+					"command": "espIdf.searchError",
+					"group": "navigation"
+				}
+			],
       "view/title": [
+        {
+					"command": "espIdf.promptErrorSearch",
+					"group": "navigation",
+					"when": "view == errorHints"
+				},
         {
           "command": "espIdf.partition.table.refresh",
           "group": "navigation",
@@ -263,6 +286,9 @@
         }
       ],
       "editor/context": [
+        {
+					"command": "espIdf.searchError"
+				},
         {
           "command": "espIdf.searchInEspIdfDocs",
           "group": "navigation",
@@ -901,11 +927,23 @@
             "description": "%param.sdkconfigFilePath.title%",
             "scope": "resource",
             "default": ""
+          },
+          "idf.hintsPath": {
+            "type": "string",
+            "description": "Path to the hints file."
           }
         }
       }
     ],
     "commands": [
+      {
+				"command": "espIdf.promptErrorSearch",
+				"title": "Search Error"
+			},
+			{
+				"command": "espIdf.searchError",
+				"title": "Search Error Hint"
+			},
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%"
@@ -1449,6 +1487,7 @@
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^4.0.0",
     "husky": "^6.0.0",
+    "js-yaml": "^4.1.0",
     "jsonic": "^1.0.1",
     "mocha": "^9.2.0",
     "mocha-junit-reporter": "^1.23.3",
@@ -1482,6 +1521,7 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.5",
     "ansi-to-html": "^0.6.11",
     "axios": "^0.21.2",
     "bignumber.js": "^9.0.1",
