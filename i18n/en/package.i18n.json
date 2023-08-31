@@ -106,6 +106,8 @@
   "param.enableStatusBar.title": "Enable ESP-IDF extension status bar items",
   "param.enableSizeTaskAfterBuildTask.title": "Enable IDF Size task after build task",
   "param.sdkconfigFilePath.title": "sdkconfig file absolute path",
+  "param.hintsViewer.title": "Path to the hints file.",
+  "espIdf.searchError.title": "ESP-IDF: Search Error Hint",
   "view.components.name": "Project Components",
   "configuration.title": "ESP-IDF",
   "espIdf.apptrace.archive.refresh.title": "Refresh Trace Archive List",

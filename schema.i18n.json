@@ -228,6 +228,8 @@
     "param.deleteComponentsOnFullClean",
     "param.enableStatusBar.title",
     "param.enableSizeTaskAfterBuildTask.title",
-    "param.sdkconfigFilePath.title"
+    "param.sdkconfigFilePath.title",
+    "param.hintViewer.title",
+    "espIdf.searchError.title"
   ]
 }

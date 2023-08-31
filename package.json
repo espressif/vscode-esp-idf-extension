@@ -219,7 +219,7 @@
 			],
       "view/title": [
         {
-					"command": "espIdf.promptErrorSearch",
+					"command": "espIdf.searchError",
 					"group": "navigation",
 					"when": "view == errorHints"
 				},
@@ -930,19 +930,15 @@
           },
           "idf.hintsPath": {
             "type": "string",
-            "description": "Path to the hints file."
+            "description": "%param.hintViewer.title%"
           }
         }
       }
     ],
     "commands": [
-      {
-				"command": "espIdf.promptErrorSearch",
-				"title": "Search Error"
-			},
 			{
 				"command": "espIdf.searchError",
-				"title": "Search Error Hint"
+				"title": "%espIdf.searchError.title%"
 			},
       {
         "command": "espIdf.createFiles",
