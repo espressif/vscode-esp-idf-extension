@@ -99,7 +99,7 @@ export default class App extends Vue {
 
   get openOCDRulesPath() {
     return this.storeOpenOCDRulesPath !== ""
-      ? `sudo cp -n ${this.storeOpenOCDRulesPath} /etc/udev/rules.d`
+      ? `sudo cp -n "${this.storeOpenOCDRulesPath}" /etc/udev/rules.d`
       : "";
   }
 }
