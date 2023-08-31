@@ -3557,7 +3557,15 @@ class IdfDebugConfigurationProvider
 }
 
 class ReHintPair {
-    constructor(public re: string, public hint: string) { }
+    re: string;
+    hint: string;
+    match_to_output: boolean;
+
+    constructor(re: string, hint: string, match_to_output: boolean = false) {
+        this.re = re;
+        this.hint = hint;
+        this.match_to_output = match_to_output;
+    }
 }
 
 class ErrorHint {
@@ -3591,21 +3599,24 @@ class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
     this.data = [];
     for (const hintPair of reHintsPairArray) {
-      const match = new RegExp(errorMsg).exec(hintPair.re);
-      if (match) {
-          let finalHint = hintPair.hint;
-          if (hintPair.hint.includes("{}")) {
-              // Replace {} with the exact matched portion of the error message if match_to_output is true
-              finalHint = hintPair.hint.replace("{}", match[0]);
-          }
-          const error = new ErrorHint(hintPair.re, 'error');
-          const hint = new ErrorHint(hintPair.hint, 'hint');
-          error.addChild(hint); // Nesting hint inside error
-          this.data.push(error);
+    const match = new RegExp(hintPair.re).exec(errorMsg);
+    console.log(`RegExp matched: ${JSON.stringify(match)}`);
+    if (match) {
+        let finalHint = hintPair.hint;
+
+        if (hintPair.match_to_output && hintPair.hint.includes("{}")) {
+            // Replace {} with the first capturing group from the regex match
+            finalHint = hintPair.hint.replace("{}", match[0]);
+        }
+
+        const error = new ErrorHint(hintPair.re, 'error');
+        const hint = new ErrorHint(finalHint, 'hint');
+        error.addChild(hint); 
+        this.data.push(error);
         console.log(`Found error: ${hintPair.re}`);
-        console.log(`Found hint: ${hintPair.hint}`);
-      }
+        console.log(`Found hint: ${finalHint}`);
     }
+}
 
     if (!this.data.length) {
       console.log('No hints found');
@@ -3627,30 +3638,26 @@ class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
                 let re = this.formatEntry(reVariables, entry.re);
                 let hint = this.formatEntry(hintVariables, entry.hint);
 
-                reHintsPairArray.push(new ReHintPair(re, hint));
+                reHintsPairArray.push(new ReHintPair(re, hint, entry.match_to_output));
             }
         } else {
             let re = String(entry.re);
             let hint = String(entry.hint);
 
-            if (entry.match_to_output) {
-                // if match_to_output is true, we need a way to get the exact matched portion from the error message.
-                // So, we leave {} as it is in the 're', so that we can replace it during the matching process.
-            } else {
-                re = this.formatEntry([], re);
-                hint = this.formatEntry([], hint);
+            if (!entry.match_to_output) {
+              re = this.formatEntry([], re);
+              hint = this.formatEntry([], hint);
             }
 
-            reHintsPairArray.push(new ReHintPair(re, hint));
+            reHintsPairArray.push(new ReHintPair(re, hint, entry.match_to_output));
         }
     }
 
     return reHintsPairArray;
-  } 
+} 
 
   private formatEntry(vars: string[], entry: string): string {
       let i = 0;
-      // entry = entry.replace(/'/g, "''");
       while (entry.includes("{}")) {
           entry = entry.replace("{}", "{" + i++ + "}");
       }
@@ -3664,16 +3671,12 @@ class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     if (element.type === 'error') {
         if (element.label.startsWith("No hints found")) {
           treeItem.label = `⚠️ ${element.label}`
-            // treeItem.iconPath = new vscode.ThemeIcon("warning");
         } else {
             treeItem.label = `🔍 ${element.label}`;
-            // treeItem.iconPath = new vscode.ThemeIcon("error");
             treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded; // Ensure errors are expanded by default
         }
     } else if (element.type === 'hint') {
-        // treeItem.label = `💡 [HINT] ${element.label}`;
         treeItem.label = `💡 ${element.label}`;
-        // treeItem.iconPath = new vscode.ThemeIcon("info");
     }
 
     return treeItem;
