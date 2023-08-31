@@ -129,6 +129,8 @@
   "param.rainmaker.api.server_url": "URL облачного сервера ESP-Rainmaker",
   "param.customTerminalExecutable.title": "Пользовательский исполняемый файл для задач расширения",
   "param.customTerminalExecutableArgs.title": "Список аргументов для пользовательского исполняемого файла для задач расширения",
+  "param.hintsViewer.title": "Путь к файлу подсказок",
+  "espIdf.searchError.title": "ESP-IDF: Подсказка об ошибке поиска",
   "esp.rainmaker.backend.sync.title": "Синхронизация с облачным сервером ESP-Rainmaker",
   "esp.rainmaker.backend.connect.title": "Подключится к облачному серверу ESP-Rainmaker",
   "esp.rainmaker.backend.logout.title": "Отвязать аккаунт Rainmaker",

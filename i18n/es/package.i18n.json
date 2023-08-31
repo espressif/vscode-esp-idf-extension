@@ -129,6 +129,8 @@
   "param.notificationSilentMode": "Deshabilitar las notificaciones de la extensión ESP-IDF (excluyendo notficaciones de errores)",
   "param.saveScope": "Dónde se almacena las configuraciones para comandos ESP-IDF usando enum vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "URL del servidor ESP-Rainmaker API",
+  "param.hintsViewer.title": "Ruta al archivo de sugerencias.",
+  "espIdf.searchError.title": "ESP-IDF: Sugerencia de error de búsqueda",
   "esp.rainmaker.backend.sync.title": "Sincronizar con el servidor ESP-Rainmaker",
   "esp.rainmaker.backend.connect.title": "Conéctese con el servidor ESP-Rainmaker",
   "esp.rainmaker.backend.logout.title": "Desvincular cuenta ESP-Rainmaker",
