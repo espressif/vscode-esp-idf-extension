@@ -68,7 +68,7 @@
           </p>
           <p>Run this command in a terminal with sudo privileges:</p>
         </div>
-        <div class="notification" v-if="openOCDRulesPath">
+        <div class="notification keep-spaces" v-if="openOCDRulesPath">
           {{ openOCDRulesPath }}
         </div>
       </div>
@@ -146,5 +146,9 @@ export default class App extends Vue {
 
 .span-path {
   color: var(--vscode-button-hoverBackground);
+}
+
+.keep-spaces {
+  white-space: pre-wrap;
 }
 </style>
