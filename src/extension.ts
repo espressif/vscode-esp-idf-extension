@@ -132,7 +132,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
-import { ErrorHintProvider } from "./espIdf/hints/index"
+import { ErrorHintProvider } from "./espIdf/hints/index";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3014,14 +3014,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // ERROR HINTS
 
-	const treeDataProvider = new ErrorHintProvider(context);
-  vscode.window.registerTreeDataProvider('errorHints', treeDataProvider);
+  const treeDataProvider = new ErrorHintProvider(context);
+  vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
 
-  vscode.commands.registerCommand('espIdf.searchError', async () => {
-      const errorMsg = await vscode.window.showInputBox({ placeHolder: 'Enter the error message' });
-      if (errorMsg) {
-          treeDataProvider.searchError(errorMsg, workspaceRoot);
-      }
+  vscode.commands.registerCommand("espIdf.searchError", async () => {
+    const errorMsg = await vscode.window.showInputBox({
+      placeHolder: "Enter the error message",
+    });
+    if (errorMsg) {
+      treeDataProvider.searchError(errorMsg, workspaceRoot);
+    }
   });
 }
 
