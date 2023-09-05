@@ -1,0 +1,24 @@
+name: Precommit Hook
+
+on:
+    pull_request:
+        branches: [ master ]
+
+jobs:
+  precommit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9  
+
+    - name: Install pre-commit
+      run: pip install pre-commit
+
+    - name: Run pre-commit hook
+      run: pre-commit run --all-files
