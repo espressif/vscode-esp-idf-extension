@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { router } from "./main";
+import { useSetupStore } from "./store";
+import { computed, onMounted } from "vue";
+import { SetupMode } from "../setup/types";
+import selectSaveScope from "./components/selectSaveScope.vue";
+
+const store = useSetupStore();
+
+const { hasPrerequisites, platform } = storeToRefs(store);
+
+const setupMode = computed(() => {
+  return SetupMode;
+});
+
+onMounted(() => {
+  store.requestInitialValues();
+});
+
+function goTo(route: string, setupMode: SetupMode) {
+  router.push(route);
+  store.setupMode = setupMode;
+}
+</script>
+
 <template>
   <div id="home">
     <div class="centerize" v-if="!hasPrerequisites">
@@ -46,8 +72,8 @@
           >EXPRESS</label
         >
         <p name="express">
-          Fastest option. Choose ESP-IDF, ESP-IDF Tools directory and python executable to create
-          ESP-IDF.
+          Fastest option. Choose ESP-IDF, ESP-IDF Tools directory and python
+          executable to create ESP-IDF.
         </p>
       </div>
       <div
@@ -59,9 +85,10 @@
           >ADVANCED</label
         >
         <p name="advanced">
-          Configurable option. Choose ESP-IDF, ESP-IDF Tools directory and python executable to
-          create ESP-IDF. <br>
-          Can choose ESP-IDF Tools download or manually input each existing ESP-IDF tool path.
+          Configurable option. Choose ESP-IDF, ESP-IDF Tools directory and
+          python executable to create ESP-IDF. <br />
+          Can choose ESP-IDF Tools download or manually input each existing
+          ESP-IDF tool path.
         </p>
       </div>
       <div
@@ -72,59 +99,14 @@
         <label for="existing" class="subtitle" data-config-id="existing-setup"
           >USE EXISTING SETUP</label
         >
-        <p>Select existing ESP-IDF setup saved in the extension or find ESP-IDF in your system.</p>
+        <p>
+          Select existing ESP-IDF setup saved in the extension or find ESP-IDF
+          in your system.
+        </p>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import { SetupMode } from "./types";
-import { router } from "./main";
-import selectSaveScope from "./components/selectSaveScope.vue";
-
-@Component({
-  components: {
-    selectSaveScope
-  }
-})
-export default class Home extends Vue {
-  @Action requestInitialValues;
-  @Action useDefaultSettings;
-  @Mutation setSetupMode;
-  @State("hasPrerequisites") private storeHasPrerequisites: boolean;
-  @State("manualPythonPath") storeManualSysPython: string;
-  @State("espIdf") private storeEspIdf: string;
-  @State("platform") private storePlatform: string;
-
-  get espIdf() {
-    return this.storeEspIdf;
-  }
-
-  get hasPrerequisites() {
-    return this.storeHasPrerequisites;
-  }
-
-  get platform() {
-    return this.storePlatform;
-  }
-
-  get setupMode() {
-    return SetupMode;
-  }
-
-  mounted() {
-    this.requestInitialValues();
-  }
-
-  goTo(route: string, setupMode: SetupMode) {
-    router.push(route);
-    this.setSetupMode(setupMode);
-  }
-}
-</script>
 
 <style lang="scss">
 #home {
@@ -191,3 +173,4 @@ div.notification.is-danger {
   background-color: var(--vscode-editorGutter-deletedBackground);
 }
 </style>
+./types

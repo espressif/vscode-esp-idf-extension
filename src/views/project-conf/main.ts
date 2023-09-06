@@ -1,14 +1,14 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Friday, 6th January 2023 3:56:09 pm
+ * File Created: Thursday, 31st August 2023 12:31:23 pm
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,28 +16,26 @@
  * limitations under the License.
  */
 
-import Vue from "vue";
-// @ts-ignore
-import ProjectConfig from "./ProjectConfigEditor.vue";
-import { store } from "./store";
-import IconifyIcon from "@iconify/vue";
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { useProjectConfStore } from "./store";
+import { addIcon } from "@iconify/vue";
 import add from "@iconify-icons/codicon/add";
 import close from "@iconify-icons/codicon/close";
 import folder from "@iconify-icons/codicon/folder";
 import folderOpen from "@iconify-icons/codicon/folder-opened";
 
-IconifyIcon.addIcon("add", add);
-IconifyIcon.addIcon("close", close);
-IconifyIcon.addIcon("folder", folder);
-IconifyIcon.addIcon("folder-opened", folderOpen);
-Vue.component("iconify-icon", IconifyIcon);
+addIcon("add", add);
+addIcon("close", close);
+addIcon("folder", folder);
+addIcon("folder-opened", folderOpen);
 
-const app = new Vue({
-  el: "#editor",
-  components: { ProjectConfig },
-  store,
-  template: "<ProjectConfig />",
-});
+const app = createApp(ProjectConfig);
+const pinia = createPinia();
+app.use(pinia);
+app.mount("#editor");
+
+const store = useProjectConfStore();
 
 window.addEventListener("message", (event: MessageEvent) => {
   let msg = Object.create(null);
@@ -45,7 +43,7 @@ window.addEventListener("message", (event: MessageEvent) => {
   switch (msg.command) {
     case "setBuildPath":
       if (msg.confKey) {
-        store.commit("updateConfigElement", {
+        store.updateConfigElement({
           confKey: msg.confKey,
           sections: msg.sectionsKeys,
           newValue: msg.buildPath,
@@ -54,7 +52,7 @@ window.addEventListener("message", (event: MessageEvent) => {
       break;
     case "initialLoad":
       if (msg.confList) {
-        store.commit("setConfigList", msg.confList);
+        store.elements = msg.confList;
       }
     default:
       break;

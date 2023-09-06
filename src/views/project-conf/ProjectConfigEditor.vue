@@ -1,7 +1,30 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useProjectConfStore } from "./store";
+
+const store = useProjectConfStore();
+
+let keyToAdd: string = "";
+function addElement() {
+  if (keyToAdd !== "") {
+    store.addNewConfigToList(keyToAdd);
+    keyToAdd = "";
+  }
+}
+
+function deleteElem(elKey: string) {
+  delete store.elements[elKey];
+}
+
+onMounted(() => {
+  store.requestInitValues();
+})
+</script>
+
 <template>
   <div class="section">
     <div class="control centerize">
-      <h2 class="title is-spaced">{{ title }}</h2>
+      <h2 class="title is-spaced">{{ store.textDictionary.title }}</h2>
     </div>
 
     <div class="field level">
@@ -13,15 +36,17 @@
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button class="button" @click="saveChanges">{{ save }}</button>
+              <button class="button" @click="store.saveChanges">
+                {{ store.textDictionary.save }}
+              </button>
             </div>
           </div>
         </div>
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button class="button" @click="requestInitValues">
-                {{ cancel }}
+              <button class="button" @click="store.requestInitValues">
+                {{ store.textDictionary.discard }}
               </button>
             </div>
           </div>
@@ -30,7 +55,9 @@
     </div>
 
     <div class="notification">
-      <label :for="keyToAdd" class="label">Enter new profile configuration name</label>
+      <label :for="keyToAdd" class="label"
+        >Enter new profile configuration name</label
+      >
       <div class="field">
         <div class="control">
           <input
@@ -44,79 +71,21 @@
       <div class="field">
         <div class="control">
           <button class="button" @click="addElement">
-            {{ add }}
+            {{ store.textDictionary.add }}
           </button>
         </div>
       </div>
     </div>
 
     <projectConfElem
-      v-for="confKey in Object.keys(elements).reverse()"
+      v-for="confKey in Object.keys(store.elements).reverse()"
       :key="confKey"
-      :el.sync="elements[confKey]"
+      :el.sync="store.elements[confKey]"
       :title="confKey"
       @delete="deleteElem(confKey)"
     ></projectConfElem>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import projectConfElem from "./components/projectConfElem.vue";
-import { ProjectConfElement } from "../..//project-conf/projectConfiguration";
-
-@Component({
-  components: {
-    projectConfElem,
-  },
-})
-export default class ProjectConfigEditor extends Vue {
-  @State("elements") private storeElements: {
-    [key: string]: ProjectConfElement;
-  };
-  @State("textDictionary") private storeTextDictionary;
-  @Action private requestInitValues: () => void;
-  @Action private saveChanges: () => void;
-  @Mutation private addNewConfigToList: (confKey: string) => void;
-  private keyToAdd: string = "";
-
-  get add() {
-    return this.storeTextDictionary.add;
-  }
-
-  get save() {
-    return this.storeTextDictionary.save;
-  }
-
-  get cancel() {
-    return this.storeTextDictionary.discard;
-  }
-
-  get title() {
-    return this.storeTextDictionary.title;
-  }
-
-  get elements() {
-    return this.storeElements;
-  }
-
-  addElement() {
-    if (this.keyToAdd !== "") {
-      this.addNewConfigToList(this.keyToAdd);
-      this.keyToAdd = "";
-    }
-  }
-
-  deleteElem(k: string) {
-    this.$delete(this.storeElements, k);
-  }
-
-  mounted() {
-    this.requestInitValues();
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

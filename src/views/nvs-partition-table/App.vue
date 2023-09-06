@@ -1,57 +1,53 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import Header from "./components/Header.vue";
+import PartitionTable from "./components/PartitionTable.vue";
+import Row from "./components/Row.vue";
+import { useNvsPartitionTableStore } from "./store";
+import { findEncodingTypes } from "./util";
+
+const store = useNvsPartitionTableStore();
+
+const { rows } = storeToRefs(store);
+
+function addNewRow() {
+  store.rows.push({
+    key: "",
+    type: "",
+    encoding: "",
+    value: "",
+    error: "",
+  });
+}
+
+function updateEncoding(index: string, newType: string) {
+    const encodingTypes = findEncodingTypes(newType);
+    if (newType === "namespace") {
+      store.rows[index].encoding = "";
+    } else if (encodingTypes.indexOf(newType) === -1) {
+      store.rows[index].encoding = encodingTypes[0];
+    }
+  }
+</script>
+
 <template>
   <div>
     <Header></Header>
-    <PartitionTable @addNewRow="addNewRow" @save="save">
+    <PartitionTable @addNewRow="addNewRow" @save="store.save">
       <Row
         v-for="(row, i) in rows"
-        @delete="DELETE(i)"
+        @delete="rows.splice(i, 1)"
         :key="i"
         :encoding.sync="row.encoding"
         :rowError="row.error"
         :rowKey.sync="row.key"
         :rowValue.sync="row.value"
-        :type.sync="row.type"
+        :rowType.sync="row.type"
+        :updateEncoding="updateEncoding"
       />
     </PartitionTable>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import Header from "./components/Header.vue";
-import PartitionTable from "./components/PartitionTable.vue";
-import Row from "./components/Row.vue";
-import { Action, Mutation, State } from "vuex-class";
-import { NvsPartitionTable } from "./store";
-
-@Component({
-  components: {
-    Header,
-    PartitionTable,
-    Row,
-  },
-})
-export default class App extends Vue {
-  @Action save;
-  @Mutation ADD;
-  @Mutation DELETE;
-  @State("rows") private storeRows: NvsPartitionTable.IRow[];
-
-  get rows() {
-    return this.storeRows;
-  }
-
-  addNewRow() {
-    this.ADD({
-      key: "",
-      type: "",
-      encoding: "",
-      value: "",
-      error: "",
-    });
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

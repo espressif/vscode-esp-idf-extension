@@ -1,7 +1,57 @@
+<script setup lang="ts">
+import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
+import { useProjectConfStore } from "../store";
+
+const store = useProjectConfStore();
+
+const props = defineProps<{
+  el: ProjectConfElement;
+  title: string;
+}>();
+
+const openOcdDebugLevelOptions: { name: string; value: number }[] = [
+  { name: "Error", value: 0 },
+  { name: "Warning", value: 1 },
+  { name: "Info", value: 2 },
+  { name: "Debug", value: 3 },
+  { name: "Verbose", value: 4 },
+];
+
+const idfTargets: { name: string; value: string }[] = [
+  { name: "esp32", value: "esp32" },
+  { name: "ESP32 S2", value: "esp32s2" },
+  { name: "ESP32 S3", value: "esp32s3" },
+  { name: "ESP32 C2", value: "esp32c2" },
+  { name: "ESP32 C3", value: "esp32c3" },
+  { name: "ESP32 C6", value: "esp32c6" },
+  { name: "ESP32 H2", value: "esp32h2" },
+];
+
+function updateElement(sections: string[], newValue: any) {
+  store.updateConfigElement({ confKey: props.title, sections, newValue });
+}
+
+function openBuildDir(sections: string[]) {
+  store.openBuildPath({ confKey: props.title, sections });
+}
+
+function addValueToArray(sections: string[], newValue: any) {
+  store.addValueToConfigElement({
+    confKey: props.title,
+    sections,
+    valueToAdd: newValue,
+  });
+}
+
+function removeValueFromArray(sections: string[], index: number) {
+  store.removeValueFromConfigElement({ confKey: props.title, sections, index });
+}
+</script>
+
 <template>
   <div class="notification">
     <h2 class="title centerize">{{ title }}</h2>
-    <a class="delete" @click="deleteElem"></a>
+    <a class="delete" @click="$emit('delete')"></a>
     <label class="is-size-4 has-text-weight-bold">Build</label>
     <div class="small-margin">
       <ArrayElement
@@ -119,89 +169,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { Action, Mutation } from "vuex-class";
-import ArrayElement from "./ArrayElement.vue";
-import DictionaryElement from "./DictionaryElement.vue";
-import SelectElement from "./SelectElement.vue";
-import StringElement from "./StringElement.vue";
-import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
-
-@Component({
-  components: {
-    ArrayElement,
-    DictionaryElement,
-    SelectElement,
-    StringElement,
-  },
-})
-export default class projectConfElem extends Vue {
-  @Action private openBuildPath: (payload: {
-    confKey: string;
-    sections: string[];
-  }) => void;
-  @Prop() public el: ProjectConfElement;
-  @Prop() public title: string;
-  @Mutation updateConfigElement: (payload: {
-    confKey: string;
-    sections: string[];
-    newValue: any;
-  }) => void;
-  @Mutation addValueToConfigElement: (payload: {
-    confKey: string;
-    sections: string[];
-    valueToAdd: any;
-  }) => void;
-  @Mutation removeValueFromConfigElement: (payload: {
-    confKey: string;
-    sections: string[];
-    index: any;
-  }) => void;
-
-  openOcdDebugLevelOptions: { name: string; value: number }[] = [
-    { name: "Error", value: 0 },
-    { name: "Warning", value: 1 },
-    { name: "Info", value: 2 },
-    { name: "Debug", value: 3 },
-    { name: "Verbose", value: 4 },
-  ];
-
-  idfTargets: { name: string; value: string }[] = [
-    { name: "esp32", value: "esp32" },
-    { name: "ESP32 S2", value: "esp32s2" },
-    { name: "ESP32 S3", value: "esp32s3" },
-    { name: "ESP32 C2", value: "esp32c2" },
-    { name: "ESP32 C3", value: "esp32c3" },
-    { name: "ESP32 C6", value: "esp32c6" },
-    { name: "ESP32 H2", value: "esp32h2" },
-  ];
-
-  updateElement(sections: string[], newValue: any) {
-    this.updateConfigElement({ confKey: this.title, sections, newValue });
-  }
-
-  openBuildDir(sections: string[]) {
-    this.openBuildPath({ confKey: this.title, sections });
-  }
-
-  addValueToArray(sections: string[], newValue: any) {
-    this.addValueToConfigElement({
-      confKey: this.title,
-      sections,
-      valueToAdd: newValue,
-    });
-  }
-
-  removeValueFromArray(sections: string[], index: number) {
-    this.removeValueFromConfigElement({ confKey: this.title, sections, index });
-  }
-
-  @Emit("delete")
-  deleteElem() {}
-}
-</script>
 
 <style lang="scss">
 .small-margin {

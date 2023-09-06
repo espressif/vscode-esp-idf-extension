@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useNvsPartitionTableStore } from "../store";
+import { computed, onMounted } from "vue";
+import { Icon } from "@iconify/vue";
+let folderIcon = "folder";
+const store = useNvsPartitionTableStore();
+
+const {
+  encrypt,
+  encryptKeyPath,
+  generateKey,
+  partitionSize,
+  partitionSizeError,
+} = storeToRefs(store);
+
+const showEncryptionKeyPath = computed(() => {
+  return encrypt && !generateKey;
+});
+
+onMounted(() => {
+  store.initDataRequest();
+});
+</script>
+
 <template>
   <header class="section">
     <div class="container">
@@ -25,15 +50,19 @@
           </div>
           <div class="level-item">
             <p class="buttons are-small">
-              <a class="button" @click="genPartition">
+              <a class="button" @click="store.genPartition">
                 <span class="icon is-small">
-                  <iconify-icon icon="symbol-method" />
+                  <Icon icon="symbol-method" />
                 </span>
                 &nbsp; Generate partition
               </a>
-              <button class="button" title="Retry" @click="initDataRequest">
+              <button
+                class="button"
+                title="Retry"
+                @click="store.initDataRequest"
+              >
                 <span class="icon is-small">
-                  <iconify-icon icon="refresh" />
+                  <Icon icon="refresh" />
                 </span>
                 &nbsp; Reload file
               </button>
@@ -58,11 +87,11 @@
           </div>
           <div class="control" style="margin: auto;">
             <span class="icon is-size-4">
-              <iconify-icon
+              <Icon
                 :icon="folderIcon"
                 @mouseover="folderIcon = 'folder-opened'"
                 @mouseout="folderIcon = 'folder'"
-                v-on:click="openKeyFile"
+                v-on:click="store.openKeyFile"
               />
             </span>
           </div>
@@ -86,75 +115,13 @@
             :data-tooltip="partitionSizeError"
             v-if="partitionSizeError"
           >
-            <iconify-icon icon="question" />
+            <Icon icon="question" />
           </span>
         </div>
       </div>
     </div>
   </header>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-
-@Component
-export default class Header extends Vue {
-  private folderIcon = "folder";
-  @Action private genPartition;
-  @Action private openKeyFile;
-  @Action private initDataRequest;
-  @Mutation setEncrypt;
-  @Mutation setEncryptKeyPath;
-  @Mutation setGenerateKey;
-  @Mutation setPartitionSize;
-  @State("encrypt") private storeEncrypt: Boolean;
-  @State("generateKey") private storeGenerateKey: Boolean;
-  @State("encryptKeyPath") private storeEncryptKeyPath: string;
-  @State("partitionSize") private storePartitionSize: string;
-  @State("partitionSizeError") private storePartSizeError: string;
-
-  get encrypt() {
-    return this.storeEncrypt;
-  }
-  set encrypt(val: Boolean) {
-    this.setEncrypt(val);
-  }
-
-  get encryptKeyPath() {
-    return this.storeEncryptKeyPath;
-  }
-  set encryptKeyPath(val: string) {
-    this.setEncryptKeyPath(val);
-  }
-
-  get generateKey() {
-    return this.storeGenerateKey;
-  }
-  set generateKey(val: Boolean) {
-    this.setGenerateKey(val);
-  }
-
-  get partitionSize() {
-    return this.storePartitionSize;
-  }
-  set partitionSize(val: string) {
-    this.setPartitionSize(val);
-  }
-
-  get partitionSizeError() {
-    return this.storePartSizeError;
-  }
-
-  get showEncryptionKeyPath() {
-    return this.storeEncrypt && !this.storeGenerateKey;
-  }
-
-  mounted() {
-    this.initDataRequest();
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 .sizeErr {

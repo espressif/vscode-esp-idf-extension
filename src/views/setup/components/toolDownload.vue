@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useSetupStore } from "../store";
+import { computed } from "vue";
+import { IEspIdfTool, StatusType } from "../types";
+
+const store = useSetupStore();
+
+const { pathSep, toolsFolder, statusEspIdfTools } = storeToRefs(store);
+
+const isInstallationCompleted = computed(() => {
+  return statusEspIdfTools.value === StatusType.installed;
+});
+
+const props = defineProps<{
+  tool: IEspIdfTool;
+}>();
+</script>
+
 <template>
   <div class="progressStatus">
     <div :key="tool.id" class="pkg-progress">
@@ -23,7 +42,7 @@
       <span v-if="tool.progress === '100.00%' && isInstallationCompleted">
         <span>Installed in</span>
         {{
-          idfTools +
+          toolsFolder +
           pathSep +
           "tools" +
           pathSep +
@@ -37,32 +56,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { IEspIdfTool, StatusType } from "../types";
-
-@Component
-export default class ToolDownloadInfo extends Vue {
-  @Prop() tool: IEspIdfTool;
-  @State("pathSep") private storePathSep: string;
-  @State("toolsFolder") private storeIdfToolsPath;
-  @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
-
-  get idfTools() {
-    return this.storeIdfToolsPath;
-  }
-
-  get isInstallationCompleted() {
-    return this.storeEspIdfToolsStatus === StatusType.installed;
-  }
-
-  get pathSep() {
-    return this.storePathSep;
-  }
-}
-</script>
 
 <style scoped>
 .pkg-progress {

@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { Icon } from "@iconify/vue";
+
+const props = defineProps<{
+  title: string;
+  elements: { [key: string]: string };
+}>();
+
+let valueToPush: string = "";
+
+function removeElement(dictKey: string) {
+  delete props.elements[dictKey];
+}
+
+function addToDictionary() {
+  if (valueToPush != "") {
+    props.elements[valueToPush] = "";
+    valueToPush = "";
+  }
+}
+</script>
+
 <template>
   <div class="block">
     <div class="field">
@@ -11,7 +33,9 @@
           class="field is-grouped"
         >
           <div class="control is-flex">
-            <label :for="elements[confKey]" class="label">{{ confKey }} :</label>
+            <label :for="elements[confKey]" class="label"
+              >{{ confKey }} :</label
+            >
           </div>
           <div class="control">
             <input
@@ -21,7 +45,7 @@
             />
           </div>
           <div class="icon" @click="removeElement(confKey)">
-            <iconify-icon icon="close" />
+            <Icon icon="close" />
           </div>
         </li>
       </ul>
@@ -30,7 +54,7 @@
       <div class="control">
         <input
           type="text is-small"
-          v-model="keyToAdd"
+          v-model="valueToPush"
           class="input"
           @keyup.enter="addToDictionary"
           placeholder="enter key name"
@@ -38,41 +62,12 @@
       </div>
       <div class="control">
         <div class="icon" @click="addToDictionary">
-          <iconify-icon icon="add" />
+          <Icon icon="add" />
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class DictionaryElement extends Vue {
-  @Prop() public title: string;
-  @Prop() public elements: { [key: string]: string };
-  private valueToPush: string = "";
-
-  get keyToAdd() {
-    return this.valueToPush;
-  }
-  set keyToAdd(newVal: string) {
-    this.valueToPush = newVal;
-  }
-
-  public removeElement(dictKey: string) {
-    this.$delete(this.elements, dictKey);
-  }
-
-  public addToDictionary() {
-    if (this.valueToPush != "") {
-      this.elements[this.valueToPush] = "";
-      this.valueToPush = "";
-    }
-  }
-}
-</script>
 
 <style scoped>
 .is-grouped {

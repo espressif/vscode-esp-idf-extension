@@ -1,7 +1,7 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Thursday, 17th December 2020 7:15:59 pm
- * Copyright 2020 Espressif Systems (Shanghai) CO LTD
+ * File Created: Wednesday, 30th August 2023 11:08:29 am
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,31 @@ export const maxValues = {
   i64: new BigNumber('9223372036854775807'),
 };
 
+export function findEncodingTypes(type: string) {
+  const fileTypes = ["binary", "base64", "hex2bin", "string"];
+  switch (type) {
+    case "file":
+      return fileTypes;
+      break;
+    case "data":
+      return [
+        "u8",
+        "i8",
+        "u16",
+        "i16",
+        "u32",
+        "i32",
+        "u64",
+        "i64",
+        ...fileTypes,
+      ];
+      break;
+    default:
+      return [];
+      break;
+  }
+}
+
 export function isInValidRow(row: NvsPartitionTable.IRow): string {
   if (!row.key) {
     return "Key field is required";
@@ -85,7 +110,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
   }
 
   if (row.type === "namespace") {
-    return;
+    return "";
   }
 
   if (!row.encoding) {
@@ -97,7 +122,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
   }
 
   if (row.type === "file") {
-    return;
+    return "";
   }
 
   if (row.encoding === "string") {
@@ -105,7 +130,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     if (bytes > 4000) {
       return "String value is limited to 4000 bytes";
     }
-    return;
+    return "";
   }
 
   if (numberTypes.indexOf(row.encoding) !== -1) {
@@ -126,7 +151,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
       return `Out of range for ${row.encoding}`;
     }
   }
-  return;
+  return "";
 }
 
 export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {

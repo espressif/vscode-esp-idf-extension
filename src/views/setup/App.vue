@@ -1,8 +1,33 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { useSetupStore } from "./store";
+import { storeToRefs } from "pinia";
+import { router } from "./main";
+
+const store = useSetupStore();
+
+const { isIdfInstalled, openOCDRulesPath, platform } = storeToRefs(store);
+
+const currentRoute = computed(() => {
+  return router.currentRoute.value.path;
+});
+
+const isLinuxPlatform = computed(() => {
+  return platform.value.indexOf("linux") !== -1;
+});
+
+const openOCDRulesPathText = computed(() => {
+    return openOCDRulesPath.value !== ""
+      ? `sudo cp -n ${openOCDRulesPath} /etc/udev/rules.d`
+      : "";
+  })
+</script>
+
 <template>
   <div id="app">
     <div
       class="control centerize"
-      v-if="!isInstalled && currentRoute !== '/' && currentRoute !== '/status'"
+      v-if="!isIdfInstalled && currentRoute !== '/' && currentRoute !== '/status'"
     >
       <div class="icon is-large is-size-4">
         <router-link to="/" class="button" id="home-button">
@@ -51,10 +76,10 @@
       </h1>
       <h2 class="subtitle">ESP-IDF Extension for Visual Studio Code</h2>
     </div>
-    <transition name="fade" mode="out-in" v-if="!isInstalled">
+    <transition name="fade" mode="out-in" v-if="!isIdfInstalled">
       <router-view></router-view>
     </transition>
-    <div class="centerize install-finished" v-if="isInstalled">
+    <div class="centerize install-finished" v-if="isIdfInstalled">
       <h2 class="subtitle" data-config-id="setup-is-finished">
         All settings have been configured. You can close this window.
       </h2>
@@ -68,42 +93,13 @@
           </p>
           <p>Run this command in a terminal with sudo privileges:</p>
         </div>
-        <div class="notification" v-if="openOCDRulesPath">
-          {{ openOCDRulesPath }}
+        <div class="notification" v-if="openOCDRulesPathText">
+          {{ openOCDRulesPathText }}
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-
-@Component
-export default class App extends Vue {
-  @State("isIdfInstalled") private storeIsInstalled: boolean;
-  @State("openOCDRulesPath") storeOpenOCDRulesPath: string;
-  @State("platform") private storePlatform: string;
-  get isInstalled() {
-    return this.storeIsInstalled;
-  }
-
-  get currentRoute() {
-    return this.$route.path;
-  }
-
-  get isLinuxPlatform() {
-    return this.storePlatform.indexOf("linux") !== -1;
-  }
-
-  get openOCDRulesPath() {
-    return this.storeOpenOCDRulesPath !== ""
-      ? `sudo cp -n ${this.storeOpenOCDRulesPath} /etc/udev/rules.d`
-      : "";
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

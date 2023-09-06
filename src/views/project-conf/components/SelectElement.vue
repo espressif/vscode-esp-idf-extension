@@ -1,3 +1,45 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps<{
+  selectValue: any;
+  title: string;
+  options: { name: string; value: any }[];
+  customOption: { name: string; value: any };
+  customValueModel: string;
+  updateMethod: (sections: string[], newValue: any) => void;
+  sections: string[];
+  customValueSections: string[];
+}>();
+
+let isCustomValue = computed(() => {
+  return (
+    props.selectValue &&
+    props.customOption &&
+    typeof props.selectValue === "string" &&
+    props.selectValue.indexOf(props.customOption.value) !== -1
+  );
+});
+
+let selectedValue = computed({
+  get() {
+    return props.selectValue;
+  },
+  set(newVal: any) {
+    props.updateMethod(this.sections, newVal);
+  }
+});
+
+let customValue = computed({
+  get() {
+    return props.customValueModel;
+  },
+  set(newVal: string) {
+    props.updateMethod(this.customValueSections, newVal);
+  }
+});
+</script>
+
 <template>
   <div class="block">
     <div class="field">
@@ -19,42 +61,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class SelectElement extends Vue {
-  @Prop() public selectValue: any;
-  @Prop() public title: string;
-  @Prop() public options: { name: string; value: any }[];
-  @Prop() public customOption:  { name: string; value: any };
-  @Prop() public customValueModel: string;
-  @Prop() public updateMethod: (sections: string[], newValue: any) => void;
-  @Prop() public sections: string[];
-  @Prop() public customValueSections: string[];
-
-  get isCustomValue() {
-    return (
-      this.selectValue &&
-      this.customOption &&
-      typeof this.selectValue === "string" &&
-      this.selectValue.indexOf(this.customOption.value) !== -1
-    );
-  }
-
-  get selectedValue() {
-    return this.selectValue;
-  }
-  set selectedValue(newVal: any) {
-    this.updateMethod(this.sections, newVal);
-  }
-
-  get customValue() {
-    return this.customValueModel;
-  }
-  set customValue(newVal: string) {
-    this.updateMethod(this.customValueSections, newVal);
-  }
-}
-</script>

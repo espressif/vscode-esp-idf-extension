@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+const props = defineProps<{
+  title: string;
+  values: string[];
+  addValue: (sections: string[], val: string) => void;
+  removeValue: (sections: string[], i: number) => void;
+  sections: string[];
+}>();
+
+let valueToPush = "";
+
+function addToArray() {
+  if (valueToPush !== "") {
+    props.addValue(props.sections, valueToPush);
+    valueToPush = "";
+  }
+}
+
+function removeFromArray(val: any) {
+  const index = props.values.indexOf(val);
+  props.removeValue(props.sections, index);
+}
+</script>
+
 <template>
   <div class="block">
     <div class="field">
@@ -8,7 +33,7 @@
         <li v-for="v in values" :key="v" class="tag is-custom-tag">
           <p>{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
-            <iconify-icon icon="close" />
+            <Icon icon="close" />
           </div>
         </li>
       </ul>
@@ -24,40 +49,12 @@
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
-          <iconify-icon icon="add" />
+          <Icon icon="add" />
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class ArrayElement extends Vue {
-  @Prop() public title: string;
-  @Prop() public values: string[];
-  @Prop() public addValue: (sections: string[], val: string) => void;
-  @Prop() public removeValue: (sections: string[], i: number) => void;
-  @Prop() public sections: string[];
-  private valueToPush: string = "";
-
-  public removeFromArray(val: any) {
-    const index = this.values.indexOf(val);
-    // this.values.splice(index, 1);
-    this.removeValue(this.sections, index);
-  }
-
-  public addToArray() {
-    if (this.valueToPush !== "") {
-      this.addValue(this.sections, this.valueToPush);
-      // this.values.push(this.valueToPush);
-      this.valueToPush = "";
-    }
-  }
-}
-</script>
 
 <style scoped>
 .is-grouped {

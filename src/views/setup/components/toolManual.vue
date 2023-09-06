@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { IEspIdfTool } from "../types";
+import { Icon } from "@iconify/vue";
+
+const props = defineProps<{
+  tool: IEspIdfTool;
+}>();
+
+function setToolsAreInValid() {
+  props.tool.doesToolExist = false;
+}
+</script>
+
 <template>
   <div class="toolsMetadata">
     <div class="field">
@@ -17,7 +30,7 @@
         </div>
         <div class="control">
           <div class="icon is-large is-size-4">
-            <iconify-icon :icon="tool.doesToolExist ? 'check' : 'close'" />
+            <Icon :icon="tool.doesToolExist ? 'check' : 'close'" />
           </div>
         </div>
       </div>
@@ -39,23 +52,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import { Component, Prop } from "vue-property-decorator";
-import { Mutation, State } from "vuex-class";
-import { IEspIdfTool } from "../types";
-
-@Component
-export default class PreviousTool extends Vue {
-  @Prop() tool: IEspIdfTool;
-  @Mutation private setToolsAreValid;
-
-  setToolsAreInValid() {
-    this.tool.doesToolExist = false;
-  }
-}
-</script>
 
 <style scoped>
 .toolsMetadata {

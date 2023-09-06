@@ -1,3 +1,55 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useSetupStore } from "../store";
+import { IdfMirror, IEspIdfLink } from "../types";
+import folderOpen from "./folderOpen.vue";
+import { computed } from "vue";
+
+const store = useSetupStore();
+
+const idfMirror = computed(() => {
+  return IdfMirror;
+});
+
+const {
+  espIdf,
+  espIdfContainer,
+  espIdfVersionList,
+  espIdfTags,
+  selectedEspIdfVersion,
+  selectedIdfMirror,
+  showIdfTagList,
+} = storeToRefs(store);
+
+const idfVersionList = computed(() => {
+  if (showIdfTagList) {
+    const idfVersionWithTagsList = [...espIdfVersionList.value];
+    for (const idfTag of espIdfTags.value) {
+      const existingVersion = espIdfVersionList.value.find(
+        (idfVersion) => idfVersion.name === idfTag.name
+      );
+      if (!existingVersion) {
+        idfVersionWithTagsList.push(idfTag);
+      }
+    }
+    return idfVersionWithTagsList;
+  }
+  return espIdfVersionList.value;
+});
+
+function clearIDfErrorStatus() {
+  store.espIdfErrorStatus = "";
+}
+
+function setEspIdfPath(idfPath: string) {
+  store.espIdf = idfPath;
+}
+
+function setEspIdfContainerPath(idfContainerPath: string) {
+  store.espIdfContainer = idfContainerPath;
+}
+</script>
+
 <template>
   <div id="select-esp-idf-version">
     <div class="field">
@@ -15,7 +67,7 @@
     </div>
     <div class="field">
       <label class="checkbox is-small">
-        <input type="checkbox" v-model="showGithubTags" />
+        <input type="checkbox" v-model="showIdfTagList" />
         Show all ESP-IDF tags
       </label>
     </div>
@@ -26,7 +78,7 @@
       <div class="control">
         <div class="select">
           <select
-            v-model="selectedIdfVersion"
+            v-model="selectedEspIdfVersion"
             @change="clearIDfErrorStatus"
             id="select-esp-idf"
           >
@@ -44,105 +96,26 @@
       propLabel="Enter ESP-IDF directory (IDF_PATH)"
       :propModel.sync="espIdf"
       :propMutate="setEspIdfPath"
-      :openMethod="openEspIdfFolder"
+      :openMethod="store.openEspIdfFolder"
       :onChangeMethod="clearIDfErrorStatus"
-      v-if="selectedIdfVersion && selectedIdfVersion.filename === 'manual'"
+      v-if="
+        selectedEspIdfVersion && selectedEspIdfVersion.filename === 'manual'
+      "
       data-config-id="manual-idf-directory"
     />
     <folderOpen
       propLabel="Enter ESP-IDF container directory"
       :propModel.sync="espIdfContainer"
       :propMutate="setEspIdfContainerPath"
-      :openMethod="openEspIdfContainerFolder"
+      :openMethod="store.openEspIdfContainerFolder"
       :onChangeMethod="clearIDfErrorStatus"
       staticText="esp-idf"
-      v-if="selectedIdfVersion && selectedIdfVersion.filename !== 'manual'"
+      v-if="
+        selectedEspIdfVersion && selectedEspIdfVersion.filename !== 'manual'
+      "
     />
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { IdfMirror, IEspIdfLink } from "../types";
-import { State, Action, Mutation } from "vuex-class";
-import folderOpen from "./folderOpen.vue";
-
-@Component({
-  components: {
-    folderOpen,
-  },
-})
-export default class SelectEspIdf extends Vue {
-  @Action private openEspIdfFolder;
-  @Action private openEspIdfContainerFolder;
-  @Mutation setEspIdfPath;
-  @Mutation setEspIdfContainerPath;
-  @Mutation setIdfMirror;
-  @Mutation setSelectedEspIdfVersion;
-  @Mutation setShowIdfTagList: Function;
-  @Mutation setEspIdfErrorStatus;
-  @State("espIdf") private storeEspIdf: string;
-  @State("espIdfContainer") private storeEspIdfContainer: string;
-  @State("espIdfVersionList") private storeEspIdfVersionList: IEspIdfLink[];
-  @State("espIdfTags") private storeEspIdfTags: IEspIdfLink[];
-  @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
-  @State("selectedIdfMirror") private storeSelectedIdfMirror: IdfMirror;
-  @State("showIdfTagList") private storeShowIdfTagList: boolean;
-
-  get espIdf() {
-    return this.storeEspIdf;
-  }
-
-  get espIdfContainer() {
-    return this.storeEspIdfContainer;
-  }
-
-  get idfMirror() {
-    return IdfMirror;
-  }
-
-  get idfVersionList() {
-    if (this.showGithubTags) {
-      const idfVersionWithTagsList = [...this.storeEspIdfVersionList];
-      for (const idfTag of this.storeEspIdfTags) {
-        const existingVersion = this.storeEspIdfVersionList.find(
-          (idfVersion) => idfVersion.name === idfTag.name
-        );
-        if (!existingVersion) {
-          idfVersionWithTagsList.push(idfTag);
-        }
-      }
-      return idfVersionWithTagsList;
-    }
-    return this.storeEspIdfVersionList;
-  }
-
-  get selectedIdfVersion() {
-    return this.storeSelectedIdfVersion;
-  }
-  set selectedIdfVersion(newValue: IEspIdfLink) {
-    this.setSelectedEspIdfVersion(newValue);
-  }
-
-  get selectedIdfMirror() {
-    return this.storeSelectedIdfMirror;
-  }
-  set selectedIdfMirror(val: IdfMirror) {
-    this.setIdfMirror(val);
-  }
-
-  get showGithubTags() {
-    return this.storeShowIdfTagList;
-  }
-  set showGithubTags(showTags: boolean) {
-    this.setShowIdfTagList(showTags);
-  }
-
-  public clearIDfErrorStatus() {
-    this.setEspIdfErrorStatus("");
-  }
-}
-</script>
 
 <style scoped>
 #select-esp-idf-version {

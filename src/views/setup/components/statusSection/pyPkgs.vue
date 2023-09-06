@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { StatusType } from "../../types";
+import { useSetupStore } from "../../store";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+import { Icon } from "@iconify/vue";
+
+const store = useSetupStore();
+
+const { pyReqsLog, statusPyVEnv } = storeToRefs(store);
+
+const statusType = computed(() => {
+  return StatusType;
+});
+</script>
+
 <template>
   <div class="centerize notification">
     <div class="control barText">
@@ -5,7 +21,7 @@
         Installing Python virtual environment for ESP-IDF...
       </p>
       <div class="icon is-large is-size-4">
-        <iconify-icon
+        <Icon
           :icon="
             statusPyVEnv === statusType.installed
               ? 'check'
@@ -29,27 +45,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { StatusType } from "../../types";
-
-@Component
-export default class PythonPkgsStatus extends Vue {
-  @State("pyReqsLog") private storePyReqsLog: string;
-  @State("statusPyVEnv") private storePyVenvStatus: StatusType;
-
-  get pyReqsLog() {
-    return this.storePyReqsLog;
-  }
-
-  get statusPyVEnv() {
-    return this.storePyVenvStatus;
-  }
-
-  get statusType() {
-    return StatusType;
-  }
-}
-</script>

@@ -1,3 +1,26 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { Icon } from "@iconify/vue";
+
+const props = defineProps<{
+  title: string;
+  value: string;
+  updateMethod: (sections: string[], newValue: any) => void;
+  sections: string[];
+  openMethod: (sections: string[]) => void;
+}>();
+let folderIcon = "folder";
+
+let stringValue = computed({
+  get() {
+    return props.value;
+  },
+  set(newVal: any) {
+    props.updateMethod(props.sections, newVal);
+  },
+});
+</script>
+
 <template>
   <div class="block">
     <div class="field">
@@ -11,7 +34,7 @@
       </div>
       <div class="control" v-if="openMethod">
         <div class="icon is-large is-size-4" style="text-decoration: none;">
-          <iconify-icon
+          <Icon
             :icon="folderIcon"
             @mouseover="folderIcon = 'folder-opened'"
             @mouseout="folderIcon = 'folder'"
@@ -22,27 +45,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class CMakeListElement extends Vue {
-  private folderIcon = "folder";
-  @Prop() public title: string;
-  @Prop() public value: string;
-  @Prop() public updateMethod: (sections: string[], newValue: any) => void;
-  @Prop() public sections: string[];
-  @Prop() openMethod: (sections: string[]) => void;
-
-  get stringValue() {
-    return this.value;
-  }
-  set stringValue(newVal: any) {
-    this.updateMethod(this.sections, newVal);
-  }
-}
-</script>
 
 <style scoped>
 .expanded {

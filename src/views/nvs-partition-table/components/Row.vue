@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { Icon } from '@iconify/vue';
+import vSelect from "vue-select";
+import { findEncodingTypes } from '../util';
+
+let props = defineProps<{
+  encoding: string;
+  rowKey: string;
+  rowType: string;
+  rowValue: string;
+  rowError: string;
+  updateEncoding: (index: string, newtype: string) => void;
+}>();
+
+  const encodingTypes = computed(() => {
+    return findEncodingTypes(props.rowType);
+  });
+
+  const types = ["data", "file", "namespace"];
+</script>
+
 <template>
   <tr :class="{ error: rowError }">
     <td>
@@ -6,11 +28,11 @@
         type="text"
         placeholder="Key"
         maxlength="15"
-        v-model="key"
+        v-model="rowKey"
       />
     </td>
     <td class="w-md">
-      <v-select
+      <vSelect
         :options="types"
         v-model="rowType"
         placeholder="Type"
@@ -20,9 +42,9 @@
       />
     </td>
     <td class="w-md">
-      <v-select
+      <vSelect
         :options="encodingTypes"
-        v-model="rowEncoding"
+        v-model="encoding"
         placeholder="Encoding"
         taggable
         selectOnTab
@@ -33,84 +55,21 @@
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Value"
-        v-model="value"
+        v-model="rowValue"
       />
     </td>
     <td>
-      <a class="delete" @click="del"></a>
+      <a class="delete" @click="$emit("delete")"></a>
       <span
         class="icon is-small has-tooltip-arrow"
         :data-tooltip="rowError"
         v-if="rowError"
       >
-        <iconify-icon icon="question" />
+        <Icon icon="question" />
       </span>
     </td>
   </tr>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Prop, PropSync, Vue } from "vue-property-decorator";
-import vSelect from "vue-select";
-
-@Component({
-  components: {
-    "v-select": vSelect,
-  },
-})
-export default class Row extends Vue {
-  @PropSync("encoding") rowEncoding: string;
-  @PropSync("rowKey") key: String;
-  @PropSync("type") rowType: string;
-  @PropSync("rowValue") value: String;
-  @Prop() rowError: string;
-
-  @Emit("delete")
-  del() {}
-
-  findEncodingTypes(type: string) {
-    const fileTypes = ["binary", "base64", "hex2bin", "string"];
-    switch (type) {
-      case "file":
-        return fileTypes;
-        break;
-      case "data":
-        return [
-          "u8",
-          "i8",
-          "u16",
-          "i16",
-          "u32",
-          "i32",
-          "u64",
-          "i64",
-          ...fileTypes,
-        ];
-        break;
-      default:
-        return [];
-        break;
-    }
-  }
-
-  get encodingTypes() {
-    return this.findEncodingTypes(this.rowType);
-  }
-
-  get types() {
-    return ["data", "file", "namespace"];
-  }
-
-  public updateEncoding(newType) {
-    const encodingTypes = this.findEncodingTypes(newType);
-    if (newType === "namespace") {
-      this.rowEncoding = "";
-    } else if (encodingTypes.indexOf(this.rowEncoding) === -1) {
-      this.rowEncoding = encodingTypes[0];
-    }
-  }
-}
-</script>
 
 <style lang="scss">
 @import "~vue-select/dist/vue-select.css";
@@ -150,3 +109,5 @@ export default class Row extends Vue {
   background-color: rgba(176, 81, 41, 0.1);
 }
 </style>
+
+

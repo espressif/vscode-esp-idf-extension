@@ -1,9 +1,40 @@
+<script setup lang="ts">
+import DownloadStatus from "../DownloadStatus.vue";
+import { StatusType } from "../../types";
+import { useSetupStore } from "../../store";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+import { Icon } from "@iconify/vue";
+
+const store = useSetupStore();
+const {
+  idfGitDownloadStatus,
+  idfPythonDownloadStatus,
+  pathSep,
+  statusIdfGit,
+  statusIdfPython,
+  toolsFolder,
+} = storeToRefs(store);
+
+const statusType = computed(() => {
+  return StatusType;
+});
+
+const isWinPlatform = computed(() => {
+  return pathSep.value.indexOf("\\") !== -1;
+});
+
+const toolsDestPath = computed(() => {
+  return `${toolsFolder}${pathSep}tools${pathSep}`;
+});
+</script>
+
 <template>
   <div class="centerize notification" v-if="isWinPlatform">
     <div class="control barText">
       <p class="label">Installing IDF Prerequisites...</p>
       <div class="icon is-large is-size-4">
-        <iconify-icon
+        <Icon
           :icon="
             statusIdfGit === statusType.installed &&
             statusIdfPython === statusType.installed
@@ -37,53 +68,3 @@
     />
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import DownloadStatus from "../DownloadStatus.vue";
-import { IDownload, StatusType } from "../../types";
-import { State } from "vuex-class";
-
-@Component({
-  components: {
-    DownloadStatus,
-  },
-})
-export default class PrerequisitesStatus extends Vue {
-  @State("idfGitDownloadStatus") private storeIdfGitDownloadStatus: IDownload;
-  @State("idfPythonDownloadStatus")
-  private storeIdfPythonDownloadStatus: IDownload;
-  @State("pathSep") private storePathSep: string;
-  @State("statusIdfGit") private storeStatusIdfGit: StatusType;
-  @State("statusIdfPython") private storeStatusIdfPython: StatusType;
-  @State("toolsFolder") private storeIdfToolsPath: string;
-
-  get idfGitDownloadStatus() {
-    return this.storeIdfGitDownloadStatus;
-  }
-
-  get idfPythonDownloadStatus() {
-    return this.storeIdfPythonDownloadStatus;
-  }
-
-  get statusIdfGit() {
-    return this.storeStatusIdfGit;
-  }
-
-  get statusIdfPython() {
-    return this.storeStatusIdfPython;
-  }
-
-  get statusType() {
-    return StatusType;
-  }
-
-  get toolsDestPath() {
-    return `${this.storeIdfToolsPath}${this.storePathSep}tools${this.storePathSep}`;
-  }
-
-  get isWinPlatform() {
-    return this.storePathSep.indexOf("\\") !== -1;
-  }
-}
-</script>

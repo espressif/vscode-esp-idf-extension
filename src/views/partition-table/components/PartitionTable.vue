@@ -1,3 +1,6 @@
+<script setup lang="ts">
+</script>
+
 <template>
   <div class="section no-padding-top">
     <div class="container is-mobile">
@@ -8,7 +11,7 @@
             <p class="control">
               <button
                 class="button is-size-7-mobile is-size-7-tablet"
-                @click="add"
+                @click="$emit('add')"
               >
                 Add New Row
               </button>
@@ -16,7 +19,7 @@
             <p class="control">
               <button
                 class="button is-size-7-mobile is-size-7-tablet"
-                @click="save"
+                @click="$emit('save')"
               >
                 Save
               </button>
@@ -45,16 +48,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Vue } from "vue-property-decorator";
-
-@Component
-export default class PartitionTable extends Vue {
-  @Emit()
-  add() {}
-
-  @Emit()
-  save() {}
-}
-</script>

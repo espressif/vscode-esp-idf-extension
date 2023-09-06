@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import { usePartitionTableStore } from '../store';
+import { Icon } from '@iconify/vue';
+
+const store = usePartitionTableStore();
+</script>
+
 <template>
   <header class="section">
     <div class="container">
@@ -15,25 +22,25 @@
             <p class="buttons are-small">
               <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
                 <span class="icon is-small">
-                  <iconify-icon icon="star-empty" />
+                  <Icon icon="star-empty" />
                 </span>
                 &nbsp; Select Flash Method
               </a>
               <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
-                  <iconify-icon icon="tools" />
+                  <Icon icon="tools" />
                 </span>
                 &nbsp; Build
               </a>
               <a class="button" href="command:espIdf.flashDevice">
                 <span class="icon is-small">
-                  <iconify-icon icon="symbol-event" />
+                  <Icon icon="symbol-event" />
                 </span>
                 &nbsp; Flash
               </a>
-              <button class="button" title="Retry" @click="initDataRequest">
+              <button class="button" title="Retry" @click="store.initDataRequest">
                 <span class="icon is-small">
-                  <iconify-icon icon="refresh" />
+                  <Icon icon="refresh" />
                 </span>
               </button>
             </p>
@@ -48,13 +55,3 @@
     </div>
   </header>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Action } from "vuex-class";
-@Component
-export default class Header extends Vue {
-  @Action initDataRequest;
-}
-</script>

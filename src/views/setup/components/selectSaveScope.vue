@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia';
+import { useSetupStore } from '../store';
+const store = useSetupStore();
+
+const { saveScope } = storeToRefs(store);
+</script>
+
 <template>
   <div id="select-py-version">
     <div class="field">
@@ -16,21 +24,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Mutation, State } from "vuex-class";
-
-@Component
-export default class selectSaveScope extends Vue {
-  @State("saveScope") storeSaveScope: number;
-  @Mutation setSaveScope: (id: number) => void;
-
-  get saveScope() {
-    return this.storeSaveScope;
-  }
-  set saveScope(value: number) {
-    this.setSaveScope(value);
-  }
-}
-</script>
