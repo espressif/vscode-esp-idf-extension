@@ -1198,3 +1198,19 @@ export function markdownToWebviewHtml(
   cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
   return cleanHtml;
 }
+
+export function isVersionGreaterOrEqual(baseVersion, targetVersion) {
+  const baseParts = baseVersion.split(".").map(Number);
+  const targetParts = targetVersion.split(".").map(Number);
+
+  for (let i = 0; i < baseParts.length; i++) {
+    if (targetParts[i] > baseParts[i]) {
+      return true;
+    } else if (targetParts[i] < baseParts[i]) {
+      return false;
+    }
+  }
+
+  // If all parts are equal up to this point, then the targetVersion is >= baseVersion
+  return true;
+}
