@@ -1,3 +1,46 @@
+<script setup lang="ts">
+import { computed, onMounted } from "vue";
+import { useSizeStore } from "./store";
+import { storeToRefs } from "pinia";
+import { Icon } from "@iconify/vue";
+import ArchiveItem from "./components/ArchiveItem.vue";
+import FileTable from "./components/FileTable.vue";
+import Header from "./components/Header.vue";
+import Overview from "./components/Overview.vue";
+import ProgressBar from "./components/ProgressBar.vue";
+import SizeFilter from "./components/SizeFilter.vue";
+
+const store = useSizeStore();
+
+const { archives, isOverviewEnabled, overviewData, searchText } = storeToRefs(
+  store
+);
+
+const filteredArchives = computed<{[key: string]: any}>(() => {
+  let filteredObj = archives.value;
+  if (searchText.value !== "") {
+    filteredObj = {};
+    Object.keys(archives).forEach((archive) => {
+      // tslint:disable-next-line: max-line-length
+      if (
+        archive.toLowerCase().match(searchText.value.toLowerCase()) ||
+        (archives[archive].files &&
+          Object.keys(archives[archive].files).filter((file) =>
+            file.toLowerCase().match(searchText.value.toLowerCase())
+          ).length > 0)
+      ) {
+        filteredObj[archive] = archives[archive];
+      }
+    });
+  }
+  return filteredObj;
+});
+
+onMounted(() => {
+  store.requestInitialValues();
+});
+</script>
+
 <template>
   <div id="app">
     <Header />
@@ -8,35 +51,35 @@
           <Overview />
           <ProgressBar
             name="D/IRAM"
-            :usedData="overviewData.used_diram"
-            :usedRatioData="overviewData.used_diram_ratio"
-            :totalData="overviewData.diram_total"
-            v-if="overviewData.diram_total"
+            :usedData="overviewData['used_diram']"
+            :usedRatioData="overviewData['used_diram_ratio']"
+            :totalData="overviewData['diram_total']"
+            v-if="overviewData['diram_total']"
           />
           <ProgressBar
             name="DRAM"
-            :usedData="overviewData.used_dram"
-            :usedRatioData="overviewData.used_dram_ratio"
+            :usedData="overviewData['used_dram']"
+            :usedRatioData="overviewData['used_dram_ratio']"
             :totalData="
-              overviewData.dram_total ||
-              overviewData.used_dram + overviewData.available_dram
+              overviewData['dram_total'] ||
+              overviewData['used_dram'] + overviewData['available_dram']
             "
             v-if="
-              overviewData.dram_total ||
-              overviewData.used_dram + overviewData.available_dram
+              overviewData['dram_total'] ||
+              overviewData['used_dram'] + overviewData['available_dram']
             "
           />
           <ProgressBar
             name="IRAM"
-            :usedData="overviewData.used_iram"
-            :usedRatioData="overviewData.used_iram_ratio"
+            :usedData="overviewData['used_iram']"
+            :usedRatioData="overviewData['used_iram_ratio']"
             :totalData="
-              overviewData.iram_total ||
-              overviewData.used_iram + overviewData.available_iram
+              overviewData['iram_total'] ||
+              overviewData['used_iram'] + overviewData['available_iram']
             "
             v-if="
-              overviewData.iram_total ||
-              overviewData.used_iram + overviewData.available_iram
+              overviewData['iram_total'] ||
+              overviewData['used_iram'] + overviewData['available_iram']
             "
           />
         </div>
@@ -61,7 +104,7 @@
           >
             <ArchiveItem
               :archiveInfo="archiveInfo"
-              :archiveName="archiveName"
+              :archiveName="archiveName.toString()"
             />
             <div
               class="columns"
@@ -78,77 +121,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import ArchiveItem from "./components/ArchiveItem.vue";
-import FileTable from "./components/FileTable.vue";
-import Header from "./components/Header.vue";
-import Overview from "./components/Overview.vue";
-import ProgressBar from "./components/ProgressBar.vue";
-import SizeFilter from "./components/SizeFilter.vue";
-import { Action, Mutation, State } from "vuex-class";
-
-@Component({
-  components: {
-    ArchiveItem,
-    FileTable,
-    Header,
-    Overview,
-    ProgressBar,
-    SizeFilter,
-  },
-})
-export default class App extends Vue {
-  @Action requestInitialValues: Function;
-  @Mutation setSearchText;
-  @State("archives") storeArchives;
-  @State("isOverviewEnabled") storeIsOverviewEnabled: boolean;
-  @State("overviewData") storeOverviewData;
-  @State("searchText") storeSearchText;
-
-  get overviewData() {
-    return this.storeOverviewData;
-  }
-
-  get isOverviewEnabled() {
-    return this.storeIsOverviewEnabled;
-  }
-
-  get searchText() {
-    return this.storeSearchText;
-  }
-
-  set searchText(text: string) {
-    this.setSearchText(text);
-  }
-
-  get filteredArchives() {
-    const { searchText } = this;
-    let filteredObj = this.storeArchives;
-    if (searchText !== "") {
-      filteredObj = {};
-      Object.keys(this.storeArchives).forEach((archive) => {
-        // tslint:disable-next-line: max-line-length
-        if (
-          archive.toLowerCase().match(searchText.toLowerCase()) ||
-          (this.storeArchives[archive].files &&
-            Object.keys(this.storeArchives[archive].files).filter((file) =>
-              file.toLowerCase().match(this.searchText.toLowerCase())
-            ).length > 0)
-        ) {
-          filteredObj[archive] = this.storeArchives[archive];
-        }
-      });
-    }
-    return filteredObj;
-  }
-
-  mounted() {
-    this.requestInitialValues();
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

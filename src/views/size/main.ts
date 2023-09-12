@@ -1,25 +1,25 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Sunday, 16th June 2019 12:29:20 am
- * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * File Created: Wednesday, 6th September 2023 7:22:49 pm
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Vue from "vue";
-import { store } from "./store";
-// @ts-ignore
+
+import { createApp } from "vue";
+import { createPinia } from "pinia";
 import App from "./App.vue";
-import IconifyIcon from "@iconify/vue";
+import { addIcon } from "@iconify/vue";
 import symbolEvent from "@iconify-icons/codicon/symbol-event";
 import refresh from "@iconify-icons/codicon/refresh";
 import server from "@iconify-icons/codicon/server";
@@ -28,33 +28,31 @@ import search from "@iconify-icons/codicon/search";
 import fileZip from "@iconify-icons/codicon/file-zip";
 import chevronDown from "@iconify-icons/codicon/chevron-down";
 import chevronUp from "@iconify-icons/codicon/chevron-up";
-IconifyIcon.addIcon("symbol-event", symbolEvent);
-IconifyIcon.addIcon("refresh", refresh);
-IconifyIcon.addIcon("server", server);
-IconifyIcon.addIcon("screen-normal", screenNormal);
-IconifyIcon.addIcon("search", search);
-IconifyIcon.addIcon("file-zip", fileZip);
-IconifyIcon.addIcon("chevron-down", chevronDown);
-IconifyIcon.addIcon("chevron-up", chevronUp);
-Vue.component("iconify-icon", IconifyIcon);
+import { useSizeStore } from "./store";
 
-// Vue App
-const app = new Vue({
-  el: "#app",
-  components: { App },
-  template: "<App />",
-  store,
-});
+addIcon("symbol-event", symbolEvent);
+addIcon("refresh", refresh);
+addIcon("server", server);
+addIcon("screen-normal", screenNormal);
+addIcon("search", search);
+addIcon("file-zip", fileZip);
+addIcon("chevron-down", chevronDown);
+addIcon("chevron-up", chevronUp);
 
-// Message Receiver
-declare var window: any;
+const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia);
+app.mount("#app");
+
+const store = useSizeStore();
+
 window.addEventListener("message", (m: any) => {
   const msg = m.data;
   switch (msg.command) {
     case "initialLoad":
-      store.commit("setArchive", msg.archives);
-      store.commit("setOverviewData", msg.overview);
-      store.commit("setFiles", msg.files);
+      store.archives = msg.archives;
+      store.overviewData = msg.overview;
+      store.setFiles(msg.files);
       break;
     default:
       break;

@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useSizeStore } from "../store";
+import { Icon } from "@iconify/vue";
+const store = useSizeStore();
+</script>
+
 <template>
   <header class="section">
     <div class="container">
@@ -15,17 +21,17 @@
               <button
                 class="button"
                 title="Flash"
-                v-on:click="flashClicked"
-                v-bind:disabled="isFlashing"
+                v-on:click="store.flashClicked"
+                v-bind:disabled="store.isFlashing"
               >
                 <span class="icon">
-                  <iconify-icon icon="symbol-event" />
+                  <Icon icon="symbol-event" />
                 </span>
                 &nbsp; Flash
               </button>
-              <button class="button" title="Retry" @click="retryClicked">
+              <button class="button" title="Retry" @click="store.retryClicked">
                 <span class="icon">
-                  <iconify-icon icon="refresh" />
+                  <Icon icon="refresh" />
                 </span>
               </button>
             </p>
@@ -39,19 +45,3 @@
     </div>
   </header>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-
-@Component
-export default class Header extends Vue {
-  @Action flashClicked: Function;
-  @Action retryClicked: Function;
-  @State("isFlashing") storeIsFlashing: boolean;
-
-  get isFlashing() {
-    return this.storeIsFlashing;
-  }
-}
-</script>

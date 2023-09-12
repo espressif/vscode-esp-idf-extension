@@ -1,14 +1,14 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Wednesday, 13th October 2021 2:35:26 pm
- * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * File Created: Wednesday, 6th September 2023 7:22:58 pm
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,45 +16,35 @@
  * limitations under the License.
  */
 
-import Vue from "vue";
-import { ActionTree, MutationTree, Store, StoreOptions } from "vuex";
-import Vuex from "vuex";
+import { defineStore } from "pinia";
+import { ref, Ref } from "vue";
 
-export interface IState {
-  archives: {};
-  isFlashing: boolean;
-  isOverviewEnabled: boolean;
-  overviewData: {};
-  searchText: string;
-}
-
-export const sizeState: IState = {
-  archives: {},
-  isFlashing: false,
-  isOverviewEnabled: true,
-  overviewData: {},
-  searchText: "",
-};
-
-const SEC = 1000;
 declare var acquireVsCodeApi: any;
 let vscode: any;
 try {
   vscode = acquireVsCodeApi();
 } catch (error) {
-  // tslint:disable-next-line: no-console
   console.error(error);
 }
 
-export const actions: ActionTree<IState, any> = {
-  retryClicked() {
+const SEC = 1000;
+
+export const useSizeStore = defineStore("size", () => {
+  const archives: Ref<{ [key: string]: any}> = ref({});
+  const isFlashing: Ref<boolean> = ref(false);
+  const isOverviewEnabled: Ref<boolean> = ref(true);
+  const overviewData: Ref<object> = ref({});
+  const searchText: Ref<string> = ref("");
+
+  function retryClicked() {
     if (vscode) {
       vscode.postMessage({
         command: "retry",
       });
     }
-  },
-  flashClicked(context) {
+  }
+
+  function flashClicked(context) {
     if (vscode) {
       context.state.isFlashing = true;
       setTimeout(() => {
@@ -64,73 +54,49 @@ export const actions: ActionTree<IState, any> = {
         command: "flash",
       });
     }
-  },
-  requestInitialValues() {
+  }
+
+  function requestInitialValues() {
     vscode.postMessage({
       command: "requestInitialValues",
     });
   }
-};
 
-export const mutations: MutationTree<IState> = {
-  setArchive(state, archive) {
-    const newState = state;
-    newState.archives = archive;
-    Object.assign(state, newState);
-  },
-  setFiles(state, files) {
-    const newState = state;
+  function setFiles(files) {
     Object.keys(files).forEach((file) => {
       const archiveFileName = file.split(":");
       const archiveName = archiveFileName[0];
       const fileName = archiveFileName[1];
-      if (newState.archives[archiveName] && !newState.archives[archiveName].files) {
-        Vue.set(newState.archives[archiveName], "files", {});
+      if (archives[archiveName] && !archives[archiveName].files) {
+        archives[archiveName]["files"] = {};
       }
-      Vue.set(newState.archives[archiveName].files, fileName, files[file]);
+      archives[archiveName].files[fileName] = files[file];
     });
-    Object.keys(newState.archives).forEach((archive) => {
-      Vue.set(newState.archives[archive], "isFileInfoVisible", false);
-    });
-    Object.assign(state, newState);
-  },
-  setOverviewData(state, overview) {
-    const newState = state;
-    newState.overviewData = overview;
-    Object.assign(state, newState);
-  },
-  setSearchText(state, text: string) {
-    const newState = state;
-    newState.searchText = text;
-    Object.assign(state, newState);
-  },
-  toggleOverviewAndDetails(state) {
-    const newState = state;
-    newState.isOverviewEnabled = !state.isOverviewEnabled;
-    Object.assign(state, newState);
-  },
-  toggleArchiveFileInfoTable(state, archiveName: string) {
-    const newState = state;
-    Object.keys(newState.archives).forEach((archive) => {
-      let toggleVisibility = false;
-      if (archive === archiveName) {
-        toggleVisibility = !this.archives[archive].isFileInfoVisible;
-      }
-      Vue.set(
-        newState.archives[archive],
-        "isFileInfoVisible",
-        toggleVisibility
-      );
+    Object.keys(archives).forEach((archive) => {
+      archives[archive].isFileInfoVisible = false;
     });
   }
-};
 
-export const sizeStore: StoreOptions<IState> = {
-  actions,
-  mutations,
-  state: sizeState,
-};
+  function toggleArchiveFileInfoTable(archiveName: string) {
+    Object.keys(archives).forEach((archive) => {
+      let toggleVisibility = false;
+      if (archive === archiveName) {
+        toggleVisibility = !archives[archive].isFileInfoVisible;
+      }
+      archives[archive].isFileInfoVisible = toggleVisibility;
+    });
+  }
 
-Vue.use(Vuex);
-
-export const store = new Store(sizeStore);
+  return { 
+    archives,
+    isFlashing,
+    isOverviewEnabled,
+    overviewData,
+    searchText,
+    retryClicked,
+    flashClicked,
+    requestInitialValues,
+    setFiles,
+    toggleArchiveFileInfoTable
+  };
+});

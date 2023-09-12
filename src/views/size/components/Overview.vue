@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useSizeStore } from "../store";
+
+const store = useSizeStore();
+
+const { overviewData } = storeToRefs(store);
+function convertToKB(byte: number) {
+  return typeof byte === "number" ? Math.round(byte / 1024) : 0;
+}
+
+function getArchiveProp(prop1: string, prop2: string) {
+  return Object.keys(overviewData).indexOf(prop1) !== -1
+    ? overviewData[prop1]
+    : overviewData[prop2];
+}
+</script>
+
 <template>
   <div class="notification is-clipped">
     <nav class="level is-mobile">
@@ -5,7 +23,7 @@
         <div>
           <p class="heading is-size-7-mobile">.data</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(this.getArchiveProp("diram_data", "dram_data")) }}KB
+            {{ convertToKB(getArchiveProp("diram_data", "dram_data")) }}KB
           </p>
         </div>
       </div>
@@ -13,7 +31,7 @@
         <div>
           <p class="heading is-size-7-mobile">.bss</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(this.getArchiveProp("diram_bss", "dram_bss")) }}KB
+            {{ convertToKB(getArchiveProp("diram_bss", "dram_bss")) }}KB
           </p>
         </div>
       </div>
@@ -21,7 +39,7 @@
         <div>
           <p class="heading is-size-7-mobile">Text</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(this.getArchiveProp("diram_text", "dram_text")) }}KB
+            {{ convertToKB(getArchiveProp("diram_text", "dram_text")) }}KB
           </p>
         </div>
       </div>
@@ -29,7 +47,7 @@
         <div>
           <p class="heading is-size-7-mobile">Flash Code</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewData.flash_code) }}KB
+            {{ convertToKB(overviewData['flashCode']) }}KB
           </p>
         </div>
       </div>
@@ -37,42 +55,18 @@
         <div>
           <p class="heading is-size-7-mobile">Flash Rodata</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewData.flash_rodata) }}KB
+            {{ convertToKB(overviewData['flashRodata']) }}KB
           </p>
         </div>
       </div>
-      <div class="level-item has-text-centered" v-if="overviewData.flash_other">
+      <div class="level-item has-text-centered" v-if="overviewData['flashOther']">
         <div>
           <p class="heading is-size-7-mobile">Flash other</p>
           <p class="title is-size-5-mobile">
-            {{ convertToKB(overviewData.flash_other) }}KB
+            {{ convertToKB(overviewData['flashOther']) }}KB
           </p>
         </div>
       </div>
     </nav>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
-
-@Component
-export default class Overview extends Vue {
-  @State("overviewData") storeOverviewData;
-
-  convertToKB(byte: number) {
-    return typeof byte === "number" ? Math.round(byte / 1024) : 0;
-  }
-
-  get overviewData() {
-    return this.storeOverviewData;
-  }
-
-  getArchiveProp(prop1: string, prop2: string) {
-    return Object.keys(this.storeOverviewData).indexOf(prop1) !== -1
-      ? this.storeOverviewData[prop1]
-      : this.storeOverviewData[prop2];
-  }
-}
-</script>
