@@ -138,10 +138,10 @@
     "viewsContainers": {
       "panel": [
         {
-					"id": "espIdfHints",
-					"title": "ESP-IDF",
-					"icon": "media/dep.svg"
-				}
+          "id": "espIdfHints",
+          "title": "ESP-IDF",
+          "icon": "media/dep.svg"
+        }
       ],
       "activitybar": [
         {
@@ -152,11 +152,13 @@
       ]
     },
     "views": {
-      "espIdfHints": [{
-				"id": "errorHints",
-                "name": "Error Hints",
-                "title": "Error Hints ($errorHints.count$)"
-			}],
+      "espIdfHints": [
+        {
+          "id": "errorHints",
+          "name": "Error Hints",
+          "title": "Error Hints ($errorHints.count$)"
+        }
+      ],
       "debug": [
         {
           "name": "ESP Peripheral View",
@@ -212,17 +214,17 @@
     ],
     "menus": {
       "editor/title": [
-				{
-					"command": "espIdf.searchError",
-					"group": "navigation"
-				}
-			],
+        {
+          "command": "espIdf.searchError",
+          "group": "navigation"
+        }
+      ],
       "view/title": [
         {
-					"command": "espIdf.searchError",
-					"group": "navigation",
-					"when": "view == errorHints"
-				},
+          "command": "espIdf.searchError",
+          "group": "navigation",
+          "when": "view == errorHints"
+        },
         {
           "command": "espIdf.partition.table.refresh",
           "group": "navigation",
@@ -287,8 +289,8 @@
       ],
       "editor/context": [
         {
-					"command": "espIdf.searchError"
-				},
+          "command": "espIdf.searchError"
+        },
         {
           "command": "espIdf.searchInEspIdfDocs",
           "group": "navigation",
@@ -927,19 +929,15 @@
             "description": "%param.sdkconfigFilePath.title%",
             "scope": "resource",
             "default": ""
-          },
-          "idf.hintsPath": {
-            "type": "string",
-            "description": "%param.hintViewer.title%"
           }
         }
       }
     ],
     "commands": [
-			{
-				"command": "espIdf.searchError",
-				"title": "%espIdf.searchError.title%"
-			},
+      {
+        "command": "espIdf.searchError",
+        "title": "%espIdf.searchError.title%"
+      },
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%"
@@ -1546,6 +1544,7 @@
     "winston": "^2.3.1",
     "ws": "^7.4.6",
     "xml2js": "^0.5.0",
+    "yarn": "^1.22.19",
     "yauzl": "^2.10.0"
   },
   "alias": {
