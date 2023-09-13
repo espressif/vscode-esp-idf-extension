@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import VueRouter, { Route } from "vue-router";
+import { Router } from "vue-router";
 declare module "vue/types/vue" {
   interface Vue {
-    $router: VueRouter;
+    $router: Router;
   }
 }

@@ -1,3 +1,47 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useSystemViewStore } from "../store";
+import { relayout, restyle } from "plotly.js";
+
+const store = useSystemViewStore();
+
+const { settings, plotData } = storeToRefs(store);
+let active = false;
+function show() {
+  active = true;
+}
+function dismiss() {
+  active = false;
+}
+
+function timeLineHeightChanged() {
+  relayout("plot", { height: this.settings.TimelineHeight });
+}
+
+function timeLineBarWidthChanged() {
+  const indices: number[] = [];
+  plotData.value.forEach((d, i) => {
+    if (d.name !== "context-switch") {
+      indices.push(i);
+    }
+  });
+  restyle("plot", { "line.width": this.settings.TimelineBarWidth }, indices);
+}
+function timelineContextSwitchLineColorChanged() {
+  const indices: number[] = [];
+  plotData.value.forEach((d, i) => {
+    if (d.name === "context-switch") {
+      indices.push(i);
+    }
+  });
+  restyle(
+    "plot",
+    { "line.color": this.settings.TimelineContextSwitchLineColor },
+    indices
+  );
+}
+</script>
+
 <template>
   <div>
     <p class="is-pulled-right">
@@ -91,52 +135,3 @@ button {
   font-size: var(--vscode-font-size);
 }
 </style>
-
-<script lang="ts">
-import Vue from "vue";
-import * as Plotly from "plotly.js-dist";
-import { Component } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { SystemViewUISettings } from "../store";
-@Component
-export default class Settings extends Vue {
-  @State("settings") private settings: SystemViewUISettings;
-  @State("plotData") private plotData;
-  active = false;
-  show() {
-    this.active = true;
-  }
-  dismiss() {
-    this.active = false;
-  }
-  timeLineHeightChanged() {
-    Plotly.relayout("plot", { height: this.settings.TimelineHeight });
-  }
-  timeLineBarWidthChanged() {
-    const indices = [];
-    this.plotData.forEach((d, i) => {
-      if (d.name !== "context-switch") {
-        indices.push(i);
-      }
-    });
-    Plotly.restyle(
-      "plot",
-      { "line.width": this.settings.TimelineBarWidth },
-      indices
-    );
-  }
-  timelineContextSwitchLineColorChanged() {
-    const indices = [];
-    this.plotData.forEach((d, i) => {
-      if (d.name === "context-switch") {
-        indices.push(i);
-      }
-    });
-    Plotly.restyle(
-      "plot",
-      { "line.color": this.settings.TimelineContextSwitchLineColor },
-      indices
-    );
-  }
-}
-</script>

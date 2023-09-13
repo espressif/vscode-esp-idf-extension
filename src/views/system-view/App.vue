@@ -1,10 +1,39 @@
+<script setup lang="ts">
+import { useSystemViewStore } from "./store";
+import { relayout } from "plotly.js";
+import SystemViewTable from "./components/Table.vue";
+import Loading from "./components/Loading.vue";
+import Plot from "./components/Plot.vue";
+import Settings from "./components/Settings.vue";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+
+const store = useSystemViewStore();
+let CoreFilter = "";
+
+const { contextInfoTable, eventsTable, isLoading, settings } = storeToRefs(
+  store
+);
+
+function onEventsTableTRClicked(st: number, en: number) {
+  relayout("plot", { "xaxis.range": [st, en] });
+}
+
+const filteredContextInfoTable = computed(() => {
+  if (CoreFilter !== "") {
+    return contextInfoTable.value.filter((row) => row[0] === CoreFilter);
+  }
+  return contextInfoTable;
+});
+</script>
+
 <template>
   <div>
     <Loading v-if="isLoading" />
     <div class="container" v-else>
       <Settings />
       <br />
-      <t
+      <SystemViewTable
         name="Events Table"
         v-if="settings.EventsTableVisible"
         :height="settings.EventsTableHeight"
@@ -28,7 +57,7 @@
             </td>
           </tr>
         </template>
-      </t>
+      </SystemViewTable>
       <br />
       <Plot v-show="settings.TimelineVisible" />
       <br />
@@ -61,40 +90,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import "bulma/css/bulma.min.css";
-import Vue from "vue";
-import Component from "vue-class-component";
-import { State } from "vuex-class";
-import * as Plotly from "plotly.js-dist";
-import Table from "./components/Table.vue";
-import Loading from "./components/Loading.vue";
-import Plot from "./components/Plot.vue";
-import Settings from "./components/Settings.vue";
-import { SystemViewUISettings } from "./store";
-
-@Component({ components: { Loading, Plot, Settings, t: Table } })
-export default class App extends Vue {
-  @State("isLoading") private isLoading: boolean;
-  @State("contextInfoTable") private contextInfoTable;
-  @State("eventsTable") private eventsTable;
-  @State("settings") private settings: SystemViewUISettings;
-
-  CoreFilter = "";
-
-  onEventsTableTRClicked(st: number, en: number) {
-    Plotly.relayout("plot", { "xaxis.range": [st, en] });
-  }
-
-  public get filteredContextInfoTable() {
-    if (this.CoreFilter !== "") {
-      return this.contextInfoTable.filter((row) => row[0] === this.CoreFilter);
-    }
-    return this.contextInfoTable;
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

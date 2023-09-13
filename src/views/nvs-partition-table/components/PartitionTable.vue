@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="section no-padding-top">
     <div class="container is-mobile">

@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { resize } from "../util";
+import { newPlot } from "plotly.js";
+import { onMounted } from "vue";
+import { useSystemViewStore } from "../store";
+
+const store = useSystemViewStore();
+
+onMounted(() => {
+  const style = window.getComputedStyle(document.documentElement);
+  const bgColor = style.getPropertyValue("--vscode-editor-background");
+  const fontColor = style.getPropertyValue("--vscode-editor-foreground");
+  store.plotLayout["paper_bgcolor"] = bgColor;
+  store.plotLayout["plot_bgcolor"] = bgColor;
+  store.plotLayout["xaxis"]["spikecolor"] = fontColor;
+  store.plotLayout["font"]["color"] = fontColor;
+  newPlot("plot", store.plotData, store.plotLayout, {
+    displaylogo: false,
+    scrollZoom: true,
+    responsive: true,
+  });
+
+  resize("plot");
+});
+</script>
+
 <template>
   <div>
     <p>Timeline</p>
@@ -11,39 +37,3 @@
   touch-action: none;
 }
 </style>
-
-<script lang="ts">
-import * as Plotly from "plotly.js-dist";
-import Vue from "vue";
-import { Component, Watch } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { resize } from "../util";
-@Component
-export default class Plot extends Vue {
-  @State("plotLayout") private layout;
-  @State("plotData") private plotData;
-
-  mounted() {
-    const style = window.getComputedStyle(document.documentElement);
-    const bgColor = style.getPropertyValue("--vscode-editor-background");
-    const fontColor = style.getPropertyValue("--vscode-editor-foreground");
-    this.layout.paper_bgcolor = bgColor;
-    this.layout.plot_bgcolor = bgColor;
-    this.layout.xaxis.spikecolor = fontColor;
-    this.layout.font.color = fontColor;
-
-    Plotly.newPlot("plot", this.plotData, this.layout, {
-      displaylogo: false,
-      scrollZoom: true,
-      responsive: true,
-    });
-
-    resize("plot");
-  }
-
-  // @Watch("plotData", { immediate: true, deep: true })
-  // onDataChanged(val, oldVal) {
-  //   Plotly.react("plot", val, this.layout);
-  // }
-}
-</script>
