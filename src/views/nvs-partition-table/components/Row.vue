@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue';
 import vSelect from "vue-select";
 import { findEncodingTypes } from '../util';
 
-let props = defineProps<{
+const props = defineProps<{
   encoding: string;
   rowKey: string;
   rowType: string;
@@ -28,13 +28,14 @@ let props = defineProps<{
         type="text"
         placeholder="Key"
         maxlength="15"
-        v-model="rowKey"
+        :value="rowKey"
+        @input="$emit('update:rowKey', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
       <vSelect
         :options="types"
-        v-model="rowType"
+        :value="rowType"
         placeholder="Type"
         taggable
         selectOnTab
@@ -44,10 +45,11 @@ let props = defineProps<{
     <td class="w-md">
       <vSelect
         :options="encodingTypes"
-        v-model="encoding"
+        :value="encoding"
         placeholder="Encoding"
         taggable
         selectOnTab
+        @input="$emit('update:encoding', ($event.target as HTMLSelectElement)?.value)"
       />
     </td>
     <td>
@@ -55,11 +57,12 @@ let props = defineProps<{
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Value"
-        v-model="rowValue"
+        :value="rowValue"
+        @input="$emit('update:rowValue', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
-      <a class="delete" @click="$emit("delete")"></a>
+      <a class="delete" @click="$emit('delete')"></a>
       <span
         class="icon is-small has-tooltip-arrow"
         :data-tooltip="rowError"

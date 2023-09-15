@@ -1,3 +1,13 @@
+<script setup lang="ts">
+defineProps<{
+  persistentCount: Number;
+  persistentBytes: Number;
+  transientCount: Number;
+  totalBytes: Number;
+  totalCount: Number;
+}>();
+</script>
+
 <template>
   <table
     class="table is-fullwidth is-hoverable is-size-7-mobile is-size-6-tablet is-size-5-desktop"
@@ -39,16 +49,3 @@
   color: var(--vscode-foreground);
 }
 </style>
-
-<script lang="ts">
-import Vue from "vue";
-export default Vue.extend({
-  props: {
-    persistentCount: Number,
-    persistentBytes: Number,
-    transientCount: Number,
-    totalBytes: Number,
-    totalCount: Number,
-  },
-});
-</script>

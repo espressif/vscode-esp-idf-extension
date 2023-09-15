@@ -18,7 +18,7 @@
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import App from "./App.vue";
+import Welcome from "./App.vue";
 import { useWelcomeStore } from "./store";
 import { addIcon } from "@iconify/vue";
 import comment from "@iconify-icons/codicon/comment-discussion";
@@ -38,7 +38,7 @@ addIcon("github", github);
 addIcon("new-folder", newFolder);
 addIcon("type-hierarchy", typeHierarchy);
 
-const app = createApp(App);
+const app = createApp(Welcome);
 const pinia = createPinia();
 
 app.use(pinia);

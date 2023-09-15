@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useNewProjectStore } from "./store";
-import TemplateList from "../components/templateList.vue";
+import TemplateList from "./components/templateList.vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 const store = useNewProjectStore();

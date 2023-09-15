@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 13th September 2023 9:49:23 am
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import * as Plotly from "plotly.js-dist";
+import { relayout } from "plotly.js";
 import interact from "interactjs";
 
 export function eventNameMap(streams: Object): Map<number, string> {
@@ -30,7 +30,6 @@ export function eventNameMap(streams: Object): Map<number, string> {
 }
 
 export function resize(e: string) {
-  const el = document.getElementById(e);
   interact(e).resizable({
     edges: { left: false, right: false, bottom: true, top: true },
     listeners: {
@@ -43,7 +42,7 @@ export function resize(e: string) {
         target.style.width = event.rect.width + "px";
         target.style.height = event.rect.height + "px";
 
-        Plotly.relayout(el, { height: event.rect.height });
+        relayout(e, { height: event.rect.height });
 
         // translate when resizing from top or left edges
         x += event.deltaRect.left;

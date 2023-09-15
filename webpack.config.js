@@ -1,7 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const TSLintPlugin = require("tslint-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 
 const packageConfig = JSON.parse(
@@ -107,13 +105,7 @@ const webViewConfig = {
       "project-conf",
       "main.ts"
     ),
-    welcomePage: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "NewWelcome",
-      "main.ts"
-    ),
+    welcomePage: path.resolve(__dirname, "src", "views", "welcome", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
@@ -174,24 +166,16 @@ const webViewConfig = {
   resolve: {
     extensions: [".ts", ".js", ".vue", ".json"],
     alias: {
-      vue$: "vue/dist/vue.esm.js",
+      Vue: "vue/dist/vue.esm-bundler.js",
     },
     fallback: {
-      "os": require.resolve("os-browserify/browser"),
-      "path": require.resolve("path-browserify")
-    }
+      os: require.resolve("os-browserify/browser"),
+      path: require.resolve("path-browserify"),
+      stream: require.resolve("stream-browserify"),
+      assert: require.resolve("assert/"),
+    },
   },
-  plugins: [
-    new TSLintPlugin({
-      files: ["./*.ts"],
-    }),
-    new HtmlWebpackPlugin({
-      chunks: ["tracing"],
-      filename: "tracing.html",
-      template: path.join(__dirname, "src", "views", "tracing", "index.html"),
-    }),
-    new VueLoaderPlugin(),
-  ],
+  plugins: [new VueLoaderPlugin()],
   devServer: {
     contentBase: path.join(__dirname),
     compress: true,

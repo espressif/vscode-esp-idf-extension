@@ -25,12 +25,12 @@ function addEmptyRow() {
       <Row
         v-for="(row, i) in store.rows"
         :key="i"
-        :name.sync="row.name"
-        :type.sync="row.type"
-        :subtype.sync="row.subtype"
-        :offset.sync="row.offset"
-        :size.sync="row.size"
-        :flag.sync="row.flag"
+        :sName="row.name"
+        :sType="row.type"
+        :sSubType="row.subtype"
+        :sOffset="row.offset"
+        :sSize="row.size"
+        :sFlag="row.flag"
         :error="row.error"
         @delete="store.rows.splice(i, 1)"
       />

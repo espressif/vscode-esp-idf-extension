@@ -24,7 +24,7 @@ import close from "@iconify-icons/codicon/close";
 import folder from "@iconify-icons/codicon/folder";
 import folderOpen from "@iconify-icons/codicon/folder-opened";
 import { createRouter, createWebHashHistory } from "vue-router";
-import App from "./App.vue";
+import NewProject from "./App.vue";
 import Configure from "./Configure.vue";
 import Templates from "./Templates.vue";
 import { useNewProjectStore } from "./store";
@@ -43,7 +43,7 @@ export const router = createRouter({
   routes,
 });
 
-const app = createApp(App);
+const app = createApp(NewProject);
 const pinia = createPinia();
 app.use(pinia);
 app.use(router);

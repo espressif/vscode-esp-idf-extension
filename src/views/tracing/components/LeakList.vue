@@ -1,3 +1,78 @@
+<script setup lang="ts">
+import { Ref, computed, ref } from "vue";
+import { useTracingStore } from "../store";
+
+const props = defineProps<{
+  cache: object;
+  leaks: object;
+}>();
+
+const store = useTracingStore();
+
+const isExpanded: Ref<boolean> = ref(false);
+const filter: Ref<{ functionName: string }> = ref({
+  functionName: "",
+});
+
+const callRef: Ref<any[]> = ref([]);
+
+const leakList = computed(() => {
+  return Object.keys(props.leaks).filter((calls) => {
+    if (filter.value.functionName && filter.value.functionName !== "") {
+      return (
+        fetchFunctionNameForAddr(calls)
+          .toLowerCase()
+          .match(filter.value.functionName.toLowerCase()) ||
+        fetchFunctionFilePath(calls)
+          .toLowerCase()
+          .match(filter.value.functionName.toLowerCase())
+      );
+    }
+    return true;
+  });
+});
+const totalMemory = computed(() => {
+  let total = 0;
+  Object.keys(props.cache).forEach((addr) => {
+    total += props.cache[addr].size ? props.cache[addr].size : 0;
+  });
+  return total;
+});
+
+function createTreeFromAddressArray(addr: string): any {
+  const calls = props.leaks[addr].evt.callers;
+  return store.createTreeFromAddressArray(calls);
+}
+function reverseCallStack() {
+  leakList.value.forEach((addr) => {
+    props.leaks[addr].evt.callers.reverse();
+  });
+}
+function collapseOrExpandCalls() {
+  if (callRef && callRef.value && callRef.value.length > 0) {
+    callRef.value.forEach((calls) => {
+      calls.collapseAndExpandAll &&
+        calls.collapseAndExpandAll(!this.isExpanded);
+    });
+  }
+  isExpanded.value = !isExpanded;
+}
+function fetchFunctionNameForAddr(addr: string): string {
+  const tree = store.createTreeFromAddressArray([addr]);
+  if (tree && tree.name) {
+    return tree.name;
+  }
+  return addr;
+}
+function fetchFunctionFilePath(addr: string): string {
+  const tree = store.createTreeFromAddressArray([addr]);
+  if (tree && tree.description) {
+    return tree.description;
+  }
+  return addr;
+}
+</script>
+
 <template>
   <div>
     <div class="field has-addons">
@@ -60,84 +135,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-const LeakList = Vue.extend({
-  name: "LeakList",
-  props: {
-    cache: Object,
-    leaks: Object,
-  },
-  data() {
-    return {
-      isExpanded: false,
-      filter: {
-        functionName: "",
-      },
-    };
-  },
-  computed: {
-    leakList() {
-      return Object.keys(this.leaks).filter((calls) => {
-        if (this.filter.functionName && this.filter.functionName !== "") {
-          return (
-            this.fetchFunctionNameForAddr(calls)
-              .toLowerCase()
-              .match(this.filter.functionName.toLowerCase()) ||
-            this.fetchFunctionFilePath(calls)
-              .toLowerCase()
-              .match(this.filter.functionName.toLowerCase())
-          );
-        }
-        return true;
-      });
-    },
-    totalMemory() {
-      let total = 0;
-      Object.keys(this.cache).forEach((addr) => {
-        total += this.cache[addr].size ? this.cache[addr].size : 0;
-      });
-      return total;
-    },
-  },
-  methods: {
-    createTreeFromAddressArray(addr: string): any {
-      const calls = this.leaks[addr].evt.callers;
-      return this.$root.createTreeFromAddressArray(calls);
-    },
-    reverseCallStack() {
-      this.leakList.forEach((addr) => {
-        this.leaks[addr].evt.callers.reverse();
-      });
-    },
-    collapseOrExpandCalls() {
-      if (this.$refs.callRef && this.$refs.callRef.length > 0) {
-        this.$refs.callRef.forEach((calls) => {
-          calls.collapseAndExpandAll &&
-            calls.collapseAndExpandAll(!this.isExpanded);
-        });
-      }
-      this.isExpanded = !this.isExpanded;
-    },
-    fetchFunctionNameForAddr(addr: string): string {
-      const tree = this.createTreeFromAddressArray(addr);
-      if (tree && tree.name) {
-        return tree.name;
-      }
-      return addr;
-    },
-    fetchFunctionFilePath(addr: string): string {
-      const tree = this.createTreeFromAddressArray(addr);
-      if (tree && tree.description) {
-        return tree.description;
-      }
-      return addr;
-    },
-  },
-});
-export default LeakList;
-</script>
 
 <style lang="scss" scoped>
 @import "table";

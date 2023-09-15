@@ -94,7 +94,7 @@ export class AppTracePanel {
 
   private initWebview() {
     this._panel.iconPath = getWebViewFavicon(this._extensionPath);
-    this._panel.webview.html = this.getHtmlContent();
+    this._panel.webview.html = this.getHtmlContent(this._panel.webview);
     this.sendCommandToWebview("initialLoad", this._traceData);
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
     this._panel.webview.onDidReceiveMessage(
@@ -283,34 +283,25 @@ export class AppTracePanel {
       });
     }
   }
-  private getHtmlContent(): string {
-    const htmlFilePath = path.join(
-      this._extensionPath,
-      "dist",
-      "views",
-      "tracing.html"
+
+  private getHtmlContent(webview: vscode.Webview): string {
+    const scriptPath = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this._extensionPath, "dist", "views", "size-bundle.js")
+      )
     );
-    if (!fs.existsSync(htmlFilePath)) {
-      return this.notFoundStaticHtml();
-    }
-    let html = fs.readFileSync(htmlFilePath).toString();
-    const fileUrl = this._panel.webview.asWebviewUri(
-      vscode.Uri.file(htmlFilePath)
-    );
-    if (/(<head(\s.*)?>)/.test(html)) {
-      html = html.replace(
-        /(<head(\s.*)?>)/,
-        `$1<base href="${fileUrl.toString()}">`
-      );
-    } else if (/(<html(\s.*)?>)/.test(html)) {
-      html = html.replace(
-        /(<html(\s.*)?>)/,
-        `$1<head><base href="${fileUrl.toString()}"></head>`
-      );
-    } else {
-      html = `<head><base href="${fileUrl.toString()}"></head>${html}`;
-    }
-    return html;
+    return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>ESP-IDF Tracing</title>
+    </head>
+    <body>
+      <div id="app"></div>
+      <script src="${scriptPath}"></script>
+    </body>
+    </html>`;
   }
   private notFoundStaticHtml(): string {
     return `<!DOCTYPE html>

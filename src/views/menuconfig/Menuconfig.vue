@@ -124,9 +124,9 @@ onUnmounted(() => {
 
       <div id="scrollable" class="config-list column" @scroll="handleScroll">
         <ConfigElement
+          :config="config"
           v-for="config in items"
           :key="config.id"
-          :config.sync="config"
         />
       </div>
     </div>

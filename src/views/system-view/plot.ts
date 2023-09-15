@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 13th September 2023 9:49:02 am
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import * as Plotly from "plotly.js-dist";
 import {
   SysViewEvent,
   LookUpTable,
@@ -52,7 +51,7 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
       lookupTable[evt.core_id] = {
         irq: {},
         ctx: {},
-        lastEvent: null,
+        lastEvent: {},
         contextSwitch: {
           name: "context-switch",
           line: {
@@ -74,11 +73,15 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
 
     if (
       evt.in_irq === true &&
+      evt.core_id &&
+      evt.ctx_name &&
       !lookupTable[evt.core_id].irq.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].irq[evt.ctx_name] = {};
     } else if (
       evt.in_irq === false &&
+      evt.core_id &&
+      evt.ctx_name &&
       !lookupTable[evt.core_id].ctx.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].ctx[evt.ctx_name] = {};
@@ -104,22 +107,28 @@ function calculateAndInjectDataPoints(
       return;
     }
     const contextSwitch = lookupTable[coreId].contextSwitch;
-    contextSwitch.x.push(commonXAxis, commonXAxis, null);
-    contextSwitch.y.push(previousYAxis, currentYAxis, null);
+    contextSwitch.x.push(commonXAxis, commonXAxis);
+    contextSwitch.y.push(previousYAxis, currentYAxis);
   }
   function stopLastEventBar(coreId: number, stopTimeStamp: number) {
     const previousEvt = lookupTable[coreId].lastEvent;
     if (!previousEvt) {
       return;
     }
-    const previousData =
-      previousEvt.in_irq === true
-        ? lookupTable[coreId].irq[previousEvt.ctx_name]
-        : lookupTable[coreId].ctx[previousEvt.ctx_name];
+    if (previousEvt.ctx_name) {
+      const previousData =
+        previousEvt.in_irq === true
+          ? lookupTable[coreId].irq[previousEvt.ctx_name]
+          : lookupTable[coreId].ctx[previousEvt.ctx_name];
 
-    //stop for last event
-    previousData.x.push(stopTimeStamp, null);
-    previousData.y.push(previousData.name, null);
+      //stop for last event
+      previousData.x
+        ? previousData.x.push(stopTimeStamp, null)
+        : (previousData.x = [stopTimeStamp, null]);
+      previousData.y
+        ? previousData.y.push(previousData.name, null)
+        : (previousData.y = [previousData.name, null]);
+    }
   }
 
   const range = {
@@ -129,19 +138,22 @@ function calculateAndInjectDataPoints(
 
   events.forEach((evt: SysViewEvent) => {
     //Ignore the list of ignored System Events
-    if (ignoreRenderIds.has(evt.id)) {
+    if (evt.id && ignoreRenderIds.has(evt.id)) {
+      return;
+    }
+    if (!evt.core_id || !evt.ctx_name || !evt.ts) {
       return;
     }
     //SYS_OVERFLOW event halt all the running tasks and draw void rect
-    if (evt.id === sysOverflowId) {
+    if (evt.ts && evt.id === sysOverflowId) {
       console.log("Halt event arrived", evt);
       //halts both the tasks running on both the core
       stopLastEventBar(0, evt.ts);
       stopLastEventBar(1, evt.ts);
 
       //set previous event as null for both core
-      lookupTable[0].lastEvent = null;
-      lookupTable[1].lastEvent = null;
+      lookupTable[0].lastEvent = {};
+      lookupTable[1].lastEvent = {};
 
       //ignore everything else and continue like a fresh start
       return;
@@ -152,12 +164,10 @@ function calculateAndInjectDataPoints(
     if (evt.ts <= range.xmin) {
       range.xmin = evt.ts;
     }
-
     let data = lookupTable[evt.core_id].ctx[evt.ctx_name];
     if (evt.in_irq === true) {
       data = lookupTable[evt.core_id].irq[evt.ctx_name];
     }
-
     if (!data.type) {
       data.type = "scattergl";
       data.mode = "lines";
@@ -171,12 +181,13 @@ function calculateAndInjectDataPoints(
       data.y = [];
       data.x = [];
     }
+
     //stop the last event bar (if exists)
     stopLastEventBar(evt.core_id, evt.ts);
 
     //draw context switch
     const previousEvt = lookupTable[evt.core_id].lastEvent;
-    if (previousEvt) {
+    if (previousEvt && previousEvt.ctx_name) {
       const previousData =
         previousEvt.in_irq === true
           ? lookupTable[evt.core_id].irq[previousEvt.ctx_name]
@@ -185,8 +196,8 @@ function calculateAndInjectDataPoints(
     }
 
     //start point for current evt
-    data.x.push(evt.ts);
-    data.y.push(data.name);
+    data.x ? data.x.push(evt.ts) : (data.x = [evt.ts]);
+    data.y ? data.y.push(data.name) : (data.y = [data.name]);
 
     //store current event for a core as last event for the same core
     lookupTable[evt.core_id].lastEvent = evt;
@@ -234,7 +245,7 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
    * -----------------------------
    * IDLE
    */
-  const plotData = [];
+  const plotData: any[] = [];
   const colorPlotMap = colorPlot(lookupTable);
   Object.keys(lookupTable).forEach((coreId) => {
     const cpuCore = lookupTable[coreId];
@@ -264,7 +275,7 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
     taskPriorityList.forEach((name) => {
       const color = colorPlotMap.get(name);
       const evt = cpuCore.ctx[name];
-      if (color && evt.mode === "lines") {
+      if (color && evt.mode === "lines" && evt.line) {
         evt.line.color = color;
       }
       plotData.push(evt);
@@ -273,7 +284,7 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
     Object.keys(cpuCore.irq).forEach((irq) => {
       const color = colorPlotMap.get(irq);
       const evt = cpuCore.irq[irq];
-      if (color && evt.mode === "lines") {
+      if (color && evt.mode === "lines" && evt.line) {
         evt.line.color = color;
       }
       plotData.push(evt);

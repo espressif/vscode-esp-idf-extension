@@ -42,7 +42,7 @@ const showCustomBoardInput = computed(() => {
     </div>
     <folderOpen
       propLabel="Enter Project directory"
-      :propModel.sync="containerDirectory"
+      v-model:propModel="containerDirectory"
       :openMethod="store.openProjectDirectory"
       :staticText="projectName"
     />

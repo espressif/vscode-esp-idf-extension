@@ -93,7 +93,7 @@ onMounted(() => {
                 v-model="searchText"
               />
               <span class="icon is-right">
-                <iconify-icon icon="search" />
+                <Icon icon="search" />
               </span>
             </p>
           </div>

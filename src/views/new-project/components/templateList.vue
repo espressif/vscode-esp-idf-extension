@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { IExample, IExampleCategory } from '../../../examples/Example';
-import TemplateList from './templateList.vue';
-import { useNewProjectStore } from '../store';
-import { storeToRefs } from 'pinia';
+import { IExample, IExampleCategory } from "../../../examples/Example";
+import TemplateList from "./templateList.vue";
+import { useNewProjectStore } from "../store";
+import { storeToRefs } from "pinia";
 
 const store = useNewProjectStore();
 
 const { selectedTemplate } = storeToRefs(store);
 
-const props = defineProps<{
-  node: IExampleCategory
+defineProps<{
+  node: IExampleCategory;
 }>();
 
 function toggleTemplateDetail(template: IExample) {
-    if (template.path !== store.selectedTemplate.path) {
-      store.selectedTemplate = template;
-      store.templateDetail = "No README.md available for this project.";
-      store.getTemplateDetail({ pathToOpen: template.path });
-    } else {
-      store.hasTemplateDetail = !store.hasTemplateDetail;
-    }
+  if (template.path !== store.selectedTemplate.path) {
+    store.selectedTemplate = template;
+    store.templateDetail = "No README.md available for this project.";
+    store.getTemplateDetail({ pathToOpen: template.path });
+  } else {
+    store.hasTemplateDetail = !store.hasTemplateDetail;
   }
+}
 </script>
 
 <template>
@@ -49,4 +49,3 @@ function toggleTemplateDetail(template: IExample) {
     </ul>
   </li>
 </template>
-

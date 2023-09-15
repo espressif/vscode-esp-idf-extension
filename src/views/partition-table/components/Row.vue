@@ -54,13 +54,15 @@ const subtypes = computed(() => {
         type="text"
         placeholder="Name"
         maxlength="16"
-        v-model="sName"
+        :value="sName"
+        @input="$emit('update:sName', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
       <VueSelect
         :options="types"
-        v-model="sType"
+        :value="sType"
+        @input="$emit('update:sType', ($event.target as HTMLSelectElement)?.value)"
         placeholder="Type"
         taggable
         selectOnTab
@@ -69,7 +71,8 @@ const subtypes = computed(() => {
     <td class="w-md">
       <VueSelect
         :options="subtypes"
-        v-model="sSubType"
+        :value="sSubType"
+        @input="$emit('update:sSubType', ($event.target as HTMLSelectElement)?.value)"
         label="label"
         placeholder="Sub Type"
         taggable
@@ -81,7 +84,8 @@ const subtypes = computed(() => {
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Offset"
-        v-model="sOffset"
+        :value="sOffset"
+        @input="$emit('update:sOffset', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
@@ -89,10 +93,17 @@ const subtypes = computed(() => {
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Size"
-        v-model="sSize"
+        :value="sSize"
+        @input="$emit('update:sSize', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
-    <td><input type="checkbox" v-model="sFlag" /></td>
+    <td>
+      <input
+        type="checkbox"
+        :value="sFlag"
+        @input="$emit('update:sFlag', ($event.target as HTMLInputElement)?.value)"
+      />
+    </td>
     <td>
       <a class="delete" @click="$emit('delete')"></a>
       <span
