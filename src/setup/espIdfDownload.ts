@@ -28,8 +28,7 @@ import {
 } from "./webviewMsgMethods";
 import { ensureDir, move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
-import { CancellationToken, Progress } from "vscode";
-import { Disposable } from "vscode-languageclient";
+import { CancellationToken, Disposable, Progress } from "vscode";
 import { delimiter, dirname, join } from "path";
 
 export class EspIdfCloning extends AbstractCloning {

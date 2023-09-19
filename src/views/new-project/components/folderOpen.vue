@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-let folderIcon = "folder";
+import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
+import { computed, ref } from "vue";
+let folderIcon = ref("folder");
 
 const props = defineProps<{
   keyEnterMethod?: () => void;
   openMethod: () => void;
   propLabel: string;
   propModel: string;
+  propMutate: (val: string) => void;
   staticText: string;
 }>();
+
+const dataModel = computed({
+  get() {
+    return props.propModel;
+  },
+  set(newVal: string) {
+    props.propMutate(newVal);
+  },
+});
 
 const pathSep = navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
 function onKeyEnter() {
@@ -26,21 +37,25 @@ function onKeyEnter() {
         <input
           type="text"
           class="input"
-          v-model="propModel"
+          v-model="dataModel"
           @keyup.enter="onKeyEnter"
         />
       </div>
       <div class="control" v-if="staticText">
         <a class="button is-static">{{ pathSep + staticText }}</a>
       </div>
-      <div class="control">
-        <div class="icon is-large is-size-4" style="text-decoration: none;">
-          <Icon
-            :icon="folderIcon"
-            @mouseover="folderIcon = 'folder-opened'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openMethod"
-          />
+      <div
+        class="control"
+        @mouseover="folderIcon = 'folder-opened'"
+        @mouseout="folderIcon = 'folder'"
+      >
+        <div
+          class="icon is-large is-size-4"
+          style="text-decoration: none;"
+          v-on:click="openMethod"
+        >
+          <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+          <IconFolder v-if="(folderIcon === 'folder')" />
         </div>
       </div>
     </div>

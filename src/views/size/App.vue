@@ -2,7 +2,7 @@
 import { computed, onMounted } from "vue";
 import { useSizeStore } from "./store";
 import { storeToRefs } from "pinia";
-import { Icon } from "@iconify/vue";
+import { IconSearch } from "@iconify-prerendered/vue-codicon";
 import ArchiveItem from "./components/ArchiveItem.vue";
 import FileTable from "./components/FileTable.vue";
 import Header from "./components/Header.vue";
@@ -93,7 +93,7 @@ onMounted(() => {
                 v-model="searchText"
               />
               <span class="icon is-right">
-                <Icon icon="search" />
+                <IconSearch />
               </span>
             </p>
           </div>

@@ -2,7 +2,13 @@
 import { storeToRefs } from "pinia";
 import { useNvsPartitionTableStore } from "../store";
 import { computed, onMounted } from "vue";
-import { Icon } from "@iconify/vue";
+import {
+  IconFolder,
+  IconFolderOpened,
+  IconQuestion,
+  IconRefresh,
+  IconSymbolMethod,
+} from "@iconify-prerendered/vue-codicon";
 let folderIcon = "folder";
 const store = useNvsPartitionTableStore();
 
@@ -52,7 +58,7 @@ onMounted(() => {
             <p class="buttons are-small">
               <a class="button" @click="store.genPartition">
                 <span class="icon is-small">
-                  <Icon icon="symbol-method" />
+                  <IconSymbolMethod />
                 </span>
                 &nbsp; Generate partition
               </a>
@@ -62,7 +68,7 @@ onMounted(() => {
                 @click="store.initDataRequest"
               >
                 <span class="icon is-small">
-                  <Icon icon="refresh" />
+                  <IconRefresh />
                 </span>
                 &nbsp; Reload file
               </button>
@@ -86,13 +92,14 @@ onMounted(() => {
             />
           </div>
           <div class="control" style="margin: auto;">
-            <span class="icon is-size-4">
-              <Icon
-                :icon="folderIcon"
-                @mouseover="folderIcon = 'folder-opened'"
-                @mouseout="folderIcon = 'folder'"
-                v-on:click="store.openKeyFile"
-              />
+            <span
+              class="icon is-size-4"
+              @mouseover="folderIcon = 'folder-opened'"
+              @mouseout="folderIcon = 'folder'"
+              v-on:click="store.openKeyFile"
+            >
+              <IconFolderOpened v-if="folderIcon === 'folder-opened'" />
+              <IconFolder v-if="folderIcon === 'folder'" />
             </span>
           </div>
         </div>
@@ -115,7 +122,7 @@ onMounted(() => {
             :data-tooltip="partitionSizeError"
             v-if="partitionSizeError"
           >
-            <Icon icon="question" />
+            <IconQuestion />
           </span>
         </div>
       </div>

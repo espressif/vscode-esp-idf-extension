@@ -17,15 +17,8 @@
  */
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { addIcon } from "@iconify/vue";
-import info from "@iconify-icons/codicon/info";
-import chevronRight from "@iconify-icons/codicon/chevron-right";
-import chevronDown from "@iconify-icons/codicon/chevron-down";
 import { useMenuconfigStore } from "./store";
 import Menuconfig from "./Menuconfig.vue";
-addIcon("info", info);
-addIcon("chevron-right", chevronRight);
-addIcon("chevron-down", chevronDown);
 
 const app = createApp(Menuconfig);
 const pinia = createPinia();

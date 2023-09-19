@@ -2,11 +2,10 @@
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useCMakeListsEditorStore } from "./store";
-import { CmakeListsElement } from "../../cmake/cmakeListsElement";
+import CmakeListsElement from "./components/CMakeListsElement.vue";
 
 const store = useCMakeListsEditorStore();
 let {
-  elements,
   emptyElements,
   fileName,
   selectedElementToAdd,
@@ -16,6 +15,14 @@ let {
 onMounted(() => {
   store.requestInitValues();
 });
+
+function getElementKey(title: string, index: number) {
+  return `${title.replace(/\s/g, "_")}_${index}`;
+}
+
+function deleteElem(i: number) {
+  store.elements.splice(i, 1);
+}
 </script>
 
 <template>
@@ -34,12 +41,8 @@ onMounted(() => {
             </div>
             <div class="control">
               <div class="select">
-                <select v-model="selectedElementToAdd.title">
-                  <option
-                    v-for="el in emptyElements"
-                    :key="el.title"
-                    :value="el.title"
-                  >
+                <select v-model="selectedElementToAdd">
+                  <option v-for="el in emptyElements" :value="el">
                     {{ el.title }}
                   </option>
                 </select>
@@ -52,7 +55,7 @@ onMounted(() => {
             <div class="control">
               <button
                 class="button"
-                @click="elements.push(selectedElementToAdd)"
+                @click="store.elements.push(selectedElementToAdd)"
               >
                 {{ textDictionary.add }}
               </button>
@@ -83,10 +86,10 @@ onMounted(() => {
     </div>
     <div class="notification">
       <CmakeListsElement
-        v-for="(elem, i) in elements"
-        :key="elem.title"
+        v-for="(elem, i) in store.elements"
+        :key="getElementKey(elem.title, i)"
         :el="elem"
-        @delete="elements.splice(i, 1)"
+        @delete="deleteElem(i)"
       ></CmakeListsElement>
     </div>
   </div>
@@ -101,7 +104,8 @@ onMounted(() => {
   width: 100%;
 }
 
-.delete:hover {
+.delete:hover,
+.icon:hover svg {
   background-color: var(--vscode-button-background);
 }
 

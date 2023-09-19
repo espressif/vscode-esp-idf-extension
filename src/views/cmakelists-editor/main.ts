@@ -19,11 +19,6 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import CMakeListsEditor from "../cmakelists-editor/CmakeListsEditor.vue";
 import { useCMakeListsEditorStore } from "./store";
-import { addIcon } from "@iconify/vue";
-import add from "@iconify-icons/codicon/add";
-import close from "@iconify-icons/codicon/close";
-addIcon("add", add);
-addIcon("close", close);
 
 const app = createApp(CMakeListsEditor);
 

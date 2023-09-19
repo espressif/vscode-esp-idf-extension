@@ -15,23 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import tools from "@iconify-icons/codicon/tools";
-import symbolEvent from "@iconify-icons/codicon/symbol-event";
-import refresh from "@iconify-icons/codicon/refresh";
-import question from "@iconify-icons/codicon/question";
-import starEmpty from "@iconify-icons/codicon/star-empty";
-import { addIcon } from "@iconify/vue";
 import { CSV2JSON } from "./util";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import { PartitionTable, usePartitionTableStore } from "./store";
-
-addIcon("tools", tools);
-addIcon("symbol-event", symbolEvent);
-addIcon("refresh", refresh);
-addIcon("question", question);
-addIcon("star-empty", starEmpty);
 
 const app = createApp(App);
 const pinia = createPinia();

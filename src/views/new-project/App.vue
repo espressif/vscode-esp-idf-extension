@@ -3,9 +3,11 @@
     <div class="control">
       <h1 class="title is-spaced">New Project</h1>
     </div>
-    <transition name="fade" mode="out-in">
-      <router-view />
-    </transition>
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
 

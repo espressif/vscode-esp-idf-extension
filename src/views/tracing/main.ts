@@ -27,18 +27,7 @@ import QuickActionMenu from "./components/QuickActionMenu.vue";
 import QuickCallStack from "./components/QuickCallStack.vue";
 import Tree from "./components/Tree.vue";
 import Stats from "./components/Stats.vue";
-import { addIcon, Icon } from "@iconify/vue";
-import pulse from "@iconify-icons/codicon/pulse";
-import search from "@iconify-icons/codicon/search";
-import history from "@iconify-icons/codicon/history";
-import triangleUp from "@iconify-icons/codicon/triangle-up";
-import triangleDown from "@iconify-icons/codicon/triangle-down";
 import { useTracingStore } from "./store";
-addIcon("pulse", pulse);
-addIcon("search", search);
-addIcon("history", history);
-addIcon("triangle-up", triangleUp);
-addIcon("triangle-down", triangleDown);
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -51,7 +40,6 @@ app.component("quick-call-stack", QuickCallStack);
 app.component("quick-action-menu", QuickActionMenu);
 app.component("leak-list", LeakList);
 app.component("stats-view", Stats);
-app.component("iconify-icon", Icon);
 
 const store = useTracingStore();
 

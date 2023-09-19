@@ -60,13 +60,13 @@ export const useNewProjectStore = defineStore("newProject", () => {
   function createProject() {
     vscode.postMessage({
       command: "createProject",
-      components: components,
-      containerFolder: containerDirectory,
-      openOcdConfigFiles: openOcdConfigFiles,
-      port: selectedPort,
-      projectName: projectName,
+      components: JSON.stringify(components.value),
+      containerFolder: containerDirectory.value,
+      openOcdConfigFiles: openOcdConfigFiles.value,
+      port: selectedPort.value,
+      projectName: projectName.value,
       target: target.value.target,
-      template: selectedTemplate,
+      template: JSON.stringify(selectedTemplate.value),
     });
   }
 

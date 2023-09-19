@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { IComponent } from '../../../espIdf/idfComponent/IdfComponent';
+import { IconClose } from "@iconify-prerendered/vue-codicon"; 
 const props = defineProps<{
   comp: IComponent;
   removeComponent: (comp: IComponent) => void;
@@ -11,7 +12,7 @@ const props = defineProps<{
     <label class="label" :for="comp.name" v-text="comp.path" />
     <div class="control icon">
       <div class="icon is-large is-size-4">
-        <iconify-icon icon="close" @click="removeComponent(comp)" />
+        <IconClose @click="removeComponent(comp)" />
       </div>
     </div>
   </div>

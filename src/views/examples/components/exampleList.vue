@@ -10,7 +10,7 @@ defineProps<{
 }>();
 
 function toggleExampleDetail(example: IExample) {
-  if (example.path !== this.selectedExample.path) {
+  if (example.path !== store.selectedExample.path) {
     store.selectedExample = example;
     store.exampleDetail = "No README.md available for this project.";
     store.getExampleDetail({ pathToOpen: example.path });

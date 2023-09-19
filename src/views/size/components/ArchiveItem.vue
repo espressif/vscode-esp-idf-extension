@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { IconChevronDown, IconChevronUp, IconFileZip } from "@iconify-prerendered/vue-codicon";
 import ArchiveItemColumn from "./ArchiveItemColumn.vue";
 import { useSizeStore } from "../store";
 
@@ -33,7 +33,7 @@ function toggleArchiveFileInfoTable(archiveName: string) {
     <div class="column is-hidden-mobile">
       <div class="control">
         <span class="icon is-large">
-          <Icon icon="file-zip" class="is-size-4" />
+          <IconFileZip class="is-size-4" />
         </span>
       </div>
     </div>
@@ -85,18 +85,18 @@ function toggleArchiveFileInfoTable(archiveName: string) {
     <div v-if="archiveInfo['files']" class="column">
       <div v-if="!archiveInfo['isFileInfoVisible']">
         <span class="icon is-large is-hidden-mobile">
-          <Icon icon="chevron-down" />
+          <IconChevronDown />
         </span>
         <span class="icon is-small is-hidden-tablet">
-          <Icon icon="chevron-down" />
+          <IconChevronDown />
         </span>
       </div>
       <div v-else>
         <span class="icon is-large is-hidden-mobile">
-          <Icon icon="chevron-up" />
+          <IconChevronUp />
         </span>
         <span class="icon is-small is-hidden-tablet">
-          <Icon icon="chevron-up" />
+          <IconChevronUp />
         </span>
       </div>
     </div>

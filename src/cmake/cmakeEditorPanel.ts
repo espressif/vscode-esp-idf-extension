@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { join } from "path";
+import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import {
@@ -26,7 +26,10 @@ import CMakeListsWebviewCollection from "./cmakeFilesCollection";
 export class CmakeListsEditorPanel {
   public static cmakeListsPanels: CMakeListsWebviewCollection = new CMakeListsWebviewCollection();
 
-  public static async createOrShow(extensionPath: string, fileUri: vscode.Uri) {
+  public static async createOrShow(
+    extensionPath: vscode.Uri,
+    fileUri: vscode.Uri
+  ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : vscode.ViewColumn.One;
@@ -63,7 +66,7 @@ export class CmakeListsEditorPanel {
   private disposables: vscode.Disposable[] = [];
 
   public constructor(
-    extensionPath: string,
+    extensionPath: vscode.Uri,
     column: vscode.ViewColumn,
     fileUri: vscode.Uri,
     type: CMakeListsType
@@ -76,22 +79,40 @@ export class CmakeListsEditorPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(join(extensionPath, "dist", "views")),
+          vscode.Uri.joinPath(extensionPath, "dist", "views"),
         ],
       }
     );
 
-    panel.iconPath = vscode.Uri.file(
-      join(extensionPath, "media", "espressif_icon.png")
+    panel.iconPath = vscode.Uri.joinPath(
+      extensionPath,
+      "media",
+      "espressif_icon.png"
     );
 
     const scriptsPath = panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        join(extensionPath, "dist", "views", "cmakelistsEditor-bundle.js")
+      vscode.Uri.joinPath(
+        extensionPath,
+        "dist",
+        "views",
+        "cmakelistsEditor-bundle.js"
       )
     );
 
-    panel.webview.html = this.createCmakeListEditorHtml(scriptsPath);
+    const codiconsUri = panel.webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        extensionPath,
+        "node_modules",
+        "@vscode/codicons",
+        "dist",
+        "codicon.css"
+      )
+    );
+
+    panel.webview.html = this.createCmakeListEditorHtml(
+      scriptsPath,
+      codiconsUri
+    );
 
     const cmakeListsWatcher = vscode.workspace.createFileSystemWatcher(
       fileUri.fsPath,
@@ -103,7 +124,7 @@ export class CmakeListsEditorPanel {
       panel.dispose();
     });
     cmakeListsWatcher.onDidChange(async (e) => {
-      await this.loadCMakeListsFile(extensionPath, type, fileUri, panel);
+      await this.loadCMakeListsFile(extensionPath.fsPath, type, fileUri, panel);
     });
 
     panel.onDidDispose(
@@ -118,7 +139,12 @@ export class CmakeListsEditorPanel {
       switch (message.command) {
         case "loadCMakeListSchema":
           try {
-            await this.loadCMakeListsFile(extensionPath, type, fileUri, panel);
+            await this.loadCMakeListsFile(
+              extensionPath.fsPath,
+              type,
+              fileUri,
+              panel
+            );
             panel.webview.postMessage({
               command: "setFileName",
               fileName: fileUri.fsPath,
@@ -128,7 +154,8 @@ export class CmakeListsEditorPanel {
           }
         case "saveChanges":
           if (message.newValues) {
-            await updateCmakeListFile(fileUri, message.newValues);
+            const newValuesJson = JSON.parse(message.newValues);
+            await updateCmakeListFile(fileUri, newValuesJson);
             vscode.window.showInformationMessage(
               `${fileUri.fsPath} has been updated`
             );
@@ -141,13 +168,17 @@ export class CmakeListsEditorPanel {
     CmakeListsEditorPanel.cmakeListsPanels.add(fileUri.fsPath, panel);
   }
 
-  private createCmakeListEditorHtml(scriptPath: vscode.Uri): string {
+  private createCmakeListEditorHtml(
+    scriptPath: vscode.Uri,
+    codiconsUri: vscode.Uri
+  ): string {
     return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>CMakeLists.txt Editor</title>
+            <link href="${codiconsUri}" rel="stylesheet" />
             </head>
             <body>
               <div id="editor"></div>

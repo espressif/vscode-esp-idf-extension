@@ -4,7 +4,11 @@ import { StatusType } from "../../types";
 import { useSetupStore  } from "../../store";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { Icon } from "@iconify/vue";
+import {
+  IconCheck,
+  IconClose,
+  IconLoading,
+} from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 const { toolsResults, statusEspIdfTools } = storeToRefs(store);
@@ -19,19 +23,14 @@ const statusType = computed(() => {
     <div class="control barText">
       <p class="label">Installing ESP-IDF Tools...</p>
       <div class="icon is-large is-size-4">
-        <Icon
-          :icon="
-            statusEspIdfTools === statusType.installed
-              ? 'check'
-              : statusEspIdfTools === statusType.failed
-              ? 'close'
-              : 'loading'
+        <IconCheck v-if="statusEspIdfTools === statusType.installed" />
+        <IconClose v-if="statusEspIdfTools === statusType.failed" />
+        <IconLoading
+          v-if="
+            statusEspIdfTools !== statusType.installed &&
+            statusEspIdfTools !== statusType.failed
           "
-          :class="{
-            gear:
-              statusEspIdfTools !== statusType.installed &&
-              statusEspIdfTools !== statusType.failed,
-          }"
+          class="gear"
         />
       </div>
     </div>

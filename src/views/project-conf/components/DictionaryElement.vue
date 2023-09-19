@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { IconAdd, IconClose  } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   title: string;
@@ -45,7 +45,7 @@ function addToDictionary() {
             />
           </div>
           <div class="icon" @click="removeElement(confKey)">
-            <Icon icon="close" />
+            <IconClose />
           </div>
         </li>
       </ul>
@@ -62,7 +62,7 @@ function addToDictionary() {
       </div>
       <div class="control">
         <div class="icon" @click="addToDictionary">
-          <Icon icon="add" />
+          <IconAdd />
         </div>
       </div>
     </div>

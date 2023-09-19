@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import VueSelect from "vue-select";
-import { Icon } from "@iconify/vue";
+import { IconQuestion } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   sName: string;
@@ -111,7 +111,7 @@ const subtypes = computed(() => {
         :data-tooltip="error"
         v-if="error"
       >
-        <Icon icon="question" />
+        <IconQuestion />
       </span>
     </td>
   </tr>

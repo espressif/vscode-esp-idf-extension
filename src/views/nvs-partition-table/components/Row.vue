@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Icon } from '@iconify/vue';
+import { IconQuestion } from "@iconify-prerendered/vue-codicon";
 import vSelect from "vue-select";
 import { findEncodingTypes } from '../util';
 
@@ -68,7 +68,7 @@ const props = defineProps<{
         :data-tooltip="rowError"
         v-if="rowError"
       >
-        <Icon icon="question" />
+        <IconQuestion />
       </span>
     </td>
   </tr>

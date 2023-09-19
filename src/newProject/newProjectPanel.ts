@@ -119,13 +119,13 @@ export class NewProjectPanel {
             message.template
           ) {
             this.createProject(
-              message.components,
+              JSON.parse(message.components),
               message.target,
               message.openOcdConfigFiles,
               message.port,
               message.containerFolder,
               message.projectName,
-              message.template,
+              JSON.parse(message.template),
               newProjectArgs.workspaceFolder
             );
           }

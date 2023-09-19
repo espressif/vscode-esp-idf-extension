@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IEspIdfTool } from "../types";
-import { Icon } from "@iconify/vue";
+import { IconCheck, IconClose } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   tool: IEspIdfTool;
@@ -30,7 +30,8 @@ function setToolsAreInValid() {
         </div>
         <div class="control">
           <div class="icon is-large is-size-4">
-            <Icon :icon="tool.doesToolExist ? 'check' : 'close'" />
+            <IconCheck v-if="tool.doesToolExist" />
+            <IconClose v-else />
           </div>
         </div>
       </div>

@@ -4,7 +4,11 @@ import { useSetupStore } from "../../store";
 import { StatusType } from "../../types";
 import DownloadStatus from "../DownloadStatus.vue";
 import { storeToRefs } from "pinia";
-import { Icon } from "@iconify/vue";
+import {
+  IconCheck,
+  IconClose,
+  IconLoading,
+} from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 
@@ -26,19 +30,14 @@ const {
     <div class="control barText">
       <p class="label">Installing ESP-IDF...</p>
       <div class="icon is-large is-size-4">
-        <Icon
-          :icon="
-            statusEspIdf === statusType.installed
-              ? 'check'
-              : statusEspIdf === statusType.failed
-              ? 'close'
-              : 'loading'
+        <IconCheck v-if="statusEspIdf === statusType.installed" />
+        <IconClose v-if="statusEspIdf === statusType.failed" />
+        <IconLoading
+          v-if="
+            statusEspIdf !== statusType.installed &&
+            statusEspIdf !== statusType.failed
           "
-          :class="{
-            gear:
-              statusEspIdf !== statusType.installed &&
-              statusEspIdf !== statusType.failed,
-          }"
+          class="gear"
         />
       </div>
     </div>
@@ -55,19 +54,14 @@ const {
         {{ espIdfErrorStatus }}
       </p>
       <div class="icon is-large is-size-4">
-        <Icon
-          :icon="
-            statusEspIdf === statusType.installed
-              ? 'check'
-              : statusEspIdf === statusType.failed
-              ? 'close'
-              : 'loading'
+        <IconCheck v-if="statusEspIdf === statusType.installed" />
+        <IconClose v-if="statusEspIdf === statusType.failed" />
+        <IconLoading
+          v-if="
+            statusEspIdf !== statusType.installed &&
+            statusEspIdf !== statusType.failed
           "
-          :class="{
-            gear:
-              statusEspIdf !== statusType.installed &&
-              statusEspIdf !== statusType.failed,
-          }"
+          class="gear"
         />
       </div>
     </div>

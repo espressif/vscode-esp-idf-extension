@@ -17,17 +17,19 @@ const isLinuxPlatform = computed(() => {
 });
 
 const openOCDRulesPathText = computed(() => {
-    return openOCDRulesPath.value !== ""
-      ? `sudo cp -n ${openOCDRulesPath} /etc/udev/rules.d`
-      : "";
-  })
+  return openOCDRulesPath.value !== ""
+    ? `sudo cp -n ${openOCDRulesPath} /etc/udev/rules.d`
+    : "";
+});
 </script>
 
 <template>
   <div id="app">
     <div
       class="control centerize"
-      v-if="!isIdfInstalled && currentRoute !== '/' && currentRoute !== '/status'"
+      v-if="
+        !isIdfInstalled && currentRoute !== '/' && currentRoute !== '/status'
+      "
     >
       <div class="icon is-large is-size-4">
         <router-link to="/" class="button" id="home-button">
@@ -76,9 +78,11 @@ const openOCDRulesPathText = computed(() => {
       </h1>
       <h2 class="subtitle">ESP-IDF Extension for Visual Studio Code</h2>
     </div>
-    <transition name="fade" mode="out-in" v-if="!isIdfInstalled">
-      <router-view></router-view>
-    </transition>
+    <router-view v-slot="{ Component }" v-if="!isIdfInstalled">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
     <div class="centerize install-finished" v-if="isIdfInstalled">
       <h2 class="subtitle" data-config-id="setup-is-finished">
         All settings have been configured. You can close this window.

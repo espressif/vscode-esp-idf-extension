@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 import { useMenuconfigStore } from "../store";
-import { Icon } from "@iconify/vue";
 import ConfigElement from "./configElement.vue";
 import { vMaska } from "maska";
+import { IconInfo } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   config: Menu;
@@ -32,7 +32,7 @@ function onChange(e) {
           <label v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <Icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ function onChange(e) {
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <Icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ function onChange(e) {
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <Icon icon="info" />
+            <IconInfo />
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ function onChange(e) {
       <div class="field has-addons">
         <label v-text="config.title" :data-config-id="config.id" />
         <div class="info-icon" @click="toggleHelp">
-          <Icon icon="info" />
+          <IconInfo />
         </div>
       </div>
       <div class="field is-grouped">
@@ -123,7 +123,7 @@ function onChange(e) {
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <Icon icon="info" />
+            <IconInfo />
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ function onChange(e) {
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <Icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>

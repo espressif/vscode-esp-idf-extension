@@ -3,7 +3,11 @@ import { StatusType } from "../../types";
 import { useSetupStore } from "../../store";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { Icon } from "@iconify/vue";
+import {
+  IconCheck,
+  IconClose,
+  IconLoading,
+} from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 
@@ -21,19 +25,14 @@ const statusType = computed(() => {
         Installing Python virtual environment for ESP-IDF...
       </p>
       <div class="icon is-large is-size-4">
-        <Icon
-          :icon="
-            statusPyVEnv === statusType.installed
-              ? 'check'
-              : statusPyVEnv === statusType.failed
-              ? 'close'
-              : 'loading'
+        <IconCheck v-if="statusPyVEnv === statusType.installed" />
+        <IconClose v-if="statusPyVEnv === statusType.failed" />
+        <IconLoading
+          v-if="
+            statusPyVEnv !== statusType.installed &&
+            statusPyVEnv !== statusType.failed
           "
-          :class="{
-            gear:
-              statusPyVEnv !== statusType.installed &&
-              statusPyVEnv !== statusType.failed,
-          }"
+          class="gear"
         />
       </div>
     </div>

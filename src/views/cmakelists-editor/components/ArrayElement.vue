@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
-import { Icon } from "@iconify/vue";
+import { IconAdd, IconClose } from "@iconify-prerendered/vue-codicon"; 
 
 let elementValueToPush = "";
 const props = defineProps<{
@@ -22,6 +22,7 @@ const emit = defineEmits(["delete"]);
 function del() {
   emit("delete");
 }
+
 </script>
 
 <template>
@@ -35,7 +36,7 @@ function del() {
         <li v-for="v in el.value" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
-            <Icon icon="close" />
+            <IconClose />
           </div>
         </li>
       </ul>
@@ -51,7 +52,7 @@ function del() {
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
-          <Icon icon="add" />
+          <IconAdd />
         </div>
       </div>
     </div>

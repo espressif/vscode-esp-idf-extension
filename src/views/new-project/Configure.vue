@@ -2,6 +2,8 @@
 import { storeToRefs } from "pinia";
 import { useNewProjectStore } from "./store";
 import { computed, onMounted } from "vue";
+import IdfComponents from "./components/idfComponents.vue";
+import folderOpen from "./components/folderOpen.vue";
 const store = useNewProjectStore();
 
 const {
@@ -13,16 +15,23 @@ const {
   selectedPort,
   serialPortList,
   target,
-  targetList
-
+  targetList,
 } = storeToRefs(store);
 
+function setContainerDirectory(newPath: string) {
+  store.containerDirectory = newPath;
+}
+
 const showCustomBoardInput = computed(() => {
-    const showTarget =
-      boards.value.length === 0 ||
-      (selectedBoard && selectedBoard.value.name === "Custom board");
-    return showTarget;
-  })
+  const showTarget =
+    boards.value.length === 0 ||
+    (selectedBoard && selectedBoard.value.name === "Custom board");
+  return showTarget;
+});
+
+onMounted(() => {
+  store.requestInitialValues();
+});
 </script>
 
 <template>
@@ -44,6 +53,7 @@ const showCustomBoardInput = computed(() => {
       propLabel="Enter Project directory"
       v-model:propModel="containerDirectory"
       :openMethod="store.openProjectDirectory"
+      :propMutate="setContainerDirectory"
       :staticText="projectName"
     />
 

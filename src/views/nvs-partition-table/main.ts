@@ -18,24 +18,8 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
-import { addIcon } from "@iconify/vue";
-import folder from "@iconify-icons/codicon/folder";
-import folderOpen from "@iconify-icons/codicon/folder-opened";
-import tools from "@iconify-icons/codicon/tools";
-import symbolEvent from "@iconify-icons/codicon/symbol-event";
-import refresh from "@iconify-icons/codicon/refresh";
-import question from "@iconify-icons/codicon/question";
-import symbolMethod from "@iconify-icons/codicon/symbol-method";
 import { csv2Json } from "./util";
 import { useNvsPartitionTableStore } from "./store";
-
-addIcon("tools", tools);
-addIcon("symbol-event", symbolEvent);
-addIcon("refresh", refresh);
-addIcon("question", question);
-addIcon("symbol-method", symbolMethod);
-addIcon("folder", folder);
-addIcon("folder-opened", folderOpen);
 
 const app = createApp(App);
 const pinia = createPinia();

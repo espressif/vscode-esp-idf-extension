@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useSetupStore } from "../store";
-import { IdfMirror, IEspIdfLink } from "../types";
+import { IdfMirror } from "../types";
 import folderOpen from "./folderOpen.vue";
 import { computed } from "vue";
 

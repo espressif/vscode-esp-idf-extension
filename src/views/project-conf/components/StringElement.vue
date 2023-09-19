@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Icon } from "@iconify/vue";
+import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   title: string;
@@ -33,13 +33,15 @@ let stringValue = computed({
         <input type="text is-small" v-model="stringValue" class="input" />
       </div>
       <div class="control" v-if="openMethod">
-        <div class="icon is-large is-size-4" style="text-decoration: none;">
-          <Icon
-            :icon="folderIcon"
-            @mouseover="folderIcon = 'folder-opened'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openMethod(sections)"
-          />
+        <div
+          class="icon is-large is-size-4"
+          style="text-decoration: none;"
+          @mouseover="folderIcon = 'folder-opened'"
+          @mouseout="folderIcon = 'folder'"
+          v-on:click="openMethod(sections)"
+        >
+          <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+          <IconFolder v-if="(folderIcon === 'folder')" />
         </div>
       </div>
     </div>

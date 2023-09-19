@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { IconServer } from "@iconify-prerendered/vue-codicon";
 defineProps<{
   usedData: number;
   usedRatioData: number;
@@ -28,7 +28,7 @@ function progressBarColorClass(ratio: number) {
       <div class="column is-1-tablet is-2-mobile is-clipped">
         <div>
           <span class="icon is-large is-hidden-mobile">
-            <Icon icon="server" class="is-size-3" />
+            <IconServer class="is-size-3" />
           </span>
           <strong style="vertical-align: super;">{{ name }}</strong>
         </div>

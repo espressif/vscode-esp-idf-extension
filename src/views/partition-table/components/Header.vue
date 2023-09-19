@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { usePartitionTableStore } from '../store';
-import { Icon } from '@iconify/vue';
+import { usePartitionTableStore } from "../store";
+import {
+  IconStarEmpty,
+  IconSymbolEvent,
+  IconRefresh,
+  IconTools,
+} from "@iconify-prerendered/vue-codicon";
 
 const store = usePartitionTableStore();
 </script>
@@ -22,25 +27,29 @@ const store = usePartitionTableStore();
             <p class="buttons are-small">
               <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
                 <span class="icon is-small">
-                  <Icon icon="star-empty" />
+                  <IconStarEmpty />
                 </span>
                 &nbsp; Select Flash Method
               </a>
               <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
-                  <Icon icon="tools" />
+                  <IconTools />
                 </span>
                 &nbsp; Build
               </a>
               <a class="button" href="command:espIdf.flashDevice">
                 <span class="icon is-small">
-                  <Icon icon="symbol-event" />
+                  <IconSymbolEvent />
                 </span>
                 &nbsp; Flash
               </a>
-              <button class="button" title="Retry" @click="store.initDataRequest">
+              <button
+                class="button"
+                title="Retry"
+                @click="store.initDataRequest"
+              >
                 <span class="icon is-small">
-                  <Icon icon="refresh" />
+                  <IconRefresh />
                 </span>
               </button>
             </p>

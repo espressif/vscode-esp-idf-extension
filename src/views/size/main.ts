@@ -19,25 +19,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
-import { addIcon } from "@iconify/vue";
-import symbolEvent from "@iconify-icons/codicon/symbol-event";
-import refresh from "@iconify-icons/codicon/refresh";
-import server from "@iconify-icons/codicon/server";
-import screenNormal from "@iconify-icons/codicon/screen-normal";
-import search from "@iconify-icons/codicon/search";
-import fileZip from "@iconify-icons/codicon/file-zip";
-import chevronDown from "@iconify-icons/codicon/chevron-down";
-import chevronUp from "@iconify-icons/codicon/chevron-up";
 import { useSizeStore } from "./store";
-
-addIcon("symbol-event", symbolEvent);
-addIcon("refresh", refresh);
-addIcon("server", server);
-addIcon("screen-normal", screenNormal);
-addIcon("search", search);
-addIcon("file-zip", fileZip);
-addIcon("chevron-down", chevronDown);
-addIcon("chevron-up", chevronUp);
 
 const app = createApp(App);
 const pinia = createPinia();

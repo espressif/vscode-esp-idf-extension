@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import { IconAdd, IconClose } from "@iconify-prerendered/vue-codicon";
+
 const props = defineProps<{
   title: string;
   values: string[];
@@ -33,7 +34,7 @@ function removeFromArray(val: any) {
         <li v-for="v in values" :key="v" class="tag is-custom-tag">
           <p>{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
-            <Icon icon="close" />
+            <IconClose />
           </div>
         </li>
       </ul>
@@ -49,7 +50,7 @@ function removeFromArray(val: any) {
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
-          <Icon icon="add" />
+          <IconAdd />
         </div>
       </div>
     </div>

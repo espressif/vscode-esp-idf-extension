@@ -3,7 +3,15 @@ import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useWelcomeStore } from "./store";
 import Logo from "./components/logo.vue";
-import { Icon } from '@iconify/vue';
+import {
+  IconBeaker,
+  IconComment,
+  IconFolderOpened,
+  IconGear,
+  IconGithub,
+  IconNewFolder,
+  IconTypeHierarchy
+} from "@iconify-prerendered/vue-codicon";
 
 const store = useWelcomeStore();
 
@@ -43,19 +51,19 @@ onMounted(() => {
       <div class="level-right mright">
         <div class="level-item link">
           <a href="https://github.com/espressif/vscode-esp-idf-extension">
-            <Icon icon="github" />
+            <IconGithub />
             Repository
           </a>
         </div>
         <div class="level-item link">
           <a href="https://esp32.com/viewforum.php?f=40">
-            <Icon icon="comment" />
+            <IconComment />
             ESP32 Forum
           </a>
         </div>
         <div class="level-item link">
           <a href="https://github.com/espressif/esp-idf">
-            <Icon icon="github" />
+            <IconGithub />
             ESP-IDF
           </a>
         </div>
@@ -63,7 +71,7 @@ onMounted(() => {
           <a
             href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose"
           >
-            <Icon icon="github" />
+            <IconGithub />
             Open a new issue
           </a>
         </div>
@@ -79,7 +87,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.openSetupPanel" class="button">
-                <Icon icon="gear" />
+                <IconGear />
                 Configure extension
               </button>
             </div>
@@ -89,7 +97,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.openNewProjectPanel" class="button">
-                <Icon icon="new-folder" />
+                <IconNewFolder/>
                 New project
               </button>
             </div>
@@ -99,7 +107,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.openImportProject" class="button">
-                <Icon icon="folder-opened" />
+                <IconFolderOpened />
                 Import project
               </button>
             </div>
@@ -109,7 +117,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.openShowExamplesPanel" class="button">
-                <Icon icon="beaker" />
+                <IconBeaker />
                 Show examples
               </button>
             </div>
@@ -119,7 +127,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.exploreComponents" class="button">
-                <Icon icon="type-hierarchy" />
+                <IconTypeHierarchy />
                 Components manager
               </button>
             </div>

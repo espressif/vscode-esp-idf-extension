@@ -3,8 +3,11 @@ import { storeToRefs } from "pinia";
 import { Menu } from "../../../espIdf/menuconfig/Menu";
 import { useMenuconfigStore } from "../store";
 import { computed } from "vue";
-import { Icon } from "@iconify/vue";
 import SideNavItem from "./SideNavItem.vue";
+import {
+  IconChevronRight,
+  IconChevronDown,
+} from "@iconify-prerendered/vue-codicon";
 
 const { menu } = defineProps<{ menu: Menu }>();
 const store = useMenuconfigStore();
@@ -20,16 +23,16 @@ function collapse() {
 }
 
 function setAsSelectedMenu() {
-    store.selectedMenu = menu.id;
-    const secNew = document.querySelector("#" + this.menu.id) as HTMLElement;
-    const configList = document.querySelector(".config-list") as HTMLElement;
-    const topbar = document.querySelector("#topbar") as HTMLElement;
-    const endPosition =
-      secNew.offsetTop +
-      configList.clientTop -
-      topbar.getBoundingClientRect().bottom;
-    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
-  }
+  store.selectedMenu = menu.id;
+  const secNew = document.querySelector("#" + this.menu.id) as HTMLElement;
+  const configList = document.querySelector(".config-list") as HTMLElement;
+  const topbar = document.querySelector("#topbar") as HTMLElement;
+  const endPosition =
+    secNew.offsetTop +
+    configList.clientTop -
+    topbar.getBoundingClientRect().bottom;
+  configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+}
 </script>
 
 <template>
@@ -39,9 +42,8 @@ function setAsSelectedMenu() {
   >
     <div class="menu-line">
       <div class="info-icon" @click="collapse" v-show="menuSubItems.length > 0">
-        <Icon
-          :icon="menu.isCollapsed ? 'chevron-right' : 'chevron-down'"
-        />
+        <IconChevronRight v-if="menu.isCollapsed" />
+        <IconChevronDown v-else />
       </div>
       <p @click="setAsSelectedMenu" v-text="menu.title" />
     </div>
@@ -51,12 +53,12 @@ function setAsSelectedMenu() {
       class="submenu"
       :class="{ collapsed: menu.isCollapsed }"
     >
-      <SideNavItem :menu="subItem" />
+      <SideNavItem :menu="subItem" class="info-icon" />
     </ul>
   </li>
 </template>
 
-<style scoped>
+<style>
 .info-icon {
   color: var(--vscode-editor-foreground);
   position: inherit;

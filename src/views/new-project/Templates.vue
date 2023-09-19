@@ -14,17 +14,17 @@ let {
 } = storeToRefs(store);
 
 const templates = computed(() => {
-  if (templatesRootPath && templatesRootPath[selectedFramework.value]) {
-    return [templatesRootPath[selectedFramework.value]];
+  if (templatesRootPath.value && templatesRootPath.value[selectedFramework.value]) {
+    return [templatesRootPath.value[selectedFramework.value]];
   }
 });
 const frameworks = computed(() => {
-  return Object.keys(templatesRootPath);
+  return Object.keys(templatesRootPath.value);
 });
 
 onMounted(()=> {
-  if (templatesRootPath) {
-      const frameworks = Object.keys(templatesRootPath);
+  if (templatesRootPath.value) {
+      const frameworks = Object.keys(templatesRootPath.value);
       store.selectedFramework = frameworks.length ? frameworks[0] : "";
     }
 })

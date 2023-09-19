@@ -19,17 +19,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { useProjectConfStore } from "./store";
-import { addIcon } from "@iconify/vue";
-import add from "@iconify-icons/codicon/add";
-import close from "@iconify-icons/codicon/close";
-import folder from "@iconify-icons/codicon/folder";
-import folderOpen from "@iconify-icons/codicon/folder-opened";
 import ProjectConfig from "./ProjectConfigEditor.vue";
-
-addIcon("add", add);
-addIcon("close", close);
-addIcon("folder", folder);
-addIcon("folder-opened", folderOpen);
 
 const app = createApp(ProjectConfig);
 const pinia = createPinia();

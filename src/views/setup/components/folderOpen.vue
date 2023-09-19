@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
+import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
 import { computed } from "vue";
 import { useSetupStore } from "../store";
 let folderIcon = "folder";
@@ -49,13 +49,15 @@ function onKeyEnter() {
         <a class="button is-static">{{ store.pathSep + staticText }}</a>
       </p>
       <div class="control">
-        <div class="icon is-large is-size-4" style="text-decoration: none;">
-          <Icon
-            :icon="folderIcon"
-            @mouseover="folderIcon = 'folder-opened'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openMethod"
-          />
+        <div
+          class="icon is-large is-size-4"
+          style="text-decoration: none;"
+          @mouseover="folderIcon = 'folder-opened'"
+          @mouseout="folderIcon = 'folder'"
+          v-on:click="openMethod"
+        >
+          <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+          <IconFolder v-if="(folderIcon === 'folder')" />
         </div>
       </div>
     </div>

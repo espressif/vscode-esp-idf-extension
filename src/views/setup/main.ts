@@ -19,27 +19,13 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { useSetupStore } from "./store";
-import { addIcon } from "@iconify/vue";
 import ExistingSetup from "./ExistingSetup.vue";
-import check from "@iconify-icons/codicon/check";
-import close from "@iconify-icons/codicon/close";
-import folder from "@iconify-icons/codicon/folder";
-import folderOpen from "@iconify-icons/codicon/folder-opened";
-import home from "@iconify-icons/codicon/home";
-import loading from "@iconify-icons/codicon/loading";
 import App from "./App.vue";
 import ToolsCustom from "./ToolsCustom.vue";
 import Home from "./Home.vue";
 import Install from "./Install.vue";
 import Status from "./Status.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
-
-addIcon("check", check);
-addIcon("close", close);
-addIcon("folder", folder);
-addIcon("folder-opened", folderOpen);
-addIcon("home", home);
-addIcon("loading", loading);
 
 const routes = [
   { path: "/", component: Home },

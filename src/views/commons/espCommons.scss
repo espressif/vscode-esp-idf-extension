@@ -110,3 +110,24 @@ button > span.icon > i:hover {
 div.plotly-notifier {
   visibility: hidden;
 }
+
+#icons {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+  justify-content: center;
+}
+
+// .icon {
+//   color: var(--vscode-editor-foreground);
+//   position: inherit;
+//   width: 15px;
+//   height: 15px;
+//   margin-left: 5px;
+//   top: 50%;
+// }
+
+// .icon .codicon {
+// 	font-size: 32px;
+// 	padding-bottom: 16px;
+// }

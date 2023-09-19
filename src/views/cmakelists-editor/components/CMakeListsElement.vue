@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { CmakeListsElement } from '../../../cmake/cmakeListsElement';
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+import StringElement from "./StringElement.vue";
+import SetElement from "./SetElement.vue";
+import BinaryDataElement from "./BinaryDataElement.vue";
+import ArrayElement from "./ArrayElement.vue";
 
 defineProps<{
-  el: CmakeListsElement
+  el: CmakeListsElement;
 }>();
 
-const emit = defineEmits(['deleteElem']);
+const emit = defineEmits(["delete"]);
 
 function deleteElem() {
-  emit('deleteElem');
+  emit("delete");
 }
 </script>
 

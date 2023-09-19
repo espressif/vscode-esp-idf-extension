@@ -18,20 +18,11 @@
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { addIcon } from "@iconify/vue";
-import add from "@iconify-icons/codicon/add";
-import close from "@iconify-icons/codicon/close";
-import folder from "@iconify-icons/codicon/folder";
-import folderOpen from "@iconify-icons/codicon/folder-opened";
 import { createRouter, createWebHashHistory } from "vue-router";
 import NewProject from "./App.vue";
 import Configure from "./Configure.vue";
 import Templates from "./Templates.vue";
 import { useNewProjectStore } from "./store";
-addIcon("add", add);
-addIcon("close", close);
-addIcon("folder", folder);
-addIcon("folder-opened", folderOpen);
 
 const routes = [
   { path: "/", component: Configure },

@@ -40,6 +40,7 @@ window.addEventListener("message", (event) => {
     case "set_example_detail":
       if (message.example_detail) {
         store.exampleDetail = message.example_detail;
+        store.hasExampleDetail = true;
       }
       break;
     case "set_initial_example":

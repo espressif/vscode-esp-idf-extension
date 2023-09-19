@@ -51,7 +51,7 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
   function saveChanges() {
     vscode.postMessage({
       command: "saveChanges",
-      newValues: this.elements,
+      newValues: JSON.stringify(elements.value),
     });
   }
 

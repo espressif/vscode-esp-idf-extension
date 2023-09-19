@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useExamplesStore } from "./store";
+import ExampleList from "./components/exampleList.vue";
 
 const store = useExamplesStore();
 

@@ -3,25 +3,28 @@ import IdfComponent from "./IdfComponent.vue";
 import { useNewProjectStore } from "../store";
 import { storeToRefs } from "pinia";
 import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
+import {
+  IconAdd,
+  IconFolder,
+  IconFolderOpened,
+} from "@iconify-prerendered/vue-codicon";
+import { ref } from "vue";
 const store = useNewProjectStore();
 
-let {
-  currentComponentPath,
-  components,
-} = storeToRefs(store);
+let { currentComponentPath, components } = storeToRefs(store);
 
-let folderIcon = "folder";
+let folderIcon = ref("folder");
 
 function addToComponentList() {
-    if (this.storeCurrentComponentPath.trim() != "") {
-      const component: IComponent = {
-        name: currentComponentPath.value,
-        path: currentComponentPath.value,
-      };
-      store.components.push(component);
-      store.currentComponentPath = "";
-    }
+  if (currentComponentPath.value.trim() != "") {
+    const component: IComponent = {
+      name: currentComponentPath.value,
+      path: currentComponentPath.value,
+    };
+    store.components.push(component);
+    store.currentComponentPath = "";
   }
+}
 </script>
 
 <template>
@@ -38,18 +41,20 @@ function addToComponentList() {
           />
         </div>
         <div class="control">
-          <div class="icon is-large is-size-4" style="text-decoration: none;">
-            <iconify-icon
-              :icon="folderIcon"
-              @mouseover="folderIcon = 'folder-opened'"
-              @mouseout="folderIcon = 'folder'"
-              v-on:click="store.openComponentFolder"
-            />
+          <div
+            class="icon is-large is-size-4"
+            style="text-decoration: none;"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
+            v-on:click="store.openComponentFolder"
+          >
+            <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+            <IconFolder v-if="(folderIcon === 'folder')" />
           </div>
         </div>
         <div class="control add-icon">
           <div class="icon is-large is-size-4">
-            <iconify-icon icon="add" @click="addToComponentList" />
+            <IconAdd @click="addToComponentList" />
           </div>
         </div>
       </div>

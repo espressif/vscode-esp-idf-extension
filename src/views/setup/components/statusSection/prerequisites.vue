@@ -4,7 +4,11 @@ import { StatusType } from "../../types";
 import { useSetupStore } from "../../store";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { Icon } from "@iconify/vue";
+import {
+  IconCheck,
+  IconClose,
+  IconLoading,
+} from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 const {
@@ -34,23 +38,26 @@ const toolsDestPath = computed(() => {
     <div class="control barText">
       <p class="label">Installing IDF Prerequisites...</p>
       <div class="icon is-large is-size-4">
-        <Icon
-          :icon="
+        <IconCheck
+          v-if="
             statusIdfGit === statusType.installed &&
             statusIdfPython === statusType.installed
-              ? 'check'
-              : statusIdfGit === statusType.failed &&
-                statusIdfPython === statusType.failed
-              ? 'close'
-              : 'loading'
           "
-          :class="{
-            gear:
-              statusIdfGit !== statusType.installed &&
-              statusIdfGit !== statusType.failed &&
-              statusIdfPython !== statusType.installed &&
-              statusIdfPython !== statusType.failed,
-          }"
+        />
+        <IconClose
+          v-if="
+            statusIdfGit === statusType.failed &&
+            statusIdfPython === statusType.failed
+          "
+        />
+        <IconLoading
+          v-if="
+            statusIdfGit !== statusType.installed &&
+            statusIdfGit !== statusType.failed &&
+            statusIdfPython !== statusType.installed &&
+            statusIdfPython !== statusType.failed
+          "
+          class="gear"
         />
       </div>
     </div>

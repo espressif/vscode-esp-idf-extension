@@ -5,7 +5,7 @@ import { computed } from "vue";
 import folderOpen from "./components/folderOpen.vue";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
-import { Icon } from "@iconify/vue";
+import { IconClose } from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 
@@ -51,7 +51,7 @@ function setToolsFolder(newToolsPath: string) {
       >
         <p>{{ espIdfErrorStatus }}</p>
         <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
-          <Icon icon="close" />
+          <IconClose />
         </div>
       </div>
 
@@ -70,7 +70,7 @@ function setToolsFolder(newToolsPath: string) {
       >
         <p>{{ pyExecErrorStatus }}</p>
         <div class="icon is-large is-size-4" @click="setPyExecErrorStatus">
-          <Icon icon="close" />
+          <IconClose />
         </div>
       </div>
 

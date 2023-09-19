@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSizeStore } from "../store";
-import { Icon } from "@iconify/vue";
+import { IconSymbolEvent, IconRefresh } from "@iconify-prerendered/vue-codicon";
 const store = useSizeStore();
 </script>
 
@@ -25,13 +25,13 @@ const store = useSizeStore();
                 v-bind:disabled="store.isFlashing"
               >
                 <span class="icon">
-                  <Icon icon="symbol-event" />
+                  <IconSymbolEvent />
                 </span>
                 &nbsp; Flash
               </button>
               <button class="button" title="Retry" @click="store.retryClicked">
                 <span class="icon">
-                  <Icon icon="refresh" />
+                  <IconRefresh />
                 </span>
               </button>
             </p>

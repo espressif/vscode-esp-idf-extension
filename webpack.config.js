@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
+const webpack = require('webpack');
 
 const packageConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
@@ -26,7 +27,13 @@ const extensionConfig = {
     __filename: true,
   },
   devtool: "source-map",
-  externals: ["commonjs", "vscode"],
+  externals: [
+    "commonjs",
+    "vscode",
+    "applicationinsights-native-metrics",
+    "bufferutil",
+    "utf-8-validate",
+  ],
   module: {
     rules: [
       {
@@ -164,6 +171,7 @@ const webViewConfig = {
     ],
   },
   resolve: {
+    conditionNames: ['import'],
     extensions: [".ts", ".js", ".vue", ".json"],
     alias: {
       Vue: "vue/dist/vue.esm-bundler.js",
@@ -175,7 +183,13 @@ const webViewConfig = {
       assert: require.resolve("assert/"),
     },
   },
-  plugins: [new VueLoaderPlugin()],
+  plugins: [
+    new VueLoaderPlugin(),
+    new webpack.DefinePlugin({
+      __VUE_OPTIONS_API__: false,
+      __VUE_PROD_DEVTOOLS__: false,
+    }),
+  ],
   devServer: {
     contentBase: path.join(__dirname),
     compress: true,
