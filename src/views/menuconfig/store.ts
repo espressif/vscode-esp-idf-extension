@@ -57,7 +57,7 @@ export const useMenuconfigStore = defineStore("menuconfig", () => {
   function sendNewValue(newValue) {
     vscode.postMessage({
       command: "updateValue",
-      updated_value: newValue,
+      updated_value: JSON.stringify(newValue),
     });
   }
 

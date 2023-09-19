@@ -24,7 +24,7 @@ function collapse() {
 
 function setAsSelectedMenu() {
   store.selectedMenu = menu.id;
-  const secNew = document.querySelector("#" + this.menu.id) as HTMLElement;
+  const secNew = document.querySelector("#" + menu.id) as HTMLElement;
   const configList = document.querySelector(".config-list") as HTMLElement;
   const topbar = document.querySelector("#topbar") as HTMLElement;
   const endPosition =
@@ -53,12 +53,12 @@ function setAsSelectedMenu() {
       class="submenu"
       :class="{ collapsed: menu.isCollapsed }"
     >
-      <SideNavItem :menu="subItem" class="info-icon" />
+      <SideNavItem :menu="subItem" />
     </ul>
   </li>
 </template>
 
-<style>
+<style scoped>
 .info-icon {
   color: var(--vscode-editor-foreground);
   position: inherit;

@@ -2,17 +2,18 @@
 import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
 import { useMenuconfigStore } from "../store";
 import ConfigElement from "./configElement.vue";
-import { vMaska } from "maska";
 import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { Ref, ref } from "vue";
+import { vMaska } from "maska";
 
 const props = defineProps<{
   config: Menu;
 }>();
 
-let isHelpVisible: boolean = false;
+let isHelpVisible: Ref<boolean> = ref(false);
 
 function toggleHelp() {
-  isHelpVisible = !isHelpVisible;
+  isHelpVisible.value = !isHelpVisible;
 }
 
 function onChange(e) {
@@ -130,19 +131,13 @@ function onChange(e) {
       <div class="field is-grouped">
         <div class="control">
           <input
+            v-maska
             v-model="config.value"
             data-maska="0xWWWWWWWWWW"
             data-maska-tokens="W:[0-9a-fA-F]"
             class="input is-small"
             @change.native="onChange"
             :data-config-id="config.id"
-          />
-
-          <input
-            v-model="config.value"
-            v-maska
-            data-maska="!0xHHHHHH"
-            data-maska-tokens="H:[0-9a-fA-F]"
           />
         </div>
       </div>
