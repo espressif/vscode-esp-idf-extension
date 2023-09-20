@@ -1897,10 +1897,7 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       PreCheck.perform([openFolderCheck], async () => {
-        await CmakeListsEditorPanel.createOrShow(
-          context.extensionUri,
-          fileUri
-        );
+        await CmakeListsEditorPanel.createOrShow(context.extensionUri, fileUri);
       });
     }
   );
