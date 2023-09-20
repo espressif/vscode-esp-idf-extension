@@ -98,44 +98,52 @@ export const useSetupStore = defineStore("setup", () => {
       selectedSysPython === pyVersionsList[pyVersionsList.value.length - 1]
         ? manualPythonPath
         : selectedSysPython;
+    console.log({
+      command: "checkEspIdfTools",
+      espIdf: espIdf.value,
+      pyPath,
+      toolsPath:  JSON.stringify(toolsResults.value),
+    });
     vscode.postMessage({
       command: "checkEspIdfTools",
-      espIdf: espIdf,
+      espIdf: espIdf.value,
       pyPath,
-      toolsPath: toolsResults,
+      toolsPath:  JSON.stringify(toolsResults.value),
     });
   }
 
   function installEspIdf() {
     const pyPath =
-      selectedSysPython === pyVersionsList[pyVersionsList.value.length - 1]
-        ? manualPythonPath
-        : selectedSysPython;
+      selectedSysPython.value ===
+      pyVersionsList.value[pyVersionsList.value.length - 1]
+        ? manualPythonPath.value
+        : selectedSysPython.value;
     vscode.postMessage({
       command: "installEspIdf",
-      espIdfContainer: espIdfContainer,
-      manualEspIdfPath: espIdf,
-      mirror: selectedIdfMirror,
-      selectedEspIdfVersion: selectedEspIdfVersion,
+      espIdfContainer: espIdfContainer.value,
+      manualEspIdfPath: espIdf.value,
+      mirror: selectedIdfMirror.value,
+      selectedEspIdfVersion:  JSON.stringify(selectedEspIdfVersion.value),
       selectedPyPath: pyPath,
-      setupMode: setupMode,
-      toolsPath: toolsFolder,
-      saveScope: saveScope,
+      setupMode: setupMode.value,
+      toolsPath: toolsFolder.value,
+      saveScope: saveScope.value,
     });
   }
 
   function installEspIdfTools() {
     const pyPath =
-      selectedSysPython === pyVersionsList[pyVersionsList.value.length - 1]
-        ? manualPythonPath
-        : selectedSysPython;
+      selectedSysPython.value ===
+      pyVersionsList.value[pyVersionsList.value.length - 1]
+        ? manualPythonPath.value
+        : selectedSysPython.value;
     vscode.postMessage({
       command: "installEspIdfTools",
-      espIdf: espIdf,
-      mirror: selectedIdfMirror,
+      espIdf: espIdf.value,
+      mirror: selectedIdfMirror.value,
       pyPath,
-      toolsPath: toolsFolder,
-      saveScope: saveScope,
+      toolsPath: toolsFolder.value,
+      saveScope: saveScope.value,
     });
   }
 
@@ -169,16 +177,17 @@ export const useSetupStore = defineStore("setup", () => {
 
   function saveCustomSettings() {
     const pyPath =
-      selectedSysPython === pyVersionsList[pyVersionsList.value.length - 1]
-        ? manualPythonPath
-        : selectedSysPython;
+      selectedSysPython.value ===
+      pyVersionsList.value[pyVersionsList.value.length - 1]
+        ? manualPythonPath.value
+        : selectedSysPython.value;
     vscode.postMessage({
       command: "saveCustomSettings",
-      espIdfPath: espIdf,
+      espIdfPath: espIdf.value,
       pyBinPath: pyPath,
-      tools: toolsResults,
-      toolsPath: toolsFolder,
-      saveScope: saveScope,
+      tools: JSON.stringify(toolsResults.value),
+      toolsPath: toolsFolder.value,
+      saveScope: saveScope.value,
     });
   }
 
@@ -192,7 +201,7 @@ export const useSetupStore = defineStore("setup", () => {
     vscode.postMessage({
       command: "useIdfSetup",
       selectedIdfSetup: payload,
-      saveScope: saveScope,
+      saveScope: saveScope.value,
     });
   }
 
@@ -203,29 +212,29 @@ export const useSetupStore = defineStore("setup", () => {
     });
   }
 
-  function setEspIdfVersionList(espIdfVersionList: IEspIdfLink[]) {
-    espIdfVersionList = espIdfVersionList;
-    if (espIdfVersionList && espIdfVersionList.length > 0) {
-      selectedEspIdfVersion.value = espIdfVersionList[0];
+  function setEspIdfVersionList(espIdfVerList: IEspIdfLink[]) {
+    espIdfVersionList.value = espIdfVerList;
+    if (espIdfVerList && espIdfVerList.length > 0) {
+      selectedEspIdfVersion.value = espIdfVerList[0];
     }
   }
 
-  function setPyVersionsList(pyVersionsList: string[]) {
-    pyVersionsList = pyVersionsList;
-    if (pyVersionsList && pyVersionsList.length > 0) {
-      selectedSysPython.value = pyVersionsList[0];
+  function setPyVersionsList(pyVerList: string[]) {
+    pyVersionsList.value = pyVerList;
+    if (pyVerList && pyVerList.length > 0) {
+      selectedSysPython.value = pyVerList[0];
     }
   }
 
-  function setSelectedEspIdfVersion(selectedEspIdfVersion: IEspIdfLink) {
-    selectedEspIdfVersion = selectedEspIdfVersion;
-    idfDownloadStatus.value.id = selectedEspIdfVersion.name;
+  function setSelectedEspIdfVersion(selectedEspIdfVer: IEspIdfLink) {
+    selectedEspIdfVersion.value = selectedEspIdfVer;
+    idfDownloadStatus.value.id = selectedEspIdfVer.name;
   }
 
   function setToolChecksum(toolData: { name: string; checksum: boolean }) {
     for (let i = 0; i < toolsResults.value.length; i++) {
-      if (toolsResults[i].name === toolData.name) {
-        toolsResults[i].hashResult = toolData.checksum;
+      if (toolsResults.value[i].name === toolData.name) {
+        toolsResults.value[i].hashResult = toolData.checksum;
         break;
       }
     }
@@ -233,8 +242,8 @@ export const useSetupStore = defineStore("setup", () => {
 
   function setToolDetail(toolData: { name: string; detail: string }) {
     for (let i = 0; i < toolsResults.value.length; i++) {
-      if (toolsResults[i].name === toolData.name) {
-        toolsResults[i].progressDetail = toolData.detail;
+      if (toolsResults.value[i].name === toolData.name) {
+        toolsResults.value[i].progressDetail = toolData.detail;
         break;
       }
     }
@@ -242,8 +251,8 @@ export const useSetupStore = defineStore("setup", () => {
 
   function setToolFailed(toolData: { name: string; hasFailed: boolean }) {
     for (let i = 0; i < toolsResults.value.length; i++) {
-      if (toolsResults[i].name === toolData.name) {
-        toolsResults[i].hasFailed = toolData.hasFailed;
+      if (toolsResults.value[i].name === toolData.name) {
+        toolsResults.value[i].hasFailed = toolData.hasFailed;
         break;
       }
     }
@@ -251,8 +260,8 @@ export const useSetupStore = defineStore("setup", () => {
 
   function setToolPercentage(toolData: { name: string; percentage: string }) {
     for (let i = 0; i < toolsResults.value.length; i++) {
-      if (toolsResults[i].name === toolData.name) {
-        toolsResults[i].progress = toolData.percentage;
+      if (toolsResults.value[i].name === toolData.name) {
+        toolsResults.value[i].progress = toolData.percentage;
         break;
       }
     }
@@ -269,7 +278,7 @@ export const useSetupStore = defineStore("setup", () => {
     statusEspIdfTools.value = status;
     if (status === StatusType.installed) {
       for (let i = 0; i < toolsResults.value.length; i++) {
-        toolsResults[i].progress = "100.00%";
+        toolsResults.value[i].progress = "100.00%";
       }
     }
   }
@@ -357,6 +366,6 @@ export const useSetupStore = defineStore("setup", () => {
     setStatusEspIdfTools,
     setStatusIdfGit,
     setStatusIdfPython,
-    setIdfPythonPercentage
+    setIdfPythonPercentage,
   };
 });

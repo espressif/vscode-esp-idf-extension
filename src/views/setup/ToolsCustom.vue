@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useSetupStore } from "./store";
 import toolManual from "./components/toolManual.vue";
 
 const store = useSetupStore();
-let selectedIdfTools = "toolsDownload";
+let selectedIdfTools = ref("toolsDownload");
 const allToolsAreValid = computed(() => {
   const invalidTools = store.toolsResults.filter((tool) => {
     return !tool.doesToolExist;

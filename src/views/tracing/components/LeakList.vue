@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Ref, computed, ref } from "vue";
 import { useTracingStore } from "../store";
+import {
+  IconHistory,
+  IconSearch,
+  IconTriangleUp,
+  IconTriangleDown,
+} from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
   cache: object;
@@ -84,13 +90,13 @@ function fetchFunctionFilePath(addr: string): string {
           v-model="filter.functionName"
         />
         <span class="icon is-small is-left">
-          <iconify-icon icon="search" />
+          <IconSearch />
         </span>
       </div>
       <div class="control">
         <button class="button" @click="reverseCallStack">
           <span class="icon is-small">
-            <iconify-icon icon="history" />
+            <IconHistory />
           </span>
           <span>Reverse Call Stack</span>
         </button>
@@ -99,13 +105,13 @@ function fetchFunctionFilePath(addr: string): string {
         <button class="button" @click="collapseOrExpandCalls()">
           <template v-if="isExpanded">
             <span class="icon is-small">
-              <iconify-icon icon="triangle-up" />
+              <IconTriangleUp />
             </span>
             <span>Collapse All</span>
           </template>
           <template v-else>
             <span class="icon is-small">
-              <iconify-icon icon="triangle-down" />
+              <IconTriangleDown />
             </span>
             <span>Expand All</span>
           </template>

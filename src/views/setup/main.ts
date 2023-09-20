@@ -106,8 +106,9 @@ window.addEventListener("message", (event) => {
       }
       break;
     case "setIsInstalled":
-      if (msg.isInstalled) {
-        store.isIdfInstalled = msg.isIdfInstalled;
+      console.log(msg.isInstalled);
+      if (typeof msg.isInstalled !== "undefined") {
+        store.isIdfInstalled = msg.isInstalled;
       }
       break;
     case "setOpenOcdRulesPath":

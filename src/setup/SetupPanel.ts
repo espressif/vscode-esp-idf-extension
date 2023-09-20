@@ -119,7 +119,7 @@ export class SetupPanel {
           if (message.espIdf && message.pyPath && message.toolsPath) {
             await this.checkRequiredTools(
               message.espIdf,
-              message.toolsPath,
+              JSON.parse(message.toolsPath),
               setupArgs.onReqPkgs
             );
           }
@@ -144,7 +144,7 @@ export class SetupPanel {
             }
             await this.autoInstall(
               message.toolsPath,
-              message.selectedEspIdfVersion,
+              JSON.parse(message.selectedEspIdfVersion),
               message.selectedPyPath,
               message.manualEspIdfPath,
               message.espIdfContainer,
@@ -228,7 +228,7 @@ export class SetupPanel {
             message.saveScope
           ) {
             const { exportedPaths, exportedVars } = this.getCustomSetupSettings(
-              message.tools
+              JSON.parse(message.tools)
             );
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",

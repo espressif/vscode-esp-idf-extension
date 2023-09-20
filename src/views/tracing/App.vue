@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useTracingStore } from "./store";
 import { computed } from "vue";
+import { IconPulse } from "@iconify-prerendered/vue-codicon";
 
 const store = useTracingStore();
 
@@ -86,7 +87,7 @@ const totalCount = computed(() => {
             <div class="level-left">
               <div class="level-item">
                 <span class="icon">
-                  <iconify-icon icon="pulse" class="is-size-3" />
+                  <IconPulse class="is-size-3" />
                 </span>
               </div>
               <div class="level-item">

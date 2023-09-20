@@ -57,7 +57,7 @@ function setToolsFolder(newToolsPath: string) {
 
       <folderOpen
         propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH)"
-        :propModel.sync="toolsFolder"
+        :propModel="toolsFolder"
         :propMutate="setToolsFolder"
         :openMethod="store.openEspIdfToolsFolder"
       />

@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useSetupStore } from "./store";
 import { storeToRefs } from "pinia";
 import { router } from "./main";
+import { IconHome } from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
 
@@ -33,7 +34,7 @@ const openOCDRulesPathText = computed(() => {
     >
       <div class="icon is-large is-size-4">
         <router-link to="/" class="button" id="home-button">
-          <iconify-icon icon="home" />
+          <IconHome />
         </router-link>
       </div>
     </div>

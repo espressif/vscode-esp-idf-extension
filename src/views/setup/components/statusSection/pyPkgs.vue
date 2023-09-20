@@ -38,9 +38,9 @@ const statusType = computed(() => {
     </div>
     <div
       class="field"
-      v-if="pyReqsLog && statusPyVEnv !== statusType.installed"
+      v-if="statusPyVEnv !== statusType.installed"
     >
-      <p id="python-log" class="notification">{{ pyReqsLog }}</p>
+      <p id="python-log" class="notification">{{ store.pyReqsLog }}</p>
     </div>
   </div>
 </template>

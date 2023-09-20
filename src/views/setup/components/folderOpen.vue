@@ -6,7 +6,7 @@ let folderIcon = "folder";
 const store = useSetupStore();
 const props = defineProps<{
   keyEnterMethod?: () => void;
-  onChangeMethod: () => void;
+  onChangeMethod?: () => void;
   openMethod: () => void;
   propLabel: string;
   propModel: string;
