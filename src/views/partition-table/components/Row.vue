@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import VueSelect from "vue-select";
 import { IconQuestion } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
@@ -9,7 +8,7 @@ const props = defineProps<{
   sSubType: string;
   sOffset: string;
   sSize: string;
-  sFlag: string;
+  sFlag: boolean;
   error: string;
 }>();
 
@@ -55,29 +54,29 @@ const subtypes = computed(() => {
         placeholder="Name"
         maxlength="16"
         :value="sName"
-        @input="$emit('update:sName', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow', 'name', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
-      <VueSelect
-        :options="types"
-        :value="sType"
-        @input="$emit('update:sType', ($event.target as HTMLSelectElement)?.value)"
-        placeholder="Type"
-        taggable
-        selectOnTab
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          :value="sType"
+          @change="$emit('updateRow', 'type', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in types" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td class="w-md">
-      <VueSelect
-        :options="subtypes"
-        :value="sSubType"
-        @input="$emit('update:sSubType', ($event.target as HTMLSelectElement)?.value)"
-        label="label"
-        placeholder="Sub Type"
-        taggable
-        selectOnTab
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          class="select is-size-7-mobile is-size-7-tablet"
+          :value="sSubType"
+          @change="$emit('updateRow', 'subtype', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in subtypes" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td>
       <input
@@ -85,7 +84,7 @@ const subtypes = computed(() => {
         type="text"
         placeholder="Offset"
         :value="sOffset"
-        @input="$emit('update:sOffset', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow', 'offset', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
@@ -94,14 +93,14 @@ const subtypes = computed(() => {
         type="text"
         placeholder="Size"
         :value="sSize"
-        @input="$emit('update:sSize', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow','size', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
       <input
         type="checkbox"
         :value="sFlag"
-        @input="$emit('update:sFlag', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow', 'flag', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
+import { onMounted } from "vue";
 import Header from "./components/Header.vue";
 import PartitionTable from "./components/PartitionTable.vue";
 import Row from "./components/Row.vue";
 import { useNvsPartitionTableStore } from "./store";
 import { findEncodingTypes } from "./util";
+import { error } from "console";
 
 const store = useNvsPartitionTableStore();
-
-const { rows } = storeToRefs(store);
 
 function addNewRow() {
   store.rows.push({
@@ -20,14 +19,25 @@ function addNewRow() {
   });
 }
 
-function updateEncoding(index: string, newType: string) {
-    const encodingTypes = findEncodingTypes(newType);
-    if (newType === "namespace") {
-      store.rows[index].encoding = "";
-    } else if (encodingTypes.indexOf(newType) === -1) {
-      store.rows[index].encoding = encodingTypes[0];
-    }
+function updateEncoding(index: number, newType: string) {
+  const encodingTypes = findEncodingTypes(newType);
+  if (newType === "namespace") {
+    store.rows[index].encoding = "";
+  } else if (encodingTypes.indexOf(newType) === -1) {
+    store.rows[index].encoding = encodingTypes[0];
   }
+}
+
+function updateRow(index: number, prop: string, newValue: string) {
+  store.rows[index][prop] = newValue;
+  if (prop === "type") {
+    updateEncoding(index, newValue);
+  }
+}
+
+onMounted(() => {
+  store.initDataRequest();
+});
 </script>
 
 <template>
@@ -35,15 +45,15 @@ function updateEncoding(index: string, newType: string) {
     <Header></Header>
     <PartitionTable @addNewRow="addNewRow" @save="store.save">
       <Row
-        v-for="(row, i) in rows"
-        @delete="rows.splice(i, 1)"
+        v-for="(row, i) in store.rows"
+        @delete="store.rows.splice(i, 1)"
         :key="i"
-        :encoding.sync="row.encoding"
-        :rowError="row.error"
-        :rowKey.sync="row.key"
-        :rowValue.sync="row.value"
-        :rowType.sync="row.type"
-        :updateEncoding="updateEncoding"
+        :encoding="row.encoding"
+        :rowError="row.error ? row.error : ''"
+        :rowKey="row.key"
+        :rowValue="row.value"
+        :rowType="row.type"
+        @updateRow="(prop: string, newValue: string) => updateRow(i, prop, newValue)"
       />
     </PartitionTable>
   </div>

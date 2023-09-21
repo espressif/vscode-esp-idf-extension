@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { usePartitionTableStore } from "../store";
 import {
   IconStarEmpty,
@@ -8,6 +9,10 @@ import {
 } from "@iconify-prerendered/vue-codicon";
 
 const store = usePartitionTableStore();
+
+onMounted(() => {
+  store.initDataRequest();
+});
 </script>
 
 <template>
@@ -17,7 +22,7 @@ const store = usePartitionTableStore();
         <div class="level-left">
           <div class="level-item">
             <h1 class="title is-size-5-mobile">
-              <strong>ESP-IDF</strong>
+              <strong>ESP-IDF </strong>
               <span>Partition Table Editor</span>
             </h1>
           </div>

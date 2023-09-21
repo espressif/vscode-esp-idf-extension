@@ -34,7 +34,7 @@ export namespace PartitionTable {
     subtype: string;
     offset: string;
     size: string;
-    flag: Boolean;
+    flag: boolean;
     error: string;
   }
   export interface State {
@@ -61,7 +61,7 @@ export const usePartitionTableStore = defineStore("partitionTable", () => {
     rows.value.forEach((row) => row.error = "");
     const { row, error, ok } = isValidJSON(rows.value);
     if (!ok) {
-      rows[row].error = error;
+      rows.value[row].error = error;
       console.log(error, row);
       vscode.postMessage({
         command: "showErrorMessage",

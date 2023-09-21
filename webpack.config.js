@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
-const webpack = require('webpack');
+const webpack = require("webpack");
 
 const packageConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
@@ -171,7 +171,7 @@ const webViewConfig = {
     ],
   },
   resolve: {
-    conditionNames: ['import'],
+    conditionNames: ["import"],
     extensions: [".ts", ".js", ".vue", ".json"],
     alias: {
       Vue: "vue/dist/vue.esm-bundler.js",

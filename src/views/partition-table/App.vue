@@ -16,6 +16,10 @@ function addEmptyRow() {
     flag: false,
   });
 }
+
+function updateRow(index: number, prop: string, newValue: any) {
+  store.rows[index][prop] = newValue;
+}
 </script>
 
 <template>
@@ -31,8 +35,9 @@ function addEmptyRow() {
         :sOffset="row.offset"
         :sSize="row.size"
         :sFlag="row.flag"
-        :error="row.error"
+        :error="row.error ? row.error : ''"
         @delete="store.rows.splice(i, 1)"
+        @updateRow="(prop, newValue) => updateRow(i, prop, newValue)"
       />
     </PartitionTable>
   </div>

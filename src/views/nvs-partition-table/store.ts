@@ -59,15 +59,15 @@ export const useNvsPartitionTableStore = defineStore(
 
     function genPartition() {
       partitionSizeError.value = "";
-      if (!partitionSize) {
+      if (!partitionSize.value) {
         partitionSizeError.value = "Size can't be empty";
       }
       vscode.postMessage({
         command: "genNvsPartition",
-        encrypt,
-        encryptKeyPath,
-        generateKey,
-        partitionSize,
+        encrypt: encrypt.value,
+        encryptKeyPath: encryptKeyPath.value,
+        generateKey: generateKey.value,
+        partitionSize: partitionSize.value,
       });
     }
 
@@ -95,7 +95,7 @@ export const useNvsPartitionTableStore = defineStore(
 
       for (const result of rowResults) {
         if (!result.ok) {
-          rows[result.rowIndex].error = result.errorMsg;
+          rows.value[result.rowIndex].error = result.errorMsg;
           vscode.postMessage({
             command: "showErrorMessage",
             error: result.errorMsg,

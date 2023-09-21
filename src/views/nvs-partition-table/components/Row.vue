@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { IconQuestion } from "@iconify-prerendered/vue-codicon";
-import vSelect from "vue-select";
 import { findEncodingTypes } from '../util';
 
 const props = defineProps<{
@@ -10,7 +9,6 @@ const props = defineProps<{
   rowType: string;
   rowValue: string;
   rowError: string;
-  updateEncoding: (index: string, newtype: string) => void;
 }>();
 
   const encodingTypes = computed(() => {
@@ -29,28 +27,28 @@ const props = defineProps<{
         placeholder="Key"
         maxlength="15"
         :value="rowKey"
-        @input="$emit('update:rowKey', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow', 'key', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
-      <vSelect
-        :options="types"
-        :value="rowType"
-        placeholder="Type"
-        taggable
-        selectOnTab
-        @input="updateEncoding"
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          :value="rowType"
+          @change="$emit('updateRow', 'type', ($event.target as HTMLInputElement)?.value)"
+        >
+          <option v-for="t in types" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td class="w-md">
-      <vSelect
-        :options="encodingTypes"
-        :value="encoding"
-        placeholder="Encoding"
-        taggable
-        selectOnTab
-        @input="$emit('update:encoding', ($event.target as HTMLSelectElement)?.value)"
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          :value="encoding"
+          @change="$emit('updateRow', 'encoding', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in encodingTypes" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td>
       <input
@@ -58,7 +56,7 @@ const props = defineProps<{
         type="text"
         placeholder="Value"
         :value="rowValue"
-        @input="$emit('update:rowValue', ($event.target as HTMLInputElement)?.value)"
+        @input="$emit('updateRow', 'value', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
@@ -75,7 +73,6 @@ const props = defineProps<{
 </template>
 
 <style lang="scss">
-@import "~vue-select/dist/vue-select.css";
 .vs__dropdown-toggle {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-background);
