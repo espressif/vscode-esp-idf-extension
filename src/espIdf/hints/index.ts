@@ -1,7 +1,9 @@
 import * as os from "os";
 import * as yaml from "js-yaml";
-import * as fs from "fs";
+import { readFile, pathExists} from "fs-extra";
 import * as idfConf from "../../idfConfiguration";
+import { Logger } from "../../logger/logger";
+import * as utils from "../../utils";
 import * as vscode from "vscode";
 
 class ReHintPair {
@@ -40,41 +42,62 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
   private data: ErrorHint[] = [];
 
-  searchError(errorMsg: string, workspace) {
-    const espIdfPath = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspace
-    ) as string;
+  async searchError(errorMsg: string, workspace) {
+    const espIdfPath = idfConf.readParameter("idf.espIdfPath", workspace) as string;
+    const version = await utils.getEspIdfFromCMake(espIdfPath);
+
+    if (utils.compareVersion(version.trim(), "5.0") === -1) {
+      this.data.push(new ErrorHint(`Error hints feature is not supported in ESP-IDF version ${version}`, "error"));
+      this._onDidChangeTreeData.fire();
+      return;
+    }
+
     const hintsPath = getHintsYmlPath(espIdfPath);
-    const fileContents = fs.readFileSync(hintsPath, "utf-8");
-    const hintsData = yaml.load(fileContents);
 
-    const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
-
-    this.data = [];
-    for (const hintPair of reHintsPairArray) {
-      const match = new RegExp(hintPair.re).exec(errorMsg);
-      if (match) {
-        let finalHint = hintPair.hint;
-
-        if (hintPair.match_to_output && hintPair.hint.includes("{}")) {
-          // Replace {} with the first capturing group from the regex match
-          finalHint = hintPair.hint.replace("{}", match[0]);
-        }
-
-        const error = new ErrorHint(hintPair.re, "error");
-        const hint = new ErrorHint(finalHint, "hint");
-        error.addChild(hint);
-        this.data.push(error);
+    try {
+      if (!(await pathExists(hintsPath))) {
+        Logger.infoNotify(`${hintsPath} does not exist.`);
+        return;
       }
+  
+      const fileContents = await readFile(hintsPath, "utf-8");
+      
+      if (!isValidYaml(fileContents)) {
+        Logger.infoNotify(`File ${hintsPath} is not a valid YAML file.`);
+        return;
+      }
+      const hintsData = yaml.load(fileContents);
+  
+      const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
+  
+      this.data = [];
+      for (const hintPair of reHintsPairArray) {
+        const match = new RegExp(hintPair.re).exec(errorMsg);
+        if (match) {
+          let finalHint = hintPair.hint;
+  
+          if (hintPair.match_to_output && hintPair.hint.includes("{}")) {
+            // Replace {} with the first capturing group from the regex match
+            finalHint = hintPair.hint.replace("{}", match[0]);
+          }
+  
+          const error = new ErrorHint(hintPair.re, "error");
+          const hint = new ErrorHint(finalHint, "hint");
+          error.addChild(hint);
+          this.data.push(error);
+        }
+      }
+  
+      if (!this.data.length) {
+        this.data.push(new ErrorHint(`No hints found for ${errorMsg}`, "error"));
+      }
+  
+      this._onDidChangeTreeData.fire();
+    } catch (error) {
+      Logger.errorNotify(`An error occurred while processing the hints file: ${error.message}`, error);
     }
-
-    if (!this.data.length) {
-      console.log("No hints found");
-      this.data.push(new ErrorHint(`No hints found for ${errorMsg}`, "error"));
-    }
-
-    this._onDidChangeTreeData.fire();
+    
+    
   }
 
   private loadHints(hintsArray: any): ReHintPair[] {
@@ -150,4 +173,13 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 function getHintsYmlPath(espIdfPath: string): string {
   const separator = os.platform() === "win32" ? "\\" : "/";
   return `${espIdfPath}${separator}tools${separator}idf_py_actions${separator}hints.yml`;
+}
+
+function isValidYaml(fileContents: string): boolean {
+  try {
+    yaml.load(fileContents);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
