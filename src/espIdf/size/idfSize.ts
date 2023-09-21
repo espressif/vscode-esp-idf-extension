@@ -68,9 +68,10 @@ export class IDFSize {
         this.workspaceRoot
       ) as string;
       const version = await utils.getEspIdfFromCMake(espIdfPath);
-      const formatArgs = utils.compareVersion(version, "5.1.0") >= 0 
-        ? ["--format", "json"]
-        : ["--json"];
+      const formatArgs =
+        utils.compareVersion(version, "5.1.0") >= 0
+          ? ["--format", "json"]
+          : ["--json"];
       const overview = await this.idfCommandInvoker([
         "idf_size.py",
         mapFilePath,
