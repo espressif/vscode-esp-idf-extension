@@ -20,16 +20,16 @@ const filteredArchives = computed<{[key: string]: any}>(() => {
   let filteredObj = archives.value;
   if (searchText.value !== "") {
     filteredObj = {};
-    Object.keys(archives).forEach((archive) => {
+    Object.keys(archives.value).forEach((archive) => {
       // tslint:disable-next-line: max-line-length
       if (
         archive.toLowerCase().match(searchText.value.toLowerCase()) ||
-        (archives[archive].files &&
-          Object.keys(archives[archive].files).filter((file) =>
+        (archives.value[archive].files &&
+          Object.keys(archives.value[archive].files).filter((file) =>
             file.toLowerCase().match(searchText.value.toLowerCase())
           ).length > 0)
       ) {
-        filteredObj[archive] = archives[archive];
+        filteredObj[archive] = archives.value[archive];
       }
     });
   }

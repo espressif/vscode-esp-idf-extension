@@ -89,7 +89,7 @@ export class IDFSizePanel {
       (msg) => {
         switch (msg.command) {
           case "flash":
-            vscode.commands.executeCommand("espIdf.selectFlashMethodAndFlash");
+            vscode.commands.executeCommand("espIdf.flashDevice");
             break;
           case "retry":
             this._panel.webview.postMessage({

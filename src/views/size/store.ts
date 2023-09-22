@@ -30,7 +30,7 @@ try {
 const SEC = 1000;
 
 export const useSizeStore = defineStore("size", () => {
-  const archives: Ref<{ [key: string]: any}> = ref({});
+  const archives: Ref<{ [key: string]: any }> = ref({});
   const isFlashing: Ref<boolean> = ref(false);
   const isOverviewEnabled: Ref<boolean> = ref(true);
   const overviewData: Ref<object> = ref({});
@@ -46,9 +46,9 @@ export const useSizeStore = defineStore("size", () => {
 
   function flashClicked(context) {
     if (vscode) {
-      context.state.isFlashing = true;
+      isFlashing.value = true;
       setTimeout(() => {
-        context.state.isFlashing = false;
+        isFlashing.value = false;
       }, 10 * SEC);
       vscode.postMessage({
         command: "flash",
@@ -67,27 +67,27 @@ export const useSizeStore = defineStore("size", () => {
       const archiveFileName = file.split(":");
       const archiveName = archiveFileName[0];
       const fileName = archiveFileName[1];
-      if (archives[archiveName] && !archives[archiveName].files) {
-        archives[archiveName]["files"] = {};
+      if (archives.value[archiveName] && !archives.value[archiveName].files) {
+        archives.value[archiveName]["files"] = {};
       }
-      archives[archiveName].files[fileName] = files[file];
+      archives.value[archiveName].files[fileName] = files[file];
     });
-    Object.keys(archives).forEach((archive) => {
-      archives[archive].isFileInfoVisible = false;
+    Object.keys(archives.value).forEach((archive) => {
+      archives.value[archive].isFileInfoVisible = false;
     });
   }
 
   function toggleArchiveFileInfoTable(archiveName: string) {
-    Object.keys(archives).forEach((archive) => {
+    Object.keys(archives.value).forEach((archive) => {
       let toggleVisibility = false;
       if (archive === archiveName) {
-        toggleVisibility = !archives[archive].isFileInfoVisible;
+        toggleVisibility = !archives.value[archive].isFileInfoVisible;
       }
-      archives[archive].isFileInfoVisible = toggleVisibility;
+      archives.value[archive].isFileInfoVisible = toggleVisibility;
     });
   }
 
-  return { 
+  return {
     archives,
     isFlashing,
     isOverviewEnabled,
@@ -97,6 +97,6 @@ export const useSizeStore = defineStore("size", () => {
     flashClicked,
     requestInitialValues,
     setFiles,
-    toggleArchiveFileInfoTable
+    toggleArchiveFileInfoTable,
   };
 });
