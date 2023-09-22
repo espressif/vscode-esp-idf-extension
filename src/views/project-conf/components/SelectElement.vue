@@ -5,11 +5,11 @@ const props = defineProps<{
   selectValue: any;
   title: string;
   options: { name: string; value: any }[];
-  customOption: { name: string; value: any };
-  customValueModel: string;
+  customOption?: { name: string; value: any };
+  customValueModel?: string;
   updateMethod: (sections: string[], newValue: any) => void;
   sections: string[];
-  customValueSections: string[];
+  customValueSections?: string[];
 }>();
 
 let isCustomValue = computed(() => {
@@ -26,16 +26,18 @@ let selectedValue = computed({
     return props.selectValue;
   },
   set(newVal: any) {
-    props.updateMethod(this.sections, newVal);
+    props.updateMethod(props.sections, newVal);
   }
 });
 
 let customValue = computed({
   get() {
-    return props.customValueModel;
+    return props.customValueModel ? props.customValueModel : "";
   },
   set(newVal: string) {
-    props.updateMethod(this.customValueSections, newVal);
+    if (props.customValueSections) {
+      props.updateMethod(props.customValueSections, newVal);
+    }
   }
 });
 </script>

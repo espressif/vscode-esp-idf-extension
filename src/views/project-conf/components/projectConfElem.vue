@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ProjectConfElement } from "../../../project-conf/projectConfiguration";
 import { useProjectConfStore } from "../store";
+import ArrayElement from "./ArrayElement.vue";
+import DictionaryElement from "./DictionaryElement.vue";
+import SelectElement from "./SelectElement.vue";
+import StringElement from "./StringElement.vue";
 
 const store = useProjectConfStore();
 
@@ -56,35 +60,37 @@ function removeValueFromArray(sections: string[], index: number) {
     <div class="small-margin">
       <ArrayElement
         title="Compile arguments"
-        :values.sync="el.build.compileArgs"
+        :values="el.build.compileArgs ? el.build.compileArgs : []"
         :sections="['build', 'compileArgs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <ArrayElement
         title="Ninja arguments"
-        :values.sync="el.build.ninjaArgs"
+        :values="el.build.ninjaArgs ? el.build.ninjaArgs : []"
         :sections="['build', 'ninjaArgs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <StringElement
         title="Build Directory path"
-        :value.sync="el.build.buildDirectoryPath"
+        :value="el.build.buildDirectoryPath ? el.build.buildDirectoryPath : ''"
         :sections="['build', 'buildDirectoryPath']"
         :updateMethod="updateElement"
         :openMethod="openBuildDir"
       />
       <ArrayElement
         title="sdkconfig defaults"
-        :values.sync="el.build.sdkconfigDefaults"
+        :values="el.build.sdkconfigDefaults ? el.build.sdkconfigDefaults : []"
         :sections="['build', 'sdkconfigDefaults']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <StringElement
         title="sdkconfig file path"
-        :value.sync="el.build.sdkconfigFilePath"
+        :value.sync="
+          el.build.sdkconfigFilePath ? el.build.sdkconfigFilePath : ''
+        "
         :sections="['build', 'sdkconfigFilePath']"
         :updateMethod="updateElement"
       />
@@ -97,12 +103,12 @@ function removeValueFromArray(sections: string[], index: number) {
     />
     <StringElement
       title="Flash baud rate"
-      :value.sync="el.flashBaudRate"
+      :value="el.flashBaudRate ? el.flashBaudRate : ''"
       :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
     <SelectElement
-      :selectValue.sync="el.idfTarget"
+      :selectValue="el.idfTarget ? el.idfTarget : ''"
       title="IDF Target"
       :options="idfTargets"
       :sections="['idfTarget']"
@@ -110,7 +116,7 @@ function removeValueFromArray(sections: string[], index: number) {
     />
     <StringElement
       title="Monitor baud rate"
-      :value.sync="el.monitorBaudRate"
+      :value="el.monitorBaudRate ? el.monitorBaudRate : ''"
       :sections="['monitorBaudRate']"
       :updateMethod="updateElement"
     />
@@ -118,7 +124,7 @@ function removeValueFromArray(sections: string[], index: number) {
     <label class="is-size-4 has-text-weight-bold">OpenOCD</label>
     <div class="small-margin">
       <SelectElement
-        :selectValue.sync="el.openOCD.debugLevel"
+        :selectValue="el.openOCD.debugLevel ? el.openOCD.debugLevel : ''"
         title="Debug Level"
         :options="openOcdDebugLevelOptions"
         :sections="['openOCD', 'debugLevel']"
@@ -126,14 +132,14 @@ function removeValueFromArray(sections: string[], index: number) {
       />
       <ArrayElement
         title="Config files"
-        :values="el.openOCD.configs"
+        :values="el.openOCD.configs ? el.openOCD.configs : []"
         :sections="['openOCD', 'configs']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
       />
       <ArrayElement
         title="Arguments"
-        :values="el.openOCD.args"
+        :values="el.openOCD.args ? el.openOCD.args : []"
         :sections="['openOCD', 'args']"
         :addValue="addValueToArray"
         :removeValue="removeValueFromArray"
@@ -144,25 +150,25 @@ function removeValueFromArray(sections: string[], index: number) {
     <div class="small-margin">
       <StringElement
         title="Pre Build"
-        :value="el.tasks.preBuild"
+        :value="el.tasks.preBuild ? el.tasks.preBuild : ''"
         :sections="['tasks', 'preBuild']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Pre Flash"
-        :value="el.tasks.preFlash"
+        :value="el.tasks.preFlash ? el.tasks.preFlash : ''"
         :sections="['tasks', 'preFlash']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Post Build"
-        :value="el.tasks.postBuild"
+        :value="el.tasks.postBuild ? el.tasks.postBuild : ''"
         :sections="['tasks', 'postBuild']"
         :updateMethod="updateElement"
       />
       <StringElement
         title="Post Flash"
-        :value="el.tasks.postFlash"
+        :value="el.tasks.postFlash ? el.tasks.postFlash : ''"
         :sections="['tasks', 'postFlash']"
         :updateMethod="updateElement"
       />

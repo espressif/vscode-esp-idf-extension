@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref, Ref } from "vue";
 import { useProjectConfStore } from "./store";
+import projectConfElem from "./components/projectConfElem.vue";
 
 const store = useProjectConfStore();
 
-let keyToAdd: string = "";
+let keyToAdd: Ref<string> = ref("");
 function addElement() {
-  if (keyToAdd !== "") {
-    store.addNewConfigToList(keyToAdd);
-    keyToAdd = "";
+  if (keyToAdd.value !== "") {
+    store.addNewConfigToList(keyToAdd.value);
+    keyToAdd.value = "";
   }
 }
 

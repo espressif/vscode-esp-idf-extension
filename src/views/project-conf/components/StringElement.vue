@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
 
 const props = defineProps<{
@@ -7,9 +7,9 @@ const props = defineProps<{
   value: string;
   updateMethod: (sections: string[], newValue: any) => void;
   sections: string[];
-  openMethod: (sections: string[]) => void;
+  openMethod?: (sections: string[]) => void;
 }>();
-let folderIcon = "folder";
+let folderIcon = ref("folder");
 
 let stringValue = computed({
   get() {

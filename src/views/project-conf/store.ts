@@ -74,7 +74,7 @@ export const useProjectConfStore = defineStore("project-config", () => {
   function saveChanges() {
     vscode.postMessage({
       command: "saveProjectConfFile",
-      confDict: elements.value,
+      confDict: JSON.stringify(elements.value),
     });
   }
 
@@ -111,7 +111,7 @@ export const useProjectConfStore = defineStore("project-config", () => {
         postFlash: "",
       },
     } as ProjectConfElement;
-    elements[confKey] = newConf;
+    elements.value[confKey] = newConf;
   }
 
   function updateConfigElement(payload: {
@@ -120,13 +120,13 @@ export const useProjectConfStore = defineStore("project-config", () => {
     newValue: any;
   }) {
     if (payload.sections && payload.sections.length === 1) {
-      elements[payload.confKey][payload.sections[0]] = payload.newValue;
+      elements.value[payload.confKey][payload.sections[0]] = payload.newValue;
     } else if (
       payload.sections &&
       payload.sections.length === 2 &&
-      Object.keys(elements[payload.confKey]).indexOf(payload.sections[0]) !== -1
+      Object.keys(elements.value[payload.confKey]).indexOf(payload.sections[0]) !== -1
     ) {
-      elements[payload.confKey][payload.sections[0]][payload.sections[1]] =
+      elements.value[payload.confKey][payload.sections[0]][payload.sections[1]] =
         payload.newValue;
     }
   }
@@ -137,13 +137,13 @@ export const useProjectConfStore = defineStore("project-config", () => {
     valueToAdd: any;
   }) {
     if (payload.sections && payload.sections.length === 1) {
-      elements[payload.confKey][payload.sections[0]].push(payload.valueToAdd);
+      elements.value[payload.confKey][payload.sections[0]].push(payload.valueToAdd);
     } else if (
       payload.sections &&
       payload.sections.length === 2 &&
-      Object.keys(elements[payload.confKey]).indexOf(payload.sections[0]) !== -1
+      Object.keys(elements.value[payload.confKey]).indexOf(payload.sections[0]) !== -1
     ) {
-      elements[payload.confKey][payload.sections[0]][payload.sections[1]].push(
+      elements.value[payload.confKey][payload.sections[0]][payload.sections[1]].push(
         payload.valueToAdd
       );
     }
@@ -155,13 +155,13 @@ export const useProjectConfStore = defineStore("project-config", () => {
     index: number;
   }) {
     if (payload.sections && payload.sections.length === 1) {
-      elements[payload.confKey][payload.sections[0]].splice(payload.index, 1);
+      elements.value[payload.confKey][payload.sections[0]].splice(payload.index, 1);
     } else if (
       payload.sections &&
       payload.sections.length === 2 &&
-      Object.keys(elements[payload.confKey]).indexOf(payload.sections[0]) !== -1
+      Object.keys(elements.value[payload.confKey]).indexOf(payload.sections[0]) !== -1
     ) {
-      elements[payload.confKey][payload.sections[0]][
+      elements.value[payload.confKey][payload.sections[0]][
         payload.sections[1]
       ].splice(payload.index, 1);
     }

@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { IconAdd, IconClose  } from "@iconify-prerendered/vue-codicon";
+import { Ref, ref } from "vue";
 
 const props = defineProps<{
   title: string;
   elements: { [key: string]: string };
 }>();
 
-let valueToPush: string = "";
+let valueToPush: Ref<string> = ref("");
 
 function removeElement(dictKey: string) {
   delete props.elements[dictKey];
 }
 
 function addToDictionary() {
-  if (valueToPush != "") {
-    props.elements[valueToPush] = "";
-    valueToPush = "";
+  if (valueToPush.value != "") {
+    props.elements[valueToPush.value] = "";
+    valueToPush.value = "";
   }
 }
 </script>
