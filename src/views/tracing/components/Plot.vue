@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { newPlot, react } from "plotly.js";
+import * as Plotly from "plotly.js-dist-min";
 import { Ref, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{
@@ -67,7 +67,7 @@ onMounted(() => {
     color: fontColor,
   };
 
-  newPlot("plot", props.chart, layout.value, chartProp.value);
+  Plotly.newPlot("plot", props.chart, layout.value, chartProp.value);
   const plot = document.getElementById("plot");
   if (plot) {
     plot.addEventListener("plotly_click", (d) => {
@@ -79,7 +79,7 @@ onMounted(() => {
 watch(
   props.chart,
   () => {
-    react("plot", props.chart, layout.value);
+    Plotly.react("plot", props.chart, layout.value);
   },
   { deep: true }
 );

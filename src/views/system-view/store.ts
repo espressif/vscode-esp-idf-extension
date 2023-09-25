@@ -17,6 +17,7 @@
  */
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
+import { layout } from "./plotLayout";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -50,7 +51,7 @@ export const useSystemViewStore = defineStore("system-view", () => {
   let isLoading: Ref<boolean> = ref(true);
   let rawData: Ref<any> = ref(undefined);
   let plotData: Ref<any[]> = ref([]);
-  let plotLayout: Ref<{}> = ref({});
+  let plotLayout: Ref<{}> = ref(layout);
   let settings: Ref<SystemViewUISettings> = ref({
     ContextInfoTableHeight: 150,
     ContextInfoTableVisible: true,
@@ -66,6 +67,12 @@ export const useSystemViewStore = defineStore("system-view", () => {
   let eventsTable: Ref<eventTableRow[]> = ref([]);
   let contextInfoTable: Ref<string[][]> = ref([]);
 
+  function requestInitialValues() {
+    vscode.postMessage({
+      command: "getInitialValues",
+    });
+  }
+
   return {
     contextInfoTable,
     eventsTable,
@@ -74,5 +81,6 @@ export const useSystemViewStore = defineStore("system-view", () => {
     plotLayout,
     rawData,
     settings,
+    requestInitialValues
   };
 });

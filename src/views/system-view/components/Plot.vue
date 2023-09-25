@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { resize } from "../util";
-import { newPlot } from "plotly.js";
+import * as Plotly from "plotly.js-dist-min";
 import { onMounted } from "vue";
 import { useSystemViewStore } from "../store";
 
@@ -10,11 +10,17 @@ onMounted(() => {
   const style = window.getComputedStyle(document.documentElement);
   const bgColor = style.getPropertyValue("--vscode-editor-background");
   const fontColor = style.getPropertyValue("--vscode-editor-foreground");
-  store.plotLayout["paper_bgcolor"] = bgColor;
-  store.plotLayout["plot_bgcolor"] = bgColor;
-  store.plotLayout["xaxis"]["spikecolor"] = fontColor;
-  store.plotLayout["font"]["color"] = fontColor;
-  newPlot("plot", store.plotData, store.plotLayout, {
+  store.plotLayout = {
+    "paper_bgcolor": bgColor,
+    "plot_bgcolor": bgColor,
+    "xaxis": {
+      "spikecolor": fontColor,
+    },
+    "font": {
+      "color": fontColor
+    }
+  }
+  Plotly.newPlot("plot", store.plotData, store.plotLayout, {
     displaylogo: false,
     scrollZoom: true,
     responsive: true,

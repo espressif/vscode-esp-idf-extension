@@ -21,6 +21,7 @@ import {
   LookUpTable,
   IGNORE_RENDER_SYS_STREAM_LIST,
 } from "../../espIdf/tracing/system-view/model";
+import { scaleOrdinal } from "d3-scale";
 
 export function drawPlot(mcore: any) {
   const IGNORE_RENDER_SYS_STREAM_ID_LIST = new Set(
@@ -47,7 +48,7 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
   const lookupTable: LookUpTable = {};
 
   events.forEach((evt: SysViewEvent) => {
-    if (evt.core_id && !lookupTable[evt.core_id]) {
+    if (typeof evt.core_id !== "undefined" && !lookupTable[evt.core_id]) {
       lookupTable[evt.core_id] = {
         irq: {},
         ctx: {},
@@ -73,15 +74,15 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
 
     if (
       evt.in_irq === true &&
-      evt.core_id &&
-      evt.ctx_name &&
+      typeof evt.core_id !== "undefined" &&
+      typeof evt.ctx_name !== "undefined" &&
       !lookupTable[evt.core_id].irq.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].irq[evt.ctx_name] = {};
     } else if (
       evt.in_irq === false &&
-      evt.core_id &&
-      evt.ctx_name &&
+      typeof evt.core_id !== "undefined" &&
+      typeof evt.ctx_name !== "undefined" &&
       !lookupTable[evt.core_id].ctx.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].ctx[evt.ctx_name] = {};
@@ -107,15 +108,15 @@ function calculateAndInjectDataPoints(
       return;
     }
     const contextSwitch = lookupTable[coreId].contextSwitch;
-    contextSwitch.x.push(commonXAxis, commonXAxis);
-    contextSwitch.y.push(previousYAxis, currentYAxis);
+    contextSwitch.x.push(commonXAxis, commonXAxis, null);
+    contextSwitch.y.push(previousYAxis, currentYAxis, null);
   }
   function stopLastEventBar(coreId: number, stopTimeStamp: number) {
     const previousEvt = lookupTable[coreId].lastEvent;
     if (!previousEvt) {
       return;
     }
-    if (previousEvt.ctx_name) {
+    if (typeof previousEvt.ctx_name !== "undefined") {
       const previousData =
         previousEvt.in_irq === true
           ? lookupTable[coreId].irq[previousEvt.ctx_name]
@@ -138,22 +139,26 @@ function calculateAndInjectDataPoints(
 
   events.forEach((evt: SysViewEvent) => {
     //Ignore the list of ignored System Events
-    if (evt.id && ignoreRenderIds.has(evt.id)) {
+    if (typeof evt.id !== "undefined" && ignoreRenderIds.has(evt.id)) {
       return;
     }
-    if (!evt.core_id || !evt.ctx_name || !evt.ts) {
+    if (
+      typeof evt.core_id === "undefined" ||
+      typeof evt.ctx_name === "undefined" ||
+      typeof evt.ts === "undefined"
+    ) {
       return;
     }
     //SYS_OVERFLOW event halt all the running tasks and draw void rect
-    if (evt.ts && evt.id === sysOverflowId) {
+    if (evt.id === sysOverflowId) {
       console.log("Halt event arrived", evt);
       //halts both the tasks running on both the core
       stopLastEventBar(0, evt.ts);
       stopLastEventBar(1, evt.ts);
 
       //set previous event as null for both core
-      lookupTable[0].lastEvent = {};
-      lookupTable[1].lastEvent = {};
+      lookupTable[0].lastEvent = null;
+      lookupTable[1].lastEvent = null;
 
       //ignore everything else and continue like a fresh start
       return;
@@ -206,8 +211,29 @@ function calculateAndInjectDataPoints(
 }
 
 function colorPlot(lookupTable: LookUpTable): Map<string, string> {
-  //@ts-ignore
-  const colorGenerator = Plotly.d3.scale.category20();
+  const categoricalColors = [
+    "#1f77b4",
+    "#aec7e8",
+    "#ff7f0e",
+    "#ffbb78",
+    "#2ca02c",
+    "#98df8a",
+    "#d62728",
+    "#ff9896",
+    "#9467bd",
+    "#c5b0d5",
+    "#8c564b",
+    "#c49c94",
+    "#e377c2",
+    "#f7b6d2",
+    "#7f7f7f",
+    "#c7c7c7",
+    "#bcbd22",
+    "#dbdb8d",
+    "#17becf",
+    "#9edae5",
+  ];
+  const colorGenerator = scaleOrdinal(categoricalColors);
   const colorMap = new Map();
   let i = 0;
   function applyColorFor(obj: Object) {
@@ -218,7 +244,8 @@ function colorPlot(lookupTable: LookUpTable): Map<string, string> {
         } else if (v.match(/^IDLE[0-9]*/)) {
           colorMap.set(v, "#ffd4ff");
         } else {
-          colorMap.set(v, colorGenerator(i++));
+          let curIndex = i++;
+          colorMap.set(v, colorGenerator(curIndex.toString()));
         }
       }
     });
@@ -275,8 +302,10 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
     taskPriorityList.forEach((name) => {
       const color = colorPlotMap.get(name);
       const evt = cpuCore.ctx[name];
-      if (color && evt.mode === "lines" && evt.line) {
-        evt.line.color = color;
+      if (color && evt.mode === "lines") {
+        evt["line"]
+          ? (evt["line"]["color"] = color)
+          : (evt.line = { color: color });
       }
       plotData.push(evt);
     });
@@ -284,8 +313,10 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
     Object.keys(cpuCore.irq).forEach((irq) => {
       const color = colorPlotMap.get(irq);
       const evt = cpuCore.irq[irq];
-      if (color && evt.mode === "lines" && evt.line) {
-        evt.line.color = color;
+      if (color && evt.mode === "lines") {
+        evt["line"]
+          ? (evt["line"]["color"] = color)
+          : (evt.line = { color: color });
       }
       plotData.push(evt);
     });

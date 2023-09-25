@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { relayout } from "plotly.js";
+import * as Plotly from "plotly.js-dist-min";
 import interact from "interactjs";
 
 export function eventNameMap(streams: Object): Map<number, string> {
@@ -42,7 +42,7 @@ export function resize(e: string) {
         target.style.width = event.rect.width + "px";
         target.style.height = event.rect.height + "px";
 
-        relayout(e, { height: event.rect.height });
+        Plotly.relayout(e, { height: event.rect.height });
 
         // translate when resizing from top or left edges
         x += event.deltaRect.left;

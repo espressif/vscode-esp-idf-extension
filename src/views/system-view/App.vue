@@ -1,30 +1,36 @@
 <script setup lang="ts">
 import { useSystemViewStore } from "./store";
-import { relayout } from "plotly.js";
+import * as Plotly from "plotly.js-dist-min";
 import SystemViewTable from "./components/Table.vue";
 import Loading from "./components/Loading.vue";
 import Plot from "./components/Plot.vue";
 import Settings from "./components/Settings.vue";
+import ContextInfoTable from "./components/Table.vue";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
+
 
 const store = useSystemViewStore();
 let CoreFilter = "";
 
-const { contextInfoTable, eventsTable, isLoading, settings } = storeToRefs(
+const { eventsTable, isLoading, settings } = storeToRefs(
   store
 );
 
 function onEventsTableTRClicked(st: number, en: number) {
-  relayout("plot", { "xaxis.range": [st, en] });
+  Plotly.relayout("plot", { "xaxis.range": [st, en] });
 }
 
 const filteredContextInfoTable = computed(() => {
   if (CoreFilter !== "") {
-    return contextInfoTable.value.filter((row) => row[0] === CoreFilter);
+    return store.contextInfoTable.filter((row) => row[0] === CoreFilter);
   }
-  return contextInfoTable;
+  return store.contextInfoTable;
 });
+
+onMounted(() => {
+  store.requestInitialValues();
+})
 </script>
 
 <template>
@@ -68,7 +74,7 @@ const filteredContextInfoTable = computed(() => {
           <option value="0">Core# 0</option>
           <option value="1">Core# 1</option>
         </select>
-        <t name="Context Info Table" :height="settings.ContextInfoTableHeight">
+        <ContextInfoTable name="Context Info Table" :height="settings.ContextInfoTableHeight">
           <template v-slot:th>
             <th>Core#</th>
             <th>Name</th>
@@ -85,7 +91,7 @@ const filteredContextInfoTable = computed(() => {
               </td>
             </tr>
           </template>
-        </t>
+        </ContextInfoTable>
       </template>
     </div>
   </div>

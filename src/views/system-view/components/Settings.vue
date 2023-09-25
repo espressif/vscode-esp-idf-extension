@@ -1,42 +1,40 @@
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { useSystemViewStore } from "../store";
-import { relayout, restyle } from "plotly.js";
+import * as Plotly from "plotly.js-dist-min";
+import { ref } from "vue";
 
 const store = useSystemViewStore();
-
-const { settings, plotData } = storeToRefs(store);
-let active = false;
+let active = ref(false);
 function show() {
-  active = true;
+  active.value = true;
 }
 function dismiss() {
-  active = false;
+  active.value = false;
 }
 
 function timeLineHeightChanged() {
-  relayout("plot", { height: this.settings.TimelineHeight });
+  Plotly.relayout("plot", { height: store.settings.TimelineHeight });
 }
 
 function timeLineBarWidthChanged() {
   const indices: number[] = [];
-  plotData.value.forEach((d, i) => {
+  store.plotData.forEach((d, i) => {
     if (d.name !== "context-switch") {
       indices.push(i);
     }
   });
-  restyle("plot", { "line.width": this.settings.TimelineBarWidth }, indices);
+  Plotly.restyle("plot", { "line.width": store.settings.TimelineBarWidth }, indices);
 }
 function timelineContextSwitchLineColorChanged() {
   const indices: number[] = [];
-  plotData.value.forEach((d, i) => {
+  store.plotData.forEach((d, i) => {
     if (d.name === "context-switch") {
       indices.push(i);
     }
   });
-  restyle(
+  Plotly.restyle(
     "plot",
-    { "line.color": this.settings.TimelineContextSwitchLineColor },
+    { "line.color": store.settings.TimelineContextSwitchLineColor },
     indices
   );
 }
@@ -54,20 +52,20 @@ function timelineContextSwitchLineColorChanged() {
           <p>Visibility for Panels</p>
           <div class="control">
             <label class="checkbox">
-              <input type="checkbox" v-model="settings.EventsTableVisible" />
+              <input type="checkbox" v-model="store.settings.EventsTableVisible" />
               Events Table
             </label>
             &nbsp;
             <label class="checkbox">
               <input
                 type="checkbox"
-                v-model="settings.ContextInfoTableVisible"
+                v-model="store.settings.ContextInfoTableVisible"
               />
               Context Info Table
             </label>
             &nbsp;
             <label class="checkbox">
-              <input type="checkbox" v-model="settings.TimelineVisible" />
+              <input type="checkbox" v-model="store.settings.TimelineVisible" />
               Timeline
             </label>
           </div>
@@ -75,7 +73,7 @@ function timelineContextSwitchLineColorChanged() {
         <div class="columns">
           <div class="column">
             <select
-              v-model="settings.TimelineHeight"
+              v-model="store.settings.TimelineHeight"
               @change="timeLineHeightChanged"
             >
               <option disabled value="200"
@@ -89,7 +87,7 @@ function timelineContextSwitchLineColorChanged() {
           </div>
           <div class="column">
             <select
-              v-model="settings.TimelineBarWidth"
+              v-model="store.settings.TimelineBarWidth"
               @change="timeLineBarWidthChanged"
             >
               <option disabled value="10"
@@ -105,7 +103,7 @@ function timelineContextSwitchLineColorChanged() {
           </div>
           <div class="column">
             <select
-              v-model="settings.TimelineContextSwitchLineColor"
+              v-model="store.settings.TimelineContextSwitchLineColor"
               @change="timelineContextSwitchLineColorChanged"
             >
               <option disabled value="#555555"
@@ -133,5 +131,6 @@ button {
   color: var(--vscode-editor-foreground);
   padding: 1.2em;
   font-size: var(--vscode-font-size);
+  width: 65em;
 }
 </style>

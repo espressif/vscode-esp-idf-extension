@@ -195,6 +195,7 @@ const webViewConfig = {
     compress: true,
     port: 9000,
   },
+  
 };
 
 module.exports = [extensionConfig, webViewConfig];
