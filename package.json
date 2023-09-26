@@ -1490,6 +1490,7 @@
     "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -l DEBUG"
   },
   "devDependencies": {
+    "@babel/types": "^7.23.0",
     "@creativebulma/bulma-tooltip": "^1.2.0",
     "@iconify-prerendered/vue-codicon": "^0.23.1693459661",
     "@types/chai": "^4.2.21",
@@ -1501,7 +1502,7 @@
     "@types/marked": "^4.0.2",
     "@types/mocha": "^9.1.0",
     "@types/nock": "^9.3.1",
-    "@types/node": "^16.11.7",
+    "@types/node": "^20.7.0",
     "@types/plotly.js-dist-min": "^2.3.2",
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
@@ -1540,7 +1541,8 @@
     "sass-loader": "^10",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
-    "typescript": "^4.7.4",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9",
     "vsce": "^2.6.7",
     "vscode-extension-tester": "^5.2.1",
     "vscode-nls-dev": "^3.3.1",

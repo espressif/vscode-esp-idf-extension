@@ -1,15 +1,18 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
+    "target": "es2020",
     "outDir": "out",
-    "lib": ["dom", "es6"],
+    "lib": ["dom", "es2020"],
     "sourceMap": true,
     "rootDir": "src",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "types": [
+      "vite/client"
+    ]
   },
   "exclude": [
     ".vscode-test",
