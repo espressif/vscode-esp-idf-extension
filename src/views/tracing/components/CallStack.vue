@@ -13,7 +13,7 @@ const props = defineProps<{
   cache: Object;
 }>();
 
-const callRef: Ref<any[]> = ref([]);
+const itemRefs: Ref<any[]> = ref([]);
 
 const store = useTracingStore();
 
@@ -95,12 +95,15 @@ function sortBy(a, b) {
   return 0;
 }
 function collapseOrExpandCalls() {
-  if (callRef && callRef.value && callRef.value.length > 0) {
-    callRef.value.forEach((calls) => {
-      calls.collapseAndExpandAll && calls.collapseAndExpandAll(!isExpanded);
+  if (itemRefs && itemRefs.value && itemRefs.value.length > 0) {
+    itemRefs.value.forEach((calls) => {
+      calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"] &&
+        calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"](
+          !isExpanded.value
+        );
     });
   }
-  isExpanded.value = !isExpanded;
+  isExpanded.value = !isExpanded.value;
 }
 </script>
 
@@ -142,7 +145,7 @@ function collapseOrExpandCalls() {
         </button>
       </div>
       <div class="control">
-        <button class="button" @click="collapseOrExpandCalls()">
+        <button class="button" @click="collapseOrExpandCalls">
           <template v-if="isExpanded">
             <span class="icon is-small">
               <IconTriangleUp />
@@ -174,7 +177,7 @@ function collapseOrExpandCalls() {
       <div class="column">Function Name</div>
     </div>
     <div class="scroll-container">
-      <div v-for="(calls, index) in callStack" :key="index">
+      <div v-for="(calls, index) in callStack" :key="index" ref="itemRefs">
         <calls
           ref="callRef"
           v-bind:tree="createTreeFromAddressArray(calls)"

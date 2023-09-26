@@ -10,7 +10,7 @@ import {
 
 const props = defineProps<{
   cache: object;
-  leaks: object;
+  leaks: any;
 }>();
 
 const store = useTracingStore();
@@ -20,7 +20,7 @@ const filter: Ref<{ functionName: string }> = ref({
   functionName: "",
 });
 
-const callRef: Ref<any[]> = ref([]);
+const itemRefs: Ref<any[]> = ref([]);
 
 const leakList = computed(() => {
   return Object.keys(props.leaks).filter((calls) => {
@@ -47,7 +47,8 @@ const totalMemory = computed(() => {
 
 function createTreeFromAddressArray(addr: string): any {
   const calls = props.leaks[addr].evt.callers;
-  return store.createTreeFromAddressArray(calls);
+  const tracingTree = store.createTreeFromAddressArray(calls);
+  return tracingTree;
 }
 function reverseCallStack() {
   leakList.value.forEach((addr) => {
@@ -55,23 +56,25 @@ function reverseCallStack() {
   });
 }
 function collapseOrExpandCalls() {
-  if (callRef && callRef.value && callRef.value.length > 0) {
-    callRef.value.forEach((calls) => {
-      calls.collapseAndExpandAll &&
-        calls.collapseAndExpandAll(!this.isExpanded);
+  if (itemRefs && itemRefs.value && itemRefs.value.length > 0) {
+    itemRefs.value.forEach((calls) => {
+      calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"] &&
+        calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"](
+          !isExpanded.value
+        );
     });
   }
-  isExpanded.value = !isExpanded;
+  isExpanded.value = !isExpanded.value;
 }
 function fetchFunctionNameForAddr(addr: string): string {
-  const tree = store.createTreeFromAddressArray([addr]);
+  const tree = createTreeFromAddressArray(addr);
   if (tree && tree.name) {
     return tree.name;
   }
   return addr;
 }
 function fetchFunctionFilePath(addr: string): string {
-  const tree = store.createTreeFromAddressArray([addr]);
+  const tree = createTreeFromAddressArray(addr);
   if (tree && tree.description) {
     return tree.description;
   }
@@ -98,11 +101,11 @@ function fetchFunctionFilePath(addr: string): string {
           <span class="icon is-small">
             <IconHistory />
           </span>
-          <span>Reverse Call Stack</span>
+          <span>Reverse Leaks Stack</span>
         </button>
       </div>
       <div class="control">
-        <button class="button" @click="collapseOrExpandCalls()">
+        <button class="button" @click="collapseOrExpandCalls">
           <template v-if="isExpanded">
             <span class="icon is-small">
               <IconTriangleUp />
@@ -124,9 +127,8 @@ function fetchFunctionFilePath(addr: string): string {
       <div class="column">Function Name</div>
     </div>
     <div class="scroll-container">
-      <div v-for="(addr, index) in leakList" :key="index">
+      <div v-for="(addr, index) in leakList" :key="index" ref="itemRefs">
         <calls
-          ref="callRef"
           v-bind:tree="createTreeFromAddressArray(addr)"
           :index="index"
           :space="1"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref, Ref } from "vue";
 import { TracingTree, useTracingStore } from "../store";
 
 const props = defineProps<{
@@ -8,7 +8,9 @@ const props = defineProps<{
   total: number;
 }>();
 
-let isOpen: boolean = false;
+let isOpen: Ref<boolean> = ref(false);
+
+const callRef = ref();
 
 const store = useTracingStore();
 
@@ -16,13 +18,29 @@ const spaces = computed(() => {
   return new Array(props.space).join("&nbsp;&nbsp;&nbsp;&nbsp;");
 });
 
+function collapseAndExpandAll(isExpand: boolean) {
+  if (props.tree.child) {
+    isOpen.value = isExpand;
+  }
+  if (callRef && callRef.value && callRef.value.collapseAndExpandAll) {
+    callRef.value.collapseAndExpandAll(isExpand);
+  }
+}
+
+defineExpose({
+  collapseAndExpandAll,
+});
+
 function toggle() {
   if (props.tree.child) {
-    isOpen = !isOpen;
+    isOpen.value = !isOpen.value;
   }
 }
 function percentage() {
-  return `(${Math.ceil((props.tree.size / props.total) * 100).toFixed(2)}%)`;
+  const percentageStr = `(${Math.ceil(
+    (props.tree.size / props.total) * 100
+  ).toFixed(2)}%)`;
+  return percentageStr === "(0.00%)" ? "" : percentageStr;
 }
 function openFileAtLine(filePath: string, lineNumber: string) {
   let lineNumMatches = lineNumber.match(/[0-9]*/);
@@ -31,6 +49,10 @@ function openFileAtLine(filePath: string, lineNumber: string) {
     store.treeOpenFileHandler(filePath, lineNumberInt);
   }
 }
+
+onMounted(() => {
+  console.log(props.tree);
+})
 </script>
 
 <template>
@@ -40,7 +62,7 @@ function openFileAtLine(filePath: string, lineNumber: string) {
         {{ tree.size }}
         &nbsp;
         <span class="is-pulled-right is-hidden-mobile">
-          {{ percentage() === "(0.00%)" ? "" : percentage() }}
+          {{ percentage() }}
           &nbsp;&nbsp;
         </span>
       </div>
@@ -68,6 +90,7 @@ function openFileAtLine(filePath: string, lineNumber: string) {
     </div>
     <div v-show="isOpen" v-if="tree.child">
       <Calls
+        ref="callRef"
         v-bind:tree="tree.child"
         v-bind:space="space + 1"
         :total="total"

@@ -4,7 +4,7 @@ import { Ref, onMounted, ref, watch } from "vue";
 
 const props = defineProps<{
   chart: Array<any>;
-  events: object;
+  events: any;
 }>();
 
 const chartProp: Ref<{
@@ -37,7 +37,7 @@ function plotClickHandler(d) {
   if (!clickableTrace(d)) {
     return;
   }
-  const eventIDs = this.events;
+  const eventIDs = props.events;
   const traceInfo = {} as any;
   const index = d.points[0].pointIndex;
   const evt = Object.assign({}, d.points[0].data.evt[index]);
@@ -61,9 +61,9 @@ onMounted(() => {
   const bgColor = style.getPropertyValue("--vscode-editor-background");
   const fontColor = style.getPropertyValue("--vscode-editor-foreground");
 
-  layout["paper_bgcolor"] = bgColor;
-  layout["plot_bgcolor"] = bgColor;
-  layout["font"] = {
+  layout.value["paper_bgcolor"] = bgColor;
+  layout.value["plot_bgcolor"] = bgColor;
+  layout.value["font"] = {
     color: fontColor,
   };
 
@@ -71,6 +71,7 @@ onMounted(() => {
   const plot = document.getElementById("plot");
   if (plot) {
     plot.addEventListener("plotly_click", (d) => {
+      console.log(d);
       plotClickHandler(d);
     });
   }

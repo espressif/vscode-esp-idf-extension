@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useTracingStore } from "./store";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { IconPulse } from "@iconify-prerendered/vue-codicon";
 
 const store = useTracingStore();
@@ -25,18 +25,18 @@ const {
 
 const persistentBytes = computed(() => {
   //amount of allocated memory that hasn’t been freed yet
-  return Object.keys(allocLookupTable).reduce(
-    (acc: any, currentKey: string) => acc + allocLookupTable[currentKey].size,
+  return Object.keys(allocLookupTable.value).reduce(
+    (acc: any, currentKey: string) => acc + allocLookupTable.value[currentKey].size,
     0
   );
 });
 const persistentCount = computed(() => {
   //number of allocations that haven’t been freed yet
-  return Object.keys(allocLookupTable).length;
+  return Object.keys(allocLookupTable.value).length;
 });
 const transientCount = computed(() => {
   //total number of memory allocations that have been freed
-  if (!plotDataReceived) {
+  if (!plotDataReceived.value) {
     return 0;
   }
   return (
@@ -47,7 +47,7 @@ const transientCount = computed(() => {
 });
 const totalBytes = computed(() => {
   //total allocated memory
-  if (!plotDataReceived) {
+  if (!plotDataReceived.value) {
     return 0;
   }
   return plotDataReceived.value.events
@@ -56,6 +56,10 @@ const totalBytes = computed(() => {
 });
 const totalCount = computed(() => {
   return persistentCount.value + transientCount.value;
+});
+
+onMounted(() => {
+  store.getInitialData();
 });
 </script>
 
@@ -120,13 +124,13 @@ const totalCount = computed(() => {
       <div class="container" v-if="heap">
         <div class="notification">
           <quick-action-menu
-            v-on:change="store.heapViewChange"
+            @change="store.heapViewChange"
           ></quick-action-menu>
           <div>
             <plot
               v-show="heapView.plot"
               v-bind:chart="dataPlot"
-              v-on:selected="store.plotSelected"
+              @selected="store.plotSelected"
               v-bind:events="eventIDs"
             >
             </plot>
@@ -154,7 +158,7 @@ const totalCount = computed(() => {
         <quick-call-stack
           v-if="tracePane"
           v-bind:info="traceInfo"
-          v-on:dismiss="tracePane = false"
+          v-on:dismiss="store.tracePane = false"
         >
         </quick-call-stack>
       </div>

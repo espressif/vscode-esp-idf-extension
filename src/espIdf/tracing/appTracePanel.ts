@@ -139,7 +139,7 @@ export class AppTracePanel {
               });
             break;
           case "resolveAddresses":
-            this.resolveAddresses(msg);
+            this.resolveAddresses({addresses: JSON.parse(msg.addresses)});
             break;
           case "openFileAtLine":
             this.openFileAtLineNumber(msg.filePath, msg.lineNumber);
@@ -287,7 +287,7 @@ export class AppTracePanel {
   private getHtmlContent(webview: vscode.Webview): string {
     const scriptPath = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this._extensionPath, "dist", "views", "size-bundle.js")
+        path.join(this._extensionPath, "dist", "views", "tracing-bundle.js")
       )
     );
     return `<!DOCTYPE html>

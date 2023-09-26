@@ -59,7 +59,7 @@ export interface TracingTree {
   lineNumber: string;
   count: number;
   size: number;
-  child: TracingTree;
+  child?: TracingTree;
 }
 
 export const useTracingStore = defineStore("tracing", () => {
@@ -142,38 +142,39 @@ export const useTracingStore = defineStore("tracing", () => {
   }
 
   function plotSelected(info: TraceInfo) {
+    console.log(info);
     tracePane.value = true;
     traceInfo.value = info;
   }
 
   function callStackAddressTranslation(address: string, key: string) {
     if (
-      callersAddressTranslationTable[address] &&
-      callersAddressTranslationTable[address][key]
+      callersAddressTranslationTable.value[address] &&
+      callersAddressTranslationTable.value[address][key]
     ) {
-      return callersAddressTranslationTable[address][key];
+      return callersAddressTranslationTable.value[address][key];
     }
     return "?";
   }
 
   function heapViewChange(buttonKey: string) {
-    Object.keys(heapView).forEach((key) => {
+    Object.keys(heapView.value).forEach((key) => {
       if (key === buttonKey) {
-        heapView[key] = true;
+        heapView.value[key] = true;
         return;
       }
-      heapView[key] = false;
+      heapView.value[key] = false;
     });
   }
 
   function showReport() {
     if (traceType.value === TraceType.HeapTrace) {
-      isCalculating.value = !isCalculating;
+      isCalculating.value = !isCalculating.value;
       vscode.postMessage({
         command: "calculateHeapTrace",
       });
     } else if (traceType.value === TraceType.AppTrace) {
-      isCalculating.value = !isCalculating;
+      isCalculating.value = !isCalculating.value;
       vscode.postMessage({
         command: "calculate",
       });
@@ -181,6 +182,14 @@ export const useTracingStore = defineStore("tracing", () => {
       displayError(`Tracing Type Not yet implemented`);
       // tslint:disable-next-line: no-console
       console.error("Tracing Type Not yet implemented");
+    }
+  }
+
+  function getInitialData() {
+    if (!loaded.value) {
+      vscode.postMessage({
+        command: "webviewLoad",
+      });
     }
   }
 
@@ -202,7 +211,7 @@ export const useTracingStore = defineStore("tracing", () => {
   }
 
   function resolveAddress(address: string) {
-    const stackInfo: StackInfo = callersAddressTranslationTable[address];
+    const stackInfo: StackInfo = callersAddressTranslationTable.value[address];
     if (stackInfo) {
       return {
         address: stackInfo.funcName || address,
@@ -232,7 +241,7 @@ export const useTracingStore = defineStore("tracing", () => {
       lineNumber: "",
       count: 0,
       size: 0,
-      child: {},
+      child: null,
     } as TracingTree;
     let currObj: TracingTree;
     const filteredAddresses = addresses.filter((value) => value !== "0x0");
@@ -259,7 +268,7 @@ export const useTracingStore = defineStore("tracing", () => {
           lineNumber: "",
           count: 0,
           size: 0,
-          child: {},
+          child: null,
         } as TracingTree;
         currObj = currObj.child;
       }
@@ -286,12 +295,12 @@ export const useTracingStore = defineStore("tracing", () => {
     }
   }
 
-  const showLog = ({ logContent }) => {
-    if (logContent && isCalculating) {
+  function showLog(value: { log: string }) {
+    if (value.log && isCalculating.value) {
       isCalculating.value = false;
-      log.value = logContent;
+      log.value = value.log;
     }
-  };
+  }
 
   const calculateFailed = ({ error }) => {
     if (error) {
@@ -356,16 +365,16 @@ export const useTracingStore = defineStore("tracing", () => {
   function injectDataToGraph(evt: any, data: any[]) {
     if (evt.id === eventIDs.value.free) {
       // FREE
-      if (allocLookupTable[evt.addr]) {
-        const index = allocLookupTable[evt.addr].index;
-        const size = allocLookupTable[evt.addr].size;
+      if (allocLookupTable.value[evt.addr]) {
+        const index = allocLookupTable.value[evt.addr].index;
+        const size = allocLookupTable.value[evt.addr].size;
         free(size, evt.ts, index, evt, data);
-        delete allocLookupTable[evt.addr];
+        delete allocLookupTable.value[evt.addr];
       }
     } else if (evt.id === eventIDs.value.alloc) {
       // ALLOC
       const index = getIndex(evt, data);
-      allocLookupTable[evt.addr] = { index, size: evt.size, evt };
+      allocLookupTable.value[evt.addr] = { index, size: evt.size, evt };
       alloc(evt.size, evt.ts, index, evt, data);
     }
   }
@@ -420,15 +429,16 @@ export const useTracingStore = defineStore("tracing", () => {
     plotDataReceived.value.events.forEach((evt: any) => {
       if (evt.callers) {
         evt.callers.forEach((callAddr) => {
-          if (!callersAddressTranslationTable[callAddr]) {
-            callersAddressTranslationTable[callAddr] = {};
+          if (!callersAddressTranslationTable.value[callAddr]) {
+            callersAddressTranslationTable.value[callAddr] = {};
           }
-          const callerAddressPtr = callersAddressTranslationTable[callAddr];
+          const callerAddressPtr =
+            callersAddressTranslationTable.value[callAddr];
           if (!callerAddressPtr.size) {
-            callersAddressTranslationTable[callAddr]["size"] = 0;
+            callersAddressTranslationTable.value[callAddr]["size"] = 0;
           }
           if (!callerAddressPtr.count) {
-            callersAddressTranslationTable[callAddr]["count"] = 0;
+            callersAddressTranslationTable.value[callAddr]["count"] = 0;
           }
 
           callerAddressPtr.size += evt.size;
@@ -438,21 +448,21 @@ export const useTracingStore = defineStore("tracing", () => {
     });
   }
 
-  function plotData({ plot }) {
-    if (plot && isCalculating) {
-      if (plot.version && plot.version !== "1.0") {
+  function plotData(value: { plot }) {
+    if (value.plot && isCalculating.value) {
+      if (value.plot.version && value.plot.version !== "1.0") {
         return displayError("Invalid tracing data received!");
       }
 
-      plotDataReceived.value = plot;
+      plotDataReceived.value = value.plot;
 
       isCalculating.value = false;
-      eventIDs.value.alloc = plot.streams.heap.alloc;
-      eventIDs.value.free = plot.streams.heap.free;
-      eventIDs.value.print = plot.streams.log.print;
+      eventIDs.value.alloc = value.plot.streams.heap.alloc;
+      eventIDs.value.free = value.plot.streams.heap.free;
+      eventIDs.value.print = value.plot.streams.log.print;
 
       const data: any[] = [];
-      plot.events.forEach((evt: any) => {
+      value.plot.events.forEach((evt: any) => {
         if (!traceExists(evt, data)) {
           data.push({
             line: {
@@ -479,9 +489,9 @@ export const useTracingStore = defineStore("tracing", () => {
       }
       vscode.postMessage({
         command: "resolveAddresses",
-        addresses: callersAddressTranslationTable,
+        addresses: JSON.stringify(callersAddressTranslationTable),
       });
-      computeTotalScatterLine(plot, data);
+      computeTotalScatterLine(value.plot, data);
       drawPlot(data);
     }
   }
@@ -515,6 +525,7 @@ export const useTracingStore = defineStore("tracing", () => {
     filterCallStacks,
     free,
     getIndex,
+    getInitialData,
     heapViewChange,
     injectDataToGraph,
     populateGlobalCallStackCountAndSize,

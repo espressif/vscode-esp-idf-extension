@@ -40,12 +40,14 @@ app.component("quick-call-stack", QuickCallStack);
 app.component("quick-action-menu", QuickActionMenu);
 app.component("leak-list", LeakList);
 app.component("stats-view", Stats);
+app.mount("#app");
 
 const store = useTracingStore();
 
 // Message Receiver
 window.addEventListener("message", (m: any) => {
   const msg = m.data;
+  console.log(msg);
   switch (msg.command) {
     case "initialLoad":
       store.updateModelWithTraceData(msg.value);

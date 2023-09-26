@@ -1,8 +1,9 @@
 <script setup lang="ts">
+const emits = defineEmits(["change"]);
 function heapViewChange(evt: MouseEvent) {
   const target: HTMLElement = evt.target as HTMLElement;
   const buttonKey = target.dataset.dictKey;
-  this.$emit("change", buttonKey);
+  emits("change", buttonKey);
 }
 </script>
 
