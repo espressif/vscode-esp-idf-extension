@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useNewProjectStore } from "./store";
 import { computed, onMounted } from "vue";
-import IdfComponents from "./components/idfComponents.vue";
+import IdfComponents from "./components/IdfComponents.vue";
 import folderOpen from "./components/folderOpen.vue";
 const store = useNewProjectStore();
 
