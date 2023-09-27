@@ -29,6 +29,7 @@ onMounted(() => {
     return tool;
   });
   store.toolsResults = updatedToolsInfo;
+  store.checkEspIdfTools();
 });
 </script>
 
