@@ -55,7 +55,6 @@ export namespace ESP {
     "idf.buildPath",
     "idf.espIdfPath",
     "idf.espAdfPath",
-    "idf.espMatterPath",
     "idf.espMdfPath",
     "idf.espRainmakerPath",
     "idf.gitPath",

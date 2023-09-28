@@ -8,7 +8,7 @@ Besides ESP-IDF, you can install other frameworks to extend the extension functi
 
 2. [Espressif Mesh Development Framework (ESP-MDF)](https://github.com/espressif/esp-mdf) with this extension using the **Install ESP-MDF** command, which will clone ESP-MDF to the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-3. [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) with this extension using the **Install ESP-Matter** command, which will clone ESP-Matter to the selected directory and set `idf.espMatterPath` (`idf.espMatterPathWin` in Windows) configuration setting. The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter.
+3. [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) with this extension using the **Install ESP-Matter** command, which will clone ESP-Matter to the selected directory and set `idf.espMatterPath` configuration setting. The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. **ESP-Matter is not supported in Windows**.
 
 4. [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 

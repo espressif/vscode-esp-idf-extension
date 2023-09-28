@@ -427,12 +427,6 @@
             "description": "%param.espMdfPath%",
             "scope": "resource"
           },
-          "idf.espMatterPathWin": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_PATH}",
-            "description": "%param.espMatterPath%",
-            "scope": "resource"
-          },
           "idf.toolsPathWin": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
