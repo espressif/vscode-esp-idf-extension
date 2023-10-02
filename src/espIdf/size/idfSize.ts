@@ -23,6 +23,7 @@ import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
+import * as utils from "../../utils";
 
 export class IDFSize {
   private readonly workspaceRoot: vscode.Uri;
@@ -62,10 +63,19 @@ export class IDFSize {
         "idfSize.overviewMsg",
         "Gathering Overview"
       );
+      const espIdfPath = idfConf.readParameter(
+        "idf.espIdfPath",
+        this.workspaceRoot
+      ) as string;
+      const version = await utils.getEspIdfFromCMake(espIdfPath);
+      const formatArgs =
+        utils.compareVersion(version, "5.1.0") >= 0
+          ? ["--format", "json"]
+          : ["--json"];
       const overview = await this.idfCommandInvoker([
         "idf_size.py",
         mapFilePath,
-        "--json",
+        ...formatArgs,
       ]);
       progress.report({ increment: 30, message: locMsg });
 
@@ -77,7 +87,7 @@ export class IDFSize {
         "idf_size.py",
         mapFilePath,
         "--archives",
-        "--json",
+        ...formatArgs,
       ]);
       progress.report({ increment: 30, message: locMsg });
 
@@ -89,7 +99,7 @@ export class IDFSize {
         "idf_size.py",
         mapFilePath,
         "--file",
-        "--json",
+        ...formatArgs,
       ]);
       progress.report({ increment: 30, message: locMsg });
 
