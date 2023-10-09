@@ -703,7 +703,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMatter", async () => {
     if (process.platform === "win32") {
-      return vscode.window.showInformationMessage(`ESP-Matter is not available for Windows.`);
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
     }
     getEspMatter(workspaceRoot);
   });
@@ -714,7 +716,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {
     if (process.platform === "win32") {
-      return vscode.window.showInformationMessage(`ESP-Matter is not available for Windows.`);
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
     }
     const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
     let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
@@ -1428,7 +1432,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.installEspMatterPyReqs", () => {
     if (process.platform === "win32") {
-      return vscode.window.showInformationMessage(`ESP-Matter is not available for Windows.`);
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
     }
     return PreCheck.perform([openFolderCheck], async () => {
       vscode.window.withProgress(
