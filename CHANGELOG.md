@@ -17,6 +17,24 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.6.5](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.5)
+
+### Features and enhancements
+
+- [Add execPath as configuration variable substitution](https://github.com/espressif/vscode-esp-idf-extension/pull/1003)
+- [Add manual testing report documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1023)
+- [Create a project from external components](https://github.com/espressif/vscode-esp-idf-extension/pull/994)
+- [Add precommit linter](https://github.com/espressif/vscode-esp-idf-extension/pull/1034)
+- [Mention windows keyboard shortcut install documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1046)
+
+### Bug Fixes
+
+- [Change compiler path to relative path in c_cpp_properties.json](https://github.com/espressif/vscode-esp-idf-extension/pull/1012)
+- [Update template tasks.json regex](https://github.com/espressif/vscode-esp-idf-extension/pull/1014)
+- [USe Python 3.8.7 for ESP-IDF < 5.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1021)
+- [Remove IDF component manager from extension requirements.txt](https://github.com/espressif/vscode-esp-idf-extension/pull/1048)
+- [Add IDF Size fix for ESP-IDF 5.1 or newer](https://github.com/espressif/vscode-esp-idf-extension/pull/1039)
+
 ## [1.6.4](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.4)
 
 ### Features and enhancements
