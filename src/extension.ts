@@ -744,6 +744,9 @@ export async function activate(context: vscode.ExtensionContext) {
       configurationTarget,
       workspaceFolder.uri
     );
+    return vscode.window.showInformationMessage(
+      `ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.`
+    );
   });
 
   registerIDFCommand("espIdf.selectPort", () => {
