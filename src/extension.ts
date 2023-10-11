@@ -701,15 +701,25 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
 
-  registerIDFCommand("espIdf.getEspMatter", async () =>
-    getEspMatter(workspaceRoot)
-  );
+  registerIDFCommand("espIdf.getEspMatter", async () => {
+    if (process.platform === "win32") {
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
+    }
+    getEspMatter(workspaceRoot);
+  });
 
   registerIDFCommand("espIdf.getEspRainmaker", async () =>
     getEspRainmaker(workspaceRoot)
   );
 
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {
+    if (process.platform === "win32") {
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
+    }
     const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
     let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
       placeHolder: `Pick Workspace Folder to which settings should be applied`,
@@ -733,6 +743,9 @@ export async function activate(context: vscode.ExtensionContext) {
       customVarsString,
       configurationTarget,
       workspaceFolder.uri
+    );
+    return vscode.window.showInformationMessage(
+      `ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.`
     );
   });
 
@@ -1421,6 +1434,11 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installEspMatterPyReqs", () => {
+    if (process.platform === "win32") {
+      return vscode.window.showInformationMessage(
+        `ESP-Matter is not available for Windows.`
+      );
+    }
     return PreCheck.perform([openFolderCheck], async () => {
       vscode.window.withProgress(
         {
@@ -1682,7 +1700,18 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.examples.start", () => {
+  registerIDFCommand("espIdf.examples.start", async () => {
+    const pickItems = await getFrameworksPickItems();
+    if (!pickItems || pickItems.length == 0) {
+      return Logger.infoNotify("No ESP-IDF frameworks found");
+    }
+    const examplesFolder = await vscode.window.showQuickPick(pickItems, {
+      placeHolder: "Select framework to use",
+    });
+    if (!examplesFolder) {
+      Logger.infoNotify("No framework selected to load examples.");
+      return;
+    }
     try {
       vscode.window.withProgress(
         {
@@ -1694,78 +1723,6 @@ export async function activate(context: vscode.ExtensionContext) {
           progress: vscode.Progress<{ message: string; increment: number }>
         ) => {
           try {
-            const espIdfPath = idfConf.readParameter(
-              "idf.espIdfPath",
-              workspaceRoot
-            ) as string;
-            const espAdfPath = idfConf.readParameter(
-              "idf.espAdfPath",
-              workspaceRoot
-            ) as string;
-            const espMdfPath = idfConf.readParameter(
-              "idf.espMdfPath",
-              workspaceRoot
-            ) as string;
-            const matterPathDir = idfConf.readParameter(
-              "idf.espMatterPath"
-            ) as string;
-            const rainmakerPathDir = idfConf.readParameter(
-              "idf.espRainmakerPath"
-            ) as string;
-
-            const pickItems = [];
-            const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
-            if (doesIdfPathExists) {
-              pickItems.push({
-                description: "ESP-IDF",
-                label: `Use current ESP-IDF (${espIdfPath})`,
-                target: espIdfPath,
-              });
-            }
-            const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
-            if (doesAdfPathExists) {
-              pickItems.push({
-                description: "ESP-ADF",
-                label: `Use current ESP-ADF (${espAdfPath})`,
-                target: espAdfPath,
-              });
-            }
-            const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
-            if (doesMdfPathExists) {
-              pickItems.push({
-                description: "ESP-MDF",
-                label: `Use current ESP-MDF (${espMdfPath})`,
-                target: espMdfPath,
-              });
-            }
-            const doesMatterPathExists = await utils.dirExistPromise(
-              matterPathDir
-            );
-            if (doesMatterPathExists) {
-              pickItems.push({
-                description: "ESP-Matter",
-                label: `Use current ESP-Matter (${matterPathDir})`,
-                target: matterPathDir,
-              });
-            }
-            const doesEspRainmakerPathExists = await utils.dirExistPromise(
-              rainmakerPathDir
-            );
-            if (doesEspRainmakerPathExists) {
-              pickItems.push({
-                description: "ESP-Rainmaker",
-                label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
-                target: rainmakerPathDir,
-              });
-            }
-            const examplesFolder = await vscode.window.showQuickPick(
-              pickItems,
-              { placeHolder: "Select framework to use" }
-            );
-            if (!examplesFolder) {
-              Logger.infoNotify("No framework selected to load examples.");
-              return;
-            }
             const doesFolderExist = await utils.dirExistPromise(
               examplesFolder.target
             );
@@ -3011,6 +2968,76 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
   await checkExtensionSettings(context.extensionPath, workspaceRoot);
+}
+
+async function getFrameworksPickItems() {
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    workspaceRoot
+  ) as string;
+  const espAdfPath = idfConf.readParameter(
+    "idf.espAdfPath",
+    workspaceRoot
+  ) as string;
+  const espMdfPath = idfConf.readParameter(
+    "idf.espMdfPath",
+    workspaceRoot
+  ) as string;
+  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  const rainmakerPathDir = idfConf.readParameter(
+    "idf.espRainmakerPath"
+  ) as string;
+
+  const pickItems = [];
+  try {
+    const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
+    if (doesIdfPathExists) {
+      pickItems.push({
+        description: "ESP-IDF",
+        label: `Use current ESP-IDF (${espIdfPath})`,
+        target: espIdfPath,
+      });
+    }
+    const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
+    if (doesAdfPathExists) {
+      pickItems.push({
+        description: "ESP-ADF",
+        label: `Use current ESP-ADF (${espAdfPath})`,
+        target: espAdfPath,
+      });
+    }
+    const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
+    if (doesMdfPathExists) {
+      pickItems.push({
+        description: "ESP-MDF",
+        label: `Use current ESP-MDF (${espMdfPath})`,
+        target: espMdfPath,
+      });
+    }
+    const doesMatterPathExists = await utils.dirExistPromise(matterPathDir);
+    if (doesMatterPathExists) {
+      pickItems.push({
+        description: "ESP-Matter",
+        label: `Use current ESP-Matter (${matterPathDir})`,
+        target: matterPathDir,
+      });
+    }
+    const doesEspRainmakerPathExists = await utils.dirExistPromise(
+      rainmakerPathDir
+    );
+    if (doesEspRainmakerPathExists) {
+      pickItems.push({
+        description: "ESP-Rainmaker",
+        label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
+        target: rainmakerPathDir,
+      });
+    }
+  } catch (error) {
+    const errMsg = error.message ? error.message : "Error getting frameworks";
+    Logger.errorNotify(errMsg, error);
+    return pickItems;
+  }
+  return pickItems;
 }
 
 function validateInputForRainmakerDeviceParam(
