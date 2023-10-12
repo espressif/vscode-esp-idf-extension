@@ -34,6 +34,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [USe Python 3.8.7 for ESP-IDF < 5.0](https://github.com/espressif/vscode-esp-idf-extension/pull/1021)
 - [Remove IDF component manager from extension requirements.txt](https://github.com/espressif/vscode-esp-idf-extension/pull/1048)
 - [Add IDF Size fix for ESP-IDF 5.1 or newer](https://github.com/espressif/vscode-esp-idf-extension/pull/1039)
+- [Disable ESP-Matter commands for Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/1052)
 
 ## [1.6.4](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.4)
 
