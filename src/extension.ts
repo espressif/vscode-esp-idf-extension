@@ -3023,7 +3023,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
     if (errorMsg) {
       treeDataProvider.searchError(errorMsg, workspaceRoot);
-      await vscode.commands.executeCommand('errorHints.focus');
+      await vscode.commands.executeCommand("errorHints.focus");
     }
   });
 }
