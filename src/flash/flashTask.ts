@@ -21,7 +21,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile, getConfigValueFromSDKConfig } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
@@ -195,8 +195,13 @@ export class FlashTask {
     const encryptedFlashSections = this.model.flashSections.filter(
       (flashSection) => flashSection.encrypted
     );
+
+    const flashEncryption = getConfigValueFromSDKConfig(
+      "CONFIG_FLASH_ENCRYPTION_ENABLED",
+      this.workspaceUri
+    );
     if (
-      this.encryptPartitions &&
+      flashEncryption == 'y' &&
       encryptedFlashSections &&
       encryptedFlashSections.length
     ) {
