@@ -4,15 +4,6 @@
 
 # [ESP-IDF VS Code Extension's](http://github.com/espressif/vscode-esp-idf-extension) Changelog
 
-> We have opened a [survey link](https://bit.ly/3iNCFyY), please submit your valuable feedbacks. Thanks 👏
-
-<a href="https://youtu.be/Lc6ausiKvQM">
-
-  <p align="center">
-    <img src="./media/youtube_tutorial_preview.png" alt="Quick User Guide for the ESP-IDF VS Code Extension" width="1024">
-  </p>
-</a>
-
 ---
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
