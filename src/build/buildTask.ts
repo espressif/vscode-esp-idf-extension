@@ -183,7 +183,7 @@ export class BuildTask {
         (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
       if (
-        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") !== -1 &&
+        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
         sdkconfigDefaults &&
         sdkconfigDefaults.length
       ) {
