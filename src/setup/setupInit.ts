@@ -131,7 +131,7 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  const idfSetups = await getPreviousIdfSetups();
+  const idfSetups = await getPreviousIdfSetups(false);
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
