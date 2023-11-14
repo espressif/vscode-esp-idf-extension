@@ -284,7 +284,8 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
     extraPaths,
-    extraReqPaths
+    extraReqPaths,
+    false
   );
   const failedToolsResult = toolsInfo.filter(
     (tInfo) =>
