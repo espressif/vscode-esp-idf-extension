@@ -228,7 +228,7 @@ export class IdfToolsManager {
       const binVersionResponse = await utils.execChildProcess(
         versionCmd,
         process.cwd(),
-        logToChannel ? this.toolsManagerChannel: undefined,
+        logToChannel ? this.toolsManagerChannel : undefined,
         {
           env: modifiedEnv,
           maxBuffer: 500 * 1024,
