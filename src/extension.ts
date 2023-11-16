@@ -1852,7 +1852,17 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
     try {
       const openOcdScriptsPath = getOpenOcdScripts(workspaceRoot);
-      const boards = await getBoards(openOcdScriptsPath);
+      let idfTarget = idfConf.readParameter(
+        "idf.adapterTargetName",
+        workspaceRoot
+      ) as string;
+      if (idfTarget === "custom") {
+        idfTarget = idfConf.readParameter(
+          "idf.customAdapterTargetName",
+          workspaceRoot
+        ) as string;
+      }
+      const boards = await getBoards(idfTarget, openOcdScriptsPath);
       const choices = boards.map((b) => {
         return {
           description: `${b.description} (${b.configFiles})`,
