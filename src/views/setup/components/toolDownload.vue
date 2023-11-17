@@ -75,6 +75,11 @@ const props = defineProps<{
   display: flex;
   flex-direction: column;
   width: 100%;
+  margin: 0.5em;
+  padding: 0.25em;
+  border-color: var(--vscode-button-hoverBackground);
+  border: 1px solid;
+  border-radius: 4px;
 }
 
 .progressStatus:hover {

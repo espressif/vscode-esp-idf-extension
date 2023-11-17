@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useSetupStore } from "./store";
+import { SetupMode } from "./types";
 import { computed } from "vue";
 import folderOpen from "./components/folderOpen.vue";
 import selectEspIdf from "./components/selectEspIdf.vue";
@@ -15,10 +16,15 @@ const {
   pathSep,
   pyExecErrorStatus,
   toolsFolder,
+  setupMode,
 } = storeToRefs(store);
 
 const isNotWinPlatform = computed(() => {
   return pathSep.value.indexOf("/") !== -1;
+});
+
+const actionButtonText = computed(() => {
+  return setupMode.value === SetupMode.advanced ? "Configure Tools" : "Install";
 });
 
 function setEspIdfErrorStatus() {
@@ -81,7 +87,7 @@ function setToolsFolder(newToolsPath: string) {
             class="button"
             data-config-id="start-install-btn"
           >
-            Install
+            {{ actionButtonText }}
           </button>
         </div>
       </div>
