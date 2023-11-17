@@ -89,9 +89,6 @@ export class SystemViewPanel {
       null,
       this.disposable
     );
-    // setTimeout(() => {
-    //   this.sendCommandToWebview("initialLoad", this.traceData);
-    // }, 800);
   }
 
   private initWebView(webview: Webview) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from "vue";
 import { IconQuestion } from "@iconify-prerendered/vue-codicon";
-import { findEncodingTypes } from '../util';
+import { findEncodingTypes } from "../util";
 
 const props = defineProps<{
   encoding: string;
@@ -11,11 +11,11 @@ const props = defineProps<{
   rowError: string;
 }>();
 
-  const encodingTypes = computed(() => {
-    return findEncodingTypes(props.rowType);
-  });
+const encodingTypes = computed(() => {
+  return findEncodingTypes(props.rowType);
+});
 
-  const types = ["data", "file", "namespace"];
+const types = ["data", "file", "namespace"];
 </script>
 
 <template>
@@ -109,5 +109,3 @@ const props = defineProps<{
   background-color: rgba(176, 81, 41, 0.1);
 }
 </style>
-
-
