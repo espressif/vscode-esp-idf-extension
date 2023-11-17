@@ -201,8 +201,8 @@ function calculateAndInjectDataPoints(
     }
 
     //start point for current evt
-    data.x ? data.x.push(evt.ts) : (data.x = [evt.ts]);
-    data.y ? data.y.push(data.name) : (data.y = [data.name]);
+    data.x && data.x.length ? data.x.push(evt.ts) : (data.x = [evt.ts]);
+    data.y && data.y.length ? data.y.push(data.name) : (data.y = [data.name]);
 
     //store current event for a core as last event for the same core
     lookupTable[evt.core_id].lastEvent = evt;
