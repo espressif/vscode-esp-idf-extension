@@ -32,7 +32,15 @@ app.mount("#app");
 const store = useSystemViewStore();
 
 window.addEventListener("message", (evt: MessageEvent) => {
-  const message: { command: string; value: any } = { ...evt.data };
+  const eventData = Object.create(null);
+
+  // Copy properties from evt.data to eventData
+  for (const key in evt.data) {
+    if (evt.data.hasOwnProperty(key)) {
+      eventData[key] = evt.data[key];
+    }
+  }
+  const message: { command: string; value: any } = eventData;
   switch (message.command) {
     case "initialLoad":
       store.rawData = message.value;
