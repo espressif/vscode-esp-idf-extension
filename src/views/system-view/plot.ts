@@ -201,9 +201,10 @@ function calculateAndInjectDataPoints(
     }
 
     //start point for current evt
-    const newData = { ...data };
-    newData.x && newData.x.length ? newData.x.push(evt.ts) : (data.x = [evt.ts]);
-    newData.y && newData.y.length ? newData.y.push(data.name) : (data.y = [data.name]);
+    const { ts } = evt;
+
+    data.x && data.x.length ? data.x.push(ts) : (data.x = [ts]);
+    data.y && data.y.length ? data.y.push(data.name) : (data.y = [data.name]);
     // if (data.hasOwnProperty("x")) {
     //   if (Array.isArray(data.x)) {
     //     data.x.push(evt.ts);
