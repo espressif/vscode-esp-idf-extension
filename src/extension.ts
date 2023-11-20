@@ -53,6 +53,7 @@ import {
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
+import { CommandsProvider } from "./cmdTreeView/cmdTreeDataProvider";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
 import { PromptUserToLogin } from "./rainmaker/view/login";
@@ -167,6 +168,9 @@ let idfSearchResults: vscode.TreeView<DocSearchResult>;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// Commands Provider
+let commandTreeDataProvider: CommandsProvider;
 
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
@@ -3079,6 +3083,8 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 
   espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
 
+  commandTreeDataProvider = new CommandsProvider();
+
   vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
     espIdfDocsResultTreeDataProvider.clearResults();
   });
@@ -3098,6 +3104,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
     ),
+    commandTreeDataProvider.registerDataProviderForTree("idfCommands"),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
     partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
