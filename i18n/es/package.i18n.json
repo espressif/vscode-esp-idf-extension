@@ -22,7 +22,7 @@
   "espIdf.examples.title": "ESP-IDF: Mostrar ejemplos de proyectos",
   "espIdf.buildFlashMonitor.title": "ESP-IDF: Construir, Programar y empezar monitor de dispositivo",
   "espIdf.pickAWorkspaceFolder.title": "ESP-IDF: Elige una carpeta de trabajo",
-  "espIdf.size.title": "ESP-IDF: Size analysis of the binaries",
+  "espIdf.size.title": "ESP-IDF: Size Analysis of the Binaries",
   "espIdf.apptrace.title": "ESP-IDF: App Trace",
   "espIdf.heaptrace.title": "ESP-IDF: Heap Trace",
   "espIdf.openOCDCommand.title": "ESP-IDF: OpenOCD Manager",

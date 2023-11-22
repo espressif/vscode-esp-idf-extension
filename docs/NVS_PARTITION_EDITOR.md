@@ -14,7 +14,7 @@ This is based on ESP-IDF [NVS Partition Generator Utility](https://docs.espressi
 ## Prerequisites
 
 - ESP-IDF `>=v4.x`
-- IDF VSCode extension version `>=0.6.0`
+- ESP-IDF VS Code extension version `>=0.6.0`
 
 ## Steps
 

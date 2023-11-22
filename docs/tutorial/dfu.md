@@ -30,5 +30,5 @@
   <img src="../../media/tutorials/dfu/flash.png" alt="Flash" height="500">
 </p>
 
-## Useful links:
+## Useful Links:
 [Espressif DFU api guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/api-guides/dfu.html?highlight=dfu%20util#api-guide-dfu-build)

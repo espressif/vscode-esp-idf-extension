@@ -3206,7 +3206,7 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
-    "ESP-IDF: Execute custom task",
+    "ESP-IDF: Execute Custom Task",
     "espIdf.customTask",
     89
   );

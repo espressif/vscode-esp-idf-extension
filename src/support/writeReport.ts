@@ -202,7 +202,7 @@ export async function writeTextReport(
         ? reportedResult.latestError.message
         : typeof reportedResult.latestError === "string"
         ? reportedResult.latestError
-        : "Unknown error in ESP-IDF doctor command"
+        : "Unknown error in ESP-IDF Doctor Command"
     }${EOL}`;
   }
   output += lineBreak;

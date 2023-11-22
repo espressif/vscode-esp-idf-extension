@@ -1,6 +1,6 @@
 # Debugging
 
-> **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
+> **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
 This tutorial shows the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
 
@@ -9,9 +9,9 @@ This tutorial shows the user how to debug ESP-IDF projects using the Visual Stud
 > **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
 
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
-2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device configuration** to manually set any value you desire.
+2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device Configuration** to manually set any value you desire.
 
-When you use **ESP-IDF: Set Espressif device target** the following files are set:
+When you use **ESP-IDF: Set Espressif Device Target** the following files are set:
 
 - Choosing esp32 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
 - Choosing esp32s2 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
@@ -30,7 +30,7 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-5. The [ESP-IDF Debug adapter](https://github.com/espressif/esp-debug-adapter) server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port `43474` by default. Please review [DEBUGGING](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
+5. The [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port `43474` by default. Please review [Debugging](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
 
 6. The debug session will start after the debug adapter server is launched and ready.
 
@@ -38,7 +38,7 @@ Several steps will be automatically done for you but explained for clarity. You 
   <img src="../../media/tutorials/debug/init_halted.png" alt="Initial halted" height="500">
 </p>
 
-# Navigating through the code, call stack and threads
+# Navigating Through the Code, Call Stack and Threads
 
 7. When the target is halted, the editor will show the line of code where the program halted and the list of threads in the `Call Stack` sub-window on the `Run` icon in the Activity Bar on the side of Visual Studio Code. The first line of call stack under Thread #1 contains the last called function `app_main()`, which in turned was called from `main_task()` as shown in the previous image. Each line of the stack also contains the file name and line number where the function was called. By clicking on each of the stack entries, you will see the file opened.
 
@@ -50,7 +50,7 @@ By expanding threads you can navigate throughout the application. Thread #5 that
 
 Go back to the `app_main()` in Thread #1 to familiar code of blink.c file that will be examined in more details in the following examples. Debugger makes it easy to navigate through the code of entire application. This comes handy when stepping through the code and working with breakpoints and will be discussed below.
 
-# Setting and clearing breakpoints
+# Setting and Clearing Breakpoints
 
 When debugging, we would like to be able to stop the application at critical lines of code and then examine the state of specific variables, memory and registers / peripherals. To do so we are using breakpoints. They provide a convenient way to quickly get to and halt the application at specific line.
 
@@ -67,7 +67,7 @@ The Visual Studio Code shows a **Debug toolbar** on the top of the editor with s
 
 9. If you press F5 (Continue/Pause) the processor will run and halt at the next breakpoint. If you press F5 again, it will stop at the next breakpoint and so on. The user will be able to see that LED is changing the state after each click to "Continue" program execution.
 
-# Halting the target manually
+# Halting the Target Manually
 
 Read more about breakpoints under [breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-breakpoints) and [what else should i know about breakpoints?](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-where-breakpoints)
 
@@ -83,7 +83,7 @@ Before being able to demonstrate this functionality, using information discussed
   <img src="../../media/tutorials/debug/step_over.png" alt="Step over" height="500">
 </p>
 
-# Stepping through the code
+# Stepping Through the Code
 
 12. If you press “Step Into (F11)” instead, then debugger will step inside subroutine call.
 
@@ -99,7 +99,7 @@ Before being able to demonstrate this functionality, using information discussed
 
 In this particular case debugger stepped inside `vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS)` and effectively moved to `tasks.c` code. See [Why stepping with “next” does not bypass subroutine calls?](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-why-next-works-as-step) for potential limitations using the `next` command.
 
-# Watching and setting program variables
+# Watching and Setting Program Variables
 
 A common debugging tasks is checking the value of a program variable as the program runs. To be able to demonstrate this functionality, update file `blink.c` by adding a declaration of a global variable int i above definition of function `blink_task`. Then add `i++` inside `while(1)` of this function to get `i` incremented on each blink.
 
@@ -113,7 +113,7 @@ A common debugging tasks is checking the value of a program variable as the prog
   <img src="../../media/tutorials/debug/watch_set_program_vars.png" alt="Watch program variables" height="500">
 </p>
 
-# Setting conditional breakpoint
+# Setting Conditional Breakpoint
 
 You can also set a breakpoint to halt the program execution if a certain condition is satisfied. See [Visual Studio Code conditional breakpoints](https://code.visualstudio.com/docs/editor/debugging#_conditional-breakpoints).
 
@@ -133,9 +133,9 @@ You can check the assembly code from the debugging session by doing a right clic
   <img src="../../media/tutorials/debug/disassembly_view.png" alt="Disassembly view" height="500">
 </p>
 
-# Watchpoints (data breakpoints)
+# Watchpoints (Data Breakpoints)
 
-You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`. See [ESP-IDF Breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
+You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`. See [ESP-IDF breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
 
 <p>
   <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
@@ -149,15 +149,15 @@ You can send any GDB commands in the Debug console with `--exec COMMAND`. You ne
   <img src="../../media/tutorials/debug/gdb_commands.png" alt="GDB Commands" height="500">
 </p>
 
-More about [command line debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
+More about [Command Line Debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
 
-Our extension implements a `ESP Peripheral View` tree view in the `Run and debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting in [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
+Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting in [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
 You can start a monitor session that can capture fatal error events with `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command and, if configured in your project's sdkconfig, trigger the start of a debug session for GDB remote protocol server (GDBStub) or [ESP-IDF Core Dump](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump) when an error is found. Read more in the [panic handler documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler).
 
-- **Core dump** is configured when `Core dump's Data destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
-- **GDB Stub** is configured when `Panic handler behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
+- **Core Dump** is configured when `Core Dump's Data Destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
+- **GDB Stub** is configured when `Panic Handler Behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 
-The user can modify the debug session as shown in the [DEBUGGING](../DEBUGGING.md) documentation by customizing settings such as the program start address offset, the ESP-IDF Debug Adapter server port, logging level and custom initial gdb commands.
+The user can modify the debug session as shown in the [Debugging](../DEBUGGING.md) documentation by customizing settings such as the program start address offset, the ESP-IDF Debug Adapter server port, logging level and custom initial gdb commands.
 
 See other [ESP-IDF extension features](../FEATURES.md).

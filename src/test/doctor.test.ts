@@ -43,7 +43,7 @@ import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 
-suite("Doctor command tests", () => {
+suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
   const mockUpContext: vscode.ExtensionContext = {

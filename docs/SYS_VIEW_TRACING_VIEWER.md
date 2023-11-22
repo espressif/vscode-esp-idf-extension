@@ -1,11 +1,11 @@
 # System View Tracing Viewer for ESP-IDF
 
-In this System View tracing guide, we will follow the [**sysview_tracing_heap_log**](https://github.com/espressif/esp-idf/tree/master/examples/system/sysview_tracing_heap_log) example project which can be obtained from Github, this project need some configuration from menuconfig and also some jumpers to be set in your devkit.
+In this System View Tracing Guide, we will follow the [**sysview_tracing_heap_log**](https://github.com/espressif/esp-idf/tree/master/examples/system/sysview_tracing_heap_log) example project which can be obtained from Github, this project need some configuration from menuconfig and also some jumpers to be set in your devkit.
 
 ## Prerequisites
 
 - ESP-IDF `>=v4.2` and equivalent OpenOCD and Xtensa Tools
-- IDF VSCode extension version `>=0.4.0`
+- IDF VS Code extension version `>=0.4.0`
 - We assume you have already generated the `(.svdat)` file using [head tracing](./HEAP_Tracing)
 - ESP Wrover Kit (optional)
 

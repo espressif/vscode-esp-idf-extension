@@ -1,9 +1,9 @@
-# CMakeLists.txt editor
+# CMakeLists.txt Editor
 
-When you right click on any CMakeLists.txt file this extension provides a custom CMakeLists.txt Editor to fill an ESP-IDF Project and Component registration as specified in:
+When you right click on any CMakeLists.txt file this extension provides a custom CMakeLists.txt Editor to fill an ESP-IDF Project and Component Registration as specified in:
 
 - [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file)
-- [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files)
+- [ESP-IDF Component CMakeLists.txt Files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files)
 
 You need to choose which kind of CMakeLists.txt file (project or component) to edit. There is 2 types of input, one is a simple string and another is an array of strings, such as Component Sources (SRCS).
 
@@ -13,19 +13,19 @@ You need to choose which kind of CMakeLists.txt file (project or component) to e
 
 **THIS WILL OVERRIDE ANY EXISTING CODE IN THE FILE WITH THE ONE GENERATED IN THE EDITOR. IF YOU HAVE ANY CODE NOT INCLUDED IN THE [SCHEMA](../../cmakeListsSchema.json) (OR SINGLE LINE COMMENTS) USE A REGULAR TEXT EDITOR INSTEAD**
 
-For this tutorial we will use the get-started's blink example as configured in [basic use tutorial](./basic_use.md).
+For this tutorial we will use the get-started's blink example as configured in [Basic use tutorial](./basic_use.md).
 
-1. Right click the `<project_path>/blink/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt editor` and select `Project CMakeLists.txt`.
+1. Right click the `<project_path>/blink/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt Editor` and select `Project CMakeLists.txt`.
 
 <p>
   <img src="../../media/tutorials/cmakelists_editor/cmakelists_editor.png" alt="CMakeLists.txt editor" width="950">
 </p>
 
-2. We can add new elements by selecting them from the `New Element` dropdown and clicking the `add` button. For simplicity we will just change the project name and save changes with the `Save` button.
+2. We can add new elements by selecting them from the `New Element` dropdown and clicking the `Add` button. For simplicity we will just change the project name and save changes with the `Save` button.
 
 We can observe when we re-open the file in a regular text-editor changes are reflected.
 
-3. Now let's create a new ESP-IDF component in this project to modify its `CMakeLists.txt`. Click menu `View` -> `Command Palette`, type **ESP-IDF: Create new ESP-IDF Component** and enter the new component name.
+3. Now let's create a new ESP-IDF component in this project to modify its `CMakeLists.txt`. Click menu `View` -> `Command Palette`, type **ESP-IDF: Create New ESP-IDF Component** and enter the new component name.
 
 4. A new component will be created in `<project_path>/blink/components/<component_name>`. Opening in the regular text editor, the user will see an `idf_component_register` method with:
 
@@ -34,7 +34,7 @@ idf_component_register(SRCS "my_component.c"
                        INCLUDE_DIRS "include")
 ```
 
-Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt editor` and select `Component CMakeLists.txt`.
+Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`, click on `ESP-IDF: CMakeLists.txt Editor` and select `Component CMakeLists.txt`.
 
 <p>
   <img src="../../media/tutorials/cmakelists_editor/components_editor.png" alt="CMakeLists.txt editor" width="950">
@@ -44,11 +44,11 @@ Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`
 
 > **NOTE:** While using this extension, source files are added and deleted automatically from the same directory where CMakeLists.txt is located without user intervention.
 
-6. Add a new element `Public component requirements for the component (REQUIRES)` and click the `add` button. A new array field will appear.
+6. Add a new element `Public Component Requirements for the Component (REQUIRES)` and click the `Add` button. A new array field will appear.
 
-7. As described in [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files), `REQUIRES` is used to list the component dependencies. Type `mbedtls` and click the `+` button (can also press enter on typing).
+7. As described in [ESP-IDF Component CMakeLists.txt Files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files), `REQUIRES` is used to list the component dependencies. Type `mbedtls` and click the `+` button (can also press enter on typing).
 
-8. Click on `save` button and close the CMakeLists.txt editor. If you open `<project_path>/blink/components/<component_name>/CMakeLists.txt` on a regular text editor, the user will see:
+8. Click on `Save` button and close the CMakeLists.txt editor. If you open `<project_path>/blink/components/<component_name>/CMakeLists.txt` on a regular text editor, the user will see:
 
 ```
 idf_component_register(SRCS "my_component.c"
@@ -56,4 +56,4 @@ idf_component_register(SRCS "my_component.c"
                        REQUIRES "mbedtls")
 ```
 
-9. Check [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file) and [ESP-IDF Component CMakeLists.txt files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files) for additional fields information.
+9. Check [ESP-IDF Project CMakeLists.txt](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file) and [ESP-IDF Component CMakeLists.txt Files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files) for additional fields information.

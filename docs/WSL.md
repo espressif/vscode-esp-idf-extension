@@ -1,12 +1,12 @@
-# Using this extension on Windows Subsystem for Linux (WSL)
+# Using this Extension on Windows Subsystem for Linux (WSL)
 
-Please review [Debugging using WSL](https://code.visualstudio.com/api/advanced-topics/remote-extensions#debugging-using-wsl) in Visual Studio Code documentation to learn how to access the WSL system from Visual Studio Code.
+Please review [Debugging Using WSL](https://code.visualstudio.com/api/advanced-topics/remote-extensions#debugging-using-wsl) in Visual Studio Code documentation to learn how to access the WSL system from Visual Studio Code.
 
 > **NOTE**: On WSL 1 serial ports are available so the behavior doesn't change from regular extension use.
 
 For WSL 2, there is no serial port access by default. The [usbipd-win](https://github.com/dorssel/usbipd-win/releases) is required to bind Windows serial ports to the WSL serial ports.
 
-## WSL 2 extension setup
+## WSL 2 Extension Setup
 
 In the WSL, Install ESP-IDF requirements for linux.
 
@@ -63,8 +63,8 @@ $IDF_TOOLS_PATH/python_env/idfX.X_pyX.X_env/bin/python ./get-pip.py
 
 where X.X are IDF and python major-minor versions respectively.
 
-5. Configure the extension as explained in [SETUP](./SETUP.md) documentation or the [Install](./tutorial/install.md) tutorial.
+5. Configure the extension as explained in [Setup](./SETUP.md) documentation or the [Install](./tutorial/install.md) tutorial.
 
    > **NOTE:** Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
 
-Create an ESP-IDF project and use extension features.
+Create an ESP-IDF Project and use extension features.
