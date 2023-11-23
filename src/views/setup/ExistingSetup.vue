@@ -33,7 +33,7 @@ function goTo(route: string, setupMode: SetupMode) {
       class="notification install-choice"
       @click="goTo('/autoinstall', setupMode.express)"
     >
-      <label class="subtitle"> Search ESP-IDF in system...</label>
+      <label class="subtitle"> Search ESP-IDF in system</label>
     </div>
     <div
       v-for="(prevSetup, i) in store.idfSetups"

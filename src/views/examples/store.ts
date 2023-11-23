@@ -48,6 +48,7 @@ export const useExamplesStore = defineStore("examples", () => {
   } as IExample);
   const hasExampleDetail = ref(false);
   const exampleDetail = ref("");
+  const searchString = ref("");
 
   function showRegistry() {
     vscode.postMessage({
@@ -79,9 +80,10 @@ export const useExamplesStore = defineStore("examples", () => {
     exampleRootPath,
     hasExampleDetail,
     selectedExample,
+    searchString,
     getExamplesList,
     getExampleDetail,
     openExample,
-    showRegistry
+    showRegistry,
   };
 });

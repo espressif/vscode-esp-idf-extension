@@ -1,11 +1,22 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { IExample, IExampleCategory } from "../../../examples/Example";
 import { useExamplesStore } from "../store";
 import ExampleList from "./exampleList.vue";
 
 const store = useExamplesStore();
 
-defineProps<{
+const filteredExamples = computed(() => {
+  console.log(store.searchString !== "");
+  if (store.searchString !== "") {
+    return props.node.examples.filter(
+      (e) => e.name.indexOf(store.searchString) !== -1
+    );
+  }
+  return props.node.examples;
+});
+
+const props = defineProps<{
   node: IExampleCategory;
 }>();
 
@@ -22,7 +33,11 @@ function toggleExampleDetail(example: IExample) {
 
 <template>
   <li>
-    <h3 class="category is-3" v-text="node.name"></h3>
+    <h3
+      class="category is-3"
+      v-text="node.name"
+      v-if="filteredExamples && filteredExamples.length"
+    ></h3>
     <ul class="subcategories">
       <ExampleList
         v-for="nodeSubCat in node.subcategories"
@@ -30,8 +45,8 @@ function toggleExampleDetail(example: IExample) {
         :node="nodeSubCat"
       />
     </ul>
-    <ul class="examples" v-if="node.examples && node.examples.length">
-      <li v-for="item in node.examples" :key="item.path">
+    <ul class="examples" v-if="filteredExamples && filteredExamples.length">
+      <li v-for="item in filteredExamples" :key="item.path">
         <p
           @click="toggleExampleDetail(item)"
           v-text="item.name"

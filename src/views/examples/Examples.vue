@@ -3,6 +3,7 @@ import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useExamplesStore } from "./store";
 import ExampleList from "./components/exampleList.vue";
+import searchBar from "./components/searchBar.vue";
 
 const store = useExamplesStore();
 
@@ -20,6 +21,7 @@ onMounted(() => {
 
 <template>
   <div id="examples-window">
+    <searchBar />
     <div id="sidenav" class="content">
       <p>
         For external components examples, check
