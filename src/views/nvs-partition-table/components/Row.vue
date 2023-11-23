@@ -41,7 +41,10 @@ const types = ["data", "file", "namespace"];
       </div>
     </td>
     <td class="w-md">
-      <div class="select is-size-7-mobile is-size-7-tablet">
+      <div
+        class="select is-size-7-mobile is-size-7-tablet"
+        v-if="rowType !== 'namespace'"
+      >
         <select
           :value="encoding"
           @change="$emit('updateRow', 'encoding', ($event.target as HTMLSelectElement)?.value)"
@@ -57,6 +60,7 @@ const types = ["data", "file", "namespace"];
         placeholder="Value"
         :value="rowValue"
         @input="$emit('updateRow', 'value', ($event.target as HTMLInputElement)?.value)"
+        v-if="rowType !== 'namespace'"
       />
     </td>
     <td>

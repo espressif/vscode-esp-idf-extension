@@ -18,6 +18,7 @@ function addEmptyRow() {
 }
 
 function updateRow(index: number, prop: string, newValue: any) {
+  store.rows[index].error = "";
   store.rows[index][prop] = newValue;
 }
 </script>

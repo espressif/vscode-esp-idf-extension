@@ -1191,8 +1191,7 @@
       },
       {
         "command": "esp.webview.open.partition-table",
-        "title": "%esp.webview.open.partition-table.title%",
-        "category": "ESP-IDF"
+        "title": "%esp.webview.open.partition-table.title%"
       },
       {
         "command": "espIdf.jtag_flash",

@@ -5,7 +5,6 @@ import PartitionTable from "./components/PartitionTable.vue";
 import Row from "./components/Row.vue";
 import { useNvsPartitionTableStore } from "./store";
 import { findEncodingTypes } from "./util";
-import { error } from "console";
 
 const store = useNvsPartitionTableStore();
 
@@ -29,6 +28,7 @@ function updateEncoding(index: number, newType: string) {
 }
 
 function updateRow(index: number, prop: string, newValue: string) {
+  store.rows[index].error = "";
   store.rows[index][prop] = newValue;
   if (prop === "type") {
     updateEncoding(index, newValue);

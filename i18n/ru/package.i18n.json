@@ -140,7 +140,7 @@
   "esp.rainmaker.backend.update_node_param.title": "Обновить параметр для устройства",
   "param.esp.rainmaker.oauth.url": "URL сервера OAuth2 для ESP-Rainmaker",
   "idf.wssPort.description": "Порт сервера веб-сокетов для дампа ядра или GDB stub",
-  "esp.webview.open.partition-table.title": "Открыть интерфейс редактора таблицы разделов",
+  "esp.webview.open.partition-table.title": "ESP-IDF: Открыть интерфейс редактора таблицы разделов",
   "esp.efuse.summary.title": "Получить состояние eFuse",
   "espIdf.efuse.clearResults.title": "Очистить сводку eFuse",
   "espIdf.jtag_flash.title": "Прошить (через JTag)",

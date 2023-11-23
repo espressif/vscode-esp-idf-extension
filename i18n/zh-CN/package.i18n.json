@@ -140,7 +140,7 @@
   "esp.rainmaker.backend.update_node_param.title": "更新设备的参数",
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth 服务器地址",
   "idf.wssPort.description": "CoreDump/GDB-Stub 模式 Web Socket 端口",
-  "esp.webview.open.partition-table.title": "打开分区表编辑器 UI",
+  "esp.webview.open.partition-table.title": "ESP-IDF: 打开分区表编辑器 UI",
   "esp.efuse.summary.title": "获取 eFuse 摘要",
   "espIdf.efuse.clearResults.title": "清除 eFuse 摘要",
   "espIdf.jtag_flash.title": "JTag 烧录",
