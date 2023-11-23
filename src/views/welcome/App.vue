@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useWelcomeStore } from "./store";
 import Logo from "./components/logo.vue";
 import {
@@ -10,16 +10,16 @@ import {
   IconGear,
   IconGithub,
   IconNewFolder,
-  IconTypeHierarchy
+  IconTypeHierarchy,
 } from "@iconify-prerendered/vue-codicon";
 
 const store = useWelcomeStore();
 
 const { espIdf, extensionVersion, showOnInit } = storeToRefs(store);
 
-const whatsNewLink = () => {
-  return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${extensionVersion}`;
-};
+const whatsNewLink = computed(() => {
+  return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${extensionVersion.value}`;
+});
 
 onMounted(() => {
   store.requestInitValues();
@@ -51,19 +51,19 @@ onMounted(() => {
       <div class="level-right mright">
         <div class="level-item link">
           <a href="https://github.com/espressif/vscode-esp-idf-extension">
-            <IconGithub />
+            <IconGithub class="icon-margin" />
             Repository
           </a>
         </div>
         <div class="level-item link">
           <a href="https://esp32.com/viewforum.php?f=40">
-            <IconComment />
+            <IconComment class="icon-margin" />
             ESP32 Forum
           </a>
         </div>
         <div class="level-item link">
           <a href="https://github.com/espressif/esp-idf">
-            <IconGithub />
+            <IconGithub class="icon-margin" />
             ESP-IDF
           </a>
         </div>
@@ -71,7 +71,7 @@ onMounted(() => {
           <a
             href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose"
           >
-            <IconGithub />
+            <IconGithub class="icon-margin" />
             Open a new issue
           </a>
         </div>
@@ -79,55 +79,55 @@ onMounted(() => {
     </div>
 
     <div class="columns column-spacing">
-      <div class="column level notification is-one-third">
-        <div class="level level-right">
+      <div class="column level is-one-third">
+        <div class="level level-left">
           <h1 class="title">Quick actions</h1>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
               <button @click="store.openSetupPanel" class="button">
-                <IconGear />
+                <IconGear class="icon-margin" />
                 Configure extension
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
               <button @click="store.openNewProjectPanel" class="button">
-                <IconNewFolder/>
+                <IconNewFolder class="icon-margin" />
                 New project
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
               <button @click="store.openImportProject" class="button">
-                <IconFolderOpened />
+                <IconFolderOpened class="icon-margin" />
                 Import project
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
               <button @click="store.openShowExamplesPanel" class="button">
-                <IconBeaker />
+                <IconBeaker class="icon-margin" />
                 Show examples
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
               <button @click="store.exploreComponents" class="button">
-                <IconTypeHierarchy />
+                <IconTypeHierarchy class="icon-margin"/>
                 Components manager
               </button>
             </div>
@@ -135,7 +135,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="column notification is-two-fifths">
+      <div class="column is-two-fifths">
         <div class="level level-right">
           <h1 class="title">Getting Started</h1>
         </div>
@@ -277,6 +277,14 @@ onMounted(() => {
   width: 100%;
 }
 
+.column {
+  background-color: var(--vscode-notifications-background);
+}
+
+.icon-margin {
+  margin-right: 0.25em;
+}
+
 .column-spacing {
   justify-content: space-between;
   margin: 1em;
@@ -304,7 +312,7 @@ onMounted(() => {
   }
   cursor: pointer;
   a {
-    color: var(--vscode-foreground);
+    color: var(--vscode-editorInfo-foreground);
     display: flex;
     align-items: center;
     text-decoration: none;
