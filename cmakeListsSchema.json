@@ -6,7 +6,8 @@
       "title": "Component Sources (SRCS)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "EXCLUDE_SRCS ***",
@@ -14,7 +15,8 @@
       "title": "Remove files from static library build (EXCLUDE_SRCS)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "LDFRAGMENTS ***",
@@ -22,7 +24,8 @@
       "title": "Linker fragment files (LDFRAGMENTS)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "EMBED_FILES ***",
@@ -30,7 +33,8 @@
       "title": "Binary files to be embedded in the component (EMBED_FILES)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "EMBED_TXTFILES ***",
@@ -38,7 +42,8 @@
       "title": "Text files to be embedded in the component (EMBED_TXTFILES)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "INCLUDE_DIRS ***",
@@ -46,7 +51,8 @@
       "title": "Relative paths to the components (INCLUDE_DIRS) for all other components",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "PRIV_INCLUDE_DIRS ***",
@@ -54,7 +60,8 @@
       "title": "Relative paths to the components (PRIV_INCLUDE_DIRS) for this component",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "REQUIRES ***",
@@ -62,7 +69,8 @@
       "title": "Public component requirements for the component (REQUIRES)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "REQUIRED_IDF_TARGETS ***",
@@ -70,7 +78,8 @@
       "title": "Specify the only target the component supports (REQUIRED_IDF_TARGETS)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     },
     {
       "template": "PRIV_REQUIRES ***",
@@ -78,7 +87,8 @@
       "title": "Private component requirements for the component (PRIV_REQUIRES)",
       "type": "array",
       "value": [],
-      "isComponentElement": true
+      "isComponentElement": true,
+      "canHaveMany": false
     }
   ],
   "project": [
@@ -89,7 +99,8 @@
       "title": "CMake Minimum Requirement",
       "type": "string",
       "value": "VERSION 3.5",
-      "isComponentElement": false
+      "isComponentElement": false,
+      "canHaveMany": false
     },
     {
       "template": "SET(VARIABLE ***)",
@@ -102,11 +113,12 @@
       "canHaveMany": true
     },
     {
+      "default": "$ENV{IDF_PATH}/tools/cmake/project.cmake",
       "regex": "(?:include\\()(.*)(?:\\))",
       "template": "include(***)",
       "type": "string",
       "title": "Include include(path)",
-      "value": "$ENV{IDF_PATH}/tools/cmake/project.cmake",
+      "value": "",
       "isComponentElement": false,
       "canHaveMany": true
     },
@@ -116,7 +128,8 @@
       "title": "Project Name",
       "type": "string",
       "value": "",
-      "isComponentElement": false
+      "isComponentElement": false,
+      "canHaveMany": false
     },
     {
       "template": "target_add_binary_data(VARIABLE *** TYPE)",

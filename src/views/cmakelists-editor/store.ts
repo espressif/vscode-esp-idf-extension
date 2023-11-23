@@ -41,6 +41,18 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
     title: "CMakeLists.txt Editor",
   });
 
+  function addEmptyElement() {
+    if (!selectedElementToAdd.value.canHaveMany) {
+      const existing = elements.value.filter((elem) => {
+        return elem.template === selectedElementToAdd.value.template;
+      });
+      if (existing && existing.length) {
+        return;
+      }
+    }
+    elements.value.push(selectedElementToAdd.value);
+  }
+
   function sendNewValue(newValue) {
     vscode.postMessage({
       command: "updateValue",
@@ -65,6 +77,7 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
     fileName,
     selectedElementToAdd,
     textDictionary,
+    addEmptyElement,
     sendNewValue,
     saveChanges,
     requestInitValues,

@@ -55,7 +55,7 @@ function deleteElem(i: number) {
             <div class="control">
               <button
                 class="button"
-                @click="store.elements.push(selectedElementToAdd)"
+                @click="store.addEmptyElement"
               >
                 {{ textDictionary.add }}
               </button>
