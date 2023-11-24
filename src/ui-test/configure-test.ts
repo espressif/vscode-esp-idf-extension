@@ -169,7 +169,7 @@ describe("Configure extension", () => {
     );
     const setupFinishedText = await setupFinishedElement.getText();
     expect(setupFinishedText).to.be.equal(
-      "All settings have been configured. You can close this window."
+      "All settings have been configured."
     );
     if (view) {
       await view.switchBack();
