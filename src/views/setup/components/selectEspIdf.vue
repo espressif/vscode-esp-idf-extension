@@ -93,7 +93,7 @@ function setEspIdfContainerPath(idfContainerPath: string) {
       </div>
     </div>
     <folderOpen
-      propLabel="Enter ESP-IDF directory (IDF_PATH)"
+      propLabel="Enter ESP-IDF directory (IDF_PATH):"
       :propModel.sync="espIdf"
       :propMutate="setEspIdfPath"
       :openMethod="store.openEspIdfFolder"
@@ -104,7 +104,7 @@ function setEspIdfContainerPath(idfContainerPath: string) {
       data-config-id="manual-idf-directory"
     />
     <folderOpen
-      propLabel="Enter ESP-IDF container directory"
+      propLabel="Enter ESP-IDF container directory:"
       :propModel.sync="espIdfContainer"
       :propMutate="setEspIdfContainerPath"
       :openMethod="store.openEspIdfContainerFolder"

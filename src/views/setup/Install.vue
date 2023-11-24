@@ -62,7 +62,7 @@ function setToolsFolder(newToolsPath: string) {
       </div>
 
       <folderOpen
-        propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH)"
+        propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH):"
         :propModel="toolsFolder"
         :propMutate="setToolsFolder"
         :openMethod="store.openEspIdfToolsFolder"

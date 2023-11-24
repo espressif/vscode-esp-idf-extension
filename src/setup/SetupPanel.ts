@@ -24,7 +24,7 @@ import { ESP } from "../config";
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
-import vscode, { ConfigurationTarget, Uri } from "vscode";
+import vscode, { ConfigurationTarget, Uri, commands } from "vscode";
 import { expressInstall } from "./espIdfDownloadStep";
 import { IdfToolsManager } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
@@ -208,6 +208,7 @@ export class SetupPanel {
             command: "initialLoad",
             espIdfContainer: defaultEspIdfPathContainer,
             espIdf: setupArgs.espIdfPath,
+            extensionVersion: setupArgs.extensionVersion,
             espToolsPath: setupArgs.espToolsPath,
             gitVersion: setupArgs.gitVersion,
             hasPrerequisites: setupArgs.hasPrerequisites,
@@ -264,8 +265,9 @@ export class SetupPanel {
             });
             SetupPanel.postMessage({
               command: "setEspIdfErrorStatus",
-              errorMsg: `ESP-IDF is installed in ${setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
-                }`,
+              errorMsg: `ESP-IDF is installed in ${
+                setupArgs.existingIdfSetups[message.selectedIdfSetup].idfPath
+              }`,
             });
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
@@ -293,6 +295,18 @@ export class SetupPanel {
           break;
         case "cleanIdfSetups":
           await clearPreviousIdfSetups();
+          break;
+        case "newProject":
+          await commands.executeCommand("espIdf.newProject.start");
+          break;
+        case "importProject":
+          await commands.executeCommand("espIdf.importProject");
+          break;
+        case "showExamples":
+          await commands.executeCommand("espIdf.examples.start");
+          break;
+        case "exploreComponents":
+          await commands.executeCommand("esp.component-manager.ui.show");
           break;
         default:
           break;
@@ -374,7 +388,9 @@ export class SetupPanel {
             } else if (selectedIdfVersion.filename === "master") {
               idfVersion = "5.1";
             } else {
-              const matches = selectedIdfVersion.name.split(" ")[0].match(/v(.+)/);
+              const matches = selectedIdfVersion.name
+                .split(" ")[0]
+                .match(/v(.+)/);
               if (matches && matches.length) {
                 idfVersion = matches[1];
               } else {
@@ -390,7 +406,10 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          const pathToCheck = selectedIdfVersion.filename === "manual" ? espIdfPath : idfContainerPath;
+          const pathToCheck =
+            selectedIdfVersion.filename === "manual"
+              ? espIdfPath
+              : idfContainerPath;
           this.checkSpacesInPaths(
             pathToCheck,
             toolsPath,
@@ -436,8 +455,9 @@ export class SetupPanel {
     );
     const updatedToolsInfo = toolsInfo.map((tool) => {
       const isToolVersionCorrect =
-        tool.expected.indexOf(foundVersions[tool.name]) > -1  ||
-        (foundVersions[tool.name] && foundVersions[tool.name] === "No command version");
+        tool.expected.indexOf(foundVersions[tool.name]) > -1 ||
+        (foundVersions[tool.name] &&
+          foundVersions[tool.name] === "No command version");
       tool.doesToolExist = isToolVersionCorrect;
       if (isToolVersionCorrect) {
         tool.progress = "100.00%";

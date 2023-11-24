@@ -92,6 +92,7 @@ export const useSetupStore = defineStore("setup", () => {
   let statusPyVEnv: Ref<StatusType> = ref(StatusType.pending);
   let toolsFolder: Ref<string> = ref("");
   let toolsResults: Ref<IEspIdfTool[]> = ref([]);
+  let extensionVersion: Ref<string> = ref("");
 
   function checkEspIdfTools() {
     const pyPath =
@@ -212,6 +213,34 @@ export const useSetupStore = defineStore("setup", () => {
     });
   }
 
+  function exploreComponents() {
+    vscode.postMessage({
+      command: "exploreComponents",
+    });
+  }
+
+  function openImportProject() {
+    vscode.postMessage({
+      command: "importProject",
+    });
+  }
+
+  function openNewProjectPanel() {
+    vscode.postMessage({
+      command: "newProject",
+    });
+  }
+  function openShowExamplesPanel() {
+    vscode.postMessage({
+      command: "showExamples",
+    });
+  }
+  function requestInitValues() {
+    vscode.postMessage({
+      command: "requestInitialValues",
+    });
+  }
+
   function setEspIdfVersionList(espIdfVerList: IEspIdfLink[]) {
     espIdfVersionList.value = espIdfVerList;
     if (espIdfVerList && espIdfVerList.length > 0) {
@@ -314,6 +343,7 @@ export const useSetupStore = defineStore("setup", () => {
     espIdfTags,
     exportedToolsPaths,
     exportedVars,
+    extensionVersion,
     gitVersion,
     hasPrerequisites,
     idfDownloadStatus,
@@ -367,5 +397,10 @@ export const useSetupStore = defineStore("setup", () => {
     setStatusIdfGit,
     setStatusIdfPython,
     setIdfPythonPercentage,
+    exploreComponents,
+    openImportProject,
+    openNewProjectPanel,
+    openShowExamplesPanel,
+    requestInitValues,
   };
 });

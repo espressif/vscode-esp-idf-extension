@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 31st August 2023 8:11:44 pm
  * Copyright 2023 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,7 @@ import ToolsCustom from "./ToolsCustom.vue";
 import Home from "./Home.vue";
 import Install from "./Install.vue";
 import Status from "./Status.vue";
+import Welcome from "./Welcome.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
 const routes = [
@@ -93,6 +94,9 @@ window.addEventListener("message", (event) => {
       if (msg.platform) {
         store.platform = msg.platform;
       }
+      if (msg.extensionVersion) {
+        store.extensionVersion = msg.extensionVersion;
+      }
       break;
     case "setEspIdfErrorStatus":
       if (typeof msg.errorMsg !== "undefined") {
@@ -109,6 +113,9 @@ window.addEventListener("message", (event) => {
       console.log(msg.isInstalled);
       if (typeof msg.isInstalled !== "undefined") {
         store.isIdfInstalled = msg.isInstalled;
+        if (msg.installed) {
+          router.push("/welcome");
+        }
       }
       break;
     case "setOpenOcdRulesPath":

@@ -35,11 +35,13 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
+import { packageJson } from "../utils";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
   espToolsPath: string;
   existingIdfSetups: IdfSetup[];
+  extensionVersion: string;
   espIdfVersionsList: IEspIdfLink[];
   espIdfTagsList: IEspIdfLink[];
   gitPath: string;
@@ -132,9 +134,11 @@ export async function getSetupInitialValues(
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const idfSetups = await getPreviousIdfSetups(false);
+  const extensionVersion = packageJson.version as string;
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
+    extensionVersion,
     existingIdfSetups: idfSetups,
     pythonVersions,
   } as ISetupInitArgs;
