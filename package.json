@@ -640,6 +640,11 @@
               2,
               3
             ],
+            "enumItemLabels": [
+              "Global",
+              "Workspace",
+              "WorkspaceFolder"
+            ],
             "enumDescriptions": [
               "Global",
               "Workspace",

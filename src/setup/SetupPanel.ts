@@ -218,6 +218,7 @@ export class SetupPanel {
             pathSep,
             platform: process.platform,
             pyVersionList: setupArgs.pythonVersions,
+            saveScope: setupArgs.saveScope
           });
           break;
         case "saveCustomSettings":

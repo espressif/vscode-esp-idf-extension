@@ -25,7 +25,6 @@ import ToolsCustom from "./ToolsCustom.vue";
 import Home from "./Home.vue";
 import Install from "./Install.vue";
 import Status from "./Status.vue";
-import Welcome from "./Welcome.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
 const routes = [
@@ -96,6 +95,9 @@ window.addEventListener("message", (event) => {
       }
       if (msg.extensionVersion) {
         store.extensionVersion = msg.extensionVersion;
+      }
+      if (typeof msg.saveScope !== "undefined") {
+        store.saveScope = msg.saveScope;
       }
       break;
     case "setEspIdfErrorStatus":

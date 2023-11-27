@@ -49,6 +49,7 @@ export interface ISetupInitArgs {
   hasPrerequisites: boolean;
   onReqPkgs?: string[];
   pythonVersions: string[];
+  saveScope: number;
 }
 
 export interface IPreviousInstallResult {
@@ -135,12 +136,16 @@ export async function getSetupInitialValues(
   const pythonVersions = await getPythonList(extensionPath);
   const idfSetups = await getPreviousIdfSetups(false);
   const extensionVersion = packageJson.version as string;
+  const saveScope = idfConf.readParameter(
+    "idf.saveScope"
+  ) as number;
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
     extensionVersion,
     existingIdfSetups: idfSetups,
     pythonVersions,
+    saveScope
   } as ISetupInitArgs;
 
   try {
