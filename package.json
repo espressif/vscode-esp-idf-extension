@@ -614,10 +614,22 @@
             "scope": "resource",
             "description": "%param.saveBeforeBuildDescription%"
           },
-          "idf.notificationSilentMode": {
-            "type": "boolean",
-            "default": true,
-            "description": "%param.notificationSilentMode%"
+          "idf.notificationMode": {
+            "type": "string",
+            "enum": [
+              "Silent",
+              "Notifications",
+              "Output",
+              "All"
+            ],
+            "enumDescriptions": [
+              "Show no notifications and do not focus tasks output.",
+              "Show notifications but do not focus tasks output.",
+              "Do not show notifications but focus tasks output",
+              "Show notifications and focus tasks output."
+            ],
+            "default": "All",
+            "description": "%param.notificationMode%"
           },
           "idf.saveScope": {
             "type": "number",
@@ -632,7 +644,8 @@
               "Workspace",
               "WorkspaceFolder"
             ],
-            "description": "%param.saveScope%"
+            "description": "%param.saveScope%",
+            "scope": "application"
           },
           "idf.telemetry": {
             "title": "Enable Telemetry",

@@ -81,16 +81,18 @@ export class FlashTask {
       throw new Error("ALREADY_FLASHING");
     }
     this.verifyArgs();
-    const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       this.workspaceUri
-    ) as boolean;
+    ) as string;
     const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
       (w) => w.uri === this.workspaceUri
     );
-    const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
     let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
     switch (flashType) {
       case "UART":

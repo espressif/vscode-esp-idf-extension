@@ -15,5 +15,5 @@
   "idf.customExtraVars": {
     "OPENOCD_SCRIPTS": "${env:OPENOCD_SCRIPTS}"
   },
-  "idf.notificationSilentMode": true
+  "idf.notificationMode": "Silent"
 }

@@ -28,7 +28,7 @@ import {
   Uri,
   workspace,
 } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
@@ -85,16 +85,18 @@ export class IdfSizeTask {
       options.shellArgs = shellExecutableArgs;
     }
     const sizeExecution = await this.getShellExecution(options);
-    const isSilentMode = readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = readParameter(
+      "idf.notificationMode",
       this.curWorkspace
-    ) as boolean;
+    ) as string;
     const curWorkspaceFolder = workspace.workspaceFolders.find(
       (w) => w.uri === this.curWorkspace
     );
-    const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Always
-      : TaskRevealKind.Silent;
+    const showTaskOutput =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Output
+        ? TaskRevealKind.Always
+        : TaskRevealKind.Silent;
     const sizePresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,

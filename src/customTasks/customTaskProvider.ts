@@ -26,7 +26,7 @@ import {
   Uri,
   workspace,
 } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath } from "../utils";
 
@@ -102,19 +102,21 @@ export class CustomTask {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       options.shellArgs = shellExecutableArgs;
     }
-    const isSilentMode = readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = readParameter(
+      "idf.notificationMode",
       this.currentWorkspace
-    ) as boolean;
-    const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Always
-      : TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Output
+        ? TaskRevealKind.Always
+        : TaskRevealKind.Silent;
     const customExecution = this.getProcessExecution(cmd, options);
     const customTaskPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
       clear: false,
-      panel: TaskPanelKind.Dedicated
+      panel: TaskPanelKind.Dedicated,
     } as TaskPresentationOptions;
     const curWorkspaceFolder = workspace.workspaceFolders.find(
       (w) => w.uri === this.currentWorkspace

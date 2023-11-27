@@ -119,7 +119,7 @@
   "trace.wait4halt.description": "wait4halt will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "param.saveBeforeBuildDescription": "Save all the edited files in the workspace before proceeding with the build, although if fail to save files it will build anyways",
-  "param.notificationSilentMode": "Disable all ESP-IDF extension notifications (excluding errors)",
+  "param.notificationMode": "ESP-IDF extension notifications and output focus mode.",
   "param.saveScope": "Where to save configuration with ESP-IDF commands with number value as vscode.ConfigurationTarget. Global = 1, Workspace= 2, WorkspaceFolder=3",
   "param.rainmaker.api.server_url": "ESP-Rainmaker cloud server URL",
   "param.launchMonitorOnDebugSession.title": "Start IDF Monitor along with ESP-IDF Debug Adapter session",

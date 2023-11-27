@@ -826,8 +826,15 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.selectConfTarget", () => {
-    idfConf.chooseConfigurationTarget();
+  registerIDFCommand("espIdf.selectConfTarget", async () => {
+    const confTarget = await idfConf.chooseConfigurationTarget();
+
+    const dictTarget = {
+      1: "Global",
+      2: "Workspace",
+      3: "Workspace Folder",
+    };
+    Logger.infoNotify(`Save location has changed to ${dictTarget[confTarget]}`);
   });
 
   registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {

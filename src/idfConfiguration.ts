@@ -20,6 +20,13 @@ import { ProjectConfElement } from "./project-conf/projectConfiguration";
 
 const locDic = new LocDictionary(__filename);
 
+export enum NotificationMode {
+  Silent = "Silent",
+  Notifications = "Notifications",
+  Output = "Output",
+  All = "All",
+}
+
 export function addWinIfRequired(param: string) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   for (const platDepConf of ESP.platformDepConfigurations) {

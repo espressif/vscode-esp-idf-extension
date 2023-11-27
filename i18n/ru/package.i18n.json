@@ -124,7 +124,7 @@
   "trace.wait4halt.description": "wait4halt будет установлен для трассировки приложения",
   "trace.skip_size.description": "skip_size будет установлен для трассировки приложения",
   "param.saveBeforeBuildDescription": "Сохранить все отредактированные файлы в рабочей области, прежде чем продолжить сборку. Хотя, проект будет собран, даже если не удается сохранить файлы",
-  "param.notificationSilentMode": "Отключите все уведомления расширения ESP-IDF (за исключением уведомлений об ошибках)",
+  "param.notificationMode": "Уведомления о расширении ESP-IDF и режим фокусировки вывода.",
   "param.saveScope": "Куда сохранять конфигурацию с помощью команд ESP-IDF с числовым значением vscode.ConfigurationTarget. Глобально = 1, Рабочая область = 2, Папка рабочей области = 3",
   "param.rainmaker.api.server_url": "URL облачного сервера ESP-Rainmaker",
   "param.customTerminalExecutable.title": "Пользовательский исполняемый файл для задач расширения",
