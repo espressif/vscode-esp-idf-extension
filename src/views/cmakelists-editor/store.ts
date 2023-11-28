@@ -53,7 +53,18 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
     if (selectedElementToAdd.value.isFirst) {
       elements.value.unshift(selectedElementToAdd.value);
     } else {
-      elements.value.push(selectedElementToAdd.value);
+      const lastIndexOfTemplate = elements.value
+        .map((e) => e.template)
+        .lastIndexOf(selectedElementToAdd.value.template);
+      if (lastIndexOfTemplate !== -1) {
+        elements.value.splice(
+          lastIndexOfTemplate + 1,
+          0,
+          selectedElementToAdd.value
+        );
+      } else {
+        elements.value.push(selectedElementToAdd.value);
+      }
     }
   }
 
