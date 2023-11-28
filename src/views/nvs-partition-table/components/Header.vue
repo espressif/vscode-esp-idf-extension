@@ -36,8 +36,7 @@ onMounted(() => {
         <div class="level-left">
           <div class="level-item">
             <h1 class="title is-size-5-mobile">
-              <strong>ESP-IDF</strong>
-              <span>Non Volatile Storage (NVS) Partition Editor</span>
+              <span>ESP-IDF Non Volatile Storage (NVS) Partition Editor</span>
             </h1>
           </div>
         </div>
