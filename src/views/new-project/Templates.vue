@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useNewProjectStore } from "./store";
 import TemplateList from "./components/templateList.vue";
+import searchBar from "./components/searchBar.vue"
 import { storeToRefs } from "pinia";
 import { computed, onMounted } from "vue";
 const store = useNewProjectStore();
@@ -40,6 +41,7 @@ onMounted(()=> {
           </option>
         </select>
       </div>
+      <searchBar />
       <ul class="templates">
         <TemplateList v-for="cat of templates" :node="cat" :key="cat.name" />
       </ul>

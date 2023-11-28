@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
-import { useExamplesStore } from '../store';
+import { storeToRefs } from "pinia";
+import { useNewProjectStore } from "../store";
 
-const store = useExamplesStore();
+const store = useNewProjectStore();
 
 const { searchString } = storeToRefs(store);
-
 </script>
 
 <template>
@@ -15,7 +14,7 @@ const { searchString } = storeToRefs(store);
         v-model="searchString"
         type="search"
         name="search"
-        placeholder="Search Example by Name"
+        placeholder="Search Template By Name"
         autocomplete="off"
         class="input"
       />

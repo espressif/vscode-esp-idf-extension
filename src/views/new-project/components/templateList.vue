@@ -1,14 +1,21 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { IExample, IExampleCategory } from "../../../examples/Example";
 import TemplateList from "./templateList.vue";
 import { useNewProjectStore } from "../store";
-import { storeToRefs } from "pinia";
 
 const store = useNewProjectStore();
 
-const { selectedTemplate } = storeToRefs(store);
+const filteredExamples = computed(() => {
+  if (store.searchString !== "") {
+    return props.node.examples.filter(
+      (e) => e.name.indexOf(store.searchString) !== -1
+    );
+  }
+  return props.node.examples;
+});
 
-defineProps<{
+const props = defineProps<{
   node: IExampleCategory;
 }>();
 
@@ -25,24 +32,25 @@ function toggleTemplateDetail(template: IExample) {
 
 <template>
   <li>
-    <h3 class="category is-3" v-text="node.name"></h3>
-    <ul
-      class="subcategories"
-      v-if="node.subcategories && node.subcategories.length"
-    >
+    <h3
+      class="category is-3"
+      v-text="node.name"
+      v-if="filteredExamples && filteredExamples.length"
+    ></h3>
+    <ul class="subcategories">
       <TemplateList
         v-for="nodeSubCat in node.subcategories"
         :key="nodeSubCat.name"
         :node="nodeSubCat"
       />
     </ul>
-    <ul class="templates" v-if="node.examples && node.examples.length">
-      <li v-for="item in node.examples" :key="item.path">
+    <ul class="templates" v-if="filteredExamples && filteredExamples.length">
+      <li v-for="item in filteredExamples" :key="item.path">
         <p
           @click="toggleTemplateDetail(item)"
           v-text="item.name"
           :class="{
-            selectedItem: selectedTemplate.path === item.path,
+            selectedItem: store.selectedTemplate.path === item.path,
           }"
         />
       </li>

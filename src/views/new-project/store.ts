@@ -56,6 +56,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
   const targetList: Ref<IdfBoard[]> = ref([]);
   const templateDetail: Ref<string> = ref("");
   const templatesRootPath: Ref<{ [key: string]: IExampleCategory }> = ref({});
+  const searchString = ref("");
 
   function createProject() {
     vscode.postMessage({
@@ -103,6 +104,7 @@ export const useNewProjectStore = defineStore("newProject", () => {
     hasTemplateDetail,
     openOcdConfigFiles,
     projectName,
+    searchString,
     selectedBoard,
     selectedFramework,
     selectedPort,

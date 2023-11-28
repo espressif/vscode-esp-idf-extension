@@ -7,7 +7,6 @@ import ExampleList from "./exampleList.vue";
 const store = useExamplesStore();
 
 const filteredExamples = computed(() => {
-  console.log(store.searchString !== "");
   if (store.searchString !== "") {
     return props.node.examples.filter(
       (e) => e.name.indexOf(store.searchString) !== -1

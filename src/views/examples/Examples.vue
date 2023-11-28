@@ -21,12 +21,12 @@ onMounted(() => {
 
 <template>
   <div id="examples-window">
-    <searchBar />
     <div id="sidenav" class="content">
       <p>
         For external components examples, check
         <a v-on:click="store.showRegistry">IDF Component Registry</a>
       </p>
+      <searchBar />
       <ul>
         <ExampleList :node="exampleRootPath" :key="exampleRootPath.name" />
       </ul>

@@ -18,6 +18,7 @@
 import { Ref, ref } from "vue";
 import { JSON2CSV, validateRows } from "./util";
 import { defineStore } from "pinia";
+import { NVSPartitionTable } from "../../espIdf/nvs/partitionTable/panel";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -55,7 +56,15 @@ export const useNvsPartitionTableStore = defineStore(
     const generateKey: Ref<boolean> = ref(true);
     const partitionSize: Ref<string> = ref("");
     let partitionSizeError: Ref<string> = ref("");
-    const rows: Ref<NvsPartitionTable.IRow[]> = ref([]);
+    const rows: Ref<NvsPartitionTable.IRow[]> = ref([
+      {
+        key: "defaultKey",
+        type: "namespace",
+        encoding: "",
+        value: "",
+        error: "",
+      } as NvsPartitionTable.IRow,
+    ]);
 
     function genPartition() {
       partitionSizeError.value = "";
