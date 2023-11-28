@@ -43,14 +43,18 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
 
   function addEmptyElement() {
     if (!selectedElementToAdd.value.canHaveMany) {
-      const existing = elements.value.filter((elem) => {
+      const existing = elements.value.some((elem) => {
         return elem.template === selectedElementToAdd.value.template;
       });
-      if (existing && existing.length) {
+      if (existing) {
         return;
       }
     }
-    elements.value.push(selectedElementToAdd.value);
+    if (selectedElementToAdd.value.isFirst) {
+      elements.value.unshift(selectedElementToAdd.value);
+    } else {
+      elements.value.push(selectedElementToAdd.value);
+    }
   }
 
   function sendNewValue(newValue) {

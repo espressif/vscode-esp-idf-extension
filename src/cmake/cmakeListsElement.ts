@@ -23,4 +23,5 @@ export class CmakeListsElement {
   public typeValue: string;
   public value: string[];
   public variable: string;
+  public isFirst: boolean;
 }

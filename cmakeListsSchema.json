@@ -93,14 +93,15 @@
   ],
   "project": [
     {
-      "default": "VERSION 3.5",
+      "default": "VERSION 3.16",
       "regex": "(?:cmake_minimum_required\\()(.*)(?:\\))",
       "template": "cmake_minimum_required(***)",
       "title": "CMake Minimum Requirement",
       "type": "string",
-      "value": "VERSION 3.5",
+      "value": "VERSION 3.16",
       "isComponentElement": false,
-      "canHaveMany": false
+      "canHaveMany": false,
+      "isFirst": true
     },
     {
       "template": "SET(VARIABLE ***)",

@@ -90,7 +90,16 @@ export function parseCmakeListsText(
             newElement.value = [resultStr[1].trim()];
             break;
         }
-        resultCMakeListsEls.push(newElement);
+        if (!newElement.canHaveMany) {
+          const existing = resultCMakeListsEls.some((elem) => {
+            return elem.template === newElement.template;
+          });
+          if (!existing) {
+            resultCMakeListsEls.push(newElement);
+          }
+        } else {
+          resultCMakeListsEls.push(newElement);
+        }
       }
     }
   }
