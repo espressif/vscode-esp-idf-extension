@@ -7,7 +7,6 @@ The default configuration file is located in `{PROJECT_DIR}/.vscode/c_cpp_proper
 
 To enable Code Navigation, auto-complete and other language support features on ESP-IDF source files on Visual Studio Code. Please take a look at [C/C++ Configurations](https://code.visualstudio.com/docs/cpp/config-linux#_cc-configurations) for more detail about c_cpp_properties.json configuration fields.
 
-
 ## Default Configuration with compile_commands.json
 
 For the default configuration, you must build your project beforehand in order to generate `${workspaceFolder}/build/compile_commands.json` (where \${workspaceFolder} is your project directory). This file will then be used to resolve your C/C++ headers.
