@@ -248,7 +248,7 @@ export class OpenOCDManager extends EventEmitter {
       }
       this.stop();
     });
-    this.updateStatusText("ESP-IDF: ❇️ OpenOCD Server (Running)");
+    this.updateStatusText("❇️ ESP-IDF: OpenOCD Server (Running)");
     OutputChannel.show();
   }
 
@@ -256,7 +256,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.server && !this.server.killed) {
       this.server.kill("SIGKILL");
       this.server = undefined;
-      this.updateStatusText("ESP-IDF: ❌ OpenOCD Server (Stopped)");
+      this.updateStatusText("❌ ESP-IDF: OpenOCD Server (Stopped)");
       const endMsg = "[Stopped] : OpenOCD Server";
       OutputChannel.appendLine(endMsg, "OpenOCD");
       Logger.info(endMsg);
@@ -272,7 +272,7 @@ export class OpenOCDManager extends EventEmitter {
       vscode.StatusBarAlignment.Right,
       1000
     );
-    this.statusBar.text = "ESP-IDF: OpenOCD Server";
+    this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
     this.statusBar.command = "espIdf.openOCDCommand";
     this.statusBar.show();
   }
