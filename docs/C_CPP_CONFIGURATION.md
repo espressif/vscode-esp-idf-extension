@@ -7,34 +7,35 @@ The default configuration file is located in `{PROJECT_DIR}/.vscode/c_cpp_proper
 
 To enable Code Navigation, auto-complete and other language support features on ESP-IDF source files on Visual Studio Code. Please take a look at [C/C++ Configurations](https://code.visualstudio.com/docs/cpp/config-linux#_cc-configurations) for more detail about c_cpp_properties.json configuration fields.
 
-## Default Configuration
 
-With this configuration file, the IntelliSense engine of the C/C++ extension will include all header files found by performing a recursive search of the `${config:idf.espIdfPath}/components` folder.
-For this configuration to work, you need to set you C/C++ Extension IntelliSense engine to **Tag Parser** by using `C_Cpp.intelliSenseEngine": "Tag Parser"` in your settings.json.
+## Default Configuration with compile_commands.json
 
-An example configuration that should work with most projects is shown below.
+For the default configuration, you must build your project beforehand in order to generate `${workspaceFolder}/build/compile_commands.json` (where \${workspaceFolder} is your project directory). This file will then be used to resolve your C/C++ headers.
 
 ```json
 {
   "configurations": [
     {
       "name": "ESP-IDF",
-      "cStandard": "c11",
-      "cppStandard": "c++17",
+      "compilerPath": "/path/to/toolchain-gcc",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
       "includePath": [
         "${config:idf.espIdfPath}/components/**",
         "${config:idf.espIdfPathWin}/components/**",
+        "${config:idf.espAdfPath}/components/**",
+        "${config:idf.espAdfPathWin}/components/**",
         "${workspaceFolder}/**"
       ],
       "browse": {
         "path": [
           "${config:idf.espIdfPath}/components",
           "${config:idf.espIdfPathWin}/components",
+          "${config:idf.espAdfPath}/components/**",
+          "${config:idf.espAdfPathWin}/components/**",
           "${workspaceFolder}"
         ],
         "limitSymbolsToIncludedHeaders": false
-      },
-      "compilerPath": "/path/to/toolchain-gcc"
+      }
     }
   ],
   "version": 4
@@ -43,18 +44,34 @@ An example configuration that should work with most projects is shown below.
 
 > **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create Project from Extension Template` or you add the configuration files to an existing project using the `Add .vscode Configuration Folder`, this file is created with the compilerPath of the configured toolchain for your current `idf.adapterTargetName`.
 
-## Configuration with compile_commands.json
+## Recursive search configuration
 
-For this configuration, you must build your project beforehand in order to generate `${workspaceFolder}/build/compile_commands.json` (where \${workspaceFolder} is your project directory). This file will then be used to resolve your C/C++ headers.
+With this configuration, the IntelliSense engine of the C/C++ extension will include all header files found by performing a recursive search of the `${config:idf.espIdfPath}/components` folder.
+For this configuration to work, you need to set you C/C++ Extension IntelliSense engine to **Tag Parser** by using `C_Cpp.intelliSenseEngine": "Tag Parser"` in your settings.json and remove the `"compileCommands": "${workspaceFolder}/build/compile_commands.json"` property from the `c_cpp_properties.json`. Example:
 
 ```json
 {
   "configurations": [
     {
       "name": "ESP-IDF",
-      "cStandard": "c11",
-      "cppStandard": "c++17",
-      "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+      "compilerPath": "/path/to/toolchain-gcc",
+      "includePath": [
+        "${config:idf.espIdfPath}/components/**",
+        "${config:idf.espIdfPathWin}/components/**",
+        "${config:idf.espAdfPath}/components/**",
+        "${config:idf.espAdfPathWin}/components/**",
+        "${workspaceFolder}/**"
+      ],
+      "browse": {
+        "path": [
+          "${config:idf.espIdfPath}/components",
+          "${config:idf.espIdfPathWin}/components",
+          "${config:idf.espAdfPath}/components/**",
+          "${config:idf.espAdfPathWin}/components/**",
+          "${workspaceFolder}"
+        ],
+        "limitSymbolsToIncludedHeaders": false
+      }
     }
   ],
   "version": 4

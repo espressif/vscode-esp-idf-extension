@@ -48,16 +48,17 @@ export async function setTargetInIDF(
     "idf.enableCCache",
     workspaceFolder.uri
   ) as boolean;
-  const setTargetArgs: string[] = [idfPy, "-B", buildDirPath];
+  const setTargetArgs: string[] = [idfPy];
+  if (selectedTarget.isPreview) {
+    setTargetArgs.push("--preview");
+  }
+  setTargetArgs.push("-B", buildDirPath);
   if (enableCCache) {
     modifiedEnv.IDF_CCACHE_ENABLE = "1";
   } else {
     modifiedEnv.IDF_CCACHE_ENABLE = undefined;
   }
   setTargetArgs.push("set-target", selectedTarget.target);
-  if (selectedTarget.isPreview) {
-    setTargetArgs.push("--preview");
-  }
   const pythonBinPath = readParameter(
     "idf.pythonBinPath",
     workspaceFolder.uri
