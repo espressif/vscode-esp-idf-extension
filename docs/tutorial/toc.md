@@ -2,7 +2,7 @@
 
 ## Table of Content
 
-1. [Install the Extension and Dependencies.](./install.md) 
+1. [Install the Extension and Dependencies.](./install.md)
 2. [Basic usage](./basic_use.md)
 3. [Debug](./debugging.md)
 4. [Code Coverage](./code_coverage.md)
@@ -19,4 +19,4 @@
 15. [Developing on WSL](./wsl.md)
 16. [Open Existing ESP-IDF Project](./existing_idf_project.md)
 17. [Using the Project Configuration](./project_configuration.md) editor.
-18. [Using Multiple Build Configuration with the Project Configuration Editor](./multiple_config.md) 
+18. [Using Multiple Build Configuration with the Project Configuration Editor](./multiple_config.md)

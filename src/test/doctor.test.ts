@@ -307,7 +307,10 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
-    if (reportObj.configurationSettings.customExtraVars && Object.keys(reportObj.configurationSettings.customExtraVars)) {
+    if (
+      reportObj.configurationSettings.customExtraVars &&
+      Object.keys(reportObj.configurationSettings.customExtraVars)
+    ) {
       expectedOutput += `Custom extra vars (idf.customExtraVars)${os.EOL}`;
       for (let key in reportObj.configurationSettings.customExtraVars) {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;

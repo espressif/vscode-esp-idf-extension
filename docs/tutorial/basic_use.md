@@ -30,7 +30,7 @@ You have several options to create a project:
 
 6. Configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](../C_CPP_CONFIGURATION.md).
 
-7. Now to build the project, use the **ESP-IDF: Build your Project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>B</kbd> keyboard shortcut). The user will see a new terminal being launched with the build output and a notification bar with Building Project message until it is done then a Build done message when finished. You could modify the behavior of the build task with `idf.cmakeCompilerArgs` for Cmake configure step and `idf.ninjaArgs` for Ninja step. For example, using  `[-j N]` where N is the number of jobs run in parallel.
+7. Now to build the project, use the **ESP-IDF: Build your Project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>B</kbd> keyboard shortcut). The user will see a new terminal being launched with the build output and a notification bar with Building Project message until it is done then a Build done message when finished. You could modify the behavior of the build task with `idf.cmakeCompilerArgs` for Cmake configure step and `idf.ninjaArgs` for Ninja step. For example, using `[-j N]` where N is the number of jobs run in parallel.
 
 > **NOTE:** There is a `idf.notificationSilentMode` configuration setting if the user does not wants to see the output automatically. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify this configuration setting.
 
@@ -49,7 +49,7 @@ You have several options to create a project:
 > **NOTE:** Please take a look at [ESP-PROG Board the Instructions](https://docs.espressif.com/projects/espressif-esp-iot-solution/en/latest/hw-reference/ESP-Prog_guide.html#step-by-step-instruction) or [Configuring ESP32 Target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/index.html#configuring-esp32-target) your Espressif device and JTAG interface to your computer.
 
 9. Now to flash the project, use the **ESP-IDF: Flash your Project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>F</kbd> keyboard shortcut). Choose `UART` or `JTAG` flash mode ([Configure JTAG Flashing](#About-JTAG-flashing)) and then flashing will start in the previously selected serial port. The user can also use the **ESP-IDF: Flash (UART) your Project** or **ESP-IDF: Flash (with JTAG)** directly.
-  > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
+   > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting.
 
 The user will see a new terminal being launched with the flash output and a notification bar with `Flashing Project` message until it is done then a Flash done message when finished.
 

@@ -16,11 +16,7 @@
  * limitations under the License.
  */
 
-import {
-  BottomBarPanel,
-  InputBox,
-  Workbench,
-} from "vscode-extension-tester";
+import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
