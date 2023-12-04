@@ -188,7 +188,7 @@ export function updateStatus(
   }
 ): void {
   status.text = info ? `$(file-submodule)` : void 0;
-  status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
+  status.tooltip = info ? `${currentFolderMsg} ${info.tooltip}` : void 0;
   status.command = info ? info.clickCommand : void 0;
 
   if (info) {
