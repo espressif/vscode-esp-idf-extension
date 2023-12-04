@@ -144,7 +144,7 @@ export class EspMatterCloning extends AbstractCloning {
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: "Installing ESP-Matter",
+        title: "ESP-IDF: Installing ESP-Matter",
       },
       async (
         progress: Progress<{ message: string; increment?: number }>,
@@ -256,7 +256,7 @@ export async function installPythonReqs(
     {
       cancellable: true,
       location: ProgressLocation.Notification,
-      title: "Installing ESP-Matter",
+      title: "ESP-IDF: Installing ESP-Matter",
     },
     async (
       progress: Progress<{ message: string; increment?: number }>,
