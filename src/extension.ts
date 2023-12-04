@@ -1005,7 +1005,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       statusBarItems["projectConf"] = createStatusBarItem(
         "$(gear)" + option.target,
-        "ESP-IDF Select project configuration",
+        "ESP-IDF: Select Project Configuration",
         "espIdf.projectConf",
         100
       );
@@ -3130,7 +3130,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
-    "ESP-IDF Select port to use (COM, tty, usbserial)",
+    "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
     "espIdf.selectPort",
     101
   );
@@ -3138,7 +3138,7 @@ function createCmdsStatusBarItems() {
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
       "$(gear)" + projectConf,
-      "ESP-IDF Select project configuration",
+      "ESP-IDF: Select Project Configuration",
       "espIdf.projectConf",
       100
     );
@@ -3146,7 +3146,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,
-    "ESP-IDF Set Espressif device target",
+    "ESP-IDF: Set Espressif Device Target",
     "espIdf.setTarget",
     99
   );
@@ -3158,43 +3158,43 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["menuconfig"] = createStatusBarItem(
     "$(gear)",
-    "ESP-IDF SDK Configuration Editor (menuconfig)",
+    "ESP-IDF: SDK Configuration Editor (menuconfig)",
     "espIdf.menuconfig.start",
     97
   );
   statusBarItems["clean"] = createStatusBarItem(
     "$(trash)",
-    "ESP-IDF Full Clean",
+    "ESP-IDF: Full Clean",
     "espIdf.fullClean",
     96
   );
   statusBarItems["build"] = createStatusBarItem(
     "$(database)",
-    "ESP-IDF Build project",
+    "ESP-IDF: Build Project",
     "espIdf.buildDevice",
     95
   );
   statusBarItems["flashType"] = createStatusBarItem(
     `$(star-empty) ${flashType}`,
-    "ESP-IDF Select flash method",
+    "ESP-IDF: Select Flash Method",
     "espIdf.selectFlashMethodAndFlash",
     94
   );
   statusBarItems["flash"] = createStatusBarItem(
     `$(zap)`,
-    "ESP-IDF Flash device",
+    "ESP-IDF: Flash Device",
     "espIdf.flashDevice",
     93
   );
   statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
-    "ESP-IDF Monitor device",
+    "ESP-IDF: Monitor Device",
     "espIdf.monitorDevice",
     92
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
-    "ESP-IDF Build, Flash and Monitor",
+    "ESP-IDF: Build, Flash and Monitor",
     "espIdf.buildFlashMonitor",
     91
   );

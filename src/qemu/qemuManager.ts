@@ -210,7 +210,7 @@ export class QemuManager extends EventEmitter {
     }
     this.qemuTerminal.sendText(`${this.execString} ${qemuArgs.join(" ")}`);
     this.qemuTerminal.show(true);
-    this.updateStatusText("❇️ QEMU Server (Running)");
+    this.updateStatusText("ESP-IDF: ❇️ QEMU Server (Running)");
   }
 
   public stop() {
@@ -219,7 +219,7 @@ export class QemuManager extends EventEmitter {
       this.qemuTerminal.dispose();
       this.qemuTerminal = undefined;
     }
-    this.updateStatusText("❌ QEMU Server (Stopped)");
+    this.updateStatusText("ESP-IDF: ❌ QEMU Server (Stopped)");
   }
 
   public showOutputChannel(preserveFocus?: boolean) {
@@ -234,7 +234,7 @@ export class QemuManager extends EventEmitter {
         StatusBarAlignment.Right,
         1005
       );
-      this._statusBarItem.text = "[ESP-IDF QEMU]";
+      this._statusBarItem.text = "ESP-IDF: QEMU";
       this._statusBarItem.command = "espIdf.qemuCommand";
       this._statusBarItem.show();
     }
