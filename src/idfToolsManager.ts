@@ -122,12 +122,16 @@ export class IdfToolsManager {
     });
   }
 
-  public async verifyPackages(pathsToVerify: string, onReqPkgs?: string[]) {
+  public async verifyPackages(
+    pathsToVerify: string,
+    onReqPkgs?: string[],
+    logToChannel: boolean = true
+  ) {
     const pkgs = await this.getPackageList(onReqPkgs);
     const promiseArr: { [key: string]: string } = {};
     const names = pkgs.map((pkg) => pkg.name);
     const promises = pkgs.map((p) =>
-      this.checkBinariesVersion(p, pathsToVerify)
+      this.checkBinariesVersion(p, pathsToVerify, logToChannel)
     );
     const versionExistsArr = await Promise.all(promises);
     names.forEach((pkgName, i) => (promiseArr[pkgName] = versionExistsArr[i]));
@@ -195,7 +199,11 @@ export class IdfToolsManager {
     return versions.length > 0 ? versions[0].name : undefined;
   }
 
-  public async checkBinariesVersion(pkg: IPackage, pathsToVerify: string) {
+  public async checkBinariesVersion(
+    pkg: IPackage,
+    pathsToVerify: string,
+    logToChannel: boolean = true
+  ) {
     const pathNameInEnv: string =
       process.platform === "win32" ? "Path" : "PATH";
     let modifiedPath = process.env[pathNameInEnv];
@@ -220,7 +228,7 @@ export class IdfToolsManager {
       const binVersionResponse = await utils.execChildProcess(
         versionCmd,
         process.cwd(),
-        this.toolsManagerChannel,
+        logToChannel ? this.toolsManagerChannel : undefined,
         {
           env: modifiedEnv,
           maxBuffer: 500 * 1024,
@@ -246,8 +254,10 @@ export class IdfToolsManager {
       return "No match";
     } catch (error) {
       const errMsg = `Error checking ${pkg.name} version`;
-      this.toolsManagerChannel.appendLine(errMsg);
-      this.toolsManagerChannel.appendLine(error);
+      if (logToChannel) {
+        this.toolsManagerChannel.appendLine(errMsg);
+        this.toolsManagerChannel.appendLine(error);
+      }
       Logger.error(errMsg, error);
       return errMsg;
     }
@@ -315,11 +325,16 @@ export class IdfToolsManager {
   public async getRequiredToolsInfo(
     basePath?: string,
     pathToVerify?: string,
-    onReqPkgs?: string[]
+    onReqPkgs?: string[],
+    logToChannel: boolean = true
   ) {
     let versions: { [key: string]: string } = {};
     if (pathToVerify) {
-      versions = await this.verifyPackages(pathToVerify, onReqPkgs);
+      versions = await this.verifyPackages(
+        pathToVerify,
+        onReqPkgs,
+        logToChannel
+      );
     }
     const packages = await this.getPackageList(onReqPkgs);
     const idfToolsList = packages.map((pkg) => {
