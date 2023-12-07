@@ -232,7 +232,7 @@ export class BuildTask {
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
-      clear: cmakeCacheExists,
+      clear: false,
       panel: vscode.TaskPanelKind.Shared,
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
