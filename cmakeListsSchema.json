@@ -137,7 +137,7 @@
       "regex": "target_add_binary_data\\((.*) (.*) (.*)\\)",
       "title": "target_add_binary_data(target file BINARY|TEXT)",
       "type": "binary_data",
-      "typeValue": "",
+      "typeValue": "BINARY",
       "value": "",
       "variable": "",
       "canHaveMany": true

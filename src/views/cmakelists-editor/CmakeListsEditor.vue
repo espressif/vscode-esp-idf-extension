@@ -3,6 +3,7 @@ import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useCMakeListsEditorStore } from "./store";
 import CmakeListsElement from "./components/CMakeListsElement.vue";
+import { IconClose } from "@iconify-prerendered/vue-codicon";
 
 const store = useCMakeListsEditorStore();
 let {
@@ -22,6 +23,10 @@ function getElementKey(title: string, index: number) {
 
 function deleteElem(i: number) {
   store.elements.splice(i, 1);
+}
+
+function deleteElemError(i: number) {
+  store.elements[i].hasError = false;
 }
 </script>
 
@@ -53,10 +58,7 @@ function deleteElem(i: number) {
         <div class="level-item">
           <div class="field">
             <div class="control">
-              <button
-                class="button"
-                @click="store.addEmptyElement"
-              >
+              <button class="button" @click="store.addEmptyElement">
                 {{ textDictionary.add }}
               </button>
             </div>
@@ -84,12 +86,27 @@ function deleteElem(i: number) {
         </div>
       </div>
     </div>
+    <div v-if="store.errors && store.errors.length">
+      <div
+        v-for="(err, index) in store.errors"
+        class="notification is-danger error-message"
+      >
+        <p>{{ err }}</p>
+        <div
+          class="icon is-large is-size-4"
+          @click="store.errors.splice(index, 1)"
+        >
+          <IconClose />
+        </div>
+      </div>
+    </div>
     <div class="notification">
       <CmakeListsElement
         v-for="(elem, i) in store.elements"
         :key="getElementKey(elem.title, i)"
         :el="elem"
         @delete="deleteElem(i)"
+        @clearError="deleteElemError(i)"
       ></CmakeListsElement>
     </div>
   </div>
@@ -111,5 +128,21 @@ function deleteElem(i: number) {
 
 .align-flex-end {
   align-items: flex-end;
+}
+
+.error-message {
+  padding: 0.5em;
+  margin: 0.5em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error {
+  background-color: rgba(176, 81, 41, 0.1);
+}
+
+.error-message .icon:hover {
+  color: var(--vscode-button-foreground);
 }
 </style>

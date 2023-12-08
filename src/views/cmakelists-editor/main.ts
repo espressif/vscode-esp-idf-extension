@@ -41,6 +41,9 @@ window.addEventListener("message", (event) => {
         store.emptyElements = message.elements;
         store.selectedElementToAdd = message.elements[0];
       }
+      if (message.cmakeListsType) {
+        store.cmakeListsType = message.cmakeListsType;
+      }
     case "setFileName":
       if (message.fileName) {
         store.fileName = message.fileName;

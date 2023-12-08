@@ -9,10 +9,14 @@ defineProps<{
   el: CmakeListsElement;
 }>();
 
-const emit = defineEmits(["delete"]);
+const emit = defineEmits(["clearError", "delete"]);
 
 function deleteElem() {
   emit("delete");
+}
+
+function clearError() {
+  emit("clearError");
 }
 </script>
 
@@ -23,8 +27,9 @@ function deleteElem() {
       :el="el"
       v-if="el.type === 'binary_data'"
       @delete="deleteElem"
+      @clearError="clearError"
     />
-    <SetElement :el="el" v-if="el.type === 'set'" @delete="deleteElem" />
-    <StringElement :el="el" v-if="el.type === 'string'" @delete="deleteElem" />
+    <SetElement :el="el" v-if="el.type === 'set'" @delete="deleteElem" @clearError="clearError" />
+    <StringElement :el="el" v-if="el.type === 'string'" @delete="deleteElem"/>
   </div>
 </template>

@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
 
-const emit = defineEmits(["delete"]);
+const emit = defineEmits(["clearError", "delete"]);
 defineProps<{
   el: CmakeListsElement;
 }>();
 function del() {
   emit("delete");
 }
+function clearError() {
+  emit("clearError");
+}
 </script>
 
 <template>
-  <div class="py-1">
+  <div class="py-1" :class="{ error: el.hasError }">
     <div class="field">
       <div class="control is-flex">
         <label :for="el.title" class="label">{{ el.title }} </label>
@@ -25,7 +28,12 @@ function del() {
             <label class="label is-small">Variable</label>
           </div>
           <div class="control">
-            <input type="text is-small" v-model="el.variable" class="input" />
+            <input
+              type="text is-small"
+              v-model="el.variable"
+              class="input"
+              @input="clearError"
+            />
           </div>
         </div>
       </div>

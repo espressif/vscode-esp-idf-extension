@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { join, resolve } from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import {
-  CMakeListsType,
   loadCmakeListBuilder,
   updateCmakeListFile,
   updateWithValuesCMakeLists,
 } from "./cmakeListsBuilder";
 import CMakeListsWebviewCollection from "./cmakeFilesCollection";
+import { CMakeListsType } from "./cmakeListsElement";
 
 export class CmakeListsEditorPanel {
   public static cmakeListsPanels: CMakeListsWebviewCollection = new CMakeListsWebviewCollection();
@@ -198,6 +197,7 @@ export class CmakeListsEditorPanel {
       panel.webview.postMessage({
         command: "loadEmptyElements",
         elements: listWithValues,
+        cmakeListsType: type
       });
     }
     listWithValues = await updateWithValuesCMakeLists(fileUri, listWithValues);

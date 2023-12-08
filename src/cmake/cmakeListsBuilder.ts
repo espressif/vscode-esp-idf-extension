@@ -15,13 +15,8 @@
 import { EOL } from "os";
 import { join } from "path";
 import { Uri } from "vscode";
-import { CmakeListsElement } from "./cmakeListsElement";
+import { CMakeListsType, CmakeListsElement } from "./cmakeListsElement";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
-
-export enum CMakeListsType {
-  Component = "component",
-  Project = "project",
-}
 
 export async function loadCmakeListBuilder(
   extensionPath: string,
@@ -115,7 +110,12 @@ export async function updateCmakeListFile(
   const componentValues: string[] = [];
   const otherValues: string[] = [];
   for (let el of values) {
-    if (el.isComponentElement && el.value && el.value.length > 0) {
+    if (
+      el.isComponentElement &&
+      el.value &&
+      Array.isArray(el.value) &&
+      el.value.length > 0
+    ) {
       const elStr = el.template.replace(
         "***",
         el.value.map((v) => `"${v}"`).join(" ")
