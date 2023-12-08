@@ -188,7 +188,7 @@ export class BuildTask {
         sdkconfigDefaults.length
       ) {
         compilerArgs.push(
-          `-DSDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(";")}"`
+          `-DSDKCONFIG_DEFAULTS=${sdkconfigDefaults.join(";")}`
         );
       }
 
