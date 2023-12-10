@@ -978,12 +978,8 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     "partition_table"
   )}`;
 
-  let pathNameInEnv: string;
-  if (process.platform === "win32") {
-    pathNameInEnv = "Path";
-  } else {
-    pathNameInEnv = "PATH";
-  }
+  let pathNameInEnv: string =
+    Object.keys(process.env).find(k=>k.toUpperCase()=="PATH");
   if (pathToGitDir) {
     modifiedEnv[pathNameInEnv] =
       pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];

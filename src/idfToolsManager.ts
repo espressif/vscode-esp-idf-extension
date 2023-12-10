@@ -205,7 +205,7 @@ export class IdfToolsManager {
     logToChannel: boolean = true
   ) {
     const pathNameInEnv: string =
-      process.platform === "win32" ? "Path" : "PATH";
+      Object.keys(process.env).find(k=>k.toUpperCase()=="PATH");
     let modifiedPath = process.env[pathNameInEnv];
     if (
       process.env[pathNameInEnv] &&
