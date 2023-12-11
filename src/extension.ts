@@ -590,6 +590,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await del(managedComponents, { force: true });
           }
         }
+        Logger.infoNotify("Build directory has been deleted.");
       } catch (error) {
         OutputChannel.appendLineAndShow(error.message);
         Logger.errorNotify(error.message, error);
