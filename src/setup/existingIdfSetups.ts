@@ -23,7 +23,7 @@ import { IdfSetup } from "../views/setup/types";
 import { getIdfMd5sum, loadEspIdfJson } from "./espIdfJson";
 import { checkIdfSetup } from "./setupValidation/espIdfSetup";
 
-export async function getPreviousIdfSetups() {
+export async function getPreviousIdfSetups(logToChannel: boolean = true) {
   const setupKeys = ESP.GlobalConfiguration.store.getIdfSetupKeys();
   const idfSetups: IdfSetup[] = [];
   for (let idfSetupKey of setupKeys) {
@@ -33,7 +33,7 @@ export async function getPreviousIdfSetups() {
     );
     if (idfSetup && idfSetup.idfPath) {
       try {
-        idfSetup.isValid = await checkIdfSetup(idfSetup);
+        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
         idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
         idfSetups.push(idfSetup);
       } catch (err) {
@@ -41,7 +41,7 @@ export async function getPreviousIdfSetups() {
           ? err.message
           : "Error checkIdfSetup in getPreviousIdfSetups";
         Logger.error(msg, err);
-        ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id)
+        ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id);
       }
     }
   }
@@ -105,7 +105,7 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         isValid: false,
       } as IdfSetup;
       try {
-        setupConf.isValid = await checkIdfSetup(setupConf);
+        setupConf.isValid = await checkIdfSetup(setupConf, false);
       } catch (err) {
         const msg = err.message
           ? err.message
