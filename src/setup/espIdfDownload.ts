@@ -115,6 +115,12 @@ export async function downloadInstallIdfVersion(
     }
     const urlToUse =
       mirror === ESP.IdfMirror.Github ? idfVersion.url : idfVersion.mirror;
+
+    OutputChannel.appendLine(
+      `Using mirror ${
+        mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
+      } with URL ${urlToUse}`
+    );
     await downloadManager.downloadWithRetries(
       urlToUse,
       destPath,

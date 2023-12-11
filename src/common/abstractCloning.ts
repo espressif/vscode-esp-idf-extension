@@ -70,6 +70,11 @@ export class AbstractCloning {
       this.branchToUse,
       mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO
     );
+    OutputChannel.appendLine(
+      `Cloning mirror ${
+        mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
+      } with URL ${mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO}`
+    );
     return this.spawnWithProgress(
       this.gitBinPath,
       args,
