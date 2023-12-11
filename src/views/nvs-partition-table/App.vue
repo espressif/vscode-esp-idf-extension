@@ -35,6 +35,14 @@ function updateRow(index: number, prop: string, newValue: string) {
   }
 }
 
+function deleteRow(index: number) {
+  const rowToDelete = store.rows[index];
+  if (rowToDelete.type === "namespace" && index === 0) {
+    return;
+  }
+  store.rows.splice(index, 1);
+}
+
 onMounted(() => {
   store.initDataRequest();
 });
@@ -46,13 +54,14 @@ onMounted(() => {
     <PartitionTable @addNewRow="addNewRow" @save="store.save">
       <Row
         v-for="(row, i) in store.rows"
-        @delete="store.rows.splice(i, 1)"
+        @delete="deleteRow(i)"
         :key="i"
         :encoding="row.encoding"
         :rowError="row.error ? row.error : ''"
         :rowKey="row.key"
         :rowValue="row.value"
         :rowType="row.type"
+        :canDeleteRow="i !== 0"
         @updateRow="(prop: string, newValue: string) => updateRow(i, prop, newValue)"
       />
     </PartitionTable>

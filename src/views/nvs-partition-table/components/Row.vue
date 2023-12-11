@@ -9,6 +9,7 @@ const props = defineProps<{
   rowType: string;
   rowValue: string;
   rowError: string;
+  canDeleteRow: boolean;
 }>();
 
 const encodingTypes = computed(() => {
@@ -64,7 +65,7 @@ const types = ["data", "file", "namespace"];
       />
     </td>
     <td>
-      <a class="delete" @click="$emit('delete')"></a>
+      <a class="delete" @click="$emit('delete')" v-show="canDeleteRow"></a>
       <span
         class="icon is-small has-tooltip-arrow"
         :data-tooltip="rowError"
