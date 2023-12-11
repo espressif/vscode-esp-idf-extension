@@ -159,4 +159,8 @@ onMounted(() => {
 .notification span {
   font-weight: bold;
 }
+
+#openocd-cfgs {
+  resize: none;
+}
 </style>
