@@ -767,7 +767,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!option) {
           const noFolderMsg = locDic.localize(
             "extension.noFolderMessage",
-            "No workspace selected."
+            "No workspace selected"
           );
           Logger.infoNotify(noFolderMsg);
           return;
