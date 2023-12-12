@@ -34,9 +34,13 @@ const toolsDestPath = computed(() => {
 </script>
 
 <template>
-  <div class="centerize notification" v-if="isWinPlatform">
+  <div
+    class="centerize notification"
+    v-if="isWinPlatform"
+    @click="store.toggleContent('prerequisites')"
+  >
     <div class="control barText">
-      <p class="label">Installing IDF Prerequisites...</p>
+      <p class="label">Installing ESP-IDF Prerequisites...</p>
       <div class="icon is-large is-size-4">
         <IconCheck
           v-if="
@@ -61,17 +65,19 @@ const toolsDestPath = computed(() => {
         />
       </div>
     </div>
-    <DownloadStatus
-      name="IDF-Git"
-      :downloadStatus="idfGitDownloadStatus"
-      :destPath="toolsDestPath + 'idf-git'"
-      :status="statusIdfGit"
-    />
-    <DownloadStatus
-      name="IDF-Python"
-      :downloadStatus="idfPythonDownloadStatus"
-      :destPath="toolsDestPath + 'idf-python'"
-      :status="statusIdfPython"
-    />
+    <div id="prerequisites">
+      <DownloadStatus
+        name="IDF-Git"
+        :downloadStatus="idfGitDownloadStatus"
+        :destPath="toolsDestPath + 'idf-git'"
+        :status="statusIdfGit"
+      />
+      <DownloadStatus
+        name="IDF-Python"
+        :downloadStatus="idfPythonDownloadStatus"
+        :destPath="toolsDestPath + 'idf-python'"
+        :status="statusIdfPython"
+      />
+    </div>
   </div>
 </template>

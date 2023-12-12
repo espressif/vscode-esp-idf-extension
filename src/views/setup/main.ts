@@ -217,6 +217,7 @@ window.addEventListener("message", (event) => {
     case "updatePyReqsLog":
       if (msg.pyReqsLog) {
         store.pyReqsLog = msg.pyReqsLog;
+        store.moveToPySection();
       }
       break;
     case "updatePythonPath":

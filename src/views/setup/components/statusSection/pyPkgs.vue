@@ -11,7 +11,7 @@ import {
 
 const store = useSetupStore();
 
-const { pyReqsLog, statusPyVEnv } = storeToRefs(store);
+const { statusPyVEnv } = storeToRefs(store);
 
 const statusType = computed(() => {
   return StatusType;
@@ -19,7 +19,7 @@ const statusType = computed(() => {
 </script>
 
 <template>
-  <div class="centerize notification">
+  <div class="centerize notification" id="py-install-status">
     <div class="control barText">
       <p class="label">
         Installing Python virtual environment for ESP-IDF...

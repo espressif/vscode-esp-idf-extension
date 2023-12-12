@@ -46,13 +46,15 @@ const statusType = computed(() => {
       </li>
     </ul>
 
-    <PrerequisitesStatus />
+    <div id="scrollable">
+      <PrerequisitesStatus />
 
-    <EspIdfStatus />
+      <EspIdfStatus />
 
-    <EspIdfToolsStatus />
+      <EspIdfToolsStatus />
 
-    <PythonPkgsStatus />
+      <PythonPkgsStatus />
+    </div>
   </div>
 </template>
 
@@ -101,8 +103,8 @@ const statusType = computed(() => {
   content: "";
   width: 22%;
   height: 2px;
-  top: 7.75em;
-  margin-left: 2%;
+  top: 8.75em;
+  margin-left: 0.75em;
   background-color: var(--vscode-button-foreground);
   position: absolute;
   transition: opacity 1s;
@@ -155,5 +157,12 @@ const statusType = computed(() => {
   100% {
     transform: rotate(360deg);
   }
+}
+
+#scrollable {
+  width: 100%;
+  height: 50em;
+  overflow: auto;
+  padding: 10px;
 }
 </style>

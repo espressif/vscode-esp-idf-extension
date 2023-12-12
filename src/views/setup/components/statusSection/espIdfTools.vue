@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import toolDownload from "../toolDownload.vue";
 import { StatusType } from "../../types";
-import { useSetupStore  } from "../../store";
+import { useSetupStore } from "../../store";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import {
@@ -19,7 +19,7 @@ const statusType = computed(() => {
 </script>
 
 <template>
-  <div class="centerize notification">
+  <div class="centerize notification" @click="store.toggleContent('espidftools')">
     <div class="control barText">
       <p class="label">Installing ESP-IDF Tools...</p>
       <div class="icon is-large is-size-4">
@@ -34,7 +34,11 @@ const statusType = computed(() => {
         />
       </div>
     </div>
-    <div class="toolsSection" v-if="statusEspIdfTools !== statusType.pending">
+    <div
+      class="toolsSection"
+      v-if="statusEspIdfTools !== statusType.pending"
+      id="espidftools"
+    >
       <toolDownload v-for="tool in toolsResults" :key="tool.id" :tool="tool" />
     </div>
   </div>

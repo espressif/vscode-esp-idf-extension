@@ -103,13 +103,13 @@ export const useSetupStore = defineStore("setup", () => {
       command: "checkEspIdfTools",
       espIdf: espIdf.value,
       pyPath,
-      toolsPath:  JSON.stringify(toolsResults.value),
+      toolsPath: JSON.stringify(toolsResults.value),
     });
     vscode.postMessage({
       command: "checkEspIdfTools",
       espIdf: espIdf.value,
       pyPath,
-      toolsPath:  JSON.stringify(toolsResults.value),
+      toolsPath: JSON.stringify(toolsResults.value),
     });
   }
 
@@ -124,7 +124,7 @@ export const useSetupStore = defineStore("setup", () => {
       espIdfContainer: espIdfContainer.value,
       manualEspIdfPath: espIdf.value,
       mirror: selectedIdfMirror.value,
-      selectedEspIdfVersion:  JSON.stringify(selectedEspIdfVersion.value),
+      selectedEspIdfVersion: JSON.stringify(selectedEspIdfVersion.value),
       selectedPyPath: pyPath,
       setupMode: setupMode.value,
       toolsPath: toolsFolder.value,
@@ -310,6 +310,25 @@ export const useSetupStore = defineStore("setup", () => {
         toolsResults.value[i].progress = "100.00%";
       }
     }
+    moveToPySection();
+  }
+
+  function moveToPySection() {
+    let content = document.getElementById("espidftools") as HTMLDivElement;
+    content.style.display = "none";
+    content = document.getElementById("espidf") as HTMLDivElement;
+    content.style.display = "none";
+    const secNew = document.querySelector("#py-install-status") as HTMLElement;
+    const configList = document.querySelector("#scrollable") as HTMLElement;
+    const endPosition = secNew.getBoundingClientRect().bottom;
+    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+  }
+
+  function toggleContent(containerId: string) {
+    var content = document.getElementById(containerId) as HTMLDivElement;
+    content.style.display === "flex"
+      ? (content.style.display = "none")
+      : (content.style.display = "flex");
   }
 
   function setStatusIdfGit(status: StatusType) {
@@ -354,6 +373,7 @@ export const useSetupStore = defineStore("setup", () => {
     isIdfInstalling,
     isIdfInstalled,
     manualPythonPath,
+    moveToPySection,
     openOCDRulesPath,
     pathSep,
     platform,
@@ -402,5 +422,6 @@ export const useSetupStore = defineStore("setup", () => {
     openNewProjectPanel,
     openShowExamplesPanel,
     requestInitValues,
+    toggleContent
   };
 });
