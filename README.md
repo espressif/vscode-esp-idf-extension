@@ -140,6 +140,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Open NVS Partition Editor                               |                                        |                                           |
 | Pick a workspace folder                                 |                                        |                                           |
 | Remove Editor coverage                                  |                                        |                                           |
+| Save Default SDKCONFIG file (save-defconfig)            |                                        |                                           |
 | SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
 | Select Flash Method                                     |                                        |                                           |

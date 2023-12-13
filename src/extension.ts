@@ -1787,7 +1787,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
-    PreCheck.perform([openFolderCheck], () => {
+    const idfVersionCheck = await minIdfVersionCheck("5.0", workspaceRoot);
+    PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
       vscode.window.withProgress(
         {
           cancellable: true,

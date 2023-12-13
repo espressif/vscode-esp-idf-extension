@@ -68,7 +68,7 @@ export async function saveDefSdkconfig(
   TaskManager.addTask(
     {
       type: "esp-idf",
-      command: "IDF Save Default SDKCONFIG",
+      command: "ESP-IDF: Save Default SDKCONFIG",
       taskId: "idf-defconfig-task",
     },
     curWorkspaceFolder || TaskScope.Workspace,
