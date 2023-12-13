@@ -62,6 +62,7 @@
   "espIdf.welcome.title": "Bienvenido/a",
   "espIdf.projectConfigurationEditor.title": "Abrir configuracion de proyecto",
   "espIdf.projectConf.title": "Selecciona la configuración del proyecto",
+  "espIdf.saveDefSdkconfig.title": "ESP-IDF: Guardar archivo SDKCONFIG por defecto (save-defconfig)",
   "espIdf.clearSavedIdfSetups.title": "Limpiar configuraciones de IDF guardadas",
   "espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Construir y programar la app unit test app para pruebas",
   "espIdf.unitTest.installPyTest.title": "Unit Test: Instalar requerimientos ESP-IDF PyTest",

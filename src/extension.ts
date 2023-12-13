@@ -142,6 +142,7 @@ import {
   installPyTestPackages,
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
+import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1782,6 +1783,28 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
+    PreCheck.perform([openFolderCheck], () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Save Default Configuration (save-defconfig)",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            await saveDefSdkconfig(workspaceRoot, cancelToken);
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
