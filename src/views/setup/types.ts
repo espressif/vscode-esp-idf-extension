@@ -20,6 +20,7 @@ export interface IEspIdfLink {
   name: string;
   mirror: string;
   url: string;
+  version: string;
 }
 
 export interface IdfSetup {

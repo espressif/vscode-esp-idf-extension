@@ -53,7 +53,11 @@ export async function downloadInstallIdfVersion(
 ) {
   const downloadedZipPath = join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
-  const expectedDirectory = join(destPath, "esp-idf");
+  const expectedDirectory = join(
+    destPath,
+    idfVersion.version.replace("release/", ""),
+    "esp-idf"
+  );
   await ensureDir(destPath);
   const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
   if (expectedDirExists) {
@@ -91,8 +95,9 @@ export async function downloadInstallIdfVersion(
       });
     }
 
+    await ensureDir(dirname(expectedDirectory));
     await espIdfCloning.downloadByCloning(
-      destPath,
+      dirname(expectedDirectory),
       pkgProgress,
       progress,
       mirror !== ESP.IdfMirror.Espressif,

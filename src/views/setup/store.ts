@@ -80,6 +80,7 @@ export const useSetupStore = defineStore("setup", () => {
     mirror: "",
     name: "",
     url: "",
+    version: "",
   });
   let selectedIdfMirror: Ref<IdfMirror> = ref(IdfMirror.Github);
   let selectedSysPython: Ref<string> = ref("");
@@ -315,9 +316,13 @@ export const useSetupStore = defineStore("setup", () => {
 
   function moveToPySection() {
     let content = document.getElementById("espidftools") as HTMLDivElement;
-    content.style.display = "none";
+    if (content) {
+      content.style.display = "none";
+    }
     content = document.getElementById("espidf") as HTMLDivElement;
-    content.style.display = "none";
+    if (content) {
+      content.style.display = "none";
+    }
     const secNew = document.querySelector("#py-install-status") as HTMLElement;
     const configList = document.querySelector("#scrollable") as HTMLElement;
     const endPosition = secNew.getBoundingClientRect().bottom;
@@ -422,6 +427,6 @@ export const useSetupStore = defineStore("setup", () => {
     openNewProjectPanel,
     openShowExamplesPanel,
     requestInitValues,
-    toggleContent
+    toggleContent,
   };
 });

@@ -48,6 +48,12 @@ function setEspIdfPath(idfPath: string) {
 function setEspIdfContainerPath(idfContainerPath: string) {
   store.espIdfContainer = idfContainerPath;
 }
+
+const resultingIdfPath = computed(() => {
+  return `${selectedEspIdfVersion.value.version.replace("release/", "")}${
+    store.pathSep
+  }esp-idf`;
+});
 </script>
 
 <template>
@@ -109,7 +115,7 @@ function setEspIdfContainerPath(idfContainerPath: string) {
       :propMutate="setEspIdfContainerPath"
       :openMethod="store.openEspIdfContainerFolder"
       :onChangeMethod="clearIDfErrorStatus"
-      staticText="esp-idf"
+      :staticText="resultingIdfPath"
       v-if="
         selectedEspIdfVersion && selectedEspIdfVersion.filename !== 'manual'
       "

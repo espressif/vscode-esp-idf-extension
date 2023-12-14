@@ -101,7 +101,7 @@ const statusType = computed(() => {
 
 .statusBar li:after {
   content: "";
-  width: 22%;
+  width: 25%;
   height: 2px;
   top: 8.75em;
   margin-left: 0.75em;

@@ -81,3 +81,10 @@ const toolsDestPath = computed(() => {
     </div>
   </div>
 </template>
+
+<style>
+#prerequisites {
+  width: 100%;
+  justify-content: center;
+}
+</style>

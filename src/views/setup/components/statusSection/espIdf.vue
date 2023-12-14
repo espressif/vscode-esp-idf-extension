@@ -69,3 +69,10 @@ const {
     </div>
   </div>
 </template>
+
+<style>
+#espidf {
+  width: 100%;
+  justify-content: center;
+}
+</style>
