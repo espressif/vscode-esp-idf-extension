@@ -117,7 +117,7 @@ export async function mergeFlashBinaries(
     wsFolder
   );
   const curWorkspaceFolder = workspace.workspaceFolders.find(
-    (w) => w.uri === this.curWorkspace
+    (w) => w.uri === wsFolder
   );
   const mergePresentationOptions = {
     reveal: showTaskOutput,
