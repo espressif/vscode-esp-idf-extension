@@ -153,8 +153,12 @@
       ],
       "idfViewController": [
         {
+          "id": "idfCommands",
+          "name": "Commands"
+        },
+        {
           "id": "idfSearchResults",
-          "name": "ESP-IDF Docs search results"
+          "name": "Documentation search results"
         },
         {
           "id": "idfPartitionExplorer",
@@ -162,11 +166,11 @@
         },
         {
           "id": "idfAppTracer",
-          "name": "IDF App Tracer"
+          "name": "Application Tracer"
         },
         {
           "id": "idfAppTraceArchive",
-          "name": "App Trace Archives"
+          "name": "Application Trace Archives"
         },
         {
           "id": "espRainmaker",
