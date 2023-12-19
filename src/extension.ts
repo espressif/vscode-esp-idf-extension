@@ -97,7 +97,6 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
@@ -133,6 +132,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1597,10 +1597,10 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.flashDFU", () => flash(false, ESP.FlashType.DFU));
   registerIDFCommand("espIdf.flashUart", () =>
-    flash(false, ESP.FlashType.UART)
+    flash(isFlashEncryptionEnabled(), ESP.FlashType.UART)
   );
   registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashDevice", flash);
+  registerIDFCommand("espIdf.flashDevice", () => flash(isFlashEncryptionEnabled()));
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -3251,8 +3251,17 @@ const build = (flashType?: ESP.FlashType) => {
     );
   });
 };
+
+function isFlashEncryptionEnabled() {
+  const flashEncryption = utils.getConfigValueFromSDKConfig(
+    "CONFIG_FLASH_ENCRYPTION_ENABLED",
+    workspaceRoot
+  );
+  return flashEncryption === "y";
+}
+
 const flash = (
-  encryptPartition: boolean = false,
+  encryptPartitions: boolean = false,
   flashType?: ESP.FlashType
 ) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
@@ -3272,7 +3281,7 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await startFlashing(cancelToken, flashType, encryptPartition);
+        await startFlashing(cancelToken, flashType, encryptPartitions);
       }
     );
   });
@@ -3335,7 +3344,9 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           message: "Flashing project into device...",
           increment: 60,
         });
-        canContinue = await startFlashing(cancelToken, flashType, false);
+
+        let encryptPartitions = isFlashEncryptionEnabled();
+        canContinue = await startFlashing(cancelToken, flashType, encryptPartitions);
         if (!canContinue) {
           return;
         }
@@ -3377,6 +3388,7 @@ async function selectFlashMethod() {
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspaceRoot
   );
+  vscode.window.showInformationMessage(`Flash method changed to ${newFlashType}.`);
   return newFlashType;
 }
 
@@ -3387,6 +3399,33 @@ async function startFlashing(
 ) {
   if (!flashType) {
     flashType = await selectFlashMethod();
+  }
+
+  Logger.info(`Using flash type: ${flashType}`, {tag: "Flash"});
+
+  try {
+    if(encryptPartitions) {
+      if(flashType !== ESP.FlashType.UART) {
+        throw new Error(`Invalid flash type for partition encryption. Required: UART, Found: ${flashType}`);
+      }
+      const eFuse = new ESPEFuseManager(workspaceRoot);
+      const summaryResult = await eFuse.readSummary();
+      if (summaryResult && summaryResult.BLOCK_KEY0) {
+        if (summaryResult.BLOCK_KEY0.value && summaryResult.BLOCK_KEY0.value == "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") {
+          const errorMessage = "Encryption key (eFuse BLOCK_KEY0) is not set. Please configure the eFuse key before proceeding with encrypted flashing.";
+          const error = new Error(errorMessage);
+          const documentationUrl = await getDocsUrl(ESP.URL.Docs.FLASH_ENCRYPTION, workspaceRoot);
+          utils.showErrorNotificationWithLink(errorMessage, documentationUrl);
+          OutputChannel.appendLineAndShow(error.message);
+          Logger.error(errorMessage, error, {tag: "FLASH_ENCRYPTION"});
+          return;
+        }
+      }
+    }
+  } catch (error) {
+    OutputChannel.appendLineAndShow(error.message);
+    Logger.errorNotify(error.message, error, {tag: "FLASH_ENCRYPTION"});
+    return;
   }
 
   const port = idfConf.readParameter("idf.port", workspaceRoot);
