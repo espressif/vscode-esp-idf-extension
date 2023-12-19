@@ -19,7 +19,7 @@ import { basename, join } from "path";
 import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
-import { extensionContext, getEspIdfFromCMake} from "../../utils";
+import { extensionContext, getEspIdfFromCMake } from "../../utils";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 
@@ -124,23 +124,25 @@ export async function getDocsUrl(
   documentationPart: string,
   workspace: vscode.Uri
 ) {
-    const espIdfPath = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspace
-    ) as string;
-    
-    const adapterTargetName = idfConf.readParameter("idf.adapterTargetName", workspace) as string || "esp32";
-    const idfVersion = await getEspIdfFromCMake(espIdfPath);
-    const docVersions = await getDocsVersion();
-    let docVersion = docVersions.find((docVer) => docVer.name === idfVersion);
-    if (!docVersion) {
-      docVersion = docVersions.find((docVer) => docVer.name === "latest");
-    }
-    if (!docVersion) {
-      return;
-    }
-    const baseUrl = getDocsBaseUrl(docVersion.name, adapterTargetName);
-    const url = `${baseUrl}/${documentationPart}`;
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    workspace
+  ) as string;
 
-    return url;
+  const adapterTargetName =
+    (idfConf.readParameter("idf.adapterTargetName", workspace) as string) ||
+    "esp32";
+  const idfVersion = await getEspIdfFromCMake(espIdfPath);
+  const docVersions = await getDocsVersion();
+  let docVersion = docVersions.find((docVer) => docVer.name === idfVersion);
+  if (!docVersion) {
+    docVersion = docVersions.find((docVer) => docVer.name === "latest");
+  }
+  if (!docVersion) {
+    return;
+  }
+  const baseUrl = getDocsBaseUrl(docVersion.name, adapterTargetName);
+  const url = `${baseUrl}/${documentationPart}`;
+
+  return url;
 }
