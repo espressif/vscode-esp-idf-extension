@@ -46,8 +46,6 @@ export async function setIdfTarget(placeHolderMsg: string) {
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
-        const boards = await getBoards(openOcdScriptsPath);
         const targetsFromIdf = await getTargetsFromEspIdf(workspaceFolder.uri);
         const selectedTarget = await window.showQuickPick(targetsFromIdf);
         if (!selectedTarget) {
@@ -87,11 +85,9 @@ export async function setIdfTarget(placeHolderMsg: string) {
           configurationTarget,
           workspaceFolder.uri
         );
-
-        const boardsForTarget = boards.filter(
-          (b) => b.target === selectedTarget.target
-        );
-        const choices = boardsForTarget.map((b) => {
+        const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
+        const boards = await getBoards(selectedTarget.target, openOcdScriptsPath);
+        const choices = boards.map((b) => {
           return {
             description: `${b.description} (${b.configFiles})`,
             label: b.name,
