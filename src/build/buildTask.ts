@@ -183,13 +183,12 @@ export class BuildTask {
         (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
       if (
-        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") !== -1 &&
+        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
         sdkconfigDefaults &&
         sdkconfigDefaults.length
       ) {
         compilerArgs.push(
-          "-D",
-          `SDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(";")}"`
+          `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
         );
       }
 
@@ -233,7 +232,7 @@ export class BuildTask {
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
-      clear: cmakeCacheExists,
+      clear: false,
       panel: vscode.TaskPanelKind.Shared,
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
