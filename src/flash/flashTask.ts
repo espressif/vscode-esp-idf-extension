@@ -21,7 +21,7 @@ import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import { FlashModel } from "./flashModel";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { appendIdfAndToolsToPath, canAccessFile, getUserShell } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "./dfu";
 import { ESP } from "../config";
@@ -153,16 +153,20 @@ export class FlashTask {
         this.workspaceUri
       ) as string;
       const idfPy = path.join(idfPathDir, "tools", "idf.py");
-      return new vscode.ShellExecution(
-        `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`
-      );
+      const command = `"${pythonPath}" "${idfPy}" dfu-flash --path ${selectedDfuPath}`;
+      return process.platform === "win32" ?
+        new vscode.ShellExecution(command)
+        : new vscode.ShellExecution(`"${command}"`);
     }
-    return new vscode.ShellExecution(
-      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
-        this.buildDirPath,
-        "dfu.bin"
-      )}`
-    );
+    let command = `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D "${join(
+      this.buildDirPath,
+      "dfu.bin"
+    )}"`;
+    // replaces double quotes with single quotes for PowerShell users
+    if(getUserShell() === "PowerShell"){
+      command = command.replace(/"/g, "'");
+    }
+    return new vscode.ShellExecution(command);
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {

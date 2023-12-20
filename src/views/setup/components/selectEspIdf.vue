@@ -38,6 +38,9 @@
             >
           </select>
         </div>
+        <div v-if="isVersionLowerThan5">
+          <span class="warning-text">Whitespaces in project, ESP-IDF or ESP Tools paths are not supported in versions lower than 5.0</span>
+        </div>
       </div>
     </div>
     <folderOpen
@@ -62,10 +65,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { IdfMirror, IEspIdfLink } from "../types";
 import { State, Action, Mutation } from "vuex-class";
 import folderOpen from "./folderOpen.vue";
+import { isVersionLowerThan5 } from "../store";
 
 @Component({
   components: {
@@ -88,6 +92,18 @@ export default class SelectEspIdf extends Vue {
   @State("selectedEspIdfVersion") private storeSelectedIdfVersion: IEspIdfLink;
   @State("selectedIdfMirror") private storeSelectedIdfMirror: IdfMirror;
   @State("showIdfTagList") private storeShowIdfTagList: boolean;
+
+  @Watch('selectedIdfVersion', { deep: true })
+  onSelectedIdfVersionChanged(newValue: IEspIdfLink, oldValue: IEspIdfLink) {
+    // Validate the paths for whitespaces when the version changes.
+    const hasWhitespace = this.validatePathForWhitespace(this.espIdf, this.espIdfContainer);
+
+    if (hasWhitespace && this.isVersionLowerThan5) {
+      this.setEspIdfErrorStatus("Whitespaces in project, ESP-IDF or ESP Tools paths are not supported in versions lower than 5.0");
+    } else {
+      this.clearIDfErrorStatus();
+    }
+  }
 
   get espIdf() {
     return this.storeEspIdf;
@@ -137,6 +153,17 @@ export default class SelectEspIdf extends Vue {
   set showGithubTags(showTags: boolean) {
     this.setShowIdfTagList(showTags);
   }
+  get isVersionLowerThan5() {
+    if (this.selectedIdfVersion && this.selectedIdfVersion.name) {
+      return isVersionLowerThan5(this.selectedIdfVersion.name);
+    }
+    return false;
+}
+
+  private validatePathForWhitespace(...paths: string[]): boolean {
+      // Check all provided paths for whitespaces
+      return paths.some(path => /\s/.test(path));
+    }
 
   public clearIDfErrorStatus() {
     this.setEspIdfErrorStatus("");
@@ -150,5 +177,10 @@ export default class SelectEspIdf extends Vue {
 }
 .checkbox:hover {
   color: var(--vscode-button-background);
+}
+.warning-text {
+  color: var(--vscode-editorWarning-foreground);
+  font-size: small;
+  
 }
 </style>

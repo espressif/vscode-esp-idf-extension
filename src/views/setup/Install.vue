@@ -9,14 +9,8 @@
 
       <selectEspIdf></selectEspIdf>
 
-      <div
-        class="notification is-danger error-message"
-        v-if="espIdfErrorStatus"
-      >
-        <p>{{ espIdfErrorStatus }}</p>
-        <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus('')">
-          <iconify-icon icon="close" />
-        </div>
+      <div v-if="espIdfErrorStatus">
+        <span class="error-text">{{ espIdfErrorStatus }}</span>
       </div>
 
       <folderOpen
@@ -28,14 +22,9 @@
 
       <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
 
-      <div
-        class="notification is-danger error-message"
-        v-if="pyExecErrorStatus"
-      >
-        <p>{{ pyExecErrorStatus }}</p>
-        <div class="icon is-large is-size-4" @click="setPyExecErrorStatus('')">
-          <iconify-icon icon="close" />
-        </div>
+      <div v-if="pyExecErrorStatus">
+        <span class="error-text">{{ pyExecErrorStatus }}</span>
+
       </div>
 
       <div class="field install-btn">
@@ -44,6 +33,7 @@
             @click="installEspIdf"
             class="button"
             data-config-id="start-install-btn"
+            :disabled="isThereAnError"
           >
             Install
           </button>
@@ -54,8 +44,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import { Action, Mutation, State } from "vuex-class";
+import { IEspIdfLink } from "./types";
 import folderOpen from "./components/folderOpen.vue";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
@@ -70,14 +61,24 @@ import selectPyVersion from "./components/selectPyVersion.vue";
 export default class Install extends Vue {
   @Action installEspIdf;
   @Action openEspIdfToolsFolder;
-  @Mutation setEspIdfErrorStatus;
-  @Mutation setPyExecErrorStatus;
+  // @Mutation setEspIdfErrorStatus;
+  // @Mutation setPyExecErrorStatus;
   @Mutation setToolsFolder;
   @State("gitVersion") private storeGitVersion: string;
   @State("espIdfErrorStatus") private storeErrorStatus: string;
   @State("pathSep") private storePathSep: string;
   @State("pyExecErrorStatus") private storePyExecErrorStatus: string;
   @State("toolsFolder") private storeToolsFolder: string;
+  @State("selectedEspIdfVersion") private storeSelectedEspIdfVersion: IEspIdfLink;
+
+  @Watch('selectedEspIdfVersion')
+  onSelectedEspIdfVersionChanged() {
+    this.setToolsFolder(this.toolsFolder);
+  }
+
+  get isThereAnError() {
+    return this.espIdfErrorStatus !== '' || this.pyExecErrorStatus !== '';
+  }
 
   get gitVersion() {
     return this.storeGitVersion;
@@ -98,6 +99,10 @@ export default class Install extends Vue {
   get toolsFolder() {
     return this.storeToolsFolder;
   }
+
+  get selectedEspIdfVersion() {
+    return this.storeSelectedEspIdfVersion;
+  }
 }
 </script>
 
@@ -106,15 +111,8 @@ export default class Install extends Vue {
   margin: 1% 5%;
 }
 
-.error-message {
-  padding: 0.5em;
-  margin: 0.5em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.error-message .icon:hover {
-  color: var(--vscode-button-foreground);
+.error-text {
+  color: var(--vscode-editorError-foreground);
+  font-size: small;
 }
 </style>

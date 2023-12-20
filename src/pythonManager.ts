@@ -40,7 +40,7 @@ export async function installEspIdfToolFromIdf(
     }
     try {
       const processResult = await utils.execChildProcess(
-        `"${pythonBinPath}" ${idfToolsPyPath} install ${toolName}@${toolVersion}`,
+        `"${pythonBinPath}" "${idfToolsPyPath}" install ${toolName}@${toolVersion}`,
         idfToolsPath,
         channel,
         { cwd: idfToolsPath, env: modifiedEnv },

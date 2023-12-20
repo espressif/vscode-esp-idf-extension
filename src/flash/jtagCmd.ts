@@ -57,7 +57,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     customTask.addCustomTask(CustomTaskType.PreFlash);
     await customTask.runTasks(CustomTaskType.PreFlash);
     await jtag.flash(
-      `program_esp_bins ${buildPath} flasher_args.json verify reset`
+      `program_esp_bins "${buildPath}" flasher_args.json verify reset`
     );
     customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);

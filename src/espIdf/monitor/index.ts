@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { appendIdfAndToolsToPath } from "../../utils";
+import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { window, Terminal, Uri, env } from "vscode";
 
 export interface MonitorConfig {
@@ -65,8 +65,8 @@ export class IDFMonitor {
       modifiedEnv.MONITORBAUD ||
       "115200";
     const args = [
-      this.config.pythonBinPath,
-      this.config.idfMonitorToolPath,
+      `"${this.config.pythonBinPath}"`,
+      `"${this.config.idfMonitorToolPath}"`,
       "-p",
       this.config.port,
       "-b",
@@ -95,9 +95,17 @@ export class IDFMonitor {
     if (this.config.wsPort) {
       args.push("--ws", `ws://localhost:${this.config.wsPort}`);
     }
-    args.push(this.config.elfFilePath);
+    args.push(`"${this.config.elfFilePath}"`);
+    if(getUserShell() === "PowerShell") {
+      // The & operator tells PowerShell to execute all the elements args as a command.
+      args.unshift("&");
+    }
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+    if(getUserShell() === "bash" || getUserShell() === "zsh" || getUserShell() === "custom") {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH="${modifiedEnv.IDF_PATH}"`);
+    } else {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+    }
     this.terminal.sendText(args.join(" "));
     return this.terminal;
   }

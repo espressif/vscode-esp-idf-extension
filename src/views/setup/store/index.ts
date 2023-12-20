@@ -240,13 +240,32 @@ export const actions: ActionTree<IState, any> = {
 
 export const mutations: MutationTree<IState> = {
   setEspIdfPath(state, espIdf: string) {
-    const newState = state;
+    const newState = { ...state };
     newState.espIdf = espIdf;
+  
+    const errorStatus = validatePathForVersion(newState.selectedEspIdfVersion.name, espIdf);
+    if (errorStatus) {
+      newState.espIdfErrorStatus = errorStatus;
+      Object.assign(state, newState);
+      return;
+    }
+  
+    newState.espIdfErrorStatus = '';
     Object.assign(state, newState);
   },
+  
   setEspIdfContainerPath(state, espIdfContainer: string) {
-    const newState = state;
+    const newState = { ...state };
     newState.espIdfContainer = espIdfContainer;
+  
+    const errorStatus = validatePathForVersion(newState.selectedEspIdfVersion.name, espIdfContainer);
+    if (errorStatus) {
+      newState.espIdfErrorStatus = errorStatus;
+      Object.assign(state, newState);
+      return;
+    }
+  
+    newState.espIdfErrorStatus = '';
     Object.assign(state, newState);
   },
   setEspIdfErrorStatus(state, errorStatus: string) {
@@ -356,9 +375,22 @@ export const mutations: MutationTree<IState> = {
     Object.assign(state, newState);
   },
   setSelectedEspIdfVersion(state, selectedEspIdfVersion: IEspIdfLink) {
-    const newState = state;
+    const newState = { ...state };
     newState.selectedEspIdfVersion = selectedEspIdfVersion;
     newState.idfDownloadStatus.id = selectedEspIdfVersion.name;
+  
+    let errorStatus = validatePathForVersion(selectedEspIdfVersion.name, newState.espIdf);
+    if (!errorStatus) {
+      errorStatus = validatePathForVersion(selectedEspIdfVersion.name, newState.espIdfContainer);
+    }
+  
+    if (errorStatus) {
+      newState.espIdfErrorStatus = errorStatus;
+      Object.assign(state, newState);
+      return;
+    }
+  
+    newState.espIdfErrorStatus = '';
     Object.assign(state, newState);
   },
   setSelectedSysPython(state, selectedSysPython: string) {
@@ -377,8 +409,18 @@ export const mutations: MutationTree<IState> = {
     Object.assign(state, newState);
   },
   setToolsFolder(state, toolsFolder: string) {
-    const newState = state;
+    const newState = { ...state };
     newState.toolsFolder = toolsFolder;
+
+    const errorStatus = validatePathForVersion(state.selectedEspIdfVersion.name, toolsFolder);
+
+    if (errorStatus) {
+      newState.pyExecErrorStatus = errorStatus;
+      Object.assign(state, newState);
+      return;
+    }
+
+    newState.pyExecErrorStatus = '';
     Object.assign(state, newState);
   },
   setToolChecksum(state, toolData: { name: string; checksum: boolean }) {
@@ -501,3 +543,23 @@ export const setupStore: StoreOptions<IState> = {
 Vue.use(Vuex);
 
 export const store = new Store(setupStore);
+
+// Helper functions
+
+export function isVersionLowerThan5(versionName: string): boolean {
+  if (versionName) {
+    const match = versionName.match(/v(\d+(\.\d+)?(\.\d+)?)/);
+    if (match) {
+      const versionNumber = parseFloat(match[1]);
+      return versionNumber < 5;
+    }
+  }
+  return false;
+}
+
+export function validatePathForVersion(versionName: string, path: string): string {
+  if (isVersionLowerThan5(versionName) && /\s/.test(path)) {
+    return "Whitespaces in path are not supported in versions lower than 5.0";
+  }
+  return '';
+}

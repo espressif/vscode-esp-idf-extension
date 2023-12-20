@@ -21,7 +21,7 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { appendIdfAndToolsToPath, isBinInPath, getUserShell } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
@@ -81,17 +81,29 @@ export class BuildTask {
       "idf.pythonBinPath",
       this.curWorkspace
     ) as string;
-    return new vscode.ShellExecution(
-      `${pythonBinPath} ${join(
+    // For PowerShell users, single quotes needs to be used and & before the command
+    const command = (getUserShell() === "PowerShell") ? 
+      `& '${pythonBinPath}' '${join(
+        this.idfPathDir,
+        'tools',
+        'mkdfu.py'
+      )}' write -o '${join(this.buildDirPath, 'dfu.bin')}' --json '${join(
+        this.buildDirPath,
+        'flasher_args.json'
+      )}' --pid ${selectedDFUAdapterId(this.adapterTargetName)}`
+    :
+      `"${pythonBinPath}" "${join(
         this.idfPathDir,
         "tools",
         "mkdfu.py"
-      )} write -o ${join(this.buildDirPath, "dfu.bin")} --json ${join(
+      )}" write -o "${join(this.buildDirPath, "dfu.bin")}" --json "${join(
         this.buildDirPath,
         "flasher_args.json"
-      )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
-      options
-    );
+      )}" --pid ${selectedDFUAdapterId(this.adapterTargetName)}`;
+    
+    return process.platform === "win32" ? 
+      new vscode.ShellExecution(`"${command}"`,options)
+      : new vscode.ShellExecution(command,options);
   }
 
   public async build() {
@@ -173,10 +185,25 @@ export class BuildTask {
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
-      compilerArgs.push("-B", this.buildDirPath);
+      // Encapsulation with "" needed as well in case of multiple spaces in paths
+      if (getUserShell() === "PowerShell") {
 
-      if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push("-S", this.curWorkspace.fsPath);
+        const buidCommand =`-B "'${this.buildDirPath}'"`;
+        compilerArgs.push(buidCommand);
+        const curWorkspaceCommand =`-S "'${this.curWorkspace.fsPath}'"`
+        if (compilerArgs.indexOf("-S") === -1) {
+          compilerArgs.push(curWorkspaceCommand);
+        }
+
+      } else {
+
+        const buidCommand =`-B="${this.buildDirPath}"`;
+        compilerArgs.push(buidCommand);
+        const curWorkspaceCommand =`-S="${this.curWorkspace.fsPath}"`
+        if (compilerArgs.indexOf("-S") === -1) {
+          compilerArgs.push(curWorkspaceCommand);
+        }
+
       }
 
       const sdkconfigDefaults =

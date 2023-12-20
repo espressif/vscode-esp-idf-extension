@@ -30,7 +30,7 @@ import {
 } from "vscode";
 import { readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
-import { appendIdfAndToolsToPath } from "../../utils";
+import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
 export class IdfSizeTask {
@@ -45,6 +45,7 @@ export class IdfSizeTask {
       "idf.pythonBinPath",
       workspacePath
     ) as string;
+
     const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
     this.buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
@@ -52,11 +53,28 @@ export class IdfSizeTask {
 
   public async getShellExecution(options: ShellExecutionOptions) {
     const mapFilePath = await this.mapFilePath();
-    return new ShellExecution(
-      `${this.pythonBinPath} ${this.idfSizePath} ${mapFilePath}`,
-      options
-    );
-  }
+    const userShell = getUserShell();
+    
+    let command: string;
+
+    switch(userShell) {
+      case "PowerShell":
+        // the & operator tells PowerShell to execute the string as a command.
+        command = `& "'${this.pythonBinPath}'" "'${this.idfSizePath}'" "'${mapFilePath}'"`;
+        break;
+      case "Command Prompt":
+        command = `""${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}""`;
+        break;
+      case "bash":
+      case "zsh":
+      case "custom":
+      default:
+        command = `"${this.pythonBinPath}" "${this.idfSizePath}" "${mapFilePath}"`;
+        break;
+    }
+
+    return new ShellExecution(command, options);
+}
 
   private async mapFilePath() {
     const projectName = await getProjectName(this.buildDirPath);
