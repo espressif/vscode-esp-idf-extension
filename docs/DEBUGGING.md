@@ -1,6 +1,6 @@
 # Configuration for Visual Studio Code Debug
 
-> **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
+> **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
 > **NOTE:** Please take a look first at [ESP-IDF JTAG Debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works).
 > OpenOCD typically uses port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
@@ -9,7 +9,7 @@ The Visual Studio Code uses `.vscode/launch.json` to configure debug as specifie
 
 We recommend using our ESP-IDF Debug Adapter to debug your ESP-IDF projects, but you can also just configure launch.json for the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools).
 
-Our extension implements a `ESP Peripheral View` tree view in the `Run and debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
+Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF SVD File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
 ## Use the ESP-IDF Debug Adapter
 
@@ -45,14 +45,14 @@ The ESP-IDF Debug Adapter settings for launch.json are:
 - `initGdbCommands`: One or more xtensa-esp32-elf-gdb commands to execute in order to setup the underlying debugger.
   > **NOTE**: If `gdbinitFile` is defined, these commands will be ignored.
 - `logLevel`: Debug Adapter logging level (0-4), 5 - for a full OOCD log. Default: 2.
-- `mode`: Can be either `auto`, to start the debug adapter and openOCD server within the extension or `manual`, to connect to existing debug adapter and openOCD session. Default: auto.
-  > **NOTE:** If set to `manual`, openOCD and ESP-IDF Debug Adapter have to be manually executed by the user and the extension will just try to connect to existing servers at configured ports.
+- `mode`: Can be either `auto`, to start the Debug Adapter and OpenOCD server within the extension or `manual`, to connect to existing Debug Adapter and OpenOCD session. Default: auto.
+  > **NOTE:** If set to `manual`, OpenOCD and ESP-IDF Debug Adapter have to be manually executed by the user and the extension will just try to connect to existing servers at configured ports.
 - `name`: The name of the debug launch configuration. This will be shown in the Run view (Menu View -> Run).
 - `type`: Type of debug configuration. It **must** be `espidf`.
 - `verifyAppBinBeforeDebug`: (Default `false`) If enabled the extension will verify that the current workspace folder `build/${project-name}.bin` is the same of the target device application. `${project-name}` is the name of the project (i.e blink) and is obtained from the `build/project_description.json`. Set this to `true` to add application binary validation before debug session.
 - `tmoScaleFactor`: Scale factor for gdb timeout. Default: 1.
 
-If `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
+If `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
 
 ```
 target remote :3333
@@ -93,11 +93,11 @@ Example launch.json for ESP-IDF Debug Adapter:
 }
 ```
 
-### Output and logs from ESP-IDF Debug Adapter and OpenOCD
+### Output and Logs from ESP-IDF Debug Adapter and OpenOCD
 
 Beside the Visual Studio Code Debug console output. You can find the debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF Debug Adapter` as well as OpenOCD output in Menu View -> Output -> `OpenOCD`.
 
-## Use Microsoft C/C++ extension to debug
+## Use Microsoft C/C++ Extension to Debug
 
 The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to debug, the community recommend this launch.json configuration:
 

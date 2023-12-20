@@ -4,7 +4,7 @@ The Espressif docker image has been released [here](https://docs.espressif.com/p
 
 In this tutorial will show you how to develop your projects based on `Visual Studio Code` + `ESP-IDF extension` + `ESP-IDF Docker Image` to execute all ESP-IDF extension features.
 
-# Required tools
+# Required Tools
 
 you need to install the following tools before starting our projects:
 
@@ -23,7 +23,7 @@ Docker Desktop is an application for MacOS and Windows machines for the building
 
 ## Ubuntu 20.04 on Windows
 
-WSL is present starting from Windows 10 OS, so we can check the WSL list with the `powershell` command prompt, as below
+WSL is present starting from Windows 10 OS, so we can check the WSL list with the `Powershell` command prompt, as below
 
 ```c
 wsl -l -o
@@ -31,7 +31,7 @@ wsl -l -o
 
 <img src="../../media\tutorials\using_docker_container\wsl-l-o.png" alt="" height="">
 
-so to install WSL on windows, please type in the following command:
+so to install WSL on Windows, please type in the following command:
 
 ```c
 wsl --install --distribution　Ubuntu-20.04
@@ -41,9 +41,9 @@ wsl --install --distribution　Ubuntu-20.04
 
 ## usbipd-win
 
-To access the `USB`,`serial`,`JTAG` devices which are from the local windows, this tools must be installed, else it is impossible to download,monitor and debug on IDF docker image side. the way to install it, it is also same as windows applications, so it will not be described in detail here.
+To access the `USB`,`serial`,`JTAG` devices which are from the local Windows, this tools must be installed, else it is impossible to download,monitor and debug on IDF docker image side. the way to install it, it is also same as Windows applications, so it will not be described in detail here.
 
-# configuration
+# Configuration
 
 we still need to do a bit configurations after installing the four tools above:
 
@@ -74,7 +74,7 @@ at last, to check if the commands have taken effect with `wsl --status` command.
 
 <img src="../../media\tutorials\using_docker_container\wsl-status.png" alt="" height="">
 
-## Docker Desktop For Windows
+## Docker Desktop for Windows
 
 As the distribution Ubuntu 20.04 has been updated to version 2, so it needs to modify accordingly from docker side and choose the Ubuntu 20.04 as the default WSL integration as well.
 
@@ -82,7 +82,7 @@ As the distribution Ubuntu 20.04 has been updated to version 2, so it needs to m
 
 ## usbipd
 
-From windows side this tool should be already configured. However `usbipd` still need to be installed on the WSL, that is, open the WSL from Windows menu and then type in the following the commands separately:
+From Windows side this tool should be already configured. However `usbipd` still need to be installed on the WSL, that is, open the WSL from Windows menu and then type in the following the commands separately:
 
 ```c
 sudo apt install linux-tools-virtual hwdata
@@ -95,7 +95,7 @@ If any errors are found, try updating apt-get packages first.
 apt-get update
 ```
 
-> **NOTE:** IF you are using a container made with the Dockerfile from this extension `.devcontainer` generated directory (when you create a project using the `ESP-IDF: New Project`, `ESP-IDF: Add docker container configuration` or `ESP-IDF: Show Examples` commands).
+> **NOTE:** IF you are using a container made with the Dockerfile from this extension `.devcontainer` generated directory (when you create a project using the `ESP-IDF: New Project`, `ESP-IDF: Add Docker Container Configuration` or `ESP-IDF: Show Examples` commands).
 
 with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
 
@@ -135,13 +135,13 @@ To connect to the `ESIDF docker image`, install the `Remote - Containers`、`Rem
 
 After all previous steps have taken effect, the WSL or docker container should be ready to use. Here is an example to show you how to utilize these tools.
 
-## example project with docker container
+## Example Project with Docker Container
 
-Using `blink` and `hello_world` projects as examples, If you have more example projects, you can put them in the same folder and mount them together in the IDF Docker image; otherwise, it will take your much more space size on your disk as you need to create one container for each example project, that is not a good solution.
+Using `Blink` and `Hello_world` projects as examples, If you have more example projects, you can put them in the same folder and mount them together in the IDF Docker image; otherwise, it will take your much more space size on your disk as you need to create one container for each example project, that is not a good solution.
 
 <img src="../../media\tutorials\using_docker_container\example_projects.png" alt="" height="">
 
-as seen from snapshot above, `blink` and `hello_world` example projects have been put in the same folder and we only need to open this folder with vscode:
+as seen from snapshot above, `Blink` and `Hello_world` example projects have been put in the same folder and we only need to open this folder with vscode:
 
 <img src="../../media\tutorials\using_docker_container\example_project_vscode.gif" alt="" height="">
 
@@ -150,7 +150,7 @@ some readers may see that there is a `.devcontainer` folder in the example_proje
 If the user readers also need to generate their own `.devcontainer` folder content, as follows:
 
 1. open example project with vscode and then press `F1`
-1. In the pop-up dialog box, search for the `ESP-IDF: Add docker container configuration` command
+1. In the pop-up dialog box, search for the `ESP-IDF: Add Docker Container Configuration` command
 1. `.devcontainer`folder will be generated for the currently opened project.
 
 <img src="../../media\tutorials\using_docker_container\dev_container.gif" alt="" height="">
@@ -200,7 +200,7 @@ For more information about `devcontainer.json`, please refer to the comments.
 
 At this point, all related configurations have been completed.
 
-## Create a container
+## Create a Container
 
 Create a container and then start your development by clicking the `><` green button at the bottom left of Visual Studio Code and select `Open Folder in Container` to start creating a container **(It will be slightly slower, because to download the Docker image of ESP-IDF, you only need to download it once)**, and finally open the `Blink` example project; if you need to switch to another project, just change it from `"workspaceFolder": "/workspaces/blink"` to `"workspaceFolder": "/workspaces/The name of the sample project you want to open"`, and then re-select`Open Folder in Container`, as follows:
 
@@ -208,7 +208,7 @@ Create a container and then start your development by clicking the `><` green bu
 
 at this moment, you can start to use the `Blink` example project for building, flashing, monitoring, debugging, etc.
 
-## Building the project
+## Building the Project
 
 Here taking the esp32-c3 as an example, users only need to change the target device from `esp32` to `esp32-c3`, as below:
 
@@ -218,7 +218,7 @@ next, start to build the example project, as below:
 
 <img src="../../media\tutorials\using_docker_container\container_build.gif" alt="" height="">
 
-## Flashing to your device
+## Flashing to your Device
 
 after building, we can use the following ways to download the firmware.
 
@@ -240,7 +240,7 @@ so users need to reopen the container, that is `Reopen Folder Locally` and then 
 
 <img src="../../media\tutorials\using_docker_container\container_reopen.gif" alt="" height="">
 
-at last, click the `flash` button and start to download the firmware.
+at last, click the `Flash` button and start to download the firmware.
 
 <img src="../../media\tutorials\using_docker_container\container_flash_uart.gif" alt="" height="">
 
@@ -260,7 +260,7 @@ the interface is the same as [Internal USB-serial](#internal-usb-serial), that i
 
 <img src="../../media\tutorials\using_docker_container\container_flash_jtag.gif" alt="" height="">
 
-## debugging
+## Debugging
 
 After following [USB-JTAG](#usb-jtag), press `F5` to start to debug:
 

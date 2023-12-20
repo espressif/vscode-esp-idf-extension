@@ -1,6 +1,6 @@
 {
   "name": "esp-idf-extension",
-  "displayName": "Espressif IDF",
+  "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
   "version": "1.6.5",
   "license": "Apache-2.0",
@@ -139,7 +139,7 @@
       "activitybar": [
         {
           "id": "idfViewController",
-          "title": "ESP-IDF Explorer",
+          "title": "ESP-IDF: Explorer",
           "icon": "media/esp.svg"
         }
       ]
@@ -147,7 +147,7 @@
     "views": {
       "debug": [
         {
-          "name": "ESP Peripheral View",
+          "name": "ESP-IDF: Peripheral",
           "id": "espIdf.peripheralView"
         }
       ],
@@ -191,15 +191,15 @@
     "viewsWelcome": [
       {
         "view": "idfSearchResults",
-        "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in documentation to get matching results here.\n\nResults are based on your current vscode language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
+        "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
       },
       {
         "view": "idfPartitionExplorer",
-        "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh partition table."
+        "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh Partition Table."
       },
       {
         "view": "espIdf.peripheralView",
-        "contents": "Show Peripherals registers from SVD file defined in IDF Svd File Path (idf.svdFilePath) configuration setting during active debug session"
+        "contents": "Show Peripherals Registers from SVD file defined in ESP-IDF Svd File Path (idf.svdFilePath) configuration setting during active debug session"
       }
     ],
     "menus": {
@@ -906,75 +906,93 @@
     "commands": [
       {
         "command": "espIdf.createFiles",
-        "title": "%espIdf.createFiles.title%"
+        "title": "%espIdf.createFiles.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.addArduinoAsComponentToCurFolder",
-        "title": "%espIdf.addArduinoAsComponentToCurFolder.title%"
+        "title": "%espIdf.addArduinoAsComponentToCurFolder.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.createVsCodeFolder",
-        "title": "%espIdf.createVsCodeFolder.title%"
+        "title": "%espIdf.createVsCodeFolder.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.createIdfTerminal",
-        "title": "%espIdf.createIdfTerminal.title%"
+        "title": "%espIdf.createIdfTerminal.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.setPath",
-        "title": "%espIdf.setPath.title%"
+        "title": "%espIdf.setPath.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.selectConfTarget",
-        "title": "%espIdf.selectConfTarget.title%"
+        "title": "%espIdf.selectConfTarget.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.setTarget",
-        "title": "%espIdf.setTarget.title%"
+        "title": "%espIdf.setTarget.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.configDevice",
-        "title": "%espIdf.configDevice.title%"
+        "title": "%espIdf.configDevice.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.menuconfig.start",
-        "title": "%espIdf.menuconfig.start.title%"
+        "title": "%espIdf.menuconfig.start.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.setup.start",
-        "title": "%espIdf.setup.title%"
+        "title": "%espIdf.setup.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.examples.start",
-        "title": "%espIdf.examples.title%"
+        "title": "%espIdf.examples.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.cmakeListsEditor.start",
-        "title": "%espIdf.cmakeListsEditor.start.title%"
+        "title": "%espIdf.cmakeListsEditor.start.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.setDefaultConfig",
-        "title": "%espIdf.setDefaultConfig.title%"
+        "title": "%espIdf.setDefaultConfig.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.selectPort",
-        "title": "%espIdf.selectPort.title%"
+        "title": "%espIdf.selectPort.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.buildDevice",
-        "title": "%espIdf.buildDevice.title%"
+        "title": "%espIdf.buildDevice.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashDevice",
-        "title": "%espIdf.flashDevice.title%"
+        "title": "%espIdf.flashDevice.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashUart",
-        "title": "%espIdf.flashUart.title%"
+        "title": "%espIdf.flashUart.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashDFU",
-        "title": "%espIdf.flashDFU.title%"
+        "title": "%espIdf.flashDFU.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashAndEncryptDevice",
@@ -983,31 +1001,38 @@
       },
       {
         "command": "espIdf.monitorDevice",
-        "title": "%espIdf.monitorDevice.title%"
+        "title": "%espIdf.monitorDevice.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.buildFlashMonitor",
-        "title": "%espIdf.buildFlashMonitor.title%"
+        "title": "%espIdf.buildFlashMonitor.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.pickAWorkspaceFolder",
-        "title": "%espIdf.pickAWorkspaceFolder.title%"
+        "title": "%espIdf.pickAWorkspaceFolder.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.size",
-        "title": "%espIdf.size.title%"
+        "title": "%espIdf.size.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.apptrace",
-        "title": "%espIdf.apptrace.title%"
+        "title": "%espIdf.apptrace.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.heaptrace",
-        "title": "%espIdf.heaptrace.title%"
+        "title": "%espIdf.heaptrace.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.openOCDCommand",
-        "title": "%espIdf.openOCDCommand.title%"
+        "title": "%espIdf.openOCDCommand.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.partition.table.refresh",
@@ -1023,72 +1048,80 @@
       {
         "command": "espIdf.apptrace.archive.refresh",
         "title": "%espIdf.apptrace.archive.refresh.title%",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.apptrace.archive.showReport",
-        "title": "%espIdf.apptrace.archive.showReport.title%"
+        "title": "%espIdf.apptrace.archive.showReport.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.apptrace.customize",
-        "title": "%espIdf.apptrace.customize.title%"
+        "title": "%espIdf.apptrace.customize.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "esp.rainmaker.backend.connect",
         "title": "%esp.rainmaker.backend.connect.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(sign-in)"
       },
       {
         "command": "esp.rainmaker.backend.sync",
         "title": "%esp.rainmaker.backend.sync.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(refresh)"
       },
       {
         "command": "esp.rainmaker.backend.logout",
         "title": "%esp.rainmaker.backend.logout.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(sign-out)"
       },
       {
         "command": "esp.rainmaker.backend.add_node",
         "title": "%esp.rainmaker.backend.add_node.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(add)"
       },
       {
         "command": "esp.rainmaker.backend.remove_node",
         "title": "%esp.rainmaker.backend.remove_node.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(trash)"
       },
       {
         "command": "esp.rainmaker.backend.update_node_param",
         "title": "%esp.rainmaker.backend.update_node_param.title%",
-        "category": "ESP:Rainmaker",
+        "category": "ESP-IDF",
         "icon": "$(edit)"
       },
       {
         "command": "espIdf.openDocUrl",
-        "title": "%espIdf.openDocUrl.title%"
+        "title": "%espIdf.openDocUrl.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.clearDocsSearchResult",
         "title": "%espIdf.clearDocsSearchResult.title%",
-        "icon": "$(clear-all)"
+        "icon": "$(clear-all)",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.genCoverage",
-        "title": "%espIdf.genCoverage.title%"
+        "title": "%espIdf.genCoverage.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.removeCoverage",
-        "title": "%espIdf.removeCoverage.title%"
+        "title": "%espIdf.removeCoverage.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.getCoverageReport",
-        "title": "%espIdf.getCoverageReport.title%"
+        "title": "%espIdf.getCoverageReport.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.launchWSServerAndMonitor",
@@ -1097,12 +1130,13 @@
       },
       {
         "command": "espIdf.searchInEspIdfDocs",
-        "title": "%espIdf.searchInEspIdfDocs.title%"
+        "title": "%espIdf.searchInEspIdfDocs.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "esp.efuse.summary",
         "title": "%esp.efuse.summary.title%",
-        "category": "ESP-IDF: eFuse",
+        "category": "ESP-IDF",
         "icon": "$(refresh)"
       },
       {
@@ -1113,15 +1147,18 @@
       },
       {
         "command": "espIdf.getEspAdf",
-        "title": "%espIdf.getEspAdf.title%"
+        "title": "%espIdf.getEspAdf.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.getEspMdf",
-        "title": "%espIdf.getEspMdf.title%"
+        "title": "%espIdf.getEspMdf.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.getEspMatter",
-        "title": "%espIdf.getEspMatter.title%"
+        "title": "%espIdf.getEspMatter.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.getEspRainmaker",
@@ -1130,11 +1167,13 @@
       },
       {
         "command": "espIdf.installEspMatterPyReqs",
-        "title": "%espIdf.installEspMatterPyReqs.title%"
+        "title": "%espIdf.installEspMatterPyReqs.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.installPyReqs",
-        "title": "%espIdf.installPyReqs.title%"
+        "title": "%espIdf.installPyReqs.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "esp.webview.open.partition-table",
@@ -1153,43 +1192,53 @@
       },
       {
         "command": "espIdf.fullClean",
-        "title": "%espIdf.fullClean.title%"
+        "title": "%espIdf.fullClean.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.webview.nvsPartitionEditor",
-        "title": "%espIdf.webview.nvsPartitionEditor.title%"
+        "title": "%espIdf.webview.nvsPartitionEditor.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.selectOpenOcdConfigFiles",
-        "title": "%espIdf.selectOpenOcdConfigFiles.title%"
+        "title": "%espIdf.selectOpenOcdConfigFiles.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.doctorCommand",
-        "title": "%espIdf.doctorCommand.title%"
+        "title": "%espIdf.doctorCommand.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.createNewComponent",
-        "title": "%espIdf.createNewComponent.title%"
+        "title": "%espIdf.createNewComponent.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.ninja.summary",
-        "title": "%espIdf.ninja.summary.title%"
+        "title": "%espIdf.ninja.summary.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.disposeConfserverProcess",
-        "title": "%espIdf.disposeConfserverProcess.title%"
+        "title": "%espIdf.disposeConfserverProcess.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.newProject.start",
-        "title": "%espIdf.newProject.start.title%"
+        "title": "%espIdf.newProject.start.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.eraseFlash",
-        "title": "%espIdf.eraseFlash.title%"
+        "title": "%espIdf.eraseFlash.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "espIdf.setGcovConfig",
-        "title": "%espIdf.setGcovConfig.title%"
+        "title": "%espIdf.setGcovConfig.title%",
+        "category": "ESP-IDF"
       },
       {
         "command": "esp.component-manager.ui.show",
@@ -1282,25 +1331,25 @@
               },
               "logLevel": {
                 "type": "number",
-                "description": "Log level for ESP-IDF Debug Adapter",
+                "description": "Log Level for ESP-IDF Debug Adapter",
                 "default": 2
               },
               "mode": {
                 "type": "string",
-                "description": "ESP-IDF debug session mode",
+                "description": "ESP-IDF Debug Session Mode",
                 "default": "auto",
                 "enum": [
                   "auto",
                   "manual"
                 ],
                 "enumDescriptions": [
-                  "Auto mode will execute a OpenOCD Server and Debug Adapter in Visual Studio Code",
-                  "Manual mode requires you to run OpenOCD and Debug Adapter separately"
+                  "Auto Mode will execute a OpenOCD Server and Debug Adapter in Visual Studio Code",
+                  "Manual Mode requires you to run OpenOCD and Debug Adapter separately"
                 ]
               },
               "env": {
                 "type": "object",
-                "description": "Environments variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
+                "description": "Environments Variables override in Visual Studio Code launched ESP-IDF Debug Adapter",
                 "default": null
               },
               "initGdbCommands": {
@@ -1385,7 +1434,7 @@
         "properties": {
           "command": {
             "type": "string",
-            "description": "Command to be executed"
+            "description": "Command to Be Executed"
           }
         },
         "required": [

@@ -1,6 +1,6 @@
-# Working with multiple projects
+# Working with Multiple Projects
 
-For big projects, a user will typically have one or more projects to build, flash or monitor. The ESP-IDF extension follows the [Visual Studio Code Workspace file schema](https://code.visualstudio.com/docs/editor/multi-root-workspaces#_workspace-file-schema) to identify all projects folders inside the current workspace (which would be the root folder). Please take a look at [creating user and workspace settings](https://code.visualstudio.com/docs/getstarted/settings#_creating-user-and-workspace-settings).
+For big projects, a user will typically have one or more projects to build, flash or monitor. The ESP-IDF Extension follows the [Visual Studio Code Workspace File Schema](https://code.visualstudio.com/docs/editor/multi-root-workspaces#_workspace-file-schema) to identify all projects folders inside the current workspace (which would be the root folder). Please take a look at [Creating User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings#_creating-user-and-workspace-settings).
 
 Configuration settings are overriden as:
 
@@ -8,12 +8,12 @@ Configuration settings are overriden as:
 2. Workspace configuration settings defined in the workspace's `<name>.code-workspace` file as shown below.
 3. User settings defined in
    - **Windows** `%APPDATA%\Code\User\settings.json`
-   - **macOS** `$HOME/Library/Application Support/Code/User/settings.json`
+   - **MacOS** `$HOME/Library/Application Support/Code/User/settings.json`
    - **Linux** `$HOME/.config/Code/User/settings.json`
 
 This extension uses the `idf.saveScope` configuration setting to determine where to save configuration settings in features such as the Setup Wizard.
 
-You can select the current project by clicking the **ESP-IDF Current Project** Item in the Visual Studio Code Status bar or by pressing F1 and typing **ESP-IDF: Pick a workspace folder for IDF commands** which will determine the folder where to obtain the ESP-IDF Settings such as current device USB port, ESP-IDF path, etc.
+You can select the current project by clicking the **ESP-IDF Current Project** Item in the Visual Studio Code Status bar or by pressing F1 and typing **ESP-IDF: Pick a Workspace Folder for IDF Commands** which will determine the folder where to obtain the ESP-IDF Settings such as current device USB port, ESP-IDF path, etc.
 
 Projects folders and workspace level settings are defined in some `<name>.code-workspace` file such as:
 

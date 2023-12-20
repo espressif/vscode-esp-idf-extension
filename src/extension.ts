@@ -447,7 +447,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
-            title: "Creating ESP-IDF Project...",
+            title: "ESP-IDF: Creating ESP-IDF project...",
           },
           async (
             progress: vscode.Progress<{
@@ -624,7 +624,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Erasing device flash memory (erase_flash)",
+          title: "ESP-IDF: Erasing device flash memory (erase_flash)",
         },
         async (
           progress: vscode.Progress<{
@@ -657,7 +657,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Arduino ESP32 as ESP-IDF Component",
+          title: "ESP-IDF: Arduino ESP32 as ESP-IDF component",
         },
         async (
           progress: vscode.Progress<{
@@ -939,7 +939,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: false,
             location: vscode.ProgressLocation.Notification,
-            title: "ESP-IDF: Project Configuration",
+            title: "ESP-IDF: Project configuration",
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>
@@ -1010,7 +1010,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       statusBarItems["projectConf"] = createStatusBarItem(
         "$(gear)" + option.target,
-        "ESP-IDF Select project configuration",
+        "ESP-IDF: Select Project Configuration",
         "espIdf.projectConf",
         100
       );
@@ -1348,7 +1348,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF Docs search results",
+        title: "ESP-IDF: Documentation search results",
       },
       async () => {
         try {
@@ -1778,7 +1778,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: Welcome Page",
+        title: "ESP-IDF: Welcome page",
       },
       async (
         progress: vscode.Progress<{ increment: number; message: string }>,
@@ -1809,7 +1809,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: New Project",
+        title: "ESP-IDF: New project",
       },
       async (
         progress: vscode.Progress<{ increment: number; message: string }>,
@@ -2093,7 +2093,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Starting ESP-IDF QEMU",
+          title: "ESP-IDF: Starting ESP-IDF QEMU",
         },
         async (
           progress: vscode.Progress<{ message: string; increment: number }>,
@@ -2415,7 +2415,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.withProgress(
       {
-        title: "Please wait checking with Rainmaker Cloud",
+        title: "ESP-IDF: Please wait checking with Rainmaker Cloud",
         location: vscode.ProgressLocation.Notification,
         cancellable: false,
       },
@@ -2472,7 +2472,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       vscode.window.withProgress(
         {
-          title: "Deleting node from your rainmaker account",
+          title: "ESP-IDF: Deleting node from your rainmaker account",
           location: vscode.ProgressLocation.Notification,
         },
         async () => {
@@ -2536,7 +2536,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
       vscode.window.withProgress(
         {
-          title: "Syncing params, please wait",
+          title: "ESP-IDF: Syncing params, please wait",
           location: vscode.ProgressLocation.Notification,
         },
         async () => {
@@ -2681,7 +2681,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 location: vscode.ProgressLocation.Notification,
                 cancellable: false,
                 title:
-                  "Core-dump detected, please wait while we parse the data received",
+                  "ESP-IDF: Core-dump detected, please wait while we parse the data received",
               },
               async (progress) => {
                 const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
@@ -2840,7 +2840,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("esp.efuse.summary", async () => {
     vscode.window.withProgress(
       {
-        title: "Getting eFuse Summary for your chip",
+        title: "ESP-IDF: Getting eFuse summary for your chip",
         location: vscode.ProgressLocation.Notification,
       },
       async () => {
@@ -2869,7 +2869,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.ninja.summary", async () => {
     vscode.window.withProgress(
       {
-        title: "Getting ninja build summary",
+        title: "ESP-IDF: Getting ninja build summary",
         location: vscode.ProgressLocation.Notification,
       },
       async () => {
@@ -2959,7 +2959,7 @@ export async function activate(context: vscode.ExtensionContext) {
           vscode.window.withProgress(
             {
               title:
-                "Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
+                "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
               location: vscode.ProgressLocation.Notification,
             },
             async () => {
@@ -3148,7 +3148,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
-    "ESP-IDF Select port to use (COM, tty, usbserial)",
+    "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
     "espIdf.selectPort",
     101
   );
@@ -3156,7 +3156,7 @@ function createCmdsStatusBarItems() {
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
       "$(gear)" + projectConf,
-      "ESP-IDF Select project configuration",
+      "ESP-IDF: Select Project Configuration",
       "espIdf.projectConf",
       100
     );
@@ -3164,7 +3164,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,
-    "ESP-IDF Set Espressif device target",
+    "ESP-IDF: Set Espressif Device Target",
     "espIdf.setTarget",
     99
   );
@@ -3176,43 +3176,43 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["menuconfig"] = createStatusBarItem(
     "$(gear)",
-    "ESP-IDF SDK Configuration Editor (menuconfig)",
+    "ESP-IDF: SDK Configuration Editor (menuconfig)",
     "espIdf.menuconfig.start",
     97
   );
   statusBarItems["clean"] = createStatusBarItem(
     "$(trash)",
-    "ESP-IDF Full Clean",
+    "ESP-IDF: Full Clean",
     "espIdf.fullClean",
     96
   );
   statusBarItems["build"] = createStatusBarItem(
     "$(database)",
-    "ESP-IDF Build project",
+    "ESP-IDF: Build Project",
     "espIdf.buildDevice",
     95
   );
   statusBarItems["flashType"] = createStatusBarItem(
     `$(star-empty) ${flashType}`,
-    "ESP-IDF Select flash method",
+    "ESP-IDF: Select Flash Method",
     "espIdf.selectFlashMethodAndFlash",
     94
   );
   statusBarItems["flash"] = createStatusBarItem(
     `$(zap)`,
-    "ESP-IDF Flash device",
+    "ESP-IDF: Flash Device",
     "espIdf.flashDevice",
     93
   );
   statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
-    "ESP-IDF Monitor device",
+    "ESP-IDF: Monitor Device",
     "espIdf.monitorDevice",
     92
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
-    "ESP-IDF Build, Flash and Monitor",
+    "ESP-IDF: Build, Flash and Monitor",
     "espIdf.buildFlashMonitor",
     91
   );
@@ -3224,7 +3224,7 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
-    "ESP-IDF: Execute custom task",
+    "ESP-IDF: Execute Custom Task",
     "espIdf.customTask",
     89
   );
@@ -3252,7 +3252,7 @@ const build = (flashType?: ESP.FlashType) => {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Building Project",
+        title: "ESP-IDF: Building project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
@@ -3278,7 +3278,7 @@ const flash = (
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Flashing Project",
+        title: "ESP-IDF: Flashing project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
@@ -3333,7 +3333,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Building Project",
+        title: "ESP-IDF: Building project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,

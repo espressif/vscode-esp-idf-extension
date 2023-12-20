@@ -45,7 +45,7 @@ import * as sanitizedHtml from "sanitize-html";
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
   "utils.currentFolder",
-  "ESP-IDF Current Project"
+  "ESP-IDF: Current Project"
 );
 
 export let extensionContext: vscode.ExtensionContext;
@@ -188,7 +188,7 @@ export function updateStatus(
   }
 ): void {
   status.text = info ? `$(file-submodule)` : void 0;
-  status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
+  status.tooltip = info ? `${currentFolderMsg} ${info.tooltip}` : void 0;
   status.command = info ? info.clickCommand : void 0;
 
   if (info) {
@@ -432,7 +432,7 @@ export function readComponentsDirs(filePath): IdfComponent[] {
 
   const openComponentMsg = locDic.localize(
     "utils.openComponentTitle",
-    "Open IDF component file"
+    "ESP-IDF: Open IDF Component File"
   );
 
   for (const file of files) {
