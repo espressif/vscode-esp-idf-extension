@@ -57,7 +57,7 @@ export async function getGcovData(workspaceFolder: Uri) {
 
   const gcdaPaths = await getGcdaPaths(workspaceFolder);
 
-  let command = `${gcovExecutable} -b --stdout --json-format`;
+  let command = `"${gcovExecutable}" -b --stdout --json-format`;
   for (const path of gcdaPaths) {
     command += ` "${path}"`;
   }

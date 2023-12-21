@@ -19,7 +19,6 @@ import {
 } from "./coverageService";
 import * as idfConf from "../idfConfiguration";
 import { getGcovData } from "./gcdaPaths";
-import { createGcovReportObj } from "./gcovHtmlReport";
 
 export interface CoverageOptions {
   darkThemeCoveredBackgroundColor: string;
@@ -167,7 +166,6 @@ export class CoverageRenderer {
   public async renderCoverage() {
     const editors = vscode.window.visibleTextEditors;;
     this.gcovObj = await getGcovData(this.workspaceFolder);
-    const gcovReport = createGcovReportObj(this.gcovObj);
     if (editors && editors.length > 0 && this.cache.length < 1) {
       const editorsWithCoverage = await generateCoverageForEditors(
         this.workspaceFolder,
