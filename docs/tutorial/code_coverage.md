@@ -2,8 +2,6 @@
 
 ## Requirements
 
-This extension's code coverage feature uses the `gcovr` python package which is included in the extension's requirements.txt and installed during [Install tutorial](./install.md) as part of this extension ESP-IDF Debug Adapter Python Requirements when following the **ESP-IDF: Configure ESP-IDF Extension** command.
-
 Your ESP-IDF project should be configured to generate `gcda/gcno` coverage files using `gcov`. Please read [GCOV Code Coverage](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage) to learn more about code coverage with GCOV in ESP-IDF projects.
 
 Please take a look at [Coverage](../COVERAGE.md) for more information about code coverage in this extension.

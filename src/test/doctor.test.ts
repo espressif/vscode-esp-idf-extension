@@ -32,8 +32,7 @@ import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
 import {
-  checkDebugAdapterRequirements,
-  checkExtensionRequirements,
+  checkDebugAdapterRequirements
 } from "../support/checkExtensionRequirements";
 import {
   checkCCppPropertiesJson,
@@ -102,12 +101,6 @@ suite("Doctor Command tests", () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await getPipVersion(reportObj, mockUpContext);
     assert.equal(reportObj.pipVersion.result, "Not found");
-  });
-
-  test("wrong extension py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await checkExtensionRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.extensionRequirements.result, "Error");
   });
 
   test("Wrong debug adapter py requirements", async () => {
@@ -189,19 +182,6 @@ suite("Doctor Command tests", () => {
     assert.equal(
       reportObj.configurationSettings.toolsPath,
       settingsJsonObj["idf.toolsPath"]
-    );
-  });
-
-  test("Good extension py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    await checkExtensionRequirements(reportObj, mockUpContext);
-    assert.equal(
-      reportObj.extensionRequirements.result,
-      `Python requirements from ${join(
-        __dirname,
-        "../../requirements.txt"
-      )} are satisfied.`
     );
   });
 

@@ -132,25 +132,6 @@ export async function installExtensionPyReqs(
     }
     return;
   }
-  const extensionRequirements = path.join(
-    utils.extensionContext.extensionPath,
-    "requirements.txt"
-  );
-  if (!utils.canAccessFile(extensionRequirements, constants.R_OK)) {
-    Logger.warnNotify(extensionRequirements + reqDoesNotExists);
-    if (channel) {
-      channel.appendLine(extensionRequirements + reqDoesNotExists);
-    }
-    return;
-  }
-  const installExtensionPyPkgsMsg = `Installing ESP-IDF extension python packages in ${virtualEnvPython} ...\n`;
-  Logger.info(installExtensionPyPkgsMsg);
-  if (pyTracker) {
-    pyTracker.Log = installExtensionPyPkgsMsg;
-  }
-  if (channel) {
-    channel.appendLine(installExtensionPyPkgsMsg + "\n");
-  }
   const espIdfVersion = await utils.getEspIdfFromCMake(espDir);
   const constrainsFile = path.join(
     idfToolsDir,
@@ -172,14 +153,6 @@ export async function installExtensionPyReqs(
       constraintArg = `--constraint "${extensionConstraintsFile}" `;
     }
   }
-  await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location  -r "${extensionRequirements}"`,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    opts,
-    cancelToken
-  );
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
   Logger.info(installDAPyPkgsMsg + "\n");
   if (pyTracker) {

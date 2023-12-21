@@ -46,7 +46,7 @@ Setup wizard provides 3 choices:
 - **Use Existing Setup**: This option will show previous setup used in the extension and existing setup if:
   1. `esp-idf.json` is found in the current `idf.toolsPath` (MacOS/Linux users) or `idf.toolsPathWin` (Windows users). This file is generated when you install ESP-IDF with the [IDF Windows Installer](https://github.com/espressif/idf-installer) or using [IDF-ENV](https://github.com/espressif/idf-env) or this extension.
 
-> **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages, this extension (`EXTENSION_PATH`/requirements.txt and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages where `EXTENSION_PATH` is located in:
+> **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages where `EXTENSION_PATH` is located in:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
@@ -117,10 +117,6 @@ where:
 > **NOTE:** Make sure that your configurations settings doesn't have any spaces to avoid any build issues.
 
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
-
-```
-PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/requirements.txt
-```
 
 ```
 PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/esp_debug_adapter/requirements.txt
