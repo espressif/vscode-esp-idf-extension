@@ -148,6 +148,7 @@ export async function chooseConfigurationTarget() {
     confTarget.target,
     vscode.ConfigurationTarget.Global
   );
+  Logger.infoNotify(`Save location has changed to ${confTarget.description}`);
   return confTarget.target;
 }
 

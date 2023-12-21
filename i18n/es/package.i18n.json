@@ -5,6 +5,7 @@
   "espIdf.createVsCodeFolder.title": "ESP-IDF: Agregar carpeta de configuración vscode",
   "espIdf.setPath.title": "ESP-IDF: Configurar rutas ESP-IDF",
   "espIdf.selectConfTarget.title": "ESP-IDF: Selecciona donde almacenar tu configuración",
+  "espIdf.selectNotificationMode.title": "Selecciona el modo de salida de texto y notificaciones",
   "espIdf.setTarget.title": "ESP-IDF: Selecciona el dispositivo Espressif a utilizar",
   "espIdf.configDevice.title": "ESP-IDF: Configuración del dispositivo",
   "espIdf.menuconfig.start.title": "ESP-IDF: Editor de Configuración SDK (menuconfig)",

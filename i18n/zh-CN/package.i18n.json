@@ -5,6 +5,7 @@
   "espIdf.createVsCodeFolder.title": "ESP-IDF: 添加 vscode 配置文件夹",
   "espIdf.setPath.title": "ESP-IDF ：配置路径",
   "espIdf.selectConfTarget.title": "ESP-IDF ：选择保存配置设置的位置",
+  "espIdf.selectNotificationMode.title": "选择输出和通知模式",
   "espIdf.setTarget.title": "ESP-IDF: 设置 espressif 目标芯片",
   "espIdf.configDevice.title": "ESP-IDF ：配置设备",
   "espIdf.menuconfig.start.title": "ESP-IDF: SDK 配置编辑器 (menuconfig)",

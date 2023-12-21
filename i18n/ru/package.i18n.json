@@ -6,6 +6,7 @@
   "espIdf.setPath.title": "Настроить пути",
   "espIdf.setTarget.title": "Установить целевое устройство Espressif",
   "espIdf.selectConfTarget.title": "Выбрать место для сохранения настроек конфигурации",
+  "espIdf.selectNotificationMode.title": "Выберите режим вывода и уведомления",
   "espIdf.configDevice.title": "Конфигурация устройства",
   "espIdf.menuconfig.start.title": "Редактор конфигурации SDK (menuconfig)",
   "espIdf.cmakeListsEditor.start.title": "CMakeLists.txt Редактор",
