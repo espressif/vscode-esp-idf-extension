@@ -126,6 +126,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
+| Install ESP-IDF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
 | Install ESP-Matter                                      |                                        |                                           |
@@ -152,6 +153,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Show Ninja Build Summary                                |                                        |                                           |
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Remove Editor coverage                                  |                                        |                                           |
+| Use ESP-IDF setup from IDF Installer                    |                                        |                                           |
 
 # About commands
 

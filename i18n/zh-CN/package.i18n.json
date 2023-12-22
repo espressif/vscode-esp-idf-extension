@@ -60,6 +60,8 @@
   "espIdf.projectConfigurationEditor.title": "打开项目配置",
   "espIdf.projectConf.title": "选择项目配置",
   "espIdf.clearSavedIdfSetups.title": "清除保存的IDF设置",
+  "espIdf.installEspIdf.title": "安装ESP-IDF",
+  "espIdf.useEspIdfJsonSetup.title": "使用IDF安装程序中的ESP-IDF设置",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF调试 启动",

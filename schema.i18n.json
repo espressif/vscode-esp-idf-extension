@@ -138,6 +138,8 @@
     "espIdf.projectConfigurationEditor.title",
     "espIdf.projectConf.title",
     "espIdf.clearSavedIdfSetups.title",
+    "espIdf.installEspIdf.title",
+    "espIdf.useEspIdfJsonSetup.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

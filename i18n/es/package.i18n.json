@@ -62,6 +62,8 @@
   "espIdf.projectConfigurationEditor.title": "Abrir configuracion de proyecto",
   "espIdf.projectConf.title": "Selecciona la configuración del proyecto",
   "espIdf.clearSavedIdfSetups.title": "Limpiar configuraciones de IDF guardadas",
+  "espIdf.installEspIdf.title": "Instalar ESP-IDF",
+  "espIdf.useEspIdfJsonSetup.title": "Usar la configuracion ESP-IDF del Instalador IDF",
   "debug.initConfig.name": "Lanzar Depuracion ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

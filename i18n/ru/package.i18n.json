@@ -60,6 +60,8 @@
   "espIdf.projectConfigurationEditor.title": "Открыть конфигурацию проекта",
   "espIdf.projectConf.title": "Выберите конфигурацию проекта",
   "espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки IDF",
+  "espIdf.installEspIdf.title": "Установите ESP-IDF",
+  "espIdf.useEspIdfJsonSetup.title": "Используйте настройку ESP-IDF из установщика IDF.",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "Отладка запуск",
