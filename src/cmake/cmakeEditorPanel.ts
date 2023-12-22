@@ -156,7 +156,7 @@ export class CmakeListsEditorPanel {
             const newValuesJson = JSON.parse(message.newValues);
             await updateCmakeListFile(fileUri, newValuesJson);
             vscode.window.showInformationMessage(
-              `${fileUri.fsPath} has been updated`
+              `CMakeLists.txt has been updated`
             );
           }
           break;

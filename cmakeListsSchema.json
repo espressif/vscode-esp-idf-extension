@@ -104,16 +104,6 @@
       "isFirst": true
     },
     {
-      "template": "SET(VARIABLE ***)",
-      "regex": "(?:set|SET)\\((.*) (.*)\\)",
-      "title": "Set variable with value set(VARIABLE \"VALUE\")",
-      "type": "set",
-      "value": [],
-      "variable": "",
-      "isComponentElement": false,
-      "canHaveMany": true
-    },
-    {
       "default": "$ENV{IDF_PATH}/tools/cmake/project.cmake",
       "regex": "(?:include\\()(.*)(?:\\))",
       "template": "include(***)",
@@ -131,6 +121,16 @@
       "value": "",
       "isComponentElement": false,
       "canHaveMany": false
+    },
+    {
+      "template": "SET(VARIABLE ***)",
+      "regex": "(?:set|SET)\\((.*) (.*)\\)",
+      "title": "Set variable with value set(VARIABLE \"VALUE\")",
+      "type": "set",
+      "value": [],
+      "variable": "",
+      "isComponentElement": false,
+      "canHaveMany": true
     },
     {
       "template": "target_add_binary_data(VARIABLE *** TYPE)",

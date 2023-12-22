@@ -32,7 +32,6 @@ window.addEventListener("message", (event) => {
   const msg = event.data;
   switch (msg.command) {
     case "initialLoad":
-      console.log(msg);
       if (msg.extensionVersion) {
         store.extensionVersion = msg.extensionVersion;
       }

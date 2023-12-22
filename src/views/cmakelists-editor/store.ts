@@ -91,7 +91,7 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
         );
         return false;
       }
-      const valueToCheck = Array.isArray(value) ? value[0]: value;
+      const valueToCheck = Array.isArray(value) ? value[0] : value;
       if (typeof valueToCheck === "undefined" || valueToCheck === "") {
         errors.value.push(
           `No empty variable value for ${elem.title}. Please use a variable value.`
@@ -119,11 +119,27 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
   function checkIncludeIDFPath() {
     const idfPathIncludeIndex = elements.value.findIndex((elem) => {
       if (elem.template === "include(***)") {
-        const valueToCompare = Array.isArray(elem.value) ? elem.value[0]: elem.value;
+        const valueToCompare = Array.isArray(elem.value)
+          ? elem.value[0]
+          : elem.value;
         return valueToCompare === "$ENV{IDF_PATH}/tools/cmake/project.cmake";
       }
       return false;
     });
+    return idfPathIncludeIndex !== -1;
+  }
+
+  function checkProjectName() {
+    const idfPathIncludeIndex = elements.value.findIndex(
+      (elem) => elem.template === "project(***)"
+    );
+    return idfPathIncludeIndex !== -1;
+  }
+
+  function checkCMakeMinimumRequired() {
+    const idfPathIncludeIndex = elements.value.findIndex(
+      (elem) => elem.template === "cmake_minimum_required(***)"
+    );
     return idfPathIncludeIndex !== -1;
   }
 
@@ -137,6 +153,14 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
   function saveChanges() {
     errors.value = [];
     if (cmakeListsType.value === CMakeListsType.Project) {
+      const isProjectNameDefined = checkProjectName();
+      if (!isProjectNameDefined) {
+        errors.value.push("Project Name is missing but required.");
+      }
+      const isCMakeMinReqDefined = checkCMakeMinimumRequired();
+      if (!isCMakeMinReqDefined) {
+        errors.value.push("CMake Minimum Requirement is missing but required.");
+      }
       const doesIncludeIdfPathExists = checkIncludeIDFPath();
       if (!doesIncludeIdfPathExists) {
         errors.value.push(
@@ -144,11 +168,16 @@ export const useCMakeListsEditorStore = defineStore("cmakelistsEditor", () => {
         );
       }
       const areVariablesUnique = checkUniqueVariables();
-      if (!areVariablesUnique || !doesIncludeIdfPathExists) {
+      if (
+        !areVariablesUnique ||
+        !isProjectNameDefined ||
+        !isCMakeMinReqDefined ||
+        !doesIncludeIdfPathExists
+      ) {
         return;
       }
     }
-    vscode.postMessage({
+    vscode.postMessage({ 
       command: "saveChanges",
       newValues: JSON.stringify(elements.value),
     });

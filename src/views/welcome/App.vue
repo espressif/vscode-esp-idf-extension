@@ -24,6 +24,7 @@ const whatsNewLink = computed(() => {
 onMounted(() => {
   store.requestInitValues();
 });
+
 </script>
 
 <template>
@@ -43,7 +44,7 @@ onMounted(() => {
             <a :href="whatsNewLink">See what's new</a>
           </div>
           <label class="checkbox is-small">
-            <input type="checkbox" v-model="showOnInit" />
+            <input type="checkbox" v-model="store.showOnInit" @change="store.updateShowOnboardingOnInit" />
             Show Welcome on extension startup
           </label>
         </div>

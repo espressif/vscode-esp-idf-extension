@@ -17,7 +17,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 
 declare var acquireVsCodeApi: any;
 let vscode: any;
@@ -35,9 +35,9 @@ export interface IState {
 }
 
 export const useWelcomeStore = defineStore("welcome", () => {
-  const espIdf = ref("");
-  const extensionVersion = ref("");
-  const showOnInit = ref(true);
+  const espIdf: Ref<string> = ref("");
+  const extensionVersion: Ref<string> = ref("");
+  const showOnInit: Ref<boolean> = ref(true);
 
   function exploreComponents() {
     vscode.postMessage({
@@ -75,7 +75,7 @@ export const useWelcomeStore = defineStore("welcome", () => {
   function updateShowOnboardingOnInit() {
     vscode.postMessage({
       command: "updateShowOnboardingOnInit",
-      showOnInit: showOnInit,
+      showOnInit: showOnInit.value,
     });
   }
 
@@ -89,6 +89,6 @@ export const useWelcomeStore = defineStore("welcome", () => {
     openSetupPanel,
     openShowExamplesPanel,
     requestInitValues,
-    updateShowOnboardingOnInit
+    updateShowOnboardingOnInit,
   };
 });
