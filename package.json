@@ -616,6 +616,7 @@
           },
           "idf.notificationMode": {
             "type": "string",
+            "scope": "resource",
             "enum": [
               "Silent",
               "Notifications",
