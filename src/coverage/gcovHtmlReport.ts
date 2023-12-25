@@ -98,7 +98,7 @@ export function createGcovReportObj(gcovDataArray: IGcovOutput[]) {
 
 function calculatePercentage(part: number, whole: number) {
   if (whole === 0) {
-    return "-%";
+    return "0.0%";
   }
   const percentage = (part / whole) * 100;
   return `${percentage.toFixed(1)}%`;
@@ -245,7 +245,7 @@ export function createGcovHtmlReport(gcovData: IGcovOutput[]) {
       
       .coverage-low {
         background-color: var(--vscode-charts-red);
-        color: var(--vscode-editor-background);
+        color: var(--vscode-editor-foreground);
       }
       
       .coverage-medium {
@@ -284,7 +284,7 @@ export function createGcovHtmlReport(gcovData: IGcovOutput[]) {
               <tr>
                 <th scope="row">Coverage:</th>
                 <td class="legend">
-                  <span class="coverage-low">low: &ge; 0%</span>
+                  <span class="coverage-low">low: < 75%</span>
                   <span class="coverage-medium">medium: &ge; 75.0%</span>
                   <span class="coverage-high">high: &ge; 90.0%</span>
                 </td>
@@ -311,7 +311,7 @@ export function createGcovHtmlReport(gcovData: IGcovOutput[]) {
       <main>
         <table class="file-list">
           <col/>
-          <colgroup span="3"/>
+          <colgroup span="2"/>
           <colgroup span="2"/>
           <colgroup span="2"/>
         
