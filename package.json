@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -399,6 +399,12 @@
             "type": "string",
             "default": "${env:ESP_MATTER_PATH}",
             "description": "%param.espMatterPath%",
+            "scope": "resource"
+          },
+          "idf.espHomeKitSDKPath": {
+            "type": "string",
+            "default": "${env:HOMEKIT_PATH}",
+            "description": "%param.espHomeKitSDKPath%",
             "scope": "resource"
           },
           "idf.toolsPath": {

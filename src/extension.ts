@@ -438,7 +438,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
-  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
+  vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => { });
 
   registerIDFCommand("espIdf.createFiles", async () => {
     PreCheck.perform([openFolderCheck], async () => {
@@ -1310,7 +1310,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.debug.registerDebugAdapterTrackerFactory("espidf", {
     createDebugAdapterTracker(session: vscode.DebugSession) {
       return {
-        onWillReceiveMessage: (m) => {},
+        onWillReceiveMessage: (m) => { },
       };
     },
   });
@@ -1429,8 +1429,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : typeof error === "string"
-              ? error
-              : "Error installing Python requirements";
+                ? error
+                : "Error installing Python requirements";
             Logger.errorNotify(msg, error);
           }
         }
@@ -1500,8 +1500,8 @@ export async function activate(context: vscode.ExtensionContext) {
             const msg = error.message
               ? error.message
               : typeof error === "string"
-              ? error
-              : "Error installing ESP-Matter Python Requirements";
+                ? error
+                : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error);
           }
         }
@@ -1689,10 +1689,10 @@ export async function activate(context: vscode.ExtensionContext) {
               setupArgs = setupArgs
                 ? setupArgs
                 : await getSetupInitialValues(
-                    context.extensionPath,
-                    progress,
-                    workspaceRoot
-                  );
+                  context.extensionPath,
+                  progress,
+                  workspaceRoot
+                );
               SetupPanel.createOrShow(context.extensionPath, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -2050,8 +2050,8 @@ export async function activate(context: vscode.ExtensionContext) {
         typeof appTraceTreeDataProvider.appTraceButton.label === "string"
           ? appTraceTreeDataProvider.appTraceButton.label.match(/start/gi)
           : appTraceTreeDataProvider.appTraceButton.label.label.match(
-              /start/gi
-            );
+            /start/gi
+          );
       if (appTraceLabel) {
         await appTraceManager.start(workspaceRoot);
       } else {
@@ -2069,8 +2069,8 @@ export async function activate(context: vscode.ExtensionContext) {
           typeof appTraceTreeDataProvider.heapTraceButton.label === "string"
             ? appTraceTreeDataProvider.heapTraceButton.label.match(/start/gi)
             : appTraceTreeDataProvider.heapTraceButton.label.label.match(
-                /start/gi
-              );
+              /start/gi
+            );
         if (heapTraceLabel) {
           await gdbHeapTraceManager.start(workspaceRoot);
         } else {
@@ -3002,6 +3002,7 @@ async function getFrameworksPickItems() {
   const rainmakerPathDir = idfConf.readParameter(
     "idf.espRainmakerPath"
   ) as string;
+  const espHomeKitSDKDir = idfConf.readParameter("idf.espHomeKitSDKPath") as string;
 
   const pickItems = [];
   try {
@@ -3046,6 +3047,14 @@ async function getFrameworksPickItems() {
         label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
         target: rainmakerPathDir,
       });
+    }
+    const doesEspHomeKitSDKPathExists = await utils.dirExistPromise(espHomeKitSDKDir)
+    if (doesEspHomeKitSDKPathExists) {
+      pickItems.push({
+        description: "ESP-HomeKit-SDK",
+        label: `Use current ESP-HomeKit-SDK (${espHomeKitSDKDir})`,
+        target: espHomeKitSDKDir,
+      })
     }
   } catch (error) {
     const errMsg = error.message ? error.message : "Error getting frameworks";
