@@ -191,7 +191,7 @@ For more information about `devcontainer.json`, please refer to the comments.
     "idf.gitPath": "/usr/bin/git"
   },
   /* An array of extensions that should be installed into the container. */
-  "extensions": ["ms-vscode.cpptools", "espressif.esp-idf-extension"],
+  "extensions": ["espressif.esp-idf-extension"],
   /* start the container with privileged mode, else the devices cannot be accessed on the docker image.
    */
   "runArgs": ["--privileged"]
