@@ -58,13 +58,20 @@ export class GdbHeapTraceManager {
       if (isOpenOcdLaunched) {
         this.showStopButton();
         ensureDir(join(workspace.fsPath, "trace"));
-        const fileName = `file://${join(workspace.fsPath, "trace").replace(
-          /\\/g,
-          "/"
-        )}/htrace_${new Date().getTime()}.svdat`;
-        await this.createGdbinitFile(fileName, workspace.fsPath);
         const modifiedEnv = appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+        let cpuCores = 1;
+        if (idfTarget === 'esp32' || idfTarget === 'esp32s3') {
+          cpuCores = 2;
+        }
+        let traceFilePath = '';
+        for(let i=1; i<=cpuCores; i++) {
+          traceFilePath +=`file://${join(workspace.fsPath, "trace").replace(
+            /\\/g,
+            "/"
+          )}/htrace_${new Date().getTime()}.cpu${i-1}.svdat `;
+        }
+        await this.createGdbinitFile(traceFilePath, workspace.fsPath);
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(
           gdbTool,
