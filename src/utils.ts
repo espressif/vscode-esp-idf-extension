@@ -246,8 +246,12 @@ export async function setCCppPropertiesJsonCompilerPath(
     let compilerRelativePath = compilerAbsolutePath.split(
       modifiedEnv.IDF_TOOLS_PATH
     )[1];
+    const settingToUse =
+      process.platform === "win32"
+        ? "${config:idf.toolsPathWin}"
+        : "${config:idf.toolsPath}";
     cCppPropertiesJson.configurations[0].compilerPath =
-      "${config:idf.toolsPath}" + compilerRelativePath;
+      settingToUse + compilerRelativePath;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });

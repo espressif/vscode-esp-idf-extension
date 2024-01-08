@@ -358,7 +358,9 @@ export async function getUnixPythonList(workingDir: string) {
     );
     if (pyVersionsStr) {
       const resultList = pyVersionsStr.trim().split("\n");
-      return resultList;
+      const uniquePathsSet = new Set(resultList);
+      const uniquePathsArray = Array.from(uniquePathsSet);
+      return uniquePathsArray;
     }
   } catch (error) {
     Logger.errorNotify("Error looking for python in system", error);
