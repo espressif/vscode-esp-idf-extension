@@ -80,6 +80,12 @@ export async function installPythonEnvFromIdfTools(
       modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
     }
     modifiedEnv.PYTHONNOUSERSITE = "1";
+    modifiedEnv.Path =
+      path.dirname(pythonBinPath) +
+      path.sep +
+      "Lib" +
+      path.delimiter +
+      modifiedEnv.Path;
   }
 
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
