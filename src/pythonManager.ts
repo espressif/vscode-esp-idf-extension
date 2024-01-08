@@ -76,16 +76,19 @@ export async function installPythonEnvFromIdfTools(
     if (gitPath && gitPath !== "git") {
       pathToGitDir = path.dirname(gitPath);
     }
+    const pathNameInEnv: string = Object.keys(process.env).find(
+      (k) => k.toUpperCase() == "PATH"
+    );
     if (pathToGitDir) {
-      modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
+      modifiedEnv[pathNameInEnv] = pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
     }
     modifiedEnv.PYTHONNOUSERSITE = "1";
-    modifiedEnv.Path =
+    modifiedEnv[pathNameInEnv] =
       path.dirname(pythonBinPath) +
       path.sep +
       "Lib" +
       path.delimiter +
-      modifiedEnv.Path;
+      modifiedEnv[pathNameInEnv];
   }
 
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
