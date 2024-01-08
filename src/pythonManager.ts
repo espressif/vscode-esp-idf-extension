@@ -80,7 +80,8 @@ export async function installPythonEnvFromIdfTools(
       (k) => k.toUpperCase() == "PATH"
     );
     if (pathToGitDir) {
-      modifiedEnv[pathNameInEnv] = pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
+      modifiedEnv[pathNameInEnv] =
+        pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
     }
     modifiedEnv.PYTHONNOUSERSITE = "1";
     modifiedEnv[pathNameInEnv] =
