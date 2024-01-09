@@ -51,7 +51,7 @@ export function parseCmakeListsText(
     const regex = new RegExp(element.regex, "g");
     let resultStr: RegExpExecArray;
     while ((resultStr = regex.exec(cmakeListFileText))) {
-      if (resultStr && resultStr.length > 1 && resultStr[1].length > 1) {
+      if (resultStr && resultStr.length > 1 && resultStr[1].length) {
         let newElement: CmakeListsElement = JSON.parse(JSON.stringify(element));
         newElement.value = [];
         switch (element.type) {
