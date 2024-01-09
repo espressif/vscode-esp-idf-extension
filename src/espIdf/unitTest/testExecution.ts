@@ -42,7 +42,7 @@ export async function runPyTestWithTestCase(
   try {
     await runTaskForCommand(
       workspaceFolder,
-      `pytest --junitxml test.xml --skip-autoflash y --embedded-services esp,idf -s --test-name "${testName}"`,
+      `pytest --junitxml test.xml --skip-autoflash y --embedded-services esp,idf -s --test-name '${testName}'`,
       "PyTest Run",
       cancelToken
     );

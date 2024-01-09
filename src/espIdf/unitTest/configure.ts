@@ -154,12 +154,19 @@ export async function buildFlashTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  const flashType = readParameter("idf.flashType", unitTestAppDirPath);
+  let flashType = readParameter("idf.flashType", unitTestAppDirPath) as ESP.FlashType;
+  if (!flashType) {
+    flashType = ESP.FlashType.UART;
+  }
   let canContinue = await buildCommand(unitTestAppDirPath, cancelToken, flashType);
   if (!canContinue) {
     return;
   }
   const port = readParameter("idf.port", unitTestAppDirPath);
+  if (!port) {
+    Logger.infoNotify("Serial port is not defined for unit test");
+    return;
+  }
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
   const idfPathDir = readParameter("idf.espIdfPath", unitTestAppDirPath) as string;
   const canFlash = await verifyCanFlash(flashBaudRate, port, unitTestAppDirPath);

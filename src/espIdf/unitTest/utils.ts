@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { basename } from "path";
+import { basename, sep } from "path";
 import { Uri, window, workspace } from "vscode";
 
 export async function getFileList(): Promise<Uri[]> {
@@ -33,7 +33,7 @@ export async function getFileList(): Promise<Uri[]> {
 export async function getTestComponents(files: Uri[]): Promise<string[]> {
   let componentsList: Set<string> = new Set<string>();
   files.forEach((match) => {
-    const componentName = basename(match.fsPath.split("/test/test_")[0]);
+    const componentName = basename(match.fsPath.split(sep + "test" + sep + "test_")[0]);
     componentsList.add(componentName);
   });
   return Array.from(componentsList);
