@@ -143,6 +143,7 @@ import {
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
+import { installEspSBOM } from "./espBom";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3061,6 +3062,12 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     );
+  });
+
+  registerIDFCommand("espIdf.createSbom", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      await installEspSBOM(workspaceRoot);
+    });
   });
 
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
