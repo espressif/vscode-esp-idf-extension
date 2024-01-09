@@ -98,7 +98,6 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
@@ -134,6 +133,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import { ErrorHintProvider } from "./espIdf/hints/index";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -785,7 +785,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!option) {
           const noFolderMsg = locDic.localize(
             "extension.noFolderMessage",
-            "No workspace selected."
+            "No workspace selected"
           );
           Logger.infoNotify(noFolderMsg);
           return;
@@ -3025,6 +3025,21 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
   await checkExtensionSettings(context.extensionPath, workspaceRoot);
+
+  // ERROR HINTS
+
+  const treeDataProvider = new ErrorHintProvider(context);
+  vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
+
+  vscode.commands.registerCommand("espIdf.searchError", async () => {
+    const errorMsg = await vscode.window.showInputBox({
+      placeHolder: "Enter the error message",
+    });
+    if (errorMsg) {
+      treeDataProvider.searchError(errorMsg, workspaceRoot);
+      await vscode.commands.executeCommand("errorHints.focus");
+    }
+  });
 }
 
 async function getFrameworksPickItems() {

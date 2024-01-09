@@ -136,6 +136,13 @@
       }
     ],
     "viewsContainers": {
+      "panel": [
+        {
+          "id": "espIdfHints",
+          "title": "ESP-IDF",
+          "icon": "media/dep.svg"
+        }
+      ],
       "activitybar": [
         {
           "id": "idfViewController",
@@ -145,6 +152,13 @@
       ]
     },
     "views": {
+      "espIdfHints": [
+        {
+          "id": "errorHints",
+          "name": "Error Hints",
+          "title": "Error Hints ($errorHints.count$)"
+        }
+      ],
       "debug": [
         {
           "name": "ESP-IDF: Peripheral",
@@ -203,7 +217,18 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "espIdf.searchError",
+          "group": "navigation"
+        }
+      ],
       "view/title": [
+        {
+          "command": "espIdf.searchError",
+          "group": "navigation",
+          "when": "view == errorHints"
+        },
         {
           "command": "espIdf.partition.table.refresh",
           "group": "navigation",
@@ -267,6 +292,9 @@
         }
       ],
       "editor/context": [
+        {
+          "command": "espIdf.searchError"
+        },
         {
           "command": "espIdf.searchInEspIdfDocs",
           "group": "navigation",
@@ -919,6 +947,10 @@
     ],
     "commands": [
       {
+        "command": "espIdf.searchError",
+        "title": "%espIdf.searchError.title%"
+      },
+      {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%",
         "category": "ESP-IDF"
@@ -1515,6 +1547,7 @@
     "gulp-typescript": "^5.0.0-alpha.3",
     "html-webpack-plugin": "^4.0.0",
     "husky": "^6.0.0",
+    "js-yaml": "^4.1.0",
     "jsonic": "^1.0.1",
     "mocha": "^9.2.0",
     "mocha-junit-reporter": "^1.23.3",
@@ -1548,6 +1581,7 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.5",
     "ansi-to-html": "^0.6.11",
     "axios": "^1.6.0",
     "bignumber.js": "^9.0.1",
@@ -1576,6 +1610,7 @@
     "winston": "^2.3.1",
     "ws": "^7.4.6",
     "xml2js": "^0.5.0",
+    "yarn": "^1.22.19",
     "yauzl": "^2.10.0"
   },
   "alias": {
