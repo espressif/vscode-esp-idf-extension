@@ -50,7 +50,7 @@ onMounted(() => {
               </a>
               <button
                 class="button"
-                title="Retry"
+                title="Reset values"
                 @click="store.initDataRequest"
               >
                 <span class="icon is-small">
