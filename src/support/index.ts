@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 23rd December 2020 4:35:32 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,15 +27,15 @@ import { getPipVersion } from "./pipVersion";
 import { getPythonPackages } from "./pythonPackages";
 import { checkEspIdfTools } from "./checkEspIdfTools";
 import { checkEspIdfRequirements } from "./checkEspIdfRequirements";
-import {
-  checkDebugAdapterRequirements,
-  checkExtensionRequirements,
-} from "./checkExtensionRequirements";
+import { checkDebugAdapterRequirements } from "./checkExtensionRequirements";
 import { writeTextReport } from "./writeReport";
 import { checkSystemInfo } from "./checkSystemInfo";
 import { checkCCppPropertiesJson, checkLaunchJson } from "./checkVscodeFiles";
 import { checkSpacesInSettings } from "./checkSpacesInSettings";
-import { getProjectConfigurations, getSelectedProjectConfiguration } from "./projectConfiguration";
+import {
+  getProjectConfigurations,
+  getSelectedProjectConfiguration,
+} from "./projectConfiguration";
 
 export async function generateConfigurationReport(
   context: vscode.ExtensionContext,
@@ -53,7 +53,6 @@ export async function generateConfigurationReport(
   await getPythonPackages(reportedResult, context);
   await checkEspIdfTools(reportedResult, context);
   await checkEspIdfRequirements(reportedResult, context);
-  await checkExtensionRequirements(reportedResult, context);
   await checkDebugAdapterRequirements(reportedResult, context);
   await checkLaunchJson(reportedResult, currentWorkspace);
   await checkCCppPropertiesJson(reportedResult, currentWorkspace);

@@ -2,8 +2,6 @@
 
 ## Requirements
 
-This extension's code coverage feature uses the `gcovr` python package which is included in the extension's requirements.txt and installed during [Install tutorial](./install.md) as part of this extension ESP-IDF Debug Adapter Python Requirements when following the **ESP-IDF: Configure ESP-IDF Extension** command.
-
 Your ESP-IDF project should be configured to generate `gcda/gcno` coverage files using `gcov`. Please read [GCOV Code Coverage](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage) to learn more about code coverage with GCOV in ESP-IDF projects.
 
 Please take a look at [Coverage](../COVERAGE.md) for more information about code coverage in this extension.
@@ -79,6 +77,6 @@ Please review [Settings](../SETTINGS.md) to see how to modify these configuratio
 
 ## Troubleshooting
 
-Make sure you had properly configure the required toolchain in `idf.customExtraPaths` or in your environment variable PATH since the GCOV executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing `TOOLCHAIN_PREFIX` for your `IDF_TARGET` toolchain prefix) and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
+Make sure you had properly configure the required toolchain in `idf.customExtraPaths` or in your environment variable PATH since the GCOV executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing `TOOLCHAIN_PREFIX` for your `IDF_TARGET` toolchain prefix).
 
-An easy way is to verify this is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `{TOOLCHAIN_PREFIX}-gcov --version` and `gcovr --version`.
+An easy way is to verify this is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `{TOOLCHAIN_PREFIX}-gcov --version`.

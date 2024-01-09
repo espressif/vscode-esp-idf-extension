@@ -20,25 +20,6 @@ import * as vscode from "vscode";
 import { reportObj } from "./types";
 import { checkRequirements } from "./checkEspIdfRequirements";
 
-export async function checkExtensionRequirements(
-  reportedResult: reportObj,
-  context: vscode.ExtensionContext
-) {
-  try {
-    const requirementsPath = join(context.extensionPath, "requirements.txt");
-    const result = await checkRequirements(
-      context,
-      reportedResult,
-      requirementsPath
-    );
-    reportedResult.extensionRequirements.output = result;
-    reportedResult.extensionRequirements.result = result;
-  } catch (error) {
-    reportedResult.extensionRequirements.result = "Error";
-    reportedResult.latestError = error;
-  }
-}
-
 export async function checkDebugAdapterRequirements(
   reportedResult: reportObj,
   context: vscode.ExtensionContext
