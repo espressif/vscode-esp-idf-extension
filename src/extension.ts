@@ -826,8 +826,50 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.selectConfTarget", () => {
-    idfConf.chooseConfigurationTarget();
+  registerIDFCommand("espIdf.selectConfTarget", async () => {
+    await idfConf.chooseConfigurationTarget();
+  });
+
+  registerIDFCommand("espIdf.selectNotificationMode", async () => {
+    const notificationTarget = await vscode.window.showQuickPick(
+      [
+        {
+          description: "Show no notifications and do not focus tasks output.",
+          label: "Silent",
+          target: "Silent",
+        },
+        {
+          description: "Show notifications but do not focus tasks output.",
+          label: "Notifications",
+          target: "Notifications",
+        },
+        {
+          description: "Do not show notifications but focus tasks output.",
+          label: "Output",
+          target: "Output",
+        },
+        {
+          description: "Show notifications and focus tasks output.",
+          label: "All",
+          target: "All",
+        },
+      ],
+      { placeHolder: "Select the output and notification mode" }
+    );
+    if (!notificationTarget) {
+      return;
+    }
+    const saveScope = idfConf.readParameter("idf.saveScope");
+
+    await idfConf.writeParameter(
+      "idf.notificationMode",
+      notificationTarget.target,
+      saveScope,
+      workspaceRoot
+    );
+    Logger.infoNotify(
+      `Notification mode has changed to ${notificationTarget.label}`
+    );
   });
 
   registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {

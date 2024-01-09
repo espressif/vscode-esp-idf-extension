@@ -151,13 +151,15 @@ export class BuildTask {
       (w) => w.uri === this.curWorkspace
     );
 
-    const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       this.curWorkspace
-    ) as boolean;
-    const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
 
     if (!cmakeCacheExists) {
       let compilerArgs = (idfConf.readParameter(
@@ -274,13 +276,15 @@ export class BuildTask {
       (w) => w.uri === this.curWorkspace
     );
 
-    const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       this.curWorkspace
-    );
-    const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
 
     const writeExecution = this.dfuShellExecution(options);
     const buildPresentationOptions = {
