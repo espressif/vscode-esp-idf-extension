@@ -77,6 +77,6 @@ Please review [Settings](../SETTINGS.md) to see how to modify these configuratio
 
 ## Troubleshooting
 
-Make sure you had properly configure the required toolchain in `idf.customExtraPaths` or in your environment variable PATH since the GCOV executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing `TOOLCHAIN_PREFIX` for your `IDF_TARGET` toolchain prefix) and `gcovr` exists in the same directory as your `${idf.pythonBinPath}` path.
+Make sure you had properly configure the required toolchain in `idf.customExtraPaths` or in your environment variable PATH since the GCOV executable used is `{TOOLCHAIN_PREFIX}-gcov` (replacing `TOOLCHAIN_PREFIX` for your `IDF_TARGET` toolchain prefix).
 
-An easy way is to verify this is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `{TOOLCHAIN_PREFIX}-gcov --version` and `gcovr --version`.
+An easy way is to verify this is to execute **ESP-IDF: Open ESP-IDF Terminal** and type `{TOOLCHAIN_PREFIX}-gcov --version`.
