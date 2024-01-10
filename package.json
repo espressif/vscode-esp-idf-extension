@@ -1351,7 +1351,7 @@
       },
       {
         "command": "espIdf.createSbom",
-        "title": "Install ESP-SBOM",
+        "title": "%espIdf.createSbom.title%",
         "category": "ESP-IDF"
       }
     ],

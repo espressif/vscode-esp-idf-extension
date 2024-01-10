@@ -53,6 +53,7 @@
   "espIdf.monitorQemu.title": "Monitorear dispositivo QEMU",
   "espIdf.qemuDebug.title": "Lanzar sesión de depurador para QEMU",
   "espIdf.createDevContainer.title": "Agregar configuracion del contenedor docker",
+  "espIdf.createSbom.title": "Lanzar verificación de vulnerabilidad ESP-IDF-SBOM",
   "esp.component-manager.ui.show.title": "Mostrar registro de componentes",
   "esp.component-manager.cli.addDependencyError": "Error al agregar dependencias al componente",
   "espIdf.partition.table.refresh.title": "Actualizar tabla de particiones",

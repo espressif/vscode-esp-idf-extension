@@ -16,26 +16,58 @@
  * limitations under the License.
  */
 
-import { Uri } from "vscode";
+import { Uri, window, env } from "vscode";
 import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
 import { readParameter } from "../idfConfiguration";
 import { OutputChannel } from "../logger/outputChannel";
+import { join } from "path";
+import { pathExists } from "fs-extra";
+import { Logger } from "../logger/logger";
 
-export async function createSBOM(workspace: Uri) {}
-
-export async function checkVulnerabilities(workspace: Uri) {}
+export async function createSBOM(workspace: Uri) {
+  try {
+    const projectDescriptionJson = join(
+      workspace.fsPath,
+      "build",
+      "project_description.json"
+    );
+    const projectDescriptionExists = await pathExists(projectDescriptionJson);
+    if (!projectDescriptionExists) {
+      return Logger.infoNotify(
+        `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
+      );
+    }
+    const modifiedEnv = appendIdfAndToolsToPath(workspace);
+    const espIdfSbomTerminal = window.createTerminal({
+      name: "ESP-IDF SBOM",
+      env: modifiedEnv,
+      cwd: workspace.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
+      strictEnv: true,
+      shellArgs: [],
+      shellPath: env.shell,
+    });
+    espIdfSbomTerminal.sendText(`esp-idf-sbom create ${projectDescriptionJson} --output-file espidf.spdx`);
+    espIdfSbomTerminal.show();
+    espIdfSbomTerminal.sendText(`esp-idf-sbom check espidf.spdx`);
+  } catch (error) {
+    const msg = error.message
+      ? error.message
+      : "Error create SBOM Report or check vulnerabilities.";
+    Logger.errorNotify(msg, error);
+  }
+}
 
 export async function installEspSBOM(workspace: Uri) {
   const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
   const modifiedEnv = appendIdfAndToolsToPath(workspace);
   try {
-    const result = await execChildProcess(
+    const showResult = await execChildProcess(
       `"${pythonBinPath}" -m pip show esp-idf-sbom`,
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }
     );
-    return result.indexOf("WARNING: Package(s) not found: esp-idf-sbom") === -1;
+    OutputChannel.appendLine(showResult);
   } catch (error) {
     const installResult = await execChildProcess(
       `"${pythonBinPath}" -m pip install esp-idf-sbom`,
@@ -43,5 +75,6 @@ export async function installEspSBOM(workspace: Uri) {
       OutputChannel.init(),
       { env: modifiedEnv }
     );
+    OutputChannel.appendLine(installResult);
   }
 }
