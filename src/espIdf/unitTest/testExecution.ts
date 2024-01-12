@@ -26,8 +26,9 @@ import {
   TaskRevealKind,
   TaskScope,
   Uri,
+  workspace,
 } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
 import { parseStringPromise } from "xml2js";
@@ -108,14 +109,15 @@ export async function runTaskForCommand(
     options.shellArgs = shellExecutableArgs;
   }
 
-  const isSilentMode = readParameter(
-    "idf.notificationSilentMode",
+  const notificationMode = readParameter(
+    "idf.notificationMode",
     workspaceFolder
-  ) as boolean;
-
-  const showTaskOutput = isSilentMode
-    ? TaskRevealKind.Always
-    : TaskRevealKind.Silent;
+  ) as string;
+  const showTaskOutput =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Output
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
 
   const testRunPresentationOptions = {
     reveal: showTaskOutput,
@@ -123,6 +125,10 @@ export async function runTaskForCommand(
     clear: true,
     panel: TaskPanelKind.Shared,
   } as TaskPresentationOptions;
+
+  const curWorkspaceFolder = workspace.workspaceFolders.find(
+    (w) => w.uri === workspaceFolder
+  );
 
   const testRunExecution = new ShellExecution(cmdString, options);
 
@@ -132,7 +138,7 @@ export async function runTaskForCommand(
       command: taskName,
       taskId: "idf-test-run-task",
     },
-    TaskScope.Workspace, // Add Workspace Folder ?
+    curWorkspaceFolder || TaskScope.Workspace,
     "ESP-IDF " + taskName,
     testRunExecution,
     ["espIdf"],
