@@ -32,7 +32,7 @@ You have several options to create a project:
 
 7. Now to build the project, use the **ESP-IDF: Build your Project** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>B</kbd> keyboard shortcut). The user will see a new terminal being launched with the build output and a notification bar with Building Project message until it is done then a Build done message when finished. You could modify the behavior of the build task with `idf.cmakeCompilerArgs` for Cmake configure step and `idf.ninjaArgs` for Ninja step. For example, using `[-j N]` where N is the number of jobs run in parallel.
 
-> **NOTE:** There is a `idf.notificationSilentMode` configuration setting if the user does not wants to see the output automatically. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify this configuration setting.
+> **NOTE:** There is a `idf.notificationMode` configuration setting if the user does not wants to see the output automatically. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify this configuration setting.
 
 <p>
   <img src="../../media/tutorials/basic_use/build.png" alt="Building" width="975">

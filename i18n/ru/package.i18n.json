@@ -61,6 +61,8 @@
   "espIdf.projectConfigurationEditor.title": "Открыть конфигурацию проекта",
   "espIdf.projectConf.title": "Выберите конфигурацию проекта",
   "espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки IDF",
+  "espIdf.unitTest.buildFlashUnitTestApp.title": "Модульный тест: сборка и запуск приложения модульного тестирования для тестирования.",
+  "espIdf.unitTest.installPyTest.title": "Модульный тест: установите требования ESP-IDF PyTest",
   "esp.component-manager.ui.show.title": "Показать реестр компонентов",
   "esp.component-manager.cli.addDependencyError": "Ошибка при добавлении зависимости к компоненту",
   "debug.initConfig.name": "Отладка запуск",

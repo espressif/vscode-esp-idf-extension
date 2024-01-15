@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.68.0"
   },
   "repository": {
     "type": "git",
@@ -1318,6 +1318,16 @@
         "command": "espIdf.selectNotificationMode",
         "title": "%espIdf.selectNotificationMode.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.unitTest.installPyTest",
+        "title": "%espIdf.unitTest.installPyTest.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.unitTest.buildFlashUnitTestApp",
+        "title": "%espIdf.unitTest.buildFlashUnitTestApp.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
@@ -1495,7 +1505,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.32.0",
+    "@types/vscode": "^1.59.0",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",

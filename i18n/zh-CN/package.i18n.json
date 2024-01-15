@@ -61,6 +61,8 @@
   "espIdf.projectConfigurationEditor.title": "打开项目配置",
   "espIdf.projectConf.title": "选择项目配置",
   "espIdf.clearSavedIdfSetups.title": "清除保存的IDF设置",
+  "espIdf.unitTest.buildFlashUnitTestApp.title": "单元测试：构建并闪存用于测试的单元测试应用程序",
+  "espIdf.unitTest.installPyTest.title": "单元测试：安装ESP-IDF PyTest要求",
   "esp.component-manager.ui.show.title": "显示组件注册表",
   "esp.component-manager.cli.addDependencyError": "向组件添加依赖项时遇到错误",
   "debug.initConfig.name": "ESP-IDF调试 启动",
