@@ -21,8 +21,8 @@ ENV DISPLAY=":99"
 ENV CODE_TESTS_PATH="out/test"
 ENV CODE_VERSION="min"
 
-ENV NODE_VERSION=14.19.0
-RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+ENV NODE_VERSION=16.16.0
+RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.39.7/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
 RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
