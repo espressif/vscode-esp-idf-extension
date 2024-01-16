@@ -29,6 +29,7 @@ import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import * as utils from "../utils";
+import { showErrorNotificationWithLink } from "../logger/utils";
 import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
 
@@ -159,7 +160,7 @@ export async function checkFlashEncryption(
             ESP.URL.Docs.FLASH_ENCRYPTION,
             workspaceRoot
           );
-          utils.showErrorNotificationWithLink(errorMessage, documentationUrl);
+          showErrorNotificationWithLink(errorMessage, documentationUrl);
           OutputChannel.appendLineAndShow(error.message);
           Logger.error(errorMessage, error, { tag: "FLASH_ENCRYPTION" });
           return;
