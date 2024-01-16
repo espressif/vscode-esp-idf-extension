@@ -150,7 +150,7 @@ export async function checkFlashEncryption(
         if (
           summaryResult.BLOCK_KEY0.value &&
           summaryResult.BLOCK_KEY0.value ===
-            "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+            ESP.DEFAULT_UNSET_EFUSE_VALUE
         ) {
           const errorMessage =
             "Encryption key (eFuse BLOCK_KEY0) is not set. Please configure the eFuse key before proceeding with encrypted flashing.";

@@ -35,6 +35,8 @@ export namespace ESP {
       "esp_idf_project_configuration.json";
   }
 
+  export const DEFAULT_UNSET_EFUSE_VALUE = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00";
+
   export enum FlashType {
     JTAG = "JTAG",
     UART = "UART",
@@ -125,4 +127,6 @@ export namespace ESP {
       export const Title = "IDF Component Registry";
     }
   }
+
+
 }
