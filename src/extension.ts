@@ -100,9 +100,10 @@ import { writeTextReport } from "./support/writeReport";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
-import { verifyCanFlash,
+import {
+  verifyCanFlash,
   isFlashEncryptionEnabled,
-  checkFlashEncryption
+  checkFlashEncryption,
 } from "./flash/flashCmd";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
@@ -1603,7 +1604,9 @@ export async function activate(context: vscode.ExtensionContext) {
     flash(isFlashEncryptionEnabled(workspaceRoot), ESP.FlashType.UART)
   );
   registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashDevice", () => flash(isFlashEncryptionEnabled(workspaceRoot)));
+  registerIDFCommand("espIdf.flashDevice", () =>
+    flash(isFlashEncryptionEnabled(workspaceRoot))
+  );
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -3341,7 +3344,11 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         });
 
         let encryptPartitions = isFlashEncryptionEnabled(workspaceRoot);
-        canContinue = await startFlashing(cancelToken, flashType, encryptPartitions);
+        canContinue = await startFlashing(
+          cancelToken,
+          flashType,
+          encryptPartitions
+        );
         if (!canContinue) {
           return;
         }
@@ -3383,7 +3390,9 @@ async function selectFlashMethod() {
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspaceRoot
   );
-  vscode.window.showInformationMessage(`Flash method changed to ${newFlashType}.`);
+  vscode.window.showInformationMessage(
+    `Flash method changed to ${newFlashType}.`
+  );
   return newFlashType;
 }
 
