@@ -175,12 +175,6 @@ export async function writeTextReport(
       ? reportedResult.idfCheckRequirements.result
       : reportedResult.idfCheckRequirements.output
   }${EOL}`;
-  output += `---------------------------------------------------- Check extension requirements.txt ------------------------------------------------------${EOL}`;
-  output += `Check Extension Python packages ${
-    reportedResult.extensionRequirements.result
-      ? reportedResult.extensionRequirements.result
-      : reportedResult.extensionRequirements.output
-  }${EOL}`;
   output += `---------------------------------------------------- Check ESP-IDF debug adapter requirements.txt ------------------------------------------${EOL}`;
   output += `Check Debug AdapterPython packages ${
     reportedResult.debugAdapterRequirements.result
@@ -202,7 +196,7 @@ export async function writeTextReport(
         ? reportedResult.latestError.message
         : typeof reportedResult.latestError === "string"
         ? reportedResult.latestError
-        : "Unknown error in ESP-IDF doctor command"
+        : "Unknown error in ESP-IDF Doctor Command"
     }${EOL}`;
   }
   output += lineBreak;

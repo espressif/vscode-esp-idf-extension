@@ -100,9 +100,15 @@ export function getOpenOcdScripts(workspace: Uri): string {
   return openOcdScriptsPath;
 }
 
-export async function getBoards(openOcdScriptsPath: string = "") {
+export async function getBoards(
+  idfTarget: string = "",
+  openOcdScriptsPath: string = ""
+) {
   if (!openOcdScriptsPath) {
-    return defaultBoards;
+    const filteredDefaultBoards = defaultBoards.filter((b) => {
+      return b.target === idfTarget;
+    });
+    return idfTarget ? filteredDefaultBoards : defaultBoards;
   }
   const openOcdEspConfig = join(openOcdScriptsPath, "esp-config.json");
   try {
@@ -131,9 +137,15 @@ export async function getBoards(openOcdScriptsPath: string = "") {
       configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
     } as IdfBoard;
     espBoards.push(emptyBoard);
-    return espBoards;
+    const filteredEspBoards = espBoards.filter((b) => {
+      return b.target === idfTarget;
+    });
+    return idfTarget ? filteredEspBoards : espBoards;
   } catch (error) {
     Logger.error(error.message, error);
-    return defaultBoards;
+    const filteredDefaultBoards = defaultBoards.filter((b) => {
+      return b.target === idfTarget;
+    });
+    return idfTarget ? filteredDefaultBoards : defaultBoards;
   }
 }

@@ -32,7 +32,7 @@ import {
 } from "vscode";
 import { FlashModel } from "../flash/flashModel";
 import { createFlashModel } from "../flash/flashModelBuilder";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
@@ -103,13 +103,15 @@ export async function mergeFlashBinaries(
     }
   }
 
-  const isSilentMode = readParameter(
-    "idf.notificationSilentMode",
+  const notificationMode = readParameter(
+    "idf.notificationMode",
     wsFolder
-  ) as boolean;
-  const showTaskOutput = isSilentMode
-    ? TaskRevealKind.Always
-    : TaskRevealKind.Silent;
+  ) as string;
+  const showTaskOutput =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Output
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
   const mergeExecution = await getMergeExecution(
     buildDirPath,
     esptoolPath,
@@ -117,7 +119,7 @@ export async function mergeFlashBinaries(
     wsFolder
   );
   const curWorkspaceFolder = workspace.workspaceFolders.find(
-    (w) => w.uri === this.curWorkspace
+    (w) => w.uri === wsFolder
   );
   const mergePresentationOptions = {
     reveal: showTaskOutput,

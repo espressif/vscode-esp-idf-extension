@@ -104,7 +104,6 @@ export class reportObj {
   pythonVersion: execResult;
   pythonPackages: execResult;
   idfCheckRequirements: execResult;
-  extensionRequirements: execResult;
   debugAdapterRequirements: execResult;
   formatedOutput: string;
   selectedProjectConfiguration: string;

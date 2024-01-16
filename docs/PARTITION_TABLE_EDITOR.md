@@ -1,11 +1,11 @@
 # Partition Table Editor UI for ESP-IDF
 
-Our VS Code Extension comes with UI for editing your [partition table](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html) and flash it to your chip, instead of editing the csv files directly we present you with comfortable UI where you can edit an existing partition table or create a new one of your choosing.
+Our VS Code Extension comes with UI for editing your [Partition Table](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html) and flash it to your chip, instead of editing the csv files directly we present you with comfortable UI where you can edit an existing partition table or create a new one of your choosing.
 
 ## Prerequisites
 
 - ESP-IDF `>=v4.x`
-- IDF VSCode extension version `>=0.6.0`
+- ESP-IDF VS Code Extension version `>=0.6.0`
 - ESP Wrover Kit (optional for flashing the modified partition table)
 
 ## Steps

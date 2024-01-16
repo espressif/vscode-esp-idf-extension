@@ -1,8 +1,5 @@
 import * as assert from "assert";
-import * as vscode from "vscode";
-import { json } from "stream/consumers";
-import { getGcovExecutable, buildJson } from "../../coverage/coverageService";
-import { CoverageRenderer } from "../../coverage/renderer";
+import { getGcovExecutable } from "../../coverage/coverageService";
 
 suite("Test Coverage Unit Tests", () => {
   test("gcov executables based on idfTarget", () => {

@@ -1,4 +1,4 @@
-# Language contribution guidelines
+# Language Contribution Guidelines
 
 Make sure you install the source code version of this extension by following [Source Mode](./INSTALL.md#Build-from-Source-Code).
 
@@ -23,7 +23,7 @@ Each file has a key value structure such as:
 
 ```json
 {
-  "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF project from extension template",
+  "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF Project from Extension Template",
   "textID": "value"
 }
 ```

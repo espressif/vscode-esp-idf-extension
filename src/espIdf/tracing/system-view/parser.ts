@@ -32,7 +32,8 @@ export class SystemViewResultParser {
       {
         location: ProgressLocation.Notification,
         cancellable: false,
-        title: "Processing your tracing file to generate System View Report",
+        title:
+          "ESP-IDF: Processing your tracing file to generate System View Report",
       },
       async () => {
         try {

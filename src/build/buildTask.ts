@@ -151,13 +151,15 @@ export class BuildTask {
       (w) => w.uri === this.curWorkspace
     );
 
-    const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       this.curWorkspace
-    ) as boolean;
-    const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
 
     if (!cmakeCacheExists) {
       let compilerArgs = (idfConf.readParameter(
@@ -183,13 +185,12 @@ export class BuildTask {
         (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
       if (
-        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") !== -1 &&
+        compilerArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
         sdkconfigDefaults &&
         sdkconfigDefaults.length
       ) {
         compilerArgs.push(
-          "-D",
-          `SDKCONFIG_DEFAULTS="${sdkconfigDefaults.join(";")}"`
+          `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
         );
       }
 
@@ -233,7 +234,7 @@ export class BuildTask {
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
-      clear: cmakeCacheExists,
+      clear: false,
       panel: vscode.TaskPanelKind.Shared,
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
@@ -275,13 +276,15 @@ export class BuildTask {
       (w) => w.uri === this.curWorkspace
     );
 
-    const isSilentMode = idfConf.readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       this.curWorkspace
-    );
-    const showTaskOutput = isSilentMode
-      ? vscode.TaskRevealKind.Always
-      : vscode.TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Output
+        ? vscode.TaskRevealKind.Always
+        : vscode.TaskRevealKind.Silent;
 
     const writeExecution = this.dfuShellExecution(options);
     const buildPresentationOptions = {

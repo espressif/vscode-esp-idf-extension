@@ -16,11 +16,7 @@
  * limitations under the License.
  */
 
-import {
-  BottomBarPanel,
-  InputBox,
-  Workbench,
-} from "vscode-extension-tester";
+import { BottomBarPanel, InputBox, Workbench } from "vscode-extension-tester";
 import { expect } from "chai";
 import { resolve } from "path";
 import { pathExists } from "fs-extra";
@@ -34,7 +30,7 @@ describe("Build testing", async () => {
   });
 
   it("Build bin is generated", async () => {
-    await new Workbench().executeCommand("ESP-IDF: Build your project");
+    await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
     await new Promise((res) => setTimeout(res, 2000));

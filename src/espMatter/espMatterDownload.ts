@@ -33,7 +33,7 @@ import {
   workspace,
 } from "vscode";
 import { AbstractCloning } from "../common/abstractCloning";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
@@ -109,13 +109,15 @@ export class EspMatterCloning extends AbstractCloning {
     );
 
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
-    const isSilentMode = readParameter(
-      "idf.notificationSilentMode",
+    const notificationMode = readParameter(
+      "idf.notificationMode",
       this.currWorkspace
-    );
-    const showTaskOutput = isSilentMode
-      ? TaskRevealKind.Always
-      : TaskRevealKind.Silent;
+    ) as string;
+    const showTaskOutput =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Output
+        ? TaskRevealKind.Always
+        : TaskRevealKind.Silent;
 
     const matterBootstrapPresentationOptions = {
       reveal: showTaskOutput,
@@ -144,7 +146,7 @@ export class EspMatterCloning extends AbstractCloning {
       {
         cancellable: true,
         location: ProgressLocation.Notification,
-        title: "Installing ESP-Matter",
+        title: "ESP-IDF: Installing ESP-Matter",
       },
       async (
         progress: Progress<{ message: string; increment?: number }>,
@@ -256,7 +258,7 @@ export async function installPythonReqs(
     {
       cancellable: true,
       location: ProgressLocation.Notification,
-      title: "Installing ESP-Matter",
+      title: "ESP-IDF: Installing ESP-Matter",
     },
     async (
       progress: Progress<{ message: string; increment?: number }>,

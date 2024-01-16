@@ -68,10 +68,6 @@ export function initializeReportObject() {
     output: undefined,
     result: undefined,
   };
-  report.extensionRequirements = {
-    output: undefined,
-    result: undefined,
-  };
   report.formatedOutput = undefined;
   report.gitVersion = {
     output: undefined,
