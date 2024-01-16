@@ -17,7 +17,7 @@ import * as pythonManager from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import { OutputChannel } from "../logger/outputChannel";
 import { PyReqLog } from "../PyReqLog";
-import { CancellationToken, Progress } from "vscode";
+import { CancellationToken, ExtensionContext, Progress } from "vscode";
 import { Logger } from "../logger/logger";
 
 export async function installPyReqs(
@@ -25,6 +25,7 @@ export async function installPyReqs(
   workingDir: string,
   sysPyBinPath: string,
   gitPath: string,
+  context: ExtensionContext,
   progress: Progress<{ message: string; increment?: number }>,
   cancelToken?: CancellationToken
 ) {
@@ -77,6 +78,7 @@ export async function installPyReqs(
     logTracker,
     sysPyBinPath,
     gitPath,
+    context,
     OutputChannel.init(),
     cancelToken
   );

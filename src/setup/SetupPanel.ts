@@ -24,7 +24,19 @@ import { ESP } from "../config";
 import * as idfConf from "../idfConfiguration";
 import { ensureDir } from "fs-extra";
 import path from "path";
-import vscode, { ConfigurationTarget, Uri, commands } from "vscode";
+import {
+  CancellationToken,
+  ConfigurationTarget,
+  Disposable,
+  ExtensionContext,
+  Progress,
+  ProgressLocation,
+  Uri,
+  ViewColumn,
+  WebviewPanel,
+  commands,
+  window,
+} from "vscode";
 import { expressInstall } from "./espIdfDownloadStep";
 import { IdfToolsManager } from "../idfToolsManager";
 import { OutputChannel } from "../logger/outputChannel";
@@ -43,20 +55,16 @@ export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
 
   public static createOrShow(
-    extensionPath: string,
+    context: ExtensionContext,
     setupArgs?: ISetupInitArgs
   ) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : vscode.ViewColumn.One;
+    const column = window.activeTextEditor
+      ? window.activeTextEditor.viewColumn
+      : ViewColumn.One;
     if (SetupPanel.currentPanel) {
       SetupPanel.currentPanel.panel.reveal(column);
     } else {
-      SetupPanel.currentPanel = new SetupPanel(
-        extensionPath,
-        column,
-        setupArgs
-      );
+      SetupPanel.currentPanel = new SetupPanel(context, column, setupArgs);
     }
   }
 
@@ -73,12 +81,12 @@ export class SetupPanel {
   }
 
   private static readonly viewType = "setupPanel";
-  private readonly panel: vscode.WebviewPanel;
-  private disposables: vscode.Disposable[] = [];
+  private readonly panel: WebviewPanel;
+  private disposables: Disposable[] = [];
 
   constructor(
-    private extensionPath: string,
-    column: vscode.ViewColumn,
+    private context: ExtensionContext,
+    column: ViewColumn,
     setupArgs: ISetupInitArgs
   ) {
     const setupPanelTitle = locDic.localize(
@@ -86,7 +94,7 @@ export class SetupPanel {
       "ESP-IDF Setup"
     );
 
-    this.panel = vscode.window.createWebviewPanel(
+    this.panel = window.createWebviewPanel(
       SetupPanel.viewType,
       setupPanelTitle,
       column,
@@ -94,17 +102,17 @@ export class SetupPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(this.extensionPath, "dist", "views")),
+          Uri.file(path.join(this.context.extensionPath, "dist", "views")),
         ],
       }
     );
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(extensionPath, "media", "espressif_icon.png")
+    this.panel.iconPath = Uri.file(
+      path.join(context.extensionPath, "media", "espressif_icon.png")
     );
 
     const scriptPath = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(extensionPath, "dist", "views", "setup-bundle.js")
+      Uri.file(
+        path.join(context.extensionPath, "dist", "views", "setup-bundle.js")
       )
     );
     this.panel.webview.html = this.createSetupHtml(scriptPath);
@@ -151,6 +159,7 @@ export class SetupPanel {
               message.mirror,
               message.saveScope,
               message.setupMode,
+              context,
               setupArgs.onReqPkgs
             );
           }
@@ -170,6 +179,7 @@ export class SetupPanel {
               setupArgs.gitPath,
               message.mirror,
               message.saveScope,
+              context,
               setupArgs.onReqPkgs
             );
           }
@@ -218,7 +228,7 @@ export class SetupPanel {
             pathSep,
             platform: process.platform,
             pyVersionList: setupArgs.pythonVersions,
-            saveScope: setupArgs.saveScope
+            saveScope: setupArgs.saveScope,
           });
           break;
         case "saveCustomSettings":
@@ -243,7 +253,8 @@ export class SetupPanel {
               exportedPaths,
               exportedVars,
               setupArgs.gitPath,
-              message.saveScope
+              message.saveScope,
+              context
             );
           }
           break;
@@ -360,19 +371,20 @@ export class SetupPanel {
     espIdfPath: string,
     idfContainerPath: string,
     mirror: ESP.IdfMirror,
-    saveScope: vscode.ConfigurationTarget,
+    saveScope: ConfigurationTarget,
     setupMode: SetupMode,
+    context: ExtensionContext,
     onReqPkgs?: string[]
   ) {
-    return await vscode.window.withProgress(
+    return await window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation.Notification,
         title: "ESP-IDF Setup:",
         cancellable: true,
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>,
-        cancelToken: vscode.CancellationToken
+        progress: Progress<{ message: string; increment?: number }>,
+        cancelToken: CancellationToken
       ) => {
         try {
           SetupPanel.postMessage({
@@ -426,6 +438,7 @@ export class SetupPanel {
             mirror,
             saveScope,
             setupMode,
+            context,
             idfGitPath,
             progress,
             cancelToken,
@@ -498,18 +511,19 @@ export class SetupPanel {
     toolsPath: string,
     gitPath: string,
     mirror: ESP.IdfMirror,
-    saveScope: vscode.ConfigurationTarget,
+    saveScope: ConfigurationTarget,
+    context: ExtensionContext,
     onReqPkgs?: string[]
   ) {
-    return await vscode.window.withProgress(
+    return await window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation.Notification,
         title: "ESP-IDF Tools Setup:",
         cancellable: true,
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>,
-        cancelToken: vscode.CancellationToken
+        progress: Progress<{ message: string; increment?: number }>,
+        cancelToken: CancellationToken
       ) => {
         try {
           SetupPanel.postMessage({
@@ -543,6 +557,7 @@ export class SetupPanel {
             gitPath,
             mirror,
             saveScope,
+            context,
             progress,
             cancelToken,
             onReqPkgs
@@ -561,17 +576,18 @@ export class SetupPanel {
     exportPaths: string,
     exportVars: { [key: string]: string },
     gitPath: string,
-    saveScope: ConfigurationTarget
+    saveScope: ConfigurationTarget,
+    context: ExtensionContext
   ) {
-    return await vscode.window.withProgress(
+    return await window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation.Notification,
         title: "ESP-IDF Python Requirements:",
         cancellable: true,
       },
       async (
-        progress: vscode.Progress<{ message: string; increment?: number }>,
-        cancelToken: vscode.CancellationToken
+        progress: Progress<{ message: string; increment?: number }>,
+        cancelToken: CancellationToken
       ) => {
         try {
           SetupPanel.postMessage({
@@ -587,6 +603,7 @@ export class SetupPanel {
             exportVars,
             gitPath,
             saveScope,
+            context,
             progress,
             cancelToken
           );
@@ -600,8 +617,8 @@ export class SetupPanel {
   private async installEmbedPyGit(
     toolsPath: string,
     idfVersion: string,
-    progress: vscode.Progress<{ message: string; increment?: number }>,
-    cancelToken: vscode.CancellationToken
+    progress: Progress<{ message: string; increment?: number }>,
+    cancelToken: CancellationToken
   ) {
     const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
     SetupPanel.postMessage({
@@ -620,7 +637,7 @@ export class SetupPanel {
     });
     const confTarget = idfConf.readParameter(
       "idf.saveScope"
-    ) as vscode.ConfigurationTarget;
+    ) as ConfigurationTarget;
     await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
     return { idfPythonPath, idfGitPath };
   }
@@ -657,14 +674,14 @@ export class SetupPanel {
 
   private async getOpenOcdRulesPath() {
     try {
-      await getOpenOcdRules(Uri.file(this.extensionPath));
+      await getOpenOcdRules(Uri.file(this.context.extensionPath));
     } catch (error) {
       this.setupErrHandler(error);
     }
   }
 
   private async openFolder() {
-    const selectedFolder = await vscode.window.showOpenDialog({
+    const selectedFolder = await window.showOpenDialog({
       canSelectFolders: true,
       canSelectFiles: false,
       canSelectMany: false,
@@ -672,12 +689,12 @@ export class SetupPanel {
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
     } else {
-      vscode.window.showInformationMessage("No folder selected");
+      window.showInformationMessage("No folder selected");
     }
   }
 
   private async openFile() {
-    const selectedFolder = await vscode.window.showOpenDialog({
+    const selectedFolder = await window.showOpenDialog({
       canSelectFolders: false,
       canSelectFiles: true,
       canSelectMany: false,
@@ -685,11 +702,11 @@ export class SetupPanel {
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
     } else {
-      vscode.window.showInformationMessage("No folder selected");
+      window.showInformationMessage("No folder selected");
     }
   }
 
-  private createSetupHtml(scriptPath: vscode.Uri): string {
+  private createSetupHtml(scriptPath: Uri): string {
     return `<!DOCTYPE html>
       <html lang="en">
         <head>
