@@ -57,7 +57,8 @@ export async function useIdfSetupSettings(
   );
 }
 
-export async function checkIdfSetup(setupConf: IdfSetup) {
+export async function checkIdfSetup(setupConf: IdfSetup,
+  logToChannel: boolean = true) {
   try {
     if (!setupConf.idfPath) {
       return false;
@@ -76,7 +77,8 @@ export async function checkIdfSetup(setupConf: IdfSetup) {
     const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
       join(setupConf.toolsPath, "tools"),
       exportedToolsPaths,
-      ["cmake", "ninja"]
+      ["cmake", "ninja"],
+      logToChannel
     );
 
     const failedToolsResult = toolsInfo.filter(

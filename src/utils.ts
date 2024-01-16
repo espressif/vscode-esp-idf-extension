@@ -45,7 +45,7 @@ import * as sanitizedHtml from "sanitize-html";
 const locDic = new LocDictionary(__filename);
 const currentFolderMsg = locDic.localize(
   "utils.currentFolder",
-  "ESP-IDF Current Project"
+  "ESP-IDF: Current Project"
 );
 
 export let extensionContext: vscode.ExtensionContext;
@@ -188,7 +188,7 @@ export function updateStatus(
   }
 ): void {
   status.text = info ? `$(file-submodule)` : void 0;
-  status.tooltip = info ? `${currentFolderMsg}: ${info.tooltip}` : void 0;
+  status.tooltip = info ? `${currentFolderMsg} ${info.tooltip}` : void 0;
   status.command = info ? info.clickCommand : void 0;
 
   if (info) {
@@ -246,8 +246,12 @@ export async function setCCppPropertiesJsonCompilerPath(
     let compilerRelativePath = compilerAbsolutePath.split(
       modifiedEnv.IDF_TOOLS_PATH
     )[1];
+    const settingToUse =
+      process.platform === "win32"
+        ? "${config:idf.toolsPathWin}"
+        : "${config:idf.toolsPath}";
     cCppPropertiesJson.configurations[0].compilerPath =
-      "${config:idf.toolsPath}" + compilerRelativePath;
+      settingToUse + compilerRelativePath;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
@@ -432,7 +436,7 @@ export function readComponentsDirs(filePath): IdfComponent[] {
 
   const openComponentMsg = locDic.localize(
     "utils.openComponentTitle",
-    "Open IDF component file"
+    "ESP-IDF: Open IDF Component File"
   );
 
   for (const file of files) {
@@ -978,12 +982,9 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     "partition_table"
   )}`;
 
-  let pathNameInEnv: string;
-  if (process.platform === "win32") {
-    pathNameInEnv = "Path";
-  } else {
-    pathNameInEnv = "PATH";
-  }
+  let pathNameInEnv: string = Object.keys(process.env).find(
+    (k) => k.toUpperCase() == "PATH"
+  );
   if (pathToGitDir) {
     modifiedEnv[pathNameInEnv] =
       pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];

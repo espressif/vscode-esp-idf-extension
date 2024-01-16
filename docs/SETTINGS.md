@@ -1,10 +1,10 @@
-# ESP IDF Settings
+# ESP-IDF Settings
 
-This extension contributes the following settings that can be later updated in settings.json or from VSCode Settings Preference menu (menu View -> Command Palette -> Preferences: Open Settings (UI)).
+This extension contributes the following settings that can be later updated in settings.json or from VS Code Settings Preference Menu (Menu View -> Command Palette -> Preferences: Open Settings (UI)).
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device configuration`, `Set Espressif device target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with multiple projects](./MULTI_PROJECTS.md). Use the `Select where to save configuration settings` command to choose where to save settings when using this extension commands.
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device Configuration`, `Set Espressif Device Target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with Multiple Projects](./MULTI_PROJECTS.md). Use the `Select where to Save Configuration Settings` command to choose where to save settings when using this extension commands.
 
 > **NOTE:** All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
 
@@ -35,51 +35,51 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 This is how the extension uses them:
 
 1. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as `openocd` or `cmake` (i.e. build your current project) else extension commands will try to use what is already in your system PATH.
-   > **NOTE:** In **ESP-IDF: Configure ESP-IDF extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in `idf.customExtraPaths`.
+   > **NOTE:** In **ESP-IDF: Configure ESP-IDF Extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in `idf.customExtraPaths`.
 2. `idf.customExtraVars` stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
 3. `idf.espIdfPath` (or `idf.espIdfPathWin` in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
-4. `idf.pythonBinPath` (or `idf.espIdfPathWin` in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF extension**
+4. `idf.pythonBinPath` (or `idf.espIdfPathWin` in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF Extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF Extension**
 5. `idf.gitPath` (or `idf.gitPathWin` in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
 > **NOTE**: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We use a modified process environment in all of this extension tasks and child processes which should not affect any other system process or extension. Please review the content of `idf.customExtraPaths` and `idf.customExtraVars` in case you have issues with other extensions.
 
-## Board/ Chip Specific Settings
+## Board/Chip Specific Settings
 
-These settings are specific to the ESP32 Chip/ Board
+These settings are specific to the ESP32 Chip/Board
 
 | Setting                                          | Description                                                                            | Scope                     |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF target Chip (Example: esp32)                                                   |                           |
-| `idf.customAdapterTargetName`                    | Custom target name for ESP-IDF Debug Adapter                                           |                           |
+| `idf.adapterTargetName`                          | ESP-IDF Target Chip (Example: esp32)                                                   |                           |
+| `idf.customAdapterTargetName`                    | Custom Target Name for ESP-IDF Debug Adapter                                           |                           |
 | `idf.flashBaudRate`                              | Flash Baud rate                                                                        |                           |
-| `idf.monitorBaudRate`                            | Monitor Baud rate (Empty by default to use sdkconfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
-| `idf.openOcdConfigs`                             | Configuration files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
-| `idf.openOcdLaunchArgs`                          | Launch arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs       |                           |
-| `idf.openOcdDebugLevel`                          | Set openOCD debug level (0-4) Default: 2                                               |                           |
-| `idf.port`                                       | Path of selected device port                                                           |                           |
-| `idf.portWin`                                    | Path of selected device port in Windows                                                |                           |
-| `openocd.jtag.command.force_unix_path_separator` | Forced to use `/` as path sep. for Win32 based OS instead of `\\`                      | User, Remote or Workspace |
-| `idf.listDfuDevices`                             | List of DFU devices connected to USB                                                   | User, Remote or Workspace |
-| `idf.selectedDfuDevicePath`                      | Selected DFU device connected to USB                                                   | User, Remote or Workspace |
-| `idf.svdFilePath`                                | SVD file absolute path to resolve chip debug peripheral tree view                      | User, Remote or Workspace |
+| `idf.monitorBaudRate`                            | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
+| `idf.openOcdConfigs`                             | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
+| `idf.openOcdLaunchArgs`                          | Launch Arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs       |                           |
+| `idf.openOcdDebugLevel`                          | Set openOCD Debug Level (0-4) Default: 2                                               |                           |
+| `idf.port`                                       | Path of Selected Device port                                                           |                           |
+| `idf.portWin`                                    | Path of Selected Device Port in Windows                                                |                           |
+| `openocd.jtag.command.force_unix_path_separator` | Forced to Use `/` as Path sep. for Win32 Based OS Instead of `\\`                      | User, Remote or Workspace |
+| `idf.listDfuDevices`                             | List of DFU Devices Connected to USB                                                   | User, Remote or Workspace |
+| `idf.selectedDfuDevicePath`                      | Selected DFU Device Connected to USB                                                   | User, Remote or Workspace |
+| `idf.svdFilePath`                                | SVD File Absolute Path to Resolve Chip Debug Peripheral Tree view                      | User, Remote or Workspace |
 
 This is how the extension uses them:
 
 1. `idf.adapterTargetName` is used to select the chipset (esp32, esp32s2, esp32s3, esp32c3 and custom) on which to run the extension commands.
-   > **NOTE** When you use the command **ESP-IDF: Set Espressif device target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration files.
+   > **NOTE** When you use the command **ESP-IDF: Set Espressif Device Target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration Files.
    >
-   > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device configuration** and select `Enter OpenOCD Configuration File Paths list` by entering each file separated by comma ",".
+   > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device Configuration** and select `Enter OpenOCD Configuration File Paths List` by entering each file separated by comma ",".
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
-3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your project** command and [ESP-IDF Debug](./DEBUGGING.md).
+3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
 4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
-5. `idf.openOcdConfigs` is used to store an string array of openOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+5. `idf.openOcdConfigs` is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 6. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
-7. `idf.openOcdDebugLevel`: Log level for openOCD server output from 0 to 4.
-8. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting openOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
+7. `idf.openOcdDebugLevel`: Log level for OpenOCD Server output from 0 to 4.
+8. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting OpenOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
-## Code coverage Specific Settings
+## Code Coverage Specific Settings
 
-These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
+These settings are used to configure the [Code Coverage](./COVERAGE.md) colors.
 
 | Setting ID                | Description                                                                   |
 | ------------------------- | ----------------------------------------------------------------------------- |
@@ -92,38 +92,38 @@ These settings are used to configure the [Code coverage](./COVERAGE.md) colors.
 
 ## Extension Behaviour Settings
 
-| Setting ID                             | Description                                                                    | Scope                     |
-| -------------------------------------- | ------------------------------------------------------------------------------ | ------------------------- |
-| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)                  | User, Remote or Workspace |
-| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                      |                           |
-| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                        |                           |
-| `idf.notificationSilentMode`           | Silent all notifications messages and show tasks output (default `true`)       | User, Remote or Workspace |
-| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration window on extension activation                      | User, Remote or Workspace |
-| `idf.saveScope`                        | Where to save extension settings                                               | User, Remote or Workspace |
-| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)                     |                           |
-| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                      |                           |
-| `idf.telemetry`                        | Enable Telemetry                                                               | User, Remote or Workspace |
-| `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on full clean project command (default `false`)    | User, Remote or Workspace |
-| `idf.monitorNoReset`                   | Enable no-reset flag to IDF Monitor (default `false`)                          | User, Remote or Workspace |
-| `idf.monitorEnableTimestamps`          | Enable timestamps in IDF Monitor (default `false`)                             | User, Remote or Workspace |
-| `idf.monitorCustomTimestampFormat`     | Custom timestamp format in IDF Monitor                                         | User, Remote or Workspace |
-| `idf.monitorStartDelayBeforeDebug`     | Delay to start debug session after IDF monitor execution                       | User, Remote or Workspace |
-| `idf.enableStatusBar`                  | Show or hide the extension status bar items                                    | User, Remote or Workspace |
-| `idf.enableSizeTaskAfterBuildTask`     | Enable IDF Size task to be executed after IDF Build task                       | User, Remote or Workspace |
-| `idf.customTerminalExecutable`         | Absolute path to shell terminal executable to use (default to vscode Terminal) | User, Remote or Workspace |
-| `idf.customTerminalExecutableArgs`     | Shell arguments for idf.customTerminalExecutable                               | User, Remote or Workspace |
+| Setting ID                             | Description                                                                     | Scope                     |
+| -------------------------------------- | ------------------------------------------------------------------------------- | ------------------------- |
+| `idf.enableUpdateSrcsToCMakeListsFile` | Enable update source files in CMakeLists.txt (default `true`)                   | User, Remote or Workspace |
+| `idf.flashType`                        | Preferred flash method. DFU, UART or JTAG                                       |                           |
+| `idf.launchMonitorOnDebugSession`      | Launch ESP-IDF Monitor along with ESP-IDF Debug session                         |                           |
+| `idf.notificationMode`                 | ESP-IDF extension notifications and output focus mode. (default `All`)          | User, Remote or Workspace |
+| `idf.showOnboardingOnInit`             | Show ESP-IDF Configuration Window on extension activation                       | User, Remote or Workspace |
+| `idf.saveScope`                        | Where to save extension settings                                                | User, Remote or Workspace |
+| `idf.saveBeforeBuild`                  | Save all the edited files before building (default `true`)                      |                           |
+| `idf.useIDFKconfigStyle`               | Enable style validation for Kconfig files                                       |                           |
+| `idf.telemetry`                        | Enable telemetry                                                                | User, Remote or Workspace |
+| `idf.deleteComponentsOnFullClean`      | Delete `managed_components` on Full Clean Project command (default `false`)     | User, Remote or Workspace |
+| `idf.monitorNoReset`                   | Enable no-reset flag to IDF Monitor (default `false`)                           | User, Remote or Workspace |
+| `idf.monitorEnableTimestamps`          | Enable timestamps in IDF Monitor (default `false`)                              | User, Remote or Workspace |
+| `idf.monitorCustomTimestampFormat`     | Custom timestamp format in IDF Monitor                                          | User, Remote or Workspace |
+| `idf.monitorStartDelayBeforeDebug`     | Delay to start debug session after IDF monitor execution                        | User, Remote or Workspace |
+| `idf.enableStatusBar`                  | Show or hide the extension status bar items                                     | User, Remote or Workspace |
+| `idf.enableSizeTaskAfterBuildTask`     | Enable IDF Size Task to be executed after IDF Build Task                        | User, Remote or Workspace |
+| `idf.customTerminalExecutable`         | Absolute path to shell terminal executable to use (default to VS Code Terminal) | User, Remote or Workspace |
+| `idf.customTerminalExecutableArgs`     | Shell arguments for idf.customTerminalExecutable                                | User, Remote or Workspace |
 
-## Custom tasks for build and flash tasks
+## Custom Tasks for Build and Flash Tasks
 
 | Setting ID          | Description                                                |
 | ------------------- | ---------------------------------------------------------- |
-| `idf.customTask`    | Custom task to execute with `ESP-IDF: Execute custom task` |
+| `idf.customTask`    | Custom task to execute with `ESP-IDF: Execute Custom Task` |
 | `idf.preBuildTask`  | Command string to execute before build task                |
 | `idf.postBuildTask` | Command string to execute after build task                 |
 | `idf.preFlashTask`  | Command string to execute before flash task                |
 | `idf.postFlashTask` | Command string to execute after flash task                 |
 
-### QEMU specific settings
+### QEMU Specific Settings
 
 | Setting ID        | Description                            |
 | ----------------- | -------------------------------------- |
@@ -141,7 +141,7 @@ These settings are specific to [Application Log Tracing](./HEAP_TRACING.md).
 | `trace.wait4halt`   | wait4halt will be set for the apptrace   |
 | `trace.skip_size`   | skip_size will be set for the apptrace   |
 
-## Other frameworks Specific Settings
+## Other Frameworks Specific Settings
 
 These settings allow to support additional frameworks together with ESP-IDF:
 
@@ -155,14 +155,14 @@ These settings allow to support additional frameworks together with ESP-IDF:
 | `idf.espRainmakerPath`    | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
 | `idf.espRainmakerPathWin` | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
 
-The **Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
-The **Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
-The **Install ESP-Matter** command will clone ESP-Matter and set `idf.espMatterPath`. The **Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
-The **Install ESP-Rainmaker** command will clone ESP-Rainmaker and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
+The **ESP-IDF: Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
+The **ESP-IDF: Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
+The **ESP-IDF: Install ESP-Matter** command will clone ESP-Matter and set `idf.espMatterPath`. The **ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
+The **ESP-IDF: Install Install ESP-Rainmaker** command will clone ESP-Rainmaker and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 
-The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set, or to create projects from examples found in the Component Registry.
+The **ESP-IDF: Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set, or to create projects from examples found in the Component Registry.
 
-## Use of environment variables in ESP-IDF settings.json and tasks.json
+## Use of Environment Variables in ESP-IDF settings.json and tasks.json
 
 Environment (env) variables and other ESP-IDF settings (config) current values strings can be used in other ESP-IDF setting as `${env:VARNAME}` and `${config:ESPIDFSETTING}`, respectively.
 

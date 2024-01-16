@@ -43,7 +43,7 @@ suite("OpenOCD Board tests", () => {
   });
 
   test("OpenOCD Boards method", async () => {
-    const boards = await getBoards(openOcdScriptsPath);
+    const boards = await getBoards(boardJsonObj.boards[0].target, openOcdScriptsPath);
     assert.equal(boards[0].name, boardJsonObj.boards[0].name);
     assert.equal(boards[0].description, boardJsonObj.boards[0].description);
     assert.equal(boards[0].target, boardJsonObj.boards[0].target);

@@ -13,11 +13,11 @@ There are many ways that you can contribute, and this document will provide you 
 - Open the project in Visual Studio Code and press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.
 - Compile project with `yarn package` to generate a [visual studio code installer (vsix)](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix).
 
-## Build vsix locally
+## Build .vsix Locally
 
 - Build the Visual Studio Code extension setup with `yarn package`.
 
-## Language contribution (i18N contribution)
+## Language Contribution (i18N contribution)
 
 Currently we support `Chinese`, `English`, `Spanish` and `Russian` and planning to add many other languages.
 
@@ -35,7 +35,7 @@ When you are about to open a new issue please make sure that you have scanned th
 
 If you find your issue or feature request is already filed then properly comment or add reaction like "+1", furthermore you can subscribe to the issue to keep yourself up to date about the progress.
 
-### Issue not existing
+### Issue Not Existing
 
 If you can't find the issue in the already opened issues then please make sure to file a [bug report or feature request](https://github.com/espressif/vscode-esp-idf-extension/issues), while opening a issue or feature request please follow the templates presented to you.
 

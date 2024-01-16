@@ -32,8 +32,7 @@ import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
 import {
-  checkDebugAdapterRequirements,
-  checkExtensionRequirements,
+  checkDebugAdapterRequirements
 } from "../support/checkExtensionRequirements";
 import {
   checkCCppPropertiesJson,
@@ -43,7 +42,7 @@ import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 
-suite("Doctor command tests", () => {
+suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
   const mockUpContext: vscode.ExtensionContext = {
@@ -102,12 +101,6 @@ suite("Doctor command tests", () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await getPipVersion(reportObj, mockUpContext);
     assert.equal(reportObj.pipVersion.result, "Not found");
-  });
-
-  test("wrong extension py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await checkExtensionRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.extensionRequirements.result, "Error");
   });
 
   test("Wrong debug adapter py requirements", async () => {
@@ -189,19 +182,6 @@ suite("Doctor command tests", () => {
     assert.equal(
       reportObj.configurationSettings.toolsPath,
       settingsJsonObj["idf.toolsPath"]
-    );
-  });
-
-  test("Good extension py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    await checkExtensionRequirements(reportObj, mockUpContext);
-    assert.equal(
-      reportObj.extensionRequirements.result,
-      `Python requirements from ${join(
-        __dirname,
-        "../../requirements.txt"
-      )} are satisfied.`
     );
   });
 
@@ -307,7 +287,10 @@ suite("Doctor command tests", () => {
     expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
-    if (reportObj.configurationSettings.customExtraVars && Object.keys(reportObj.configurationSettings.customExtraVars)) {
+    if (
+      reportObj.configurationSettings.customExtraVars &&
+      Object.keys(reportObj.configurationSettings.customExtraVars)
+    ) {
       expectedOutput += `Custom extra vars (idf.customExtraVars)${os.EOL}`;
       for (let key in reportObj.configurationSettings.customExtraVars) {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;

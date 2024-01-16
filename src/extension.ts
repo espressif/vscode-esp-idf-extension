@@ -53,6 +53,7 @@ import {
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
+import { CommandsProvider } from "./cmdTreeView/cmdTreeDataProvider";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
 import { PromptUserToLogin } from "./rainmaker/view/login";
@@ -137,6 +138,14 @@ import {
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
+import { UnitTest } from "./espIdf/unitTest/adapter";
+import {
+  buildFlashTestApp,
+  checkPytestRequirements,
+  copyTestAppProject,
+  installPyTestPackages,
+} from "./espIdf/unitTest/configure";
+import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -171,6 +180,9 @@ let idfSearchResults: vscode.TreeView<DocSearchResult>;
 
 // ESP Rainmaker
 let rainMakerTreeDataProvider: ESPRainMakerTreeDataProvider;
+
+// Commands Provider
+let commandTreeDataProvider: CommandsProvider;
 
 // ESP eFuse Explorer
 let eFuseExplorer: ESPEFuseTreeDataProvider;
@@ -313,6 +325,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
   }
+  let unitTestController = new UnitTest(context);
   // Add delete or update new sources in CMakeLists.txt of same folder
   const newSrcWatcher = vscode.workspace.createFileSystemWatcher(
     "**/*.{c,cpp,cc,S}",
@@ -447,7 +460,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
-            title: "Creating ESP-IDF Project...",
+            title: "ESP-IDF: Creating ESP-IDF project...",
           },
           async (
             progress: vscode.Progress<{
@@ -590,6 +603,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await del(managedComponents, { force: true });
           }
         }
+        Logger.infoNotify("Build directory has been deleted.");
       } catch (error) {
         OutputChannel.appendLineAndShow(error.message);
         Logger.errorNotify(error.message, error);
@@ -623,7 +637,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Erasing device flash memory (erase_flash)",
+          title: "ESP-IDF: Erasing device flash memory (erase_flash)",
         },
         async (
           progress: vscode.Progress<{
@@ -656,7 +670,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Arduino ESP32 as ESP-IDF Component",
+          title: "ESP-IDF: Arduino ESP32 as ESP-IDF component",
         },
         async (
           progress: vscode.Progress<{
@@ -825,8 +839,50 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.selectConfTarget", () => {
-    idfConf.chooseConfigurationTarget();
+  registerIDFCommand("espIdf.selectConfTarget", async () => {
+    await idfConf.chooseConfigurationTarget();
+  });
+
+  registerIDFCommand("espIdf.selectNotificationMode", async () => {
+    const notificationTarget = await vscode.window.showQuickPick(
+      [
+        {
+          description: "Show no notifications and do not focus tasks output.",
+          label: "Silent",
+          target: "Silent",
+        },
+        {
+          description: "Show notifications but do not focus tasks output.",
+          label: "Notifications",
+          target: "Notifications",
+        },
+        {
+          description: "Do not show notifications but focus tasks output.",
+          label: "Output",
+          target: "Output",
+        },
+        {
+          description: "Show notifications and focus tasks output.",
+          label: "All",
+          target: "All",
+        },
+      ],
+      { placeHolder: "Select the output and notification mode" }
+    );
+    if (!notificationTarget) {
+      return;
+    }
+    const saveScope = idfConf.readParameter("idf.saveScope");
+
+    await idfConf.writeParameter(
+      "idf.notificationMode",
+      notificationTarget.target,
+      saveScope,
+      workspaceRoot
+    );
+    Logger.infoNotify(
+      `Notification mode has changed to ${notificationTarget.label}`
+    );
   });
 
   registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
@@ -938,7 +994,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: false,
             location: vscode.ProgressLocation.Notification,
-            title: "ESP-IDF: Project Configuration",
+            title: "ESP-IDF: Project configuration",
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>
@@ -1009,7 +1065,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       statusBarItems["projectConf"] = createStatusBarItem(
         "$(gear)" + option.target,
-        "ESP-IDF Select project configuration",
+        "ESP-IDF: Select Project Configuration",
         "espIdf.projectConf",
         100
       );
@@ -1347,7 +1403,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF Docs search results",
+        title: "ESP-IDF: Documentation search results",
       },
       async () => {
         try {
@@ -1502,6 +1558,91 @@ export async function activate(context: vscode.ExtensionContext) {
               ? error
               : "Error installing ESP-Matter Python Requirements";
             Logger.errorNotify(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.installPyTest", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      try {
+        const isPyTestInstalled = await checkPytestRequirements(workspaceRoot);
+        if (isPyTestInstalled) {
+          return Logger.infoNotify(
+            "PyTest python packages are already installed."
+          );
+        }
+      } catch (error) {
+        const msg =
+          error && error.message
+            ? error.message
+            : "Error checking PyTest python packages";
+        OutputChannel.appendLine(msg, "idf-unit-test");
+        Logger.error(msg, error);
+      }
+
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF:",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            await installPyTestPackages(workspaceRoot, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error installing PyTest python packages";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error);
+          }
+        }
+      );
+    });
+  });
+
+  registerIDFCommand("espIdf.unitTest.buildFlashUnitTestApp", () => {
+    return PreCheck.perform([openFolderCheck], async () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Building unit test app and flashing",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment?: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            let unitTestAppUri = vscode.Uri.joinPath(
+              workspaceRoot,
+              "unity-app"
+            );
+            const doesUnitTestAppExists = await pathExists(
+              unitTestAppUri.fsPath
+            );
+            if (!doesUnitTestAppExists) {
+              const unitTestFiles = await getFileList();
+              const testComponents = await getTestComponents(unitTestFiles);
+              unitTestAppUri = await copyTestAppProject(
+                workspaceRoot,
+                testComponents
+              );
+            }
+            await buildFlashTestApp(unitTestAppUri, cancelToken);
+          } catch (error) {
+            const msg =
+              error && error.message
+                ? error.message
+                : "Error build or flashing PyTest Unit App for project";
+            OutputChannel.appendLine(msg, "idf-unit-test");
+            Logger.error(msg, error);
           }
         }
       );
@@ -1779,7 +1920,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: Welcome Page",
+        title: "ESP-IDF: Welcome page",
       },
       async (
         progress: vscode.Progress<{ increment: number; message: string }>,
@@ -1810,7 +1951,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: "ESP-IDF: New Project",
+        title: "ESP-IDF: New project",
       },
       async (
         progress: vscode.Progress<{ increment: number; message: string }>,
@@ -1858,7 +1999,17 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
     try {
       const openOcdScriptsPath = getOpenOcdScripts(workspaceRoot);
-      const boards = await getBoards(openOcdScriptsPath);
+      let idfTarget = idfConf.readParameter(
+        "idf.adapterTargetName",
+        workspaceRoot
+      ) as string;
+      if (idfTarget === "custom") {
+        idfTarget = idfConf.readParameter(
+          "idf.customAdapterTargetName",
+          workspaceRoot
+        ) as string;
+      }
+      const boards = await getBoards(idfTarget, openOcdScriptsPath);
       const choices = boards.map((b) => {
         return {
           description: `${b.description} (${b.configFiles})`,
@@ -2084,7 +2235,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "Starting ESP-IDF QEMU",
+          title: "ESP-IDF: Starting ESP-IDF QEMU",
         },
         async (
           progress: vscode.Progress<{ message: string; increment: number }>,
@@ -2406,7 +2557,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     vscode.window.withProgress(
       {
-        title: "Please wait checking with Rainmaker Cloud",
+        title: "ESP-IDF: Please wait checking with Rainmaker Cloud",
         location: vscode.ProgressLocation.Notification,
         cancellable: false,
       },
@@ -2463,7 +2614,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       vscode.window.withProgress(
         {
-          title: "Deleting node from your rainmaker account",
+          title: "ESP-IDF: Deleting node from your rainmaker account",
           location: vscode.ProgressLocation.Notification,
         },
         async () => {
@@ -2527,7 +2678,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
       vscode.window.withProgress(
         {
-          title: "Syncing params, please wait",
+          title: "ESP-IDF: Syncing params, please wait",
           location: vscode.ProgressLocation.Notification,
         },
         async () => {
@@ -2672,7 +2823,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 location: vscode.ProgressLocation.Notification,
                 cancellable: false,
                 title:
-                  "Core-dump detected, please wait while we parse the data received",
+                  "ESP-IDF: Core-dump detected, please wait while we parse the data received",
               },
               async (progress) => {
                 const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
@@ -2831,7 +2982,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("esp.efuse.summary", async () => {
     vscode.window.withProgress(
       {
-        title: "Getting eFuse Summary for your chip",
+        title: "ESP-IDF: Getting eFuse summary for your chip",
         location: vscode.ProgressLocation.Notification,
       },
       async () => {
@@ -2860,7 +3011,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.ninja.summary", async () => {
     vscode.window.withProgress(
       {
-        title: "Getting ninja build summary",
+        title: "ESP-IDF: Getting ninja build summary",
         location: vscode.ProgressLocation.Notification,
       },
       async () => {
@@ -2950,7 +3101,7 @@ export async function activate(context: vscode.ExtensionContext) {
           vscode.window.withProgress(
             {
               title:
-                "Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
+                "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
               location: vscode.ProgressLocation.Notification,
             },
             async () => {
@@ -3085,6 +3236,8 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
 
   espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();
 
+  commandTreeDataProvider = new CommandsProvider();
+
   vscode.commands.registerCommand("espIdf.clearDocsSearchResult", () => {
     espIdfDocsResultTreeDataProvider.clearResults();
   });
@@ -3104,6 +3257,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     appTraceArchiveTreeDataProvider.registerDataProviderForTree(
       "idfAppTraceArchive"
     ),
+    commandTreeDataProvider.registerDataProviderForTree("idfCommands"),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
     partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
@@ -3136,7 +3290,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
-    "ESP-IDF Select port to use (COM, tty, usbserial)",
+    "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
     "espIdf.selectPort",
     101
   );
@@ -3144,7 +3298,7 @@ function createCmdsStatusBarItems() {
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
       "$(gear)" + projectConf,
-      "ESP-IDF Select project configuration",
+      "ESP-IDF: Select Project Configuration",
       "espIdf.projectConf",
       100
     );
@@ -3152,7 +3306,7 @@ function createCmdsStatusBarItems() {
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,
-    "ESP-IDF Set Espressif device target",
+    "ESP-IDF: Set Espressif Device Target",
     "espIdf.setTarget",
     99
   );
@@ -3164,43 +3318,43 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["menuconfig"] = createStatusBarItem(
     "$(gear)",
-    "ESP-IDF SDK Configuration Editor (menuconfig)",
+    "ESP-IDF: SDK Configuration Editor (menuconfig)",
     "espIdf.menuconfig.start",
     97
   );
   statusBarItems["clean"] = createStatusBarItem(
     "$(trash)",
-    "ESP-IDF Full Clean",
+    "ESP-IDF: Full Clean",
     "espIdf.fullClean",
     96
   );
   statusBarItems["build"] = createStatusBarItem(
     "$(database)",
-    "ESP-IDF Build project",
+    "ESP-IDF: Build Project",
     "espIdf.buildDevice",
     95
   );
   statusBarItems["flashType"] = createStatusBarItem(
     `$(star-empty) ${flashType}`,
-    "ESP-IDF Select flash method",
+    "ESP-IDF: Select Flash Method",
     "espIdf.selectFlashMethodAndFlash",
     94
   );
   statusBarItems["flash"] = createStatusBarItem(
     `$(zap)`,
-    "ESP-IDF Flash device",
+    "ESP-IDF: Flash Device",
     "espIdf.flashDevice",
     93
   );
   statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
-    "ESP-IDF Monitor device",
+    "ESP-IDF: Monitor Device",
     "espIdf.monitorDevice",
     92
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
-    "ESP-IDF Build, Flash and Monitor",
+    "ESP-IDF: Build, Flash and Monitor",
     "espIdf.buildFlashMonitor",
     91
   );
@@ -3212,7 +3366,7 @@ function createCmdsStatusBarItems() {
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
-    "ESP-IDF: Execute custom task",
+    "ESP-IDF: Execute Custom Task",
     "espIdf.customTask",
     89
   );
@@ -3240,7 +3394,7 @@ const build = (flashType?: ESP.FlashType) => {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Building Project",
+        title: "ESP-IDF: Building project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
@@ -3267,7 +3421,7 @@ const flash = (
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Flashing Project",
+        title: "ESP-IDF: Flashing project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
@@ -3322,7 +3476,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       {
         cancellable: true,
         location: vscode.ProgressLocation.Notification,
-        title: "Building Project",
+        title: "ESP-IDF: Building project",
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,

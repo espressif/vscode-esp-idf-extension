@@ -23,6 +23,9 @@ import {
 import { Logger } from "./logger/logger";
 import { readParameter } from "./idfConfiguration";
 import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
+import { getIdfMd5sum } from "./setup/espIdfJson";
+import { getEspIdfFromCMake } from "./utils";
+import { IdfSetup } from "./views/setup/types";
 
 export async function checkExtensionSettings(
   extensionPath: string,
@@ -52,12 +55,7 @@ export async function checkExtensionSettings(
           progress,
           workspace
         );
-        if (
-          setupArgs.espIdfPath &&
-          setupArgs.espToolsPath &&
-          setupArgs.existingIdfSetups &&
-          setupArgs.existingIdfSetups.length
-        ) {
+        if (setupArgs.existingIdfSetups && setupArgs.existingIdfSetups.length) {
           progress.report({
             increment: 5,
             message: "ESP-IDF and tools found, configuring the extension...",
@@ -65,7 +63,19 @@ export async function checkExtensionSettings(
           const confTarget = readParameter(
             "idf.saveScope"
           ) as vscode.ConfigurationTarget;
-          await useIdfSetupSettings(setupArgs.existingIdfSetups[0], confTarget);
+          const options = setupArgs.existingIdfSetups.map((existingSetup) => {
+            return {
+              label: `ESP-IDF ${existingSetup.version} in ${existingSetup.idfPath}`,
+              target: existingSetup,
+            };
+          });
+          const selectedSetup = await vscode.window.showQuickPick(options, {
+            placeHolder: "Select a ESP-IDF setup to use",
+          });
+          if (!selectedSetup) {
+            return;
+          }
+          await useIdfSetupSettings(selectedSetup.target, confTarget);
         } else if (
           typeof process.env.WEB_IDE === "undefined" &&
           showSetupWindow

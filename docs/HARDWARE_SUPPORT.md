@@ -1,4 +1,4 @@
-# Current chips supported in this extension
+# Current Chips Supported in this Extension
 
 [ESP32](https://www.espressif.com/en/products/socs/esp32)
 [ESP32-C2](https://www.espressif.com/en/products/socs/esp32-c2)
@@ -13,9 +13,9 @@ The chips supported in the extension are directly dependent on the ESP-IDF and O
 - The list of OpenOCD configuration boards is obtained from `$OPENOCD_SCRIPTS/esp-config.json` where `$OPENOCD_SCRIPTS` is your OpenOCD Scripts path.
 - The list of IDF Targets is obtained from the `idf.py --list-targets` command from the configured ESP-IDF in this extension.
 
-In addition to ESP-IDF chips, there are several boards configurations files implemented for OpenOCD. The `idf.openOcdConfigs` configuration setting is used by this extension to set OpenOCD Configuration files for the OpenOCD server executed within the extension. Here is more information about [OpenOCD Configuration targets](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+In addition to ESP-IDF chips, there are several boards configurations files implemented for OpenOCD. The `idf.openOcdConfigs` configuration setting is used by this extension to set OpenOCD Configuration files for the OpenOCD server executed within the extension. Here is more information about [OpenOCD Configuration Targets](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 
-# Current frameworks supported in the extension
+# Current Frameworks Supported in the Extension
 
 - [Arduino-ESP32](https://github.com/espressif/arduino-esp32) allows the user to add Arduino libraries as a ESP-IDF component in your current directory to use Arduino code in your ESP-IDF projects with the **Add Arduino-ESP32 as ESP-IDF Component** extension command.
 
@@ -23,8 +23,8 @@ In addition to ESP-IDF chips, there are several boards configurations files impl
 
 - [Espressif Mesh Development Framework (ESP-MDF)](https://github.com/espressif/esp-mdf) to develop with the [ESP-WIFI-MESH](https://docs.espressif.com/projects/esp-idf/en/stable/api-guides/mesh.html) networking protocol. The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-- [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` configuration setting. **ESP-Matter is not supported in Windows**.
+- [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` configuration setting. **ESP-Matter is Not Supported in Windows**.
 
-- [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
+- [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **ESP-IDF: Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 
 > **NOTE:** Consider that if you are using other Espressif frameworks for your projects, not all ESP-IDF versions are compatible with an specific framework. For example, ESP-ADF might not work with the current ESP-IDF master branch. It is recommended that you configure the extension to use the ESP-IDF within the framework (most frameworks include compatible ESP-IDF as subdirectory) in the setup wizard or JSON Configuration as shown in [SETUP](./SETUP.md) documentation or [Install](./tutorial/install.md) tutorial.
