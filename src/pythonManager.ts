@@ -17,7 +17,7 @@ import { CancellationToken, ExtensionContext, OutputChannel } from "vscode";
 import * as utils from "./utils";
 import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
-import { delimiter, dirname, join, sep} from "path";
+import { delimiter, dirname, join, sep } from "path";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
