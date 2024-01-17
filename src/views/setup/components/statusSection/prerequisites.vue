@@ -29,7 +29,7 @@ const isWinPlatform = computed(() => {
 });
 
 const toolsDestPath = computed(() => {
-  return `${toolsFolder}${pathSep}tools${pathSep}`;
+  return `${toolsFolder.value}${pathSep.value}tools${pathSep.value}`;
 });
 </script>
 
