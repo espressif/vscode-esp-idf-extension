@@ -35,11 +35,13 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
+import { packageJson } from "../utils";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
   espToolsPath: string;
   existingIdfSetups: IdfSetup[];
+  extensionVersion: string;
   espIdfVersionsList: IEspIdfLink[];
   espIdfTagsList: IEspIdfLink[];
   gitPath: string;
@@ -47,6 +49,7 @@ export interface ISetupInitArgs {
   hasPrerequisites: boolean;
   onReqPkgs?: string[];
   pythonVersions: string[];
+  saveScope: number;
 }
 
 export interface IPreviousInstallResult {
@@ -132,11 +135,17 @@ export async function getSetupInitialValues(
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   const idfSetups = await getPreviousIdfSetups(false);
+  const extensionVersion = packageJson.version as string;
+  const saveScope = idfConf.readParameter(
+    "idf.saveScope"
+  ) as number;
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
+    extensionVersion,
     existingIdfSetups: idfSetups,
     pythonVersions,
+    saveScope
   } as ISetupInitArgs;
 
   try {

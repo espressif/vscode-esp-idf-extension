@@ -136,7 +136,7 @@ export class MenuConfigPanel {
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "updateValue":
-          ConfserverProcess.setUpdatedValue(message.updated_value as Menu);
+          ConfserverProcess.setUpdatedValue(JSON.parse(message.updated_value) as Menu);
           break;
         case "setDefault":
           const changesNotSavedMessage = locDic.localize(

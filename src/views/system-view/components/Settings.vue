@@ -1,3 +1,45 @@
+<script setup lang="ts">
+import { useSystemViewStore } from "../store";
+import * as Plotly from "plotly.js-dist-min";
+import { ref } from "vue";
+
+const store = useSystemViewStore();
+let active = ref(false);
+function show() {
+  active.value = true;
+}
+function dismiss() {
+  active.value = false;
+}
+
+function timeLineHeightChanged() {
+  Plotly.relayout("plot", { height: store.settings.TimelineHeight });
+}
+
+function timeLineBarWidthChanged() {
+  const indices: number[] = [];
+  store.plotData.forEach((d, i) => {
+    if (d.name !== "context-switch") {
+      indices.push(i);
+    }
+  });
+  Plotly.restyle("plot", { "line.width": store.settings.TimelineBarWidth }, indices);
+}
+function timelineContextSwitchLineColorChanged() {
+  const indices: number[] = [];
+  store.plotData.forEach((d, i) => {
+    if (d.name === "context-switch") {
+      indices.push(i);
+    }
+  });
+  Plotly.restyle(
+    "plot",
+    { "line.color": store.settings.TimelineContextSwitchLineColor },
+    indices
+  );
+}
+</script>
+
 <template>
   <div>
     <p class="is-pulled-right">
@@ -10,20 +52,20 @@
           <p>Visibility for Panels</p>
           <div class="control">
             <label class="checkbox">
-              <input type="checkbox" v-model="settings.EventsTableVisible" />
+              <input type="checkbox" v-model="store.settings.EventsTableVisible" />
               Events Table
             </label>
             &nbsp;
             <label class="checkbox">
               <input
                 type="checkbox"
-                v-model="settings.ContextInfoTableVisible"
+                v-model="store.settings.ContextInfoTableVisible"
               />
               Context Info Table
             </label>
             &nbsp;
             <label class="checkbox">
-              <input type="checkbox" v-model="settings.TimelineVisible" />
+              <input type="checkbox" v-model="store.settings.TimelineVisible" />
               Timeline
             </label>
           </div>
@@ -31,7 +73,7 @@
         <div class="columns">
           <div class="column">
             <select
-              v-model="settings.TimelineHeight"
+              v-model="store.settings.TimelineHeight"
               @change="timeLineHeightChanged"
             >
               <option disabled value="200"
@@ -45,7 +87,7 @@
           </div>
           <div class="column">
             <select
-              v-model="settings.TimelineBarWidth"
+              v-model="store.settings.TimelineBarWidth"
               @change="timeLineBarWidthChanged"
             >
               <option disabled value="10"
@@ -61,7 +103,7 @@
           </div>
           <div class="column">
             <select
-              v-model="settings.TimelineContextSwitchLineColor"
+              v-model="store.settings.TimelineContextSwitchLineColor"
               @change="timelineContextSwitchLineColorChanged"
             >
               <option disabled value="#555555"
@@ -89,54 +131,6 @@ button {
   color: var(--vscode-editor-foreground);
   padding: 1.2em;
   font-size: var(--vscode-font-size);
+  width: 65em;
 }
 </style>
-
-<script lang="ts">
-import Vue from "vue";
-import * as Plotly from "plotly.js-dist";
-import { Component } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { SystemViewUISettings } from "../store";
-@Component
-export default class Settings extends Vue {
-  @State("settings") private settings: SystemViewUISettings;
-  @State("plotData") private plotData;
-  active = false;
-  show() {
-    this.active = true;
-  }
-  dismiss() {
-    this.active = false;
-  }
-  timeLineHeightChanged() {
-    Plotly.relayout("plot", { height: this.settings.TimelineHeight });
-  }
-  timeLineBarWidthChanged() {
-    const indices = [];
-    this.plotData.forEach((d, i) => {
-      if (d.name !== "context-switch") {
-        indices.push(i);
-      }
-    });
-    Plotly.restyle(
-      "plot",
-      { "line.width": this.settings.TimelineBarWidth },
-      indices
-    );
-  }
-  timelineContextSwitchLineColorChanged() {
-    const indices = [];
-    this.plotData.forEach((d, i) => {
-      if (d.name === "context-switch") {
-        indices.push(i);
-      }
-    });
-    Plotly.restyle(
-      "plot",
-      { "line.color": this.settings.TimelineContextSwitchLineColor },
-      indices
-    );
-  }
-}
-</script>

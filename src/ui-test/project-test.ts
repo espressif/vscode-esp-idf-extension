@@ -63,6 +63,7 @@ describe("Example Create testing", async () => {
 
   it("Create a test component", async function () {
     this.timeout(12000);
+    await new Promise((res) => setTimeout(res, 5000));
     await new Workbench().executeCommand("espIdf.createNewComponent");
     await new Promise((res) => setTimeout(res, 1000));
     const inputBox = await InputBox.create();

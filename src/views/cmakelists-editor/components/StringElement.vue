@@ -1,8 +1,20 @@
+<script setup lang="ts">
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+
+const emit = defineEmits(["delete"]);
+defineProps<{
+  el: CmakeListsElement;
+}>();
+function del() {
+  emit("delete");
+}
+</script>
+
 <template>
   <div class="cmake-element">
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.id" class="label">{{ el.title }} </label>
+        <label :for="el.title" class="label">{{ el.title }} </label>
         <a class="delete" @click="del"></a>
       </div>
     </div>
@@ -13,16 +25,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
-
-@Component
-export default class CMakeListElement extends Vue {
-  @Prop() public el: CmakeListsElement;
-
-  @Emit("delete")
-  del() {}
-}
-</script>

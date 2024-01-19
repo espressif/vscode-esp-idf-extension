@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { IDownload, StatusType } from "../types";
+
+const props = defineProps<{
+  name: string;
+  destPath: string;
+  downloadStatus: IDownload;
+  status: StatusType;
+}>();
+
+const isInstallationCompleted = computed(() => {
+  return props.status === StatusType.installed;
+});
+</script>
+
 <template>
   <div class="centerize">
     <h4>{{ name }}: {{ downloadStatus.id }}</h4>
@@ -25,23 +41,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { IDownload, StatusType } from "../types";
-
-@Component
-export default class DownloadStatus extends Vue {
-  @Prop() private downloadStatus: IDownload;
-  @Prop() private name: string;
-  @Prop() private status: StatusType;
-  @Prop() private destPath: string;
-
-  get isInstallationCompleted() {
-    return this.status === StatusType.installed;
-  }
-}
-</script>
 
 <style scoped>
 .progress {

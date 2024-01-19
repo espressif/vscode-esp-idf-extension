@@ -140,7 +140,7 @@
   "esp.rainmaker.backend.update_node_param.title": "Actualizar parámetros para dispositivos",
   "param.esp.rainmaker.oauth.url": "URL del servidor ESP-Rainmaker OAuth",
   "idf.wssPort.description": "Puerto del servidor Web Socket para Core-Dump o GDB-Stub",
-  "esp.webview.open.partition-table.title": "Abrir la interfaz de usuario del editor de tablas de particiones",
+  "esp.webview.open.partition-table.title": "ESP-IDF: Abrir la interfaz de usuario del editor de tablas de particiones",
   "esp.efuse.summary.title": "Obtenga el resumen de eFuse",
   "espIdf.efuse.clearResults.title": "Limpiar el resumen de eFuse",
   "espIdf.jtag_flash.title": "Flash (con JTag)",

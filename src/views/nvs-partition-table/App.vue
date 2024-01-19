@@ -1,57 +1,72 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import Header from "./components/Header.vue";
+import PartitionTable from "./components/PartitionTable.vue";
+import Row from "./components/Row.vue";
+import { useNvsPartitionTableStore } from "./store";
+import { findEncodingTypes } from "./util";
+
+const store = useNvsPartitionTableStore();
+
+function addNewRow() {
+  store.rows.push({
+    key: "",
+    type: "",
+    encoding: "",
+    value: "",
+    error: "",
+  });
+}
+
+function updateEncoding(index: number, newType: string) {
+  const encodingTypes = findEncodingTypes(newType);
+  if (newType === "namespace") {
+    store.rows[index].encoding = "";
+  } else if (encodingTypes.indexOf(newType) === -1) {
+    store.rows[index].encoding = encodingTypes[0];
+  }
+}
+
+function updateRow(index: number, prop: string, newValue: string) {
+  store.rows[index].error = "";
+  store.rows[index][prop] = newValue;
+  if (prop === "type") {
+    updateEncoding(index, newValue);
+  }
+}
+
+function deleteRow(index: number) {
+  const rowToDelete = store.rows[index];
+  if (rowToDelete.type === "namespace" && index === 0) {
+    return;
+  }
+  store.rows.splice(index, 1);
+}
+
+onMounted(() => {
+  store.initDataRequest();
+});
+</script>
+
 <template>
   <div>
     <Header></Header>
-    <PartitionTable @addNewRow="addNewRow" @save="save">
+    <PartitionTable @addNewRow="addNewRow" @save="store.save">
       <Row
-        v-for="(row, i) in rows"
-        @delete="DELETE(i)"
+        v-for="(row, i) in store.rows"
+        @delete="deleteRow(i)"
         :key="i"
-        :encoding.sync="row.encoding"
-        :rowError="row.error"
-        :rowKey.sync="row.key"
-        :rowValue.sync="row.value"
-        :type.sync="row.type"
+        :encoding="row.encoding"
+        :rowError="row.error ? row.error : ''"
+        :rowKey="row.key"
+        :rowValue="row.value"
+        :rowType="row.type"
+        :canDeleteRow="i !== 0"
+        @updateRow="(prop: string, newValue: string) => updateRow(i, prop, newValue)"
       />
     </PartitionTable>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import Header from "./components/Header.vue";
-import PartitionTable from "./components/PartitionTable.vue";
-import Row from "./components/Row.vue";
-import { Action, Mutation, State } from "vuex-class";
-import { NvsPartitionTable } from "./store";
-
-@Component({
-  components: {
-    Header,
-    PartitionTable,
-    Row,
-  },
-})
-export default class App extends Vue {
-  @Action save;
-  @Mutation ADD;
-  @Mutation DELETE;
-  @State("rows") private storeRows: NvsPartitionTable.IRow[];
-
-  get rows() {
-    return this.storeRows;
-  }
-
-  addNewRow() {
-    this.ADD({
-      key: "",
-      type: "",
-      encoding: "",
-      value: "",
-      error: "",
-    });
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

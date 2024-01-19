@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { IconQuestion } from "@iconify-prerendered/vue-codicon";
+import { findEncodingTypes } from "../util";
+
+const props = defineProps<{
+  encoding: string;
+  rowKey: string;
+  rowType: string;
+  rowValue: string;
+  rowError: string;
+  canDeleteRow: boolean;
+}>();
+
+const encodingTypes = computed(() => {
+  return findEncodingTypes(props.rowType);
+});
+
+const types = ["data", "file", "namespace"];
+</script>
+
 <template>
   <tr :class="{ error: rowError }">
     <td>
@@ -6,114 +27,57 @@
         type="text"
         placeholder="Key"
         maxlength="15"
-        v-model="key"
+        :value="rowKey"
+        @input="$emit('updateRow', 'key', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
-      <v-select
-        :options="types"
-        v-model="rowType"
-        placeholder="Type"
-        taggable
-        selectOnTab
-        @input="updateEncoding"
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          :value="rowType"
+          @change="$emit('updateRow', 'type', ($event.target as HTMLInputElement)?.value)"
+        >
+          <option v-for="t in types" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td class="w-md">
-      <v-select
-        :options="encodingTypes"
-        v-model="rowEncoding"
-        placeholder="Encoding"
-        taggable
-        selectOnTab
-      />
+      <div
+        class="select is-size-7-mobile is-size-7-tablet"
+        v-if="rowType !== 'namespace'"
+      >
+        <select
+          :value="encoding"
+          @change="$emit('updateRow', 'encoding', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in encodingTypes" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td>
       <input
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Value"
-        v-model="value"
+        :value="rowValue"
+        @input="$emit('updateRow', 'value', ($event.target as HTMLInputElement)?.value)"
+        v-if="rowType !== 'namespace'"
       />
     </td>
     <td>
-      <a class="delete" @click="del"></a>
+      <a class="delete" @click="$emit('delete')" v-show="canDeleteRow"></a>
       <span
         class="icon is-small has-tooltip-arrow"
         :data-tooltip="rowError"
         v-if="rowError"
       >
-        <iconify-icon icon="question" />
+        <IconQuestion />
       </span>
     </td>
   </tr>
 </template>
 
-<script lang="ts">
-import { Component, Emit, Prop, PropSync, Vue } from "vue-property-decorator";
-import vSelect from "vue-select";
-
-@Component({
-  components: {
-    "v-select": vSelect,
-  },
-})
-export default class Row extends Vue {
-  @PropSync("encoding") rowEncoding: string;
-  @PropSync("rowKey") key: String;
-  @PropSync("type") rowType: string;
-  @PropSync("rowValue") value: String;
-  @Prop() rowError: string;
-
-  @Emit("delete")
-  del() {}
-
-  findEncodingTypes(type: string) {
-    const fileTypes = ["binary", "base64", "hex2bin", "string"];
-    switch (type) {
-      case "file":
-        return fileTypes;
-        break;
-      case "data":
-        return [
-          "u8",
-          "i8",
-          "u16",
-          "i16",
-          "u32",
-          "i32",
-          "u64",
-          "i64",
-          ...fileTypes,
-        ];
-        break;
-      default:
-        return [];
-        break;
-    }
-  }
-
-  get encodingTypes() {
-    return this.findEncodingTypes(this.rowType);
-  }
-
-  get types() {
-    return ["data", "file", "namespace"];
-  }
-
-  public updateEncoding(newType) {
-    const encodingTypes = this.findEncodingTypes(newType);
-    if (newType === "namespace") {
-      this.rowEncoding = "";
-    } else if (encodingTypes.indexOf(this.rowEncoding) === -1) {
-      this.rowEncoding = encodingTypes[0];
-    }
-  }
-}
-</script>
-
 <style lang="scss">
-@import "~vue-select/dist/vue-select.css";
 .vs__dropdown-toggle {
   background-color: var(--vscode-input-background);
   border-color: var(--vscode-input-background);

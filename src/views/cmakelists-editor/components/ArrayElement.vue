@@ -1,15 +1,42 @@
+<script setup lang="ts">
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+import { IconAdd, IconClose } from "@iconify-prerendered/vue-codicon"; 
+
+let elementValueToPush = "";
+const props = defineProps<{
+  el: CmakeListsElement;
+}>();
+function removeFromArray(value) {
+  const index = props.el.value.indexOf(value);
+  props.el.value.splice(index, 1);
+}
+
+function addToArray() {
+  if (!!elementValueToPush) {
+    props.el.value.push(elementValueToPush);
+    elementValueToPush = "";
+  }
+}
+const emit = defineEmits(["delete"]);
+
+function del() {
+  emit("delete");
+}
+
+</script>
+
 <template>
   <div>
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.id" class="label">{{ el.title }} </label>
+        <label :for="el.title" class="label">{{ el.title }} </label>
         <a class="delete" @click="del"></a>
       </div>
       <ul>
         <li v-for="v in el.value" :key="v" class="field is-grouped">
           <p class="label">{{ v }}</p>
           <div class="icon" @click="removeFromArray(v)">
-            <iconify-icon icon="close" />
+            <IconClose />
           </div>
         </li>
       </ul>
@@ -25,45 +52,12 @@
       </div>
       <div class="control">
         <div class="icon" @click="addToArray">
-          <iconify-icon icon="add" />
+          <IconAdd />
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
-
-@Component
-export default class CMakeListsArrayElement extends Vue {
-  @Prop() public el: CmakeListsElement;
-  private valueToPush: string;
-
-  get elementValueToPush() {
-    return this.valueToPush;
-  }
-  set elementValueToPush(newVal: string) {
-    this.valueToPush = newVal;
-  }
-
-  public removeFromArray(value) {
-    const index = this.el.value.indexOf(value);
-    this.el.value.splice(index, 1);
-  }
-
-  public addToArray() {
-    if (!!this.valueToPush) {
-      this.el.value.push(this.valueToPush);
-      this.valueToPush = "";
-    }
-  }
-
-  @Emit("delete")
-  del() {}
-}
-</script>
 
 <style scoped>
 .is-grouped {

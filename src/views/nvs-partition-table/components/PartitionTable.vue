@@ -6,12 +6,14 @@
         <div class="level-right">
           <div class="field is-grouped">
             <div class="control">
-              <button class="button is-size-7" @click="addNewRow">
+              <button class="button is-size-7" @click="$emit('addNewRow')">
                 Add new row
               </button>
             </div>
             <div class="control">
-              <button class="button is-size-7" @click="save">Save</button>
+              <button class="button is-size-7" @click="$emit('save')">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -35,16 +37,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Vue } from "vue-property-decorator";
-
-@Component
-export default class PartitionTable extends Vue {
-  @Emit("save")
-  save() {}
-
-  @Emit("addNewRow")
-  addNewRow() {}
-}
-</script>

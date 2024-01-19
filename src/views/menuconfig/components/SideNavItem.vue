@@ -1,3 +1,40 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { Menu } from "../../../espIdf/menuconfig/Menu";
+import { useMenuconfigStore } from "../store";
+import { computed } from "vue";
+import SideNavItem from "./SideNavItem.vue";
+import {
+  IconChevronRight,
+  IconChevronDown,
+} from "@iconify-prerendered/vue-codicon";
+
+const { menu } = defineProps<{ menu: Menu }>();
+const store = useMenuconfigStore();
+
+const { selectedMenu } = storeToRefs(store);
+
+const menuSubItems = computed(() => {
+  return menu.children.filter((i) => i.type === "menu" && i.isVisible);
+});
+
+function collapse() {
+  menu.isCollapsed = !menu.isCollapsed;
+}
+
+function setAsSelectedMenu() {
+  store.selectedMenu = menu.id;
+  const secNew = document.querySelector("#" + menu.id) as HTMLElement;
+  const configList = document.querySelector(".config-list") as HTMLElement;
+  const topbar = document.querySelector("#topbar") as HTMLElement;
+  const endPosition =
+    secNew.offsetTop +
+    configList.clientTop -
+    topbar.getBoundingClientRect().bottom;
+  configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+}
+</script>
+
 <template>
   <li
     :class="{ selectedSection: selectedMenu === menu.id }"
@@ -5,9 +42,8 @@
   >
     <div class="menu-line">
       <div class="info-icon" @click="collapse" v-show="menuSubItems.length > 0">
-        <iconify-icon
-          :icon="menu.isCollapsed ? 'chevron-right' : 'chevron-down'"
-        />
+        <IconChevronRight v-if="menu.isCollapsed" />
+        <IconChevronDown v-else />
       </div>
       <p @click="setAsSelectedMenu" v-text="menu.title" />
     </div>
@@ -17,47 +53,10 @@
       class="submenu"
       :class="{ collapsed: menu.isCollapsed }"
     >
-      <sidenav-el :menu="subItem" />
+      <SideNavItem :menu="subItem" />
     </ul>
   </li>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import { Menu } from "../../../espIdf/menuconfig/Menu";
-
-@Component
-export default class SideNavItem extends Vue {
-  @Prop() public menu: Menu;
-  @State("selectedMenu") private storeSelectedMenu!: string;
-  @Mutation("setSelectedMenu") private setSelectedMenu;
-
-  get selectedMenu() {
-    return this.storeSelectedMenu;
-  }
-
-  get menuSubItems() {
-    return this.menu.children.filter((i) => i.type === "menu" && i.isVisible);
-  }
-
-  public collapse() {
-    this.menu.isCollapsed = !this.menu.isCollapsed;
-  }
-
-  public setAsSelectedMenu() {
-    this.setSelectedMenu(this.menu.id);
-    const secNew: HTMLElement = document.querySelector("#" + this.menu.id);
-    const configList = document.querySelector(".config-list");
-    const topbar = document.querySelector("#topbar") as HTMLElement;
-    const endPosition =
-      secNew.offsetTop +
-      configList.clientTop -
-      topbar.getBoundingClientRect().bottom;
-    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
-  }
-}
-</script>
 
 <style scoped>
 .info-icon {

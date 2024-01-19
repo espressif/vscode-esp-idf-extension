@@ -1,8 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const TSLintPlugin = require("tslint-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
+const webpack = require("webpack");
 
 const packageConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
@@ -28,7 +27,13 @@ const extensionConfig = {
     __filename: true,
   },
   devtool: "source-map",
-  externals: ["commonjs", "vscode"],
+  externals: [
+    "commonjs",
+    "vscode",
+    "applicationinsights-native-metrics",
+    "bufferutil",
+    "utf-8-validate",
+  ],
   module: {
     rules: [
       {
@@ -107,13 +112,7 @@ const webViewConfig = {
       "project-conf",
       "main.ts"
     ),
-    welcomePage: path.resolve(
-      __dirname,
-      "src",
-      "views",
-      "welcome",
-      "main.ts"
-    ),
+    welcomePage: path.resolve(__dirname, "src", "views", "welcome", "main.ts"),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
@@ -172,31 +171,31 @@ const webViewConfig = {
     ],
   },
   resolve: {
+    conditionNames: ["import"],
     extensions: [".ts", ".js", ".vue", ".json"],
     alias: {
-      vue$: "vue/dist/vue.esm.js",
+      Vue: "vue/dist/vue.esm-bundler.js",
     },
     fallback: {
-      "os": require.resolve("os-browserify/browser"),
-      "path": require.resolve("path-browserify")
-    }
+      os: require.resolve("os-browserify/browser"),
+      path: require.resolve("path-browserify"),
+      stream: require.resolve("stream-browserify"),
+      assert: require.resolve("assert/"),
+    },
   },
   plugins: [
-    new TSLintPlugin({
-      files: ["./*.ts"],
-    }),
-    new HtmlWebpackPlugin({
-      chunks: ["tracing"],
-      filename: "tracing.html",
-      template: path.join(__dirname, "src", "views", "tracing", "index.html"),
-    }),
     new VueLoaderPlugin(),
+    new webpack.DefinePlugin({
+      __VUE_OPTIONS_API__: false,
+      __VUE_PROD_DEVTOOLS__: false,
+    }),
   ],
   devServer: {
     contentBase: path.join(__dirname),
     compress: true,
     port: 9000,
   },
+  
 };
 
 module.exports = [extensionConfig, webViewConfig];

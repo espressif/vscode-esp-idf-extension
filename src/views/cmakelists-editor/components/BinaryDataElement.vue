@@ -1,8 +1,24 @@
+<script setup lang="ts">
+import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
+
+const emit = defineEmits(["clearError", "delete"]);
+defineProps<{
+  el: CmakeListsElement;
+}>();
+function del() {
+  emit("delete");
+}
+
+function clearError() {
+  emit("clearError");
+}
+</script>
+
 <template>
-  <div class="py-1">
+  <div class="py-1" :class="{ error: el.hasError }">
     <div class="field">
       <div class="control is-flex">
-        <label :for="el.id" class="label">{{ el.title }} </label>
+        <label :for="el.title" class="label">{{ el.title }} </label>
         <a class="delete" @click="del"></a>
       </div>
     </div>
@@ -13,7 +29,12 @@
             <label class="label is-small">Target</label>
           </div>
           <div class="control">
-            <input type="text is-small" v-model="el.variable" class="input" />
+            <input
+              type="text is-small"
+              v-model="el.variable"
+              class="input"
+              @input="clearError"
+            />
           </div>
         </div>
       </div>
@@ -45,19 +66,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Emit, Prop, Vue } from "vue-property-decorator";
-import { CmakeListsElement } from "../../../cmake/cmakeListsElement";
-
-@Component
-export default class CMakeListsArrayElement extends Vue {
-  @Prop() public el: CmakeListsElement;
-
-  @Emit("delete")
-  del() {}
-}
-</script>
 
 <style scoped>
 .delete:hover {

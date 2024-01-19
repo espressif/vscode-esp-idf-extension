@@ -1,14 +1,14 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Thursday, 17th December 2020 7:15:59 pm
- * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ * File Created: Wednesday, 30th August 2023 11:08:29 am
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@
 import { EOL } from "os";
 import { NvsPartitionTable } from "./store";
 import BigNumber from "bignumber.js";
+import { Buffer } from "buffer";
 
 export interface IRowValidationResult {
   errorMsg: string;
@@ -49,7 +50,16 @@ export function validateRows(rows: NvsPartitionTable.IRow[]) {
   return validationResults;
 }
 
-export const numberTypes = ["u8", "i8", "u16", "i16", "u32", "i32", "u64", "i64"];
+export const numberTypes = [
+  "u8",
+  "i8",
+  "u16",
+  "i16",
+  "u32",
+  "i32",
+  "u64",
+  "i64",
+];
 
 export const minValues = {
   u8: 0,
@@ -59,7 +69,7 @@ export const minValues = {
   u32: 0,
   i32: -2147483648,
   u64: 0,
-  i64: new BigNumber('-9223372036854775808'),
+  i64: new BigNumber("-9223372036854775808"),
 };
 export const maxValues = {
   u8: 255,
@@ -68,9 +78,34 @@ export const maxValues = {
   i16: 32767,
   u32: 4294967295,
   i32: 2147483647,
-  u64: new BigNumber('18446744073709551615'),
-  i64: new BigNumber('9223372036854775807'),
+  u64: new BigNumber("18446744073709551615"),
+  i64: new BigNumber("9223372036854775807"),
 };
+
+export function findEncodingTypes(type: string) {
+  const fileTypes = ["binary", "base64", "hex2bin", "string"];
+  switch (type) {
+    case "file":
+      return fileTypes;
+      break;
+    case "data":
+      return [
+        "u8",
+        "i8",
+        "u16",
+        "i16",
+        "u32",
+        "i32",
+        "u64",
+        "i64",
+        ...fileTypes,
+      ];
+      break;
+    default:
+      return [];
+      break;
+  }
+}
 
 export function isInValidRow(row: NvsPartitionTable.IRow): string {
   if (!row.key) {
@@ -85,7 +120,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
   }
 
   if (row.type === "namespace") {
-    return;
+    return "";
   }
 
   if (!row.encoding) {
@@ -97,7 +132,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
   }
 
   if (row.type === "file") {
-    return;
+    return "";
   }
 
   if (row.encoding === "string") {
@@ -105,7 +140,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     if (bytes > 4000) {
       return "String value is limited to 4000 bytes";
     }
-    return;
+    return "";
   }
 
   if (numberTypes.indexOf(row.encoding) !== -1) {
@@ -115,7 +150,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
     const typeInt = new BigNumber(row.value);
 
     let minValue: number | BigNumber, maxValue: number | BigNumber;
-    
+
     minValue = minValues[row.encoding];
     maxValue = maxValues[row.encoding];
     if (
@@ -126,7 +161,7 @@ export function isInValidRow(row: NvsPartitionTable.IRow): string {
       return `Out of range for ${row.encoding}`;
     }
   }
-  return;
+  return "";
 }
 
 export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
@@ -146,19 +181,21 @@ export function JSON2CSV(rows: NvsPartitionTable.IRow[]) {
 }
 
 export function csv2Json(csv: string) {
-  const rows = new Array<NvsPartitionTable.IRow>();
+  const rows = [];
   const lines = csv.split(EOL);
   const header = lines.shift().trim();
   // key, type, encoding, value
-  const matches = csv.match(
-    /\s*key,\s*type,\s*encoding,\s*value/g
-  );
+  const matches = csv.match(/\s*key,\s*type,\s*encoding,\s*value/g);
   if (!matches || !matches.length) {
     console.log("Not a NVS partition table csv, skipping...");
     return rows;
   }
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i] === "" || lines[i].startsWith("#")) {
+    if (
+      lines[i] === "" ||
+      lines[i].startsWith("#") ||
+      lines[i].match(/\s*key,\s*type,\s*encoding,\s*value/g) !== null
+    ) {
       continue;
     }
     let cols = lines[i].split(",");

@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { useSizeStore } from "../store";
+
+const store = useSizeStore();
+
+function toggleOverviewAndDetails() {
+  store.isOverviewEnabled = !store.isOverviewEnabled;
+}
+</script>
+
 <template>
   <nav class="level is-mobile">
     <div class="level-left"></div>
@@ -7,7 +17,7 @@
           <button
             class="button is-size-7-mobile is-size-7-tablet"
             v-on:click="toggleOverviewAndDetails"
-            v-bind:class="{ 'is-static': isOverviewEnabled }"
+            v-bind:class="{ 'is-static': store.isOverviewEnabled }"
           >
             Overview
           </button>
@@ -16,7 +26,7 @@
           <button
             class="button is-size-7-mobile is-size-7-tablet"
             v-on:click="toggleOverviewAndDetails"
-            v-bind:class="{ 'is-static': !isOverviewEnabled }"
+            v-bind:class="{ 'is-static': !store.isOverviewEnabled }"
           >
             Detailed
           </button>
@@ -25,19 +35,3 @@
     </div>
   </nav>
 </template>
-
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Mutation, State } from "vuex-class";
-
-@Component
-export default class SizeFilter extends Vue {
-  @Mutation toggleOverviewAndDetails;
-  @State("isOverviewEnabled") storeIsOverviewEnabled: boolean;
-
-  get isOverviewEnabled() {
-    return this.storeIsOverviewEnabled;
-  }
-}
-</script>

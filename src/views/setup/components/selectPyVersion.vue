@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import folderOpen from "./folderOpen.vue";
+import { useSetupStore } from "../store";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+
+const store = useSetupStore();
+
+const {
+  selectedSysPython,
+  pyVersionsList,
+  pathSep,
+  manualPythonPath,
+} = storeToRefs(store);
+
+const winRoot = computed(() => {
+  return pathSep.value === "\\" ? "C:" : "";
+});
+
+const inputLabel = computed(() => {
+  return `Enter absolute python executable path to use. Example: ${winRoot}${pathSep}Users${pathSep}name${pathSep}myPythonFolder${pathSep}python${
+    winRoot ? ".exe" : ""
+  }`;
+});
+
+function clearPyErrorStatus() {
+  store.pyExecErrorStatus = "";
+}
+
+function setManualPyPath(pyPath: string) {
+  store.manualPythonPath = pyPath;
+}
+</script>
+
 <template>
   <div id="select-py-version">
     <div class="field">
@@ -7,18 +41,18 @@
       <div class="control">
         <div class="select">
           <select
-            v-model="selectedPythonVersion"
+            v-model="selectedSysPython"
             id="python-version-select"
             @change="clearPyErrorStatus"
           >
-            <option v-for="ver in pyVersionList" :key="ver" :value="ver">
+            <option v-for="ver in pyVersionsList" :key="ver" :value="ver">
               {{ ver }}
             </option>
           </select>
         </div>
       </div>
     </div>
-    <p v-if="pyVersionList && pyVersionList[0] === 'Not found'">
+    <p v-if="pyVersionsList && pyVersionsList[0] === 'Not found'">
       Please install
       <a href="https://www.python.org/downloads">Python</a> and reload this
       window.
@@ -28,65 +62,12 @@
       :propLabel="inputLabel"
       :propModel.sync="manualPythonPath"
       :propMutate="setManualPyPath"
-      :openMethod="openPythonPath"
+      :openMethod="store.openPythonPath"
       :onChangeMethod="clearPyErrorStatus"
-      v-if="selectedPythonVersion === pyVersionList[pyVersionList.length - 1]"
+      v-if="selectedSysPython === pyVersionsList[pyVersionsList.length - 1]"
     />
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import folderOpen from "./folderOpen.vue";
-
-@Component({
-  components: {
-    folderOpen,
-  },
-})
-export default class SelectPyVersion extends Vue {
-  @Action private openPythonPath;
-  @Mutation setManualPyPath;
-  @Mutation setPyExecErrorStatus;
-  @Mutation setSelectedSysPython;
-  @State("manualPythonPath") storeManualSysPython: string;
-  @State("pathSep") private storePathSep: string;
-  @State("pyVersionsList") storePyVersionsList: string[];
-  @State("selectedSysPython") storeSelectedPythonVersion: string;
-
-  get winRoot() {
-    return this.storePathSep === "\\" ? "C:" : "";
-  }
-
-  get inputLabel() {
-    return `Enter absolute python executable path to use. Example: ${
-      this.winRoot
-    }${this.storePathSep}Users${this.storePathSep}name${
-      this.storePathSep
-    }myPythonFolder${this.storePathSep}python${this.winRoot ? ".exe" : ""}`;
-  }
-
-  get pyVersionList() {
-    return this.storePyVersionsList;
-  }
-
-  get selectedPythonVersion() {
-    return this.storeSelectedPythonVersion;
-  }
-  set selectedPythonVersion(newValue: string) {
-    this.setSelectedSysPython(newValue);
-  }
-
-  get manualPythonPath() {
-    return this.storeManualSysPython;
-  }
-
-  public clearPyErrorStatus() {
-    this.setPyExecErrorStatus("");
-  }
-}
-</script>
 
 <style scoped>
 #select-py-version {
