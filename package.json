@@ -1546,7 +1546,7 @@
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
-    "vite": "^4.4.12",
+    "vite": "^4.5.2",
     "vsce": "^2.6.7",
     "vscode-extension-tester": "^5.2.1",
     "vscode-nls-dev": "^3.3.1",
