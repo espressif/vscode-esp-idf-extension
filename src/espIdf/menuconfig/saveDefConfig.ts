@@ -28,7 +28,7 @@ import {
   workspace,
 } from "vscode";
 import { TaskManager } from "../../taskManager";
-import { readParameter } from "../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { join } from "path";
 import { appendIdfAndToolsToPath } from "../../utils";
@@ -45,13 +45,15 @@ export async function saveDefSdkconfig(
     });
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const isSilentMode = readParameter(
-    "idf.notificationSilentMode",
+  const notificationMode = readParameter(
+    "idf.notificationMode",
     workspaceFolder
-  ) as boolean;
-  const showTaskOutput = isSilentMode
-    ? TaskRevealKind.Always
-    : TaskRevealKind.Silent;
+  ) as string;
+  const showTaskOutput =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Output
+      ? TaskRevealKind.Always
+      : TaskRevealKind.Silent;
   const saveDefConfigPresentationOptions = {
     reveal: showTaskOutput,
     showReuseMessage: false,
