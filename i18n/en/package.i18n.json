@@ -134,6 +134,7 @@
   "param.monitorCustomTimestampFormat": "Custom timestamp format in IDF Monitor",
   "param.customTerminalExecutable.title": "Custom executable for extensions tasks",
   "param.customTerminalExecutableArgs.title": "List of arguments for the custom executable for extension tasks",
+  "param.sbomFilePath.title": "esp-idf sbom file path",
   "esp.rainmaker.backend.sync.title": "Sync with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.connect.title": "Connect with ESP-Rainmaker Cloud Server",
   "esp.rainmaker.backend.logout.title": "Unlink Rainmaker Account",

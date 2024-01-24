@@ -154,6 +154,7 @@ These settings allow to support additional frameworks together with ESP-IDF:
 | `idf.espMatterPath`       | Path to locate ESP-Matter framework (ESP_MATTER_PATH)           |
 | `idf.espRainmakerPath`    | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
 | `idf.espRainmakerPathWin` | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
+| `idf.sbomFilePath`        | Path to create ESP-IDF SBOM report                              |
 
 The **ESP-IDF: Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
 The **ESP-IDF: Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).

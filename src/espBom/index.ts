@@ -46,9 +46,12 @@ export async function createSBOM(workspace: Uri) {
       shellArgs: [],
       shellPath: env.shell,
     });
-    espIdfSbomTerminal.sendText(`esp-idf-sbom create ${projectDescriptionJson} --output-file espidf.spdx`);
+    const sbomFilePath = readParameter("idf.sbomFilePath", workspace) as string;
+    espIdfSbomTerminal.sendText(
+      `esp-idf-sbom create ${projectDescriptionJson} --output-file ${sbomFilePath}`
+    );
     espIdfSbomTerminal.show();
-    espIdfSbomTerminal.sendText(`esp-idf-sbom check espidf.spdx`);
+    espIdfSbomTerminal.sendText(`esp-idf-sbom check ${sbomFilePath}`);
   } catch (error) {
     const msg = error.message
       ? error.message
