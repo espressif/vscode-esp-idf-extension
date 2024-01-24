@@ -16,18 +16,28 @@
  * limitations under the License.
  */
 
-import { Uri, window, env } from "vscode";
+import {
+  Uri,
+  workspace,
+  TaskRevealKind,
+  TaskPanelKind,
+  TaskPresentationOptions,
+  TaskScope,
+  ShellExecutionOptions,
+  ShellExecution,
+} from "vscode";
 import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { OutputChannel } from "../logger/outputChannel";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { Logger } from "../logger/logger";
+import { TaskManager } from "../taskManager";
 
-export async function createSBOM(workspace: Uri) {
+export async function createSBOM(workspaceUri: Uri) {
   try {
     const projectDescriptionJson = join(
-      workspace.fsPath,
+      workspaceUri.fsPath,
       "build",
       "project_description.json"
     );
@@ -37,21 +47,72 @@ export async function createSBOM(workspace: Uri) {
         `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
       );
     }
-    const modifiedEnv = appendIdfAndToolsToPath(workspace);
-    const espIdfSbomTerminal = window.createTerminal({
-      name: "ESP-IDF SBOM",
+    const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+    const sbomFilePath = readParameter(
+      "idf.sbomFilePath",
+      workspaceUri
+    ) as string;
+    const options: ShellExecutionOptions = {
+      cwd: workspaceUri.fsPath,
       env: modifiedEnv,
-      cwd: workspace.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
-      strictEnv: true,
-      shellArgs: [],
-      shellPath: env.shell,
-    });
-    const sbomFilePath = readParameter("idf.sbomFilePath", workspace) as string;
-    espIdfSbomTerminal.sendText(
-      `esp-idf-sbom create ${projectDescriptionJson} --output-file ${sbomFilePath}`
+    };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      workspaceUri
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      workspaceUri
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      workspaceUri
+    ) as string;
+    const curWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === workspaceUri
     );
-    espIdfSbomTerminal.show();
-    espIdfSbomTerminal.sendText(`esp-idf-sbom check ${sbomFilePath}`);
+    const showTaskOutput =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Output
+        ? TaskRevealKind.Always
+        : TaskRevealKind.Silent;
+    const sbomPresentationOptions = {
+      reveal: showTaskOutput,
+      showReuseMessage: false,
+      clear: false,
+      panel: TaskPanelKind.Shared,
+    } as TaskPresentationOptions;
+    const sbomCreateExecution = new ShellExecution(
+      `esp-idf-sbom create ${projectDescriptionJson} --output-file ${sbomFilePath}`,
+      options
+    );
+    const sbomCheckExecution = new ShellExecution(
+      `esp-idf-sbom check ${sbomFilePath}`,
+      options
+    );
+    TaskManager.addTask(
+      { type: "esp-idf", command: "ESP-IDF SBOM Create", taskId: "idf-sbom-task" },
+      curWorkspaceFolder || TaskScope.Workspace,
+      "ESP-IDF SBOM Creation",
+      sbomCreateExecution,
+      ["espIdf"],
+      sbomPresentationOptions
+    );
+    TaskManager.addTask(
+      { type: "esp-idf", command: "ESP-IDF SBOM Check", taskId: "idf-sbom-check-task" },
+      curWorkspaceFolder || TaskScope.Workspace,
+      "ESP-IDF SBOM Check",
+      sbomCheckExecution,
+      ["espIdf"],
+      sbomPresentationOptions
+    );
+    await TaskManager.runTasks();
   } catch (error) {
     const msg = error.message
       ? error.message
