@@ -7,7 +7,6 @@ There are many ways that you can contribute, and this document will provide you 
 ## Build from Source Code
 
 - Install [Node.js](https://nodejs.org/en/)
-- Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
 - Clone this repository `git clone --recursive https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies using `yarn`.
 - Open the project in Visual Studio Code and press <kbd>F5</kbd> to Run with Debugger, this will launch a new VSCode Extension Development Host to debug the extension.

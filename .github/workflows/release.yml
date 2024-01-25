@@ -23,9 +23,6 @@ jobs:
       - name: Install Dependencies
         run: yarn
 
-      - name: Package open .vsix
-        run: yarn run packageWithoutDependencies
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1.0.0
@@ -50,22 +47,6 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF:11}" >> $GITHUB_OUTPUT
 
-      - name: Upload no dependencies release asset
-        id: upload-open-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./esp-idf-extension-open.vsix
-          asset_name: esp-idf-extension-open-${{ steps.version.outputs.version }}.vsix
-          asset_content_type: application/zip
-
-      - name: OpenVSX release
-        run: yarn run open-vsx-release
-        env:
-          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
-
       - name: VSIX Package
         run: yarn run package
 
@@ -84,3 +65,8 @@ jobs:
         run: yarn run release
         env:
           VS_MARKETPLACE_TOKEN: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+
+      - name: OpenVSX release
+        run: yarn run open-vsx-release
+        env:
+          OPENVSX_MARKETPLACE_TOKEN: ${{ secrets.OPENVSX_MARKETPLACE_TOKEN }}
