@@ -52,6 +52,12 @@ export async function createSBOM(workspaceUri: Uri) {
       "idf.sbomFilePath",
       workspaceUri
     ) as string;
+    const sbomFileExists = await pathExists(sbomFilePath);
+    if (sbomFileExists) {
+      return Logger.infoNotify(
+        `${sbomFilePath} exists. Please update idf.sbomFilePath to a non existing file path for ESP-IDF SBOM tasks.`
+      );
+    }
     const options: ShellExecutionOptions = {
       cwd: workspaceUri.fsPath,
       env: modifiedEnv,
@@ -97,7 +103,11 @@ export async function createSBOM(workspaceUri: Uri) {
       options
     );
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF SBOM Create", taskId: "idf-sbom-task" },
+      {
+        type: "esp-idf",
+        command: "ESP-IDF SBOM Create",
+        taskId: "idf-sbom-task",
+      },
       curWorkspaceFolder || TaskScope.Workspace,
       "ESP-IDF SBOM Creation",
       sbomCreateExecution,
@@ -105,7 +115,11 @@ export async function createSBOM(workspaceUri: Uri) {
       sbomPresentationOptions
     );
     TaskManager.addTask(
-      { type: "esp-idf", command: "ESP-IDF SBOM Check", taskId: "idf-sbom-check-task" },
+      {
+        type: "esp-idf",
+        command: "ESP-IDF SBOM Check",
+        taskId: "idf-sbom-check-task",
+      },
       curWorkspaceFolder || TaskScope.Workspace,
       "ESP-IDF SBOM Check",
       sbomCheckExecution,
