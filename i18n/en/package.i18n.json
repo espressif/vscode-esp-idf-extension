@@ -2,7 +2,7 @@
   "espIdf.createFiles.title": "Create Project from Extension Template",
   "espIdf.addArduinoAsComponentToCurFolder.title": "Add Arduino ESP32 as ESP-IDF Component",
   "espIdf.createIdfTerminal.title": "Open ESP-IDF Terminal",
-  "espIdf.createVsCodeFolder.title": "Add .vscode Configuration Folder",
+  "espIdf.createVsCodeFolder.title": "Add vscode Configuration Folder",
   "espIdf.setPath.title": "Configure Paths",
   "espIdf.setTarget.title": "Set Espressif Device Target",
   "espIdf.selectConfTarget.title": "Select where to Save Configuration Settings",

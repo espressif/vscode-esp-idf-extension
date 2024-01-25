@@ -20,6 +20,7 @@ import * as idfConf from "../../idfConfiguration";
 import { readJSON } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { Uri } from "vscode";
+import { defaultBoards } from "./defaultBoards";
 
 export interface IdfBoard {
   name: string;
@@ -27,57 +28,6 @@ export interface IdfBoard {
   target: string;
   configFiles: string[];
 }
-
-export const defaultBoards = [
-  {
-    name: "ESP32 module",
-    description: "ESP32 used with ESP-PROG board",
-    target: "esp32",
-    configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-S2 module",
-    description: "ESP32-S2 used with ESP-PROG board",
-    target: "esp32s2",
-    configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-S3 chip (via ESP-PROG)",
-    description: "ESP32-S3 used with ESP-PROG board",
-    target: "esp32s3",
-    configFiles: ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-S3 chip (via builtin USB-JTAG)",
-    description: "ESP32-S3 debugging via builtin USB-JTAG",
-    target: "esp32s3",
-    configFiles: ["board/esp32s3-builtin.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-C3 chip (via ESP-PROG)",
-    description: "ESP32-C3 used with ESP-PROG board",
-    target: "esp32c3",
-    configFiles: ["board/esp32c3-ftdi.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-C3 chip (via builtin USB-JTAG)",
-    description: "ESP32-C3 debugging via builtin USB-JTAG",
-    target: "esp32c3",
-    configFiles: ["board/esp32c3-builtin.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-C6 chip (via ESP-PROG)",
-    description: "ESP32-C6 used with ESP-PROG board",
-    target: "esp32c6",
-    configFiles: ["board/esp32c6-ftdi.cfg"],
-  } as IdfBoard,
-  {
-    name: "ESP32-C6 chip (via builtin USB-JTAG)",
-    description: "ESP32-C6 debugging via builtin USB-JTAG",
-    target: "esp32c6",
-    configFiles: ["board/esp32c6-builtin.cfg"],
-  } as IdfBoard,
-];
 
 export function getOpenOcdScripts(workspace: Uri): string {
   const customExtraVars = idfConf.readParameter(

@@ -32,17 +32,17 @@ Check all the tutorials [here](./docs/tutorial/toc.md).
 
 # Table of content
 
-- [ESP-IDF Visual Studio Code Extension](#esp-idf-visual-studio-code-extension)
-- [Tutorials](#tutorials)
-- [Table of content](#table-of-content)
-- [How to use](#how-to-use)
-- [Available commands](#available-commands)
-- [About commands](#about-commands)
-- [Commands for tasks.json and launch.json](#commands-for-tasksjson-and-launchjson)
-- [Available Tasks in tasks.json](#available-tasks-in-tasksjson)
-- [Troubleshooting](#troubleshooting)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
+- [ESP-IDF Visual Studio Code Extension](./README.md#esp-idf-visual-studio-code-extension)
+- [Tutorials](./README.md#tutorials)
+- [Table of content](./README.md#table-of-content)
+- [How to use](./README.md#how-to-use)
+- [Available commands](./README.md#available-commands)
+- [About commands](./README.md#about-commands)
+- [Commands for tasks.json and launch.json](./README.md#commands-for-tasksjson-and-launchjson)
+- [Available Tasks in tasks.json](./README.md#available-tasks-in-tasksjson)
+- [Troubleshooting](./README.md#troubleshooting)
+- [Code of Conduct](./README.md#code-of-conduct)
+- [License](./README.md#license)
 
 Check all the [documentation](./docs/ONBOARDING.md).
 
@@ -91,7 +91,7 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
   > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting in the current workspace folder's settings.json.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your Device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](./README.md#Troubleshooting) section if you have any issues.
 
 # Available commands
 
@@ -106,11 +106,13 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Add vscode configuration folder                         |                                        |                                           |
 | Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Build your project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
+| Clear eFuse Summary                                     |                                        |                                           |
+| Clear ESP-IDF Search Results                            |                                        |                                           |
 | Clear Saved ESP-IDF Setups                              |                                        |                                           |
 | Configure ESP-IDF extension                             |                                        |                                           |
 | Configure Paths                                         |                                        |                                           |
 | Configure Project SDKConfig for Coverage                |                                        |                                           |
-| Create project from extension template                  | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
+| Create project from Extension Template                  | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Create New ESP-IDF Component                            |                                        |                                           |
 | Device configuration                                    |                                        |                                           |
 | Dispose Current SDK Configuration Editor Server Process |                                        |                                           |
@@ -123,6 +125,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Flash (UART) your project                               |                                        |                                           |
 | Flash (with JTag)                                       |                                        |                                           |
 | Full Clean Project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
+| Get eFuse Summary                                       |                                        |                                           |
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
