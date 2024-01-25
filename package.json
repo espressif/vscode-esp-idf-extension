@@ -1352,7 +1352,7 @@
       },
       {
         "command": "espIdf.saveDefSdkconfig",
-        "title": "%espIdf.saveDefSdkconfig.title%",,
+        "title": "%espIdf.saveDefSdkconfig.title%",
         "category": "ESP-IDF"
       },
       {
