@@ -1809,7 +1809,7 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck], async () => {
       try {
         if (SetupPanel.isCreatedAndHidden()) {
-          SetupPanel.createOrShow(context.extensionPath);
+          SetupPanel.createOrShow(context);
           return;
         }
         await vscode.window.withProgress(
@@ -1829,7 +1829,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     progress,
                     workspaceRoot
                   );
-              SetupPanel.createOrShow(context.extensionPath, setupArgs);
+              SetupPanel.createOrShow(context, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }

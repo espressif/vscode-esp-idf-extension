@@ -35,8 +35,11 @@ RUN wget --no-verbose ${QEMU_URL} \
 ENV PATH=/opt/qemu/bin:${PATH}
 
 RUN groupadd --gid $USER_GID $CONTAINER_USER \
-    && adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" ${CONTAINER_USER} \
-    && usermod -a -G dialout $CONTAINER_USER
+  && adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" ${CONTAINER_USER} \
+  && usermod -a -G root $CONTAINER_USER && usermod -a -G dialout $CONTAINER_USER
+
+RUN chmod -R 775 /opt/esp/python_env/
+
 USER ${CONTAINER_USER}
 ENV USER=${CONTAINER_USER}
 WORKDIR /home/${CONTAINER_USER}

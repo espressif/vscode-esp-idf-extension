@@ -11,7 +11,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.68.0"
+    "vscode": "^1.82.0"
   },
   "repository": {
     "type": "git",
@@ -1517,8 +1517,7 @@
     "@types/sanitize-html": "^2.6.2",
     "@types/tar-fs": "^2.0.1",
     "@types/tmp": "0.0.33",
-    "@types/vscode": "^1.59.0",
-    "@types/vue-select": "^3.16.2",
+    "@types/vscode": "^1.82.0",
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
@@ -1554,7 +1553,7 @@
     "typescript": "^5.2.2",
     "vite": "^4.5.2",
     "vsce": "^2.6.7",
-    "vscode-extension-tester": "^5.2.1",
+    "vscode-extension-tester": "^7.0.0",
     "vscode-nls-dev": "^3.3.1",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",

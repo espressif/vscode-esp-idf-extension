@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import { PyReqLog } from "./PyReqLog";
-import { CancellationToken, OutputChannel } from "vscode";
+import { CancellationToken, ExtensionContext, OutputChannel } from "vscode";
 import * as utils from "./utils";
 import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
-import path from "path";
+import { delimiter, dirname, join, sep } from "path";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
@@ -28,7 +28,7 @@ export async function installEspIdfToolFromIdf(
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
-  const idfToolsPyPath = path.join(espDir, "tools", "idf_tools.py");
+  const idfToolsPyPath = join(espDir, "tools", "idf_tools.py");
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
@@ -62,10 +62,11 @@ export async function installPythonEnvFromIdfTools(
   pyTracker: PyReqLog,
   pythonBinPath: string,
   gitPath: string,
+  context: ExtensionContext,
   channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
-  const idfToolsPyPath = path.join(espDir, "tools", "idf_tools.py");
+  const idfToolsPyPath = join(espDir, "tools", "idf_tools.py");
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
@@ -74,12 +75,27 @@ export async function installPythonEnvFromIdfTools(
   if (process.platform === "win32") {
     let pathToGitDir: string;
     if (gitPath && gitPath !== "git") {
-      pathToGitDir = path.dirname(gitPath);
+      pathToGitDir = dirname(gitPath);
     }
+    const pathNameInEnv: string = Object.keys(process.env).find(
+      (k) => k.toUpperCase() == "PATH"
+    );
     if (pathToGitDir) {
-      modifiedEnv.Path = pathToGitDir + path.delimiter + modifiedEnv.Path;
+      modifiedEnv[pathNameInEnv] =
+        pathToGitDir + delimiter + modifiedEnv[pathNameInEnv];
     }
     modifiedEnv.PYTHONNOUSERSITE = "1";
+    modifiedEnv[pathNameInEnv] =
+      dirname(pythonBinPath) +
+      sep +
+      "Lib" +
+      delimiter +
+      modifiedEnv[pathNameInEnv];
+    const collection = context.environmentVariableCollection;
+    collection.prepend(pathNameInEnv, join(dirname(pythonBinPath), "Lib"), {
+      applyAtShellIntegration: true,
+      applyAtProcessCreation: true,
+    });
   }
 
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
@@ -97,7 +113,7 @@ export async function installPythonEnvFromIdfTools(
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
-  const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
+  const virtualEnvPython = join(pyEnvPath, ...pyDir);
   await installExtensionPyReqs(
     virtualEnvPython,
     espDir,
@@ -120,7 +136,7 @@ export async function installExtensionPyReqs(
   cancelToken?: CancellationToken
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
-  const debugAdapterRequirements = path.join(
+  const debugAdapterRequirements = join(
     utils.extensionContext.extensionPath,
     "esp_debug_adapter",
     "requirements.txt"
@@ -133,7 +149,7 @@ export async function installExtensionPyReqs(
     return;
   }
   const espIdfVersion = await utils.getEspIdfFromCMake(espDir);
-  const constrainsFile = path.join(
+  const constrainsFile = join(
     idfToolsDir,
     `espidf.constraints.v${espIdfVersion}.txt`
   );
@@ -142,7 +158,7 @@ export async function installExtensionPyReqs(
   if (constrainsFileExists) {
     constraintArg = `--constraint "${constrainsFile}" `;
   } else {
-    const extensionConstraintsFile = path.join(
+    const extensionConstraintsFile = join(
       utils.extensionContext.extensionPath,
       `espidf.constraints.txt`
     );
@@ -189,10 +205,10 @@ export async function installEspMatterPyReqs(
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
-  const virtualEnvPython = path.join(pyEnvPath, ...pyDir);
+  const virtualEnvPython = join(pyEnvPath, ...pyDir);
 
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
-  const matterRequirements = path.join(espMatterDir, "requirements.txt");
+  const matterRequirements = join(espMatterDir, "requirements.txt");
   if (!utils.canAccessFile(matterRequirements, constants.R_OK)) {
     Logger.warnNotify(matterRequirements + reqDoesNotExists);
     if (channel) {
@@ -260,7 +276,7 @@ export async function getPythonEnvPath(
       ? majorMinorMatches[1]
       : "x.x";
   const resultVersion = `idf${espIdfVersion}_py${pythonVersion}_env`;
-  const idfPyEnvPath = path.join(idfToolsDir, "python_env", resultVersion);
+  const idfPyEnvPath = join(idfToolsDir, "python_env", resultVersion);
 
   return idfPyEnvPath;
 }
