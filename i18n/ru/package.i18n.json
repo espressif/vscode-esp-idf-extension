@@ -60,6 +60,7 @@
   "espIdf.welcome.title": "Добро пожаловать",
   "espIdf.projectConfigurationEditor.title": "Открыть конфигурацию проекта",
   "espIdf.projectConf.title": "Выберите конфигурацию проекта",
+  "espIdf.saveDefSdkconfig.title": "ESP-IDF: Сохраните файл SDKCONFIG по умолчанию (save-defconfig)",
   "espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки IDF",
   "espIdf.unitTest.buildFlashUnitTestApp.title": "Модульный тест: сборка и запуск приложения модульного тестирования для тестирования.",
   "espIdf.unitTest.installPyTest.title": "Модульный тест: установите требования ESP-IDF PyTest",

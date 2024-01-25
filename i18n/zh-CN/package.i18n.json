@@ -60,6 +60,7 @@
   "espIdf.welcome.title": "欢迎",
   "espIdf.projectConfigurationEditor.title": "打开项目配置",
   "espIdf.projectConf.title": "选择项目配置",
+  "espIdf.saveDefSdkconfig.title": "ESP-IDF: 保存默认SDKCONFIG文件（save-defconfig）",
   "espIdf.clearSavedIdfSetups.title": "清除保存的IDF设置",
   "espIdf.unitTest.buildFlashUnitTestApp.title": "单元测试：构建并闪存用于测试的单元测试应用程序",
   "espIdf.unitTest.installPyTest.title": "单元测试：安装ESP-IDF PyTest要求",

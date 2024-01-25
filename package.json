@@ -280,6 +280,10 @@
           "group": "navigation"
         },
         {
+          "command": "espIdf.saveDefSdkconfig",
+          "group": "navigation"
+        },
+        {
           "when": "resourceExtname == .bin",
           "group": "navigation",
           "command": "espIdf.flashBinaryToPartition"
@@ -1338,6 +1342,11 @@
       {
         "command": "espIdf.unitTest.buildFlashUnitTestApp",
         "title": "%espIdf.unitTest.buildFlashUnitTestApp.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.saveDefSdkconfig",
+        "title": "%espIdf.saveDefSdkconfig.title%",
         "category": "ESP-IDF"
       }
     ],
