@@ -159,10 +159,18 @@ export class AbstractCloning {
       Logger.infoNotify(`${resultingPath} already exist.`);
       return;
     }
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     await window.withProgress(
       {
         cancellable: true,
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: this.name,
       },
       async (
@@ -368,10 +376,18 @@ export class AbstractCloning {
   public async getSubmodules(repoRootDir: string) {
     const repoName = /[^/]*$/.exec(repoRootDir)[0];
     OutputChannel.appendLine(`Downloading ${repoName} submodules`);
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     await window.withProgress(
       {
         cancellable: true,
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: `Checking out ${repoName} submodules`,
       },
       async (

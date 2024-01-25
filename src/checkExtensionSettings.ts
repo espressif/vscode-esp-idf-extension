@@ -21,11 +21,8 @@ import {
   isCurrentInstallValid,
 } from "./setup/setupInit";
 import { Logger } from "./logger/logger";
-import { readParameter } from "./idfConfiguration";
+import { NotificationMode, readParameter } from "./idfConfiguration";
 import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
-import { getIdfMd5sum } from "./setup/espIdfJson";
-import { getEspIdfFromCMake } from "./utils";
-import { IdfSetup } from "./views/setup/types";
 
 export async function checkExtensionSettings(
   extensionPath: string,
@@ -40,10 +37,19 @@ export async function checkExtensionSettings(
     vscode.commands.executeCommand("espIdf.welcome.start");
     return;
   }
+  const notificationMode = readParameter(
+    "idf.notificationMode",
+    workspace
+  ) as string;
+  const ProgressLocation =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Notifications
+      ? vscode.ProgressLocation.Notification
+      : vscode.ProgressLocation.Window;
   await vscode.window.withProgress(
     {
       cancellable: false,
-      location: vscode.ProgressLocation.Notification,
+      location: ProgressLocation,
       title: "ESP-IDF: Loading initial configuration...",
     },
     async (

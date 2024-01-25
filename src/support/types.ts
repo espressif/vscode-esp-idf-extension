@@ -37,6 +37,7 @@ export class Configuration {
   espMatterPath: string;
   customExtraPaths: string;
   customExtraVars: { [key: string]: string };
+  notificationMode: string;
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];
   serialPort: string;
