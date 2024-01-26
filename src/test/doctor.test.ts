@@ -183,6 +183,10 @@ suite("Doctor Command tests", () => {
       reportObj.configurationSettings.toolsPath,
       settingsJsonObj["idf.toolsPath"]
     );
+    assert.equal(
+      reportObj.configurationSettings.notificationMode,
+      settingsJsonObj["idf.notificationMode"]
+    );
   });
 
   test("Good debug adapter py requirements", async () => {
@@ -303,6 +307,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `OpenOCD Configs (idf.openOcdConfigs) ${reportObj.configurationSettings.openOcdConfigs}${os.EOL}`;
     expectedOutput += `ESP-IDF Tools Path (idf.toolsPath) ${reportObj.configurationSettings.toolsPath}${os.EOL}`;
     expectedOutput += `Git Path (idf.gitPath) ${reportObj.configurationSettings.gitPath}${os.EOL}`;
+    expectedOutput += `Notification Mode (idf.notificationMode) ${reportObj.configurationSettings.notificationMode}${os.EOL}`;
     const actualReport = await writeTextReport(reportObj, mockUpContext);
     const subReport = actualReport.slice(
       0,

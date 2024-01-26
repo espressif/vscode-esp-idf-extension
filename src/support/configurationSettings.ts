@@ -34,6 +34,7 @@ export function getConfigurationSettings(
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
     customExtraPaths: conf.get("idf.customExtraPaths"),
     customExtraVars: conf.get("idf.customExtraVars"),
+    notificationMode: conf.get("idf.notificationMode"),
     pythonBinPath: conf.get("idf.pythonBinPath" + winFlag),
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),

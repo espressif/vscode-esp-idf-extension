@@ -376,9 +376,17 @@ export class SetupPanel {
     context: ExtensionContext,
     onReqPkgs?: string[]
   ) {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     return await window.withProgress(
       {
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: "ESP-IDF Setup:",
         cancellable: true,
       },
@@ -515,9 +523,17 @@ export class SetupPanel {
     context: ExtensionContext,
     onReqPkgs?: string[]
   ) {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     return await window.withProgress(
       {
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: "ESP-IDF Tools Setup:",
         cancellable: true,
       },
@@ -579,9 +595,17 @@ export class SetupPanel {
     saveScope: ConfigurationTarget,
     context: ExtensionContext
   ) {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     return await window.withProgress(
       {
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: "ESP-IDF Python Requirements:",
         cancellable: true,
       },

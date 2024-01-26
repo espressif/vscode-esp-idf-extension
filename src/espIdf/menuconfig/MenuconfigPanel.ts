@@ -19,6 +19,7 @@ import { Logger } from "../../logger/logger";
 import { getWebViewFavicon } from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
+import { NotificationMode, readParameter } from "../../idfConfiguration";
 
 const locDic = new LocDictionary(__filename);
 
@@ -136,7 +137,9 @@ export class MenuConfigPanel {
     this.panel.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "updateValue":
-          ConfserverProcess.setUpdatedValue(JSON.parse(message.updated_value) as Menu);
+          ConfserverProcess.setUpdatedValue(
+            JSON.parse(message.updated_value) as Menu
+          );
           break;
         case "setDefault":
           const changesNotSavedMessage = locDic.localize(
@@ -153,10 +156,19 @@ export class MenuConfigPanel {
             { title: noMsg, isCloseAffordance: true }
           );
           if (selected.title === yesMsg) {
+            const notificationMode = readParameter(
+              "idf.notificationMode",
+              this.curWorkspaceFolder
+            ) as string;
+            const ProgressLocation =
+              notificationMode === NotificationMode.All ||
+              notificationMode === NotificationMode.Notifications
+                ? vscode.ProgressLocation.Notification
+                : vscode.ProgressLocation.Window;
             vscode.window.withProgress(
               {
                 cancellable: true,
-                location: vscode.ProgressLocation.Notification,
+                location: ProgressLocation,
                 title: "ESP-IDF: SDK Configuration editor",
               },
               async (

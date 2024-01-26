@@ -140,12 +140,24 @@ export class EspMatterCloning extends AbstractCloning {
     );
   }
 
-  public async initEsp32PlatformSubmodules(espMatterDir: string) {
+  public async initEsp32PlatformSubmodules(
+    espMatterDir: string,
+    workspace: Uri
+  ) {
     OutputChannel.appendLine("Downloading Matter ESP32 platform submodules");
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      workspace
+    ) as string;
+    const progressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     await window.withProgress(
       {
         cancellable: true,
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: "ESP-IDF: Installing ESP-Matter",
       },
       async (
@@ -254,10 +266,19 @@ export async function installPythonReqs(
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     join(containerPath, ".espressif");
+  const notificationMode = readParameter(
+    "idf.notificationMode",
+    workspace
+  ) as string;
+  const progressLocation =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Notifications
+      ? ProgressLocation.Notification
+      : ProgressLocation.Window;
   await window.withProgress(
     {
       cancellable: true,
-      location: ProgressLocation.Notification,
+      location: progressLocation,
       title: "ESP-IDF: Installing ESP-Matter",
     },
     async (
@@ -283,7 +304,7 @@ export async function installPythonReqs(
 export async function getEspMatter(workspace?: Uri) {
   const gitPath =
     (await readParameter("idf.gitPath", workspace)) || "/usr/bin/git";
-  let espMatterPath;
+  let espMatterPath: string;
   const espMatterInstaller = new EspMatterCloning(gitPath, workspace);
   const installAllSubmodules = await window.showQuickPick(
     [
@@ -312,7 +333,10 @@ export async function getEspMatter(workspace?: Uri) {
       );
       espMatterPath = readParameter("idf.espMatterPath", workspace);
       await espMatterInstaller.getSubmodules(espMatterPath);
-      await espMatterInstaller.initEsp32PlatformSubmodules(espMatterPath);
+      await espMatterInstaller.initEsp32PlatformSubmodules(
+        espMatterPath,
+        workspace
+      );
       await espMatterInstaller.startBootstrap(true);
     }
     await TaskManager.runTasks();

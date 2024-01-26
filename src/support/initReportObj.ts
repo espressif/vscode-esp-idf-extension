@@ -29,6 +29,7 @@ export function initializeReportObject() {
     customExtraVars: undefined,
     customTerminalExecutable: undefined,
     customTerminalExecutableArgs: undefined,
+    notificationMode: undefined,
     pythonBinPath: undefined,
     pythonPackages: undefined,
     serialPort: undefined,
