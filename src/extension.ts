@@ -143,6 +143,7 @@ import {
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
+import { createSBOM, installEspSBOM } from "./espBom";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3061,6 +3062,34 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     );
+  });
+
+  registerIDFCommand("espIdf.createSbom", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        this.curWorkspace
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      vscode.window.withProgress(
+        {
+          title: "ESP-IDF: Create SBOM summary",
+          location: ProgressLocation,
+        },
+        async () => {
+          try {
+            await installEspSBOM(workspaceRoot);
+            await createSBOM(workspaceRoot);
+          } catch (err) {
+            return Logger.errorNotify(err.message, err);
+          }
+        }
+      );
+    });
   });
 
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {

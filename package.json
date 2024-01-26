@@ -929,6 +929,12 @@
             "description": "%param.sdkconfigFilePath.title%",
             "scope": "resource",
             "default": ""
+          },
+          "idf.sbomFilePath": {
+            "type": "string",
+            "scope": "resource",
+            "default": "espidf.spdx",
+            "description": "%param.sbomFilePath.title%"
           }
         }
       }
@@ -1347,6 +1353,11 @@
       {
         "command": "espIdf.saveDefSdkconfig",
         "title": "%espIdf.saveDefSdkconfig.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.createSbom",
+        "title": "%espIdf.createSbom.title%",
         "category": "ESP-IDF"
       }
     ],

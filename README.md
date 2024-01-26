@@ -159,6 +159,8 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Unit Test: Build and flash unit test app for testing    |                                        |                                           |
 | Unit Test: Install ESP-IDF PyTest requirements          |                                        |                                           |
+| Remove Editor coverage                                  |                                        |                                           |
+| Run ESP-IDF-SBOM vulnerability check                    |                                        |                                           |
 
 # About commands
 
