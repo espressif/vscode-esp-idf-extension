@@ -26,11 +26,15 @@ import {
   ShellExecutionOptions,
   ShellExecution,
 } from "vscode";
-import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  canAccessFile,
+  execChildProcess,
+} from "../utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { OutputChannel } from "../logger/outputChannel";
 import { join } from "path";
-import { pathExists } from "fs-extra";
+import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 
@@ -54,9 +58,13 @@ export async function createSBOM(workspaceUri: Uri) {
     ) as string;
     const sbomFileExists = await pathExists(sbomFilePath);
     if (sbomFileExists) {
-      return Logger.infoNotify(
-        `${sbomFilePath} exists. Please update idf.sbomFilePath to a non existing file path for ESP-IDF SBOM tasks.`
-      );
+      const sbomFileAccess = canAccessFile(sbomFilePath, constants.W_OK);
+      const sbomFilePathStats = await lstat(sbomFilePath);
+      if (sbomFilePathStats.isDirectory() || !sbomFileAccess) {
+        return Logger.infoNotify(
+          `${sbomFilePath} is not valid. Please update idf.sbomFilePath to a writable file path.`
+        );
+      }
     }
     const options: ShellExecutionOptions = {
       cwd: workspaceUri.fsPath,
