@@ -8,6 +8,34 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.7.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.7.0)
+
+### Features and enhancements
+
+- [Update extension initial autoconfiguration](https://github.com/espressif/vscode-esp-idf-extension/pull/1075)
+- [Add Commands tree view in Espressif explorer](https://github.com/espressif/vscode-esp-idf-extension/pull/1081)
+- [Update OpenOCD boards filtered by selected IDF target](https://github.com/espressif/vscode-esp-idf-extension/pull/1079)
+- [Documentation commands name consistency](https://github.com/espressif/vscode-esp-idf-extension/pull/1082)
+- [Add new notification mode: Output, Notification, All, Silent](https://github.com/espressif/vscode-esp-idf-extension/pull/1087)
+- [Remove gcovr dependency, implement GCOV html report and UI coverage from toolchain gcov](https://github.com/espressif/vscode-esp-idf-extension/pull/1099)
+- [Add ESP-IDF Unit Testing with Pytest-Embeded in vscode extension tests UI](https://github.com/espressif/vscode-esp-idf-extension/pull/1013)
+- [Add esp32c2 esp32h2 IDF targets to extension](https://github.com/espressif/vscode-esp-idf-extension/pull/1112)
+- [Remove Microsoft C/C++ from extension dependencies](https://github.com/espressif/vscode-esp-idf-extension/pull/1103)
+- [Add ESP-IDF SBOM check command](https://github.com/espressif/vscode-esp-idf-extension/pull/1094)
+
+### Bug Fixes
+
+- [Update application insights](https://github.com/espressif/vscode-esp-idf-extension/pull/1069)
+- [Remove video link from changelog](https://github.com/espressif/vscode-esp-idf-extension/pull/1071)
+- [Fix esp32h2 in set target command](https://github.com/espressif/vscode-esp-idf-extension/pull/1057)
+- [Fix for env PATH variable reference](https://github.com/espressif/vscode-esp-idf-extension/pull/1093) Thanks @dyarkovoy
+- [Fix for qemu workspace reference](https://github.com/espressif/vscode-esp-idf-extension/pull/1097) Thanks @dyarkovoy
+- [Fix sdkconfig defaults in build arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/1077)
+- [Fix duplicated python executable in setup UI, Add Windows compiler path fix](https://github.com/espressif/vscode-esp-idf-extension/pull/1084)
+- [Migration to vue 3 and UI fixes](https://github.com/espressif/vscode-esp-idf-extension/pull/1035)
+- [Update docker templates to latest esp-idf version](https://github.com/espressif/vscode-esp-idf-extension/pull/1109)
+- [Fix tar.xz install from extension, show or hide progress notification based idf.notificationMode setting](https://github.com/espressif/vscode-esp-idf-extension/pull/1118)
+
 ## [1.6.5](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.6.5)
 
 ### Features and enhancements
