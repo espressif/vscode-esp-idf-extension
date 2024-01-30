@@ -12,7 +12,9 @@ Besides ESP-IDF, you can install other frameworks to extend the extension functi
 
 4. [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **ESP-IDF: Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 
-> **NOTE:** You can also just set each configuration setting with the framework directory path if you already have them. For example, on Visual Studio Code menu `View` -> `Command Palette..`. -> type `Preferences: Open Settings (UI)` and search for ESP-ADF to manually set this path.
+5. [ESP-HomeKit-SDK](https://github.com/espressif/esp-homekit-sdk) can be clone with the **Install Install ESP-HomeKit-SDK** command to the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
+
+> **NOTE:** You can also just set each configuration setting with the framework directory path if you already have them. For example, on Visual Studio Code menu `View` -> `Command Palette..`. -> type `Preferences: Open Settings (UI)` and search for ESP-ADF (or other framework) to manually set this path.
 
 > **NOTE:** Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 

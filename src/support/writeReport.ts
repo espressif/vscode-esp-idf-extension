@@ -44,6 +44,7 @@ export async function writeTextReport(
   output += `ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSettings.espIdfPath}${EOL}`;
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
+  output += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
   output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (
     reportedResult.configurationSettings.customExtraVars &&
@@ -74,6 +75,7 @@ export async function writeTextReport(
   output += `Access to ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationAccess.espIdfPath}${EOL}`;
   output += `Access to ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationAccess.espMdfPath}${EOL}`;
   output += `Access to ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationAccess.espMatterPath}${EOL}`;
+  output += `Access to ESP-HomeKit Path (idf.espHomeKitSdkPath) ${reportedResult.configurationAccess.espHomeKitPath}${EOL}`;
   output += `Access to ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
@@ -88,6 +90,7 @@ export async function writeTextReport(
   output += `Spaces in ESP-IDF Path (idf.espIdfPath) ${reportedResult.configurationSpacesValidation.espIdfPath}${EOL}`;
   output += `Spaces in ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSpacesValidation.espMdfPath}${EOL}`;
   output += `Spaces in ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSpacesValidation.espMatterPath}${EOL}`;
+  output += `Spaces in ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSpacesValidation.espHomeKitPath}${EOL}`;
   output += `Spaces in ESP-IDF Custom extra paths${EOL}`;
   for (let key in reportedResult.configurationSpacesValidation
     .customExtraPaths) {

@@ -7,6 +7,7 @@
 [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2)
 [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3)
 [ESP32-H2](https://www.espressif.com/en/products/socs/esp32-h2)
+[ESP32-P4](https://www.espressif.com/en/products/socs/esp32-p4)
 
 The chips supported in the extension are directly dependent on the ESP-IDF and OpenOCD version you are using:
 
@@ -26,5 +27,7 @@ In addition to ESP-IDF chips, there are several boards configurations files impl
 - [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` configuration setting. **ESP-Matter is Not Supported in Windows**.
 
 - [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **ESP-IDF: Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
+
+- [ESP-HomeKit-SDK](https://github.com/espressif/esp-homekit-sdk) can be clone with the **Install Install ESP-HomeKit-SDK** command to the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
 
 > **NOTE:** Consider that if you are using other Espressif frameworks for your projects, not all ESP-IDF versions are compatible with an specific framework. For example, ESP-ADF might not work with the current ESP-IDF master branch. It is recommended that you configure the extension to use the ESP-IDF within the framework (most frameworks include compatible ESP-IDF as subdirectory) in the setup wizard or JSON Configuration as shown in [SETUP](./SETUP.md) documentation or [Install](./tutorial/install.md) tutorial.

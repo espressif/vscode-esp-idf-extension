@@ -144,6 +144,7 @@ import {
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
+import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -744,6 +745,10 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.getEspAdf", async () => getEspAdf(workspaceRoot));
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
+
+  registerIDFCommand("espIdf.getEspHomeKitSdk", async () =>
+    getEspHomeKitSdk(workspaceRoot)
+  );
 
   registerIDFCommand("espIdf.getEspMatter", async () => {
     if (process.platform === "win32") {
@@ -3400,9 +3405,18 @@ async function getFrameworksPickItems() {
     "idf.espMdfPath",
     workspaceRoot
   ) as string;
-  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  const matterPathDir = idfConf.readParameter(
+    "idf.espMatterPath",
+    workspaceRoot
+  ) as string;
   const rainmakerPathDir = idfConf.readParameter(
-    "idf.espRainmakerPath"
+    "idf.espRainmakerPath",
+    workspaceRoot
+  ) as string;
+
+  const espHomeKitPathDir = idfConf.readParameter(
+    "idf.espHomeKitSdkPath",
+    workspaceRoot
   ) as string;
 
   const pickItems = [];
@@ -3447,6 +3461,16 @@ async function getFrameworksPickItems() {
         description: "ESP-Rainmaker",
         label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
         target: rainmakerPathDir,
+      });
+    }
+    const doesEspHomeKitSdkPathExists = await utils.dirExistPromise(
+      espHomeKitPathDir
+    );
+    if (doesEspHomeKitSdkPathExists) {
+      pickItems.push({
+        description: "ESP-HomeKit-SDK",
+        label: `Use current ESP-HomeKit-SDK (${espHomeKitPathDir})`,
+        target: espHomeKitPathDir,
       });
     }
   } catch (error) {
