@@ -29,7 +29,10 @@ import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import * as utils from "../utils";
-import { showErrorNotificationWithLink, showQuickPickWithCustomActions } from "../logger/utils";
+import {
+  showErrorNotificationWithLink,
+  showQuickPickWithCustomActions,
+} from "../logger/utils";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
@@ -127,7 +130,7 @@ export async function checkFlashEncryption(
   workspaceRoot: vscode.Uri
 ): Promise<boolean> {
   Logger.info(`Using flash type: ${flashType}`, { tag: "Flash" });
- 
+
   try {
     if (encryptPartitions) {
       if (flashType !== ESP.FlashType.UART) {
@@ -137,19 +140,19 @@ export async function checkFlashEncryption(
           {
             label: "Change flash type to UART",
             action: () => {
-            idfConf.writeParameter(
-              "idf.flashType",
-              "UART",
-              vscode.ConfigurationTarget.WorkspaceFolder,
-              workspaceRoot
-            );
-            const saveMessage = locDic.localize(
-              "flash.saveFlashTypeUART",
-              "Flashing method successfully changed to UART"
-            );
-            Logger.infoNotify(saveMessage);
-            OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
-            }
+              idfConf.writeParameter(
+                "idf.flashType",
+                "UART",
+                vscode.ConfigurationTarget.WorkspaceFolder,
+                workspaceRoot
+              );
+              const saveMessage = locDic.localize(
+                "flash.saveFlashTypeUART",
+                "Flashing method successfully changed to UART"
+              );
+              Logger.infoNotify(saveMessage);
+              OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
+            },
           },
           {
             label: "Disable Flash Encryption",
@@ -161,13 +164,16 @@ export async function checkFlashEncryption(
               );
               Logger.infoNotify(saveMessage);
               OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
-            }
-          }
+            },
+          },
         ];
 
         OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
         Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
-        await showQuickPickWithCustomActions("Pick one of the following actions to continue", customButtons);
+        await showQuickPickWithCustomActions(
+          "Pick one of the following actions to continue",
+          customButtons
+        );
         return false;
       }
       const eFuse = new ESPEFuseManager(workspaceRoot);
@@ -202,7 +208,9 @@ export async function checkFlashEncryption(
 // Function to disable flash encryption in SDK Configuration
 export function disableFlashEncryption() {
   // Configuration change request
-  const newValueRequest = JSON.stringify({"version": 2, "set": { "SECURE_FLASH_ENC_ENABLED": false }}) + "\n";
+  const newValueRequest =
+    JSON.stringify({ version: 2, set: { SECURE_FLASH_ENC_ENABLED: false } }) +
+    "\n";
 
   // Log the new value request
   OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");

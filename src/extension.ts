@@ -3559,7 +3559,11 @@ async function startFlashing(
     flashType = await selectFlashMethod();
   }
 
-  const encryptionCheck = await checkFlashEncryption(encryptPartitions, flashType, workspaceRoot);
+  const encryptionCheck = await checkFlashEncryption(
+    encryptPartitions,
+    flashType,
+    workspaceRoot
+  );
   if (!encryptionCheck) {
     return;
   }

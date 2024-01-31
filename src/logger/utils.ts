@@ -36,7 +36,7 @@ export async function showQuickPickWithCustomActions(
     {
       placeHolder: message,
       canPickMany: false,
-      ignoreFocusOut: true
+      ignoreFocusOut: true,
     }
   );
   const selectedButton = buttons.find(
