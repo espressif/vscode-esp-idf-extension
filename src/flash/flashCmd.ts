@@ -29,7 +29,8 @@ import { getDfuList, listAvailableDfuDevices } from "./dfu";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import * as utils from "../utils";
-import { showErrorNotificationWithLink } from "../logger/utils";
+import { showErrorNotificationWithLink, showQuickPickWithCustomActions } from "../logger/utils";
+import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
 
@@ -124,15 +125,50 @@ export async function checkFlashEncryption(
   encryptPartitions: boolean,
   flashType: ESP.FlashType,
   workspaceRoot: vscode.Uri
-) {
+): Promise<boolean> {
   Logger.info(`Using flash type: ${flashType}`, { tag: "Flash" });
-
+ 
   try {
     if (encryptPartitions) {
       if (flashType !== ESP.FlashType.UART) {
-        throw new Error(
-          `Invalid flash type for partition encryption. Required: UART, Found: ${flashType}`
-        );
+        const errorMessage = `Invalid flash type for partition encryption. Required: UART, Found: ${flashType}. \n Choose one of the actions presented in the top center quick pick menu in order to continue.`;
+        const error = new Error(errorMessage);
+        const customButtons = [
+          {
+            label: "Change flash type to UART",
+            action: () => {
+            idfConf.writeParameter(
+              "idf.flashType",
+              "UART",
+              vscode.ConfigurationTarget.WorkspaceFolder,
+              workspaceRoot
+            );
+            const saveMessage = locDic.localize(
+              "flash.saveFlashTypeUART",
+              "Flashing method successfully changed to UART"
+            );
+            Logger.infoNotify(saveMessage);
+            OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
+            }
+          },
+          {
+            label: "Disable Flash Encryption",
+            action: () => {
+              disableFlashEncryption();
+              const saveMessage = locDic.localize(
+                "menuconfig.disabledFlashEncryption",
+                "Flash encryption has been disabled in the SDK configuration"
+              );
+              Logger.infoNotify(saveMessage);
+              OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
+            }
+          }
+        ];
+
+        OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
+        Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
+        await showQuickPickWithCustomActions("Pick one of the following actions to continue", customButtons);
+        return false;
       }
       const eFuse = new ESPEFuseManager(workspaceRoot);
       const summaryResult = await eFuse.readSummary();
@@ -150,14 +186,30 @@ export async function checkFlashEncryption(
           );
           showErrorNotificationWithLink(errorMessage, documentationUrl);
           OutputChannel.appendLineAndShow(error.message);
-          Logger.error(errorMessage, error, { tag: "FLASH_ENCRYPTION" });
-          return;
+          Logger.error(errorMessage, error, { tag: "Flash Encryption" });
+          return false;
         }
       }
     }
+    return true;
   } catch (error) {
     OutputChannel.appendLineAndShow(error.message);
-    Logger.errorNotify(error.message, error, { tag: "FLASH_ENCRYPTION" });
-    return;
+    Logger.errorNotify(error.message, error, { tag: "Flash Encryption" });
+    return false;
   }
+}
+
+// Function to disable flash encryption in SDK Configuration
+export function disableFlashEncryption() {
+  // Configuration change request
+  const newValueRequest = JSON.stringify({"version": 2, "set": { "SECURE_FLASH_ENC_ENABLED": false }}) + "\n";
+
+  // Log the new value request
+  OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
+
+  // Send the new value request to the confServerProcess
+  ConfserverProcess.getInstance().sendNewValueRequest(newValueRequest);
+
+  // Save the new configuration values
+  ConfserverProcess.saveGuiConfigValues();
 }
