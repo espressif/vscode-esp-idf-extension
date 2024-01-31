@@ -146,8 +146,7 @@ export class UnitTest {
       TestRunProfileKind.Run,
       runHandler,
       true,
-      undefined,
-      false
+      undefined
     );
 
     this.unitTestController.resolveHandler = async (item: TestItem) => {
