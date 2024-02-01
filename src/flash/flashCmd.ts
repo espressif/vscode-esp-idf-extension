@@ -174,7 +174,6 @@ export async function checkFlashEncryption(
           "Pick one of the following actions to continue",
           customButtons
         );
-        return false;
       }
       const eFuse = new ESPEFuseManager(workspaceRoot);
       const summaryResult = await eFuse.readSummary();
