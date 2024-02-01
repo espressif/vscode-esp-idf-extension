@@ -133,16 +133,6 @@ export class ConfserverProcess {
     ConfserverProcess.instance.areValuesSaved = false;
   }
 
-  public static getInstance(): ConfserverProcess {
-    return this.instance;
-  }
-
-  public sendNewValueRequest(newValueRequest: string) {
-    OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
-    this.confServerProcess.stdin.write(newValueRequest);
-    this.areValuesSaved = false;
-  }
-
   public static saveGuiConfigValues() {
     ConfserverProcess.instance.isSavingSdkconfig = true;
     const saveRequest = JSON.stringify({

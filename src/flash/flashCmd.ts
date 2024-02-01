@@ -207,13 +207,8 @@ export async function checkFlashEncryption(
 
 // Function to disable flash encryption in SDK Configuration
 export function disableFlashEncryption() {
-  const newValueRequest =
-    JSON.stringify({ version: 2, set: { SECURE_FLASH_ENC_ENABLED: false } }) +
-    "\n";
-
-  // Log the new value request
+  const newValueRequest = `{"version": 2, "set": { "SECURE_FLASH_ENC_ENABLED": false }}\n`;
   OutputChannel.appendLine(newValueRequest, "SDK Configuration Editor");
-
-  ConfserverProcess.getInstance().sendNewValueRequest(newValueRequest);
+  ConfserverProcess.sendUpdatedValue(newValueRequest);
   ConfserverProcess.saveGuiConfigValues();
 }
