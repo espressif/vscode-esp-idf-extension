@@ -30,12 +30,13 @@ import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 import * as utils from "../utils";
 import {
-  showErrorNotificationWithLink,
+  showInfoNotificationWithLink,
   showQuickPickWithCustomActions,
 } from "../logger/utils";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
+import { warn } from "console";
 
 const locDic = new LocDictionary(__filename);
 
@@ -125,75 +126,74 @@ export function isFlashEncryptionEnabled(workspaceRoot: vscode.Uri) {
 }
 
 export async function checkFlashEncryption(
-  encryptPartitions: boolean,
   flashType: ESP.FlashType,
   workspaceRoot: vscode.Uri
 ): Promise<boolean> {
   Logger.info(`Using flash type: ${flashType}`, { tag: "Flash" });
 
   try {
-    if (encryptPartitions) {
-      if (flashType !== ESP.FlashType.UART) {
-        const errorMessage = `Invalid flash type for partition encryption. Required: UART, Found: ${flashType}. \n Choose one of the actions presented in the top center quick pick menu in order to continue.`;
-        const error = new Error(errorMessage);
-        const customButtons = [
-          {
-            label: "Change flash type to UART",
-            action: () => {
-              idfConf.writeParameter(
-                "idf.flashType",
-                "UART",
-                vscode.ConfigurationTarget.WorkspaceFolder,
-                workspaceRoot
-              );
-              const saveMessage = locDic.localize(
-                "flash.saveFlashTypeUART",
-                "Flashing method successfully changed to UART"
-              );
-              Logger.infoNotify(saveMessage);
-              OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
-            },
+    if (flashType !== ESP.FlashType.UART) {
+      const errorMessage = `Invalid flash type for partition encryption. Required: UART, Found: ${flashType}. \n Choose one of the actions presented in the top center quick pick menu and re-flash.`;
+      const error = new Error(errorMessage);
+      const customButtons = [
+        {
+          label: "Change flash type to UART",
+          action: () => {
+            idfConf.writeParameter(
+              "idf.flashType",
+              "UART",
+              vscode.ConfigurationTarget.WorkspaceFolder,
+              workspaceRoot
+            );
+            const saveMessage = locDic.localize(
+              "flash.saveFlashTypeUART",
+              "Flashing method successfully changed to UART"
+            );
+            Logger.infoNotify(saveMessage);
+            OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
           },
-          {
-            label: "Disable Flash Encryption",
-            action: () => {
-              disableFlashEncryption();
-              const saveMessage = locDic.localize(
-                "menuconfig.disabledFlashEncryption",
-                "Flash encryption has been disabled in the SDK configuration"
-              );
-              Logger.infoNotify(saveMessage);
-              OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
-            },
+        },
+        {
+          label: "Disable Flash Encryption",
+          action: () => {
+            disableFlashEncryption();
+            const saveMessage = locDic.localize(
+              "menuconfig.disabledFlashEncryption",
+              "Flash encryption has been disabled in the SDK configuration"
+            );
+            Logger.infoNotify(saveMessage);
+            OutputChannel.appendLineAndShow(saveMessage, "Flash Encryption");
           },
-        ];
+        },
+      ];
 
-        OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
-        Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
-        await showQuickPickWithCustomActions(
-          "Pick one of the following actions to continue",
-          customButtons
+      OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
+      Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
+      await showQuickPickWithCustomActions(
+        "Pick one of the following actions to continue",
+        customButtons
+      );
+      return false;
+    }
+    const eFuse = new ESPEFuseManager(workspaceRoot);
+    const summaryResult = await eFuse.readSummary();
+    if (summaryResult && summaryResult.BLOCK_KEY0) {
+      if ( // eFuse is not set
+        summaryResult.BLOCK_KEY0.value &&
+        summaryResult.BLOCK_KEY0.value === ESP.DEFAULT_UNSET_EFUSE_VALUE
+      ) {
+        //TODO: Flash normally and inform user it will be a normal flash and to reboot the device after flashing and flash again for encryption to take effect
+        const documentationUrl = await getDocsUrl(
+          ESP.URL.Docs.FLASH_ENCRYPTION,
+          workspaceRoot
         );
-      }
-      const eFuse = new ESPEFuseManager(workspaceRoot);
-      const summaryResult = await eFuse.readSummary();
-      if (summaryResult && summaryResult.BLOCK_KEY0) {
-        if (
-          summaryResult.BLOCK_KEY0.value &&
-          summaryResult.BLOCK_KEY0.value === ESP.DEFAULT_UNSET_EFUSE_VALUE
-        ) {
-          const errorMessage =
-            "Encryption key (eFuse BLOCK_KEY0) is not set. Please configure the eFuse key before proceeding with encrypted flashing.";
-          const error = new Error(errorMessage);
-          const documentationUrl = await getDocsUrl(
-            ESP.URL.Docs.FLASH_ENCRYPTION,
-            workspaceRoot
-          );
-          showErrorNotificationWithLink(errorMessage, documentationUrl);
-          OutputChannel.appendLineAndShow(error.message);
-          Logger.error(errorMessage, error, { tag: "Flash Encryption" });
-          return false;
-        }
+        const warnMessage =`Encryption enabled, but not initiliazed (eFuse BLOCK_KEY0 is not set). \n
+        After flashing is done, reboot the device and flash again in order to initialize encryption. \n
+        For more information, visit the documentation \n`;
+        showInfoNotificationWithLink(warnMessage, documentationUrl);
+        OutputChannel.appendLineAndShow(warnMessage, "Flash Encryption");
+        Logger.info(warnMessage, { tag: "Flash Encryption" });
+        return false;
       }
     }
     return true;

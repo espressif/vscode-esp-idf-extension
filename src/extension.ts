@@ -3559,13 +3559,14 @@ async function startFlashing(
     flashType = await selectFlashMethod();
   }
 
-  const encryptionCheck = await checkFlashEncryption(
-    encryptPartitions,
-    flashType,
-    workspaceRoot
-  );
-  if (!encryptionCheck) {
-    return;
+  if(encryptPartitions){
+    const shouldEncryptPartitions = await checkFlashEncryption(
+      flashType,
+      workspaceRoot
+    ); 
+    if(!shouldEncryptPartitions){
+      return;
+    }
   }
 
   const port = idfConf.readParameter("idf.port", workspaceRoot);
