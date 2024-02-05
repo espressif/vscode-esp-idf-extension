@@ -146,6 +146,7 @@ import {
   installPyTestPackages,
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
+import { FlashCheckResultType, FlashCheckResult } from "./flash/flashCmd";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3559,13 +3560,20 @@ async function startFlashing(
     flashType = await selectFlashMethod();
   }
 
-  if(encryptPartitions){
-    const shouldEncryptPartitions = await checkFlashEncryption(
+  if (encryptPartitions) {
+    const encryptionValidationResult = await checkFlashEncryption(
       flashType,
       workspaceRoot
-    ); 
-    if(!shouldEncryptPartitions){
-      return;
+    );
+    if (!encryptionValidationResult.success) {
+      if (
+        encryptionValidationResult.resultType ===
+        FlashCheckResultType.ErrorEfuseNotSet
+      ) {
+        encryptPartitions = false;
+      } else {
+        return;
+      }
     }
   }
 

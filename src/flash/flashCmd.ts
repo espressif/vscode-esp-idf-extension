@@ -40,6 +40,18 @@ import { warn } from "console";
 
 const locDic = new LocDictionary(__filename);
 
+export enum FlashCheckResultType {
+  Success,
+  ErrorInvalidFlashType,
+  ErrorEfuseNotSet,
+  GenericError,
+}
+
+export interface FlashCheckResult {
+  success: boolean;
+  resultType?: FlashCheckResultType;
+}
+
 export async function verifyCanFlash(
   flashBaudRate: string,
   port: string,
@@ -128,7 +140,7 @@ export function isFlashEncryptionEnabled(workspaceRoot: vscode.Uri) {
 export async function checkFlashEncryption(
   flashType: ESP.FlashType,
   workspaceRoot: vscode.Uri
-): Promise<boolean> {
+): Promise<FlashCheckResult> {
   Logger.info(`Using flash type: ${flashType}`, { tag: "Flash" });
 
   try {
@@ -173,12 +185,16 @@ export async function checkFlashEncryption(
         "Pick one of the following actions to continue",
         customButtons
       );
-      return false;
+      return {
+        success: false,
+        resultType: FlashCheckResultType.ErrorInvalidFlashType,
+      };
     }
     const eFuse = new ESPEFuseManager(workspaceRoot);
     const summaryResult = await eFuse.readSummary();
     if (summaryResult && summaryResult.BLOCK_KEY0) {
-      if ( // eFuse is not set
+      if (
+        // eFuse is not set
         summaryResult.BLOCK_KEY0.value &&
         summaryResult.BLOCK_KEY0.value === ESP.DEFAULT_UNSET_EFUSE_VALUE
       ) {
@@ -187,20 +203,22 @@ export async function checkFlashEncryption(
           ESP.URL.Docs.FLASH_ENCRYPTION,
           workspaceRoot
         );
-        const warnMessage =`Encryption enabled, but not initiliazed (eFuse BLOCK_KEY0 is not set). \n
-        After flashing is done, reboot the device and flash again in order to initialize encryption. \n
-        For more information, visit the documentation \n`;
+        const warnMessage =
+          "Encryption setup requires a two-step flashing process due to uninitialized eFuse BLOCK_KEY0. Please complete the current flash, reset your device, and then flash again. See documentation for details.";
         showInfoNotificationWithLink(warnMessage, documentationUrl);
         OutputChannel.appendLineAndShow(warnMessage, "Flash Encryption");
         Logger.info(warnMessage, { tag: "Flash Encryption" });
-        return false;
+        return {
+          success: false,
+          resultType: FlashCheckResultType.ErrorEfuseNotSet,
+        };
       }
     }
-    return true;
+    return { success: true };
   } catch (error) {
     OutputChannel.appendLineAndShow(error.message);
     Logger.errorNotify(error.message, error, { tag: "Flash Encryption" });
-    return false;
+    return { success: false, resultType: FlashCheckResultType.GenericError };
   }
 }
 
