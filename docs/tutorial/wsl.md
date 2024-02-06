@@ -1,18 +1,29 @@
-# Using WSL
+# Using Windows Subsystem for Linux (WSL)
 
 In this tutorial will show you how to develop your projects based on `Visual Studio Code` + `ESP-IDF Extension` + `Remote - WSL` to implement all features of this extension in WSL.
 
 # Required tools
 
-you need to install the following tools before starting our projects:
-
-1. Ubuntu on Windows using WSL
-1. [Visual Studio Code](https://code.visualstudio.com/)
-1. [usbipd-win](https://github.com/dorssel/usbipd-win/releases)
+1. WSL 2
+2. Ubuntu on Windows using WSL
+3. [Visual Studio Code](https://code.visualstudio.com/)
+4. [usbipd-win](https://github.com/dorssel/usbipd-win/releases)
 
 ## Ubuntu on Windows
 
-WSL is present starting from Windows 10 OS, so we can check the WSL list with the `Powershell` command prompt, as below
+If you don't have WSL installed run
+
+```c
+wsl --install
+```
+
+Update the WSL kernel with
+
+```c
+wsl --update
+```
+
+Check the WSL available distributions list with the `Powershell` command prompt, as below
 
 ```c
 wsl -l -o
@@ -50,7 +61,7 @@ we still need to do a bit configurations after installing the four tools above:
    wsl --set-version Ubuntu 2
    ```
 
-1. set the distribution, as below:
+1. set the distribution as default:
    ```c
    wsl -s Ubuntu
    ```
@@ -61,31 +72,27 @@ at last, to check if the commands have taken effect with `wsl --status` command.
 
 ## Adding the Required Linux Packages in WSL
 
-Run the following command in WSL for ESP-IDF to work on Linux.
+Install ESP-IDF requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites).
 
-```
+```c
 sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
 ```
 
 ## usbipd
 
-From windows side this tool should be already configured. However `usbipd` still need to be installed on the WSL, that is, open the WSL from Windows menu and then type in the following the commands separately:
-
-If any errors are found, try updating apt-get packages first.
+Install usbipd in Powershell command prompt:
 
 ```c
-apt-get update
+winget install usbipd
 ```
 
-> **NOTE:** IF you are using a container made with the Dockerfile from this extension `.devcontainer` generated directory (when you create a project using the `ESP-IDF: New Project`, `ESP-IDF: Add Docker Container Configuration` or `ESP-IDF: Show Examples` commands).
-
-with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
+Now configure the USB serial device to be able to connect to the WSL with `usbipd`:
 
 1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
 2. To access the specified device from Windows on WSL locally, the device must be bound with **usbipd**. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
 
-   **Note**: this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id `<BUSID>` I would like to bind.
+   **Note**: this command needs to be used only one time,unless the computer has restarted.
 
 3. after binding, please attach the specified device to WSL with `usbipd attach --wsl --busid <BUSID>` command in the powershell command prompt.s
 
@@ -93,7 +100,7 @@ with this the local Windows and WSL are all installed. To check `usbipd` tool is
 
    <img src="../../media\tutorials\using_docker_container\wsl_demsg_tail.png" alt="" height="">
 
-   as we can see above, **1-1** device has been attached to `ttyACM0`, that means WSL can access the **1-1** USB device now.
+   as we can see above, **1-1** device has been attached to `ttyACM0`, that means WSL can access the **1-1** USB device `<BUSID>` now.
 
 ## Visual Studio Code
 
@@ -101,9 +108,13 @@ To develop in WSL, install the `Remote - WSL`、`Remote Development` and `ESP-ID
 
 <img src="../../media\tutorials\using_docker_container\remote_wsl.png" alt="" width="400">
 
-<img src="../../media\tutorials\using_docker_container\remote_development.png" alt="" width="400">
-
 <img src="../../media\tutorials\using_docker_container\esp-idf.png" alt="" width="400">
+
+# Configure the ESP-IDF extension
+
+Configure the ESP-IDF extension as explained in the [Install](./install.md) tutorial or in [Setup](../SETUP.md) documentation.
+
+   > **NOTE:** Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder as described in the [working with multiple projects document](../MULTI_PROJECTS.md).
 
 # Practice
 
@@ -191,5 +202,4 @@ After following [USB-JTAG](#usb-jtag), press `F5` to start to debug:
 
 # Precautions
 
-1. When the container is created for the first time, it will prompt that the `ESP-IDF Extension` cannot be activated because it depends on the `Microsoft C++ Tools extension` extension. You only need to reopen the project in WSL again. This is because the ESP-IDF extension is dependent on the C++ Tools extension being installed first.
-2. If you want to debug on Windows, you need to unplug the USB cable and re-plug in it again, otherwise the corresponding USB port cannot be found in the Windows device manager.
+1. If you want to debug on Windows, you need to unplug the USB cable and re-plug in it again, otherwise the corresponding USB port cannot be found in the Windows device manager.

@@ -23,7 +23,19 @@ Docker Desktop is an application for MacOS and Windows machines for the building
 
 ## Ubuntu on Windows
 
-WSL is present starting from Windows 10 OS, so we can check the WSL list with the `Powershell` command prompt, as below
+If you don't have WSL installed run
+
+```c
+wsl --install
+```
+
+Update the WSL kernel with
+
+```c
+wsl --update
+```
+
+Check the WSL available distributions list with the `Powershell` command prompt, as below
 
 ```c
 wsl -l -o
@@ -78,15 +90,13 @@ As the Ubuntu distribution has been updated to version 2, adjustments on the Doc
 
 ## usbipd
 
-If any errors are found, try updating apt-get packages first.
+Install usbipd in Powershell command prompt:
 
 ```c
-apt-get update
+winget install usbipd
 ```
 
-> **NOTE:** IF you are using a container made with the Dockerfile from this extension `.devcontainer` generated directory (when you create a project using the `ESP-IDF: New Project`, `ESP-IDF: Add Docker Container Configuration` or `ESP-IDF: Show Examples` commands).
-
-with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
+Now configure the USB serial device to be able to connect to the WSL with `usbipd`:
 
 1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
