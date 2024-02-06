@@ -61,7 +61,7 @@ we still need to do a bit configurations after installing the four tools above:
    wsl --set-version Ubuntu 2
    ```
 
-1. set the distribution as default, as below:
+1. set the Ubuntu distribution as default:
    ```c
    wsl -s Ubuntu
    ```
@@ -72,7 +72,7 @@ at last, to check if the commands have taken effect with `wsl --status` command.
 
 ## Docker Desktop for Windows
 
-As the distribution Ubuntu has been updated to version 2, so it needs to modify accordingly from docker side and choose the Ubuntu as the default WSL integration as well.
+As the Ubuntu distribution has been updated to version 2, adjustments on the Docker side are required, and Ubuntu should also be chosen as the default WSL integration.
 
 <img src="../../media\tutorials\using_docker_container\wsl-integration.png" alt="" height="400">
 
@@ -88,13 +88,13 @@ apt-get update
 
 with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
 
-1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd list` for a list of USB serial devices.
+1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
-2. to access the specified device from local Windows on WSL, it needs to bind this device. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
+2. To access the specified device from Windows on WSL locally, the device must be bound with **usbipd**. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
 
    **Note**: this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id `<BUSID>` I would like to bind.
 
-3. after binding, please attach the specified device to WSL with `usbipd attach --wsl --busid <BUSID>` command in the powershell command prompt.
+3. after binding, please attach the specified device to WSL with `usbipd attach --wsl --busid <BUSID>` command in the Powershell command prompt.
 
 4. At last, let us check if it works well on both side and type in `dmesg | tail` command on WSL side.
 

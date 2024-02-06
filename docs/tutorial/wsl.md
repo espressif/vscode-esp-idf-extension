@@ -81,9 +81,9 @@ apt-get update
 
 with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
 
-1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd list` for a list of USB serial devices.
+1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
-2. to access the specified device from local Windows on WSL, it needs to bind this device. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
+2. To access the specified device from Windows on WSL locally, the device must be bound with **usbipd**. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
 
    **Note**: this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id `<BUSID>` I would like to bind.
 
