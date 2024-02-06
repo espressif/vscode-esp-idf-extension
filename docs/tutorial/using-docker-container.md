@@ -8,7 +8,7 @@ In this tutorial will show you how to develop your projects based on `Visual Stu
 
 you need to install the following tools before starting our projects:
 
-1. Ubuntu 20.04 on Windows
+1. Ubuntu on Windows
 1. [Visual Studio Code](https://code.visualstudio.com/)
 1. [usbipd-win](https://github.com/dorssel/usbipd-win/releases)
 1. [Docker Desktop For Windows](https://hub.docker.com/)
@@ -21,7 +21,7 @@ Docker Desktop is an application for MacOS and Windows machines for the building
 
 > **NOTE:** the default installing path of docker is C disk, so please move to other disks with `mklink` commands if the space size of C disk is not enough.
 
-## Ubuntu 20.04 on Windows
+## Ubuntu on Windows
 
 WSL is present starting from Windows 10 OS, so we can check the WSL list with the `Powershell` command prompt, as below
 
@@ -34,10 +34,8 @@ wsl -l -o
 so to install WSL on Windows, please type in the following command:
 
 ```c
-wsl --install --distribution　Ubuntu-20.04
+wsl --install --distribution　Ubuntu
 ```
-
-**where `Ubuntu-20.04` is for your information**.
 
 ## usbipd-win
 
@@ -47,11 +45,9 @@ To access the `USB`,`serial`,`JTAG` devices which are from the local Windows, th
 
 we still need to do a bit configurations after installing the four tools above:
 
-## Ubuntu 20.04 on Windows
+## Ubuntu on Windows
 
-the default version of WSL is 1 after installing, it needs to upgrade to version2 and then set it as the default distribution with the following steps:
-
-1. check the current WSL version
+1. check the current WSL version is 2
 
    ```c
    wsl -l -v
@@ -62,12 +58,12 @@ the default version of WSL is 1 after installing, it needs to upgrade to version
 1. please upgrade to version 2, if not
 
    ```c
-   wsl --set-version Ubuntu-20.04 2
+   wsl --set-version Ubuntu 2
    ```
 
-1. set the distribution, as below:
+1. set the distribution as default, as below:
    ```c
-   wsl -s Ubuntu 20.04
+   wsl -s Ubuntu
    ```
 
 at last, to check if the commands have taken effect with `wsl --status` command.
@@ -76,18 +72,11 @@ at last, to check if the commands have taken effect with `wsl --status` command.
 
 ## Docker Desktop for Windows
 
-As the distribution Ubuntu 20.04 has been updated to version 2, so it needs to modify accordingly from docker side and choose the Ubuntu 20.04 as the default WSL integration as well.
+As the distribution Ubuntu has been updated to version 2, so it needs to modify accordingly from docker side and choose the Ubuntu as the default WSL integration as well.
 
 <img src="../../media\tutorials\using_docker_container\wsl-integration.png" alt="" height="400">
 
 ## usbipd
-
-From Windows side this tool should be already configured. However `usbipd` still need to be installed on the WSL, that is, open the WSL from Windows menu and then type in the following the commands separately:
-
-```c
-sudo apt install linux-tools-virtual hwdata
-sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
-```
 
 If any errors are found, try updating apt-get packages first.
 
@@ -99,21 +88,13 @@ apt-get update
 
 with this the local Windows and WSL are all installed. To check `usbipd` tool is working well on both side, please follow the following steps:
 
-1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd wsl list`:
+1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd list` for a list of USB serial devices.
 
-   <img src="../../media\tutorials\using_docker_container\usbipd_wsl_l.png" alt="" height="">
+2. to access the specified device from local Windows on WSL, it needs to bind this device. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind --busid <BUSID>`:
 
-   as you can see, all USB devices from Windows have been found and not attached sate.
+   **Note**: this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id `<BUSID>` I would like to bind.
 
-2. to access the specified device from local Windows on WSL, it needs to bind this device. Open PowerShell command prompt with administrator rights and then type in the command `usbipd bind -b <BUSID>`:
-
-   <img src="../../media\tutorials\using_docker_container\usbipd_bind.png" alt="" height="">
-
-   **Note**: this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id I would like to bind.
-
-3. after binding, please attach the specified device to WSL with `usbipd wsl attach --busid 1-1` command in the powershell command prompt.
-
-<img src="../../media\tutorials\using_docker_container\usbipd_wsl_attach.png" alt="" height="">
+3. after binding, please attach the specified device to WSL with `usbipd attach --wsl --busid <BUSID>` command in the powershell command prompt.
 
 4. At last, let us check if it works well on both side and type in `dmesg | tail` command on WSL side.
 
@@ -123,7 +104,7 @@ with this the local Windows and WSL are all installed. To check `usbipd` tool is
 
 ## Visual Studio Code
 
-To connect to the `ESIDF docker image`, install the `Remote - Containers`、`Remote Development` and `ESP-IDF` extensions, as below:
+Install the `Remote - Containers`、`Remote Development` and `ESP-IDF` extensions, as below:
 
 <img src="../../media\tutorials\using_docker_container\remote_container.png" alt="" width="400">
 
@@ -145,7 +126,7 @@ as seen from snapshot above, `Blink` and `Hello_world` example projects have bee
 
 <img src="../../media\tutorials\using_docker_container\example_project_vscode.gif" alt="" height="">
 
-some readers may see that there is a `.devcontainer` folder in the example_project folder, which is not included by default; this is generated by using the ESP-IDF extension of Visual Studio Code to create and configure the IDF docker image for container development.
+some readers may see that there is a `.devcontainer` folder in the example_project folder, which is not included by default; this is generated by using the ESP-IDF extension of Visual Studio Code to create and configure the ESP-IDF docker image for container development.
 
 If the user readers also need to generate their own `.devcontainer` folder content, as follows:
 
@@ -166,10 +147,10 @@ For more information about `devcontainer.json`, please refer to the comments.
   /* container name when creating container */
   "image": "espressif/idf:latest",
   /* mount the local folder to /workspaces folder of docker image */
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces,type=bind",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/project-name,type=bind",
   /* the path of workspace folder, that means this folder will be opened after container is running
    */
-  "workspaceFolder": "/workspaces/blink",
+  "workspaceFolder": "/workspaces/project-name",
   /* mount the vscode extensions to the target path, and then they don't need to install again when rebuilding the container
    */
   "mounts": [

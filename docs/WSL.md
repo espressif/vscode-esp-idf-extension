@@ -16,13 +16,6 @@ sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-
 
 ## usbipd
 
-To complete the `usbipd` installation, the user needs to run the following commands on WSL with sudo privileges:
-
-```c
-sudo apt install linux-tools-virtual hwdata
-sudo update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
-```
-
 if errors occurred during the installation, run the following command as below:
 
 ```c
@@ -31,21 +24,13 @@ apt-get update
 
 at this moment, local windows and WSL have the `usbipd`. Now check if they are working well on both side, with the following steps:
 
-1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd wsl list`:
-
-   <img src="../media\tutorials\using_docker_container\usbipd_wsl_l.png" alt="" height="">
-
-   as you can see, all USB devices from windows have been found and not attached sate.
+1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator right and then type in the command `usbipd list` for a list of USB serial devices.
 
 2. To access the specify device which is from local Windows on WSL, the user needs to bind this device to WSL. Open PowerShell command prompt with administrator right and then type in the command `usbipd bind -b <BUSID>`:
-
-   <img src="../media\tutorials\using_docker_container\usbipd_bind.png" alt="" height="">
 
    **Note**: this command only needs to type in only one time,unless the computer has restarted. where **1-1** is the device I would like to bind.
 
 3. after binding,please attach the specify device to WSL with `usbipd wsl attach --busid 1-1` command. but open the Powershell command prompt with regular user permissions.
-
-<img src="../media\tutorials\using_docker_container\usbipd_wsl_attach.png" alt="" height="">
 
 4. Next check if it works well on both side and type in `dmesg | tail` command on WSL side.
 

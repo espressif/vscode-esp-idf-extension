@@ -9,14 +9,10 @@ RUN apt-get update \
   && apt install -y -q \
   cmake \
   git \
-  hwdata \
   libglib2.0-0 \
   libnuma1 \
   libpixman-1-0 \
-  linux-tools-virtual \
   && rm -rf /var/lib/apt/lists/*
-
-RUN update-alternatives --install /usr/local/bin/usbip usbip `ls /usr/lib/linux-tools/*/usbip | tail -n1` 20
 
 # QEMU
 ENV QEMU_REL=esp-develop-20220919
