@@ -15,10 +15,10 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # QEMU
-ENV QEMU_REL=esp-develop-20220919
-ENV QEMU_SHA256=f6565d3f0d1e463a63a7f81aec94cce62df662bd42fc7606de4b4418ed55f870
-ENV QEMU_DIST=qemu-${QEMU_REL}.tar.bz2
-ENV QEMU_URL=https://github.com/espressif/qemu/releases/download/${QEMU_REL}/${QEMU_DIST}
+ENV QEMU_REL=esp_develop_8.2.0_20240122
+ENV QEMU_SHA256=e7c72ef5705ad1444d391711088c8717fc89f42e9bf6d1487f9c2a326b8cfa83
+ENV QEMU_DIST=qemu-xtensa-softmmu-${QEMU_REL}-x86_64-linux-gnu.tar.xz
+ENV QEMU_URL=https://github.com/espressif/qemu/releases/download/esp-develop-8.2.0-20240122/${QEMU_DIST}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
