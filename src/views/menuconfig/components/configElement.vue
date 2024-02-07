@@ -13,7 +13,7 @@ const props = defineProps<{
 let isHelpVisible: Ref<boolean> = ref(false);
 
 function toggleHelp() {
-  isHelpVisible.value = !isHelpVisible;
+  isHelpVisible.value = !isHelpVisible.value;
 }
 
 function onChange(e) {

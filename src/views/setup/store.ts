@@ -325,8 +325,10 @@ export const useSetupStore = defineStore("setup", () => {
     }
     const secNew = document.querySelector("#py-install-status") as HTMLElement;
     const configList = document.querySelector("#scrollable") as HTMLElement;
-    const endPosition = secNew.getBoundingClientRect().bottom;
-    configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+    if (secNew) {
+      const endPosition = secNew.getBoundingClientRect().bottom;
+      configList.scrollTo({ left: 0, top: endPosition - 10, behavior: "auto" });
+    }
   }
 
   function toggleContent(containerId: string) {

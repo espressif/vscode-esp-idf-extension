@@ -91,12 +91,6 @@ export class IDFSizePanel {
           case "flash":
             vscode.commands.executeCommand("espIdf.flashDevice");
             break;
-          case "retry":
-            this._panel.webview.postMessage({
-              command: "initialLoad",
-              ...this._webviewData
-            });
-            break;
           case "requestInitialValues":
             this._panel.webview.postMessage({
               command: "initialLoad",

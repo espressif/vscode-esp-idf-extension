@@ -21,7 +21,7 @@ const isLinuxPlatform = computed(() => {
 
 const openOCDRulesPathText = computed(() => {
   return openOCDRulesPath.value !== ""
-    ? `sudo cp -n ${openOCDRulesPath} /etc/udev/rules.d`
+    ? `sudo cp -n ${openOCDRulesPath.value} /etc/udev/rules.d`
     : "";
 });
 </script>

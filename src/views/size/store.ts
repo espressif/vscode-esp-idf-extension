@@ -36,15 +36,7 @@ export const useSizeStore = defineStore("size", () => {
   const overviewData: Ref<object> = ref({});
   const searchText: Ref<string> = ref("");
 
-  function retryClicked() {
-    if (vscode) {
-      vscode.postMessage({
-        command: "retry",
-      });
-    }
-  }
-
-  function flashClicked(context) {
+  function flashClicked() {
     if (vscode) {
       isFlashing.value = true;
       setTimeout(() => {
@@ -93,7 +85,6 @@ export const useSizeStore = defineStore("size", () => {
     isOverviewEnabled,
     overviewData,
     searchText,
-    retryClicked,
     flashClicked,
     requestInitialValues,
     setFiles,
