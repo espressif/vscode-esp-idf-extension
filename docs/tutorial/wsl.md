@@ -110,9 +110,7 @@ To develop in WSL, install the `Remote - WSL`、`Remote Development` and `ESP-ID
 
 <img src="../../media\tutorials\using_docker_container\esp-idf.png" alt="" width="400">
 
-# Configure the ESP-IDF extension
-
-Configure the ESP-IDF extension as explained in the [Install](./install.md) tutorial or in [Setup](../SETUP.md) documentation.
+# **Configure the ESP-IDF extension as explained in the [Install](./tutorial/install.md) tutorial or in [Setup](./SETUP.md) documentation.**
 
    > **NOTE:** Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder as described in the [working with multiple projects document](../MULTI_PROJECTS.md).
 

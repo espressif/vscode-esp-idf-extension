@@ -63,15 +63,15 @@ winget install usbipd
 
 Now configure the USB serial device to be able to connect to the WSL with `usbipd`:
 
-1. <span id="usbipd_instructions"></span>open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
+1. Open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
 2. To access the specify device which is from local Windows on WSL, the user needs to bind this device to WSL. Open PowerShell command prompt with administrator right and then type in the command `usbipd bind -b <BUSID>`:
 
-   **Note**: this command only needs to type in only one time,unless the computer has restarted.
+    > **Note**: this command only needs to type in only one time,unless the computer has restarted.
 
-3. after binding,please attach the specify device to WSL with `usbipd attach --wsl --busid <BUSID>` command. but open the Powershell command prompt with regular user permissions.
+3. Attach the specify device to WSL with `usbipd attach --wsl --busid <BUSID>` command. but open the Powershell command prompt with regular user permissions.
 
-4. Next check if it works well on both side and type in `dmesg | tail` command on WSL side.
+4. Check if it works well by typing in `dmesg | tail` command on WSL side.
 
    <img src="../media\tutorials\using_docker_container\wsl_demsg_tail.png" alt="" height="">
 
@@ -83,16 +83,15 @@ The user might need to install/update pip in the virtual environment like:
 
 # Visual Studio Code
 
-To develop in WSL, install the [Remote - WSL](ttps://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) and [ESP-IDF](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension) extensions, as below:
+To develop in WSL, install the [Remote - WSL](ttps://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) and [ESP-IDF](https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension) extensions which are shown below:
 
 <img src="../media\tutorials\using_docker_container\remote_wsl.png" alt="" width="400">
 
 <img src="../media\tutorials\using_docker_container\esp-idf.png" alt="" width="400">
 
-# Configure the ESP-IDF extension
 
-1. Configure the ESP-IDF extension as explained in the [Install](./tutorial/install.md) tutorial or in [Setup](./SETUP.md) documentation.
+# **Configure the ESP-IDF extension as explained in the [Install](./tutorial/install.md) tutorial or in [Setup](./SETUP.md) documentation.**
 
-   > **NOTE:** Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
+   > **Note**: Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder with the **ESP-IDF: Select where to Save Configuration Settings** command as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
 
-2. Create an ESP-IDF Project and use ESP-IDF extension features. You can follow the [WSL Tutorial](./tutorial/wsl.md#practice) for an example.
+Create an ESP-IDF Project and use ESP-IDF extension features. You can follow the [WSL Tutorial](./tutorial/wsl.md#practice) for an example.
