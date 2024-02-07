@@ -20,17 +20,25 @@ import { AppTraceArchiveItems } from "../tree/appTraceArchiveTreeDataProvider";
 import { window, ProgressLocation } from "vscode";
 import { Logger } from "../../../logger/logger";
 import { SystemViewPanel } from "./panel";
-import { readJsonSync } from "fs-extra";
 import { SysviewTraceProc } from "../tools/sysviewTraceProc";
+import { NotificationMode, readParameter } from "../../../idfConfiguration";
 
 export class SystemViewResultParser {
   public static parseWithProgress(
     trace: AppTraceArchiveItems,
     extensionPath: string
   ) {
+    const notificationMode = readParameter(
+      "idf.notificationMode"
+    ) as string;
+    const progressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     window.withProgress(
       {
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         cancellable: false,
         title:
           "ESP-IDF: Processing your tracing file to generate System View Report",

@@ -92,7 +92,7 @@ suite("NVS PartitionTable Suite", () => {
       value: "",
       error: ""
       };
-    await assert.equal(isInValidRow(validRow), undefined);
+    await assert.equal(isInValidRow(validRow), "");
   });
 
   test("Type field value file validation", async() => {
@@ -103,7 +103,7 @@ suite("NVS PartitionTable Suite", () => {
       value: "/path/to/file",
       error: ""
       };
-    await assert.equal(isInValidRow(validRow), undefined);
+    await assert.equal(isInValidRow(validRow), "");
   });
  
   test("Encoding field empty validation", async() => {
@@ -148,7 +148,7 @@ suite("NVS PartitionTable Suite", () => {
       value: "testing",
       error: ""
     };
-    await assert.equal(isInValidRow(invalidRow), undefined);
+    await assert.equal(isInValidRow(invalidRow), "");
   });
 
   test("Value field invalid number for numberTypes encoding", async() => {
@@ -204,8 +204,8 @@ suite("NVS PartitionTable Suite", () => {
           error: ""
         };
         
-        await assert.equal(isInValidRow(validRow1), undefined);
-        await assert.equal(isInValidRow(validRow2), undefined);
+        await assert.equal(isInValidRow(validRow1), "");
+        await assert.equal(isInValidRow(validRow2), "");
       });
   });
 
@@ -248,8 +248,8 @@ suite("NVS PartitionTable Suite", () => {
           error: ""
         };
         
-        await assert.equal(isInValidRow(validRow1), undefined);
-        await assert.equal(isInValidRow(validRow2), undefined);
+        await assert.equal(isInValidRow(validRow1), "");
+        await assert.equal(isInValidRow(validRow2), "");
       });
   });
 });

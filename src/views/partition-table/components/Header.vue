@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { usePartitionTableStore } from "../store";
+import {
+  IconStarEmpty,
+  IconSymbolEvent,
+  IconRefresh,
+  IconTools,
+} from "@iconify-prerendered/vue-codicon";
+
+const store = usePartitionTableStore();
+
+onMounted(() => {
+  store.initDataRequest();
+});
+</script>
+
 <template>
   <header class="section">
     <div class="container">
@@ -5,7 +22,7 @@
         <div class="level-left">
           <div class="level-item">
             <h1 class="title is-size-5-mobile">
-              <strong>ESP-IDF</strong>
+              <strong>ESP-IDF </strong>
               <span>Partition Table Editor</span>
             </h1>
           </div>
@@ -15,25 +32,29 @@
             <p class="buttons are-small">
               <a class="button" href="command:espIdf.selectFlashMethodAndFlash">
                 <span class="icon is-small">
-                  <iconify-icon icon="star-empty" />
+                  <IconStarEmpty />
                 </span>
                 &nbsp; Select Flash Method
               </a>
               <a class="button" href="command:espIdf.buildDevice">
                 <span class="icon is-small">
-                  <iconify-icon icon="tools" />
+                  <IconTools />
                 </span>
                 &nbsp; Build
               </a>
               <a class="button" href="command:espIdf.flashDevice">
                 <span class="icon is-small">
-                  <iconify-icon icon="symbol-event" />
+                  <IconSymbolEvent />
                 </span>
                 &nbsp; Flash
               </a>
-              <button class="button" title="Retry" @click="initDataRequest">
+              <button
+                class="button"
+                title="Reset values"
+                @click="store.initDataRequest"
+              >
                 <span class="icon is-small">
-                  <iconify-icon icon="refresh" />
+                  <IconRefresh />
                 </span>
               </button>
             </p>
@@ -48,13 +69,3 @@
     </div>
   </header>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Action } from "vuex-class";
-@Component
-export default class Header extends Vue {
-  @Action initDataRequest;
-}
-</script>

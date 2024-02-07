@@ -147,6 +147,8 @@ import {
 } from "./espIdf/unitTest/configure";
 import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { FlashCheckResultType, FlashCheckResult } from "./flash/flashCmd";
+import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
+import { createSBOM, installEspSBOM } from "./espBom";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -455,12 +457,21 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
 
   registerIDFCommand("espIdf.createFiles", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     PreCheck.perform([openFolderCheck], async () => {
       try {
         vscode.window.withProgress(
           {
             cancellable: true,
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Creating ESP-IDF project...",
           },
           async (
@@ -634,10 +645,20 @@ export async function activate(context: vscode.ExtensionContext) {
         "esptool.py"
       );
 
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF: Erasing device flash memory (erase_flash)",
         },
         async (
@@ -667,10 +688,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.addArduinoAsComponentToCurFolder", () => {
     PreCheck.perform([openFolderCheck], () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF: Arduino ESP32 as ESP-IDF component",
         },
         async (
@@ -991,10 +1021,19 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           return;
         }
+        const notificationMode = idfConf.readParameter(
+          "idf.notificationMode",
+          workspaceRoot
+        ) as string;
+        const ProgressLocation =
+          notificationMode === idfConf.NotificationMode.All ||
+          notificationMode === idfConf.NotificationMode.Notifications
+            ? vscode.ProgressLocation.Notification
+            : vscode.ProgressLocation.Window;
         await vscode.window.withProgress(
           {
             cancellable: false,
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Project configuration",
           },
           async (
@@ -1400,10 +1439,19 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.searchInEspIdfDocs", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         cancellable: true,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Documentation search results",
       },
       async () => {
@@ -1437,11 +1485,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.installPyReqs", () => {
     return PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
-          title: "ESP-IDF:",
+          location: ProgressLocation,
+          title: "ESP-IDF: Installing Python requirements",
         },
         async (
           progress: vscode.Progress<{ message: string; increment?: number }>,
@@ -1501,10 +1558,19 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
     return PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF:",
         },
         async (
@@ -1583,10 +1649,19 @@ export async function activate(context: vscode.ExtensionContext) {
         Logger.error(msg, error);
       }
 
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF:",
         },
         async (
@@ -1610,10 +1685,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.unitTest.buildFlashUnitTestApp", () => {
     return PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF: Building unit test app and flashing",
         },
         async (
@@ -1762,10 +1846,19 @@ export async function activate(context: vscode.ExtensionContext) {
           ConfserverProcess.loadExistingInstance();
           return;
         }
+        const notificationMode = idfConf.readParameter(
+          "idf.notificationMode",
+          workspaceRoot
+        ) as string;
+        const ProgressLocation =
+          notificationMode === idfConf.NotificationMode.All ||
+          notificationMode === idfConf.NotificationMode.Notifications
+            ? vscode.ProgressLocation.Notification
+            : vscode.ProgressLocation.Window;
         vscode.window.withProgress(
           {
             cancellable: true,
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Menuconfig",
           },
           async (
@@ -1789,6 +1882,29 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (error) {
         Logger.errorNotify(error.message, error);
       }
+    });
+  });
+
+  registerIDFCommand("espIdf.saveDefSdkconfig", async () => {
+    const idfVersionCheck = await minIdfVersionCheck("5.0", workspaceRoot);
+    PreCheck.perform([idfVersionCheck, openFolderCheck], () => {
+      vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: vscode.ProgressLocation.Notification,
+          title: "ESP-IDF: Save Default Configuration (save-defconfig)",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            await saveDefSdkconfig(workspaceRoot, cancelToken);
+          } catch (error) {
+            Logger.errorNotify(error.message, error);
+          }
+        }
+      );
     });
   });
 
@@ -1816,13 +1932,22 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck], async () => {
       try {
         if (SetupPanel.isCreatedAndHidden()) {
-          SetupPanel.createOrShow(context.extensionPath);
+          SetupPanel.createOrShow(context);
           return;
         }
+        const notificationMode = idfConf.readParameter(
+          "idf.notificationMode",
+          workspaceRoot
+        ) as string;
+        const ProgressLocation =
+          notificationMode === idfConf.NotificationMode.All ||
+          notificationMode === idfConf.NotificationMode.Notifications
+            ? vscode.ProgressLocation.Notification
+            : vscode.ProgressLocation.Window;
         await vscode.window.withProgress(
           {
             cancellable: false,
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Configure extension",
           },
           async (
@@ -1836,7 +1961,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     progress,
                     workspaceRoot
                   );
-              SetupPanel.createOrShow(context.extensionPath, setupArgs);
+              SetupPanel.createOrShow(context, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
             }
@@ -1861,10 +1986,19 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
     try {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           cancellable: false,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF: Loading examples",
         },
         async (
@@ -1904,10 +2038,7 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       PreCheck.perform([openFolderCheck], async () => {
-        await CmakeListsEditorPanel.createOrShow(
-          context.extensionPath,
-          fileUri
-        );
+        await CmakeListsEditorPanel.createOrShow(context.extensionUri, fileUri);
       });
     }
   );
@@ -1917,10 +2048,19 @@ export async function activate(context: vscode.ExtensionContext) {
       WelcomePanel.createOrShow(context.extensionPath);
       return;
     }
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         cancellable: false,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Welcome page",
       },
       async (
@@ -1948,10 +2088,19 @@ export async function activate(context: vscode.ExtensionContext) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
     }
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         cancellable: false,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: New project",
       },
       async (
@@ -2079,11 +2228,19 @@ export async function activate(context: vscode.ExtensionContext) {
           IDFSizePanel.createOrShow(context);
           return;
         }
-
+        const notificationMode = idfConf.readParameter(
+          "idf.notificationMode",
+          workspaceRoot
+        ) as string;
+        const ProgressLocation =
+          notificationMode === idfConf.NotificationMode.All ||
+          notificationMode === idfConf.NotificationMode.Notifications
+            ? vscode.ProgressLocation.Notification
+            : vscode.ProgressLocation.Window;
         vscode.window.withProgress(
           {
             cancellable: true,
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Size",
           },
           async (
@@ -2232,10 +2389,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.qemuCommand", () => {
     PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       await vscode.window.withProgress(
         {
           cancellable: true,
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
           title: "ESP-IDF: Starting ESP-IDF QEMU",
         },
         async (
@@ -2433,10 +2599,19 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.doctorCommand", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     await vscode.window.withProgress(
       {
         cancellable: false,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Preparing ESP-IDF extension report",
       },
       async (
@@ -2556,10 +2731,19 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         title: "ESP-IDF: Please wait checking with Rainmaker Cloud",
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         cancellable: false,
       },
       async () => {
@@ -2613,10 +2797,19 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!shallDelete || shallDelete.title === "Cancel") {
         return;
       }
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           title: "ESP-IDF: Deleting node from your rainmaker account",
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
         },
         async () => {
           try {
@@ -2677,10 +2870,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
       newParamValue = convertTo(params.data_type, newParamValue);
 
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspaceRoot
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
           title: "ESP-IDF: Syncing params, please wait",
-          location: vscode.ProgressLocation.Notification,
+          location: ProgressLocation,
         },
         async () => {
           try {
@@ -2819,9 +3021,18 @@ export async function activate(context: vscode.ExtensionContext) {
             monitor.start();
           })
           .on("core-dump-detected", async (resp) => {
+            const notificationMode = idfConf.readParameter(
+              "idf.notificationMode",
+              workspaceRoot
+            ) as string;
+            const ProgressLocation =
+              notificationMode === idfConf.NotificationMode.All ||
+              notificationMode === idfConf.NotificationMode.Notifications
+                ? vscode.ProgressLocation.Notification
+                : vscode.ProgressLocation.Window;
             vscode.window.withProgress(
               {
-                location: vscode.ProgressLocation.Notification,
+                location: ProgressLocation,
                 cancellable: false,
                 title:
                   "ESP-IDF: Core-dump detected, please wait while we parse the data received",
@@ -2981,10 +3192,19 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
   registerIDFCommand("esp.efuse.summary", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         title: "ESP-IDF: Getting eFuse summary for your chip",
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
       },
       async () => {
         try {
@@ -3010,10 +3230,19 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.ninja.summary", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
         title: "ESP-IDF: Getting ninja build summary",
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
       },
       async () => {
         try {
@@ -3047,6 +3276,34 @@ export async function activate(context: vscode.ExtensionContext) {
         }
       }
     );
+  });
+
+  registerIDFCommand("espIdf.createSbom", () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        this.curWorkspace
+      ) as string;
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      vscode.window.withProgress(
+        {
+          title: "ESP-IDF: Create SBOM summary",
+          location: ProgressLocation,
+        },
+        async () => {
+          try {
+            await installEspSBOM(workspaceRoot);
+            await createSBOM(workspaceRoot);
+          } catch (err) {
+            return Logger.errorNotify(err.message, err);
+          }
+        }
+      );
+    });
   });
 
   registerIDFCommand("espIdf.selectFlashMethodAndFlash", () => {
@@ -3099,11 +3356,20 @@ export async function activate(context: vscode.ExtensionContext) {
       if (uri.path === "/rainmaker" && query[0] === "code") {
         const code = query[1] || "";
         try {
+          const notificationMode = idfConf.readParameter(
+            "idf.notificationMode",
+            workspaceRoot
+          ) as string;
+          const ProgressLocation =
+            notificationMode === idfConf.NotificationMode.All ||
+            notificationMode === idfConf.NotificationMode.Notifications
+              ? vscode.ProgressLocation.Notification
+              : vscode.ProgressLocation.Window;
           vscode.window.withProgress(
             {
               title:
                 "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
-              location: vscode.ProgressLocation.Notification,
+              location: ProgressLocation,
             },
             async () => {
               await RainmakerAPIClient.exchangeCodeForTokens(code);
@@ -3391,10 +3657,19 @@ function createStatusBarItem(
 
 const build = (flashType?: ESP.FlashType) => {
   PreCheck.perform([openFolderCheck], async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     await vscode.window.withProgress(
       {
         cancellable: true,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Building project",
       },
       async (
@@ -3418,10 +3693,19 @@ const flash = (
   flashType?: ESP.FlashType
 ) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     await vscode.window.withProgress(
       {
         cancellable: true,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Flashing project",
       },
       async (
@@ -3473,10 +3757,19 @@ function createQemuMonitor(
 
 const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     await vscode.window.withProgress(
       {
         cancellable: true,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Building project",
       },
       async (

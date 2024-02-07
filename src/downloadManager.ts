@@ -92,6 +92,11 @@ export class DownloadManager {
         urlInfoToUse.url
       );
     }
+    this.appendChannel(
+      `Using mirror ${
+        mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
+      } with URL ${urlInfoToUse.url}`
+    );
     await this.downloadPackageWithRetries(
       pkg,
       urlInfoToUse,
@@ -277,6 +282,8 @@ export class DownloadManager {
             let downloadedSize: number = 0;
             let isSizeUndefined: boolean = packageSize === 0;
             let progressDetail: string;
+
+            this.appendChannel(`Downloading from ${urlString}`);
 
             const fileName = utils.fileNameFromUrl(urlString);
             const absolutePath: string = path.resolve(

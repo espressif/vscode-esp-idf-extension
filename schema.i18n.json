@@ -145,6 +145,7 @@
     "espIdf.clearSavedIdfSetups.title",
     "espIdf.unitTest.buildFlashUnitTestApp.title",
     "espIdf.unitTest.installPyTest.title",
+    "espIdf.createSbom.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",
@@ -235,6 +236,7 @@
     "param.deleteComponentsOnFullClean",
     "param.enableStatusBar.title",
     "param.enableSizeTaskAfterBuildTask.title",
-    "param.sdkconfigFilePath.title"
+    "param.sdkconfigFilePath.title",
+    "param.sbomFilePath.title"
   ]
 }

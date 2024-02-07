@@ -1,9 +1,27 @@
-import * as Plotly from "plotly.js-dist";
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Wednesday, 13th September 2023 9:49:02 am
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {
   SysViewEvent,
   LookUpTable,
   IGNORE_RENDER_SYS_STREAM_LIST,
 } from "../../espIdf/tracing/system-view/model";
+import { scaleOrdinal } from "d3-scale";
 
 export function drawPlot(mcore: any) {
   const IGNORE_RENDER_SYS_STREAM_ID_LIST = new Set(
@@ -30,11 +48,11 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
   const lookupTable: LookUpTable = {};
 
   events.forEach((evt: SysViewEvent) => {
-    if (!lookupTable[evt.core_id]) {
+    if (typeof evt.core_id !== "undefined" && !lookupTable[evt.core_id]) {
       lookupTable[evt.core_id] = {
         irq: {},
         ctx: {},
-        lastEvent: null,
+        lastEvent: {},
         contextSwitch: {
           name: "context-switch",
           line: {
@@ -56,11 +74,15 @@ function generateLookupTable(events: SysViewEvent[]): LookUpTable {
 
     if (
       evt.in_irq === true &&
+      typeof evt.core_id !== "undefined" &&
+      typeof evt.ctx_name !== "undefined" &&
       !lookupTable[evt.core_id].irq.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].irq[evt.ctx_name] = {};
     } else if (
       evt.in_irq === false &&
+      typeof evt.core_id !== "undefined" &&
+      typeof evt.ctx_name !== "undefined" &&
       !lookupTable[evt.core_id].ctx.hasOwnProperty(evt.ctx_name)
     ) {
       lookupTable[evt.core_id].ctx[evt.ctx_name] = {};
@@ -94,14 +116,20 @@ function calculateAndInjectDataPoints(
     if (!previousEvt) {
       return;
     }
-    const previousData =
-      previousEvt.in_irq === true
-        ? lookupTable[coreId].irq[previousEvt.ctx_name]
-        : lookupTable[coreId].ctx[previousEvt.ctx_name];
+    if (typeof previousEvt.ctx_name !== "undefined") {
+      const previousData =
+        previousEvt.in_irq === true
+          ? lookupTable[coreId].irq[previousEvt.ctx_name]
+          : lookupTable[coreId].ctx[previousEvt.ctx_name];
 
-    //stop for last event
-    previousData.x.push(stopTimeStamp, null);
-    previousData.y.push(previousData.name, null);
+      //stop for last event
+      previousData.x
+        ? previousData.x.push(stopTimeStamp, null)
+        : (previousData.x = [stopTimeStamp, null]);
+      previousData.y
+        ? previousData.y.push(previousData.name, null)
+        : (previousData.y = [previousData.name, null]);
+    }
   }
 
   const range = {
@@ -111,7 +139,14 @@ function calculateAndInjectDataPoints(
 
   events.forEach((evt: SysViewEvent) => {
     //Ignore the list of ignored System Events
-    if (ignoreRenderIds.has(evt.id)) {
+    if (typeof evt.id !== "undefined" && ignoreRenderIds.has(evt.id)) {
+      return;
+    }
+    if (
+      typeof evt.core_id === "undefined" ||
+      typeof evt.ctx_name === "undefined" ||
+      typeof evt.ts === "undefined"
+    ) {
       return;
     }
     //SYS_OVERFLOW event halt all the running tasks and draw void rect
@@ -134,12 +169,10 @@ function calculateAndInjectDataPoints(
     if (evt.ts <= range.xmin) {
       range.xmin = evt.ts;
     }
-
     let data = lookupTable[evt.core_id].ctx[evt.ctx_name];
     if (evt.in_irq === true) {
       data = lookupTable[evt.core_id].irq[evt.ctx_name];
     }
-
     if (!data.type) {
       data.type = "scattergl";
       data.mode = "lines";
@@ -153,12 +186,13 @@ function calculateAndInjectDataPoints(
       data.y = [];
       data.x = [];
     }
+
     //stop the last event bar (if exists)
     stopLastEventBar(evt.core_id, evt.ts);
 
     //draw context switch
     const previousEvt = lookupTable[evt.core_id].lastEvent;
-    if (previousEvt) {
+    if (previousEvt && previousEvt.ctx_name) {
       const previousData =
         previousEvt.in_irq === true
           ? lookupTable[evt.core_id].irq[previousEvt.ctx_name]
@@ -167,8 +201,8 @@ function calculateAndInjectDataPoints(
     }
 
     //start point for current evt
-    data.x.push(evt.ts);
-    data.y.push(data.name);
+    data.x && data.x.length ? data.x.push(evt.ts) : (data.x = [evt.ts]);
+    data.y && data.y.length ? data.y.push(data.name) : (data.y = [data.name]);
 
     //store current event for a core as last event for the same core
     lookupTable[evt.core_id].lastEvent = evt;
@@ -177,8 +211,29 @@ function calculateAndInjectDataPoints(
 }
 
 function colorPlot(lookupTable: LookUpTable): Map<string, string> {
-  //@ts-ignore
-  const colorGenerator = Plotly.d3.scale.category20();
+  const categoricalColors = [
+    "#1f77b4",
+    "#aec7e8",
+    "#ff7f0e",
+    "#ffbb78",
+    "#2ca02c",
+    "#98df8a",
+    "#d62728",
+    "#ff9896",
+    "#9467bd",
+    "#c5b0d5",
+    "#8c564b",
+    "#c49c94",
+    "#e377c2",
+    "#f7b6d2",
+    "#7f7f7f",
+    "#c7c7c7",
+    "#bcbd22",
+    "#dbdb8d",
+    "#17becf",
+    "#9edae5",
+  ];
+  const colorGenerator = scaleOrdinal(categoricalColors);
   const colorMap = new Map();
   let i = 0;
   function applyColorFor(obj: Object) {
@@ -189,7 +244,8 @@ function colorPlot(lookupTable: LookUpTable): Map<string, string> {
         } else if (v.match(/^IDLE[0-9]*/)) {
           colorMap.set(v, "#ffd4ff");
         } else {
-          colorMap.set(v, colorGenerator(i++));
+          let curIndex = i++;
+          colorMap.set(v, colorGenerator(curIndex.toString()));
         }
       }
     });
@@ -216,7 +272,7 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
    * -----------------------------
    * IDLE
    */
-  const plotData = [];
+  const plotData: any[] = [];
   const colorPlotMap = colorPlot(lookupTable);
   Object.keys(lookupTable).forEach((coreId) => {
     const cpuCore = lookupTable[coreId];
@@ -247,7 +303,9 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
       const color = colorPlotMap.get(name);
       const evt = cpuCore.ctx[name];
       if (color && evt.mode === "lines") {
-        evt.line.color = color;
+        evt["line"]
+          ? (evt["line"]["color"] = color)
+          : (evt.line = { color: color });
       }
       plotData.push(evt);
     });
@@ -256,7 +314,9 @@ function populatePlotData(lookupTable: LookUpTable): Array<any> {
       const color = colorPlotMap.get(irq);
       const evt = cpuCore.irq[irq];
       if (color && evt.mode === "lines") {
-        evt.line.color = color;
+        evt["line"]
+          ? (evt["line"]["color"] = color)
+          : (evt.line = { color: color });
       }
       plotData.push(evt);
     });

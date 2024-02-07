@@ -1,3 +1,17 @@
+<script setup lang="ts">
+defineProps<{
+  archiveInfo: any;
+}>();
+
+function getArchiveFileProp(fileInfo, firstProp, secondProp) {
+  return Object.keys(fileInfo).indexOf(firstProp) !== -1
+    ? fileInfo[firstProp]
+    : Object.keys(fileInfo).indexOf(secondProp) !== -1
+    ? fileInfo[secondProp]
+    : "-";
+}
+</script>
+
 <template>
   <table
     class="table is-fullwidth is-hoverable is-size-7-mobile is-size-6-tablet is-size-5-desktop"
@@ -56,23 +70,3 @@
     </tbody>
   </table>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class FileTable extends Vue {
-  @Prop() archiveInfo;
-  convertToSpacedString(byte: number) {
-    return typeof byte === "number" ? byte.toLocaleString("en-US").replace(/,/g, " ") : 0;
-  }
-
-  getArchiveFileProp(fileInfo, firstProp, secondProp) {
-    return Object.keys(fileInfo).indexOf(firstProp) !== -1
-      ? fileInfo[firstProp]
-      : Object.keys(fileInfo).indexOf(secondProp) !== -1
-      ? fileInfo[secondProp]
-      : "-";
-  }
-}
-</script>

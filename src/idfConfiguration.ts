@@ -163,6 +163,8 @@ export async function writeParameter(
     await vscode.workspace
       .getConfiguration()
       .update(paramValue, newValue, target);
+
+    vscode.workspace.getConfiguration("");
     return target === vscode.ConfigurationTarget.Global
       ? "User settings"
       : "Workspace settings";
@@ -182,6 +184,8 @@ export async function writeParameter(
     await vscode.workspace
       .getConfiguration("", wsFolderUri)
       .update(paramValue, newValue, target);
+
+    vscode.workspace.getConfiguration("");
     return wsFolderUri.fsPath;
   }
 }

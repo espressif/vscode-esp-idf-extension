@@ -1,96 +1,78 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { useSetupStore } from "../../store";
+import { StatusType } from "../../types";
+import DownloadStatus from "../DownloadStatus.vue";
+import { storeToRefs } from "pinia";
+import {
+  IconCheck,
+  IconClose,
+  IconLoading,
+} from "@iconify-prerendered/vue-codicon";
+
+const store = useSetupStore();
+
+const statusType = computed(() => {
+  return StatusType;
+});
+
+const {
+  espIdf,
+  espIdfErrorStatus,
+  idfDownloadStatus,
+  isIdfInstalling,
+  statusEspIdf,
+} = storeToRefs(store);
+</script>
+
 <template>
-  <div class="centerize notification">
+  <div class="centerize notification" @click="store.toggleContent('espidf')">
     <div class="control barText">
       <p class="label">Installing ESP-IDF...</p>
       <div class="icon is-large is-size-4">
-        <iconify-icon
-          :icon="
-            statusEspIdf === statusType.installed
-              ? 'check'
-              : statusEspIdf === statusType.failed
-              ? 'close'
-              : 'loading'
+        <IconCheck v-if="statusEspIdf === statusType.installed" />
+        <IconClose v-if="statusEspIdf === statusType.failed" />
+        <IconLoading
+          v-if="
+            statusEspIdf !== statusType.installed &&
+            statusEspIdf !== statusType.failed
           "
-          :class="{
-            gear:
-              statusEspIdf !== statusType.installed &&
-              statusEspIdf !== statusType.failed,
-          }"
+          class="gear"
         />
       </div>
     </div>
-    <DownloadStatus
-      name="ESP-IDF"
-      :downloadStatus="idfDownloadStatus"
-      :destPath="espIdf"
-      :status="statusEspIdf"
-      v-if="isInstalling"
-      data-config-id="esp-idf-download-status"
-    />
-    <div class="control barText" v-if="espIdfErrorStatus">
-      <p class="label" data-config-id="esp-idf-download-status">
-        {{ espIdfErrorStatus }}
-      </p>
-      <div class="icon is-large is-size-4">
-        <iconify-icon
-          :icon="
-            statusEspIdf === statusType.installed
-              ? 'check'
-              : statusEspIdf === statusType.failed
-              ? 'close'
-              : 'loading'
-          "
-          :class="{
-            gear:
+    <div id="espidf">
+      <DownloadStatus
+        name="ESP-IDF"
+        :downloadStatus="idfDownloadStatus"
+        :destPath="espIdf"
+        :status="statusEspIdf"
+        v-if="isIdfInstalling"
+        data-config-id="esp-idf-download-status"
+      />
+      <div class="control barText" v-if="espIdfErrorStatus">
+        <p class="label" data-config-id="esp-idf-download-status">
+          {{ espIdfErrorStatus }}
+        </p>
+        <div class="icon is-large is-size-4">
+          <IconCheck v-if="statusEspIdf === statusType.installed" />
+          <IconClose v-if="statusEspIdf === statusType.failed" />
+          <IconLoading
+            v-if="
               statusEspIdf !== statusType.installed &&
-              statusEspIdf !== statusType.failed,
-          }"
-        />
+              statusEspIdf !== statusType.failed
+            "
+            class="gear"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { IDownload, StatusType } from "../../types";
-import DownloadStatus from "../DownloadStatus.vue";
-
-@Component({
-  components: {
-    DownloadStatus,
-  },
-})
-export default class EspIdfStatus extends Vue {
-  @State("espIdf") private storeEspIdf: string;
-  @State("espIdfErrorStatus") private storeErrorStatus: string;
-  @State("idfDownloadStatus") private storeIdfDownloadStatus: IDownload;
-  @State("isIdfInstalling") private storeIsInstalling: boolean;
-  @State("statusEspIdf") private storeEspIdfStatus: StatusType;
-
-  get espIdfErrorStatus() {
-    return this.storeErrorStatus;
-  }
-
-  get espIdf() {
-    return this.storeEspIdf;
-  }
-
-  get idfDownloadStatus() {
-    return this.storeIdfDownloadStatus;
-  }
-
-  get isInstalling() {
-    return this.storeIsInstalling;
-  }
-
-  get statusEspIdf() {
-    return this.storeEspIdfStatus;
-  }
-
-  get statusType() {
-    return StatusType;
-  }
+<style>
+#espidf {
+  width: 100%;
+  justify-content: center;
 }
-</script>
+</style>

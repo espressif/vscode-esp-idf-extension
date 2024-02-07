@@ -21,6 +21,13 @@ export class CmakeListsElement {
   public title: string;
   public type: string;
   public typeValue: string;
-  public value: string[];
+  public value: string[] | string;
   public variable: string;
+  public isFirst: boolean;
+  public hasError: boolean;
+}
+
+export enum CMakeListsType {
+  Component = "component",
+  Project = "project",
 }

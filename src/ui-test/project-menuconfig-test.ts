@@ -27,7 +27,7 @@ describe("SDKConfig Editor", () => {
     await new Workbench().executeCommand("espIdf.menuconfig.start");
     await new Promise((res) => setTimeout(res, 50000));
     view = new WebView();
-    await view.switchToFrame();
+    await view.switchToFrame(5000);
   });
 
   after(async () => {

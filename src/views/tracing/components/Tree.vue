@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import { TracingTree, useTracingStore } from "../store";
+
+defineProps<{
+  tree: TracingTree;
+}>();
+
+let isOpen = false;
+
+const store = useTracingStore();
+
+function toggle() {
+  isOpen = !isOpen;
+}
+
+function openFileAtLine(filePath: string, lineNumber: string) {
+  const matches = lineNumber.match(/[0-9]*/);
+  if (matches && matches.length) {
+    const lineNumberInt = parseInt(matches[0]);
+    store.treeOpenFileHandler(filePath, lineNumberInt);
+  }
+}
+</script>
+
 <template>
   <li>
     <div>
@@ -18,33 +42,6 @@
     </ul>
   </li>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-const Tree = Vue.extend({
-  name: "Tree",
-  props: {
-    tree: Object,
-  },
-  data() {
-    return {
-      isOpen: false,
-    };
-  },
-  methods: {
-    toggle() {
-      if (this.tree.child) {
-        this.isOpen = !this.isOpen;
-      }
-    },
-    openFileAtLine(filePath: string, lineNumber: string) {
-      const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
-      this.$root.treeOpenFileHandler(filePath, lineNumberInt);
-    },
-  },
-});
-export default Tree;
-</script>
 
 <style lang="scss" scoped>
 li {

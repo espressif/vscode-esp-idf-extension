@@ -27,6 +27,5 @@ src/**
 test-resources/**
 testFiles/**
 tsconfig.json
-tslint.json
 webpack.config.js
 yarn.lock

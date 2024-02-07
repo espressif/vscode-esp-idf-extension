@@ -1,3 +1,50 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { IconQuestion } from "@iconify-prerendered/vue-codicon";
+
+const props = defineProps<{
+  sName: string;
+  sType: string;
+  sSubType: string;
+  sOffset: string;
+  sSize: string;
+  sFlag: boolean;
+  error: string;
+}>();
+
+const types = computed(() => {
+  return ["app", "data"];
+});
+
+const subtypes = computed(() => {
+  if (props.sType === "app") {
+    return [
+      "factory",
+      "ota_0",
+      "ota_1",
+      "ota_2",
+      "ota_3",
+      "ota_4",
+      "ota_5",
+      "ota_6",
+      "ota_7",
+      "ota_8",
+      "ota_9",
+      "ota_10",
+      "ota_11",
+      "ota_12",
+      "ota_13",
+      "ota_14",
+      "ota_15",
+      "test",
+    ];
+  } else if (props.sType === "data") {
+    return ["fat", "ota", "phy", "nvs", "nvs_keys", "spiffs", "coredump"];
+  }
+  return [];
+});
+</script>
+
 <template>
   <tr :class="{ error: error }">
     <td>
@@ -6,34 +53,38 @@
         type="text"
         placeholder="Name"
         maxlength="16"
-        v-model="sName"
+        :value="sName"
+        @input="$emit('updateRow', 'name', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td class="w-md">
-      <v-select
-        :options="types"
-        v-model="sType"
-        placeholder="Type"
-        taggable
-        selectOnTab
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          :value="sType"
+          @change="$emit('updateRow', 'type', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in types" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td class="w-md">
-      <v-select
-        :options="subtypes"
-        v-model="sSubType"
-        label="label"
-        placeholder="Sub Type"
-        taggable
-        selectOnTab
-      />
+      <div class="select is-size-7-mobile is-size-7-tablet">
+        <select
+          class="select is-size-7-mobile is-size-7-tablet"
+          :value="sSubType"
+          @change="$emit('updateRow', 'subtype', ($event.target as HTMLSelectElement)?.value)"
+        >
+          <option v-for="t in subtypes" :value="t"> {{ t }}</option>
+        </select>
+      </div>
     </td>
     <td>
       <input
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Offset"
-        v-model="sOffset"
+        :value="sOffset"
+        @input="$emit('updateRow', 'offset', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
     <td>
@@ -41,76 +92,29 @@
         class="input is-size-7-mobile is-size-7-tablet"
         type="text"
         placeholder="Size"
-        v-model="sSize"
+        :value="sSize"
+        @input="$emit('updateRow','size', ($event.target as HTMLInputElement)?.value)"
       />
     </td>
-    <td><input type="checkbox" v-model="sFlag" /></td>
     <td>
-      <a class="delete" @click="del"></a>
+      <input
+        type="checkbox"
+        :value="sFlag"
+        @input="$emit('updateRow', 'flag', ($event.target as HTMLInputElement)?.value)"
+      />
+    </td>
+    <td>
+      <a class="delete" @click="$emit('delete')"></a>
       <span
         class="icon is-small has-tooltip-arrow"
         :data-tooltip="error"
         v-if="error"
       >
-        <iconify-icon icon="question" />
+        <IconQuestion />
       </span>
     </td>
   </tr>
 </template>
-
-<script lang="ts">
-import "vue-select/dist/vue-select.css";
-import { Component, Emit, Prop, PropSync, Vue } from "vue-property-decorator";
-import { PartitionTable } from "../store";
-import vSelect from "vue-select";
-Vue.component("v-select", vSelect);
-
-@Component
-export default class Row extends Vue {
-  @PropSync("name") sName: String;
-  @PropSync("type") sType: String;
-  @PropSync("subtype") sSubType: String;
-  @PropSync("offset") sOffset: String;
-  @PropSync("size") sSize: String;
-  @PropSync("flag") sFlag: String;
-  @Prop() error: string;
-
-  public get subtypes(): String[] {
-    if (this.sType === "app") {
-      return [
-        "factory",
-        "ota_0",
-        "ota_1",
-        "ota_2",
-        "ota_3",
-        "ota_4",
-        "ota_5",
-        "ota_6",
-        "ota_7",
-        "ota_8",
-        "ota_9",
-        "ota_10",
-        "ota_11",
-        "ota_12",
-        "ota_13",
-        "ota_14",
-        "ota_15",
-        "test",
-      ];
-    } else if (this.sType === "data") {
-      return ["fat", "ota", "phy", "nvs", "nvs_keys", "spiffs","coredump"];
-    }
-    return [];
-  }
-
-  get types(): String[] {
-    return ["app", "data"];
-  }
-
-  @Emit("delete")
-  del() {}
-}
-</script>
 
 <style>
 .vs__dropdown-toggle {

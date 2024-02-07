@@ -1,14 +1,14 @@
 /*
  * Project: ESP-IDF VSCode Extension
- * File Created: Wednesday, 16th September 2020 5:09:43 pm
- * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ * File Created: Wednesday, 30th August 2023 6:24:14 pm
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -90,7 +90,7 @@ export function isValidJSON(
       return "Size can be specified as decimal numbers, hex numbers with the prefix 0x, or size multipliers K or M (1024 and 1024*1024 bytes).";
     }
 
-    return undefined;
+    return "";
   }
   let ok = true;
   let error = "";

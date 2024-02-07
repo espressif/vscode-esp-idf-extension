@@ -22,7 +22,11 @@ import {
   ProgressLocation,
   window,
 } from "vscode";
-import { readParameter, writeParameter } from "../../idfConfiguration";
+import {
+  NotificationMode,
+  readParameter,
+  writeParameter,
+} from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
@@ -38,10 +42,19 @@ export async function setIdfTarget(placeHolderMsg: string) {
     return;
   }
 
+  const notificationMode = readParameter(
+    "idf.notificationMode",
+    workspaceFolder
+  ) as string;
+  const progressLocation =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Notifications
+      ? ProgressLocation.Notification
+      : ProgressLocation.Window;
   await window.withProgress(
     {
       cancellable: false,
-      location: ProgressLocation.Notification,
+      location: progressLocation,
       title: "ESP-IDF: Setting device target...",
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
@@ -86,7 +99,10 @@ export async function setIdfTarget(placeHolderMsg: string) {
           workspaceFolder.uri
         );
         const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
-        const boards = await getBoards(selectedTarget.target, openOcdScriptsPath);
+        const boards = await getBoards(
+          selectedTarget.target,
+          openOcdScriptsPath
+        );
         const choices = boards.map((b) => {
           return {
             description: `${b.description} (${b.configFiles})`,

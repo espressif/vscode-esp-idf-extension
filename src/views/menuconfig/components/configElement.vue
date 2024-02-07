@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
+import { useMenuconfigStore } from "../store";
+import ConfigElement from "./configElement.vue";
+import { IconInfo } from "@iconify-prerendered/vue-codicon";
+import { Ref, ref } from "vue";
+import { vMaska } from "maska";
+
+const props = defineProps<{
+  config: Menu;
+}>();
+
+let isHelpVisible: Ref<boolean> = ref(false);
+
+function toggleHelp() {
+  isHelpVisible.value = !isHelpVisible.value;
+}
+
+function onChange(e) {
+  const store = useMenuconfigStore();
+  if (props.config.type === menuType.hex) {
+    props.config.value = e.target.value;
+  }
+  store.sendNewValue(props.config);
+}
+</script>
+
 <template>
   <div v-if="config.isVisible" :class="{ 'config-el': config.type !== 'menu' }">
     <div v-if="config.type === 'choice'" class="form-group">
@@ -6,7 +33,7 @@
           <label v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <iconify-icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>
@@ -46,7 +73,7 @@
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <iconify-icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>
@@ -57,7 +84,7 @@
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <iconify-icon icon="info" />
+            <IconInfo />
           </div>
         </div>
       </div>
@@ -78,7 +105,7 @@
       <div class="field has-addons">
         <label v-text="config.title" :data-config-id="config.id" />
         <div class="info-icon" @click="toggleHelp">
-          <iconify-icon icon="info" />
+          <IconInfo />
         </div>
       </div>
       <div class="field is-grouped">
@@ -97,22 +124,17 @@
         <label v-text="config.title" />
         <div class="control">
           <div class="info-icon" @click="toggleHelp">
-            <iconify-icon icon="info" />
+            <IconInfo />
           </div>
         </div>
       </div>
       <div class="field is-grouped">
         <div class="control">
-          <the-mask
-            :value="config.value"
-            mask="0xWWWWWWWWWW"
-            :masked="false"
-            :tokens="{
-              W: {
-                pattern: /[0-9a-fA-F]/,
-                transform: (v) => v.toLocaleUpperCase(),
-              },
-            }"
+          <input
+            v-maska
+            v-model="config.value"
+            data-maska="0xWWWWWWWWWW"
+            data-maska-tokens="W:[0-9a-fA-F]"
             class="input is-small"
             @change.native="onChange"
             :data-config-id="config.id"
@@ -140,7 +162,7 @@
           <label :for="config.id" v-text="config.title" />
           <div class="control">
             <div class="info-icon" @click="toggleHelp">
-              <iconify-icon icon="info" />
+              <IconInfo />
             </div>
           </div>
         </div>
@@ -150,7 +172,7 @@
     <div v-show="isHelpVisible" class="content" v-html="config.help" />
 
     <div v-if="config.type !== 'choice'">
-      <config-el
+      <ConfigElement
         v-for="child in config.children"
         :key="child.id"
         :config="child"
@@ -158,30 +180,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-import { Menu, menuType } from "../../../espIdf/menuconfig/Menu";
-
-@Component
-export default class ConfigElement extends Vue {
-  @Prop() public config: Menu;
-  @Action("sendNewValue") public actionSendValue;
-  private isHelpVisible: boolean = false;
-
-  public toggleHelp() {
-    this.isHelpVisible = !this.isHelpVisible;
-  }
-
-  public onChange(e) {
-    if (this.config.type === menuType.hex) {
-      this.config.value = e.target.value;
-    }
-    this.actionSendValue(this.config);
-  }
-}
-</script>
 
 <style scoped>
 .info-icon {

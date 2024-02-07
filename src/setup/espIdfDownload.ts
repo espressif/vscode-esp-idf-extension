@@ -28,8 +28,7 @@ import {
 } from "./webviewMsgMethods";
 import { ensureDir, move } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
-import { CancellationToken, Progress } from "vscode";
-import { Disposable } from "vscode-languageclient";
+import { CancellationToken, Disposable, Progress } from "vscode";
 import { delimiter, dirname, join } from "path";
 
 export class EspIdfCloning extends AbstractCloning {
@@ -54,7 +53,11 @@ export async function downloadInstallIdfVersion(
 ) {
   const downloadedZipPath = join(destPath, idfVersion.filename);
   const extractedDirectory = downloadedZipPath.replace(".zip", "");
-  const expectedDirectory = join(destPath, "esp-idf");
+  const expectedDirectory = join(
+    destPath,
+    idfVersion.version.replace("release/", ""),
+    "esp-idf"
+  );
   await ensureDir(destPath);
   const expectedDirExists = await utils.dirExistPromise(expectedDirectory);
   if (expectedDirExists) {
@@ -92,8 +95,9 @@ export async function downloadInstallIdfVersion(
       });
     }
 
+    await ensureDir(dirname(expectedDirectory));
     await espIdfCloning.downloadByCloning(
-      destPath,
+      dirname(expectedDirectory),
       pkgProgress,
       progress,
       mirror !== ESP.IdfMirror.Espressif,
@@ -116,6 +120,12 @@ export async function downloadInstallIdfVersion(
     }
     const urlToUse =
       mirror === ESP.IdfMirror.Github ? idfVersion.url : idfVersion.mirror;
+
+    OutputChannel.appendLine(
+      `Using mirror ${
+        mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
+      } with URL ${urlToUse}`
+    );
     await downloadManager.downloadWithRetries(
       urlToUse,
       destPath,

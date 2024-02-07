@@ -19,11 +19,11 @@ import { SerialPort } from "../espIdf/serial/serialPort";
 import { dirExistPromise } from "../utils";
 import { Logger } from "../logger/logger";
 import {
-  defaultBoards,
   getBoards,
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
+import { defaultBoards } from "../espIdf/openOcd/defaultBoards";
 
 export interface INewProjectArgs {
   espIdfPath: string;

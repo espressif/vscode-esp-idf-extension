@@ -15,7 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { WebviewPanel, window, ViewColumn, Uri, Disposable } from "vscode";
+import {
+  Webview,
+  WebviewPanel,
+  window,
+  ViewColumn,
+  Uri,
+  Disposable,
+} from "vscode";
 import { join } from "path";
 import { getWebViewFavicon } from "../../../utils";
 export class SystemViewPanel {
@@ -62,31 +69,33 @@ export class SystemViewPanel {
     this.extensionPath = extensionPath;
     this.traceData = traceData;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposable);
+    this.panel.iconPath = getWebViewFavicon(extensionPath);
+    this.panel.webview.html = this.initWebView(panel.webview);
     this.panel.webview.onDidReceiveMessage(
-      this.onMessage,
+      (msg) => {
+        switch (msg.command) {
+          case "getInitialValues":
+            if (panel.webview) {
+              panel.webview.postMessage({
+                command: "initialLoad",
+                value: traceData,
+              });
+            }
+            break;
+          default:
+            break;
+        }
+      },
       null,
       this.disposable
     );
-    this.panel.iconPath = getWebViewFavicon(extensionPath);
-    this.initWebView();
-    setTimeout(() => {
-      this.sendCommandToWebview("initialLoad", this.traceData);
-    }, 800);
   }
-  private onMessage(message: any) {}
-  private sendCommandToWebview(command: string, value: any) {
-    if (this.panel.webview) {
-      this.panel.webview.postMessage({
-        command,
-        value,
-      });
-    }
-  }
-  private initWebView() {
-    const scriptPath = this.panel.webview.asWebviewUri(
+
+  private initWebView(webview: Webview) {
+    const scriptPath = webview.asWebviewUri(
       Uri.file(join(this.extensionPath, "dist", "views", "sysView-bundle.js"))
     );
-    this.panel.webview.html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8" />

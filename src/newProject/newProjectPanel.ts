@@ -22,6 +22,7 @@ import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
 import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 
 const locDictionary = new LocDictionary("NewProjectPanel");
 
@@ -119,13 +120,13 @@ export class NewProjectPanel {
             message.template
           ) {
             this.createProject(
-              message.components,
+              JSON.parse(message.components),
               message.target,
               message.openOcdConfigFiles,
               message.port,
               message.containerFolder,
               message.projectName,
-              message.template,
+              JSON.parse(message.template),
               newProjectArgs.workspaceFolder
             );
           }
@@ -207,10 +208,19 @@ export class NewProjectPanel {
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
     let isSkipped = false;
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      workspaceFolder
+    ) as string;
+    const ProgressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     await vscode.window.withProgress(
       {
         cancellable: true,
-        location: vscode.ProgressLocation.Notification,
+        location: ProgressLocation,
         title: "ESP-IDF: Create project",
       },
       async (
@@ -248,14 +258,20 @@ export class NewProjectPanel {
           }
           await ensureDir(newProjectPath, { mode: 0o775 });
           if (template && template.path !== "") {
-            await utils.copyFromSrcProject(template.path, vscode.Uri.file(newProjectPath));
+            await utils.copyFromSrcProject(
+              template.path,
+              vscode.Uri.file(newProjectPath)
+            );
           } else {
             const boilerplatePath = path.join(
               this.extensionPath,
               "templates",
               "boilerplate"
             );
-            await utils.copyFromSrcProject(boilerplatePath, vscode.Uri.file(newProjectPath));
+            await utils.copyFromSrcProject(
+              boilerplatePath,
+              vscode.Uri.file(newProjectPath)
+            );
           }
           await utils.updateProjectNameInCMakeLists(
             newProjectPath,

@@ -1,3 +1,10 @@
+<script setup lang="ts">
+defineProps<{
+  name: string;
+  height: number;
+}>();
+</script>
+
 <template>
   <div>
     <p>{{ name }}</p>
@@ -15,19 +22,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
-import { State } from "vuex-class";
-
-@Component
-export default class Table extends Vue {
-  @Prop(String) private name: string;
-  @Prop(Number) private height: number;
-}
-</script>
 
 <style scoped>
 p {

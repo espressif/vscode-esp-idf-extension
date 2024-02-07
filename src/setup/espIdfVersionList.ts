@@ -106,6 +106,7 @@ export function createEspIdfLinkList(versionList: string[]) {
         name: version + " (release branch)",
         url: `https://github.com/espressif/esp-idf/archive/refs/heads/${version}.zip`,
         mirror: "",
+        version,
       };
     } else if (version.startsWith("v")) {
       return {
@@ -113,6 +114,7 @@ export function createEspIdfLinkList(versionList: string[]) {
         name: version + " (release version)",
         url: versionZip.replace(versionRegex, version),
         mirror: mirrorZip.replace(versionRegex, version),
+        version,
       };
     } else if (preReleaseRegex.test(version)) {
       return {
@@ -120,6 +122,7 @@ export function createEspIdfLinkList(versionList: string[]) {
         name: version + " (pre-release version)",
         url: versionZip.replace(versionRegex, version),
         mirror: mirrorZip.replace(versionRegex, version),
+        version,
       };
     } else if (version === "master") {
       return {
@@ -127,6 +130,7 @@ export function createEspIdfLinkList(versionList: string[]) {
         name: version + " (development branch)",
         url: `https://github.com/espressif/esp-idf/archive/refs/heads/${version}.zip`,
         mirror: espIdfMasterZip,
+        version,
       };
     } else if (betaRegex.test(version)) {
       return {
@@ -134,6 +138,7 @@ export function createEspIdfLinkList(versionList: string[]) {
         name: version + " (beta version)",
         url: versionZip.replace(versionRegex, version),
         mirror: mirrorZip.replace(versionRegex, version),
+        version,
       };
     }
   });

@@ -186,12 +186,12 @@ For more information about `devcontainer.json`, please refer to the comments.
     "terminal.integrated.defaultProfile.linux": "bash",
     "idf.espIdfPath": "/opt/esp/idf",
     "idf.customExtraPaths": "",
-    "idf.pythonBinPath": "/opt/esp/python_env/idf5.0_py3.8_env/bin/python",
+    "idf.pythonBinPath": "/opt/esp/python_env/idf5.3_py3.10_env/bin/python",
     "idf.toolsPath": "/opt/esp",
     "idf.gitPath": "/usr/bin/git"
   },
   /* An array of extensions that should be installed into the container. */
-  "extensions": ["ms-vscode.cpptools", "espressif.esp-idf-extension"],
+  "extensions": ["espressif.esp-idf-extension"],
   /* start the container with privileged mode, else the devices cannot be accessed on the docker image.
    */
   "runArgs": ["--privileged"]
@@ -259,6 +259,10 @@ Same as [External USB-Serial](#external-usb-serial) and [Internal USB-serial](#i
 the interface is the same as [Internal USB-serial](#internal-usb-serial), that is `ttyACMx`:
 
 <img src="../../media\tutorials\using_docker_container\container_flash_jtag.gif" alt="" height="">
+
+### Additional steps for debugging
+
+Make sure to run `ESP-IDF: Add OpenOCD rules file (For Linux users)` command and `ESP-IDF: Install ESP-IDF Python Packages` command to add openOCD rules and install debug adapter python packages in the docker container before running openOCD and starting a debug session with the ESP-IDF Debug Adapter.
 
 ## Debugging
 

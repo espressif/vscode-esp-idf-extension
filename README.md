@@ -14,7 +14,7 @@
 
 Develop, build, flash, monitor, [debug](./docs/DEBUGGING.md) and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf)
 
-**Nightly builds** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a> or <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension-open.vsix.zip">OpenVSX</a>. You can use this VSIX to test the current github master of the extension by pressing <kbd>F1</kbd> and type `Install from VSIX` and then select the downloaded `.vsix` file to install.
+**Nightly builds** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a>. You can use this VSIX to test the current github master of the extension by pressing <kbd>F1</kbd> or click menu `View` -> `Command Palette...`, type `Install from VSIX` and then select the previously downloaded `.vsix` file to install the extension.
 
 Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly use the extension.
 
@@ -32,17 +32,17 @@ Check all the tutorials [here](./docs/tutorial/toc.md).
 
 # Table of content
 
-- [ESP-IDF Visual Studio Code Extension](#esp-idf-visual-studio-code-extension)
-- [Tutorials](#tutorials)
-- [Table of content](#table-of-content)
-- [How to use](#how-to-use)
-- [Available commands](#available-commands)
-- [About commands](#about-commands)
-- [Commands for tasks.json and launch.json](#commands-for-tasksjson-and-launchjson)
-- [Available Tasks in tasks.json](#available-tasks-in-tasksjson)
-- [Troubleshooting](#troubleshooting)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
+- [ESP-IDF Visual Studio Code Extension](./README.md#esp-idf-visual-studio-code-extension)
+- [Tutorials](./README.md#tutorials)
+- [Table of content](./README.md#table-of-content)
+- [How to use](./README.md#how-to-use)
+- [Available commands](./README.md#available-commands)
+- [About commands](./README.md#about-commands)
+- [Commands for tasks.json and launch.json](./README.md#commands-for-tasksjson-and-launchjson)
+- [Available Tasks in tasks.json](./README.md#available-tasks-in-tasksjson)
+- [Troubleshooting](./README.md#troubleshooting)
+- [Code of Conduct](./README.md#code-of-conduct)
+- [License](./README.md#license)
 
 Check all the [documentation](./docs/ONBOARDING.md).
 
@@ -91,7 +91,7 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
   > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting in the current workspace folder's settings.json.
 - You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your Device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
-- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
+- If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](./README.md#Troubleshooting) section if you have any issues.
 
 # Available commands
 
@@ -106,11 +106,13 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Add vscode configuration folder                         |                                        |                                           |
 | Build, Flash and start a monitor on your device         | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>D</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>D</kbd> |
 | Build your project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>B</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>B</kbd> |
+| Clear eFuse Summary                                     |                                        |                                           |
+| Clear ESP-IDF Search Results                            |                                        |                                           |
 | Clear Saved ESP-IDF Setups                              |                                        |                                           |
 | Configure ESP-IDF extension                             |                                        |                                           |
 | Configure Paths                                         |                                        |                                           |
 | Configure Project SDKConfig for Coverage                |                                        |                                           |
-| Create project from extension template                  | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
+| Create project from Extension Template                  | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>C</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>C</kbd> |
 | Create New ESP-IDF Component                            |                                        |                                           |
 | Device configuration                                    |                                        |                                           |
 | Dispose Current SDK Configuration Editor Server Process |                                        |                                           |
@@ -123,6 +125,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Flash (UART) your project                               |                                        |                                           |
 | Flash (with JTag)                                       |                                        |                                           |
 | Full Clean Project                                      | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>X</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>X</kbd> |
+| Get eFuse Summary                                       |                                        |                                           |
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
@@ -140,6 +143,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Open NVS Partition Editor                               |                                        |                                           |
 | Pick a workspace folder                                 |                                        |                                           |
 | Remove Editor coverage                                  |                                        |                                           |
+| Save Default SDKCONFIG file (save-defconfig)            |                                        |                                           |
 | SDK Configuration editor                                | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>G</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>G</kbd> |
 | Search in documentation...                              | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>Q</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd> |
 | Select Flash Method                                     |                                        |                                           |
@@ -155,6 +159,8 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Size analysis of the binaries                           | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>S</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd> |
 | Unit Test: Build and flash unit test app for testing    |                                        |                                           |
 | Unit Test: Install ESP-IDF PyTest requirements          |                                        |                                           |
+| Remove Editor coverage                                  |                                        |                                           |
+| Run ESP-IDF-SBOM vulnerability check                    |                                        |                                           |
 
 # About commands
 
@@ -184,8 +190,8 @@ We have implemented some utilities commands that can be used in tasks.json and l
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
 - `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
-- `espIdf.getXtensaGcc`: Return the absolute path of the xtensa toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
-- `espIdf.getXtensaGdb`: Return the absolute path of the xtensa toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+- `espIdf.getXtensaGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+- `espIdf.getXtensaGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 
 See an example in the [debugging](./docs/DEBUGGING.md) documentation.
 
@@ -212,16 +218,16 @@ If something is not working please check for any error on one of these:
 
 > **NOTE:** Use `logLevel` in your <project-directory>/.vscode/launch.json to 3 or more to show more debug adapter output.
 
-1. In Visual Studio Code select menu "View" -> Output -> ESP-IDF, ESP-IDF Debug Adapter, Heap Trace, OpenOCD and SDK Configuration Editor. This output information is useful to know what is happening in each tool.
-2. Use the `ESP-IDF: Doctor Command` to generate a report of your configuration and it will be copied in your clipboard to paste anywhere.
+1. In Visual Studio Code select menu **View** -> **Output** -> **ESP-IDF**. This output information is useful to know what is happening in the extension.
+2. In Visual Studio Code select menu **View** then click **Command Palette...** and type `ESP-IDF: Doctor Command` to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
 3. Check log file which can be obtained from:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
-4. In Visual Studio Code, select menu "Help" -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
+4. In Visual Studio Code, select menu **Help** -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
 
-5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: Global (User Settings), Workspace and Workspace Folder so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
+5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
 
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 

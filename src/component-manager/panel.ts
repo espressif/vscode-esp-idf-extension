@@ -19,7 +19,7 @@
 import { join } from "path";
 import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
 import { ESP } from "../config";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { addDependency, createProject } from "./utils";
 import * as vscode from "vscode";
 
@@ -87,7 +87,7 @@ export class ComponentManagerUIPanel {
     this.extensionPath = extensionPath;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposable);
     this.panel.webview.onDidReceiveMessage(
-      async (message) => this.onMessage(message),
+      async (message) => this.onMessage(message, workspaceRoot),
       null,
       this.disposable
     );
@@ -97,7 +97,7 @@ export class ComponentManagerUIPanel {
     this.panel.webview.html = this.initWebView(url);
   }
 
-  private async onMessage(message: IMessage) {
+  private async onMessage(message: IMessage, workspaceUri: Uri) {
     switch (message.message) {
       case "install":
         if (!message.dependency) return;
@@ -117,9 +117,18 @@ export class ComponentManagerUIPanel {
         if (!selectedFolder) {
           return;
         }
+        const notificationMode = readParameter(
+          "idf.notificationMode",
+          workspaceUri
+        ) as string;
+        const ProgressLocation =
+          notificationMode === NotificationMode.All ||
+          notificationMode === NotificationMode.Notifications
+            ? vscode.ProgressLocation.Notification
+            : vscode.ProgressLocation.Window;
         await vscode.window.withProgress(
           {
-            location: vscode.ProgressLocation.Notification,
+            location: ProgressLocation,
             title: "ESP-IDF: Creating project...",
             cancellable: false,
           },

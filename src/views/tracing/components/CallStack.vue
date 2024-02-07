@@ -1,3 +1,112 @@
+<script setup lang="ts">
+import { Ref, computed, ref } from "vue";
+import { useTracingStore } from "../store";
+import {
+  IconHistory,
+  IconSearch,
+  IconTriangleUp,
+  IconTriangleDown,
+} from "@iconify-prerendered/vue-codicon";
+
+const props = defineProps<{
+  callstack: any;
+  cache: Object;
+}>();
+
+const itemRefs: Ref<any[]> = ref([]);
+
+const store = useTracingStore();
+
+const isExpanded: Ref<boolean> = ref(false);
+const filter: Ref<{ functionName: string; selectedEventType: string }> = ref({
+  functionName: "",
+  selectedEventType: "all",
+});
+const sort: Ref<{ by: string; order: number }> = ref({
+  by: "",
+  order: 0,
+});
+
+const callStack = computed(() => {
+  return props.callstack
+    .filter((calls) => {
+      if (filter.value.functionName && filter.value.functionName !== "") {
+        return (
+          fetchFunctionNameForAddr(calls[0])
+            .toLowerCase()
+            .match(filter.value.functionName.toLowerCase()) ||
+          fetchFilePathForAddr(calls[0])
+            .toLowerCase()
+            .match(filter.value.functionName.toLowerCase())
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort.value.by !== "" && sort.value.order !== 0) {
+        return sortBy(a[0], b[0]);
+      }
+      return 0;
+    });
+});
+
+const totalMemory = computed(() => {
+  let total = 0;
+  Object.keys(props.cache).forEach((addr) => {
+    total += props.cache[addr].size ? props.cache[addr].size : 0;
+  });
+  return total;
+});
+
+function sortData(columnName) {
+  sort.value.by = columnName;
+  sort.value.order = sort.value.order === 0 ? 1 : -sort.value.order;
+}
+function createTreeFromAddressArray(addr: string[]): any {
+  return store.createTreeFromAddressArray(addr);
+}
+function fetchFunctionNameForAddr(addr: string): string {
+  return props.cache[addr]
+    ? props.cache[addr].funcName !== ""
+      ? props.cache[addr].funcName
+      : addr
+    : addr;
+}
+function fetchFilePathForAddr(addr: string): string {
+  return props.cache[addr]
+    ? props.cache[addr].filePath !== ""
+      ? props.cache[addr].filePath
+      : addr
+    : addr;
+}
+function reverseCallStack() {
+  props.callstack.forEach((calls) => {
+    calls.reverse();
+  });
+}
+function sortBy(a, b) {
+  const key = sort.value.by;
+  const sortOrder = sort.value.order;
+  if (sortOrder === -1) {
+    return props.cache[a][key] - props.cache[b][key];
+  } else if (sortOrder === 1) {
+    return props.cache[b][key] - props.cache[a][key];
+  }
+  return 0;
+}
+function collapseOrExpandCalls() {
+  if (itemRefs && itemRefs.value && itemRefs.value.length > 0) {
+    itemRefs.value.forEach((calls) => {
+      calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"] &&
+        calls.children[0].__vueParentComponent.exposed["collapseAndExpandAll"](
+          !isExpanded.value
+        );
+    });
+  }
+  isExpanded.value = !isExpanded.value;
+}
+</script>
+
 <template>
   <div>
     <div class="field has-addons">
@@ -5,7 +114,7 @@
         <div class="select">
           <select
             v-model="filter.selectedEventType"
-            @change="eventFilterSelected"
+            @change="$emit('event-filter-updated', filter.selectedEventType)"
           >
             <option selected value="all">All</option>
             <option value="allocations">Allocations</option>
@@ -24,28 +133,28 @@
           v-model="filter.functionName"
         />
         <span class="icon is-small is-left">
-          <iconify-icon icon="search" />
+          <IconSearch />
         </span>
       </div>
       <div class="control">
         <button class="button" @click="reverseCallStack">
           <span class="icon is-small">
-            <iconify-icon icon="history" />
+            <IconHistory />
           </span>
           <span>Reverse Call Stack</span>
         </button>
       </div>
       <div class="control">
-        <button class="button" @click="collapseOrExpandCalls()">
+        <button class="button" @click="collapseOrExpandCalls">
           <template v-if="isExpanded">
             <span class="icon is-small">
-              <iconify-icon icon="triangle-up" />
+              <IconTriangleUp />
             </span>
             <span>Collapse All</span>
           </template>
           <template v-else>
             <span class="icon is-small">
-              <iconify-icon icon="triangle-down" />
+              <IconTriangleDown />
             </span>
             <span>Expand All</span>
           </template>
@@ -68,7 +177,7 @@
       <div class="column">Function Name</div>
     </div>
     <div class="scroll-container">
-      <div v-for="(calls, index) in callStack" :key="index">
+      <div v-for="(calls, index) in callStack" :key="index" ref="itemRefs">
         <calls
           ref="callRef"
           v-bind:tree="createTreeFromAddressArray(calls)"
@@ -85,113 +194,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import Vue, { PropType } from "vue";
-const CallStack = Vue.extend({
-  name: "CallStack",
-  props: {
-    callstack: Array as any,
-    cache: Object,
-  },
-  data() {
-    return {
-      isExpanded: false,
-      filter: {
-        functionName: "",
-        selectedEventType: "all",
-      },
-      sort: {
-        by: "",
-        order: 0,
-      },
-    };
-  },
-  methods: {
-    sortData(columnName) {
-      this.sort.by = columnName;
-      this.sort.order = this.sort.order === 0 ? 1 : -this.sort.order;
-    },
-    createTreeFromAddressArray(addr: string[]): any {
-      const root = this.$root as any;
-      return root.createTreeFromAddressArray(addr);
-    },
-    fetchFunctionNameForAddr(addr: string): string {
-      return this.cache[addr]
-        ? this.cache[addr].funcName !== ""
-          ? this.cache[addr].funcName
-          : addr
-        : addr;
-    },
-    fetchFilePathForAddr(addr: string): string {
-      return this.cache[addr]
-        ? this.cache[addr].filePath !== ""
-          ? this.cache[addr].filePath
-          : addr
-        : addr;
-    },
-    reverseCallStack() {
-      this.callstack.forEach((calls) => {
-        calls.reverse();
-      });
-    },
-    eventFilterSelected() {
-      this.$emit("event-filter-updated", this.filter.selectedEventType);
-    },
-    sortBy(a, b) {
-      const key = this.sort.by;
-      const sortOrder = this.sort.order;
-      if (sortOrder === -1) {
-        return this.cache[a][key] - this.cache[b][key];
-      } else if (sortOrder === 1) {
-        return this.cache[b][key] - this.cache[a][key];
-      }
-      return 0;
-    },
-    collapseOrExpandCalls() {
-      if (this.$refs.callRef && this.$refs.callRef.length > 0) {
-        this.$refs.callRef.forEach((calls) => {
-          calls.collapseAndExpandAll &&
-            calls.collapseAndExpandAll(!this.isExpanded);
-        });
-      }
-      this.isExpanded = !this.isExpanded;
-    },
-  },
-  computed: {
-    callStack() {
-      return this.callstack
-        .filter((calls) => {
-          if (this.filter.functionName && this.filter.functionName !== "") {
-            return (
-              this.fetchFunctionNameForAddr(calls[0])
-                .toLowerCase()
-                .match(this.filter.functionName.toLowerCase()) ||
-              this.fetchFilePathForAddr(calls[0])
-                .toLowerCase()
-                .match(this.filter.functionName.toLowerCase())
-            );
-          }
-          return true;
-        })
-        .sort((a, b) => {
-          if (this.sort.by !== "" && this.sort.order !== 0) {
-            return this.sortBy(a[0], b[0]);
-          }
-          return 0;
-        });
-    },
-    totalMemory() {
-      let total = 0;
-      Object.keys(this.cache).forEach((addr) => {
-        total += this.cache[addr].size ? this.cache[addr].size : 0;
-      });
-      return total;
-    },
-  },
-});
-export default CallStack;
-</script>
 
 <style lang="scss" scoped>
 @import "table";

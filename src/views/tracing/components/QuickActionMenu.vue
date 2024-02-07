@@ -1,3 +1,12 @@
+<script setup lang="ts">
+const emits = defineEmits(["change"]);
+function heapViewChange(evt: MouseEvent) {
+  const target: HTMLElement = evt.target as HTMLElement;
+  const buttonKey = target.dataset.dictKey;
+  emits("change", buttonKey);
+}
+</script>
+
 <template>
   <div>
     <button
@@ -30,21 +39,6 @@
     </button>
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-const QuickActionMenu = Vue.extend({
-  name: "QuickActionMenu",
-  methods: {
-    heapViewChange(evt: MouseEvent) {
-      const target: HTMLElement = evt.target as HTMLElement;
-      const buttonKey = target.dataset.dictKey;
-      this.$emit("change", buttonKey);
-    },
-  },
-});
-export default QuickActionMenu;
-</script>
 
 <style lang="scss" scoped>
 button {

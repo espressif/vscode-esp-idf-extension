@@ -1,3 +1,34 @@
+<script setup lang="ts">
+import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
+import { computed, ref } from "vue";
+let folderIcon = ref("folder");
+
+const props = defineProps<{
+  keyEnterMethod?: () => void;
+  openMethod: () => void;
+  propLabel: string;
+  propModel: string;
+  propMutate: (val: string) => void;
+  staticText: string;
+}>();
+
+const dataModel = computed({
+  get() {
+    return props.propModel;
+  },
+  set(newVal: string) {
+    props.propMutate(newVal);
+  },
+});
+
+const pathSep = navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
+function onKeyEnter() {
+  if (props.keyEnterMethod) {
+    props.keyEnterMethod();
+  }
+}
+</script>
+
 <template>
   <div class="field text-size">
     <label class="label">{{ propLabel }}</label>
@@ -13,48 +44,20 @@
       <div class="control" v-if="staticText">
         <a class="button is-static">{{ pathSep + staticText }}</a>
       </div>
-      <div class="control">
-        <div class="icon is-large is-size-4" style="text-decoration: none;">
-          <iconify-icon
-            :icon="folderIcon"
-            @mouseover="folderIcon = 'folder-opened'"
-            @mouseout="folderIcon = 'folder'"
-            v-on:click="openMethod"
-          />
+      <div
+        class="control"
+        @mouseover="folderIcon = 'folder-opened'"
+        @mouseout="folderIcon = 'folder'"
+      >
+        <div
+          class="icon is-large is-size-4"
+          style="text-decoration: none;"
+          v-on:click="openMethod"
+        >
+          <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+          <IconFolder v-if="(folderIcon === 'folder')" />
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-
-@Component
-export default class folderOpen extends Vue {
-  private folderIcon = "folder";
-  @Prop() propLabel: string;
-  @Prop() propModel: string;
-  @Prop() propMutate: (val: string) => void;
-  @Prop() openMethod: () => void;
-  @Prop() keyEnterMethod?: () => void;
-  @Prop() staticText: string;
-
-  get dataModel() {
-    return this.propModel;
-  }
-  set dataModel(newValue) {
-    this.propMutate(newValue);
-  }
-
-  onKeyEnter() {
-    if (this.keyEnterMethod) {
-      this.keyEnterMethod();
-    }
-  }
-
-  get pathSep() {
-    return navigator.platform.indexOf("Win") !== -1 ? "\\" : "/";
-  }
-}
-</script>
