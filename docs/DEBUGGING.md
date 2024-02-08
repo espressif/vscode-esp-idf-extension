@@ -94,7 +94,7 @@ Example launch.json for ESP-IDF Debug Adapter:
 
 ### Output and Logs from ESP-IDF Debug Adapter and OpenOCD
 
-Beside the Visual Studio Code Debug console output. You can find OpenOCD and the ESP-IDF debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF `.
+Beside the Visual Studio Code Debug console output. You can find OpenOCD and the ESP-IDF debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF`.
 
 ## Use Microsoft C/C++ Extension to Debug
 
