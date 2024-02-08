@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 16th July 2021 4:23:24 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ import { createFlashModel } from "../../flash/flashModelBuilder";
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
+import { pathExists } from "fs-extra";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
@@ -44,6 +45,12 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
     workspaceFolder
   ) as string;
   const flasherArgsJsonPath = join(buildDirPath, "flasher_args.json");
+  const flasherArgsJsonPathExists = await pathExists(flasherArgsJsonPath);
+  if (!flasherArgsJsonPathExists) {
+    return Logger.info(
+      `${flasherArgsJsonPath} doesn't exist. Build the project first`
+    );
+  }
   const model = await createFlashModel(
     flasherArgsJsonPath,
     serialPort,
@@ -62,7 +69,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
         `build/${model.app.binFilePath}`,
       ],
       {
-        cwd: workspaceFolder,
+        cwd: workspaceFolder.fsPath,
         env: modifiedEnv,
       }
     );
@@ -80,15 +87,12 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
   } catch (error) {
     if (
       error &&
-      error.error &&
-      error.error.message &&
-      error.error.message.indexOf("verify FAILED (digest mismatch)") !== -1
+      error.message &&
+      error.message.indexOf("verify FAILED (digest mismatch)") !== -1
     ) {
       return false;
     }
-    const msg = error.error.message
-      ? error.error.message
-      : error.message
+    const msg = error.message
       ? error.message
       : "Something wrong while verifying app binary.";
     Logger.errorNotify(msg, error);

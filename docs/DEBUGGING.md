@@ -45,7 +45,7 @@ The ESP-IDF Debug Adapter settings for launch.json are:
 - `initGdbCommands`: One or more xtensa-esp32-elf-gdb commands to execute in order to setup the underlying debugger.
   > **NOTE**: If `gdbinitFile` is defined, these commands will be ignored.
 - `logLevel`: Debug Adapter logging level (0-4), 5 - for a full OOCD log. Default: 2.
-- `mode`: Can be either `auto`, to start the Debug Adapter and OpenOCD server within the extension or `manual`, to connect to existing Debug Adapter and OpenOCD session. Default: auto.
+- `mode`: Can be either `auto`, to start the Debug Adapter and OpenOCD server within the extension or `manual`, to connect to an already running Debug Adapter and OpenOCD session. Default: auto.
   > **NOTE:** If set to `manual`, OpenOCD and ESP-IDF Debug Adapter have to be manually executed by the user and the extension will just try to connect to existing servers at configured ports.
 - `name`: The name of the debug launch configuration. This will be shown in the Run view (Menu View -> Run).
 - `type`: Type of debug configuration. It **must** be `espidf`.
@@ -95,7 +95,7 @@ Example launch.json for ESP-IDF Debug Adapter:
 
 ### Output and Logs from ESP-IDF Debug Adapter and OpenOCD
 
-Beside the Visual Studio Code Debug console output. You can find the debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF Debug Adapter` as well as OpenOCD output in Menu View -> Output -> `OpenOCD`.
+Beside the Visual Studio Code Debug console output. You can find OpenOCD and the ESP-IDF debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF `.
 
 ## Use Microsoft C/C++ Extension to Debug
 
