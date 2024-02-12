@@ -78,13 +78,13 @@ export interface LookUpTable {
   [key: string]: {
     irq: SysViewEventObjects;
     ctx: SysViewEventObjects;
-    lastEvent: SysViewEvent;
+    lastEvent: SysViewEvent | null;
     contextSwitch: {
       line: { width: number; color: string };
       opacity: number;
       type: "scatterql";
-      x: Array<number>;
-      y: Array<string>;
+      x: Array<number | null>;
+      y: Array<string | null>;
       xaxis?: "x";
       yaxis?: "y" | "y2";
       mode: "lines";

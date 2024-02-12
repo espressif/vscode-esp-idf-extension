@@ -1,3 +1,36 @@
+<script setup lang="ts">
+import { useNewProjectStore } from "./store";
+import TemplateList from "./components/templateList.vue";
+import searchBar from "./components/searchBar.vue"
+import { storeToRefs } from "pinia";
+import { computed, onMounted } from "vue";
+const store = useNewProjectStore();
+
+let {
+  hasTemplateDetail,
+  selectedFramework,
+  selectedTemplate,
+  templateDetail,
+  templatesRootPath,
+} = storeToRefs(store);
+
+const templates = computed(() => {
+  if (templatesRootPath.value && templatesRootPath.value[selectedFramework.value]) {
+    return [templatesRootPath.value[selectedFramework.value]];
+  }
+});
+const frameworks = computed(() => {
+  return Object.keys(templatesRootPath.value);
+});
+
+onMounted(()=> {
+  if (templatesRootPath.value) {
+      const frameworks = Object.keys(templatesRootPath.value);
+      store.selectedFramework = frameworks.length ? frameworks[0] : "";
+    }
+})
+</script>
+
 <template>
   <div id="templates-window">
     <div id="sidenav" class="content">
@@ -8,6 +41,7 @@
           </option>
         </select>
       </div>
+      <searchBar />
       <ul class="templates">
         <TemplateList v-for="cat of templates" :node="cat" :key="cat.name" />
       </ul>
@@ -17,7 +51,7 @@
       <div v-if="hasTemplateDetail" class="has-text-centered">
         <button
           v-if="selectedTemplate.name !== ''"
-          v-on:click="createProject"
+          v-on:click="store.createProject"
           class="button"
         >
           Create project using template {{ selectedTemplate.name }}
@@ -31,70 +65,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import { IExample, IExampleCategory } from "../../examples/Example";
-import TemplateList from "./components/templateList.vue";
-
-@Component({
-  components: {
-    TemplateList,
-  },
-})
-export default class Templates extends Vue {
-  @Action private createProject;
-  @Mutation private setSelectedFramework;
-  @State("templatesRootPath") private storeTemplatesRootPath: {
-    [key: string]: IExampleCategory;
-  };
-  @State("hasTemplateDetail") private storeHasTemplateDetail;
-  @State("selectedTemplate") private storeSelectedTemplate: IExample;
-  @State("templateDetail") private storeTemplateDetail;
-  @State("selectedFramework") private storeSelectedFramework: string;
-
-  get hasTemplateDetail() {
-    return this.storeHasTemplateDetail;
-  }
-
-  get selectedTemplate() {
-    return this.storeSelectedTemplate;
-  }
-
-  get templates() {
-    if (
-      this.storeTemplatesRootPath &&
-      this.storeTemplatesRootPath[this.selectedFramework]
-    ) {
-      return [this.storeTemplatesRootPath[this.selectedFramework]];
-    }
-  }
-
-  get frameworks() {
-    return Object.keys(this.storeTemplatesRootPath);
-  }
-
-  get templateDetail() {
-    return this.storeTemplateDetail;
-  }
-
-  get selectedFramework() {
-    return this.storeSelectedFramework;
-  }
-
-  set selectedFramework(framework: string) {
-    this.setSelectedFramework(framework);
-  }
-
-  created() {
-    if (this.storeTemplatesRootPath) {
-      const frameworks = Object.keys(this.storeTemplatesRootPath);
-      this.selectedFramework = frameworks.length ? frameworks[0] : "";
-    }
-  }
-}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

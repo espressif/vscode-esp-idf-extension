@@ -196,6 +196,10 @@ the interface is the same as [Internal USB-serial](#internal-usb-serial), that i
 
 <img src="../../media\tutorials\using_docker_container\container_flash_jtag.gif" alt="" height="">
 
+### Additional steps for debugging
+
+Make sure to run `ESP-IDF: Add OpenOCD rules file (For Linux users)` command and `ESP-IDF: Install ESP-IDF Python Packages` command to add openOCD rules and install debug adapter python packages in the WSL before running openOCD and starting a debug session with the ESP-IDF Debug Adapter.
+
 ## Debugging
 
 After following [USB-JTAG](#usb-jtag), press `F5` to start to debug:

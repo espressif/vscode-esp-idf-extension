@@ -15,13 +15,8 @@
 import { EOL } from "os";
 import { join } from "path";
 import { Uri } from "vscode";
-import { CmakeListsElement } from "./cmakeListsElement";
+import { CMakeListsType, CmakeListsElement } from "./cmakeListsElement";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
-
-export enum CMakeListsType {
-  Component = "component",
-  Project = "project",
-}
 
 export async function loadCmakeListBuilder(
   extensionPath: string,
@@ -56,7 +51,7 @@ export function parseCmakeListsText(
     const regex = new RegExp(element.regex, "g");
     let resultStr: RegExpExecArray;
     while ((resultStr = regex.exec(cmakeListFileText))) {
-      if (resultStr && resultStr.length > 1 && resultStr[1].length > 1) {
+      if (resultStr && resultStr.length > 1 && resultStr[1].length) {
         let newElement: CmakeListsElement = JSON.parse(JSON.stringify(element));
         newElement.value = [];
         switch (element.type) {
@@ -90,7 +85,16 @@ export function parseCmakeListsText(
             newElement.value = [resultStr[1].trim()];
             break;
         }
-        resultCMakeListsEls.push(newElement);
+        if (!newElement.canHaveMany) {
+          const existing = resultCMakeListsEls.some((elem) => {
+            return elem.template === newElement.template;
+          });
+          if (!existing) {
+            resultCMakeListsEls.push(newElement);
+          }
+        } else {
+          resultCMakeListsEls.push(newElement);
+        }
       }
     }
   }
@@ -106,7 +110,12 @@ export async function updateCmakeListFile(
   const componentValues: string[] = [];
   const otherValues: string[] = [];
   for (let el of values) {
-    if (el.isComponentElement && el.value && el.value.length > 0) {
+    if (
+      el.isComponentElement &&
+      el.value &&
+      Array.isArray(el.value) &&
+      el.value.length > 0
+    ) {
       const elStr = el.template.replace(
         "***",
         el.value.map((v) => `"${v}"`).join(" ")

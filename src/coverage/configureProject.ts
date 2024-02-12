@@ -17,7 +17,7 @@
  */
 
 import { extensionContext, getConfigValueFromSDKConfig, getEspIdfFromCMake } from "../utils";
-import { readParameter } from "../idfConfiguration";
+import { NotificationMode, readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
   env,
@@ -81,10 +81,19 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
     if (response !== "Start") {
       return;
     }
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      workspacePath
+    ) as string;
+    const progressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? ProgressLocation.Notification
+        : ProgressLocation.Window;
     await window.withProgress(
       {
         cancellable: true,
-        location: ProgressLocation.Notification,
+        location: progressLocation,
         title: "ESP-IDF: Configuring coverage",
       },
       async (

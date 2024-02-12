@@ -1,8 +1,39 @@
+<script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { computed, onMounted } from "vue";
+import { useWelcomeStore } from "./store";
+import Logo from "./components/logo.vue";
+import {
+  IconBeaker,
+  IconComment,
+  IconFolderOpened,
+  IconGear,
+  IconGithub,
+  IconNewFolder,
+  IconTypeHierarchy,
+} from "@iconify-prerendered/vue-codicon";
+
+const store = useWelcomeStore();
+
+const { espIdf, extensionVersion, showOnInit } = storeToRefs(store);
+
+const whatsNewLink = computed(() => {
+  return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${extensionVersion.value}`;
+});
+
+onMounted(() => {
+  store.requestInitValues();
+});
+
+</script>
+
 <template>
   <div id="app">
     <div class="centerize">
-      <logo class="m-1" />
-      <h1 class="title is-spaced mbottom">Welcome to Espressif IDF extension</h1>
+      <Logo class="m-1" />
+      <h1 class="title is-spaced mbottom">
+        Welcome to Espressif IDF extension
+      </h1>
     </div>
     <div class="level">
       <div class="level-left columns">
@@ -13,7 +44,7 @@
             <a :href="whatsNewLink">See what's new</a>
           </div>
           <label class="checkbox is-small">
-            <input type="checkbox" v-model="showOnInit" />
+            <input type="checkbox" v-model="store.showOnInit" @change="store.updateShowOnboardingOnInit" />
             Show Welcome on extension startup
           </label>
         </div>
@@ -21,19 +52,19 @@
       <div class="level-right mright">
         <div class="level-item link">
           <a href="https://github.com/espressif/vscode-esp-idf-extension">
-            <iconify-icon icon="github" />
+            <IconGithub class="icon-margin" />
             Repository
           </a>
         </div>
         <div class="level-item link">
           <a href="https://esp32.com/viewforum.php?f=40">
-            <iconify-icon icon="comment" />
+            <IconComment class="icon-margin" />
             ESP32 Forum
           </a>
         </div>
         <div class="level-item link">
           <a href="https://github.com/espressif/esp-idf">
-            <iconify-icon icon="github" />
+            <IconGithub class="icon-margin" />
             ESP-IDF
           </a>
         </div>
@@ -41,7 +72,7 @@
           <a
             href="https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose"
           >
-            <iconify-icon icon="github" />
+            <IconGithub class="icon-margin" />
             Open a new issue
           </a>
         </div>
@@ -49,55 +80,55 @@
     </div>
 
     <div class="columns column-spacing">
-      <div class="column level notification is-one-third">
-        <div class="level level-right">
+      <div class="column level is-one-third">
+        <div class="level level-left">
           <h1 class="title">Quick actions</h1>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="openSetupPanel" class="button">
-                <iconify-icon icon="gear" />
+              <button @click="store.openSetupPanel" class="button">
+                <IconGear class="icon-margin" />
                 Configure extension
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="openNewProjectPanel" class="button">
-                <iconify-icon icon="new-folder" />
+              <button @click="store.openNewProjectPanel" class="button">
+                <IconNewFolder class="icon-margin" />
                 New project
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="openImportProject" class="button">
-                <iconify-icon icon="folder-opened" />
+              <button @click="store.openImportProject" class="button">
+                <IconFolderOpened class="icon-margin" />
                 Import project
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="openShowExamplesPanel" class="button">
-                <iconify-icon icon="beaker" />
+              <button @click="store.openShowExamplesPanel" class="button">
+                <IconBeaker class="icon-margin" />
                 Show examples
               </button>
             </div>
           </div>
         </div>
-        <div class="level level-right">
+        <div class="level level-left">
           <div class="field">
             <div class="control">
-              <button @click="exploreComponents" class="button">
-                <iconify-icon icon="type-hierarchy" />
+              <button @click="store.exploreComponents" class="button">
+                <IconTypeHierarchy class="icon-margin"/>
                 Components manager
               </button>
             </div>
@@ -105,7 +136,7 @@
         </div>
       </div>
 
-      <div class="column notification is-two-fifths">
+      <div class="column is-two-fifths">
         <div class="level level-right">
           <h1 class="title">Getting Started</h1>
         </div>
@@ -230,51 +261,7 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import Logo from "./components/logo.vue";
-
-@Component({
-  components: {
-    Logo,
-  },
-})
-export default class App extends Vue {
-  @Action exploreComponents: Function;
-  @Action openImportProject: Function;
-  @Action openNewProjectPanel: Function;
-  @Action openSetupPanel: Function;
-  @Action openShowExamplesPanel: Function;
-  @Action updateShowOnboardingOnInit: Function;
-  @Action requestInitValues: Function;
-  @Mutation setShowOnInit: Function;
-  @State("extensionVersion") storeExtensionVersion: string;
-  @State("showOnInit") storeShowOnInit: boolean;
-
-  get extensionVersion() {
-    return this.storeExtensionVersion;
-  }
-
-  get whatsNewLink() {
-    return `https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v${this.storeExtensionVersion}`;
-  }
-
-  get showOnInit() {
-    return this.storeShowOnInit;
-  }
-  set showOnInit(newVal: boolean) {
-    this.setShowOnInit(newVal);
-    this.updateShowOnboardingOnInit();
-  }
-
-  mounted() {
-    this.requestInitValues();
-  }
-}
-</script>
-
-<style lang="scss">
+<style lang="scss" scoped>
 @import "../commons/espCommons.scss";
 
 #app {
@@ -289,6 +276,14 @@ export default class App extends Vue {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+.column {
+  background-color: var(--vscode-notifications-background);
+}
+
+.icon-margin {
+  margin-right: 0.25em;
 }
 
 .column-spacing {
@@ -318,7 +313,7 @@ export default class App extends Vue {
   }
   cursor: pointer;
   a {
-    color: var(--vscode-foreground);
+    color: var(--vscode-editorInfo-foreground);
     display: flex;
     align-items: center;
     text-decoration: none;

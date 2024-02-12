@@ -18,7 +18,7 @@
 
 import { basename, join } from "path";
 import { Progress, ProgressLocation, Uri, window } from "vscode";
-import { readParameter } from "../../idfConfiguration";
+import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
@@ -28,10 +28,19 @@ export async function flashBinaryToPartition(
   binPath: string,
   workspaceFolder: Uri
 ) {
+  const notificationMode = readParameter(
+    "idf.notificationMode",
+    workspaceFolder
+  ) as string;
+  const progressLocation =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Notifications
+      ? ProgressLocation.Notification
+      : ProgressLocation.Window;
   await window.withProgress(
     {
       cancellable: false,
-      location: ProgressLocation.Notification,
+      location: progressLocation,
       title: "ESP-IDF: Flashing binary to device",
     },
     async (progress: Progress<{ message: string; increment: number }>) => {

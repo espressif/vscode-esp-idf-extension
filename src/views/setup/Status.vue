@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import { StatusType } from "./types";
+import PrerequisitesStatus from "./components/statusSection/prerequisites.vue";
+import EspIdfStatus from "./components/statusSection/espIdf.vue";
+import EspIdfToolsStatus from "./components/statusSection/espIdfTools.vue";
+import PythonPkgsStatus from "./components/statusSection/pyPkgs.vue";
+import { useSetupStore } from "./store";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+
+const store = useSetupStore();
+
+const { statusEspIdf, statusEspIdfTools, statusPyVEnv } = storeToRefs(store);
+
+const statusType = computed(() => {
+  return StatusType;
+});
+</script>
+
 <template>
   <div id="status">
     <ul class="statusBar">
@@ -27,57 +46,17 @@
       </li>
     </ul>
 
-    <PrerequisitesStatus />
+    <div id="scrollable">
+      <PrerequisitesStatus />
 
-    <EspIdfStatus />
+      <EspIdfStatus />
 
-    <EspIdfToolsStatus />
+      <EspIdfToolsStatus />
 
-    <PythonPkgsStatus />
+      <PythonPkgsStatus />
+    </div>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { State } from "vuex-class";
-import { StatusType } from "./types";
-import DownloadStatus from "./components/DownloadStatus.vue";
-import PrerequisitesStatus from "./components/statusSection/prerequisites.vue";
-import EspIdfStatus from "./components/statusSection/espIdf.vue";
-import EspIdfToolsStatus from "./components/statusSection/espIdfTools.vue";
-import PythonPkgsStatus from "./components/statusSection/pyPkgs.vue";
-
-@Component({
-  components: {
-    DownloadStatus,
-    EspIdfStatus,
-    EspIdfToolsStatus,
-    PythonPkgsStatus,
-    PrerequisitesStatus,
-  },
-})
-export default class Status extends Vue {
-  @State("statusEspIdf") private storeEspIdfStatus: StatusType;
-  @State("statusEspIdfTools") private storeEspIdfToolsStatus: StatusType;
-  @State("statusPyVEnv") private storePyVenvStatus: StatusType;
-
-  get statusEspIdf() {
-    return this.storeEspIdfStatus;
-  }
-
-  get statusEspIdfTools() {
-    return this.storeEspIdfToolsStatus;
-  }
-
-  get statusPyVEnv() {
-    return this.storePyVenvStatus;
-  }
-
-  get statusType() {
-    return StatusType;
-  }
-}
-</script>
 
 <style>
 #status {
@@ -122,10 +101,10 @@ export default class Status extends Vue {
 
 .statusBar li:after {
   content: "";
-  width: 22%;
+  width: 25%;
   height: 2px;
-  top: 7.75em;
-  margin-left: 2%;
+  top: 8.75em;
+  margin-left: 0.75em;
   background-color: var(--vscode-button-foreground);
   position: absolute;
   transition: opacity 1s;
@@ -178,5 +157,12 @@ export default class Status extends Vue {
   100% {
     transform: rotate(360deg);
   }
+}
+
+#scrollable {
+  width: 100%;
+  height: 50em;
+  overflow: auto;
+  padding: 10px;
 }
 </style>

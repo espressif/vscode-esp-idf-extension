@@ -1,3 +1,60 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, Ref } from "vue";
+import { TracingTree, useTracingStore } from "../store";
+
+const props = defineProps<{
+  tree: TracingTree;
+  space: number;
+  total: number;
+}>();
+
+let isOpen: Ref<boolean> = ref(false);
+
+const callRef = ref();
+
+const store = useTracingStore();
+
+const spaces = computed(() => {
+  return new Array(props.space).join("&nbsp;&nbsp;&nbsp;&nbsp;");
+});
+
+function collapseAndExpandAll(isExpand: boolean) {
+  if (props.tree.child) {
+    isOpen.value = isExpand;
+  }
+  if (callRef && callRef.value && callRef.value.collapseAndExpandAll) {
+    callRef.value.collapseAndExpandAll(isExpand);
+  }
+}
+
+defineExpose({
+  collapseAndExpandAll,
+});
+
+function toggle() {
+  if (props.tree.child) {
+    isOpen.value = !isOpen.value;
+  }
+}
+function percentage() {
+  const percentageStr = `(${Math.ceil(
+    (props.tree.size / props.total) * 100
+  ).toFixed(2)}%)`;
+  return percentageStr === "(0.00%)" ? "" : percentageStr;
+}
+function openFileAtLine(filePath: string, lineNumber: string) {
+  let lineNumMatches = lineNumber.match(/[0-9]*/);
+  if (lineNumMatches && lineNumMatches.length) {
+    const lineNumberInt = parseInt(lineNumMatches[0]);
+    store.treeOpenFileHandler(filePath, lineNumberInt);
+  }
+}
+
+onMounted(() => {
+  console.log(props.tree);
+})
+</script>
+
 <template>
   <div class="calls">
     <div class="columns">
@@ -5,7 +62,7 @@
         {{ tree.size }}
         &nbsp;
         <span class="is-pulled-right is-hidden-mobile">
-          {{ percentage() === "(0.00%)" ? "" : percentage() }}
+          {{ percentage() }}
           &nbsp;&nbsp;
         </span>
       </div>
@@ -33,6 +90,7 @@
     </div>
     <div v-show="isOpen" v-if="tree.child">
       <Calls
+        ref="callRef"
         v-bind:tree="tree.child"
         v-bind:space="space + 1"
         :total="total"
@@ -40,51 +98,6 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-const Calls = Vue.extend({
-  name: "Calls",
-  props: {
-    tree: Object,
-    space: Number,
-    total: Number,
-  },
-  data() {
-    return {
-      isOpen: false,
-    };
-  },
-  methods: {
-    toggle() {
-      if (this.tree.child) {
-        this.isOpen = !this.isOpen;
-      }
-    },
-    collapseAndExpandAll(isExpand: boolean) {
-      this.$children.forEach((child) => {
-        child.collapseAndExpandAll(isExpand);
-        if (this.tree.child) {
-          this.isOpen = isExpand;
-        }
-      });
-    },
-    percentage() {
-      return `(${Math.ceil((this.tree.size / this.total) * 100).toFixed(2)}%)`;
-    },
-    openFileAtLine(filePath: string, lineNumber: string) {
-      const lineNumberInt = parseInt(lineNumber.match(/[0-9]*/)[0]);
-      this.$root.treeOpenFileHandler(filePath, lineNumberInt);
-    },
-  },
-  computed: {
-    spaces() {
-      return new Array(this.space).join("&nbsp;&nbsp;&nbsp;&nbsp;");
-    },
-  },
-});
-export default Calls;
-</script>
 
 <style lang="scss" scoped>
 * {

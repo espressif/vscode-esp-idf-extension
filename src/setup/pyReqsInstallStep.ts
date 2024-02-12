@@ -29,6 +29,7 @@ export async function createPyReqs(
   exportVars: { [key: string]: string },
   gitPath: string,
   saveScope: vscode.ConfigurationTarget,
+  context: vscode.ExtensionContext,
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken
 ) {
@@ -41,6 +42,7 @@ export async function createPyReqs(
     toolsPath,
     pyPath,
     gitPath,
+    context,
     progress,
     cancelToken
   );

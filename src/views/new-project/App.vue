@@ -3,18 +3,13 @@
     <div class="control">
       <h1 class="title is-spaced">New Project</h1>
     </div>
-    <transition name="fade" mode="out-in">
-      <router-view />
-    </transition>
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </div>
 </template>
-
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Action, State } from "vuex-class";
-
-export default class App extends Vue {}
-</script>
 
 <style lang="scss">
 @import "../commons/espCommons.scss";

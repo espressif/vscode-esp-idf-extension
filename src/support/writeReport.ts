@@ -59,6 +59,7 @@ export async function writeTextReport(
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
   output += `Git Path (idf.gitPath) ${reportedResult.configurationSettings.gitPath}${EOL}`;
+  output += `Notification Mode (idf.notificationMode) ${reportedResult.configurationSettings.notificationMode}${EOL}`;
   if (reportedResult.configurationSettings.customTerminalExecutable) {
     output += `Custom terminal executable (idf.customTerminalExecutable) ${reportedResult.configurationSettings.customTerminalExecutable}${EOL}`;
   }

@@ -43,15 +43,6 @@ jobs:
           name: test-result.xml
           path: test-result.xml
 
-      - name: Package open .vsix
-        run: yarn packageWithoutDependencies
-
-      - name: Upload no dependencies .vsix File
-        uses: actions/upload-artifact@v1
-        with:
-          name: esp-idf-extension-open.vsix
-          path: esp-idf-extension-open.vsix
-
       - name: Package .vsix
         run: yarn package
 

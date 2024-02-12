@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import { ref } from "vue";
+const size = ref("48");
+</script>
+
 <template>
   <svg
     :width="size"
@@ -36,16 +41,7 @@
   </svg>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-
-@Component
-export default class Logo extends Vue {
-  size = "48";
-}
-</script>
-
-<style lang="scss">
+<style scoped>
 .cls-1 {
   fill: var(--vscode-editorGutter-deletedBackground);
 }

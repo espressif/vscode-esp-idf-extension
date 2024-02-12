@@ -107,7 +107,9 @@ export class projectConfigurationPanel {
           });
           break;
         case "saveProjectConfFile":
-          await this.saveProjectConfFile(message.confDict);
+          if (message.confDict) {
+            await this.saveProjectConfFile(JSON.parse(message.confDict));
+          }
           break;
         case "openBuildPath":
           let buildPath = await this.openFolder();

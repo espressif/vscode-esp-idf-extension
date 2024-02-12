@@ -1,3 +1,32 @@
+<script setup lang="ts">
+import IdfComponent from "./IdfComponent.vue";
+import { useNewProjectStore } from "../store";
+import { storeToRefs } from "pinia";
+import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
+import {
+  IconAdd,
+  IconFolder,
+  IconFolderOpened,
+} from "@iconify-prerendered/vue-codicon";
+import { ref } from "vue";
+const store = useNewProjectStore();
+
+let { currentComponentPath, components } = storeToRefs(store);
+
+let folderIcon = ref("folder");
+
+function addToComponentList() {
+  if (currentComponentPath.value.trim() != "") {
+    const component: IComponent = {
+      name: currentComponentPath.value,
+      path: currentComponentPath.value,
+    };
+    store.components.push(component);
+    store.currentComponentPath = "";
+  }
+}
+</script>
+
 <template>
   <div id="components">
     <div class="field">
@@ -12,76 +41,32 @@
           />
         </div>
         <div class="control">
-          <div class="icon is-large is-size-4" style="text-decoration: none;">
-            <iconify-icon
-              :icon="folderIcon"
-              @mouseover="folderIcon = 'folder-opened'"
-              @mouseout="folderIcon = 'folder'"
-              v-on:click="openComponentFolder"
-            />
+          <div
+            class="icon is-large is-size-4"
+            style="text-decoration: none;"
+            @mouseover="folderIcon = 'folder-opened'"
+            @mouseout="folderIcon = 'folder'"
+            v-on:click="store.openComponentFolder"
+          >
+            <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
+            <IconFolder v-if="(folderIcon === 'folder')" />
           </div>
         </div>
         <div class="control add-icon">
           <div class="icon is-large is-size-4">
-            <iconify-icon icon="add" @click="addToComponentList" />
+            <IconAdd @click="addToComponentList" />
           </div>
         </div>
       </div>
     </div>
     <IdfComponent
-      v-for="idfComp in components"
+      v-for="(idfComp, index) in components"
       :comp="idfComp"
       :key="idfComp.name"
+      :removeComponent="(comp) => components.splice(index, 1)"
     />
   </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
-import { Action, Mutation, State } from "vuex-class";
-import folderOpen from "./folderOpen.vue";
-import IdfComponent from "./IdfComponent.vue";
-import { IComponent } from "../../../espIdf/idfComponent/IdfComponent";
-
-@Component({
-  components: {
-    folderOpen,
-    IdfComponent,
-  },
-})
-export default class Components extends Vue {
-  public folderIcon = "folder";
-  @Action private openComponentFolder;
-  @Mutation private addComponent;
-  @State("components") private storeComponents: IdfComponent[];
-  @State("currentComponentPath") private storeCurrentComponentPath: string;
-  @Mutation private setCurrentComponentPath;
-
-  get components() {
-    return this.storeComponents;
-  }
-
-  get currentComponentPath() {
-    return this.storeCurrentComponentPath;
-  }
-
-  set currentComponentPath(newPath: string) {
-    this.setCurrentComponentPath(newPath);
-  }
-
-  private addToComponentList() {
-    if (this.storeCurrentComponentPath.trim() != "") {
-      const component: IComponent = {
-        name: this.storeCurrentComponentPath,
-        path: this.storeCurrentComponentPath,
-      };
-      this.addComponent(component);
-      this.setCurrentComponentPath("");
-    }
-  }
-}
-</script>
 
 <style scoped>
 #components {

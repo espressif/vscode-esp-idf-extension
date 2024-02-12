@@ -1,3 +1,21 @@
+/*
+ * Project: ESP-IDF VSCode Extension
+ * File Created: Wednesday, 13th September 2023 9:49:09 am
+ * Copyright 2023 Espressif Systems (Shanghai) CO LTD
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 function getActivationsStats(points) {
   let activations = points.length / 2;
   if (!!(points.length & 1)) {
@@ -41,7 +59,7 @@ function getTotalTracingTimePerCore(plotData): { [core_id: number]: number } {
 }
 
 export function fillStatsTable(plotData): string[][] {
-  const rows = [];
+  const rows: string[][] = [];
   const totalTracingTime = getTotalTracingTimePerCore(plotData);
   plotData.forEach((data) => {
     if (data && data.name && data.name !== "context-switch") {

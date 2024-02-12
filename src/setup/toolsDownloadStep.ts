@@ -28,6 +28,7 @@ export async function downloadIdfTools(
   gitPath: string,
   mirror: ESP.IdfMirror,
   saveScope: vscode.ConfigurationTarget,
+  context: vscode.ExtensionContext,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
   onReqPkgs?: string[]
@@ -71,6 +72,7 @@ export async function downloadIdfTools(
     exportVars,
     gitPath,
     saveScope,
+    context,
     progress,
     cancelToken
   );

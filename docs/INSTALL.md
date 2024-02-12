@@ -24,7 +24,6 @@ To install from `.vsix` File:
 ## Build from Source Code
 
 - Install [Node.js](https://nodejs.org/en/)
-- Make sure have the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) from Visual Studio Code Marketplace.
 - Clone this repository `git clone --recursive https://github.com/espressif/vscode-esp-idf-extension.git`
 - Install all the dependencies, using `yarn`
 - Press <kbd>F5</kbd> to Run with Debugger, this will launch a new VS Code Extension Development Host to debug the extension.

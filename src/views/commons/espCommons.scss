@@ -110,3 +110,10 @@ button > span.icon > i:hover {
 div.plotly-notifier {
   visibility: hidden;
 }
+
+#icons {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+  justify-content: center;
+}

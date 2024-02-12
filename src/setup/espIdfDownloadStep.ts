@@ -38,6 +38,7 @@ export async function expressInstall(
   mirror: ESP.IdfMirror,
   saveScope: vscode.ConfigurationTarget,
   setupMode: SetupMode,
+  context: vscode.ExtensionContext,
   gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
@@ -120,6 +121,7 @@ export async function expressInstall(
     gitPath,
     mirror,
     saveScope,
+    context,
     progress,
     cancelToken,
     onReqPkgs

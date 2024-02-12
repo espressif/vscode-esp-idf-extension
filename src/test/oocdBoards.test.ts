@@ -19,7 +19,8 @@
 import * as assert from "assert";
 import { readJSON } from "fs-extra";
 import { join } from "path";
-import { defaultBoards, getBoards } from "../espIdf/openOcd/boardConfiguration";
+import { getBoards } from "../espIdf/openOcd/boardConfiguration";
+import { defaultBoards } from "../espIdf/openOcd/defaultBoards";
 
 suite("OpenOCD Board tests", () => {
   let boardJsonObj: any;
