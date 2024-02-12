@@ -7,6 +7,5 @@
   "menuconfig.changesNotSaved": "Changes in SDK Configuration editor have not been saved. Would you like to save them?",
   "menuconfig.save": "Save",
   "menuconfig.discard": "Don't save",
-  "menuconfig.returnGuiconfig": "Return to SDK Configuration editor",
-  "menuconfig.disabledFlashEncryption": "Flash encryption has been disabled in the SDK configuration"
+  "menuconfig.returnGuiconfig": "Return to SDK Configuration editor"
 }

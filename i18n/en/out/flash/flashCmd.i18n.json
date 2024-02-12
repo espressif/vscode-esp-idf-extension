@@ -1,4 +1,3 @@
 {
-  "flash.waitProcessIsFinishedMessage": "Wait for ESP-IDF build or flash to finish",
-  "flash.saveFlashTypeUART": "Flashing method successfully changed to UART"
+  "flash.waitProcessIsFinishedMessage": "Wait for ESP-IDF build or flash to finish"
 }
