@@ -8,5 +8,5 @@
   "menuconfig.save": "Guardar",
   "menuconfig.discard": "No guardar",
   "menuconfig.returnGuiconfig": "Regresar a SDK Configuration editor",
-  "menuconfig.disabledFlashEncryption": "Flash encryption has been disabled in the SDK configuration"
+  "menuconfig.disabledFlashEncryption": "La encriptación flash ha sido deshabilitada en la configuración del SDK"
 }
