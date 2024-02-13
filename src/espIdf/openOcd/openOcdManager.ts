@@ -226,7 +226,10 @@ export class OpenOCDManager extends EventEmitter {
         const err = new Error(errorMsg);
         Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
-        OutputChannel.appendLine(`For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`, "OpenOCD");
+        OutputChannel.appendLine(
+          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
+          "OpenOCD"
+        );
         this.emit("error", err, this.chan);
       }
       OutputChannel.appendLine(errStr, "OpenOCD");
