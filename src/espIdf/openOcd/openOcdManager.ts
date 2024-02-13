@@ -53,6 +53,7 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem;
   private tclConnectionParams: TCLConnection;
   private workspace: vscode.Uri;
+  private encounteredErrors: boolean = false;
 
   private constructor() {
     super();
@@ -212,6 +213,7 @@ export class OpenOCDManager extends EventEmitter {
       env: modifiedEnv,
     });
     this.server.stderr.on("data", (data) => {
+      this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
       const regex = /Error:.*/i;
@@ -226,10 +228,6 @@ export class OpenOCDManager extends EventEmitter {
         const err = new Error(errorMsg);
         Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
-        OutputChannel.appendLine(
-          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
-          "OpenOCD"
-        );
         this.emit("error", err, this.chan);
       }
       OutputChannel.appendLine(errStr, "OpenOCD");
@@ -245,6 +243,13 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.server.on("close", (code: number, signal: string) => {
+      if(this.encounteredErrors) {
+        OutputChannel.appendLine(
+          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
+          "OpenOCD"
+        );
+      }
+      this.encounteredErrors = false;
       if (!signal && code && code !== 0) {
         Logger.errorNotify(
           `OpenOCD Exit with non-zero error code ${code}`,
