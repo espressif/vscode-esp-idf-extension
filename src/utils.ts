@@ -97,7 +97,7 @@ export class PreCheck {
         /v(\d+.?\d+.?\d)-esp32-(\d+)/
       );
       if (!minVersionParsed || !currentVersionParsed) {
-        throw new Error("Error parsing versions");
+        throw new Error("Error parsing OpenOCD versions");
       }
       const validationResult =
         currentVersionParsed[1] >= minVersionParsed[1]

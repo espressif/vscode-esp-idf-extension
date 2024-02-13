@@ -29,6 +29,7 @@ import {
   spawn as sspawn,
 } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
+import { ESP } from "../../config";
 
 export interface IOpenOCDConfig {
   host: string;
@@ -225,6 +226,7 @@ export class OpenOCDManager extends EventEmitter {
         const err = new Error(errorMsg);
         Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
+        OutputChannel.appendLine(`For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
       OutputChannel.appendLine(errStr, "OpenOCD");
