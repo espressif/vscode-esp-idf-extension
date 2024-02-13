@@ -243,7 +243,7 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.server.on("close", (code: number, signal: string) => {
-      if(this.encounteredErrors) {
+      if (this.encounteredErrors) {
         OutputChannel.appendLine(
           `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
           "OpenOCD"
