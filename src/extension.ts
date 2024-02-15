@@ -3812,7 +3812,7 @@ async function selectFlashMethod() {
     {
       ignoreFocusOut: true,
       placeHolder:
-        "Select flash method, you can modify the choice later from settings 'idf.flashType'",
+        "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)",
     }
   )) as ESP.FlashType;
   if (!newFlashType) {
