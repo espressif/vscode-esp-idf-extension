@@ -133,6 +133,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-MDF                                         |                                        |                                           |
 | Install ESP-Matter                                      |                                        |                                           |
 | Install ESP-Rainmaker                                   |                                        |                                           |
+| Install ESP-HomeKit-SDK                                 |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU Server                                      |                                        |                                           |
 | Launch QEMU Debug Session                               |                                        |                                           |
@@ -176,7 +177,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 
 5. The **Install ESP-MDF** will clone ESP-MDF inside the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-6. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are correctly defined.
+6. The **Install ESP-HomeKit-SDK** will clone ESP-HomeKit-SDK inside the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
+
+7. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter, ESP-HomeKit-SDK or ESP-MDF directory if related configuration settings are correctly defined.
 
 # Commands for tasks.json and launch.json
 

@@ -407,6 +407,12 @@
             "description": "%param.espMatterPath%",
             "scope": "resource"
           },
+          "idf.espHomeKitSdkPath": {
+            "type": "string",
+            "default": "${env:HOMEKIT_PATH}",
+            "description": "%param.espHomeKitSdkPath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
@@ -447,6 +453,12 @@
             "type": "string",
             "default": "${env:RMAKER_PATH}",
             "description": "%param.espRainmakerPath%",
+            "scope": "resource"
+          },
+          "idf.espHomeKitSdkPathWin": {
+            "type": "string",
+            "default": "${env:HOMEKIT_PATH}",
+            "description": "%param.espHomeKitSdkPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -1201,6 +1213,11 @@
       {
         "command": "espIdf.getEspRainmaker",
         "title": "%espIdf.getEspRainmaker.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.getEspHomeKitSdk",
+        "title": "%espIdf.getEspHomeKitSdk.title%",
         "category": "ESP-IDF"
       },
       {

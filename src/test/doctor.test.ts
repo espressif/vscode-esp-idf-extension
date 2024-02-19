@@ -290,6 +290,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
     expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
+    expectedOutput += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
     expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
     if (
       reportObj.configurationSettings.customExtraVars &&

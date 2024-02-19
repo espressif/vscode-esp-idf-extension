@@ -23,6 +23,7 @@ export class ConfigurationAccess {
   espAdfPath: boolean;
   espMdfPath: boolean;
   espMatterPath: boolean;
+  espHomeKitPath: boolean;
   espIdfToolsPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   cmakeInEnv: boolean;
@@ -35,6 +36,7 @@ export class Configuration {
   espAdfPath: string;
   espMdfPath: string;
   espMatterPath: string;
+  espHomeKitPath: string;
   customExtraPaths: string;
   customExtraVars: { [key: string]: string };
   notificationMode: string;
@@ -54,6 +56,7 @@ export class ConfigurationSpacesValidation {
   espAdfPath: boolean;
   espMdfPath: boolean;
   espMatterPath: boolean;
+  espHomeKitPath: boolean;
   customExtraPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
   toolsPath: boolean;

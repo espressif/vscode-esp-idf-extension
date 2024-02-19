@@ -912,6 +912,12 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
   modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
 
+  const homekitPathDir = idfConf.readParameter(
+    "idf.espHomeKitSdkPath",
+    curWorkspace
+  );
+  modifiedEnv.HOMEKIT_PATH = homekitPathDir || modifiedEnv.HOMEKIT_PATH;
+
   const rainmakerPathDir = idfConf.readParameter(
     "idf.espRainmakerPath",
     curWorkspace
