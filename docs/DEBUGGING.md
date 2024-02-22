@@ -7,13 +7,100 @@
 
 The Visual Studio Code uses `.vscode/launch.json` to configure debug as specified in [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
 
-We recommend using our ESP-IDF Debug Adapter to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug).
+We recommend using our Eclipse CDT GDB configuration to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). The ESP-IDF Debug adapter will be deprecated and removed in the next major release.
 
 Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF SVD File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
+## Using the Eclipse CDT GDB Debug Adapter
+
+The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter).
+
+```JSON
+{
+  "configurations": [
+    {
+      "type": "gdbtarget",
+      "request": "attach",
+      "name": "Eclipse CDT Remote",
+      "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+      "initCommands": [
+        "set remote hardware-watchpoint-limit 2",
+        "mon reset halt",
+        "maintenance flush register-cache",
+        "thb app_main",
+      ],
+      "gdb": "${command:espIdf.getXtensaGdb}",
+      "target": {
+        "port": "3333"
+      },
+    }
+  ]
+}
+```
+
+## Use Microsoft C/C++ Extension to Debug
+
+The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to debug, the community recommend this launch.json configuration:
+
+```JSON
+{
+  "configurations": [
+    {
+      "name": "GDB",
+      "type": "cppdbg",
+      "request": "launch",
+      "MIMode": "gdb",
+      "miDebuggerPath": "${command:espIdf.getXtensaGdb}",
+      "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+      "windows": {
+        "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
+      },
+      "cwd": "${workspaceFolder}",
+      "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
+      "setupCommands": [
+        { "text": "target remote :3333" },
+        { "text": "set remote hardware-watchpoint-limit 2"},
+        { "text": "mon reset halt" },
+        { "text": "maintenance flush register-cache" }
+        { "text": "thb app_main" },
+      ],
+      "externalConsole": false,
+      "logging": {
+        "engineLogging": true
+      }
+    }
+  ]
+}
+```
+
+# Using NativeDebug
+
+The user can also try using the [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug) extension with this example launch.json configuration:
+
+```JSON
+{
+  "configurations": [
+    {
+      "type": "gdb",
+      "request": "attach",
+      "name": "NativeDebug",
+      "target": "extended-remote :3333",
+      "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+      "gdbpath": "${command:espIdf.getXtensaGdb}",
+      "cwd": "${workspaceRoot}",
+      "autorun": [
+        "mon reset halt",
+        "maintenance flush register-cache",
+        "thb app_main"
+      ]
+    }
+  ]
+}
+```
+
 ## Use the ESP-IDF Debug Adapter
 
-> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable you use in `idf.pythonBinPath` contains these libraries. This will be dropped in later versions of ESP-IDF.
+**DEPRECATED NOTICE**: We are deprecating the use of our ESP-IDF Debug Adapter in favor of using the Eclipse CDT GDB Adapter. It will removed from extension in the future major release.
 
 This extension includes the [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) which implement the debug adapter protocol (DAP) to communicate Xtensa's Toolchain and OpenOCD with Visual Studio Code allowing the user to easily debug ESP-IDF applications. Visual Studio Code will:
 
@@ -81,8 +168,8 @@ Example launch.json for ESP-IDF Debug Adapter:
         "target remote :3333",
         "symbol-file /path/to/program.elf",
         "mon reset halt",
+        "maintenance flush register-cache",
         "thb app_main",
-        "flushregs",
       ],
       "env": {
         "CUSTOM_ENV_VAR": "SOME_VALUE"
@@ -95,63 +182,3 @@ Example launch.json for ESP-IDF Debug Adapter:
 ### Output and Logs from ESP-IDF Debug Adapter and OpenOCD
 
 Beside the Visual Studio Code Debug console output. You can find OpenOCD and the ESP-IDF debug adapter output in `<project_dir>/debug.log` and Menu View -> Output -> `ESP-IDF`.
-
-## Use Microsoft C/C++ Extension to Debug
-
-The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to debug, the community recommend this launch.json configuration:
-
-```JSON
-{
-  "configurations": [
-    {
-      "name": "GDB",
-      "type": "cppdbg",
-      "request": "launch",
-      "MIMode": "gdb",
-      "miDebuggerPath": "${command:espIdf.getXtensaGdb}",
-      "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-      "windows": {
-        "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
-      },
-      "cwd": "${workspaceFolder}",
-      "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
-      "setupCommands": [
-        { "text": "target remote :3333" },
-        { "text": "set remote hardware-watchpoint-limit 2"},
-        { "text": "mon reset halt" },
-        { "text": "thb app_main" },
-        { "text": "flushregs" }
-      ],
-      "externalConsole": false,
-      "logging": {
-        "engineLogging": true
-      }
-    }
-  ]
-}
-```
-
-# Using NativeDebug
-
-The user can also try using the [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug) extension with this example launch.json configuration:
-
-```JSON
-{
-  "configurations": [
-    {
-      "type": "gdb",
-      "request": "attach",
-      "name": "NativeDebug",
-      "target": "extended-remote :3333",
-      "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-      "gdbpath": "${command:espIdf.getXtensaGdb}",
-      "cwd": "${workspaceRoot}",
-      "autorun": [
-        "mon reset halt",
-        "thb app_main",
-        "flushregs"
-      ]
-    }
-  ]
-}
-```

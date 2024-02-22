@@ -1399,7 +1399,8 @@
         "type": "espidf",
         "label": "ESP-IDF",
         "languages": [
-          "cpp"
+          "cpp",
+          "c"
         ],
         "runtime": "python",
         "configurationAttributes": {
@@ -1481,6 +1482,493 @@
               "request": "launch"
             },
             "description": "%debug.initConfig.description%"
+          }
+        ]
+      },
+      {
+        "type": "gdbtarget",
+        "label": "GDB Target",
+        "program": "./node_modules/cdt-gdb-adapter/dist/debugTargetAdapter.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "gdb": {
+                "type": "string",
+                "description": "Path to gdb",
+                "default": "gdb"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
+              },
+              "environment": {
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "default": {},
+                "description": "Environment variables to use when launching gdb, defined as a key-value pairs. Use null value to remove variable. For example:\n\"environment\": {\n  \"VARNAME\": \"value\",\n  \"PATH\": \"/new/item:${env:PATH}\",\n  \"REMOVEME\": null\n}",
+                "type": "object"
+              },
+              "program": {
+                "type": "string",
+                "description": "Path to the program to be launched",
+                "default": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf"
+              },
+              "gdbAsync": {
+                "type": "boolean",
+                "description": "Use mi-async mode for communication with GDB. (defaults to true, always true when gdbNonStop is true)",
+                "default": true
+              },
+              "gdbNonStop": {
+                "type": "boolean",
+                "description": "Use non-stop mode for controlling multiple threads. (defaults to false)",
+                "default": false
+              },
+              "verbose": {
+                "type": "boolean",
+                "description": "Produce verbose log output",
+                "default": false
+              },
+              "logFile": {
+                "type": "string",
+                "description": "Absolute path to the file to log interaction with gdb"
+              },
+              "openGdbConsole": {
+                "type": "boolean",
+                "description": "(UNIX-only) Open a GDB console in your IDE while debugging"
+              },
+              "initCommands": {
+                "type": "array",
+                "description": "List of GDB commands sent after attaching to target before loading image on target.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "preRunCommands": {
+                "type": "array",
+                "description": "List of GDB commands sent after loading image on target before resuming target.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "imageAndSymbols": {
+                "type": "object",
+                "default": {},
+                "properties": {
+                  "symbolFileName": {
+                    "type": "string",
+                    "description": "If specified, a symbol file to load at the given (optional) offset",
+                    "default": ""
+                  },
+                  "symbolOffset": {
+                    "type": "string",
+                    "description": "If symbolFileName is specified, the offset used to load",
+                    "default": ""
+                  },
+                  "imageFileName": {
+                    "type": "string",
+                    "description": "If specified, an image file to load at the given (optional) offset",
+                    "default": ""
+                  },
+                  "imageOffset": {
+                    "type": "string",
+                    "description": "If imageFileName is specified, the offset used to load",
+                    "default": ""
+                  }
+                }
+              },
+              "target": {
+                "type": "object",
+                "default": {},
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
+                    "default": "remote"
+                  },
+                  "parameters": {
+                    "type": "array",
+                    "description": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "host": {
+                    "type": "string",
+                    "description": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
+                    "default": "localhost"
+                  },
+                  "port": {
+                    "type": "string",
+                    "description": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
+                    "default": "2331"
+                  },
+                  "cwd": {
+                    "type": "string",
+                    "description": "Specifies the working directory of server (defaults to the working directory of gdb)",
+                    "default": ""
+                  },
+                  "environment": {
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "default": {},
+                    "description": "Environment variables to use when launching server (defaults to the environment used to launch gdb), defined as a key-value pairs. Use null value to remove variable. For example:\n\"environment\": {\n  \"VARNAME\": \"value\",\n  \"PATH\": \"/new/item:${env:PATH}\",\n  \"REMOVEME\": null\n}",
+                    "type": "object"
+                  },
+                  "server": {
+                    "type": "string",
+                    "description": "The executable for the target server to launch (e.g. gdbserver or JLinkGDBServerCLExe) (defaults to gdbserver)",
+                    "default": "gdbserver"
+                  },
+                  "serverParameters": {
+                    "type": "array",
+                    "description": "Command line arguments passed to server (defaults to --once :0 ${args.program}).",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "serverPortRegExp": {
+                    "type": "string",
+                    "description": "Regular expression to extract port from by examinging stdout/err of server. Once server is launched, port will be set to this if port is not set. Defaults to matching a string like 'Listening on port 41551' which is what gdbserver provides. Ignored if port or parameters is set",
+                    "default": ""
+                  },
+                  "serverStartupDelay": {
+                    "type": "number",
+                    "description": "Delay after startup before continuing launch, in milliseconds. If serverPortRegExp is provided, it is the delay after that regexp is seen.",
+                    "default": "0"
+                  },
+                  "automaticallyKillServer": {
+                    "type": "boolean",
+                    "description": "Automatically kill the launched server when client issues a disconnect (default: true)"
+                  },
+                  "uart": {
+                    "type": "object",
+                    "description": "Settings related to displaying UART output in the debug console",
+                    "properties": {
+                      "serialPort": {
+                        "type": "string",
+                        "description": "Path to the serial port connected to the UART on the board."
+                      },
+                      "socketPort": {
+                        "type": "string",
+                        "description": "Target TCP port on the host machine to attach socket to print UART output (defaults to 3456)",
+                        "default": "3456"
+                      },
+                      "baudRate": {
+                        "type": "number",
+                        "description": "Baud Rate (in bits/s) of the serial port to be opened (defaults to 115200).",
+                        "default": 115200
+                      },
+                      "characterSize": {
+                        "type": "number",
+                        "enum": [
+                          5,
+                          6,
+                          7,
+                          8
+                        ],
+                        "description": "The number of bits in each character of data sent across the serial line (defaults to 8).",
+                        "default": 8
+                      },
+                      "parity": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "odd",
+                          "even",
+                          "mark",
+                          "space"
+                        ],
+                        "description": "The type of parity check enabled with the transmitted data (defaults to \"none\" - no parity bit sent)",
+                        "default": "none"
+                      },
+                      "stopBits": {
+                        "type": "number",
+                        "enum": [
+                          1,
+                          1.5,
+                          2
+                        ],
+                        "description": "The number of stop bits sent to allow the receiver to detect the end of characters and resynchronize with the character stream (defaults to 1).",
+                        "default": 1
+                      },
+                      "handshakingMethod": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "XON/XOFF",
+                          "RTS/CTS"
+                        ],
+                        "description": "The handshaking method used for flow control across the serial line (defaults to \"none\" - no handshaking)",
+                        "default": "none"
+                      },
+                      "eolCharacter": {
+                        "type": "string",
+                        "enum": [
+                          "LF",
+                          "CRLF"
+                        ],
+                        "description": "The EOL character used to parse the UART output line-by-line (defaults to \"LF\").",
+                        "default": "LF"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "gdb": {
+                "type": "string",
+                "description": "Path to gdb",
+                "default": "gdb"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
+              },
+              "environment": {
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "default": {},
+                "description": "Environment variables to use when launching gdb, defined as a key-value pairs. Use null value to remove variable. For example:\n\"environment\": {\n  \"VARNAME\": \"value\",\n  \"PATH\": \"/new/item:${env:PATH}\",\n  \"REMOVEME\": null\n}",
+                "type": "object"
+              },
+              "program": {
+                "type": "string",
+                "description": "Path to the program to be debugged",
+                "default": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf"
+              },
+              "gdbAsync": {
+                "type": "boolean",
+                "description": "Use mi-async mode for communication with GDB. (defaults to true, always true when gdbNonStop is true)",
+                "default": true
+              },
+              "gdbNonStop": {
+                "type": "boolean",
+                "description": "Use non-stop mode for controlling multiple threads. (defaults to false)",
+                "default": false
+              },
+              "verbose": {
+                "type": "boolean",
+                "description": "Produce verbose log output",
+                "default": false
+              },
+              "logFile": {
+                "type": "string",
+                "description": "Absolute path to the file to log interaction with gdb"
+              },
+              "openGdbConsole": {
+                "type": "boolean",
+                "description": "(UNIX-only) Open a GDB console in your IDE while debugging"
+              },
+              "initCommands": {
+                "type": "array",
+                "description": "List of GDB commands sent after attaching to target before loading image on target.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "preRunCommands": {
+                "type": "array",
+                "description": "List of GDB commands sent after loading image on target before resuming target.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "imageAndSymbols": {
+                "type": "object",
+                "default": {},
+                "properties": {
+                  "symbolFileName": {
+                    "type": "string",
+                    "description": "If specified, a symbol file to load at the given (optional) offset",
+                    "default": ""
+                  },
+                  "symbolOffset": {
+                    "type": "string",
+                    "description": "If symbolFileName is specified, the offset used to load",
+                    "default": ""
+                  },
+                  "imageFileName": {
+                    "type": "string",
+                    "description": "If specified, an image file to load at the given (optional) offset",
+                    "default": ""
+                  },
+                  "imageOffset": {
+                    "type": "string",
+                    "description": "If imageFileName is specified, the offset used to load",
+                    "default": ""
+                  }
+                }
+              },
+              "target": {
+                "type": "object",
+                "default": {},
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
+                    "default": "remote"
+                  },
+                  "parameters": {
+                    "type": "array",
+                    "description": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "host": {
+                    "type": "string",
+                    "description": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
+                    "default": "localhost"
+                  },
+                  "port": {
+                    "type": "string",
+                    "description": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
+                    "default": "2331"
+                  },
+                  "uart": {
+                    "type": "object",
+                    "description": "Settings related to displaying UART output in the debug console",
+                    "properties": {
+                      "serialPort": {
+                        "type": "string",
+                        "description": "Path to the serial port connected to the UART on the board."
+                      },
+                      "socketPort": {
+                        "type": "string",
+                        "description": "Target TCP port on the host machine to attach socket to print UART output (defaults to 3456)",
+                        "default": "3456"
+                      },
+                      "baudRate": {
+                        "type": "number",
+                        "description": "Baud Rate (in bits/s) of the serial port to be opened (defaults to 115200).",
+                        "default": 115200
+                      },
+                      "characterSize": {
+                        "type": "number",
+                        "enum": [
+                          5,
+                          6,
+                          7,
+                          8
+                        ],
+                        "description": "The number of bits in each character of data sent across the serial line (defaults to 8).",
+                        "default": 8
+                      },
+                      "parity": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "odd",
+                          "even",
+                          "mark",
+                          "space"
+                        ],
+                        "description": "The type of parity check enabled with the transmitted data (defaults to \"none\" - no parity bit sent)",
+                        "default": "none"
+                      },
+                      "stopBits": {
+                        "type": "number",
+                        "enum": [
+                          1,
+                          1.5,
+                          2
+                        ],
+                        "description": "The number of stop bits sent to allow the receiver to detect the end of characters and resynchronize with the character stream (defaults to 1).",
+                        "default": 1
+                      },
+                      "handshakingMethod": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "XON/XOFF",
+                          "RTS/CTS"
+                        ],
+                        "description": "The handshaking method used for flow control across the serial line (defaults to \"none\" - no handshaking)",
+                        "default": "none"
+                      },
+                      "eolCharacter": {
+                        "type": "string",
+                        "enum": [
+                          "LF",
+                          "CRLF"
+                        ],
+                        "description": "The EOL character used to parse the UART output line-by-line (defaults to \"LF\").",
+                        "default": "LF"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "gdbtarget",
+            "request": "attach",
+            "name": "Eclipse CDT GDB Adapter",
+            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+            "initCommands": [
+              "set remote hardware-watchpoint-limit 2",
+              "mon reset halt",
+              "maintenance flush register-cache",
+              "thb app_main"
+            ],
+            "gdb": "${command:espIdf.getXtensaGdb}",
+            "target": {
+              "port": "3333"
+            }
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Eclipse CDT GDB Adapter",
+            "description": "A new configuration for remote debugging using GDB.",
+            "body": {
+              "type": "gdbtarget",
+              "request": "attach",
+              "name": "Eclipse CDT GDB Adapter",
+              "program": "^\"\\${workspaceFolder}/build/\\${command:espIdf.getProjectName}.elf\"",
+              "initCommands": [
+                "set remote hardware-watchpoint-limit 2",
+                "mon reset halt",
+                "maintenance flush register-cache",
+                "thb app_main"
+              ],
+              "gdb": "${command:espIdf.getXtensaGdb}",
+              "target": {
+                "port": "3333"
+              }
+            }
           }
         ]
       }
@@ -1610,6 +2098,7 @@
     "assert": "^2.1.0",
     "axios": "^1.6.0",
     "bignumber.js": "^9.0.1",
+    "cdt-gdb-adapter": "^0.0.32",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.15.6",
