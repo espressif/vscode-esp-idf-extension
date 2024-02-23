@@ -145,6 +145,7 @@ import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
 import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
+import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -4183,6 +4184,19 @@ class IdfDebugConfigurationProvider
         }
       }
       config.elfFilePath = elfFilePath;
+      const debugAdapterPackagesExist = await checkDebugAdapterRequirements(
+        workspaceRoot
+      );
+      if (!debugAdapterPackagesExist) {
+        const installDAPyPkgs = await vscode.window.showInformationMessage(
+          "ESP-IDF Debug Adapter Python packages are not installed",
+          "Install"
+        );
+        if (installDAPyPkgs && installDAPyPkgs === "Install") {
+          await vscode.commands.executeCommand("espIdf.installPyReqs");
+        }
+        return;
+      }
     } catch (error) {
       const msg = error.message
         ? error.message

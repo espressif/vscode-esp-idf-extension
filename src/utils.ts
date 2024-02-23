@@ -1076,7 +1076,7 @@ export async function startPythonReqsProcess(
     `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
     extensionContext.extensionPath,
     OutputChannel.init(),
-    { env: modifiedEnv }
+    { env: modifiedEnv, cwd: extensionContext.extensionPath }
   );
 }
 
