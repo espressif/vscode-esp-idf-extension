@@ -146,6 +146,7 @@ import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
 import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
+import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1322,6 +1323,14 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.debug.registerDebugConfigurationProvider("espidf", debugProvider)
   );
 
+  const cdtDebugProvider = new CDTDebugConfigurationProvider();
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider(
+      "gdbtarget",
+      cdtDebugProvider
+    )
+  );
+
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
       try {
@@ -1391,12 +1400,15 @@ export async function activate(context: vscode.ExtensionContext) {
     },
   });
 
-  vscode.debug.onDidStartDebugSession((session) => {
+  vscode.debug.onDidStartDebugSession(async (session) => {
     const svdFile = idfConf.readParameter(
       "idf.svdFilePath",
       workspaceRoot
     ) as string;
     peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
+    if (openOCDManager.isRunning() && session.type === "gdbtarget") {
+      isOpenOCDLaunchedByDebug = true;
+    }
   });
 
   vscode.debug.onDidTerminateDebugSession((session) => {
