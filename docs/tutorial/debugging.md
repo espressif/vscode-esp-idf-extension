@@ -4,19 +4,8 @@
 
 This tutorial shows the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
 
-> **NOTE:** If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command.
-
-> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
-
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
-2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device Configuration** to manually set any value you desire.
-
-When you use **ESP-IDF: Set Espressif Device Target** the following files are set:
-
-- Choosing esp32 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"]
-- Choosing esp32s2 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s2.cfg"]
-- Choosing esp32s3 as IDF_TARGET will set `idf.openOCDConfigs` to ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32s3.cfg"]
-- Choosing esp32c3 as IDF_TARGET will set `idf.openOCDConfigs` to ["board/esp32c3-builtin.cfg"] if using built-in usb jtag or ["board/esp32c3-ftdi.cfg"] if using ESP-PROG-JTAG.
+2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration**, **ESP-IDF: Set Espressif Device Target** or use **ESP-IDF: Device Configuration** to manually set any value you desire.
 
 > **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
 
@@ -24,13 +13,13 @@ When you use **ESP-IDF: Set Espressif Device Target** the following files are se
 
 Several steps will be automatically done for you but explained for clarity. You can skip to step 6 to continue the debug tutorial part.
 
-4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> OpenOCD. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
+4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> ESP-IDF. By default it will be launched using localhost, port `4444` for Telnet communication, port `6666` for TCL communication and port `3333` for gdb.
 
 > **NOTE:** The user can start or stop the openOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-5. The [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) server is launched in the background and the output is shown in menu View -> Output -> `ESP-IDF Debug Adapter`. This server is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. It will be launched at port `43474` by default. Please review [Debugging](../DEBUGGING.md) for more information how to customize the debugging behavior like application offset, logging level and set your own gdb startup commands.
+5. The [Eclipse CDT GDB Adapter](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter) is launched in the background and the output is shown in the Debug Console. This adapter is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. Please review [Debugging](../DEBUGGING.md) for more information how to customize the debugging behavior by modifying launch.json arguments.
 
 6. The debug session will start after the debug adapter server is launched and ready.
 
@@ -135,7 +124,7 @@ You can check the assembly code from the debugging session by doing a right clic
 
 # Watchpoints (Data Breakpoints)
 
-You can set breakpoint on variable read, change or access by right clicking the variable in the debug session Variables view and click on `Break on Value Read`, `Break on Value Write` and `Break on Value Change`. See [ESP-IDF breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
+See [ESP-IDF breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
 
 <p>
   <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
@@ -143,7 +132,7 @@ You can set breakpoint on variable read, change or access by right clicking the 
 
 # Next steps
 
-You can send any GDB commands in the Debug console with `--exec COMMAND`. You need to set `logLevel: 5` in the project's launch.json to see the command output.
+You can send any GDB commands in the Debug console with `> COMMAND`. For example `> i threads`.
 
 <p>
   <img src="../../media/tutorials/debug/gdb_commands.png" alt="GDB Commands" height="500">
@@ -151,13 +140,17 @@ You can send any GDB commands in the Debug console with `--exec COMMAND`. You ne
 
 More about [Command Line Debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line).
 
-Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting in [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
+Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF Svd File Path (idf.svdFilePath)` configuration setting in [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could download Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd) repository.
+
+<p>
+  <img src="../../media/tutorials/debug/peripheral_viewer.png" alt="GDB Commands" height="500">
+</p>
 
 You can start a monitor session that can capture fatal error events with `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command and, if configured in your project's sdkconfig, trigger the start of a debug session for GDB remote protocol server (GDBStub) or [ESP-IDF Core Dump](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump) when an error is found. Read more in the [panic handler documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler).
 
 - **Core Dump** is configured when `Core Dump's Data Destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 - **GDB Stub** is configured when `Panic Handler Behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 
-The user can modify the debug session as shown in the [Debugging](../DEBUGGING.md) documentation by customizing settings such as the program start address offset, the ESP-IDF Debug Adapter server port, logging level and custom initial gdb commands.
+The user can modify the debug session as shown in the [Debugging](../DEBUGGING.md) documentation by customizing launch.json arguments such as custom initial gdb commands.
 
 See other [ESP-IDF extension features](../FEATURES.md).

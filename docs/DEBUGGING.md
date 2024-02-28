@@ -13,7 +13,7 @@ Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and 
 
 ## Using the Eclipse CDT GDB Debug Adapter
 
-The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter).
+The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter). The arguments in launch.json are
 
 ```JSON
 {
