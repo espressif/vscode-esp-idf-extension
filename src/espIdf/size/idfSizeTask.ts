@@ -19,14 +19,14 @@
 import { ensureDir } from "fs-extra";
 import { join } from "path";
 import {
-  ShellExecution,
-  ShellExecutionOptions,
   TaskPanelKind,
+  ProcessExecutionOptions,
   TaskPresentationOptions,
   TaskRevealKind,
   TaskScope,
   Uri,
   workspace,
+  ProcessExecution
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
@@ -34,28 +34,27 @@ import { appendIdfAndToolsToPath } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 
 export class IdfSizeTask {
-  private curWorkspace: Uri;
+  private currentWorkspace: Uri;
   private pythonBinPath: string;
   private idfSizePath: string;
   private buildDirPath: string;
+  private processOptions: ProcessExecutionOptions;
+  private modifiedEnv: { [key: string]: string };
 
-  constructor(workspacePath: Uri) {
-    this.curWorkspace = workspacePath;
+  constructor(workspaceUri: Uri) {
+    this.currentWorkspace = workspaceUri;
     this.pythonBinPath = readParameter(
       "idf.pythonBinPath",
-      workspacePath
+      workspaceUri
     ) as string;
-    const idfPathDir = readParameter("idf.espIdfPath", workspacePath) as string;
+    const idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
-    this.buildDirPath = readParameter("idf.buildPath", workspacePath) as string;
-  }
-
-  public async getShellExecution(options: ShellExecutionOptions) {
-    const mapFilePath = await this.mapFilePath();
-    return new ShellExecution(
-      `${this.pythonBinPath} ${this.idfSizePath} ${mapFilePath}`,
-      options
-    );
+    this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
+    this.modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
+    this.processOptions = {
+      cwd: this.buildDirPath,
+      env: this.modifiedEnv,
+    };
   }
 
   private async mapFilePath() {
@@ -64,33 +63,18 @@ export class IdfSizeTask {
   }
 
   public async getSizeInfo() {
-    const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
     await ensureDir(this.buildDirPath);
-    const options: ShellExecutionOptions = {
-      cwd: this.curWorkspace.fsPath,
-      env: modifiedEnv,
-    };
-    const shellExecutablePath = readParameter(
-      "idf.customTerminalExecutable",
-      this.curWorkspace
-    ) as string;
-    const shellExecutableArgs = readParameter(
-      "idf.customTerminalExecutableArgs",
-      this.curWorkspace
-    ) as string[];
-    if (shellExecutablePath) {
-      options.executable = shellExecutablePath;
-    }
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      options.shellArgs = shellExecutableArgs;
-    }
-    const sizeExecution = await this.getShellExecution(options);
+    const pythonCommand = this.pythonBinPath;
+    const mapFilePath = await this.mapFilePath();
+    const args = [this.idfSizePath, mapFilePath];
+
+    const sizeExecution = new ProcessExecution(pythonCommand, args, this.processOptions);
     const notificationMode = readParameter(
       "idf.notificationMode",
-      this.curWorkspace
+      this.currentWorkspace
     ) as string;
-    const curWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.curWorkspace
+    const currentWorkspaceFolder = workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
     );
     const showTaskOutput =
       notificationMode === NotificationMode.All ||
@@ -105,7 +89,7 @@ export class IdfSizeTask {
     } as TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Size", taskId: "idf-size-task" },
-      curWorkspaceFolder || TaskScope.Workspace,
+      currentWorkspaceFolder || TaskScope.Workspace,
       "ESP-IDF Size",
       sizeExecution,
       ["espIdf"],

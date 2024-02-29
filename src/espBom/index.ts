@@ -23,8 +23,8 @@ import {
   TaskPanelKind,
   TaskPresentationOptions,
   TaskScope,
-  ShellExecutionOptions,
-  ShellExecution,
+  ProcessExecutionOptions,
+  ProcessExecution,
 } from "vscode";
 import {
   appendIdfAndToolsToPath,
@@ -66,24 +66,10 @@ export async function createSBOM(workspaceUri: Uri) {
         );
       }
     }
-    const options: ShellExecutionOptions = {
+    const options: ProcessExecutionOptions = {
       cwd: workspaceUri.fsPath,
       env: modifiedEnv,
     };
-    const shellExecutablePath = readParameter(
-      "idf.customTerminalExecutable",
-      workspaceUri
-    ) as string;
-    const shellExecutableArgs = readParameter(
-      "idf.customTerminalExecutableArgs",
-      workspaceUri
-    ) as string[];
-    if (shellExecutablePath) {
-      options.executable = shellExecutablePath;
-    }
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      options.shellArgs = shellExecutableArgs;
-    }
     const notificationMode = readParameter(
       "idf.notificationMode",
       workspaceUri
@@ -102,14 +88,20 @@ export async function createSBOM(workspaceUri: Uri) {
       clear: false,
       panel: TaskPanelKind.Shared,
     } as TaskPresentationOptions;
-    const sbomCreateExecution = new ShellExecution(
-      `esp-idf-sbom create ${projectDescriptionJson} --output-file ${sbomFilePath}`,
-      options
-    );
-    const sbomCheckExecution = new ShellExecution(
-      `esp-idf-sbom check ${sbomFilePath}`,
-      options
-    );
+    const command = "esp-idf-sbnom";
+    const argsCreating = [
+      "create",
+      projectDescriptionJson,
+      "--output-file",
+      sbomFilePath
+    ];
+    const sbomCreateExecution = new ProcessExecution(command, argsCreating, options);
+    
+    const argsChecking = [
+      "check",
+      sbomFilePath,
+    ];
+    const sbomCheckExecution = new ProcessExecution(command, argsChecking, options);
     TaskManager.addTask(
       {
         type: "esp-idf",

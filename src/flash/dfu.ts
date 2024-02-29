@@ -64,14 +64,14 @@ export async function listAvailableDfuDevices(text) {
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
- export function selectedDFUAdapterId(chip: string): number {
+ export function selectedDFUAdapterId(chip: string): string {
   switch (chip) {
     case "esp32s2":
-      return 2;
+      return "2";
     case "esp32s3":
-      return 9;
+      return "9";
     default:
-      return -1;
+      return "-1";
   }
 }
 
