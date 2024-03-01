@@ -1620,7 +1620,7 @@
     "plotly.js-dist": "^1.54.1",
     "plotly.js-dist-min": "^2.26.1",
     "postcss": "^8.4.31",
-    "sanitize-html": "^2.7.0",
+    "sanitize-html": "^2.12.1",
     "stream-browserify": "^3.0.0",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
