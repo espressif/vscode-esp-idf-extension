@@ -39,8 +39,14 @@ export async function installEspIdfToolFromIdf(
       return reject(new Error("Process cancelled by user"));
     }
     try {
+      const args = [
+        idfToolsPyPath,
+        "install",
+        toolName
+      ];
       const processResult = await utils.execChildProcess(
-        `"${pythonBinPath}" ${idfToolsPyPath} install ${toolName}`,
+        pythonBinPath,
+        args,
         idfToolsPath,
         channel,
         { cwd: idfToolsPath, env: modifiedEnv },
@@ -101,7 +107,8 @@ export async function installPythonEnvFromIdfTools(
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
 
   await execProcessWithLog(
-    `"${pythonBinPath}" "${idfToolsPyPath}" install-python-env`,
+    pythonBinPath,
+    [idfToolsPyPath,"install-python-env"],
     idfToolsDir,
     pyTracker,
     channel,
@@ -145,19 +152,19 @@ export async function installExtensionPyReqs(
     `espidf.constraints.v${espIdfVersion}.txt`
   );
   const constrainsFileExists = await pathExists(constrainsFile);
-  let constraintArg = "";
+  let constraintArg = [];
   if (constrainsFileExists) {
-    constraintArg = `--constraint "${constrainsFile}" `;
+    constraintArg = ["--constraint", constrainsFile];
   } else {
     const extensionConstraintsFile = join(
       utils.extensionContext.extensionPath,
-      `espidf.constraints.txt`
+      "espidf.constraints.txt"
     );
     const extensionConstraintsFileExists = await pathExists(
       extensionConstraintsFile
     );
     if (extensionConstraintsFileExists) {
-      constraintArg = `--constraint "${extensionConstraintsFile}" `;
+      constraintArg = ["--constraint", extensionConstraintsFile];
     }
   }
   const installDAPyPkgsMsg = `Installing ESP-IDF Debug Adapter python packages in ${virtualEnvPython} ...\n`;
@@ -168,8 +175,19 @@ export async function installExtensionPyReqs(
   if (channel) {
     channel.appendLine(installDAPyPkgsMsg + "\n");
   }
+  const args = [
+    "-m",
+    "pip",
+    "install",
+    "--upgrade",
+    ...constraintArg,
+    "--no-warn-script-location",
+    "-r",
+    debugAdapterRequirements
+  ];
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade ${constraintArg}--no-warn-script-location -r "${debugAdapterRequirements}"`,
+    virtualEnvPython,
+    args,
     idfToolsDir,
     pyTracker,
     channel,
@@ -215,8 +233,18 @@ export async function installEspMatterPyReqs(
   if (channel) {
     channel.appendLine(installMatterPyPkgsMsg + "\n");
   }
+  const args = [
+    "-m",
+    "pip",
+    "install",
+    "--upgrade",
+    "--no-warn-script-location",
+    "-r",
+    matterRequirements
+  ];
   await execProcessWithLog(
-    `"${virtualEnvPython}" -m pip install --upgrade --no-warn-script-location -r "${matterRequirements}"`,
+    virtualEnvPython,
+    args,
     idfToolsDir,
     pyTracker,
     channel,
@@ -227,6 +255,7 @@ export async function installEspMatterPyReqs(
 }
 export async function execProcessWithLog(
   cmd: string,
+  args: string[],
   workDir: string,
   pyTracker?: PyReqLog,
   channel?: OutputChannel,
@@ -235,6 +264,7 @@ export async function execProcessWithLog(
 ) {
   const processResult = await utils.execChildProcess(
     cmd,
+    args,
     workDir,
     channel,
     opts,
@@ -254,9 +284,15 @@ export async function getPythonEnvPath(
   idfToolsDir: string,
   pythonBin: string
 ) {
+  const pythonCode = `import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))`;
+  const args = [
+    "-c",
+    pythonCode
+  ];
   const pythonVersion = (
     await utils.execChildProcess(
-      `"${pythonBin}" -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))"`,
+      pythonBin,
+      args,
       espIdfDir
     )
   ).replace(/(\n|\r|\r\n)/gm, "");
@@ -275,7 +311,8 @@ export async function getPythonEnvPath(
 export async function checkPythonExists(pythonBin: string, workingDir: string) {
   try {
     const versionResult = await utils.execChildProcess(
-      `"${pythonBin}" --version`,
+      pythonBin,
+      ["--version"],
       workingDir
     );
     if (versionResult) {
@@ -302,8 +339,14 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
 
 export async function checkPipExists(pyBinPath: string, workingDir: string) {
   try {
+    const args = [
+      "-m",
+      "pip",
+      "--version"
+    ];
     const pipResult = await utils.execChildProcess(
-      `"${pyBinPath}" -m pip --version`,
+      pyBinPath,
+      args,
       workingDir
     );
     if (pipResult) {
@@ -349,32 +392,35 @@ export async function getPythonBinList(workingDir: string) {
 
 export async function getUnixPythonList(workingDir: string) {
   try {
-    const pyVersionsStr = await utils.execChildProcess(
-      "which -a python; which -a python3",
-      workingDir
-    );
-    if (pyVersionsStr) {
-      const resultList = pyVersionsStr.trim().split("\n");
-      const uniquePathsSet = new Set(resultList);
-      const uniquePathsArray = Array.from(uniquePathsSet);
-      return uniquePathsArray;
-    }
+    const pythonVersionsRaw = await utils.execChildProcess("which", ["-a", "python"], workingDir);
+    const pythonVersions = pythonVersionsRaw.trim() ? pythonVersionsRaw.trim().split("\n") : [];
+    
+    const python3VersionsRaw = await utils.execChildProcess("which", ["-a", "python3"], workingDir);
+    const python3Versions = python3VersionsRaw.trim() ? python3VersionsRaw.trim().split("\n") : [];
+
+    const combinedVersionsArray = [...pythonVersions, ...python3Versions];
+    const uniquePathsSet = new Set(combinedVersionsArray.filter(path => path.length > 0));
+    const uniquePathsArray = Array.from(uniquePathsSet);
+
+    return uniquePathsArray;
   } catch (error) {
     Logger.errorNotify("Error looking for python in system", error);
     return ["Not found"];
   }
 }
 
+
 export async function checkIfNotVirtualEnv(
   pythonBinPath: string,
   workDir: string
 ) {
   try {
-    const isVirtualEnvBuffer = await utils.execChildProcess(
-      `"${pythonBinPath}" -c "import sys; print('{}'.format(sys.prefix == sys.base_prefix))"`,
+    const isVirtualEnv = await utils.execChildProcess(
+      pythonBinPath,
+      ["-c", "import sys; print(sys.prefix == sys.base_prefix)"],
       workDir
     );
-    return isVirtualEnvBuffer.toString().indexOf("True") !== -1 ? true : false;
+    return isVirtualEnv.trim() === "True";
   } catch (error) {
     Logger.errorNotify("Error checking Python is virtualenv", error);
     return false;

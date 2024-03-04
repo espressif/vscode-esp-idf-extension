@@ -140,7 +140,8 @@ export async function installEspSBOM(workspace: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
-      `"${pythonBinPath}" -m pip show esp-idf-sbom`,
+      pythonBinPath,
+      ["-m", "pip", "show", "esp-idf-sbom"],
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }
@@ -148,7 +149,8 @@ export async function installEspSBOM(workspace: Uri) {
     OutputChannel.appendLine(showResult);
   } catch (error) {
     const installResult = await execChildProcess(
-      `"${pythonBinPath}" -m pip install esp-idf-sbom`,
+      pythonBinPath,
+      ["-m", "pip", "install", "esp-idf-sbom"],
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }

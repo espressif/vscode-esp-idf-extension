@@ -495,23 +495,25 @@ export function isJson(jsonString: string) {
 }
 
 export function execChildProcess(
-  processStr: string,
+  command: string,
+  args: string[] = [],
   workingDirectory: string,
   channel?: vscode.OutputChannel,
-  opts?: childProcess.ExecOptions,
+  opts?: childProcess.ExecFileOptions,
   cancelToken?: vscode.CancellationToken
 ): Promise<string> {
-  const execOpts: childProcess.ExecOptions = opts
+  const execOpts: childProcess.ExecFileOptions = opts
     ? opts
     : {
         cwd: workingDirectory,
         maxBuffer: 500 * 1024,
       };
   return new Promise<string>((resolve, reject) => {
-    childProcess.exec(
-      processStr,
+    childProcess.execFile(
+      command,
+      args,
       execOpts,
-      (error: Error, stdout: string, stderr: string) => {
+      (error: Error | null, stdout: string, stderr: string) => {
         if (cancelToken && cancelToken.isCancellationRequested) {
           return reject(new Error("Process cancelled by user"));
         }
@@ -523,7 +525,7 @@ export function execChildProcess(
           }
           if (stderr && stderr.length > 0) {
             message += stderr;
-            if (stderr.indexOf("Error") !== -1) {
+            if (stderr.includes("Error")) {
               err = true;
             }
           }
@@ -545,8 +547,8 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          if (stderr.indexOf("Error") !== -1) {
-            return reject(stderr);
+          if (stderr.includes("Error")) {
+            return reject(new Error(stderr));
           }
         }
         return resolve(stdout.concat(stderr));
@@ -766,7 +768,8 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       gitPath = gitInPath;
     }
     const gitRawVersion = await execChildProcess(
-      `"${gitPath}" --version`,
+      gitPath,
+      ["--version"],
       workingDir
     );
     const match = gitRawVersion.match(
@@ -795,7 +798,8 @@ export async function cleanDirtyGitRepository(
     const workingDirUri = vscode.Uri.file(workingDir);
     const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
     const resetResult = await execChildProcess(
-      `"${gitPath}" reset --hard --recurse-submodule`,
+      gitPath,
+      ["reset", "--hard", "--recurse-submodule"],
       workingDir,
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
@@ -820,13 +824,15 @@ export async function fixFileModeGitRepository(
     const workingDirUri = vscode.Uri.file(workingDir);
     const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
     const fixFileModeResult = await execChildProcess(
-      `"${gitPath}" config --local core.fileMode false`,
+      gitPath,
+    ["config", "--local", "core.fileMode", "false"],
       workingDir,
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
     );
     const fixSubmodulesFileModeResult = await execChildProcess(
-      `"${gitPath}" submodule foreach --recursive git config --local core.fileMode false`,
+      gitPath,
+      ["submodule", "foreach", "--recursive", "git", "config", "--local", "core.fileMode", "false"],
       workingDir,
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
@@ -1103,7 +1109,8 @@ export async function startPythonReqsProcess(
   );
   const modifiedEnv = appendIdfAndToolsToPath(extensionContext.extensionUri);
   return execChildProcess(
-    `"${pythonBinPath}" "${reqFilePath}" -r "${requirementsPath}"`,
+    pythonBinPath,
+    [reqFilePath, "-r", requirementsPath],
     extensionContext.extensionPath,
     OutputChannel.init(),
     { env: modifiedEnv, cwd: extensionContext.extensionPath }

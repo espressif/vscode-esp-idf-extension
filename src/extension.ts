@@ -680,8 +680,15 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
+            const args = [
+              flashScriptPath,
+              "-p",
+              port,
+              "erase_flash"
+            ];
             const result = await utils.execChildProcess(
-              `${pythonBinPath} ${flashScriptPath} -p ${port} erase_flash`,
+              pythonBinPath,
+              args,
               process.cwd(),
               OutputChannel.init(),
               null,
@@ -3462,8 +3469,14 @@ export async function activate(context: vscode.ExtensionContext) {
             "idf.buildPath",
             workspaceRoot
           ) as string;
+          const args = [
+            ninjaSummaryScript,
+            "-C",
+            buildDir
+          ];
           const summaryResult = await utils.execChildProcess(
-            `${pythonBinPath} ${ninjaSummaryScript} -C ${buildDir}`,
+            pythonBinPath,
+            args,
             workspaceRoot.fsPath,
             OutputChannel.init()
           );
