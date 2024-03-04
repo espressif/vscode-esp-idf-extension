@@ -34,7 +34,7 @@ function onKeyEnter() {
 </script>
 
 <template>
-  <div class="field">
+  <div>
     <label class="label">{{ propLabel }}</label>
     <div class="field has-addons align-center">
       <div class="control expanded">
