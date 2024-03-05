@@ -102,6 +102,8 @@ export namespace ESP {
     }
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
+    export const OpenOcdTroubleshootingFaq =
+      "https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ";
     export const ARDUINO_ESP32_URL =
       "https://github.com/espressif/arduino-esp32.git";
     export namespace Docs {
