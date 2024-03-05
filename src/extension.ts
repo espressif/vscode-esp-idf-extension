@@ -147,6 +147,7 @@ import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
 import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
+import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1331,6 +1332,11 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  vscode.debug.registerDebugAdapterDescriptorFactory(
+    "gdbtarget",
+    new CDTDebugAdapterDescriptorFactory()
+  );
+
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
     async createDebugAdapterDescriptor(session: vscode.DebugSession) {
       try {
@@ -1341,8 +1347,7 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot
         );
         if (
-          (session.configuration.sessionID !== "core-dump.debug.session.ws" ||
-            session.configuration.sessionID !== "gdbstub.debug.session.ws") &&
+          session.configuration.sessionID !== "core-dump.debug.session.ws" &&
           useMonitorWithDebug
         ) {
           isMonitorLaunchedByDebug = true;
@@ -1351,8 +1356,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (
           launchMode === "auto" &&
           !openOCDManager.isRunning() &&
-          session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-          session.configuration.sessionID !== "qemu.debug.session"
+          session.configuration.sessionID !== "core-dump.debug.session.ws"
         ) {
           isOpenOCDLaunchedByDebug = true;
           await openOCDManager.start();
@@ -1367,10 +1371,7 @@ export async function activate(context: vscode.ExtensionContext) {
           debugAdapterManager.configureAdapter(debugAdapterConfig);
           await debugAdapterManager.start();
         }
-        if (
-          session.configuration.sessionID === "core-dump.debug.session.ws" ||
-          session.configuration.sessionID === "gdbstub.debug.session.ws"
-        ) {
+        if (session.configuration.sessionID === "core-dump.debug.session.ws") {
           await debugAdapterManager.start();
         }
         if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
@@ -1406,7 +1407,12 @@ export async function activate(context: vscode.ExtensionContext) {
       workspaceRoot
     ) as string;
     peripheralTreeProvider.debugSessionStarted(session, svdFile, 16); // Move svdFile and threshold as conf settings
-    if (openOCDManager.isRunning() && session.type === "gdbtarget") {
+    if (
+      openOCDManager.isRunning() &&
+      session.type === "gdbtarget" &&
+      session.configuration.sessionID !== "core-dump.debug.session.ws" &&
+      session.configuration.sessionID !== "gdbstub.debug.session.ws"
+    ) {
       isOpenOCDLaunchedByDebug = true;
     }
   });
@@ -1755,37 +1761,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getXtensaGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
-      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-      const gdbTool = utils.getToolchainToolName(idfTarget, "gdb");
-      try {
-        return await utils.isBinInPath(
-          gdbTool,
-          workspaceRoot.fsPath,
-          modifiedEnv
-        );
-      } catch (error) {
-        Logger.errorNotify("gdb is not found in idf.customExtraPaths", error);
-        return;
-      }
+      return await utils.getToolchainPath(workspaceRoot, "gdb");
     });
   });
 
   registerIDFCommand("espIdf.getXtensaGcc", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
-      const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
-      const gccTool = utils.getToolchainToolName(idfTarget, "gcc");
-      try {
-        return await utils.isBinInPath(
-          gccTool,
-          workspaceRoot.fsPath,
-          modifiedEnv
-        );
-      } catch (error) {
-        Logger.errorNotify("gcc is not found in idf.customExtraPaths", error);
-        return;
-      }
+      return await utils.getToolchainPath(workspaceRoot, "gcc");
     });
   });
 
@@ -2503,8 +2485,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.qemuDebug", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      if (qemuManager.isRunning()) {
-        qemuManager.stop();
+      if (monitorTerminal) {
+        monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+        monitorTerminal.sendText(`exit`);
       }
       const buildDirPath = idfConf.readParameter(
         "idf.buildPath",
@@ -2516,35 +2499,33 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!qemuBinExists) {
         await mergeFlashBinaries(workspaceRoot);
       }
-      qemuManager.configure({
-        launchArgs: [
-          "-nographic",
-          "-gdb tcp::3333",
-          "-S",
-          "-machine",
-          "esp32",
-          "-drive",
-          "file=build/merged_qemu.bin,if=mtd,format=raw",
-        ],
-      } as IQemuOptions);
-      await qemuManager.start();
-      const debugAdapterConfig = {
-        initGdbCommands: [
-          "target remote localhost:3333",
-          "monitor system_reset",
-          "tb app_main",
-          "c",
-        ],
-        isPostMortemDebugMode: false,
-        isOocdDisabled: true,
-        logLevel: 5,
-      } as IDebugAdapterConfig;
-      debugAdapterManager.configureAdapter(debugAdapterConfig);
-      await vscode.debug.startDebugging(undefined, {
+      if (qemuManager.isRunning()) {
+        qemuManager.stop();
+        await utils.sleep(1000);
+      }
+      qemuManager.configureWithDefValues();
+      qemuManager.start();
+      const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        workspaceRoot
+      );
+      await vscode.debug.startDebugging(workspaceFolder, {
         name: "GDB QEMU",
-        type: "espidf",
-        request: "launch",
+        type: "gdbtarget",
+        request: "attach",
         sessionID: "qemu.debug.session",
+        gdb: gdbPath,
+        initCommands: [
+          "set remote hardware-watchpoint-limit 2",
+          "mon reset halt",
+          "maintenance flush register-cache",
+          "thb app_main",
+        ],
+        target: {
+          type: "remote",
+          host: "localhost",
+          port: "1234",
+        },
       });
       vscode.debug.onDidTerminateDebugSession(async (session) => {
         if (session.configuration.sessionID === "qemu.debug.session") {
@@ -3060,6 +3041,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");
         const projectName = await getProjectName(buildDirPath);
+        const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
@@ -3163,7 +3145,10 @@ export async function activate(context: vscode.ExtensionContext) {
                       coreDumpFile: coreElfFilePath,
                       isOocdDisabled: true,
                     });
-                    await vscode.debug.startDebugging(undefined, {
+                    const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+                      workspaceRoot
+                    );
+                    await vscode.debug.startDebugging(workspaceFolder, {
                       name: "Core Dump Debug",
                       type: "espidf",
                       request: "launch",
@@ -3174,6 +3159,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         session.configuration.sessionID ===
                         "core-dump.debug.session.ws"
                       ) {
+                        wsServer.done();
                         monitor.dispose();
                         wsServer.close();
                       }
@@ -3195,26 +3181,27 @@ export async function activate(context: vscode.ExtensionContext) {
             );
           })
           .on("gdb-stub-detected", async (resp) => {
-            const setupCmd = [`target remote ${resp.port}`];
-            const debugAdapterConfig = {
-              elfFile: resp.prog,
-              initGdbCommands: setupCmd,
-              isOocdDisabled: false,
-              isPostMortemDebugMode: true,
-              logLevel: 5,
-            } as IDebugAdapterConfig;
             try {
-              debugAdapterManager.configureAdapter(debugAdapterConfig);
-              await vscode.debug.startDebugging(undefined, {
+              const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+                workspaceRoot
+              );
+              await vscode.debug.startDebugging(workspaceFolder, {
                 name: "GDB Stub Debug",
-                type: "espidf",
-                request: "launch",
+                type: "gdbtarget",
+                request: "attach",
                 sessionID: "gdbstub.debug.session.ws",
+                gdb: gdbPath,
+                program: resp.prog,
+                target: {
+                  type: "remote",
+                  parameters: [resp.port],
+                },
               });
               vscode.debug.onDidTerminateDebugSession((session) => {
                 if (
                   session.configuration.sessionID === "gdbstub.debug.session.ws"
                 ) {
+                  wsServer.done();
                   monitor.dispose();
                   wsServer.close();
                 }
@@ -3925,17 +3912,26 @@ function createQemuMonitor(
   customTimestampFormat: string = ""
 ) {
   PreCheck.perform([openFolderCheck], async () => {
-    const isQemuLaunched = await qemuManager.isRunning();
-    if (!isQemuLaunched) {
-      vscode.window.showInformationMessage(
-        vscode.l10n.t("QEMU is not running. Run first.")
-      );
-      return;
+    const isQemuLaunched = qemuManager.isRunning();
+    if (isQemuLaunched) {
+      qemuManager.stop();
     }
     const qemuTcpPort = idfConf.readParameter(
       "idf.qemuTcpPort",
       workspaceRoot
     ) as number;
+    qemuManager.configure({
+      launchArgs: [
+        "-nographic",
+        "-machine",
+        "esp32",
+        "-drive",
+        "file=build/merged_qemu.bin,if=mtd,format=raw",
+        "-monitor stdio",
+        `-serial tcp::${qemuTcpPort},server,nowait`,
+      ],
+    } as IQemuOptions);
+    qemuManager.start();
     const serialPort = `socket://localhost:${qemuTcpPort}`;
     const idfMonitor = await createNewIdfMonitor(
       workspaceRoot,

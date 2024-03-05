@@ -29,6 +29,7 @@ import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
+import { getToolchainPath } from "../utils";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
@@ -48,6 +49,24 @@ export class CDTDebugConfigurationProvider
             `${elfFilePath} doesn't exist. Build this project first.`
           );
         }
+        config.program = elfFilePath;
+      }
+      if (!config.gdb) {
+        config.gdb = await getToolchainPath(folder.uri, "gdb");
+      }
+      if (!config.initCommands || config.initCommands.length === 0) {
+        config.initCommands = [
+          "set remote hardware-watchpoint-limit 2",
+          "mon reset halt",
+          "maintenance flush register-cache",
+          "thb app_main",
+        ];
+      }
+      if (!config.target) {
+        config.target = {
+          type: "extended-remote",
+          port: "3333",
+        };
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {
         const isSameAppBinary = await verifyAppBinary(folder.uri);
@@ -58,14 +77,21 @@ export class CDTDebugConfigurationProvider
         }
       }
       const openOCDManager = OpenOCDManager.init();
-      if (!openOCDManager.isRunning()) {
+      if (
+        !openOCDManager.isRunning() &&
+        config.sessionID !== "core-dump.debug.session.ws" &&
+        config.sessionID !== "gdbstub.debug.session.ws" &&
+        config.sessionID !== "qemu.debug.session" &&
+        !config.runOpenOCD
+      ) {
         await openOCDManager.start();
       }
     } catch (error) {
       const msg = error.message
         ? error.message
         : "Some build files doesn't exist. Build this project first.";
-      Logger.error(error.message, error);
+      Logger.error(msg, error);
+      return;
     }
     return config;
   }

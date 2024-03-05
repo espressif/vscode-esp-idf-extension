@@ -2,6 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "gdbtarget",
+      "request": "attach",
+      "name": "Eclipse CDT Remote",
+      "initCommands": [
+        "set remote hardware-watchpoint-limit 2",
+        "mon reset halt",
+        "maintenance flush register-cache",
+        "thb app_main",
+      ],
+      "target": {
+        "port": "3333"
+      },
+    },
+    {
       "type": "espidf",
       "name": "Launch",
       "request": "launch"

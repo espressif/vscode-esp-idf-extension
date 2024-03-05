@@ -1487,8 +1487,7 @@
       },
       {
         "type": "gdbtarget",
-        "label": "GDB Target",
-        "program": "./node_modules/cdt-gdb-adapter/dist/debugTargetAdapter.js",
+        "label": "Eclipse GDB Target",
         "runtime": "node",
         "configurationAttributes": {
           "launch": {
@@ -1501,6 +1500,11 @@
               "cwd": {
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
+              },
+              "runOpenOCD": {
+                "type": "boolean",
+                "description": "Run OpenOCD Server",
+                "default": true
               },
               "environment": {
                 "additionalProperties": {
@@ -1940,14 +1944,12 @@
             "type": "gdbtarget",
             "request": "attach",
             "name": "Eclipse CDT GDB Adapter",
-            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
             "initCommands": [
               "set remote hardware-watchpoint-limit 2",
               "mon reset halt",
               "maintenance flush register-cache",
               "thb app_main"
             ],
-            "gdb": "${command:espIdf.getXtensaGdb}",
             "target": {
               "port": "3333"
             }
@@ -1961,14 +1963,12 @@
               "type": "gdbtarget",
               "request": "attach",
               "name": "Eclipse CDT GDB Adapter",
-              "program": "^\"\\${workspaceFolder}/build/\\${command:espIdf.getProjectName}.elf\"",
               "initCommands": [
                 "set remote hardware-watchpoint-limit 2",
                 "mon reset halt",
                 "maintenance flush register-cache",
                 "thb app_main"
               ],
-              "gdb": "^\"\\${command:espIdf.getXtensaGdb}\"",
               "target": {
                 "port": "3333"
               }
@@ -2058,15 +2058,16 @@
     "@types/ws": "^7.2.5",
     "@types/xml2js": "^0.4.11",
     "@types/yauzl": "^2.9.1",
-    "@vscode/debugadapter": "^1.53.0",
+    "@vscode/debugadapter": "^1.65.0",
     "@vscode/debugadapter-testsupport": "^1.51.0",
-    "@vscode/debugprotocol": "^1.53.0",
+    "@vscode/debugprotocol": "^1.65.0",
     "@vscode/extension-telemetry": "0.4.8",
     "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-electron": "^2.1.2",
     "@vue/compiler-sfc": "^3.3.4",
     "bulma": "^0.9.3",
     "chai": "^4.3.4",
+    "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^3.1.0",
     "d3-scale": "^4.0.2",
     "file-loader": "^6.2.0",
@@ -2083,6 +2084,7 @@
     "reflect-metadata": "^0.1.13",
     "sass": "^1.49.8",
     "sass-loader": "^10",
+    "string-replace-loader": "^3.1.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
@@ -2102,7 +2104,6 @@
     "assert": "^2.1.0",
     "axios": "^1.6.0",
     "bignumber.js": "^9.0.1",
-    "cdt-gdb-adapter": "^0.0.32",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
     "follow-redirects": "^1.15.6",
@@ -2118,9 +2119,11 @@
     "plotly.js-dist-min": "^2.26.1",
     "postcss": "^8.4.31",
     "sanitize-html": "^2.12.1",
+    "serialport": "^12.0.0",
     "stream-browserify": "^3.0.0",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",
+    "utf8": "^3.0.0",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vue": "^3.3.4",

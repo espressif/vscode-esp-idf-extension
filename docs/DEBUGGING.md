@@ -7,13 +7,17 @@
 
 The Visual Studio Code uses `.vscode/launch.json` to configure debug as specified in [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
 
-We recommend using our Eclipse CDT GDB configuration to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). The ESP-IDF Debug adapter will be deprecated and removed in the next major release.
+We recommend using our Eclipse CDT GDB Adapter configuration to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). The ESP-IDF Debug adapter will be deprecated and removed in the next major release.
 
 Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF SVD File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
+If `initCommands`, `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
+
 ## Using the Eclipse CDT GDB Debug Adapter
 
-The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter). The arguments in launch.json are
+The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter).
+
+The basic arguments in launch.json are
 
 ```JSON
 {
@@ -37,6 +41,44 @@ The Eclipse CDT team have published a GDB debug adapter as NPM package which we 
   ]
 }
 ```
+
+where `program` and `gdb` can be resolved by extension. Some additional arguments you might use are:
+
+- `runOpenOCD`: (Default: true). Run extension openOCD Server.
+- `verifyAppBinBeforeDebug`: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.
+- `logFile`: Absolute path to the file to log interaction with gdb.
+- `verbose`: Produce verbose log output.
+- `environment`: Environment variables to apply to the ESP-IDF Debug Adapter. It will replace global environment variables and environment variables used by the extension.
+
+```json
+"environment": {
+  "VAR": "Value"
+}
+```
+
+- `imageAndSymbols`:
+
+```json
+"imageAndSymbols": {
+  "symbolFileName": "If specified, a symbol file to load at the given (optional) offset",
+  "symbolOffset": "If symbolFileName is specified, the offset used to load",
+  "imageFileName": "If specified, an image file to load at the given (optional) offset",
+  "imageOffset": "If imageFileName is specified, the offset used to load"
+}
+```
+
+- `target`: Configuration for target to be attached.
+
+```json
+"target": {
+  "type": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
+  "host": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
+  "port": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
+  "parameters": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)"
+}
+```
+
+Other arguments please review this extension's package.json `gdbtarget` debugger contribution.
 
 ## Use Microsoft C/C++ Extension to Debug
 

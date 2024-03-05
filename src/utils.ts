@@ -253,6 +253,21 @@ export async function setCCppPropertiesJsonCompilerPath(
   }
 }
 
+export async function getToolchainPath(
+  workspaceUri: vscode.Uri,
+  tool: string = "gcc"
+) {
+  const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+  const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
+  const gccTool = getToolchainToolName(idfTarget, tool);
+  try {
+    return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
+  } catch (error) {
+    Logger.errorNotify(`${tool} is not found in idf.customExtraPaths`, error);
+    return;
+  }
+}
+
 export function getToolchainToolName(idfTarget: string, tool: string = "gcc") {
   switch (idfTarget) {
     case "esp32":
