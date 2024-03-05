@@ -227,9 +227,6 @@ export class IdfToolsManager {
     const command = pkg.version_cmd[0];
     const args = pkg.version_cmd.slice(1);
     try {
-      const args = [
-
-      ]
       const binVersionResponse = await utils.execChildProcess(
         command,
         args,
