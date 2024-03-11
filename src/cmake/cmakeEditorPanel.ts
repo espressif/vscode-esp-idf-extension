@@ -72,7 +72,7 @@ export class CmakeListsEditorPanel {
   ) {
     const panel = vscode.window.createWebviewPanel(
       CmakeListsEditorPanel.viewType,
-      "CMakeLists.txt Editor",
+      "CMakeLists.txt",
       column,
       {
         enableScripts: true,
@@ -176,7 +176,7 @@ export class CmakeListsEditorPanel {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>CMakeLists.txt Editor</title>
+            <title>CMakeLists.txt</title>
             <link href="${codiconsUri}" rel="stylesheet" />
             </head>
             <body>

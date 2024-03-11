@@ -34,6 +34,48 @@ import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
+  public static async initWithProgress(workspace: vscode.Uri, extensionPath: string) {
+    if (!this.exists()) {
+      const response = await vscode.window.showInformationMessage(
+        "SDK Configuration Editor is not running. Start ?",
+        "Start",
+        "Cancel"
+      );
+      if (response !== "Start") {
+        return;
+      }
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspace
+      ) as string;
+      const progressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: progressLocation,
+          title: "ESP-IDF: Starting SDK Configuration process",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          ConfserverProcess.registerProgress(progress);
+          cancelToken.onCancellationRequested(() => {
+            ConfserverProcess.dispose();
+          });
+          await ConfserverProcess.init(
+            workspace,
+            extensionPath
+          );
+        }
+      );
+    }
+  }
+
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise((resolve) => {
       if (!ConfserverProcess.instance) {
@@ -189,24 +231,24 @@ export class ConfserverProcess {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-          Logger.infoNotify(data.toString());
+          Logger.info(data.toString());
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-        Logger.infoNotify(data.toString());
+        Logger.info(data.toString());
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.errorNotify(errorMsg, new Error(errorMsg));
+          Logger.error(errorMsg, new Error(errorMsg));
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
         const loadMessage = "Loaded default settings in GUI menuconfig";
-        Logger.infoNotify(loadMessage);
+        Logger.info(loadMessage);
         resolve();
       });
     });

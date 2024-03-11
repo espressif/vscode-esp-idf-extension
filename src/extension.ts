@@ -2219,13 +2219,19 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.size", () => {
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const idfSize = new IDFSize(workspaceRoot);
       try {
         if (IDFSizePanel.isCreatedAndHidden()) {
           IDFSizePanel.createOrShow(context);
           return;
         }
+
+        const mapFileExists = await idfSize.isBuiltAlready();
+        if (!mapFileExists) {
+          throw new Error("Build is required for a size analysis");
+        }
+
         const notificationMode = idfConf.readParameter(
           "idf.notificationMode",
           workspaceRoot
@@ -2252,11 +2258,29 @@ export async function activate(context: vscode.ExtensionContext) {
                 IDFSizePanel.createOrShow(context, results);
               }
             } catch (error) {
-              Logger.errorNotify(error.message, error);
+              const msg: string =
+                error && error.message ? error.message : JSON.stringify(error);
+              Logger.errorNotify(msg, error);
             }
           }
         );
       } catch (error) {
+        const msg: string =
+          error && error.message ? error.message : JSON.stringify(error);
+        if (
+          msg.indexOf("project_description.json doesn't exist.") !== -1 ||
+          msg.indexOf("Build is required for a size analysis") !== -1
+        ) {
+          const buildProject = await vscode.window.showInformationMessage(
+            `ESP-IDF Size requires to build the project first. Build the project?`,
+            "Build"
+          );
+          if (buildProject === "Build") {
+            vscode.commands.executeCommand("espIdf.buildDevice");
+          }
+          Logger.error(msg, error);
+          return;
+        }
         Logger.errorNotify(error.message, error);
       }
     });
@@ -3154,9 +3178,20 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot
           );
           if (isCustomPartitionTableEnabled !== "y") {
-            throw new Error(
-              "Custom Partition Table not enabled for the project"
-            );
+            const enableCustomPartitionTable = await vscode.window.showInformationMessage("Custom Partition Table not enabled for the project", "Enable");
+            if (enableCustomPartitionTable === "Enable") {
+              await ConfserverProcess.initWithProgress(workspaceRoot, context.extensionPath);
+
+              if (ConfserverProcess.exists()) {
+                const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
+                ConfserverProcess.sendUpdatedValue(customPartitionTableEnableRequest);
+                ConfserverProcess.saveGuiConfigValues();
+              } 
+            } else {
+              throw new Error(
+                "Custom Partition Table not enabled for the project"
+              );
+            }
           }
 
           let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
