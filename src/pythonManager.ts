@@ -326,7 +326,24 @@ export async function checkPipExists(pyBinPath: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Pip is not found in current environment");
-    Logger.errorNotify(newErr.message, newErr);
+    Logger.error(newErr.message, newErr);
+  }
+  return false;
+}
+
+export async function checkVenvExists(pyBinPath: string, workingDir: string) {
+  try {
+    const pipResult = await utils.execChildProcess(
+      `"${pyBinPath}" -c "import venv"`,
+      workingDir
+    );
+    return true;
+  } catch (error) {
+    const newErr =
+      error && error.message
+        ? error
+        : new Error("Venv is not found in current environment");
+    Logger.error(newErr.message, newErr);
   }
   return false;
 }

@@ -17,6 +17,7 @@ import {
   Progress,
   Uri,
   window,
+  workspace,
   WorkspaceFolder,
 } from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
@@ -50,6 +51,7 @@ export interface ISetupInitArgs {
   onReqPkgs?: string[];
   pythonVersions: string[];
   saveScope: number;
+  workspaceFolder: Uri;
 }
 
 export interface IPreviousInstallResult {
@@ -136,16 +138,15 @@ export async function getSetupInitialValues(
   const pythonVersions = await getPythonList(extensionPath);
   const idfSetups = await getPreviousIdfSetups(false);
   const extensionVersion = packageJson.version as string;
-  const saveScope = idfConf.readParameter(
-    "idf.saveScope"
-  ) as number;
+  const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const setupInitArgs = {
     espIdfVersionsList,
     espIdfTagsList,
     extensionVersion,
     existingIdfSetups: idfSetups,
     pythonVersions,
-    saveScope
+    saveScope,
+    workspaceFolder,
   } as ISetupInitArgs;
 
   try {
@@ -316,52 +317,51 @@ export async function saveSettings(
   exportedVars: { [key: string]: string },
   toolsPath: string,
   gitPath: string,
-  saveScope: ConfigurationTarget
+  saveScope: ConfigurationTarget,
+  workspaceFolderUri: Uri
 ) {
   const confTarget =
     saveScope ||
     (idfConf.readParameter("idf.saveScope") as ConfigurationTarget);
-  let workspaceFolder: WorkspaceFolder;
+  let workspaceFolder: Uri;
   if (confTarget === ConfigurationTarget.WorkspaceFolder) {
-    workspaceFolder = await window.showWorkspaceFolderPick({
-      placeHolder: `Pick Workspace Folder to which settings should be applied`,
-    });
+    workspaceFolder = workspaceFolderUri;
   }
   await idfConf.writeParameter(
     "idf.espIdfPath",
     espIdfPath,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await idfConf.writeParameter(
     "idf.pythonBinPath",
     pythonBinPath,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await idfConf.writeParameter(
     "idf.toolsPath",
     toolsPath,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await idfConf.writeParameter(
     "idf.customExtraPaths",
     exportedPaths,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await idfConf.writeParameter(
     "idf.customExtraVars",
     exportedVars,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await idfConf.writeParameter(
     "idf.gitPath",
     gitPath,
     confTarget,
-    workspaceFolder ? workspaceFolder.uri : undefined
+    workspaceFolder
   );
   await createIdfSetup(espIdfPath, toolsPath, pythonBinPath, gitPath);
   window.showInformationMessage("ESP-IDF has been configured");

@@ -3178,15 +3178,23 @@ export async function activate(context: vscode.ExtensionContext) {
             workspaceRoot
           );
           if (isCustomPartitionTableEnabled !== "y") {
-            const enableCustomPartitionTable = await vscode.window.showInformationMessage("Custom Partition Table not enabled for the project", "Enable");
+            const enableCustomPartitionTable = await vscode.window.showInformationMessage(
+              "Custom Partition Table not enabled for the project",
+              "Enable"
+            );
             if (enableCustomPartitionTable === "Enable") {
-              await ConfserverProcess.initWithProgress(workspaceRoot, context.extensionPath);
+              await ConfserverProcess.initWithProgress(
+                workspaceRoot,
+                context.extensionPath
+              );
 
               if (ConfserverProcess.exists()) {
                 const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
-                ConfserverProcess.sendUpdatedValue(customPartitionTableEnableRequest);
+                ConfserverProcess.sendUpdatedValue(
+                  customPartitionTableEnableRequest
+                );
                 ConfserverProcess.saveGuiConfigValues();
-              } 
+              }
             } else {
               throw new Error(
                 "Custom Partition Table not enabled for the project"
