@@ -825,14 +825,23 @@ export async function fixFileModeGitRepository(
     const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
     const fixFileModeResult = await execChildProcess(
       gitPath,
-    ["config", "--local", "core.fileMode", "false"],
+      ["config", "--local", "core.fileMode", "false"],
       workingDir,
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
     );
     const fixSubmodulesFileModeResult = await execChildProcess(
       gitPath,
-      ["submodule", "foreach", "--recursive", "git", "config", "--local", "core.fileMode", "false"],
+      [
+        "submodule",
+        "foreach",
+        "--recursive",
+        "git",
+        "config",
+        "--local",
+        "core.fileMode",
+        "false",
+      ],
       workingDir,
       OutputChannel.init(),
       { env: modifiedEnv, cwd: workingDir }
@@ -1233,4 +1242,30 @@ export function markdownToWebviewHtml(
   }
   cleanHtml = cleanHtml.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
   return cleanHtml;
+}
+
+export function getUserShell() {
+  if (idfConf.readParameter("idf.customTerminalExecutable")) {
+    return "custom";
+  }
+  const config = vscode.workspace.getConfiguration("terminal.integrated");
+  const shellWindows = config.get("defaultProfile.windows") as string;
+  const shellMac = config.get("defaultProfile.osx") as string;
+  const shellLinux = config.get("defaultProfile.linux") as string;
+
+  // list of shells to check
+  const shells = ["PowerShell", "Command Prompt", "bash", "zsh"];
+
+  // if user's shell is in the list, return it
+  for (let i = 0; i < shells.length; i++) {
+    if (shellWindows && shellWindows.includes(shells[i])) {
+      return shells[i];
+    } else if (shellMac && shellMac.includes(shells[i])) {
+      return shells[i];
+    } else if (shellLinux && shellLinux.includes(shells[i])) {
+      return shells[i];
+    }
+  }
+  // if no match, return null
+  return null;
 }

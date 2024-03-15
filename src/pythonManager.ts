@@ -39,11 +39,7 @@ export async function installEspIdfToolFromIdf(
       return reject(new Error("Process cancelled by user"));
     }
     try {
-      const args = [
-        idfToolsPyPath,
-        "install",
-        toolName
-      ];
+      const args = [idfToolsPyPath, "install", toolName];
       const processResult = await utils.execChildProcess(
         pythonBinPath,
         args,
@@ -108,7 +104,7 @@ export async function installPythonEnvFromIdfTools(
 
   await execProcessWithLog(
     pythonBinPath,
-    [idfToolsPyPath,"install-python-env"],
+    [idfToolsPyPath, "install-python-env"],
     idfToolsDir,
     pyTracker,
     channel,
@@ -183,7 +179,7 @@ export async function installExtensionPyReqs(
     ...constraintArg,
     "--no-warn-script-location",
     "-r",
-    debugAdapterRequirements
+    debugAdapterRequirements,
   ];
   await execProcessWithLog(
     virtualEnvPython,
@@ -240,7 +236,7 @@ export async function installEspMatterPyReqs(
     "--upgrade",
     "--no-warn-script-location",
     "-r",
-    matterRequirements
+    matterRequirements,
   ];
   await execProcessWithLog(
     virtualEnvPython,
@@ -285,16 +281,9 @@ export async function getPythonEnvPath(
   pythonBin: string
 ) {
   const pythonCode = `import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))`;
-  const args = [
-    "-c",
-    pythonCode
-  ];
+  const args = ["-c", pythonCode];
   const pythonVersion = (
-    await utils.execChildProcess(
-      pythonBin,
-      args,
-      espIdfDir
-    )
+    await utils.execChildProcess(pythonBin, args, espIdfDir)
   ).replace(/(\n|\r|\r\n)/gm, "");
   const fullEspIdfVersion = await utils.getEspIdfFromCMake(espIdfDir);
   const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
@@ -339,16 +328,8 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
 
 export async function checkPipExists(pyBinPath: string, workingDir: string) {
   try {
-    const args = [
-      "-m",
-      "pip",
-      "--version"
-    ];
-    const pipResult = await utils.execChildProcess(
-      pyBinPath,
-      args,
-      workingDir
-    );
+    const args = ["-m", "pip", "--version"];
+    const pipResult = await utils.execChildProcess(pyBinPath, args, workingDir);
     if (pipResult) {
       const match = pipResult.match(/pip\s\d+(.\d+)?(.\d+)?/g);
       if (match && match.length > 0) {
@@ -392,14 +373,28 @@ export async function getPythonBinList(workingDir: string) {
 
 export async function getUnixPythonList(workingDir: string) {
   try {
-    const pythonVersionsRaw = await utils.execChildProcess("which", ["-a", "python"], workingDir);
-    const pythonVersions = pythonVersionsRaw.trim() ? pythonVersionsRaw.trim().split("\n") : [];
-    
-    const python3VersionsRaw = await utils.execChildProcess("which", ["-a", "python3"], workingDir);
-    const python3Versions = python3VersionsRaw.trim() ? python3VersionsRaw.trim().split("\n") : [];
+    const pythonVersionsRaw = await utils.execChildProcess(
+      "which",
+      ["-a", "python"],
+      workingDir
+    );
+    const pythonVersions = pythonVersionsRaw.trim()
+      ? pythonVersionsRaw.trim().split("\n")
+      : [];
+
+    const python3VersionsRaw = await utils.execChildProcess(
+      "which",
+      ["-a", "python3"],
+      workingDir
+    );
+    const python3Versions = python3VersionsRaw.trim()
+      ? python3VersionsRaw.trim().split("\n")
+      : [];
 
     const combinedVersionsArray = [...pythonVersions, ...python3Versions];
-    const uniquePathsSet = new Set(combinedVersionsArray.filter(path => path.length > 0));
+    const uniquePathsSet = new Set(
+      combinedVersionsArray.filter((path) => path.length > 0)
+    );
     const uniquePathsArray = Array.from(uniquePathsSet);
 
     return uniquePathsArray;
@@ -408,7 +403,6 @@ export async function getUnixPythonList(workingDir: string) {
     return ["Not found"];
   }
 }
-
 
 export async function checkIfNotVirtualEnv(
   pythonBinPath: string,

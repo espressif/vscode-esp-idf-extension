@@ -93,17 +93,9 @@ export class PlatformInformation {
 
   private static GetWindowsArchitecture(): Promise<string> {
     const command = "wmic";
-    const args = [
-      "os",
-      "get",
-      "osarchitecture"
-    ];
+    const args = ["os", "get", "osarchitecture"];
     return utils
-      .execChildProcess(
-        command,
-        args,
-        utils.extensionContext.extensionPath
-      )
+      .execChildProcess(command, args, utils.extensionContext.extensionPath)
       .then((architecture) => {
         if (architecture) {
           const archArray: string[] = architecture.split(os.EOL);

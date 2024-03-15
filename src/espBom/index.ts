@@ -88,20 +88,25 @@ export async function createSBOM(workspaceUri: Uri) {
       clear: false,
       panel: TaskPanelKind.Shared,
     } as TaskPresentationOptions;
-    const command = "esp-idf-sbnom";
+    const command = "esp-idf-sbom";
     const argsCreating = [
       "create",
       projectDescriptionJson,
       "--output-file",
-      sbomFilePath
-    ];
-    const sbomCreateExecution = new ProcessExecution(command, argsCreating, options);
-    
-    const argsChecking = [
-      "check",
       sbomFilePath,
     ];
-    const sbomCheckExecution = new ProcessExecution(command, argsChecking, options);
+    const sbomCreateExecution = new ProcessExecution(
+      command,
+      argsCreating,
+      options
+    );
+
+    const argsChecking = ["check", sbomFilePath];
+    const sbomCheckExecution = new ProcessExecution(
+      command,
+      argsChecking,
+      options
+    );
     TaskManager.addTask(
       {
         type: "esp-idf",
