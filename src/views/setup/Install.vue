@@ -18,11 +18,13 @@ const {
   setupMode,
   selectedEspIdfVersion,
   espIdf,
-  espIdfContainer
+  espIdfContainer,
 } = storeToRefs(store);
 
-const errMsgIdf = "The ESP IDF folder path cannot contain spaces for ESP-IDF version lower than 5.0";
-const errMsgTools = "The ESP Tools folder path cannot contain spaces for ESP-IDF version lower than 5.0";
+const errMsgIdf =
+  "The ESP IDF folder path cannot contain spaces for ESP-IDF version lower than 5.0";
+const errMsgTools =
+  "The ESP Tools folder path cannot contain spaces for ESP-IDF version lower than 5.0";
 
 const isNotWinPlatform = computed(() => {
   return pathSep.value.indexOf("/") !== -1;
@@ -45,21 +47,21 @@ const isVersionLowerThan5 = computed(() => {
 });
 
 const whiteSpaceNotSupportedIdf = computed(() => {
-  if(isVersionLowerThan5.value) {
-    if (selectedEspIdfVersion.value.filename === 'manual') {
-      return espIdf.value.includes(' ');
+  if (isVersionLowerThan5.value) {
+    if (selectedEspIdfVersion.value.filename === "manual") {
+      return espIdf.value.includes(" ");
     }
-    if (selectedEspIdfVersion.value.filename !== 'manual') {
-      return espIdfContainer.value.includes(' ');
+    if (selectedEspIdfVersion.value.filename !== "manual") {
+      return espIdfContainer.value.includes(" ");
     }
   }
-})
+});
 
 const whiteSpaceNotSupportedTools = computed(() => {
-  if(isVersionLowerThan5.value) {
-    return toolsFolder.value.includes(' ');
+  if (isVersionLowerThan5.value) {
+    return toolsFolder.value.includes(" ");
   }
-})
+});
 
 const buttonTooltip = computed(() => {
   if (whiteSpaceNotSupportedIdf.value) {
@@ -94,7 +96,7 @@ function setToolsFolder(newToolsPath: string) {
         class="notification is-danger error-message"
         v-if="whiteSpaceNotSupportedIdf"
       >
-        <span>{{errMsgIdf}}</span>
+        <span>{{ errMsgIdf }}</span>
       </div>
 
       <folderOpen
@@ -108,7 +110,7 @@ function setToolsFolder(newToolsPath: string) {
         class="notification is-danger error-message"
         v-if="whiteSpaceNotSupportedTools"
       >
-        <span>{{errMsgTools}}</span>
+        <span>{{ errMsgTools }}</span>
       </div>
 
       <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
