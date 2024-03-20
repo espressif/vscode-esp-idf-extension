@@ -21,7 +21,7 @@ const isLinuxPlatform = computed(() => {
 
 const openOCDRulesPathText = computed(() => {
   return openOCDRulesPath.value !== ""
-    ? `sudo cp -n "${openOCDRulesPath.value}" /etc/udev/rules.d`
+    ? `sudo cp -n ${openOCDRulesPath.value} /etc/udev/rules.d`
     : "";
 });
 </script>
@@ -66,7 +66,7 @@ const openOCDRulesPathText = computed(() => {
           </p>
           <p>Run this command in a terminal with sudo privileges:</p>
         </div>
-        <div class="notification keep-spaces" v-if="openOCDRulesPathText">
+        <div class="notification" v-if="openOCDRulesPathText">
           {{ openOCDRulesPathText }}
         </div>
       </div>
@@ -117,9 +117,5 @@ const openOCDRulesPathText = computed(() => {
 
 .span-path {
   color: var(--vscode-button-hoverBackground);
-}
-
-.keep-spaces {
-  white-space: pre-wrap;
 }
 </style>

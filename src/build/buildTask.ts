@@ -163,8 +163,7 @@ export class BuildTask {
           compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
-      const cmakeCommand = "cmake";
-      const compileExecution = new vscode.ProcessExecution(cmakeCommand, compilerArgs, this.processOptions);
+      const compileExecution = new vscode.ProcessExecution(canAccessCMake, compilerArgs, this.processOptions);
       const compilePresentationOptions = {
         reveal: showTaskOutput,
         showReuseMessage: false,

@@ -11,20 +11,13 @@ import { IconClose } from "@iconify-prerendered/vue-codicon";
 const store = useSetupStore();
 
 const {
+  espIdfErrorStatus,
   gitVersion,
   pathSep,
   pyExecErrorStatus,
   toolsFolder,
   setupMode,
-  selectedEspIdfVersion,
-  espIdf,
-  espIdfContainer,
 } = storeToRefs(store);
-
-const errMsgIdf =
-  "The ESP IDF folder path cannot contain spaces for ESP-IDF version lower than 5.0";
-const errMsgTools =
-  "The ESP Tools folder path cannot contain spaces for ESP-IDF version lower than 5.0";
 
 const isNotWinPlatform = computed(() => {
   return pathSep.value.indexOf("/") !== -1;
@@ -34,43 +27,9 @@ const actionButtonText = computed(() => {
   return setupMode.value === SetupMode.advanced ? "Configure Tools" : "Install";
 });
 
-const isVersionLowerThan5 = computed(() => {
-  const version = selectedEspIdfVersion.value.version;
-  if (version) {
-    const match = version.match(/v(\d+(\.\d+)?(\.\d+)?)/);
-    if (match) {
-      const versionNumber = parseFloat(match[1]);
-      return versionNumber < 5;
-    }
-  }
-  return false;
-});
-
-const whiteSpaceNotSupportedIdf = computed(() => {
-  if (isVersionLowerThan5.value) {
-    if (selectedEspIdfVersion.value.filename === "manual") {
-      return espIdf.value.includes(" ");
-    }
-    if (selectedEspIdfVersion.value.filename !== "manual") {
-      return espIdfContainer.value.includes(" ");
-    }
-  }
-});
-
-const whiteSpaceNotSupportedTools = computed(() => {
-  if (isVersionLowerThan5.value) {
-    return toolsFolder.value.includes(" ");
-  }
-});
-
-const buttonTooltip = computed(() => {
-  if (whiteSpaceNotSupportedIdf.value) {
-    return errMsgIdf;
-  } else if (whiteSpaceNotSupportedTools.value) {
-    return errMsgTools;
-  }
-  return ""; // No tooltip when the button is not disabled
-});
+function setEspIdfErrorStatus() {
+  store.espIdfErrorStatus = "";
+}
 
 function setPyExecErrorStatus() {
   store.pyExecErrorStatus = "";
@@ -94,9 +53,12 @@ function setToolsFolder(newToolsPath: string) {
 
       <div
         class="notification is-danger error-message"
-        v-if="whiteSpaceNotSupportedIdf"
+        v-if="espIdfErrorStatus"
       >
-        <span>{{ errMsgIdf }}</span>
+        <p>{{ espIdfErrorStatus }}</p>
+        <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
+          <IconClose />
+        </div>
       </div>
 
       <folderOpen
@@ -105,13 +67,6 @@ function setToolsFolder(newToolsPath: string) {
         :propMutate="setToolsFolder"
         :openMethod="store.openEspIdfToolsFolder"
       />
-
-      <div
-        class="notification is-danger error-message"
-        v-if="whiteSpaceNotSupportedTools"
-      >
-        <span>{{ errMsgTools }}</span>
-      </div>
 
       <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
 
@@ -131,8 +86,6 @@ function setToolsFolder(newToolsPath: string) {
             @click="store.installEspIdf"
             class="button"
             data-config-id="start-install-btn"
-            :disabled="whiteSpaceNotSupportedIdf || whiteSpaceNotSupportedTools"
-            :title="buttonTooltip"
           >
             {{ actionButtonText }}
           </button>
@@ -150,7 +103,7 @@ function setToolsFolder(newToolsPath: string) {
 .error-message {
   padding: 0.5em;
   margin: 0.5em;
-  display: inline-block;
+  display: flex;
   justify-content: space-between;
   align-items: center;
 }
