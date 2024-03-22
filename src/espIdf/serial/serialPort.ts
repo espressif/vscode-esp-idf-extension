@@ -60,7 +60,7 @@ export class SerialPort {
         { placeHolder: msg }
       );
       if (chosen && chosen.label) {
-        await this.updatePortListStatus(chosen.label);
+        await this.updatePortListStatus(chosen.label, workspaceFolder);
       }
     } catch (error) {
       Logger.errorNotify(
@@ -74,11 +74,12 @@ export class SerialPort {
     return await this.list(workspaceFolder);
   }
 
-  private async updatePortListStatus(l: string) {
+  private async updatePortListStatus(l: string, wsFolder: vscode.Uri) {
     const settingsSavedLocation = await idfConf.writeParameter(
       "idf.port",
       l,
-      vscode.ConfigurationTarget.WorkspaceFolder
+      vscode.ConfigurationTarget.WorkspaceFolder,
+      wsFolder
     );
     const portHasBeenSelectedMsg = this.locDic.localize(
       "serial.portHasBeenSelectedMessage",
