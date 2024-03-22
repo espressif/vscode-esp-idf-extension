@@ -1608,7 +1608,7 @@
     "bignumber.js": "^9.0.1",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
-    "follow-redirects": "^1.15.4",
+    "follow-redirects": "^1.15.6",
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",
