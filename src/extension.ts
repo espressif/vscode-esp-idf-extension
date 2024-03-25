@@ -3173,6 +3173,18 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
+          const sdkconfigFilePath = utils.getSDKConfigFilePath(workspaceRoot);
+          const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
+          if (!sdkconfigFileExists) {
+            const buildProject = await vscode.window.showInformationMessage(
+              `Partition table editor requires sdkconfig file. Build the project?`,
+              "Build"
+            );
+            if (buildProject === "Build") {
+              vscode.commands.executeCommand("espIdf.buildDevice");
+            }
+            return;
+          }
           const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM",
             workspaceRoot
@@ -3183,7 +3195,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "Enable"
             );
             if (enableCustomPartitionTable === "Enable") {
-              await ConfserverProcess.initWithProgress(
+              await ConfserverProcess.init(
                 workspaceRoot,
                 context.extensionPath
               );
