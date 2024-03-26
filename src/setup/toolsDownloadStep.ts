@@ -28,10 +28,11 @@ export async function downloadIdfTools(
   gitPath: string,
   mirror: ESP.IdfMirror,
   saveScope: vscode.ConfigurationTarget,
+  workspaceFolderUri: vscode.Uri,
   context: vscode.ExtensionContext,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
-  onReqPkgs?: string[]
+  onReqPkgs?: string[],
 ) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
   const exportPaths = await idfToolsManager.exportPathsInString(
@@ -74,6 +75,7 @@ export async function downloadIdfTools(
     saveScope,
     context,
     progress,
-    cancelToken
+    cancelToken,
+    workspaceFolderUri
   );
 }

@@ -120,7 +120,7 @@ export namespace ESP {
   export namespace Webview {
     export namespace PartitionTableEditor {
       export const ViewType = "partition-table-editor";
-      export const Title = "ESP-IDF Partition Table Editor";
+      export const Title = "Partition Table";
     }
 
     export namespace ComponentManagerUI {

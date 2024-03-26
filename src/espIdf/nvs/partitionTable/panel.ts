@@ -26,7 +26,7 @@ import { OutputChannel } from "../../../logger/outputChannel";
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
   private static readonly viewType = "idfNvsPartitionTableEditor";
-  private static readonly viewTitle = "ESP-IDF NVS Partition Table Editor";
+  private static readonly viewTitle = "NVS Partition Table";
 
   public static async createOrShow(
     extensionPath: string,
@@ -220,7 +220,7 @@ export class NVSPartitionTable {
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>ESP-IDF NVS Partition Table Editor</title>
+      <title>NVS Partition Table</title>
     </head>
     <body>
       <section id="app"></section>

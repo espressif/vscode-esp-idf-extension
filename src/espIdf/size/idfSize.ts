@@ -126,7 +126,7 @@ export class IDFSize {
     return path.join(idfPathDir, "tools");
   }
 
-  private async isBuiltAlready() {
+  public async isBuiltAlready() {
     return fileExists(await this.mapFilePath());
   }
 

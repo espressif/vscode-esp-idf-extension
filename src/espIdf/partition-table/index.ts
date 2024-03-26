@@ -164,7 +164,7 @@ export class PartitionTableEditorPanel {
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>ESP-IDF Partition Table Editor</title>
+      <title>Partition Table</title>
     </head>
     <body>
       <section id="app"></section>
