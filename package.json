@@ -282,8 +282,9 @@
           "group": "navigation"
         },
         {
+          "when": "resourceFilename == CMakeLists.txt || resourceFilename =~ /^sdkconfig.*$/",
           "command": "espIdf.saveDefSdkconfig",
-          "group": "navigation"
+          "group": "2_workspace"
         },
         {
           "when": "resourceExtname == .bin",
