@@ -1,3 +1,4 @@
 {
-  "flash.waitProcessIsFinishedMessage": "Espere que termine el proceso ESP-IDF"
+  "flash.waitProcessIsFinishedMessage": "Espere que termine el proceso ESP-IDF",
+  "flash.saveFlashTypeUART": "El método de flasheo se ha cambiado exitosamente a UART"
 }

@@ -1,3 +1,4 @@
 {
-  "flash.waitProcessIsFinishedMessage": "等待 ESP-IDF 构建或烧录结束"
+  "flash.waitProcessIsFinishedMessage": "等待 ESP-IDF 构建或烧录结束",
+  "flash.saveFlashTypeUART": "闪存方法成功更改为 UART"
 }

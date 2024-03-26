@@ -1,3 +1,4 @@
 {
-  "flash.waitProcessIsFinishedMessage": "Дождитесь завершения сборки или прошивки ESP-IDF"
+  "flash.waitProcessIsFinishedMessage": "Дождитесь завершения сборки или прошивки ESP-IDF",
+  "flash.saveFlashTypeUART": "Метод прошивки успешно изменен на UART"
 }

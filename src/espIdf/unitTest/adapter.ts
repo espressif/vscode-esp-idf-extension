@@ -146,8 +146,7 @@ export class UnitTest {
       TestRunProfileKind.Run,
       runHandler,
       true,
-      undefined,
-      false
+      undefined
     );
 
     this.unitTestController.resolveHandler = async (item: TestItem) => {
@@ -211,7 +210,7 @@ export class UnitTest {
       children: [],
       testName: "TEST_ALL",
     };
-    const testRegex = new RegExp("TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)", "gm");
+    const testRegex = new RegExp('TEST_CASE\\("(.*)",\\s*"(.*)"\\)', "gm");
     const fileText = await readFile(file.fsPath, "utf8");
     let match = testRegex.exec(fileText);
     while (match != null) {

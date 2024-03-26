@@ -7,5 +7,6 @@
   "menuconfig.changesNotSaved": "SDK 配置编辑器中的更改尚未保存，是否要保存？",
   "menuconfig.save": "保存",
   "menuconfig.discard": "不保存",
-  "menuconfig.returnGuiconfig": "返回到 SDK 配置编辑器"
+  "menuconfig.returnGuiconfig": "返回到 SDK 配置编辑器",
+  "menuconfig.disabledFlashEncryption": "在 SDK 配置中已禁用 Flash 加密"
 }

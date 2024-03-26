@@ -35,6 +35,9 @@ export namespace ESP {
       "esp_idf_project_configuration.json";
   }
 
+  export const DEFAULT_UNSET_EFUSE_VALUE =
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00";
+
   export enum FlashType {
     JTAG = "JTAG",
     UART = "UART",
@@ -114,9 +117,9 @@ export namespace ESP {
       export const IDF_VERSIONS =
         "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
+      export const FLASH_ENCRYPTION = "/security/flash-encryption.html";
     }
   }
-
   export namespace Webview {
     export namespace PartitionTableEditor {
       export const ViewType = "partition-table-editor";
