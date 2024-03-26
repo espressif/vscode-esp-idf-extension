@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { appendIdfAndToolsToPath } from "../../utils";
+import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
 import { window, Terminal, Uri, env } from "vscode";
 
 export interface MonitorConfig {
@@ -59,14 +59,20 @@ export class IDFMonitor {
     });
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
+    const shellType = getUserShell();
+    // Function to quote paths; PowerShell requires single quotes for paths with spaces
+    const quotePath = (path) =>
+      shellType === "PowerShell"
+        ? `'${path.replace(/'/g, "''")}'`
+        : `"${path}"`;
     const baudRateToUse =
       this.config.baudRate ||
       modifiedEnv.IDF_MONITOR_BAUD ||
       modifiedEnv.MONITORBAUD ||
       "115200";
     const args = [
-      this.config.pythonBinPath,
-      this.config.idfMonitorToolPath,
+      quotePath(this.config.pythonBinPath),
+      quotePath(this.config.idfMonitorToolPath),
       "-p",
       this.config.port,
       "-b",
@@ -95,10 +101,18 @@ export class IDFMonitor {
     if (this.config.wsPort) {
       args.push("--ws", `ws://localhost:${this.config.wsPort}`);
     }
-    args.push(this.config.elfFilePath);
+    args.push(quotePath(this.config.elfFilePath));
     const envSetCmd = process.platform === "win32" ? "set" : "export";
-    this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
-    this.terminal.sendText(args.join(" "));
+    const quotedIdfPath = quotePath(modifiedEnv.IDF_PATH);
+
+    if (shellType === "PowerShell") {
+      this.terminal.sendText(`& ${envSetCmd} IDF_PATH=${quotedIdfPath}`);
+      this.terminal.sendText(`& ${args.join(" ")}`);
+    } else {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+      this.terminal.sendText(args.join(" "));
+    }
+
     return this.terminal;
   }
   async dispose() {

@@ -55,7 +55,7 @@ so make sure that if using an existing python virtual environment that installin
 
 > **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
 
-> **NOTE:** Make sure that `IDF_PATH` and `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues since [ESP-IDF Build System does NOT support spaces yet.](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/windows-setup.html#start-a-project).
+> **NOTE**: If you want to use an ESP-IDF version < 5.0, make sure that IDF_PATH and IDF_TOOLS_PATH don't have any spaces since they were no suported in previous versions.
 
 After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
 
@@ -113,8 +113,6 @@ where:
 - `idf.openOcdConfigs` are the config files used for OpenOCD for your device (relative paths to `OPENOCD_SCRIPTS` directory of OpenOCD-ESP32 tool).
 
 **DO NOT USE ~, $HOME OR %USERPROFILE% ENVIRONMENT VARIABLES ARE NOT RESOLVED IN THIS CONFIGURATION SETTINGS. You must use ${env:HOME} instead of \$HOME (Linux/MacOS) or %HOME% (Windows).**
-
-> **NOTE:** Make sure that your configurations settings doesn't have any spaces to avoid any build issues.
 
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
 

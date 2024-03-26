@@ -23,8 +23,8 @@ import {
   TaskPanelKind,
   TaskPresentationOptions,
   TaskScope,
-  ShellExecutionOptions,
-  ShellExecution,
+  ProcessExecutionOptions,
+  ProcessExecution,
 } from "vscode";
 import {
   appendIdfAndToolsToPath,
@@ -66,24 +66,10 @@ export async function createSBOM(workspaceUri: Uri) {
         );
       }
     }
-    const options: ShellExecutionOptions = {
+    const options: ProcessExecutionOptions = {
       cwd: workspaceUri.fsPath,
       env: modifiedEnv,
     };
-    const shellExecutablePath = readParameter(
-      "idf.customTerminalExecutable",
-      workspaceUri
-    ) as string;
-    const shellExecutableArgs = readParameter(
-      "idf.customTerminalExecutableArgs",
-      workspaceUri
-    ) as string[];
-    if (shellExecutablePath) {
-      options.executable = shellExecutablePath;
-    }
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      options.shellArgs = shellExecutableArgs;
-    }
     const notificationMode = readParameter(
       "idf.notificationMode",
       workspaceUri
@@ -102,12 +88,23 @@ export async function createSBOM(workspaceUri: Uri) {
       clear: false,
       panel: TaskPanelKind.Shared,
     } as TaskPresentationOptions;
-    const sbomCreateExecution = new ShellExecution(
-      `esp-idf-sbom create ${projectDescriptionJson} --output-file ${sbomFilePath}`,
+    const command = "esp-idf-sbom";
+    const argsCreating = [
+      "create",
+      projectDescriptionJson,
+      "--output-file",
+      sbomFilePath,
+    ];
+    const sbomCreateExecution = new ProcessExecution(
+      command,
+      argsCreating,
       options
     );
-    const sbomCheckExecution = new ShellExecution(
-      `esp-idf-sbom check ${sbomFilePath}`,
+
+    const argsChecking = ["check", sbomFilePath];
+    const sbomCheckExecution = new ProcessExecution(
+      command,
+      argsChecking,
       options
     );
     TaskManager.addTask(
@@ -148,7 +145,8 @@ export async function installEspSBOM(workspace: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
-      `"${pythonBinPath}" -m pip show esp-idf-sbom`,
+      pythonBinPath,
+      ["-m", "pip", "show", "esp-idf-sbom"],
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }
@@ -156,7 +154,8 @@ export async function installEspSBOM(workspace: Uri) {
     OutputChannel.appendLine(showResult);
   } catch (error) {
     const installResult = await execChildProcess(
-      `"${pythonBinPath}" -m pip install esp-idf-sbom`,
+      pythonBinPath,
+      ["-m", "pip", "install", "esp-idf-sbom"],
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }

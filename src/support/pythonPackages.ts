@@ -24,7 +24,8 @@ export async function getPythonPackages(
   context: vscode.ExtensionContext
 ) {
   const rawPythonPackagesList = await execChildProcess(
-    `${reportedResult.configurationSettings.pythonBinPath} -m pip list --format json`,
+    reportedResult.configurationSettings.pythonBinPath,
+    ["-m", "pip", "list", "--format", "json"],
     context.extensionPath
   );
   reportedResult.pythonPackages.output = rawPythonPackagesList;

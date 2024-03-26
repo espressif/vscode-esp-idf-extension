@@ -71,13 +71,15 @@ export async function getConfigurationAccess(
   }
   if (process.platform !== "win32") {
     const cmakePathInEnv = await execChildProcess(
-      `which cmake`,
+      "which",
+      ["cmake"],
       context.extensionPath
     );
     reportedResult.configurationAccess.cmakeInEnv =
       cmakePathInEnv && cmakePathInEnv.indexOf("not found") === -1;
     const ninjaPathInEnv = await execChildProcess(
-      `which ninja`,
+      "which",
+      ["ninja"],
       context.extensionPath
     );
     reportedResult.configurationAccess.ninjaInEnv =

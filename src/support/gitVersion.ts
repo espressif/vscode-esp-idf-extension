@@ -26,7 +26,8 @@ export async function getGitVersion(
   context: vscode.ExtensionContext,
 ) {
   const rawGitVersion = await execChildProcess(
-    `"${reportedResult.configurationSettings.gitPath}" --version`,
+    reportedResult.configurationSettings.gitPath,
+    ["--version"],
     context.extensionPath
   );
   reportedResult.gitVersion.output = rawGitVersion;

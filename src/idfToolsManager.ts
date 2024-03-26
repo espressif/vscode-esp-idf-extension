@@ -221,13 +221,15 @@ export class IdfToolsManager {
     ) {
       modifiedEnv[pathNameInEnv] = modifiedPath;
     }
-    const versionCmd = pkg.version_cmd.join(" ");
-    if (versionCmd === "") {
+    if (pkg.version_cmd.length === 0) {
       return "No command version";
     }
+    const command = pkg.version_cmd[0];
+    const args = pkg.version_cmd.slice(1);
     try {
       const binVersionResponse = await utils.execChildProcess(
-        versionCmd,
+        command,
+        args,
         process.cwd(),
         logToChannel ? this.toolsManagerChannel : undefined,
         {
