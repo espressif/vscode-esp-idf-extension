@@ -152,47 +152,41 @@ export class Peripheral extends PeripheralBaseNode {
     return this.format;
   }
 
-  public updateData(): Thenable<boolean> {
-    return new Promise((resolve, reject) => {
-      if (!this.expanded) {
-        return resolve(false);
-      }
-
-      this.readMemory()
-        .then((unused) => {
-          this.updateChildData(resolve, reject, null);
-        })
-        .catch((error) => {
-          const msg = error.message || "unknown error";
-          const str = `Failed to update peripheral ${this.name}: ${msg}`;
-          if (debug.activeDebugConsole) {
-            debug.activeDebugConsole.appendLine(str);
-          }
-          this.updateChildData(null, reject, new Error(str));
-        });
-    });
-  }
-
-  private updateChildData(resolve, reject, err: Error) {
-    if (err) {
-      return reject(err);
+  public async updateData(): Promise<boolean> {
+    if (!this.expanded) {
+        return false;
     }
-    const promises = this.children.map((r) => r.updateData());
-    Promise.all(promises)
-      .then((result) => {
-        return resolve(true);
-      })
-      .catch((err) => {
-        const msg = err.message || "unknown error";
+
+    try {
+        const errors = await this.readMemory();
+        for (const error of errors) {
+            const str = `Failed to update peripheral ${this.name}: ${error}`;
+            if (debug.activeDebugConsole) {
+                debug.activeDebugConsole.appendLine(str);
+            }
+        }
+    } catch (e) {
+        const msg = (e as Error).message || 'unknown error';
         const str = `Failed to update peripheral ${this.name}: ${msg}`;
         if (debug.activeDebugConsole) {
-          debug.activeDebugConsole.appendLine(str);
+            debug.activeDebugConsole.appendLine(str);
         }
-        return reject(err ? err : new Error(str));
-      });
-  }
+    }
 
-  private readMemory(): Promise<boolean> {
+    try {
+        const promises = this.children.map((r) => r.updateData());
+        await Promise.all(promises);
+        return true;
+    } catch (e) {
+        const str = `Internal error: Failed to update peripheral ${this.name} after memory reads`;
+        if (debug.activeDebugConsole) {
+            debug.activeDebugConsole.appendLine(str);
+        }
+        return true;
+    }
+}
+
+  private readMemory(): Promise<Error[]> {
     if (!this.currentValue) {
       this.currentValue = new Array<number>(this.totalLength);
     }

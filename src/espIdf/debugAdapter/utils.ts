@@ -134,56 +134,38 @@ export function parseInteger(value: string): number {
   return undefined;
 }
 
-export function readMemoryChunks(
+export async function readMemoryChunks(
   session: DebugSession,
   startAddr: number,
   specs: AddrRange[],
   storeTo: number[]
-): Promise<boolean> {
-  const promises = specs.map((r) => {
-    return new Promise((resolve, reject) => {
-      const addr = "0x" + r.base.toString(16);
-      session
-        .customRequest("readMemory", { memoryReference: addr, count: r.length, offset: 0 })
-        .then(
-          (result) => {
-            let dst = r.base - startAddr;
-            const bytes = [];
-            const numBytes = result.data[0].contents.length / 2;
-            const data = result.data[0].contents;
-            for (let i = 0, d = 0; i < numBytes; i++, d +=2) {
-              bytes.push([`${data[d]}${data[d+1]}`]);
-            }
-            for (const byte of bytes) {
-              storeTo[dst++] = byte;
-            }
-            resolve(true);
-          },
-          (e) => {
-            let dst = r.base - startAddr;
-            for (let ix = 0; ix < r.length; ix++) {
-              storeTo[dst++] = 0xff;
-            }
-            reject(e);
-          }
-        );
-    });
-  });
+): Promise<Error[]> {
+  const errors: Error[] = [];
+  for (const spec of specs) {
+    const memoryReference = "0x" + spec.base.toString(16);
 
-  return new Promise(async (resolve, reject) => {
-    const results = await Promise.all(promises.map((p) => p.catch((e) => e)));
-    const errs: string[] = [];
-    results.map((e) => {
-      if (e instanceof Error) {
-        errs.push(e.message);
+    try {
+      const responseBody = await session.customRequest("readMemory", {
+        memoryReference,
+        count: spec.length,
+      });
+      if (responseBody && responseBody.data) {
+        const bytes = Buffer.from(responseBody.data, "base64");
+        let dst = spec.base - startAddr;
+        for (const byte of bytes) {
+          storeTo[dst++] = byte;
+        }
       }
-    });
-    if (errs.length !== 0) {
-      reject(new Error(errs.join("\n")));
-    } else {
-      resolve(true);
+    } catch (e) {
+      const err = e ? e.toString() : "Unknown error";
+      errors.push(
+        new Error(
+          `peripheral-viewer: readMemory failed @ ${memoryReference} for ${spec.length} bytes: ${err}, session=${session.id}`
+        )
+      );
     }
-  });
+  }
+  return errors;
 }
 
 export function readMemory(
@@ -191,7 +173,7 @@ export function readMemory(
   startAddr: number,
   length: number,
   storeTo: number[]
-): Promise<boolean> {
+): Promise<Error[]> {
   const maxChunk = 4 * 1024;
   const ranges = splitIntoChunks([new AddrRange(startAddr, length)], maxChunk);
   return readMemoryChunks(session, startAddr, ranges, storeTo);

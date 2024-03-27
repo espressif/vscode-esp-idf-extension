@@ -326,7 +326,7 @@ export class PeripheralTreeView
   public debugContinued() {}
 
   public getActiveDebugSession() {
-    return debug.activeDebugSession?.type === "espidf"
+    return debug.activeDebugSession?.type === "gdbtarget"
       ? debug.activeDebugSession
       : null;
   }

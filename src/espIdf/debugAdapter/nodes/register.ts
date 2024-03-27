@@ -333,21 +333,25 @@ export class Register extends PeripheralBaseNode {
     const bc = this.size / 8;
     const bytes = this.parent.getBytes(this.offset, bc);
     const buffer = Buffer.from(bytes);
-    switch (bc) {
-      case 1:
-        this.currentValue = buffer.readUInt8(0);
-        break;
-      case 2:
-        this.currentValue = buffer.readUInt16LE(0);
-        break;
-      case 4:
-        this.currentValue = buffer.readUInt32LE(0);
-        break;
-      default:
-        window.showErrorMessage(
-          `Register ${this.name} has invalid size: ${this.size}. Should be 8, 16 or 32.`
-        );
-        break;
+    try {
+      switch (bc) {
+        case 1:
+          this.currentValue = buffer.readUInt8(0);
+          break;
+        case 2:
+          this.currentValue = buffer.readUInt16LE(0);
+          break;
+        case 4:
+          this.currentValue = buffer.readUInt32LE(0);
+          break;
+        default:
+          window.showErrorMessage(
+            `Register ${this.name} has invalid size: ${this.size}. Should be 8, 16 or 32.`
+          );
+          break;
+      }
+    } catch (error) {
+      return Promise.reject(error);
     }
     this.children.forEach((f) => f.updateData());
 

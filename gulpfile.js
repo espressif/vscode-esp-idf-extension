@@ -17,7 +17,6 @@ const del = require("del");
 const vsce = require("vsce");
 const nls = require("vscode-nls-dev");
 const { readdirSync, statSync } = require("fs");
-const { readJSON, writeJSON } = require("fs-extra");
 const { join } = require("path");
 const glob = require("glob");
 
@@ -34,7 +33,6 @@ languagesDirs.forEach((langDir) => {
 function clean(done) {
   del([
     "dist/**",
-    "out/**",
     "package.nls.*.json",
     "*.vsix",
     "report.json",
