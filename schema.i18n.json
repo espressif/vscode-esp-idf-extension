@@ -207,6 +207,7 @@
     "espIdf.efuse.clearResults.title",
     "espIdf.jtag_flash.title",
     "espIdf.selectFlashMethodAndFlash.title",
+    "espIdf.selectCurrentIdfVersion.title",
     "idf.flashType.description",
     "openocd.tcl.host.description",
     "openocd.tcl.port.description",

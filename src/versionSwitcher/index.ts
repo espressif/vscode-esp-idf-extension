@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, window, WorkspaceFolder } from "vscode";
+import { ConfigurationTarget, Uri, window, WorkspaceFolder } from "vscode";
 import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
-import { checkIdfSetup, useIdfSetupSettings } from "../setup/setupValidation/espIdfSetup";
+import {
+  checkIdfSetup,
+  useIdfSetupSettings,
+} from "../setup/setupValidation/espIdfSetup";
 import { readParameter } from "../idfConfiguration";
 import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
@@ -32,7 +35,9 @@ export async function selectIdfSetup(workspaceFolder: WorkspaceFolder) {
   }
   const idfSetupOptions = idfSetups.map((idfSetup) => {
     return {
-      label: `Version: ${idfSetup.version} IDF_PATH: ${idfSetup.idfPath} IDF_TOOLS_PATH: ${idfSetup.toolsPath}`,
+      label: `Version: v${idfSetup.version}`,
+      description: `IDF_PATH: ${idfSetup.idfPath}`,
+      detail: `IDF_TOOLS_PATH: ${idfSetup.toolsPath}`,
       target: idfSetup,
     };
   });
@@ -48,12 +53,9 @@ export async function selectIdfSetup(workspaceFolder: WorkspaceFolder) {
   );
 }
 
-export async function getCurrentIdfSetup(workspaceFolder: WorkspaceFolder){
+export async function getCurrentIdfSetup(workspaceFolder: Uri) {
   let idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const toolsPath = readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  ) as string;
+  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
   const pythonPath = readParameter(
     "idf.pythonBinPath",

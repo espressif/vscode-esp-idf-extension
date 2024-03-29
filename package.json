@@ -1378,6 +1378,11 @@
         "command": "espIdf.createSbom",
         "title": "%espIdf.createSbom.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectCurrentIdfVersion",
+        "title": "%espIdf.selectCurrentIdfVersion.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [
