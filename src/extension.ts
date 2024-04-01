@@ -3735,6 +3735,9 @@ const flash = (
           ) as ESP.FlashType;
         }
         await startFlashing(cancelToken, flashType, encryptPartition);
+        OutputChannel.appendLine(
+          "Flash has finished. You can monitor with ESP-IDF: Monitor your device command"
+        );
       }
     );
   });

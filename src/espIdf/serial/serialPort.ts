@@ -22,6 +22,7 @@ import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -63,10 +64,15 @@ export class SerialPort {
         await this.updatePortListStatus(chosen.label, workspaceFolder);
       }
     } catch (error) {
+      const msg = error.message
+        ? error.message
+        : "Something went wrong while getting the serial port list";
       Logger.errorNotify(
-        "Something went wrong while getting the serial port list",
+        msg,
         error
       );
+      OutputChannel.appendLine(msg, "Serial port");
+      OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
   }
 
