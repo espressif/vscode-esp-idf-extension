@@ -19,9 +19,9 @@
 import {
   CancellationToken,
   ConfigurationTarget,
+  ExtensionContext,
   Progress,
   ProgressLocation,
-  Uri,
   window,
 } from "vscode";
 import { getEspIdfVersions } from "./espIdfVersionList";
@@ -115,8 +115,8 @@ export async function openFolder(openLabel: string) {
   }
 }
 
-export async function downloadEspIdf(extensionPath: Uri) {
-  const espIdfVersions = await getEspIdfVersions(extensionPath.fsPath);
+export async function downloadEspIdf(context: ExtensionContext) {
+  const espIdfVersions = await getEspIdfVersions(context.extensionPath);
 
   let quickPickItems = espIdfVersions.map((k) => {
     return {
@@ -204,7 +204,7 @@ export async function downloadEspIdf(extensionPath: Uri) {
         idfPythonPath = embedPaths.idfPythonPath;
         const canAccessCMake = await isBinInPath(
           "cmake",
-          extensionPath.fsPath,
+          context.extensionPath,
           process.env
         );
 
@@ -214,7 +214,7 @@ export async function downloadEspIdf(extensionPath: Uri) {
 
         const canAccessNinja = await isBinInPath(
           "ninja",
-          extensionPath.fsPath,
+          context.extensionPath,
           process.env
         );
 
@@ -222,7 +222,7 @@ export async function downloadEspIdf(extensionPath: Uri) {
           onReqPkgs = onReqPkgs ? [...onReqPkgs, "ninja"] : ["ninja"];
         }
       } else {
-        const pythonList = await getUnixPythonList(extensionPath.fsPath);
+        const pythonList = await getUnixPythonList(context.extensionPath);
         let pythonItems = pythonList.map((pyVer) => {
           return {
             description: "",
@@ -271,6 +271,7 @@ export async function downloadEspIdf(extensionPath: Uri) {
         undefined,
         idfPythonPath,
         idfGitPath,
+        context,
         OutputChannel.init(),
         cancelToken
       );
