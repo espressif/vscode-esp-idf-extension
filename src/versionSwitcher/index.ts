@@ -33,7 +33,8 @@ export async function selectIdfSetup(workspaceFolder: WorkspaceFolder) {
     await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
-  const idfSetupOptions = idfSetups.map((idfSetup) => {
+  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const idfSetupOptions = onlyValidIdfSetups.map((idfSetup) => {
     return {
       label: `Version: v${idfSetup.version}`,
       description: `IDF_PATH: ${idfSetup.idfPath}`,
