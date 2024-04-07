@@ -331,7 +331,6 @@ export class GDBDebugSession extends LoggingDebugSession {
         response.body.supportsHitConditionalBreakpoints = true;
         response.body.supportsLogPoints = true;
         response.body.supportsFunctionBreakpoints = true;
-        // response.body.supportsSetExpression = true;
         response.body.supportsDisassembleRequest = true;
         response.body.supportsReadMemoryRequest = true;
         response.body.supportsWriteMemoryRequest = true;
@@ -735,7 +734,6 @@ export class GDBDebugSession extends LoggingDebugSession {
             });
 
             const actual: DebugProtocol.Breakpoint[] = [];
-            // const actual = existing.map((bp) => createActual(bp.gdbbp));
 
             for (const bp of resolved) {
                 if (bp.gdbbp) {
@@ -1237,12 +1235,6 @@ export class GDBDebugSession extends LoggingDebugSession {
         }
         this.sendResponse(response);
     }
-
-    // protected async setExpressionRequest(response: DebugProtocol.SetExpressionResponse,
-    //                                      args: DebugProtocol.SetExpressionArguments): Promise<void> {
-    //     logger.error('got setExpressionRequest');
-    //     this.sendResponse(response);
-    // }
 
     protected async evaluateRequest(
         response: DebugProtocol.EvaluateResponse,
