@@ -2288,7 +2288,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installEspIdf", async () => {
-    await downloadEspIdf(context.extensionUri);
+    await downloadEspIdf(context);
   });
 
   registerIDFCommand("espIdf.useEspIdfJsonSetup", async () => {
