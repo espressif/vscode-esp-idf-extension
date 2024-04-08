@@ -1417,6 +1417,23 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  vscode.debug.registerDebugAdapterTrackerFactory("gdbtarget", {
+    createDebugAdapterTracker(session: vscode.DebugSession) {
+      return {
+        onDidSendMessage: async (m) => {
+          console.log(m);
+          if (m && m.type === "event" && m.event === "stopped") {
+            const peripherals = await peripheralTreeProvider.getChildren();
+            for (const p of peripherals) {
+              p.getPeripheral().updateData();
+            }
+            peripheralTreeProvider.refresh();
+          }
+        },
+      };
+    },
+  });
+
   vscode.debug.onDidTerminateDebugSession((session) => {
     peripheralTreeProvider.debugSessionTerminated(session);
   });
