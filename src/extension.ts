@@ -3195,7 +3195,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "Enable"
             );
             if (enableCustomPartitionTable === "Enable") {
-              await ConfserverProcess.init(
+              await ConfserverProcess.initWithProgress(
                 workspaceRoot,
                 context.extensionPath
               );

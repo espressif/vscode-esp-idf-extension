@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 21st June 2019 10:57:18 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,16 +34,11 @@ import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
-  public static async initWithProgress(workspace: vscode.Uri, extensionPath: string) {
+  public static async initWithProgress(
+    workspace: vscode.Uri,
+    extensionPath: string
+  ) {
     if (!this.exists()) {
-      const response = await vscode.window.showInformationMessage(
-        "SDK Configuration Editor is not running. Start ?",
-        "Start",
-        "Cancel"
-      );
-      if (response !== "Start") {
-        return;
-      }
       const notificationMode = idfConf.readParameter(
         "idf.notificationMode",
         workspace
@@ -67,10 +62,7 @@ export class ConfserverProcess {
           cancelToken.onCancellationRequested(() => {
             ConfserverProcess.dispose();
           });
-          await ConfserverProcess.init(
-            workspace,
-            extensionPath
-          );
+          await ConfserverProcess.init(workspace, extensionPath);
         }
       );
     }
@@ -209,21 +201,26 @@ export class ConfserverProcess {
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     delConfigFile(currWorkspace);
     const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath", currWorkspace) || process.env.IDF_PATH;
+      idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
+      process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", currWorkspace) as string;
-    const enableCCache = idfConf.readParameter("idf.enableCCache", currWorkspace) as boolean;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      currWorkspace
+    ) as string;
+    const enableCCache = idfConf.readParameter(
+      "idf.enableCCache",
+      currWorkspace
+    ) as boolean;
     const reconfigureArgs: string[] = [idfPyPath];
     if (enableCCache) {
-      reconfigureArgs.push("--ccache")
+      reconfigureArgs.push("--ccache");
     }
     reconfigureArgs.push("-C", currWorkspace.fsPath, "reconfigure");
-    const getSdkconfigProcess = spawn(
-      pythonBinPath,
-      reconfigureArgs,
-      { env: modifiedEnv }
-    );
+    const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
+      env: modifiedEnv,
+    });
 
     progress.report({ increment: 10, message: "Loading default values..." });
 
@@ -302,28 +299,34 @@ export class ConfserverProcess {
     this.espIdfPath =
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter("idf.pythonBinPath", workspaceFolder) as string;
+    const pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
     this.configFile = getSDKConfigFilePath(workspaceFolder);
 
     process.env.IDF_TARGET = "esp32";
     process.env.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(this.workspaceFolder);
-    const enableCCache = idfConf.readParameter("idf.enableCCache", workspaceFolder) as boolean;
+    const enableCCache = idfConf.readParameter(
+      "idf.enableCCache",
+      workspaceFolder
+    ) as boolean;
     const confServerArgs: string[] = [idfPath];
     if (enableCCache) {
-      confServerArgs.push("--ccache")
+      confServerArgs.push("--ccache");
     }
     confServerArgs.push("-C", workspaceFolder.fsPath, "confserver");
-    this.confServerProcess = spawn(
-      pythonBinPath,
-      confServerArgs,
-      { env: modifiedEnv }
-    );
-    ConfserverProcess.progress.report({
-      increment: 30,
-      message: "Configuring server",
+    this.confServerProcess = spawn(pythonBinPath, confServerArgs, {
+      env: modifiedEnv,
     });
+    if (ConfserverProcess.progress) {
+      ConfserverProcess.progress.report({
+        increment: 30,
+        message: "Configuring server",
+      });
+    }
     this.setupConfigServer();
     this.jsonListener = this.initMenuConfigPanel;
   }
@@ -368,10 +371,12 @@ export class ConfserverProcess {
   private setupConfigServer() {
     this.confServerProcess.stdout.on("data", (data) => {
       this.receivedDataBuffer += data;
-      ConfserverProcess.progress.report({
-        increment: 3,
-        message: "Loading initial values...",
-      });
+      if (ConfserverProcess.progress) {
+        ConfserverProcess.progress.report({
+          increment: 3,
+          message: "Loading initial values...",
+        });
+      }
       Logger.info(data.toString());
       OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
       this.checkIfJsonIsReceived();
