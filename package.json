@@ -1251,8 +1251,7 @@
       },
       {
         "command": "espIdf.webview.nvsPartitionEditor",
-        "title": "%espIdf.webview.nvsPartitionEditor.title%",
-        "category": "ESP-IDF"
+        "title": "%espIdf.webview.nvsPartitionEditor.title%"
       },
       {
         "command": "espIdf.selectOpenOcdConfigFiles",

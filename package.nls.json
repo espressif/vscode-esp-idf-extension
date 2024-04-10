@@ -43,7 +43,7 @@
   "espIdf.clearDocsSearchResult.title": "Clear ESP-IDF Search Results",
   "espIdf.fullClean.title": "Full Clean Project",
   "espIdf.createNewComponent.title": "Create New ESP-IDF Component",
-  "espIdf.webview.nvsPartitionEditor.title": "NVS Partition Editor",
+  "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: NVS Partition Editor",
   "espIdf.selectOpenOcdConfigFiles.title": "Select OpenOCD Board Configuration",
   "espIdf.ninja.summary.title": "Show Ninja Build Summary",
   "espIdf.eraseFlash.title": "Erase Flash Memory from Device",

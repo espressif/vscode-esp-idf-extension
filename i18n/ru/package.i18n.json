@@ -43,7 +43,7 @@
   "espIdf.clearDocsSearchResult.title": " Очистить результаты поиска",
   "espIdf.fullClean.title": "Полный чистый проект",
   "espIdf.createNewComponent.title": "Создать новый компонент ESP-IDF",
-  "espIdf.webview.nvsPartitionEditor.title": "Редактор разделов NVS",
+  "espIdf.webview.nvsPartitionEditor.title": "ESP-IDF: Редактор разделов NVS",
   "espIdf.selectOpenOcdConfigFiles.title": "Выберите конфигурацию платы OpenOCD",
   "espIdf.ninja.summary.title": "Показать сводку сборки ninja",
   "espIdf.eraseFlash.title": "Стереть флеш-память с устройства",
