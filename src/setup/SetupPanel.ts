@@ -160,6 +160,7 @@ export class SetupPanel {
               message.saveScope,
               message.setupMode,
               context,
+              setupArgs.workspaceFolder,
               setupArgs.onReqPkgs
             );
           }
@@ -179,6 +180,7 @@ export class SetupPanel {
               setupArgs.gitPath,
               message.mirror,
               message.saveScope,
+              setupArgs.workspaceFolder,
               context,
               setupArgs.onReqPkgs
             );
@@ -254,7 +256,8 @@ export class SetupPanel {
               exportedVars,
               setupArgs.gitPath,
               message.saveScope,
-              context
+              context,
+              setupArgs.workspaceFolder
             );
           }
           break;
@@ -296,7 +299,8 @@ export class SetupPanel {
             });
             await useIdfSetupSettings(
               setupArgs.existingIdfSetups[message.selectedIdfSetup],
-              message.saveScope
+              message.saveScope,
+              setupArgs.workspaceFolder
             );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
@@ -342,6 +346,7 @@ export class SetupPanel {
     } else if (
       errMsg.indexOf("ERROR_INVALID_PYTHON") !== -1 ||
       errMsg.indexOf("ERROR_INVALID_PIP") !== -1 ||
+      errMsg.indexOf("ERROR_INVALID_VENV") !== -1 ||
       errMsg.indexOf("PYTHON_BIN_PATH_WITH_SPACES") !== -1
     ) {
       SetupPanel.postMessage({
@@ -374,6 +379,7 @@ export class SetupPanel {
     saveScope: ConfigurationTarget,
     setupMode: SetupMode,
     context: ExtensionContext,
+    workspaceFolderUri: Uri,
     onReqPkgs?: string[]
   ) {
     const notificationMode = idfConf.readParameter(
@@ -422,7 +428,9 @@ export class SetupPanel {
               toolsPath,
               idfVersion,
               progress,
-              cancelToken
+              cancelToken,
+              saveScope,
+              workspaceFolderUri
             );
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
@@ -447,6 +455,7 @@ export class SetupPanel {
             saveScope,
             setupMode,
             context,
+            workspaceFolderUri,
             idfGitPath,
             progress,
             cancelToken,
@@ -520,6 +529,7 @@ export class SetupPanel {
     gitPath: string,
     mirror: ESP.IdfMirror,
     saveScope: ConfigurationTarget,
+    workspaceFolderUri: Uri,
     context: ExtensionContext,
     onReqPkgs?: string[]
   ) {
@@ -555,7 +565,9 @@ export class SetupPanel {
               toolsPath,
               idfVersion,
               progress,
-              cancelToken
+              cancelToken,
+              saveScope,
+              workspaceFolderUri
             );
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
@@ -573,6 +585,7 @@ export class SetupPanel {
             gitPath,
             mirror,
             saveScope,
+            workspaceFolderUri,
             context,
             progress,
             cancelToken,
@@ -593,7 +606,8 @@ export class SetupPanel {
     exportVars: { [key: string]: string },
     gitPath: string,
     saveScope: ConfigurationTarget,
-    context: ExtensionContext
+    context: ExtensionContext,
+    workspaceFolderUri: Uri
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
@@ -629,7 +643,8 @@ export class SetupPanel {
             saveScope,
             context,
             progress,
-            cancelToken
+            cancelToken,
+            workspaceFolderUri
           );
         } catch (error) {
           this.setupErrHandler(error);
@@ -642,7 +657,9 @@ export class SetupPanel {
     toolsPath: string,
     idfVersion: string,
     progress: Progress<{ message: string; increment?: number }>,
-    cancelToken: CancellationToken
+    cancelToken: CancellationToken,
+    saveScope: ConfigurationTarget,
+    workspaceFolderUri: Uri
   ) {
     const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
     SetupPanel.postMessage({
@@ -662,7 +679,12 @@ export class SetupPanel {
     const confTarget = idfConf.readParameter(
       "idf.saveScope"
     ) as ConfigurationTarget;
-    await idfConf.writeParameter("idf.gitPath", idfGitPath, confTarget);
+    await idfConf.writeParameter(
+      "idf.gitPath",
+      idfGitPath,
+      saveScope,
+      workspaceFolderUri
+    );
     return { idfPythonPath, idfGitPath };
   }
 

@@ -82,7 +82,11 @@ export async function checkExtensionSettings(
           if (!selectedSetup) {
             return;
           }
-          await useIdfSetupSettings(selectedSetup.target, confTarget);
+          await useIdfSetupSettings(
+            selectedSetup.target,
+            confTarget,
+            workspace
+          );
         } else if (
           typeof process.env.WEB_IDE === "undefined" &&
           showSetupWindow
