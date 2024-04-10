@@ -116,5 +116,7 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
       idfSetups.push(setupConf);
     }
     return idfSetups;
+  } else {
+    return [];
   }
 }

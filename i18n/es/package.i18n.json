@@ -68,6 +68,8 @@
   "espIdf.clearSavedIdfSetups.title": "Limpiar configuraciones de IDF guardadas",
   "espIdf.unitTest.buildFlashUnitTestApp.title": "Unit Test: Construir y programar la app unit test app para pruebas",
   "espIdf.unitTest.installPyTest.title": "Unit Test: Instalar requerimientos ESP-IDF PyTest",
+  "espIdf.installEspIdf.title": "Instalar ESP-IDF",
+  "espIdf.useEspIdfJsonSetup.title": "Usar la configuracion ESP-IDF del Instalador IDF",
   "debug.initConfig.name": "Lanzar Depuracion ESP-IDF:",
   "debug.initConfig.description": "Nueva configuración para proyectos ESP-IDF",
   "param.adapterTargetName": "Target para el ESP-IDF Debug Adapter",

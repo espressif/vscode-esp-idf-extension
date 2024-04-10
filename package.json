@@ -1378,6 +1378,16 @@
         "command": "espIdf.createSbom",
         "title": "%espIdf.createSbom.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.installEspIdf",
+        "title": "%espIdf.installEspIdf.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.useEspIdfJsonSetup",
+        "title": "%espIdf.useEspIdfJsonSetup.title%",
+        "category": "ESP-IDF"
       }
     ],
     "breakpoints": [

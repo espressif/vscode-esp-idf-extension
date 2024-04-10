@@ -144,6 +144,8 @@
     "espIdf.unitTest.buildFlashUnitTestApp.title",
     "espIdf.unitTest.installPyTest.title",
     "espIdf.createSbom.title",
+    "espIdf.installEspIdf.title",
+    "espIdf.useEspIdfJsonSetup.title",
     "debug.initConfig.name",
     "debug.initConfig.description",
     "param.adapterTargetName",

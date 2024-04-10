@@ -127,6 +127,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Get HTML Coverage Report for project                    |                                        |                                           |
 | Import ESP-IDF Project                                  |                                        |                                           |
 | Install ESP-ADF                                         |                                        |                                           |
+| Install ESP-IDF                                         |                                        |                                           |
 | Install ESP-IDF Python Packages                         |                                        |                                           |
 | Install ESP-MDF                                         |                                        |                                           |
 | Install ESP-Matter                                      |                                        |                                           |
@@ -161,6 +162,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Unit Test: Install ESP-IDF PyTest requirements          |                                        |                                           |
 | Remove Editor coverage                                  |                                        |                                           |
 | Run ESP-IDF-SBOM vulnerability check                    |                                        |                                           |
+| Use ESP-IDF setup from IDF Installer                    |                                        |                                           |
 
 # About commands
 
