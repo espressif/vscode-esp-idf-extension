@@ -22,6 +22,7 @@ import {
   ExtensionContext,
   Progress,
   ProgressLocation,
+  Uri,
   window,
 } from "vscode";
 import { getEspIdfVersions } from "./espIdfVersionList";
@@ -42,7 +43,7 @@ import { downloadEspIdfTools } from "./toolInstall";
 import { isBinInPath } from "../utils";
 import { pathExists } from "fs-extra";
 
-export async function useExistingEspIdfJsonSetup() {
+export async function useExistingEspIdfJsonSetup(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   let toolsPath = join(containerPath, ".espressif");
@@ -97,7 +98,8 @@ export async function useExistingEspIdfJsonSetup() {
     exportedVars,
     toolsPath,
     espIdfVersion.gitPath,
-    ConfigurationTarget.Global
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolder
   );
 }
 
@@ -115,7 +117,10 @@ export async function openFolder(openLabel: string) {
   }
 }
 
-export async function downloadEspIdf(context: ExtensionContext) {
+export async function downloadEspIdf(
+  context: ExtensionContext,
+  workspaceFolder: Uri
+) {
   const espIdfVersions = await getEspIdfVersions(context.extensionPath);
 
   let quickPickItems = espIdfVersions.map((k) => {
@@ -300,7 +305,8 @@ export async function downloadEspIdf(context: ExtensionContext) {
         exportedVars,
         toolsPath,
         idfGitPath,
-        ConfigurationTarget.Global
+        ConfigurationTarget.WorkspaceFolder,
+        workspaceFolder
       );
     }
   );

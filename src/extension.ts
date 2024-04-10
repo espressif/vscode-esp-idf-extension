@@ -2288,11 +2288,11 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installEspIdf", async () => {
-    await downloadEspIdf(context);
+    await downloadEspIdf(context, workspaceRoot);
   });
 
   registerIDFCommand("espIdf.useEspIdfJsonSetup", async () => {
-    await useExistingEspIdfJsonSetup();
+    await useExistingEspIdfJsonSetup(workspaceRoot);
   });
 
   registerIDFCommand("espIdf.importProject", async () => {
