@@ -100,21 +100,6 @@ export async function installPyReqs(
   return;
 }
 
-export async function installExtensionPyReqs(
-  idfToolsDir: string,
-  pythonBinPath: string,
-  espIdfPath: string
-) {
-  const logTracker = new PyReqLog(sendPyReqLog);
-  await pythonManager.installExtensionPyReqs(
-    pythonBinPath,
-    espIdfPath,
-    idfToolsDir,
-    logTracker,
-    OutputChannel.init()
-  );
-}
-
 export function sendPyReqLog(log: string) {
   SetupPanel.postMessage({
     command: "updatePyReqsLog",
