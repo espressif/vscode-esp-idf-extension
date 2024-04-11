@@ -364,5 +364,5 @@ export async function saveSettings(
     workspaceFolder
   );
   await createIdfSetup(espIdfPath, toolsPath, pythonBinPath, gitPath);
-  window.showInformationMessage("ESP-IDF has been configured");
+  Logger.infoNotify("ESP-IDF has been configured");
 }
