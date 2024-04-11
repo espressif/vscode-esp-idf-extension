@@ -13,12 +13,9 @@
 // limitations under the License.
 
 import * as vscode from "vscode";
-import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { ESP } from "./config";
 import { ProjectConfElement } from "./project-conf/projectConfiguration";
-
-const locDic = new LocDictionary(__filename);
 
 export enum NotificationMode {
   Silent = "Silent",
@@ -223,10 +220,7 @@ export async function updateConfParameter(
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspaceFolderUri
   );
-  const updateMessage = locDic.localize(
-    "idfConfiguration.hasBeenUpdated",
-    " has been updated"
-  );
+  const updateMessage = vscode.l10n.t(" has been updated");
   Logger.infoNotify(label + updateMessage);
 }
 

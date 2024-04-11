@@ -16,11 +16,9 @@ import { EventEmitter, TreeDataProvider, TreeItem } from "vscode";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
-import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { join } from "path";
-const locDic = new LocDictionary(__filename);
 
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
   private OnDidChangeTreeData: EventEmitter<
@@ -121,10 +119,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
       return sortedUserList.concat(sortedDefaultList);
     } else {
       Logger.errorNotify(
-        locDic.localize(
-          "idfComponentDataProvider.proj_desc_not_found",
-          "File project_description.json cannot be found."
-        ),
+        vscode.l10n.t("File project_description.json cannot be found."),
         new Error("File-Not-Found")
       );
       return null;

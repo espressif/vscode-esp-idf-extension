@@ -1131,7 +1131,7 @@ export async function activate(context: vscode.ExtensionContext) {
       switch (option.target) {
         case "deviceTarget":
           return vscode.commands.executeCommand("espIdf.setTarget");
-        case "devicePort": 
+        case "devicePort":
           msg = vscode.l10n.t("Enter device port Path");
           paramName = "idf.port";
           break;
@@ -1148,7 +1148,9 @@ export async function activate(context: vscode.ExtensionContext) {
           paramName = "idf.openOcdConfigs";
           break;
         default:
-          const noParamUpdatedMsg = vscode.l10n.t("No device parameter has been updated");
+          const noParamUpdatedMsg = vscode.l10n.t(
+            "No device parameter has been updated"
+          );
           Logger.infoNotify(noParamUpdatedMsg);
           break;
       }
@@ -1878,7 +1880,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setTarget", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const enterDeviceTargetMsg = vscode.l10n.t("Enter target name (IDF_TARGET)");
+      const enterDeviceTargetMsg = vscode.l10n.t(
+        "Enter target name (IDF_TARGET)"
+      );
       await setIdfTarget(enterDeviceTargetMsg);
     });
   });
@@ -2123,7 +2127,9 @@ export async function activate(context: vscode.ExtensionContext) {
           target: b,
         };
       });
-      const selectOpenOCdConfigsMsg = vscode.l10n.t("Enter OpenOCD Configuration File Paths list");
+      const selectOpenOCdConfigsMsg = vscode.l10n.t(
+        "Enter OpenOCD Configuration File Paths list"
+      );
       const selectedBoard = await vscode.window.showQuickPick(choices, {
         placeHolder: selectOpenOCdConfigsMsg,
       });
@@ -2133,7 +2139,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
       if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
         const inputBoard = await vscode.window.showInputBox({
-          placeHolder: vscode.l10n.t("Enter comma separated configuration files"),
+          placeHolder: vscode.l10n.t(
+            "Enter comma separated configuration files"
+          ),
           value: selectedBoard.target.configFiles.join(","),
         });
         if (inputBoard) {
@@ -2160,7 +2168,9 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.target,
         target
       );
-      Logger.infoNotify(vscode.l10n.t("OpenOCD Board configuration files are updated."));
+      Logger.infoNotify(
+        vscode.l10n.t("OpenOCD Board configuration files are updated.")
+      );
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";

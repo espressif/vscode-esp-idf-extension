@@ -15,7 +15,6 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import { OutputChannel } from "../logger/outputChannel";
-import { LocDictionary } from "../localizationDictionary";
 import { INewProjectArgs } from "./newProjectInit";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import { copy, ensureDir, readFile, writeJSON } from "fs-extra";
@@ -23,8 +22,6 @@ import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
-
-const locDictionary = new LocDictionary("NewProjectPanel");
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -65,10 +62,7 @@ export class NewProjectPanel {
     column: vscode.ViewColumn
   ) {
     this.extensionPath = extensionPath;
-    const newProjectTitle = locDictionary.localize(
-      "newProject.panelName",
-      "New Project"
-    );
+    const newProjectTitle = vscode.l10n.t("New Project");
     let localResourceRoots: vscode.Uri[] = [];
     localResourceRoots.push(
       vscode.Uri.file(path.join(this.extensionPath, "dist", "views"))
@@ -83,7 +77,9 @@ export class NewProjectPanel {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
     }
     if (newProjectArgs.espHomeKitSdkPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espHomeKitSdkPath));
+      localResourceRoots.push(
+        vscode.Uri.file(newProjectArgs.espHomeKitSdkPath)
+      );
     }
     this.panel = vscode.window.createWebviewPanel(
       NewProjectPanel.viewType,
