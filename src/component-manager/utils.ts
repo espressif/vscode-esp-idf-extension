@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { existsSync } from 'fs';
+import { existsSync } from "fs";
 import { Logger } from "../logger/logger";
 import { spawn, appendIdfAndToolsToPath } from "../utils";
-import { LocDictionary } from "../localizationDictionary";
-import { Uri } from "vscode";
+import { Uri, l10n } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
-
-const locDict = new LocDictionary("ComponentRegistryPanel");
 
 export async function addDependency(
   workspace: Uri,
@@ -33,30 +30,37 @@ export async function addDependency(
     const idfPathDir = readParameter("idf.espIdfPath", workspace);
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-    const enableCCache = readParameter("idf.enableCCache", workspace) as boolean;
+    const pythonBinPath = readParameter(
+      "idf.pythonBinPath",
+      workspace
+    ) as string;
+    const enableCCache = readParameter(
+      "idf.enableCCache",
+      workspace
+    ) as boolean;
     const addDependencyArgs: string[] = [idfPy];
     if (enableCCache) {
-      addDependencyArgs.push("--ccache")
+      addDependencyArgs.push("--ccache");
     }
-    addDependencyArgs.push("add-dependency", `--component=${component}`, dependency, "reconfigure");
-    const addDependencyResult = await spawn(
-      pythonBinPath,
-      addDependencyArgs,
-      {
-        cwd: workspace.fsPath,
-        env: modifiedEnv,
-      }
+    addDependencyArgs.push(
+      "add-dependency",
+      `--component=${component}`,
+      dependency,
+      "reconfigure"
     );
+    const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
+      cwd: workspace.fsPath,
+      env: modifiedEnv,
+    });
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`
     );
     Logger.info(addDependencyResult.toString());
   } catch (error) {
     const throwableError = new Error(
-      locDict.localize(
-        "idfpy.commandError",
-        `Error encountered while adding dependency ${dependency} to the component "${component}"`
+      l10n.t(
+        `Error encountered while adding dependency {dependency} to the component "{component}"`,
+        { dependency, component }
       )
     );
     Logger.error(error.message, error);
@@ -74,12 +78,20 @@ export async function createProject(
     const modifiedEnv = appendIdfAndToolsToPath(workspace);
     const pythonBinPath = readParameter("idf.pythonBinPath") as string;
 
-    if (!existsSync(idfPathDir) || !existsSync(idfPy) || !existsSync(pythonBinPath)) {
-      throw new Error('The paths to idf, idf.py or pythonBin do not exist.');
+    if (
+      !existsSync(idfPathDir) ||
+      !existsSync(idfPy) ||
+      !existsSync(pythonBinPath)
+    ) {
+      throw new Error("The paths to idf, idf.py or pythonBin do not exist.");
     }
 
-    const createProjectCommand: string[] = [idfPy, "create-project-from-example", `${example}`];
-    
+    const createProjectCommand: string[] = [
+      idfPy,
+      "create-project-from-example",
+      `${example}`,
+    ];
+
     const createProjectResult = await spawn(
       pythonBinPath,
       createProjectCommand,
@@ -89,16 +101,13 @@ export async function createProject(
       }
     );
 
-    Logger.infoNotify(
-      `Creating project from ${example}"`
-    );
+    Logger.infoNotify(`Creating project from ${example}"`);
     Logger.info(createProjectResult.toString());
-
   } catch (error) {
     const throwableError = new Error(
-      `${locDict.localize(
-        "idfpy.commandError",
-        `Error encountered while creating project from example ${example}"`
+      `${l10n.t(
+        `Error encountered while creating project from example "{example}"`,
+        { example }
       )}. Original error: ${error.message}`
     );
     Logger.error(error.message, error);

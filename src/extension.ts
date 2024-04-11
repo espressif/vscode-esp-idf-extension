@@ -39,7 +39,6 @@ import {
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
-import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import * as utils from "./utils";
@@ -193,23 +192,19 @@ let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
 
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
-const locDic = new LocDictionary(__filename);
 
 // Websocket Server
 let wsServer: WSServer;
 
 // Precheck methods and their messages
-const openFolderMsg = locDic.localize(
-  "extension.openFolderFirst",
-  "Open a folder first."
-);
-const cmdNotForWebIdeMsg = locDic.localize(
-  "extension.cmdNotWebIDE",
+
+const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
+const cmdNotForWebIdeMsg = vscode.l10n.t(
   "Selected command is not available in WebIDE"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
-  openFolderMsg,
+  openFolderFirstMsg,
 ] as utils.PreCheckInput;
 const webIdeCheck = [
   PreCheck.notUsingWebIde,
@@ -549,8 +544,7 @@ export async function activate(context: vscode.ExtensionContext) {
               projectPath,
               true
             );
-            const defaultFoldersMsg = locDic.localize(
-              "extension.defaultFoldersGeneratedMessage",
+            const defaultFoldersMsg = vscode.l10n.t(
               "Template folders has been generated."
             );
             Logger.infoNotify(defaultFoldersMsg);
@@ -828,8 +822,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.pickAWorkspaceFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const selectCurrentFolderMsg = locDic.localize(
-        "espIdf.pickAWorkspaceFolder.text",
+      const selectCurrentFolderMsg = vscode.l10n.t(
         "Select your current folder"
       );
       try {
@@ -837,10 +830,7 @@ export async function activate(context: vscode.ExtensionContext) {
           placeHolder: selectCurrentFolderMsg,
         });
         if (!option) {
-          const noFolderMsg = locDic.localize(
-            "extension.noFolderMessage",
-            "No workspace selected."
-          );
+          const noFolderMsg = vscode.l10n.t("No workspace selected.");
           Logger.infoNotify(noFolderMsg);
           return;
         }
@@ -932,8 +922,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setPath", () => {
     PreCheck.perform([webIdeCheck], async () => {
-      const selectFrameworkMsg = locDic.localize(
-        "selectFrameworkMessage",
+      const selectFrameworkMsg = vscode.l10n.t(
         "Select framework to define its path:"
       );
       try {
@@ -954,10 +943,7 @@ export async function activate(context: vscode.ExtensionContext) {
           { placeHolder: selectFrameworkMsg }
         );
         if (!option) {
-          const noOptionMsg = locDic.localize(
-            "extension.noOptionMessage",
-            "No option selected."
-          );
+          const noOptionMsg = vscode.l10n.t("No option selected.");
           Logger.infoNotify(noOptionMsg);
           return;
         }
@@ -966,31 +952,19 @@ export async function activate(context: vscode.ExtensionContext) {
         let paramName: string;
         switch (option.target) {
           case "esp":
-            msg = locDic.localize(
-              "extension.enterIdfPathMessage",
-              "Enter IDF_PATH Path"
-            );
+            msg = vscode.l10n.t("Enter IDF_PATH Path");
             paramName = "idf.espIdfPath";
             break;
           case "idfTools":
-            msg = locDic.localize(
-              "extension.enterIdfToolsPathMessage",
-              "Enter IDF_TOOLS_PATH path"
-            );
+            msg = vscode.l10n.t("Enter IDF_TOOLS_PATH path");
             paramName = "idf.toolsPath";
             break;
           case "customExtraPath":
-            msg = locDic.localize(
-              "extension.enterCustomPathsMessage",
-              "Enter extra paths to append to PATH"
-            );
+            msg = vscode.l10n.t("Enter extra paths to append to PATH");
             paramName = "idf.customExtraPaths";
             break;
           default:
-            const noPathUpdatedMsg = locDic.localize(
-              "extension.noPathUpdatedMessage",
-              "No path has been updated"
-            );
+            const noPathUpdatedMsg = vscode.l10n.t("No path has been updated");
             Logger.infoNotify(noPathUpdatedMsg);
             break;
         }
@@ -1080,10 +1054,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         return;
       }
-      const selectConfigMsg = locDic.localize(
-        "extension.selectConfigMessage",
-        "Select configuration to use:"
-      );
+      const selectConfigMsg = vscode.l10n.t("Select configuration to use:");
       let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
@@ -1095,10 +1066,7 @@ export async function activate(context: vscode.ExtensionContext) {
         placeHolder: selectConfigMsg,
       });
       if (!option) {
-        const noOptionMsg = locDic.localize(
-          "extension.noOptionMessage",
-          "No option selected."
-        );
+        const noOptionMsg = vscode.l10n.t("No option selected.");
         Logger.infoNotify(noOptionMsg);
         return;
       }
@@ -1124,10 +1092,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.configDevice", async () => {
-    const selectConfigMsg = locDic.localize(
-      "extension.selectConfigMessage",
-      "Select option to define its path :"
-    );
+    const selectConfigMsg = vscode.l10n.t("Select option to define its path:");
     try {
       const option = await vscode.window.showQuickPick(
         [
@@ -1156,10 +1121,7 @@ export async function activate(context: vscode.ExtensionContext) {
         { placeHolder: selectConfigMsg }
       );
       if (!option) {
-        const noOptionMsg = locDic.localize(
-          "extension.noOptionMessage",
-          "No option selected."
-        );
+        const noOptionMsg = vscode.l10n.t("No option selected.");
         Logger.infoNotify(noOptionMsg);
         return;
       }
@@ -1169,36 +1131,24 @@ export async function activate(context: vscode.ExtensionContext) {
       switch (option.target) {
         case "deviceTarget":
           return vscode.commands.executeCommand("espIdf.setTarget");
-        case "devicePort":
-          msg = locDic.localize(
-            "extension.enterDevicePortMessage",
-            "Enter device port Path"
-          );
+        case "devicePort": 
+          msg = vscode.l10n.t("Enter device port Path");
           paramName = "idf.port";
           break;
         case "flashBaudRate":
-          msg = locDic.localize(
-            "extension.enterFlashBaudRateMessage",
-            "Enter flash baud rate"
-          );
+          msg = vscode.l10n.t("Enter flash baud rate");
           paramName = "idf.flashBaudRate";
           break;
         case "monitorBaudRate":
-          msg = "Enter monitor baud rate";
+          msg = vscode.l10n.t("Enter monitor baud rate");
           paramName = "idf.monitorBaudRate";
           break;
         case "openOcdConfig":
-          msg = locDic.localize(
-            "extension.enterOpenOcdConfigMessage",
-            "Enter OpenOCD Configuration File Paths list"
-          );
+          msg = vscode.l10n.t("Enter OpenOCD Configuration File Paths list");
           paramName = "idf.openOcdConfigs";
           break;
         default:
-          const noParamUpdatedMsg = locDic.localize(
-            "extension.noParamUpdatedMessage",
-            "No device parameter has been updated"
-          );
+          const noParamUpdatedMsg = vscode.l10n.t("No device parameter has been updated");
           Logger.infoNotify(noParamUpdatedMsg);
           break;
       }
@@ -1928,10 +1878,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setTarget", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const enterDeviceTargetMsg = locDic.localize(
-        "extension.enterDeviceTargetMessage",
-        "Enter target name (IDF_TARGET)"
-      );
+      const enterDeviceTargetMsg = vscode.l10n.t("Enter target name (IDF_TARGET)");
       await setIdfTarget(enterDeviceTargetMsg);
     });
   });
@@ -2176,10 +2123,7 @@ export async function activate(context: vscode.ExtensionContext) {
           target: b,
         };
       });
-      const selectOpenOCdConfigsMsg = locDic.localize(
-        "extension.enterOpenOcdConfigMessage",
-        "Enter OpenOCD Configuration File Paths list"
-      );
+      const selectOpenOCdConfigsMsg = vscode.l10n.t("Enter OpenOCD Configuration File Paths list");
       const selectedBoard = await vscode.window.showQuickPick(choices, {
         placeHolder: selectOpenOCdConfigsMsg,
       });
@@ -2189,7 +2133,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
       if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
         const inputBoard = await vscode.window.showInputBox({
-          placeHolder: "Enter comma separated configuration files",
+          placeHolder: vscode.l10n.t("Enter comma separated configuration files"),
           value: selectedBoard.target.configFiles.join(","),
         });
         if (inputBoard) {
@@ -2202,7 +2146,7 @@ export async function activate(context: vscode.ExtensionContext) {
         !PreCheck.isWorkspaceFolderOpen() &&
         target !== vscode.ConfigurationTarget.Global
       ) {
-        const noWsOpenMSg = `Open a workspace or folder first.`;
+        const noWsOpenMSg = vscode.l10n.t(`Open a workspace or folder first.`);
         Logger.warnNotify(noWsOpenMSg);
         throw new Error(noWsOpenMSg);
       }
@@ -2216,7 +2160,7 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.target,
         target
       );
-      Logger.infoNotify("OpenOCD Board configuration files are updated.");
+      Logger.infoNotify(vscode.l10n.t("OpenOCD Board configuration files are updated."));
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";

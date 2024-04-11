@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 21st June 2019 10:57:18 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { readParameter } from "../../idfConfiguration";
-import { LocDictionary } from "../../localizationDictionary";
 import { readFileSync } from "../../utils";
 import { formatHelpText } from "./helpTextFormatter";
 import { Menu, menuType } from "./Menu";
@@ -56,12 +55,10 @@ export class KconfigMenuLoader {
     return newConfig;
   }
 
-  private locDic: LocDictionary;
   private workspaceFolder: vscode.Uri;
 
   constructor(workspaceFolder: vscode.Uri) {
     this.workspaceFolder = workspaceFolder;
-    this.locDic = new LocDictionary(__filename);
   }
 
   public initMenuconfigServer(): Menu[] {

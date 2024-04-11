@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 21st June 2019 10:57:18 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
-import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
@@ -28,10 +27,8 @@ import * as utils from "../../utils";
 export class IDFSize {
   private readonly workspaceRoot: vscode.Uri;
   private isCanceled: boolean;
-  private locDict: LocDictionary;
   constructor(workspaceRoot: vscode.Uri) {
     this.workspaceRoot = workspaceRoot;
-    this.locDict = new LocDictionary(__filename);
   }
   public cancel() {
     this.isCanceled = true;
@@ -41,17 +38,13 @@ export class IDFSize {
   ) {
     if (this.isCanceled) {
       throw new Error(
-        this.locDict.localize(
-          "idfSize.canceledError",
-          "Cannot proceed with size analysis on a canceled context"
-        )
+        vscode.l10n.t("Cannot proceed with size analysis on a canceled context")
       );
     }
     const isBuilt = await this.isBuiltAlready();
     if (!isBuilt) {
       throw new Error(
-        this.locDict.localize(
-          "idfSize.buildFirstError",
+        vscode.l10n.t(
           "Build is required for a size analysis, build your project first"
         )
       );
@@ -59,10 +52,7 @@ export class IDFSize {
     try {
       const mapFilePath = await this.mapFilePath();
 
-      let locMsg = this.locDict.localize(
-        "idfSize.overviewMsg",
-        "Gathering Overview"
-      );
+      let locMsg = vscode.l10n.t("Gathering Overview");
       const espIdfPath = idfConf.readParameter(
         "idf.espIdfPath",
         this.workspaceRoot
@@ -79,10 +69,7 @@ export class IDFSize {
       ]);
       progress.report({ increment: 30, message: locMsg });
 
-      locMsg = this.locDict.localize(
-        "idfSize.archivesMsg",
-        "Gathering Archive List"
-      );
+      locMsg = vscode.l10n.t("Gathering Archive List");
       const archives = await this.idfCommandInvoker([
         "idf_size.py",
         mapFilePath,
@@ -91,10 +78,7 @@ export class IDFSize {
       ]);
       progress.report({ increment: 30, message: locMsg });
 
-      locMsg = this.locDict.localize(
-        "idfSize.filesMsg",
-        "Calculating File Sizes for all the archives"
-      );
+      locMsg = vscode.l10n.t("Calculating File Sizes for all the archives");
       const files = await this.idfCommandInvoker([
         "idf_size.py",
         mapFilePath,
@@ -145,10 +129,7 @@ export class IDFSize {
       return buffObj;
     } catch (error) {
       const throwableError = new Error(
-        this.locDict.localize(
-          "idfSize.commandError",
-          "Error encountered while calling idf_size.py"
-        )
+        vscode.l10n.t("Error encountered while calling idf_size.py")
       );
       Logger.error(error.message, error);
       throw throwableError;

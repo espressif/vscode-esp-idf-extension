@@ -118,6 +118,7 @@
     "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
+  "l10n": "./l10n",
   "contributes": {
     "problemMatchers": [
       {
@@ -1539,6 +1540,7 @@
     "open-vsx-release": "ovsx publish esp-idf-extension.vsix -p ${OPENVSX_MARKETPLACE_TOKEN}",
     "clean": "gulp clean",
     "validateLocalization": "gulp validateLocalization",
+    "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
     "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -l DEBUG"
@@ -1569,6 +1571,7 @@
     "@vscode/debugadapter-testsupport": "^1.51.0",
     "@vscode/debugprotocol": "^1.53.0",
     "@vscode/extension-telemetry": "0.4.8",
+    "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-electron": "^2.1.2",
     "@vue/compiler-sfc": "^3.3.4",
     "bulma": "^0.9.3",

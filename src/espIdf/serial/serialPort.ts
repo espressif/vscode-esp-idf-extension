@@ -18,7 +18,6 @@
 
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
-import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
@@ -33,20 +32,12 @@ export class SerialPort {
   }
 
   private static instance: SerialPort;
-  private locDic: LocDictionary;
-
-  private constructor() {
-    this.locDic = new LocDictionary(__filename);
-  }
   public promptUserToSelect(workspaceFolder: vscode.Uri) {
     return SerialPort.shared().displayList(workspaceFolder);
   }
   private async displayList(workspaceFolder: vscode.Uri) {
-    const msgDefault =
-      "Select the available serial port where your device is connected.";
-    const msg = this.locDic.localize(
-      "serial.selectSerialPortMessage",
-      msgDefault
+    const msg = vscode.l10n.t(
+      "Select the available serial port where your device is connected."
     );
 
     try {
@@ -87,10 +78,7 @@ export class SerialPort {
       vscode.ConfigurationTarget.WorkspaceFolder,
       wsFolder
     );
-    const portHasBeenSelectedMsg = this.locDic.localize(
-      "serial.portHasBeenSelectedMessage",
-      "Port has been updated to "
-    );
+    const portHasBeenSelectedMsg = vscode.l10n.t("Port has been updated to ");
     Logger.infoNotify(
       `${portHasBeenSelectedMsg}${l} in ${settingsSavedLocation}`
     );

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
+import { ensureDir, readFile } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
-import { LocDictionary } from "../localizationDictionary";
 import { Logger } from "../logger/logger";
 import * as utils from "../utils";
 import { createExamplesHtml } from "./createExamplesHtml";
@@ -23,8 +22,6 @@ import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
-
-const locDic = new LocDictionary("ExamplesPanel");
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -59,10 +56,7 @@ export class ExamplesPlanel {
     targetFrameworkFolder: string,
     targetDesc: string
   ) {
-    const panelTitle = locDic.localize(
-      "examples.panelName",
-      `${targetDesc} Examples`
-    );
+    const panelTitle = vscode.l10n.t("{targetDesc} Examples", { targetDesc });
     this.panel = vscode.window.createWebviewPanel(
       ExamplesPlanel.viewType,
       panelTitle,
@@ -150,7 +144,7 @@ export class ExamplesPlanel {
                 example_detail: contentStr,
               });
             } catch (err) {
-              const notAvailable = "No README.md available for this project.";
+              const notAvailable = vscode.l10n.t("No README.md available for this project.");
               Logger.info(notAvailable);
               Logger.info(err);
               this.panel.webview.postMessage({
