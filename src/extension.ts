@@ -807,10 +807,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-        (w) => w.uri === workspaceRoot
-      );
-      await selectIdfSetup(curWorkspaceFolder);
+      const currentIdfSetup = await selectIdfSetup(workspaceRoot);
+      if (currentIdfSetup) {
+        statusBarItems["currentIdfVersion"].text =
+          "$(octoface) ESP-IDF v" + currentIdfSetup.version;
+      }
     });
   });
 

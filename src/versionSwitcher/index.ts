@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, Uri, window, WorkspaceFolder } from "vscode";
+import { ConfigurationTarget, Uri, window } from "vscode";
 import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
 import {
   checkIdfSetup,
@@ -27,7 +27,7 @@ import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 
-export async function selectIdfSetup(workspaceFolder: WorkspaceFolder) {
+export async function selectIdfSetup(workspaceFolder: Uri) {
   const idfSetups = await getPreviousIdfSetups(true);
   if (idfSetups.length === 0) {
     await window.showInformationMessage("No ESP-IDF Setups found");
@@ -50,8 +50,10 @@ export async function selectIdfSetup(workspaceFolder: WorkspaceFolder) {
   }
   await useIdfSetupSettings(
     selectedIdfSetupOption.target,
-    ConfigurationTarget.WorkspaceFolder
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolder
   );
+  return selectedIdfSetupOption.target;
 }
 
 export async function getCurrentIdfSetup(workspaceFolder: Uri) {
