@@ -41,12 +41,6 @@ const extensionConfig = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "vscode-nls-dev/lib/webpack-loader",
-            options: {
-              base: path.join(__dirname, "src"),
-            },
-          },
-          {
             loader: "ts-loader",
             options: {
               compilerOptions: {

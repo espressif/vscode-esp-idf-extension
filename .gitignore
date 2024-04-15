@@ -6,8 +6,6 @@ node_modules
 .cache
 .vscode-test/
 *.vsix
-!i18n/*/out
-package.nls.*.json
 testFiles/blink
 !testFiles/dist
 testFiles/tools

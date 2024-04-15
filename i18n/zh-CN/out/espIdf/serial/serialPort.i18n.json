@@ -1,6 +1,0 @@
-{
-  "serial.notSerialPortFoundMessage": "找不到任何可用的串口",
-  "serial.portHasBeenSelectedMessage": "串口已更新为",
-  "serial.noPortSelectedMessage": "未选中任何串口",
-  "serial.selectSerialPortMessage": "请选择可用的串口设备"
-}
