@@ -1538,7 +1538,7 @@
     "package": "yarn clean && vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN} --packagePath esp-idf-extension.vsix",
     "open-vsx-release": "ovsx publish esp-idf-extension.vsix -p ${OPENVSX_MARKETPLACE_TOKEN}",
-    "clean": "rimraf dist out *.vsix report.json report.txt testing_results.log esp_idf_vsc_ext.log esp_idf_docs_*.json",
+    "clean": "node clean.js",
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
