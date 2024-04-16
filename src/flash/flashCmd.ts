@@ -36,7 +36,6 @@ import {
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
-import { warn } from "console";
 
 const locDic = new LocDictionary(__filename);
 
@@ -190,15 +189,23 @@ export async function checkFlashEncryption(
         resultType: FlashCheckResultType.ErrorInvalidFlashType,
       };
     }
+
+    const idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
     const eFuse = new ESPEFuseManager(workspaceRoot);
-    const summaryResult = await eFuse.readSummary();
-    if (summaryResult && summaryResult.BLOCK_KEY0) {
+    const data = await eFuse.readSummary();
+
+    // ESP32 boards have property FLASH_CRYPT_CNT
+    // All other boards have property SPI_BOOT_CRYPT_CNT
+    // The values of these properties can be: 0 or 1 for ESP32
+    // Or "Disable", "Enable" for the rest of the boards
+    const fieldEncription = idfTarget === 'esp32' ? 'FLASH_CRYPT_CNT' : 'SPI_BOOT_CRYPT_CNT';
+
+    if (data && data[fieldEncription]) {
       if (
         // eFuse is not set
-        summaryResult.BLOCK_KEY0.value &&
-        summaryResult.BLOCK_KEY0.value === ESP.DEFAULT_UNSET_EFUSE_VALUE
+        data[fieldEncription] &&
+        (data[fieldEncription].value === 0 || data[fieldEncription].value == "Disable")
       ) {
-        //TODO: Flash normally and inform user it will be a normal flash and to reboot the device after flashing and flash again for encryption to take effect
         const documentationUrl = await getDocsUrl(
           ESP.URL.Docs.FLASH_ENCRYPTION,
           workspaceRoot
@@ -213,8 +220,17 @@ export async function checkFlashEncryption(
           resultType: FlashCheckResultType.ErrorEfuseNotSet,
         };
       }
+      // eFuse is set
+      return { success: true };
+    } else {
+      const errorMessage = `Could not find Encryption Key for ${idfTarget}.`;
+      OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
+      Logger.info(errorMessage, { tag: "Flash Encryption" });
+      return {
+        success: false,
+        resultType: FlashCheckResultType.ErrorEfuseNotSet,
+      };
     }
-    return { success: true };
   } catch (error) {
     OutputChannel.appendLineAndShow(error.message);
     Logger.errorNotify(error.message, error, { tag: "Flash Encryption" });
