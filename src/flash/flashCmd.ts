@@ -43,6 +43,7 @@ export enum FlashCheckResultType {
   Success,
   ErrorInvalidFlashType,
   ErrorEfuseNotSet,
+  ErrorEncryptionArgsRequired,
   GenericError,
 }
 
@@ -187,6 +188,20 @@ export async function checkFlashEncryption(
       return {
         success: false,
         resultType: FlashCheckResultType.ErrorInvalidFlashType,
+      };
+    }
+
+    const buildPath = idfConf.readParameter("idf.buildPath", workspaceRoot) as string;
+    const encryptedFlashArgsPath = join(buildPath, "encrypted_flash_args");
+    if(!await pathExists(encryptedFlashArgsPath)){
+      const errorMessage = "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device."
+      const error = new Error(errorMessage);
+      OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
+      Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
+
+      return {
+        success: false,
+        resultType: FlashCheckResultType.ErrorEncryptionArgsRequired,
       };
     }
 
