@@ -54,7 +54,11 @@ export class CDTDebugConfigurationProvider
       if (!config.gdb) {
         config.gdb = await getToolchainPath(folder.uri, "gdb");
       }
-      if (!config.initCommands || config.initCommands.length === 0) {
+      if (
+        config.sessionID !== "core-dump.debug.session.ws" &&
+        config.sessionID !== "gdbstub.debug.session.ws" &&
+        (!config.initCommands || config.initCommands.length === 0)
+      ) {
         config.initCommands = [
           "set remote hardware-watchpoint-limit 2",
           "mon reset halt",
@@ -62,7 +66,11 @@ export class CDTDebugConfigurationProvider
           "thb app_main",
         ];
       }
-      if (!config.target) {
+      if (
+        config.sessionID !== "core-dump.debug.session.ws" &&
+        config.sessionID !== "gdbstub.debug.session.ws" &&
+        !config.target
+      ) {
         config.target = {
           type: "extended-remote",
           port: "3333",

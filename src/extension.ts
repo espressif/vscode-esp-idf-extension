@@ -3208,9 +3208,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 sessionID: "gdbstub.debug.session.ws",
                 gdb: gdbPath,
                 program: resp.prog,
+                logFile: `${path.join(workspaceRoot.fsPath, "gdbstub.log")}`,
                 target: {
-                  type: "remote",
-                  parameters: [resp.port],
+                  connectCommands: [`target remote ${resp.port}`],
                 },
               });
               vscode.debug.onDidTerminateDebugSession((session) => {
