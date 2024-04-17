@@ -3155,20 +3155,23 @@ export async function activate(context: vscode.ExtensionContext) {
                     ),
                   });
                   try {
-                    debugAdapterManager.configureAdapter({
-                      isPostMortemDebugMode: true,
-                      elfFile: resp.prog,
-                      coreDumpFile: coreElfFilePath,
-                      isOocdDisabled: true,
-                    });
                     const workspaceFolder = vscode.workspace.getWorkspaceFolder(
                       workspaceRoot
                     );
                     await vscode.debug.startDebugging(workspaceFolder, {
                       name: "Core Dump Debug",
-                      type: "espidf",
-                      request: "launch",
                       sessionID: "core-dump.debug.session.ws",
+                      type: "gdbtarget",
+                      request: "attach",
+                      gdb: gdbPath,
+                      program: resp.prog,
+                      logFile: `${path.join(
+                        workspaceRoot.fsPath,
+                        "coredump.log"
+                      )}`,
+                      target: {
+                        connectCommands: [`core ${coreElfFilePath}`],
+                      },
                     });
                     vscode.debug.onDidTerminateDebugSession((session) => {
                       if (
