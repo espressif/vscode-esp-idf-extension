@@ -403,6 +403,22 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
   return sdkMonitorBaudRate;
 }
 
+export async function getConfigValueFromBuild(workspacePath: vscode.Uri, configKey: string): Promise<string> {
+  const buildPath = idfConf.readParameter("idf.buildPath", workspacePath) as string;
+  const cmakeFilePath = path.join(buildPath, "config/sdkconfig.cmake");
+  const data = await readFile(cmakeFilePath, 'utf-8');
+  const configRegex = new RegExp(`^set\\(${configKey} "(.*?)"\\)`, 'm');
+  const match = configRegex.exec(data);
+
+  if (match && match[1] !== undefined) {
+      // Key found, return the value assigned to it
+      return match[1];
+  } else {
+      // Key not found, throw an error
+      throw new Error(`The key ${configKey} was not found in ${cmakeFilePath}.`);
+  }
+}
+
 export function delConfigFile(workspaceRoot: vscode.Uri) {
   const sdkconfigFile = getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);

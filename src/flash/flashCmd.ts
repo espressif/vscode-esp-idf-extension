@@ -191,9 +191,8 @@ export async function checkFlashEncryption(
       };
     }
 
-    const buildPath = idfConf.readParameter("idf.buildPath", workspaceRoot) as string;
-    const encryptedFlashArgsPath = join(buildPath, "encrypted_flash_args");
-    if(!await pathExists(encryptedFlashArgsPath)){
+    const valueEncryptionEnabled = await utils.getConfigValueFromBuild(workspaceRoot, "CONFIG_SECURE_FLASH_ENC_ENABLED");
+    if(valueEncryptionEnabled !== "y"){
       const errorMessage = "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device."
       const error = new Error(errorMessage);
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
