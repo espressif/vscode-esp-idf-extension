@@ -2,29 +2,18 @@
 
 Make sure you install the source code version of this extension by following [Source Mode](./INSTALL.md#Build-from-Source-Code).
 
-Inside i18n folder, create a sub-directory using the language code name as specified by [ISO 639-3](https://en.wikipedia.org/wiki/ISO_639-3) convention.
+Inside `l10n` folder, create a `bundle.l10n.<lang>.json` file using the language code name as specified by [ISO 639-3](https://en.wikipedia.org/wiki/ISO_639-3) convention to replace `<lang>`.
 
-For ease you could copy the `en` for English definitions. A language folder tree structure should look like:
+In the root directory, also contribute a `package.nls.<lang>.json` for static language definitions such as command names and such.
 
-```
-<IS0 639-3 Language Code>/
-    +-- out/
-        +-- sub-directory/
-            +-- ...
-        +-- ...
-        +-- ...
-        +-- ...
-        +-- extension.i18n.json
-        +-- utils.i18n.json
-    +-- package.i18n.json
-```
+To generate the english definition, just run the `yarn genLocalizationBundle` command which will generate `l10n/bundle.l10n.json` english bundle file and copy the `package.nls.json`.
 
 Each file has a key value structure such as:
 
 ```json
 {
   "espIdf.createFiles.title": "ESP-IDF: Create ESP-IDF Project from Extension Template",
-  "textID": "value"
+  "englishTextOrTextId": "translationInNewLanguage"
 }
 ```
 
