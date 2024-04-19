@@ -26,7 +26,8 @@ import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
 
 export async function checkExtensionSettings(
   extensionPath: string,
-  workspace: vscode.Uri
+  workspace: vscode.Uri,
+  espIdfStatusBar: vscode.StatusBarItem
 ) {
   const showSetupWindow = readParameter("idf.showOnboardingOnInit") as boolean;
   if (!showSetupWindow) {
@@ -62,6 +63,7 @@ export async function checkExtensionSettings(
           progress,
           workspace
         );
+        setupArgs.espIdfStatusBar = espIdfStatusBar;
         if (setupArgs.existingIdfSetups && setupArgs.existingIdfSetups.length) {
           progress.report({
             increment: 5,
@@ -85,7 +87,8 @@ export async function checkExtensionSettings(
           await useIdfSetupSettings(
             selectedSetup.target,
             confTarget,
-            workspace
+            workspace,
+            espIdfStatusBar
           );
         } else if (
           typeof process.env.WEB_IDE === "undefined" &&

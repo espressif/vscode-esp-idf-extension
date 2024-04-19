@@ -31,6 +31,7 @@ import {
   ExtensionContext,
   Progress,
   ProgressLocation,
+  StatusBarItem,
   Uri,
   ViewColumn,
   WebviewPanel,
@@ -160,6 +161,7 @@ export class SetupPanel {
               message.saveScope,
               message.setupMode,
               context,
+              setupArgs.espIdfStatusBar,
               setupArgs.workspaceFolder,
               setupArgs.onReqPkgs
             );
@@ -182,6 +184,7 @@ export class SetupPanel {
               message.saveScope,
               setupArgs.workspaceFolder,
               context,
+              setupArgs.espIdfStatusBar,
               setupArgs.onReqPkgs
             );
           }
@@ -257,7 +260,8 @@ export class SetupPanel {
               setupArgs.gitPath,
               message.saveScope,
               context,
-              setupArgs.workspaceFolder
+              setupArgs.workspaceFolder,
+              setupArgs.espIdfStatusBar
             );
           }
           break;
@@ -300,7 +304,8 @@ export class SetupPanel {
             await useIdfSetupSettings(
               setupArgs.existingIdfSetups[message.selectedIdfSetup],
               message.saveScope,
-              setupArgs.workspaceFolder
+              setupArgs.workspaceFolder,
+              setupArgs.espIdfStatusBar
             );
             this.panel.webview.postMessage({
               command: "setIsInstalled",
@@ -379,6 +384,7 @@ export class SetupPanel {
     saveScope: ConfigurationTarget,
     setupMode: SetupMode,
     context: ExtensionContext,
+    espIdfStatusBar: StatusBarItem,
     workspaceFolderUri: Uri,
     onReqPkgs?: string[]
   ) {
@@ -455,6 +461,7 @@ export class SetupPanel {
             saveScope,
             setupMode,
             context,
+            espIdfStatusBar,
             workspaceFolderUri,
             idfGitPath,
             progress,
@@ -531,6 +538,7 @@ export class SetupPanel {
     saveScope: ConfigurationTarget,
     workspaceFolderUri: Uri,
     context: ExtensionContext,
+    espIdfStatusBar: StatusBarItem,
     onReqPkgs?: string[]
   ) {
     const notificationMode = idfConf.readParameter(
@@ -587,6 +595,7 @@ export class SetupPanel {
             saveScope,
             workspaceFolderUri,
             context,
+            espIdfStatusBar,
             progress,
             cancelToken,
             onReqPkgs
@@ -607,7 +616,8 @@ export class SetupPanel {
     gitPath: string,
     saveScope: ConfigurationTarget,
     context: ExtensionContext,
-    workspaceFolderUri: Uri
+    workspaceFolderUri: Uri,
+    espIdfStatusBar: StatusBarItem
   ) {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode"
@@ -644,7 +654,8 @@ export class SetupPanel {
             context,
             progress,
             cancelToken,
-            workspaceFolderUri
+            workspaceFolderUri,
+            espIdfStatusBar
           );
         } catch (error) {
           this.setupErrHandler(error);

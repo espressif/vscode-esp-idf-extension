@@ -39,6 +39,7 @@ export async function expressInstall(
   saveScope: vscode.ConfigurationTarget,
   setupMode: SetupMode,
   context: vscode.ExtensionContext,
+  espIdfStatusBar: vscode.StatusBarItem,
   workspaceFolderUri: vscode.Uri,
   gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
@@ -130,6 +131,7 @@ export async function expressInstall(
     saveScope,
     workspaceFolderUri,
     context,
+    espIdfStatusBar,
     progress,
     cancelToken,
     onReqPkgs

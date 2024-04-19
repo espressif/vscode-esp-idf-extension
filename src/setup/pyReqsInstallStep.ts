@@ -32,7 +32,8 @@ export async function createPyReqs(
   context: vscode.ExtensionContext,
   progress: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken: vscode.CancellationToken,
-  workspaceFolderUri: vscode.Uri
+  workspaceFolderUri: vscode.Uri,
+  espIdfStatusBar: vscode.StatusBarItem
 ) {
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
@@ -55,7 +56,8 @@ export async function createPyReqs(
     toolsPath,
     gitPath,
     saveScope,
-    workspaceFolderUri
+    workspaceFolderUri,
+    espIdfStatusBar
   );
   let idfPathVersion = await getEspIdfFromCMake(idfPath);
   await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath, gitPath);

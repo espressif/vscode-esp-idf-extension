@@ -807,11 +807,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      const currentIdfSetup = await selectIdfSetup(workspaceRoot);
-      if (currentIdfSetup) {
-        statusBarItems["currentIdfVersion"].text =
-          "$(octoface) ESP-IDF v" + currentIdfSetup.version;
-      }
+      const currentIdfSetup = await selectIdfSetup(
+        workspaceRoot,
+        statusBarItems["currentIdfVersion"]
+      );
     });
   });
 
@@ -1269,9 +1268,6 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
-      let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot);
-      statusBarItems["currentIdfVersion"].text =
-        "$(octoface) ESP-IDF v" + currentIdfVersion.version;
     } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
       qemuManager.configure({
         tcpPort: idfConf.readParameter("idf.qemuTcpPort", workspaceRoot),
@@ -1973,6 +1969,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     progress,
                     workspaceRoot
                   );
+              setupArgs.espIdfStatusBar = statusBarItems["currentIdfVersion"];
               SetupPanel.createOrShow(context, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -3458,7 +3455,11 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  await checkExtensionSettings(context.extensionPath, workspaceRoot);
+  await checkExtensionSettings(
+    context.extensionPath,
+    workspaceRoot,
+    statusBarItems["currentIdfVersion"]
+  );
 }
 
 async function getFrameworksPickItems() {
