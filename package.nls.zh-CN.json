@@ -57,7 +57,7 @@
 	"espIdf.launchQemu.title": "启动 QEMU 服务器",
 	"espIdf.launchWSServerAndMonitor.title": "启动 IDF 监视器以进行 CoreDump / GDB-Stub 模式",
 	"espIdf.menuconfig.start.title": "SDK 配置编辑器 (Menuconfig)",
-	"espIdf.monitorDevice.title": "监视您的设备",
+	"espIdf.monitorDevice.title": "监控装置",
 	"espIdf.monitorQemu.title": "监视 QEMU 设备",
 	"espIdf.newProject.start.title": "新项目",
 	"espIdf.ninja.summary.title": "显示 Ninja 构建摘要",

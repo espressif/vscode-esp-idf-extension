@@ -57,7 +57,7 @@
   "espIdf.launchQemu.title": "Launch QEMU Server",
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for CoreDump / GDB-Stub Mode",
   "espIdf.menuconfig.start.title": "SDK Configuration Editor (Menuconfig)",
-  "espIdf.monitorDevice.title": "Monitor your Device",
+  "espIdf.monitorDevice.title": "Monitor Device",
   "espIdf.monitorQemu.title": "Monitor QEMU Device",
   "espIdf.newProject.start.title": "New Project",
   "espIdf.ninja.summary.title": "Show Ninja Build Summary",
