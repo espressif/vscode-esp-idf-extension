@@ -405,17 +405,19 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
 
 export async function getConfigValueFromBuild(workspacePath: vscode.Uri, configKey: string): Promise<string> {
   const buildPath = idfConf.readParameter("idf.buildPath", workspacePath) as string;
-  const cmakeFilePath = path.join(buildPath, "config/sdkconfig.cmake");
-  const data = await readFile(cmakeFilePath, 'utf-8');
-  const configRegex = new RegExp(`^set\\(${configKey} "(.*?)"\\)`, 'm');
-  const match = configRegex.exec(data);
-
-  if (match && match[1] !== undefined) {
-      // Key found, return the value assigned to it
-      return match[1];
-  } else {
-      // Key not found, throw an error
-      throw new Error(`The key ${configKey} was not found in ${cmakeFilePath}.`);
+  const jsonFilePath = path.join(buildPath, "config/sdkconfig.json");
+  try {
+    const data = await readFile(jsonFilePath, 'utf-8');
+    const config = JSON.parse(data);
+    if (config[configKey] !== undefined) {
+        // Key found, return the value assigned to it
+        return config[configKey];
+    } else {
+        // Key not found, throw an error
+        throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
+    }
+  } catch (error) {
+      throw new Error(`Failed to read or parse the JSON file: ${error.message}`);
   }
 }
 

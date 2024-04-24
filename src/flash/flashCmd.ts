@@ -191,8 +191,8 @@ export async function checkFlashEncryption(
       };
     }
 
-    const valueEncryptionEnabled = await utils.getConfigValueFromBuild(workspaceRoot, "CONFIG_SECURE_FLASH_ENC_ENABLED");
-    if(valueEncryptionEnabled !== "y"){
+    const valueEncryptionEnabled = await utils.getConfigValueFromBuild(workspaceRoot, "SECURE_FLASH_ENC_ENABLED");
+    if(!valueEncryptionEnabled){
       const errorMessage = "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device."
       const error = new Error(errorMessage);
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
