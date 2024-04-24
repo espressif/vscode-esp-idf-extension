@@ -191,9 +191,13 @@ export async function checkFlashEncryption(
       };
     }
 
-    const valueEncryptionEnabled = await utils.getConfigValueFromBuild(workspaceRoot, "SECURE_FLASH_ENC_ENABLED");
-    if(!valueEncryptionEnabled){
-      const errorMessage = "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device."
+    const valueEncryptionEnabled = await utils.getConfigValueFromBuild(
+      "SECURE_FLASH_ENC_ENABLED",
+      workspaceRoot
+    );
+    if (!valueEncryptionEnabled) {
+      const errorMessage =
+        "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device.";
       const error = new Error(errorMessage);
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
       Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
@@ -204,7 +208,10 @@ export async function checkFlashEncryption(
       };
     }
 
-    const idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
+    const idfTarget = idfConf.readParameter(
+      "idf.adapterTargetName",
+      workspaceRoot
+    );
     const eFuse = new ESPEFuseManager(workspaceRoot);
     const data = await eFuse.readSummary();
 
@@ -212,13 +219,15 @@ export async function checkFlashEncryption(
     // All other boards have property SPI_BOOT_CRYPT_CNT
     // The values of these properties can be: 0 or 1 for ESP32
     // Or "Disable", "Enable" for the rest of the boards
-    const fieldEncription = idfTarget === 'esp32' ? 'FLASH_CRYPT_CNT' : 'SPI_BOOT_CRYPT_CNT';
+    const fieldEncription =
+      idfTarget === "esp32" ? "FLASH_CRYPT_CNT" : "SPI_BOOT_CRYPT_CNT";
 
     if (data && data[fieldEncription]) {
       if (
         // eFuse is not set
         data[fieldEncription] &&
-        (data[fieldEncription].value === 0 || data[fieldEncription].value == "Disable")
+        (data[fieldEncription].value === 0 ||
+          data[fieldEncription].value == "Disable")
       ) {
         const documentationUrl = await getDocsUrl(
           ESP.URL.Docs.FLASH_ENCRYPTION,

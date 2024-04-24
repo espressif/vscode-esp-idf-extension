@@ -3766,6 +3766,27 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+
+    // This validation doesn't allows users to use build,flash, monitor command if flash encryption is enabled for release mode
+    // because monitoring command resets the device which is not recommended.
+    // Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+    if (isFlashEncryptionEnabled(workspaceRoot)) {
+      const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
+        "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+        workspaceRoot
+      );
+      if (valueReleaseModeEnabled == "y") {
+        const errorMessage =
+          "Flash, Build, Monitor command is not available while Flash Encryption is set for 'Release mode'. Use normal build and flash commands";
+        const error = new Error(errorMessage);
+        OutputChannel.appendLineAndShow(errorMessage, "Build, Flash, Monitor");
+        Logger.errorNotify(errorMessage, error, {
+          tag: "Build, Flash, Monitor",
+        });
+        return;
+      }
+    }
+
     await vscode.window.withProgress(
       {
         cancellable: true,
