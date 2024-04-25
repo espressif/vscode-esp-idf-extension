@@ -30,6 +30,7 @@ export async function downloadIdfTools(
   saveScope: vscode.ConfigurationTarget,
   workspaceFolderUri: vscode.Uri,
   context: vscode.ExtensionContext,
+  espIdfStatusBar: vscode.StatusBarItem,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
   onReqPkgs?: string[],
@@ -76,6 +77,7 @@ export async function downloadIdfTools(
     context,
     progress,
     cancelToken,
-    workspaceFolderUri
+    workspaceFolderUri,
+    espIdfStatusBar
   );
 }

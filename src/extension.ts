@@ -145,6 +145,7 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
+import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -276,7 +277,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Create a status bar item with current workspace
 
   // Status Bar Item with common commands
-  statusBarItems = createCmdsStatusBarItems();
+  statusBarItems = await createCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
@@ -804,6 +805,15 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
+  registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      const currentIdfSetup = await selectIdfSetup(
+        workspaceRoot,
+        statusBarItems["currentIdfVersion"]
+      );
+    });
+  });
+
   registerIDFCommand("espIdf.customTask", async () => {
     try {
       const customTask = new CustomTask(workspaceRoot);
@@ -1222,7 +1232,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as boolean;
       if (enableStatusBar) {
-        statusBarItems = createCmdsStatusBarItems();
+        statusBarItems = await createCmdsStatusBarItems();
       } else if (!enableStatusBar) {
         for (let statusItem in statusBarItems) {
           statusBarItems[statusItem].dispose();
@@ -1959,6 +1969,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     progress,
                     workspaceRoot
                   );
+              setupArgs.espIdfStatusBar = statusBarItems["currentIdfVersion"];
               SetupPanel.createOrShow(context, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -3444,7 +3455,11 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  await checkExtensionSettings(context.extensionPath, workspaceRoot);
+  await checkExtensionSettings(
+    context.extensionPath,
+    workspaceRoot,
+    statusBarItems["currentIdfVersion"]
+  );
 }
 
 async function getFrameworksPickItems() {
@@ -3603,7 +3618,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-function createCmdsStatusBarItems() {
+async function createCmdsStatusBarItems() {
   const enableStatusBar = idfConf.readParameter(
     "idf.enableStatusBar"
   ) as boolean;
@@ -3625,7 +3640,15 @@ function createCmdsStatusBarItems() {
       workspaceRoot
     );
   }
+  let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot);
   const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
+
+  statusBarItems["currentIdfVersion"] = createStatusBarItem(
+    "$(octoface) ESP-IDF v" + currentIdfVersion.version,
+    "ESP-IDF: Select current ESP-IDF version",
+    "espIdf.selectCurrentIdfVersion",
+    102
+  );
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,

@@ -150,6 +150,7 @@
   "espIdf.efuse.clearResults.title": "Limpiar el resumen de eFuse",
   "espIdf.jtag_flash.title": "Flash (con JTag)",
   "espIdf.selectFlashMethodAndFlash.title": "Seleccione el método de programar",
+  "espIdf.selectCurrentIdfVersion.title": "Seleccione la versión ESP-IDF a usar",
   "idf.flashType.description": "Método de flash del dispositivo, UART o JTag",
   "openocd.tcl.host.description": "Anfitrión para conexión tcl openocd",
   "openocd.tcl.port.description": "Puerto para conexión tcl openocd",

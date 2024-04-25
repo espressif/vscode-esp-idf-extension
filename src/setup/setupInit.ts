@@ -12,14 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  ConfigurationTarget,
-  Progress,
-  Uri,
-  window,
-  workspace,
-  WorkspaceFolder,
-} from "vscode";
+import { ConfigurationTarget, Progress, StatusBarItem, Uri } from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfTags, getEspIdfVersions } from "./espIdfVersionList";
@@ -37,6 +30,7 @@ import {
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
+import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface ISetupInitArgs {
   espIdfPath: string;
@@ -52,6 +46,7 @@ export interface ISetupInitArgs {
   pythonVersions: string[];
   saveScope: number;
   workspaceFolder: Uri;
+  espIdfStatusBar: StatusBarItem;
 }
 
 export interface IPreviousInstallResult {
@@ -318,7 +313,8 @@ export async function saveSettings(
   toolsPath: string,
   gitPath: string,
   saveScope: ConfigurationTarget,
-  workspaceFolderUri: Uri
+  workspaceFolderUri: Uri,
+  espIdfStatusBar: StatusBarItem
 ) {
   const confTarget =
     saveScope ||
@@ -363,6 +359,8 @@ export async function saveSettings(
     confTarget,
     workspaceFolder
   );
+  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder);
+  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfVersion.version;
   await createIdfSetup(espIdfPath, toolsPath, pythonBinPath, gitPath);
-  window.showInformationMessage("ESP-IDF has been configured");
+  Logger.infoNotify("ESP-IDF has been configured");
 }

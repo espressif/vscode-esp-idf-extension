@@ -150,6 +150,7 @@
   "espIdf.efuse.clearResults.title": "清除 eFuse 摘要",
   "espIdf.jtag_flash.title": "JTag 烧录",
   "espIdf.selectFlashMethodAndFlash.title": "选择烧录方式烧录",
+  "espIdf.selectCurrentIdfVersion.title": "选择当前ESP-IDF版本",
   "idf.flashType.description": "设备烧录方式，UART 或 JTag",
   "openocd.tcl.host.description": "OpenOCD TCL 主机",
   "openocd.tcl.port.description": "OpenOCD TCL 端口",

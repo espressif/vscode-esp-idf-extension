@@ -22,14 +22,14 @@ import { IdfToolsManager } from "../../idfToolsManager";
 import { saveSettings } from "../setupInit";
 import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
-import { installExtensionPyReqs } from "../installPyReqs";
 import { checkPyVenv } from "./pythonEnv";
-import { ConfigurationTarget, Uri } from "vscode";
+import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 
 export async function useIdfSetupSettings(
   setupConf: IdfSetup,
   saveScope: ConfigurationTarget,
-  workspaceFolderUri: Uri
+  workspaceFolderUri: Uri,
+  espIdfStatusBar: StatusBarItem
 ) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     setupConf.idfPath
@@ -42,11 +42,6 @@ export async function useIdfSetupSettings(
   const exportedVars = await idfToolsManager.exportVars(
     join(setupConf.toolsPath, "tools")
   );
-  await installExtensionPyReqs(
-    setupConf.toolsPath,
-    setupConf.python,
-    setupConf.idfPath
-  );
   await saveSettings(
     setupConf.idfPath,
     setupConf.python,
@@ -55,7 +50,8 @@ export async function useIdfSetupSettings(
     setupConf.toolsPath,
     setupConf.gitPath,
     saveScope,
-    workspaceFolderUri
+    workspaceFolderUri,
+    espIdfStatusBar
   );
 }
 
