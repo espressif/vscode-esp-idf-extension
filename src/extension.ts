@@ -3820,7 +3820,7 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await startFlashing(cancelToken, flashType, encryptPartition);
+        await startFlashing(cancelToken, flashType, encryptPartitions);
         OutputChannel.appendLine(
           "Flash has finished. You can monitor with ESP-IDF: Monitor your device command"
         );
