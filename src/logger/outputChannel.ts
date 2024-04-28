@@ -24,17 +24,21 @@ export class OutputChannel {
 
   public static appendLine(message: string, name?: string) {
     OutputChannel.checkInitialized();
-    if(name) {
+    if (name && this.lastTag !== name) {
+      if (this.lastTag) {
+        OutputChannel.instance.appendLine(`[/${this.lastTag}]`);
+      }
       OutputChannel.instance.appendLine(`[${name}]`);
+      this.lastTag = name;
     }
     OutputChannel.instance.appendLine(message);
   }
 
   public static append(message: string, name?: string) {
     OutputChannel.checkInitialized();
-    if(name) {
+    if (name) {
       OutputChannel.instance.appendLine(`[${name}]`);
-    } 
+    }
     OutputChannel.instance.append(message);
   }
 
@@ -57,6 +61,8 @@ export class OutputChannel {
   }
 
   private static instance: vscode.OutputChannel;
+
+  private static lastTag: string;
 
   private static checkInitialized() {
     if (!OutputChannel.instance) {

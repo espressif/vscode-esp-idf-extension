@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -282,8 +282,9 @@
           "group": "navigation"
         },
         {
+          "when": "resourceFilename == CMakeLists.txt || resourceFilename =~ /^sdkconfig.*$/",
           "command": "espIdf.saveDefSdkconfig",
-          "group": "navigation"
+          "group": "2_workspace"
         },
         {
           "when": "resourceExtname == .bin",
@@ -407,6 +408,12 @@
             "description": "%param.espMatterPath%",
             "scope": "resource"
           },
+          "idf.espHomeKitSdkPath": {
+            "type": "string",
+            "default": "${env:HOMEKIT_PATH}",
+            "description": "%param.espHomeKitSdkPath%",
+            "scope": "resource"
+          },
           "idf.toolsPath": {
             "type": "string",
             "default": "${env:IDF_TOOLS_PATH}",
@@ -447,6 +454,12 @@
             "type": "string",
             "default": "${env:RMAKER_PATH}",
             "description": "%param.espRainmakerPath%",
+            "scope": "resource"
+          },
+          "idf.espHomeKitSdkPathWin": {
+            "type": "string",
+            "default": "${env:HOMEKIT_PATH}",
+            "description": "%param.espHomeKitSdkPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -1204,6 +1217,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.getEspHomeKitSdk",
+        "title": "%espIdf.getEspHomeKitSdk.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.installEspMatterPyReqs",
         "title": "%espIdf.installEspMatterPyReqs.title%",
         "category": "ESP-IDF"
@@ -1234,8 +1252,7 @@
       },
       {
         "command": "espIdf.webview.nvsPartitionEditor",
-        "title": "%espIdf.webview.nvsPartitionEditor.title%",
-        "category": "ESP-IDF"
+        "title": "%espIdf.webview.nvsPartitionEditor.title%"
       },
       {
         "command": "espIdf.selectOpenOcdConfigFiles",
@@ -1360,6 +1377,11 @@
       {
         "command": "espIdf.createSbom",
         "title": "%espIdf.createSbom.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.selectCurrentIdfVersion",
+        "title": "%espIdf.selectCurrentIdfVersion.title%",
         "category": "ESP-IDF"
       }
     ],
@@ -1573,7 +1595,7 @@
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.2.2",
-    "vite": "^4.5.2",
+    "vite": "^4.5.3",
     "vsce": "^2.6.7",
     "vscode-extension-tester": "^7.0.0",
     "vscode-nls-dev": "^3.3.1",
@@ -1591,7 +1613,7 @@
     "bignumber.js": "^9.0.1",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
-    "follow-redirects": "^1.15.4",
+    "follow-redirects": "^1.15.6",
     "fs-extra": "^8.1.0",
     "https-proxy-agent": "^3.0.0",
     "interactjs": "^1.9.18",
@@ -1603,7 +1625,7 @@
     "plotly.js-dist": "^1.54.1",
     "plotly.js-dist-min": "^2.26.1",
     "postcss": "^8.4.31",
-    "sanitize-html": "^2.7.0",
+    "sanitize-html": "^2.12.1",
     "stream-browserify": "^3.0.0",
     "tar-fs": "^2.0.0",
     "tree-kill": "^1.2.2",

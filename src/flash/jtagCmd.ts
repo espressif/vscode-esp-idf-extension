@@ -49,7 +49,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     "idf.buildPath",
     workspace
   ) as string;
-  const customTask = new CustomTask(Uri.file(buildPath));
+  const customTask = new CustomTask(workspace);
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
   }

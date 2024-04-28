@@ -97,7 +97,7 @@ export class PreCheck {
         /v(\d+.?\d+.?\d)-esp32-(\d+)/
       );
       if (!minVersionParsed || !currentVersionParsed) {
-        throw new Error("Error parsing versions");
+        throw new Error("Error parsing OpenOCD versions");
       }
       const validationResult =
         currentVersionParsed[1] >= minVersionParsed[1]
@@ -935,6 +935,12 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
 
   const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
   modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
+
+  const homekitPathDir = idfConf.readParameter(
+    "idf.espHomeKitSdkPath",
+    curWorkspace
+  );
+  modifiedEnv.HOMEKIT_PATH = homekitPathDir || modifiedEnv.HOMEKIT_PATH;
 
   const rainmakerPathDir = idfConf.readParameter(
     "idf.espRainmakerPath",

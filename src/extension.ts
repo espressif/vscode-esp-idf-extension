@@ -149,6 +149,8 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { FlashCheckResultType, FlashCheckResult } from "./flash/flashCmd";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
+import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
+import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -280,7 +282,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Create a status bar item with current workspace
 
   // Status Bar Item with common commands
-  statusBarItems = createCmdsStatusBarItems();
+  statusBarItems = await createCmdsStatusBarItems();
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
@@ -750,6 +752,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspMdf", async () => getEspMdf(workspaceRoot));
 
+  registerIDFCommand("espIdf.getEspHomeKitSdk", async () =>
+    getEspHomeKitSdk(workspaceRoot)
+  );
+
   registerIDFCommand("espIdf.getEspMatter", async () => {
     if (process.platform === "win32") {
       return vscode.window.showInformationMessage(
@@ -802,6 +808,15 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
       SerialPort.shared().promptUserToSelect(workspaceRoot)
     );
+  });
+
+  registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+      const currentIdfSetup = await selectIdfSetup(
+        workspaceRoot,
+        statusBarItems["currentIdfVersion"]
+      );
+    });
   });
 
   registerIDFCommand("espIdf.customTask", async () => {
@@ -1222,7 +1237,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as boolean;
       if (enableStatusBar) {
-        statusBarItems = createCmdsStatusBarItems();
+        statusBarItems = await createCmdsStatusBarItems();
       } else if (!enableStatusBar) {
         for (let statusItem in statusBarItems) {
           statusBarItems[statusItem].dispose();
@@ -1961,6 +1976,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     progress,
                     workspaceRoot
                   );
+              setupArgs.espIdfStatusBar = statusBarItems["currentIdfVersion"];
               SetupPanel.createOrShow(context, setupArgs);
             } catch (error) {
               Logger.errorNotify(error.message, error);
@@ -2221,13 +2237,19 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.size", () => {
-    PreCheck.perform([openFolderCheck], () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const idfSize = new IDFSize(workspaceRoot);
       try {
         if (IDFSizePanel.isCreatedAndHidden()) {
           IDFSizePanel.createOrShow(context);
           return;
         }
+
+        const mapFileExists = await idfSize.isBuiltAlready();
+        if (!mapFileExists) {
+          throw new Error("Build is required for a size analysis");
+        }
+
         const notificationMode = idfConf.readParameter(
           "idf.notificationMode",
           workspaceRoot
@@ -2254,11 +2276,29 @@ export async function activate(context: vscode.ExtensionContext) {
                 IDFSizePanel.createOrShow(context, results);
               }
             } catch (error) {
-              Logger.errorNotify(error.message, error);
+              const msg: string =
+                error && error.message ? error.message : JSON.stringify(error);
+              Logger.errorNotify(msg, error);
             }
           }
         );
       } catch (error) {
+        const msg: string =
+          error && error.message ? error.message : JSON.stringify(error);
+        if (
+          msg.indexOf("project_description.json doesn't exist.") !== -1 ||
+          msg.indexOf("Build is required for a size analysis") !== -1
+        ) {
+          const buildProject = await vscode.window.showInformationMessage(
+            `ESP-IDF Size requires to build the project first. Build the project?`,
+            "Build"
+          );
+          if (buildProject === "Build") {
+            vscode.commands.executeCommand("espIdf.buildDevice");
+          }
+          Logger.error(msg, error);
+          return;
+        }
         Logger.errorNotify(error.message, error);
       }
     });
@@ -3151,14 +3191,45 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
+          const sdkconfigFilePath = utils.getSDKConfigFilePath(workspaceRoot);
+          const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
+          if (!sdkconfigFileExists) {
+            const buildProject = await vscode.window.showInformationMessage(
+              `Partition table editor requires sdkconfig file. Build the project?`,
+              "Build"
+            );
+            if (buildProject === "Build") {
+              vscode.commands.executeCommand("espIdf.buildDevice");
+            }
+            return;
+          }
           const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM",
             workspaceRoot
           );
           if (isCustomPartitionTableEnabled !== "y") {
-            throw new Error(
-              "Custom Partition Table not enabled for the project"
+            const enableCustomPartitionTable = await vscode.window.showInformationMessage(
+              "Custom Partition Table not enabled for the project",
+              "Enable"
             );
+            if (enableCustomPartitionTable === "Enable") {
+              await ConfserverProcess.initWithProgress(
+                workspaceRoot,
+                context.extensionPath
+              );
+
+              if (ConfserverProcess.exists()) {
+                const customPartitionTableEnableRequest = `{"version": 2, "set": { "PARTITION_TABLE_CUSTOM": true }}\n`;
+                ConfserverProcess.sendUpdatedValue(
+                  customPartitionTableEnableRequest
+                );
+                ConfserverProcess.saveGuiConfigValues();
+              }
+            } else {
+              throw new Error(
+                "Custom Partition Table not enabled for the project"
+              );
+            }
           }
 
           let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
@@ -3391,7 +3462,11 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  await checkExtensionSettings(context.extensionPath, workspaceRoot);
+  await checkExtensionSettings(
+    context.extensionPath,
+    workspaceRoot,
+    statusBarItems["currentIdfVersion"]
+  );
 }
 
 async function getFrameworksPickItems() {
@@ -3407,9 +3482,18 @@ async function getFrameworksPickItems() {
     "idf.espMdfPath",
     workspaceRoot
   ) as string;
-  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  const matterPathDir = idfConf.readParameter(
+    "idf.espMatterPath",
+    workspaceRoot
+  ) as string;
   const rainmakerPathDir = idfConf.readParameter(
-    "idf.espRainmakerPath"
+    "idf.espRainmakerPath",
+    workspaceRoot
+  ) as string;
+
+  const espHomeKitPathDir = idfConf.readParameter(
+    "idf.espHomeKitSdkPath",
+    workspaceRoot
   ) as string;
 
   const pickItems = [];
@@ -3454,6 +3538,16 @@ async function getFrameworksPickItems() {
         description: "ESP-Rainmaker",
         label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
         target: rainmakerPathDir,
+      });
+    }
+    const doesEspHomeKitSdkPathExists = await utils.dirExistPromise(
+      espHomeKitPathDir
+    );
+    if (doesEspHomeKitSdkPathExists) {
+      pickItems.push({
+        description: "ESP-HomeKit-SDK",
+        label: `Use current ESP-HomeKit-SDK (${espHomeKitPathDir})`,
+        target: espHomeKitPathDir,
       });
     }
   } catch (error) {
@@ -3531,7 +3625,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-function createCmdsStatusBarItems() {
+async function createCmdsStatusBarItems() {
   const enableStatusBar = idfConf.readParameter(
     "idf.enableStatusBar"
   ) as boolean;
@@ -3553,7 +3647,15 @@ function createCmdsStatusBarItems() {
       workspaceRoot
     );
   }
+  let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot);
   const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
+
+  statusBarItems["currentIdfVersion"] = createStatusBarItem(
+    "$(octoface) ESP-IDF v" + currentIdfVersion.version,
+    "ESP-IDF: Select current ESP-IDF version",
+    "espIdf.selectCurrentIdfVersion",
+    102
+  );
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
@@ -3718,7 +3820,10 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await startFlashing(cancelToken, flashType, encryptPartitions);
+        await startFlashing(cancelToken, flashType, encryptPartition);
+        OutputChannel.appendLine(
+          "Flash has finished. You can monitor with ESP-IDF: Monitor your device command"
+        );
       }
     );
   });
@@ -3847,7 +3952,7 @@ async function selectFlashMethod() {
     {
       ignoreFocusOut: true,
       placeHolder:
-        "Select flash method, you can modify the choice later from settings 'idf.flashType'",
+        "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)",
     }
   )) as ESP.FlashType;
   if (!newFlashType) {

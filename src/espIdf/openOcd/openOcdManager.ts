@@ -29,6 +29,7 @@ import {
   spawn as sspawn,
 } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
+import { ESP } from "../../config";
 
 export interface IOpenOCDConfig {
   host: string;
@@ -52,6 +53,7 @@ export class OpenOCDManager extends EventEmitter {
   private statusBar: vscode.StatusBarItem;
   private tclConnectionParams: TCLConnection;
   private workspace: vscode.Uri;
+  private encounteredErrors: boolean = false;
 
   private constructor() {
     super();
@@ -113,7 +115,9 @@ export class OpenOCDManager extends EventEmitter {
           break;
       }
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      const msg = error.message ? error.message : JSON.stringify(error);
+      Logger.error(msg, error);
+      OutputChannel.appendLine(msg, "OpenOCD");
     }
     return true;
   }
@@ -211,6 +215,7 @@ export class OpenOCDManager extends EventEmitter {
       env: modifiedEnv,
     });
     this.server.stderr.on("data", (data) => {
+      this.encounteredErrors = true;
       data = typeof data === "string" ? Buffer.from(data) : data;
       this.sendToOutputChannel(data);
       const regex = /Error:.*/i;
@@ -223,7 +228,7 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
-        Logger.errorNotify(errorMsg + `\n❌ ${errStr}`, err);
+        Logger.error(errorMsg + `\n❌ ${errStr}`, err);
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
@@ -240,11 +245,19 @@ export class OpenOCDManager extends EventEmitter {
       this.stop();
     });
     this.server.on("close", (code: number, signal: string) => {
+      if (this.encounteredErrors) {
+        OutputChannel.appendLine(
+          `For assistance with OpenOCD errors, please refer to our Troubleshooting FAQ: ${ESP.URL.OpenOcdTroubleshootingFaq}`,
+          "OpenOCD"
+        );
+      }
+      this.encounteredErrors = false;
       if (!signal && code && code !== 0) {
-        Logger.errorNotify(
+        Logger.error(
           `OpenOCD Exit with non-zero error code ${code}`,
           new Error("Spawn exit with non-zero" + code)
         );
+        OutputChannel.appendLine(`OpenOCD Exit with non-zero error code ${code}`, "OpenOCD");
       }
       this.stop();
     });

@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 21st June 2019 10:57:18 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,40 @@ import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
 
 export class ConfserverProcess {
+  public static async initWithProgress(
+    workspace: vscode.Uri,
+    extensionPath: string
+  ) {
+    if (!this.exists()) {
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
+        workspace
+      ) as string;
+      const progressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: progressLocation,
+          title: "ESP-IDF: Starting SDK Configuration process",
+        },
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          ConfserverProcess.registerProgress(progress);
+          cancelToken.onCancellationRequested(() => {
+            ConfserverProcess.dispose();
+          });
+          await ConfserverProcess.init(workspace, extensionPath);
+        }
+      );
+    }
+  }
+
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
     return new Promise((resolve) => {
       if (!ConfserverProcess.instance) {
@@ -194,24 +228,24 @@ export class ConfserverProcess {
       getSdkconfigProcess.stderr.on("data", (data) => {
         if (isStringNotEmpty(data.toString())) {
           OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-          Logger.infoNotify(data.toString());
+          Logger.info(data.toString());
           reject();
         }
       });
       getSdkconfigProcess.stdout.on("data", (data) => {
         OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
-        Logger.infoNotify(data.toString());
+        Logger.info(data.toString());
       });
       getSdkconfigProcess.on("exit", (code, signal) => {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.errorNotify(errorMsg, new Error(errorMsg));
+          Logger.error(errorMsg, new Error(errorMsg));
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
         const loadMessage = "Loaded default settings in GUI menuconfig";
-        Logger.infoNotify(loadMessage);
+        Logger.info(loadMessage);
         resolve();
       });
     });
@@ -287,10 +321,12 @@ export class ConfserverProcess {
     this.confServerProcess = spawn(pythonBinPath, confServerArgs, {
       env: modifiedEnv,
     });
-    ConfserverProcess.progress.report({
-      increment: 30,
-      message: "Configuring server",
-    });
+    if (ConfserverProcess.progress) {
+      ConfserverProcess.progress.report({
+        increment: 30,
+        message: "Configuring server",
+      });
+    }
     this.setupConfigServer();
     this.jsonListener = this.initMenuConfigPanel;
   }
@@ -335,10 +371,12 @@ export class ConfserverProcess {
   private setupConfigServer() {
     this.confServerProcess.stdout.on("data", (data) => {
       this.receivedDataBuffer += data;
-      ConfserverProcess.progress.report({
-        increment: 3,
-        message: "Loading initial values...",
-      });
+      if (ConfserverProcess.progress) {
+        ConfserverProcess.progress.report({
+          increment: 3,
+          message: "Loading initial values...",
+        });
+      }
       Logger.info(data.toString());
       OutputChannel.appendLine(data.toString(), "SDK Configuration Editor");
       this.checkIfJsonIsReceived();

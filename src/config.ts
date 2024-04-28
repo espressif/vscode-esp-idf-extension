@@ -60,6 +60,7 @@ export namespace ESP {
     "idf.espAdfPath",
     "idf.espMdfPath",
     "idf.espRainmakerPath",
+    "idf.espHomeKitSdkPath",
     "idf.gitPath",
     "idf.pythonBinPath",
     "idf.port",
@@ -104,6 +105,8 @@ export namespace ESP {
     }
     export const GithubRepository =
       "https://github.com/espressif/vscode-esp-idf-extension";
+    export const OpenOcdTroubleshootingFaq =
+      "https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ";
     export const ARDUINO_ESP32_URL =
       "https://github.com/espressif/arduino-esp32.git";
     export namespace Docs {
@@ -120,7 +123,7 @@ export namespace ESP {
   export namespace Webview {
     export namespace PartitionTableEditor {
       export const ViewType = "partition-table-editor";
-      export const Title = "ESP-IDF Partition Table Editor";
+      export const Title = "Partition Table";
     }
 
     export namespace ComponentManagerUI {

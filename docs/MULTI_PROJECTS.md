@@ -11,11 +11,11 @@ Configuration settings are overriden as:
    - **MacOS** `$HOME/Library/Application Support/Code/User/settings.json`
    - **Linux** `$HOME/.config/Code/User/settings.json`
 
-This extension uses the `idf.saveScope` configuration setting to determine where to save configuration settings in features such as the Setup Wizard.
+This extension uses the `idf.saveScope` configuration setting to determine where to save configuration settings in features such as the Setup Wizard. You can modify this using the **ESP-IDF: Select where to Save Configuration Settings** command.
 
-You can select the current project by clicking the **ESP-IDF Current Project** Item in the Visual Studio Code Status bar or by pressing F1 and typing **ESP-IDF: Pick a Workspace Folder for IDF Commands** which will determine the folder where to obtain the ESP-IDF Settings such as current device USB port, ESP-IDF path, etc.
+You can select the current project by clicking the **ESP-IDF Current Project** Item in the Visual Studio Code Status bar or by pressing F1 and typing **ESP-IDF: Pick a Workspace Folder** which will determine the folder where to obtain the ESP-IDF Settings such as current device USB port, ESP-IDF path, etc.
 
-Projects folders and workspace level settings are defined in some `<name>.code-workspace` file such as:
+Projects folders (Known in vscode as workspace folders) and workspace level settings are defined in some `<name>.code-workspace` file such as:
 
 ```JSON
 {

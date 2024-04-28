@@ -8,6 +8,21 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.7.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.7.1)
+
+### Features and enhancements
+
+- [Add ESP-HOME-KIT framework](https://github.com/espressif/vscode-esp-idf-extension/pull/1122)
+
+### Bug Fixes
+
+- [Fix SDK Configuration editor info button](https://github.com/espressif/vscode-esp-idf-extension/pull/1123)
+- [Update docker container documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1127)
+- [Add openOCD troubleshooting link in error output](https://github.com/espressif/vscode-esp-idf-extension/pull/1137)
+- [Fix jtag pre post flash task](https://github.com/espressif/vscode-esp-idf-extension/pull/1156)
+- [Remove openOCD error messages from notifications](https://github.com/espressif/vscode-esp-idf-extension/pull/1157)
+- [Remove workspace folder selection from serial port selection](https://github.com/espressif/vscode-esp-idf-extension/pull/1167)
+
 ## [1.7.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.7.0)
 
 ### Features and enhancements

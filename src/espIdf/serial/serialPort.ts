@@ -22,6 +22,7 @@ import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
+import { OutputChannel } from "../../logger/outputChannel";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -60,13 +61,18 @@ export class SerialPort {
         { placeHolder: msg }
       );
       if (chosen && chosen.label) {
-        await this.updatePortListStatus(chosen.label);
+        await this.updatePortListStatus(chosen.label, workspaceFolder);
       }
     } catch (error) {
+      const msg = error.message
+        ? error.message
+        : "Something went wrong while getting the serial port list";
       Logger.errorNotify(
-        "Something went wrong while getting the serial port list",
+        msg,
         error
       );
+      OutputChannel.appendLine(msg, "Serial port");
+      OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
   }
 
@@ -74,11 +80,12 @@ export class SerialPort {
     return await this.list(workspaceFolder);
   }
 
-  private async updatePortListStatus(l: string) {
+  private async updatePortListStatus(l: string, wsFolder: vscode.Uri) {
     const settingsSavedLocation = await idfConf.writeParameter(
       "idf.port",
       l,
-      vscode.ConfigurationTarget.WorkspaceFolder
+      vscode.ConfigurationTarget.WorkspaceFolder,
+      wsFolder
     );
     const portHasBeenSelectedMsg = this.locDic.localize(
       "serial.portHasBeenSelectedMessage",

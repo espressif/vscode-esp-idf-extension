@@ -60,9 +60,9 @@ There are few dependencies required in your system and available in environment 
 - Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
 - For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
 
-Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itself (existing ESP-IDF installation may also be reused) using the **ESP-IDF: Configure ESP-IDF Extension** setup wizard or following the steps in the [setup documentation](./docs/SETUP.md) or following the [install tutorial](./docs/tutorial/install.md).
+Install ESP-IDF and ESP-IDF Tools by following the [install tutorial](./docs/tutorial/install.md).
 
-> **NOTE:** Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can still use the extension on `master` branch or some other branch, but certain feature might not properly work.
+> **NOTE:** Please note that this extension **only [supports](https://github.com/espressif/esp-idf/blob/master/SUPPORT_POLICY.md)** the release versions of ESP-IDF, you can use the extension on `master` branch or other branch, but certain features might not properly work.
 
 > **NOTE:** If you are using Windows Subsystem for Linux (WSL) 2, please take a look at the [WSL tutorial](docs/tutorial/wsl.md) for an step by step instruction or check the requirements in [WSL Documentation](./docs/WSL.md) needed in the WSL distribution.
 
@@ -78,9 +78,7 @@ Installation of ESP-IDF and ESP-IDF Tools is being done from this extension itse
 
 - Configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md). There is a default configuration that should work when you create a new project with the extension commands but you might want to modify it to your needs.
 
-  > **Note:** If you want to get code navigation and ESP-IDF function references, the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to resolve header/source links. By default, projects created with **ESP-IDF: Create Project from Extension Template** or **ESP-IDF: Show Examples Projects** tries to resolve headers by manually recursing ESP-IDF directory sources with the `Tag Parser` engine. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
-
-  > **NOTE:** You should set `"C_Cpp.intelliSenseEngine": "Tag Parser"` in your settings.json if you are not using the compile_commands.json approach.
+  > **Note:** For code navigation the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) or [Clangd extension](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) can be used to resolve header/source links. By default, projects created with **ESP-IDF: Create Project from Extension Template** or **ESP-IDF: Show Examples Projects** include a template for Microsoft C/C++ extension `c_cpp_properties.json` configuration file. This can be optimized by building the project first and configure your project to use `build/compile_commands.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md).
 
 - Do some coding!
 - Check you set the correct port of your device by pressing <kbd>F1</kbd>, typing **ESP-IDF: Select Port to Use:** and choosing the serial port your device is connected.
@@ -133,6 +131,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-MDF                                         |                                        |                                           |
 | Install ESP-Matter                                      |                                        |                                           |
 | Install ESP-Rainmaker                                   |                                        |                                           |
+| Install ESP-HomeKit-SDK                                 |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU Server                                      |                                        |                                           |
 | Launch QEMU Debug Session                               |                                        |                                           |
@@ -140,7 +139,8 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Monitor QEMU Device                                     |                                        |                                           |
 | New Project                                             | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
 | Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |
-| Open NVS Partition Editor                               |                                        |                                           |
+| NVS Partition Editor                                    |                                        |                                           |
+| Partition Table Editor                                  |                                        |                                           |
 | Pick a workspace folder                                 |                                        |                                           |
 | Remove Editor coverage                                  |                                        |                                           |
 | Save Default SDKCONFIG file (save-defconfig)            |                                        |                                           |
@@ -176,7 +176,9 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 
 5. The **Install ESP-MDF** will clone ESP-MDF inside the selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-6. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are correctly defined.
+6. The **Install ESP-HomeKit-SDK** will clone ESP-HomeKit-SDK inside the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
+
+7. The **Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter, ESP-HomeKit-SDK or ESP-MDF directory if related configuration settings are correctly defined.
 
 # Commands for tasks.json and launch.json
 
@@ -232,6 +234,8 @@ If something is not working please check for any error on one of these:
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
 If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Please consider that this extension install ESP-IDF, this extension's and ESP-IDF Debug Adapter python packages when running the **ESP-IDF: Configure ESP-IDF Extension** setup wizard.
+
+> **NOTE:** When downloading ESP-IDF using git cloning in Windows if you receive errors like "unable to create symlink", enabling `Developer Mode` while cloning ESP-IDF could help resolve the issue.
 
 If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).
 

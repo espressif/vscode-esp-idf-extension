@@ -15,7 +15,7 @@
 import { pathExists } from "fs-extra";
 import * as vscode from "vscode";
 import { ESP } from "../config";
-import { checkPythonExists, checkPipExists } from "../pythonManager";
+import { checkPythonExists, checkPipExists, checkVenvExists } from "../pythonManager";
 import { SetupPanel } from "./SetupPanel";
 import * as utils from "../utils";
 import {
@@ -39,6 +39,8 @@ export async function expressInstall(
   saveScope: vscode.ConfigurationTarget,
   setupMode: SetupMode,
   context: vscode.ExtensionContext,
+  espIdfStatusBar: vscode.StatusBarItem,
+  workspaceFolderUri: vscode.Uri,
   gitPath?: string,
   progress?: vscode.Progress<{ message: string; increment?: number }>,
   cancelToken?: vscode.CancellationToken,
@@ -54,6 +56,12 @@ export async function expressInstall(
   const doesPipExists = await checkPipExists(pyPath, __dirname);
   if (!doesPipExists) {
     const containerNotFoundMsg = `"${pyPath} -m pip" is not valid. (ERROR_INVALID_PIP)`;
+    Logger.infoNotify(containerNotFoundMsg);
+    throw new Error(containerNotFoundMsg);
+  }
+  const doesVenvExists = await checkVenvExists(pyPath, __dirname);
+  if (!doesVenvExists) {
+    const containerNotFoundMsg = `"${pyPath} -m venv" is not valid. (ERROR_INVALID_VENV)`;
     Logger.infoNotify(containerNotFoundMsg);
     throw new Error(containerNotFoundMsg);
   }
@@ -121,7 +129,9 @@ export async function expressInstall(
     gitPath,
     mirror,
     saveScope,
+    workspaceFolderUri,
     context,
+    espIdfStatusBar,
     progress,
     cancelToken,
     onReqPkgs

@@ -82,6 +82,9 @@ export class NewProjectPanel {
     if (newProjectArgs.espMdfPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
     }
+    if (newProjectArgs.espHomeKitSdkPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espHomeKitSdkPath));
+    }
     this.panel = vscode.window.createWebviewPanel(
       NewProjectPanel.viewType,
       newProjectTitle,
