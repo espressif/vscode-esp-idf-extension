@@ -16,7 +16,11 @@
  * limitations under the License.
  */
 
-import { extensionContext, getConfigValueFromSDKConfig, getEspIdfFromCMake } from "../utils";
+import {
+  extensionContext,
+  getConfigValueFromSDKConfig,
+  getEspIdfFromCMake,
+} from "../utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { ConfserverProcess } from "../espIdf/menuconfig/confServerProcess";
 import {
@@ -27,7 +31,12 @@ import {
   Progress,
   CancellationToken,
 } from "vscode";
-import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
+import {
+  getDocsLocaleLang,
+  getDocsVersion,
+} from "../espIdf/documentation/getDocsVersion";
+import { Logger } from "../logger/logger";
+import { OutputChannel } from "../logger/outputChannel";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = getConfigValueFromSDKConfig(
@@ -69,7 +78,9 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
     appTraceGcovEnable === "y";
 
   if (isGcovEnabled) {
-    return window.showInformationMessage("Code coverage is already enabled in sdkconfig");
+    return window.showInformationMessage(
+      "Code coverage is already enabled in sdkconfig"
+    );
   }
 
   if (!ConfserverProcess.exists()) {
@@ -123,15 +134,18 @@ export async function openCoverageUrl(workspacePath: Uri) {
     readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = readParameter("idf.adapterTargetName", workspacePath);
+  let hasIdfVersion = true;
   if (idfTarget === "custom") {
     idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);
   }
-  let docVersion = docsVersions.find(
-    (docVer) => docVer.name === idfVersion
-  );
+  let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
   let targetToUse: string = "esp32";
   if (!docVersion) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");
+    const warnMsg =
+      "Failed to detect ESP-IDF version. Using latest documentation as fallback.";
+    OutputChannel.appendLineAndShow(warnMsg);
+    hasIdfVersion = false;
   }
   if (
     docVersion.supportedTargets &&
@@ -141,8 +155,12 @@ export async function openCoverageUrl(workspacePath: Uri) {
   }
   const localeLang = getDocsLocaleLang();
   const coverageDocUrl = `https://docs.espressif.com/projects/esp-idf/${localeLang}/${docVersion.name}/${targetToUse}/api-guides/app_trace.html#compiler-option`;
+
+  let infoMessage = hasIdfVersion
+    ? "Your project sdkconfig has been configured. Make sure to compile the source file with the --coverage option."
+    : "ESP-IDF version could not be determined. Referencing latest documentation. Ensure you compile the source file with the --coverage option.";
   const option = await window.showInformationMessage(
-    "Your project sdkconfig has been configured. Make sure to compile the source file with the --coverage option.",
+    infoMessage,
     "See the docs"
   );
   if (option === "See the docs") {
