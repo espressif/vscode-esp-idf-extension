@@ -32,7 +32,6 @@ import {
   workspace,
 } from "vscode";
 import { EspIdfTestItem, idfTestData } from "./types";
-import { readParameter } from "../../idfConfiguration";
 import { runPyTestWithTestCase } from "./testExecution";
 import { configurePyTestUnitApp } from "./configure";
 import { getFileList, getTestComponents } from "./utils";
@@ -146,7 +145,8 @@ export class UnitTest {
       TestRunProfileKind.Run,
       runHandler,
       true,
-      undefined
+      undefined,
+      false
     );
 
     this.unitTestController.resolveHandler = async (item: TestItem) => {
