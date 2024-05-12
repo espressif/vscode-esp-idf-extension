@@ -10,7 +10,7 @@ You have several options to create a project:
 > **NOTE:** To configure any additional supported framework, please review [Configuring Additional Frameworks](./additional_frameworks.md)
 
 1. Let's use the ESP-IDF get-started's blink example for this tutorial. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
-2. A window will be open with a list a projects, go the **get-started** section and choose the `blink_example`. You will see a **Create blink_example Project** button in the top and a description of the project below. Click **Create blink_example Project** button.
+2. A window will be open with a list a projects, go the **get-started** section and choose the `blink`. You will see a **Create project using example blink** button in the top and a description of the project below. Click **Create project using example blink** button.
 
 <p>
   <img src="../../media/tutorials/basic_use/blink_example.png" alt="Blink example" height="500">
