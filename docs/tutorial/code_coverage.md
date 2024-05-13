@@ -36,7 +36,7 @@ The example will enable the following options by default:
 
 > **NOTE:** For any project that you want to generate code coverage, you should enable these settings in your sdkconfig.
 
-6. Now to build the project, flash your device and start the ESP-IDF Monitor you can use the **ESP-IDF: Build your Project**, **ESP-IDF: Flash your Project** and **ESP-IDF: Monitor your Device** commands as explained in the [Basic use tutorial](./basic_use.md). If everything is executed correctly, there will be a message in ESP-IDF Monitor saying `Ready to dump GCOV data...`
+6. Now to build the project, flash your device and start the ESP-IDF Monitor you can use the **ESP-IDF: Build your Project**, **ESP-IDF: Flash your Project** and **ESP-IDF: Monitor Device** commands as explained in the [Basic use tutorial](./basic_use.md). If everything is executed correctly, there will be a message in ESP-IDF Monitor saying `Ready to dump GCOV data...`
 
 > **NOTE:** There is also a **ESP-IDF: Build, Flash and Start a Monitor on your Device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>D</kbd> keyboard shortcut).
 

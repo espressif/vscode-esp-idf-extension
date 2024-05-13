@@ -19,7 +19,6 @@
 import { pathExists } from "fs-extra";
 import { BuildTask } from "./buildTask";
 import { FlashTask } from "../flash/flashTask";
-import { LocDictionary } from "../localizationDictionary";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
@@ -30,8 +29,6 @@ import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 
-const locDic = new LocDictionary(__filename);
-
 export async function buildCommand(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
@@ -41,10 +38,7 @@ export async function buildCommand(
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = locDic.localize(
-      "build.waitProcessIsFinishedMessage",
-      "Wait for ESP-IDF build or flash to finish"
-    );
+    const waitProcessIsFinishedMsg = vscode.l10n.t("Wait for ESP-IDF build or flash to finish");
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time")

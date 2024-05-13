@@ -15,7 +15,6 @@ ci
 esp/**
 esp_idf_docs_index_lang_*.json
 esp_idf_vsc_ext.log
-gulpfile.js
 media/screenshots
 media/tutorials
 node_modules

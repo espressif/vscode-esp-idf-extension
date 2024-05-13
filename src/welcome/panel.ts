@@ -21,16 +21,14 @@ import {
   commands,
   ConfigurationTarget,
   Disposable,
+  l10n,
   Uri,
   ViewColumn,
   WebviewPanel,
   window,
 } from "vscode";
 import { writeParameter } from "../idfConfiguration";
-import { LocDictionary } from "../localizationDictionary";
 import { IWelcomeArgs } from "./welcomeInit";
-
-const locDic = new LocDictionary("WelcomePanel");
 
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
@@ -69,10 +67,7 @@ export class WelcomePanel {
     column: ViewColumn,
     welcomeArgs: IWelcomeArgs
   ) {
-    const welcomePanelTitle = locDic.localize(
-      "welcomePanel.panelName",
-      "ESP-IDF Welcome"
-    );
+    const welcomePanelTitle = l10n.t("ESP-IDF Welcome");
 
     this.panel = window.createWebviewPanel(
       WelcomePanel.viewType,

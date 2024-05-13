@@ -108,7 +108,7 @@ _Steps:_
 
 1. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Select port to use** and select it.
 2. Choose the serial port to connect and the workspace folder where to save the `idf.port` configuration setting.
-3. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Monitor your Device** and select it.
+3. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Monitor Device** and select it.
 4. ESP-IDF Monitor should begin after.
 
 _Expected Results:_

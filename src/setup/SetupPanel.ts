@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { LocDictionary } from "../localizationDictionary";
 import { ISetupInitArgs } from "./setupInit";
 import {
   IEspIdfLink,
@@ -36,6 +35,7 @@ import {
   ViewColumn,
   WebviewPanel,
   commands,
+  l10n,
   window,
 } from "vscode";
 import { expressInstall } from "./espIdfDownloadStep";
@@ -49,8 +49,6 @@ import { getOpenOcdRules } from "./addOpenOcdRules";
 import { checkSpacesInPath, getEspIdfFromCMake } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 import { clearPreviousIdfSetups } from "./existingIdfSetups";
-
-const locDic = new LocDictionary("SetupPanel");
 
 export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
@@ -90,10 +88,7 @@ export class SetupPanel {
     column: ViewColumn,
     setupArgs: ISetupInitArgs
   ) {
-    const setupPanelTitle = locDic.localize(
-      "setupPanel.panelName",
-      "ESP-IDF Setup"
-    );
+    const setupPanelTitle = l10n.t("ESP-IDF Setup");
 
     this.panel = window.createWebviewPanel(
       SetupPanel.viewType,

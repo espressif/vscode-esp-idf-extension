@@ -39,7 +39,6 @@ import {
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
-import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 import * as utils from "./utils";
@@ -193,23 +192,19 @@ let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
 
 // Process to execute build, debug or monitor
 let monitorTerminal: vscode.Terminal;
-const locDic = new LocDictionary(__filename);
 
 // Websocket Server
 let wsServer: WSServer;
 
 // Precheck methods and their messages
-const openFolderMsg = locDic.localize(
-  "extension.openFolderFirst",
-  "Open a folder first."
-);
-const cmdNotForWebIdeMsg = locDic.localize(
-  "extension.cmdNotWebIDE",
+
+const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
+const cmdNotForWebIdeMsg = vscode.l10n.t(
   "Selected command is not available in WebIDE"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
-  openFolderMsg,
+  openFolderFirstMsg,
 ] as utils.PreCheckInput;
 const webIdeCheck = [
   PreCheck.notUsingWebIde,
@@ -481,12 +476,17 @@ export async function activate(context: vscode.ExtensionContext) {
             const projectDirOption = await vscode.window.showQuickPick(
               [
                 {
-                  label: `Use current folder (${workspaceRoot.fsPath})`,
+                  label: vscode.l10n.t("Use current folder: {workspace}", {
+                    workspace: workspaceRoot.fsPath,
+                  }),
                   target: "current",
                 },
-                { label: "Choose a container directory...", target: "another" },
+                {
+                  label: vscode.l10n.t("Choose a container directory..."),
+                  target: "another",
+                },
               ],
-              { placeHolder: "Select a directory to use" }
+              { placeHolder: vscode.l10n.t("Select a directory to use") }
             );
             if (!projectDirOption) {
               return;
@@ -508,7 +508,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const selectedTemplate = await vscode.window.showQuickPick(
               utils.chooseTemplateDir(),
-              { placeHolder: "Select a template to use" }
+              { placeHolder: vscode.l10n.t("Select a template to use") }
             );
             if (!selectedTemplate) {
               return;
@@ -549,8 +549,7 @@ export async function activate(context: vscode.ExtensionContext) {
               projectPath,
               true
             );
-            const defaultFoldersMsg = locDic.localize(
-              "extension.defaultFoldersGeneratedMessage",
+            const defaultFoldersMsg = vscode.l10n.t(
               "Template folders has been generated."
             );
             Logger.infoNotify(defaultFoldersMsg);
@@ -570,12 +569,16 @@ export async function activate(context: vscode.ExtensionContext) {
       ) as string;
       const buildDirExists = await utils.dirExistPromise(buildDir);
       if (!buildDirExists) {
-        const errStr = "There is no build directory to clean, exiting!";
+        const errStr = vscode.l10n.t(
+          "There is no build directory to clean, exiting!"
+        );
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
       if (ConfserverProcess.exists()) {
-        const closingSDKConfigMsg = `Trying to delete the build folder. Closing existing SDK Configuration editor process...`;
+        const closingSDKConfigMsg = vscode.l10n.t(
+          `Trying to delete the build folder. Closing existing SDK Configuration editor process...`
+        );
         OutputChannel.init().appendLine(closingSDKConfigMsg);
         Logger.info(closingSDKConfigMsg);
         ConfserverProcess.dispose();
@@ -586,12 +589,16 @@ export async function activate(context: vscode.ExtensionContext) {
         constants.R_OK
       );
       if (!doesCmakeCacheExists) {
-        const errStr = `There is no CMakeCache.txt. Please try to delete the build directory manually.`;
+        const errStr = vscode.l10n.t(
+          `There is no CMakeCache.txt. Please try to delete the build directory manually.`
+        );
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
       if (BuildTask.isBuilding || FlashTask.isFlashing) {
-        const errStr = `There is a build or flash task running. Wait for it to finish or cancel them before clean.`;
+        const errStr = vscode.l10n.t(
+          `There is a build or flash task running. Wait for it to finish or cancel them before clean.`
+        );
         OutputChannel.appendLineAndShow(errStr);
         return Logger.warnNotify(errStr);
       }
@@ -612,7 +619,7 @@ export async function activate(context: vscode.ExtensionContext) {
             await del(managedComponents, { force: true });
           }
         }
-        Logger.infoNotify("Build directory has been deleted.");
+        Logger.infoNotify(vscode.l10n.t("Build directory has been deleted."));
       } catch (error) {
         OutputChannel.appendLineAndShow(error.message);
         Logger.errorNotify(error.message, error);
@@ -656,7 +663,9 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: ProgressLocation,
-          title: "ESP-IDF: Erasing device flash memory (erase_flash)",
+          title: vscode.l10n.t(
+            "ESP-IDF: Erasing device flash memory (erase_flash)"
+          ),
         },
         async (
           progress: vscode.Progress<{
@@ -698,7 +707,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: ProgressLocation,
-          title: "ESP-IDF: Arduino ESP32 as ESP-IDF component",
+          title: vscode.l10n.t("ESP-IDF: Arduino ESP32 as ESP-IDF component"),
         },
         async (
           progress: vscode.Progress<{
@@ -732,7 +741,11 @@ export async function activate(context: vscode.ExtensionContext) {
               arduinoDirPath
             );
             if (arduinoDirExists) {
-              return Logger.infoNotify(`${arduinoDirPath} already exists.`);
+              return Logger.infoNotify(
+                vscode.l10n.t(`{arduinoDirPath} already exists.`, {
+                  arduinoDirPath,
+                })
+              );
             }
             await arduinoComponentManager.addArduinoAsComponent();
           } catch (error) {
@@ -754,7 +767,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.getEspMatter", async () => {
     if (process.platform === "win32") {
       return vscode.window.showInformationMessage(
-        `ESP-Matter is not available for Windows.`
+        vscode.l10n.t(`ESP-Matter is not available for Windows.`)
       );
     }
     getEspMatter(workspaceRoot);
@@ -767,18 +780,20 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {
     if (process.platform === "win32") {
       return vscode.window.showInformationMessage(
-        `ESP-Matter is not available for Windows.`
+        vscode.l10n.t(`ESP-Matter is not available for Windows.`)
       );
     }
     const configurationTarget = vscode.ConfigurationTarget.WorkspaceFolder;
     let workspaceFolder = await vscode.window.showWorkspaceFolderPick({
-      placeHolder: `Pick Workspace Folder to which settings should be applied`,
+      placeHolder: vscode.l10n.t(
+        `Pick Workspace Folder to which settings should be applied`
+      ),
     });
     if (!workspaceFolder) {
       return;
     }
     const customMatterDevicePath = await vscode.window.showInputBox({
-      placeHolder: "Enter ESP_MATTER_DEVICE_PATH path",
+      placeHolder: vscode.l10n.t("Enter ESP_MATTER_DEVICE_PATH path"),
     });
     if (!customMatterDevicePath) {
       return;
@@ -795,7 +810,9 @@ export async function activate(context: vscode.ExtensionContext) {
       workspaceFolder.uri
     );
     return vscode.window.showInformationMessage(
-      `ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.`
+      vscode.l10n.t(
+        `ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.`
+      )
     );
   });
 
@@ -828,8 +845,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.pickAWorkspaceFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const selectCurrentFolderMsg = locDic.localize(
-        "espIdf.pickAWorkspaceFolder.text",
+      const selectCurrentFolderMsg = vscode.l10n.t(
         "Select your current folder"
       );
       try {
@@ -837,10 +853,7 @@ export async function activate(context: vscode.ExtensionContext) {
           placeHolder: selectCurrentFolderMsg,
         });
         if (!option) {
-          const noFolderMsg = locDic.localize(
-            "extension.noFolderMessage",
-            "No workspace selected."
-          );
+          const noFolderMsg = vscode.l10n.t("No workspace selected.");
           Logger.infoNotify(noFolderMsg);
           return;
         }
@@ -888,27 +901,35 @@ export async function activate(context: vscode.ExtensionContext) {
     const notificationTarget = await vscode.window.showQuickPick(
       [
         {
-          description: "Show no notifications and do not focus tasks output.",
+          description: vscode.l10n.t(
+            "Show no notifications and do not focus tasks output."
+          ),
           label: "Silent",
           target: "Silent",
         },
         {
-          description: "Show notifications but do not focus tasks output.",
+          description: vscode.l10n.t(
+            "Show notifications but do not focus tasks output."
+          ),
           label: "Notifications",
           target: "Notifications",
         },
         {
-          description: "Do not show notifications but focus tasks output.",
+          description: vscode.l10n.t(
+            "Do not show notifications but focus tasks output."
+          ),
           label: "Output",
           target: "Output",
         },
         {
-          description: "Show notifications and focus tasks output.",
+          description: vscode.l10n.t(
+            "Show notifications and focus tasks output."
+          ),
           label: "All",
           target: "All",
         },
       ],
-      { placeHolder: "Select the output and notification mode" }
+      { placeHolder: vscode.l10n.t("Select the output and notification mode") }
     );
     if (!notificationTarget) {
       return;
@@ -922,7 +943,9 @@ export async function activate(context: vscode.ExtensionContext) {
       workspaceRoot
     );
     Logger.infoNotify(
-      `Notification mode has changed to ${notificationTarget.label}`
+      vscode.l10n.t(`Notification mode has changed to {mode}`, {
+        mode: notificationTarget.label,
+      })
     );
   });
 
@@ -932,21 +955,24 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setPath", () => {
     PreCheck.perform([webIdeCheck], async () => {
-      const selectFrameworkMsg = locDic.localize(
-        "selectFrameworkMessage",
+      const selectFrameworkMsg = vscode.l10n.t(
         "Select framework to define its path:"
       );
       try {
         const option = await vscode.window.showQuickPick(
           [
-            { description: "IDF_PATH Path", label: "IDF_PATH", target: "esp" },
             {
-              description: "Set IDF_TOOLS_PATH Path",
+              description: vscode.l10n.t("IDF_PATH Path"),
+              label: "IDF_PATH",
+              target: "esp",
+            },
+            {
+              description: vscode.l10n.t("Set IDF_TOOLS_PATH Path"),
               label: "IDF_TOOLS_PATH",
               target: "idfTools",
             },
             {
-              description: "Set paths to append to PATH",
+              description: vscode.l10n.t("Set paths to append to PATH"),
               label: "Custom extra paths",
               target: "customExtraPath",
             },
@@ -954,10 +980,7 @@ export async function activate(context: vscode.ExtensionContext) {
           { placeHolder: selectFrameworkMsg }
         );
         if (!option) {
-          const noOptionMsg = locDic.localize(
-            "extension.noOptionMessage",
-            "No option selected."
-          );
+          const noOptionMsg = vscode.l10n.t("No option selected.");
           Logger.infoNotify(noOptionMsg);
           return;
         }
@@ -966,31 +989,19 @@ export async function activate(context: vscode.ExtensionContext) {
         let paramName: string;
         switch (option.target) {
           case "esp":
-            msg = locDic.localize(
-              "extension.enterIdfPathMessage",
-              "Enter IDF_PATH Path"
-            );
+            msg = vscode.l10n.t("Enter IDF_PATH Path");
             paramName = "idf.espIdfPath";
             break;
           case "idfTools":
-            msg = locDic.localize(
-              "extension.enterIdfToolsPathMessage",
-              "Enter IDF_TOOLS_PATH path"
-            );
+            msg = vscode.l10n.t("Enter IDF_TOOLS_PATH path");
             paramName = "idf.toolsPath";
             break;
           case "customExtraPath":
-            msg = locDic.localize(
-              "extension.enterCustomPathsMessage",
-              "Enter extra paths to append to PATH"
-            );
+            msg = vscode.l10n.t("Enter extra paths to append to PATH");
             paramName = "idf.customExtraPaths";
             break;
           default:
-            const noPathUpdatedMsg = locDic.localize(
-              "extension.noPathUpdatedMessage",
-              "No path has been updated"
-            );
+            const noPathUpdatedMsg = vscode.l10n.t("No path has been updated");
             Logger.infoNotify(noPathUpdatedMsg);
             break;
         }
@@ -1072,7 +1083,7 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       if (!projectConfigurations) {
         const emptyOption = await vscode.window.showInformationMessage(
-          "No project configuration found",
+          vscode.l10n.t("No project configuration found"),
           "Open editor"
         );
         if (emptyOption === "Open editor") {
@@ -1080,10 +1091,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         return;
       }
-      const selectConfigMsg = locDic.localize(
-        "extension.selectConfigMessage",
-        "Select configuration to use:"
-      );
+      const selectConfigMsg = vscode.l10n.t("Select configuration to use:");
       let quickPickItems = Object.keys(projectConfigurations).map((k) => {
         return {
           description: k,
@@ -1095,10 +1103,7 @@ export async function activate(context: vscode.ExtensionContext) {
         placeHolder: selectConfigMsg,
       });
       if (!option) {
-        const noOptionMsg = locDic.localize(
-          "extension.noOptionMessage",
-          "No option selected."
-        );
+        const noOptionMsg = vscode.l10n.t("No option selected.");
         Logger.infoNotify(noOptionMsg);
         return;
       }
@@ -1115,7 +1120,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       statusBarItems["projectConf"] = createStatusBarItem(
         "$(gear)" + option.target,
-        "ESP-IDF: Select Project Configuration",
+        vscode.l10n.t("ESP-IDF: Select Project Configuration"),
         "espIdf.projectConf",
         100
       );
@@ -1124,10 +1129,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.configDevice", async () => {
-    const selectConfigMsg = locDic.localize(
-      "extension.selectConfigMessage",
-      "Select option to define its path :"
-    );
+    const selectConfigMsg = vscode.l10n.t("Select option to define its path:");
     try {
       const option = await vscode.window.showQuickPick(
         [
@@ -1147,8 +1149,9 @@ export async function activate(context: vscode.ExtensionContext) {
             target: "flashBaudRate",
           },
           {
-            description:
-              "Relative paths to OpenOCD Scripts directory separated by comma(,)",
+            description: vscode.l10n.t(
+              "Relative paths to OpenOCD Scripts directory separated by comma(,)"
+            ),
             label: "OpenOcd Config Files",
             target: "openOcdConfig",
           },
@@ -1156,10 +1159,7 @@ export async function activate(context: vscode.ExtensionContext) {
         { placeHolder: selectConfigMsg }
       );
       if (!option) {
-        const noOptionMsg = locDic.localize(
-          "extension.noOptionMessage",
-          "No option selected."
-        );
+        const noOptionMsg = vscode.l10n.t("No option selected.");
         Logger.infoNotify(noOptionMsg);
         return;
       }
@@ -1170,33 +1170,23 @@ export async function activate(context: vscode.ExtensionContext) {
         case "deviceTarget":
           return vscode.commands.executeCommand("espIdf.setTarget");
         case "devicePort":
-          msg = locDic.localize(
-            "extension.enterDevicePortMessage",
-            "Enter device port Path"
-          );
+          msg = vscode.l10n.t("Enter device port Path");
           paramName = "idf.port";
           break;
         case "flashBaudRate":
-          msg = locDic.localize(
-            "extension.enterFlashBaudRateMessage",
-            "Enter flash baud rate"
-          );
+          msg = vscode.l10n.t("Enter flash baud rate");
           paramName = "idf.flashBaudRate";
           break;
         case "monitorBaudRate":
-          msg = "Enter monitor baud rate";
+          msg = vscode.l10n.t("Enter monitor baud rate");
           paramName = "idf.monitorBaudRate";
           break;
         case "openOcdConfig":
-          msg = locDic.localize(
-            "extension.enterOpenOcdConfigMessage",
-            "Enter OpenOCD Configuration File Paths list"
-          );
+          msg = vscode.l10n.t("Enter OpenOCD Configuration File Paths list");
           paramName = "idf.openOcdConfigs";
           break;
         default:
-          const noParamUpdatedMsg = locDic.localize(
-            "extension.noParamUpdatedMessage",
+          const noParamUpdatedMsg = vscode.l10n.t(
             "No device parameter has been updated"
           );
           Logger.infoNotify(noParamUpdatedMsg);
@@ -1536,7 +1526,9 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             ) as string;
             progress.report({
-              message: `Installing ESP-IDF extension Python Requirements...`,
+              message: vscode.l10n.t(
+                `Installing ESP-IDF extension Python Requirements...`
+              ),
             });
             await installExtensionPyReqs(
               pyPath,
@@ -1546,7 +1538,7 @@ export async function activate(context: vscode.ExtensionContext) {
               OutputChannel.init()
             );
             vscode.window.showInformationMessage(
-              "ESP-IDF Python Requirements has been installed"
+              vscode.l10n.t("ESP-IDF Python Requirements has been installed")
             );
           } catch (error) {
             const msg = error.message
@@ -1564,7 +1556,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.installEspMatterPyReqs", () => {
     if (process.platform === "win32") {
       return vscode.window.showInformationMessage(
-        `ESP-Matter is not available for Windows.`
+        vscode.l10n.t(`ESP-Matter is not available for Windows.`)
       );
     }
     return PreCheck.perform([openFolderCheck], async () => {
@@ -1613,7 +1605,9 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             ) as string;
             progress.report({
-              message: `Installing ESP-Matter Python Requirements...`,
+              message: vscode.l10n.t(
+                `Installing ESP-Matter Python Requirements...`
+              ),
             });
             await installEspMatterPyReqs(
               espIdfPath,
@@ -1626,7 +1620,9 @@ export async function activate(context: vscode.ExtensionContext) {
             );
 
             vscode.window.showInformationMessage(
-              "ESP-Matter Python Requirements have been installed"
+              vscode.l10n.t(
+                "ESP-Matter Python Requirements have been installed"
+              )
             );
           } catch (error) {
             const msg = error.message
@@ -1647,7 +1643,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const isPyTestInstalled = await checkPytestRequirements(workspaceRoot);
         if (isPyTestInstalled) {
           return Logger.infoNotify(
-            "PyTest python packages are already installed."
+            vscode.l10n.t("PyTest python packages are already installed.")
           );
         }
       } catch (error) {
@@ -1708,7 +1704,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: ProgressLocation,
-          title: "ESP-IDF: Building unit test app and flashing",
+          title: vscode.l10n.t("ESP-IDF: Building unit test app and flashing"),
         },
         async (
           progress: vscode.Progress<{ message: string; increment?: number }>,
@@ -1785,7 +1781,7 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await utils.createVscodeFolder(workspaceRoot);
         Logger.infoNotify(
-          "ESP-IDF vscode files have been added to the project."
+          vscode.l10n.t("ESP-IDF vscode files have been added to the project.")
         );
       } catch (error) {
         const errMsg = error.message || "Error creating .vscode folder";
@@ -1800,7 +1796,9 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await utils.createDevContainer(workspaceRoot.fsPath);
         Logger.infoNotify(
-          "ESP-IDF container files have been added to the project."
+          vscode.l10n.t(
+            "ESP-IDF container files have been added to the project."
+          )
         );
       } catch (error) {
         const errMsg = error.message || "Error creating .devcontainer folder";
@@ -1814,7 +1812,7 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       try {
         const componentName = await vscode.window.showInputBox({
-          placeHolder: "Enter ESP-IDF component name",
+          placeHolder: vscode.l10n.t("Enter ESP-IDF component name"),
           value: "",
         });
         if (!componentName) {
@@ -1822,7 +1820,10 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         await utils.createNewComponent(componentName, workspaceRoot.fsPath);
         Logger.infoNotify(
-          `The ESP-IDF component ${componentName} has been created`
+          vscode.l10n.t(
+            `The ESP-IDF component {componentName} has been created`,
+            { componentName }
+          )
         );
       } catch (error) {
         const errMsg = error.message || "Error creating ESP-IDF component";
@@ -1867,7 +1868,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: true,
             location: ProgressLocation,
-            title: "ESP-IDF: Menuconfig",
+            title: vscode.l10n.t("ESP-IDF: SDK Configuration Editor"),
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>,
@@ -1900,7 +1901,9 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: vscode.ProgressLocation.Notification,
-          title: "ESP-IDF: Save Default Configuration (save-defconfig)",
+          title: vscode.l10n.t(
+            "ESP-IDF: Save Default Configuration (save-defconfig)"
+          ),
         },
         async (
           progress: vscode.Progress<{ message: string; increment: number }>,
@@ -1928,8 +1931,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.setTarget", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      const enterDeviceTargetMsg = locDic.localize(
-        "extension.enterDeviceTargetMessage",
+      const enterDeviceTargetMsg = vscode.l10n.t(
         "Enter target name (IDF_TARGET)"
       );
       await setIdfTarget(enterDeviceTargetMsg);
@@ -1956,7 +1958,7 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             cancellable: false,
             location: ProgressLocation,
-            title: "ESP-IDF: Configure extension",
+            title: vscode.l10n.t("ESP-IDF: Configure ESP-IDF extension"),
           },
           async (
             progress: vscode.Progress<{ message: string; increment: number }>
@@ -1985,13 +1987,15 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.examples.start", async () => {
     const pickItems = await getFrameworksPickItems();
     if (!pickItems || pickItems.length == 0) {
-      return Logger.infoNotify("No ESP-IDF frameworks found");
+      return Logger.infoNotify(vscode.l10n.t("No ESP-IDF frameworks found"));
     }
     const examplesFolder = await vscode.window.showQuickPick(pickItems, {
-      placeHolder: "Select framework to use",
+      placeHolder: vscode.l10n.t("Select framework to use"),
     });
     if (!examplesFolder) {
-      Logger.infoNotify("No framework selected to load examples.");
+      Logger.infoNotify(
+        vscode.l10n.t("No framework selected to load examples.")
+      );
       return;
     }
     try {
@@ -2008,7 +2012,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: false,
           location: ProgressLocation,
-          title: "ESP-IDF: Loading examples",
+          title: vscode.l10n.t("ESP-IDF: Loading examples"),
         },
         async (
           progress: vscode.Progress<{ message: string; increment: number }>
@@ -2041,7 +2045,9 @@ export async function activate(context: vscode.ExtensionContext) {
     async (fileUri: vscode.Uri) => {
       if (!fileUri) {
         Logger.errorNotify(
-          "Cannot call this command directly, right click on any CMakeLists.txt file!",
+          vscode.l10n.t(
+            "Cannot call this command directly, right click on any CMakeLists.txt file!"
+          ),
           new Error("INVALID_INVOCATION")
         );
         return;
@@ -2176,8 +2182,7 @@ export async function activate(context: vscode.ExtensionContext) {
           target: b,
         };
       });
-      const selectOpenOCdConfigsMsg = locDic.localize(
-        "extension.enterOpenOcdConfigMessage",
+      const selectOpenOCdConfigsMsg = vscode.l10n.t(
         "Enter OpenOCD Configuration File Paths list"
       );
       const selectedBoard = await vscode.window.showQuickPick(choices, {
@@ -2189,7 +2194,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
       if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
         const inputBoard = await vscode.window.showInputBox({
-          placeHolder: "Enter comma separated configuration files",
+          placeHolder: vscode.l10n.t(
+            "Enter comma separated configuration files"
+          ),
           value: selectedBoard.target.configFiles.join(","),
         });
         if (inputBoard) {
@@ -2202,7 +2209,7 @@ export async function activate(context: vscode.ExtensionContext) {
         !PreCheck.isWorkspaceFolderOpen() &&
         target !== vscode.ConfigurationTarget.Global
       ) {
-        const noWsOpenMSg = `Open a workspace or folder first.`;
+        const noWsOpenMSg = vscode.l10n.t(`Open a workspace or folder first.`);
         Logger.warnNotify(noWsOpenMSg);
         throw new Error(noWsOpenMSg);
       }
@@ -2216,7 +2223,9 @@ export async function activate(context: vscode.ExtensionContext) {
         selectedBoard.target.target,
         target
       );
-      Logger.infoNotify("OpenOCD Board configuration files are updated.");
+      Logger.infoNotify(
+        vscode.l10n.t("OpenOCD Board configuration files are updated.")
+      );
     } catch (error) {
       const errMsg =
         error.message || "Failed to select openOCD configuration files";
@@ -2308,20 +2317,29 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     const isIdfProject = utils.checkIsProjectCmakeLists(srcFolder[0].fsPath);
     if (!isIdfProject) {
-      Logger.infoNotify(`${srcFolder[0].fsPath} is not an ESP-IDF project.`);
+      Logger.infoNotify(
+        vscode.l10n.t(`{srcFolder} is not an ESP-IDF project.`, {
+          srcFolder: srcFolder[0].fsPath,
+        })
+      );
       return;
     }
     const items = [
-      { label: "Choose a container directory...", target: "another" },
+      {
+        label: vscode.l10n.t("Choose a container directory..."),
+        target: "another",
+      },
     ];
     if (workspaceRoot) {
       items.push({
-        label: `Use current folder (${workspaceRoot.fsPath})`,
+        label: vscode.l10n.t(`Use current folder: {workspace}`, {
+          workspace: workspaceRoot.fsPath,
+        }),
         target: "current",
       });
     }
     const projectDirOption = await vscode.window.showQuickPick(items, {
-      placeHolder: "Select a directory to use",
+      placeHolder: vscode.l10n.t("Select a directory to use"),
     });
     if (!projectDirOption) {
       return;
@@ -2344,7 +2362,7 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
     const projectName = await vscode.window.showInputBox({
-      placeHolder: "Enter project name",
+      placeHolder: vscode.l10n.t("Enter project name"),
       value: "",
     });
     if (!projectName) {
@@ -2353,13 +2371,15 @@ export async function activate(context: vscode.ExtensionContext) {
     destFolder = vscode.Uri.file(path.join(destFolder.fsPath, projectName));
     const doesProjectExists = await pathExists(destFolder.fsPath);
     if (doesProjectExists) {
-      Logger.infoNotify(`${destFolder} already exists.`);
+      Logger.infoNotify(
+        vscode.l10n.t(`{destFolder} already exists.`, { destFolder })
+      );
       return;
     }
     await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
     await utils.updateProjectNameInCMakeLists(destFolder.fsPath, projectName);
     const opt = await vscode.window.showInformationMessage(
-      "Project has been imported",
+      vscode.l10n.t("ESP-IDF Project has been imported"),
       "Open"
     );
     if (opt === "Open") {
@@ -2451,7 +2471,7 @@ export async function activate(context: vscode.ExtensionContext) {
             );
             if (!qemuBinExists) {
               progress.report({
-                message: "Merging binaries for flashing",
+                message: vscode.l10n.t("Merging binaries for flashing"),
                 increment: 10,
               });
               await mergeFlashBinaries(workspaceRoot, cancelToken);
@@ -2547,14 +2567,14 @@ export async function activate(context: vscode.ExtensionContext) {
         description: "Enter a custom offset",
       });
       const partitionAction = await vscode.window.showQuickPick(items, {
-        placeHolder: "Select a partition to use",
+        placeHolder: vscode.l10n.t("Select a partition to use"),
       });
       if (!partitionAction) {
         return;
       }
       if (partitionAction.target === "custom") {
         const customOffset = await vscode.window.showInputBox({
-          placeHolder: "Enter custom partition table offset",
+          placeHolder: vscode.l10n.t("Enter custom partition table offset"),
           value: "",
           validateInput: (text) => {
             return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
@@ -2585,15 +2605,15 @@ export async function activate(context: vscode.ExtensionContext) {
         const partitionAction = await vscode.window.showQuickPick(
           [
             {
-              label: `Flash binary to this partition`,
+              label: vscode.l10n.t(`Flash binary to this partition`),
               target: "flashBinaryToPartition",
             },
             {
-              label: "Open partition table editor",
+              label: vscode.l10n.t("Open partition table editor"),
               target: "openPartitionTableEditor",
             },
           ],
-          { placeHolder: "Select an action to use" }
+          { placeHolder: vscode.l10n.t("Select an action to use") }
         );
         if (!partitionAction) {
           return;
@@ -2645,7 +2665,7 @@ export async function activate(context: vscode.ExtensionContext) {
       {
         cancellable: false,
         location: ProgressLocation,
-        title: "ESP-IDF: Preparing ESP-IDF extension report",
+        title: vscode.l10n.t("ESP-IDF: Preparing ESP-IDF extension report"),
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>
@@ -2667,7 +2687,9 @@ export async function activate(context: vscode.ExtensionContext) {
             : "Configuration report error";
           Logger.error(errMsg, error);
           Logger.warnNotify(
-            "Extension configuration report has been copied to clipboard with errors"
+            vscode.l10n.t(
+              "Extension configuration report has been copied to clipboard with errors"
+            )
           );
           const reportOutput = await writeTextReport(reportedResult, context);
           await vscode.env.clipboard.writeText(reportOutput);
@@ -2682,7 +2704,9 @@ export async function activate(context: vscode.ExtensionContext) {
     (trace: AppTraceArchiveItems) => {
       if (!trace) {
         Logger.errorNotify(
-          "Cannot call this command directly, click on any Trace to view its report!",
+          vscode.l10n.t(
+            "Cannot call this command directly, click on any Trace to view its report!"
+          ),
           new Error("INVALID_COMMAND")
         );
         return;
@@ -2694,20 +2718,22 @@ export async function activate(context: vscode.ExtensionContext) {
             SystemViewTracing,
           }
           //show option to render system trace view or heap trace
-          const placeHolder =
-            "Do you want to view Heap Trace plot or System View Trace";
+          const placeHolder = vscode.l10n.t(
+            "Do you want to view Heap Trace plot or System View Trace"
+          );
           const choice = await vscode.window.showQuickPick(
             [
               {
                 type: TracingViewType.SystemViewTracing,
                 label: "$(symbol-keyword) System View Tracing",
-                detail:
-                  "Show System View Tracing Plot (will open a webview window)",
+                detail: vscode.l10n.t(
+                  "Show System View Tracing Plot (will open a webview window)"
+                ),
               },
               {
                 type: TracingViewType.HeapTracingPlot,
                 label: "$(graph) Heap Tracing",
-                detail: "Open Old Heap/App Trace Panel",
+                detail: vscode.l10n.t("Open Old Heap/App Trace Panel"),
               },
             ],
             {
@@ -2746,7 +2772,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("esp.rainmaker.backend.connect", async () => {
     if (RainmakerAPIClient.isLoggedIn()) {
-      return Logger.infoNotify("Already logged-in, please sign-out first");
+      return Logger.infoNotify(
+        vscode.l10n.t("Already logged-in, please sign-out first")
+      );
     }
 
     //ask to select login provider
@@ -2775,7 +2803,9 @@ export async function activate(context: vscode.ExtensionContext) {
         : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
-        title: "ESP-IDF: Please wait checking with Rainmaker Cloud",
+        title: vscode.l10n.t(
+          "ESP-IDF: Please wait checking with Rainmaker Cloud"
+        ),
         location: ProgressLocation,
         cancellable: false,
       },
@@ -2789,7 +2819,9 @@ export async function activate(context: vscode.ExtensionContext) {
           Logger.infoNotify("Rainmaker Cloud Linking Success!");
         } catch (error) {
           return Logger.errorNotify(
-            "Failed to login with Rainmaker Cloud, double check your id and password",
+            vscode.l10n.t(
+              "Failed to login with Rainmaker Cloud, double check your id and password"
+            ),
             error
           );
         }
@@ -2799,7 +2831,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("esp.rainmaker.backend.logout", async () => {
     const shallLogout = await vscode.window.showWarningMessage(
-      "Would you like to unlink your ESP Rainmaker cloud account?",
+      vscode.l10n.t(
+        "Would you like to unlink your ESP Rainmaker cloud account?"
+      ),
       { modal: true },
       { title: "Yes" },
       { title: "Cancel", isCloseAffordance: true }
@@ -2822,7 +2856,9 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
       }
       const shallDelete = await vscode.window.showWarningMessage(
-        "Would you like to delete this node from your ESP Rainmaker account?",
+        vscode.l10n.t(
+          "Would you like to delete this node from your ESP Rainmaker account?"
+        ),
         { modal: true },
         { title: "Yes" },
         { title: "Cancel", isCloseAffordance: true }
@@ -2841,7 +2877,9 @@ export async function activate(context: vscode.ExtensionContext) {
           : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
-          title: "ESP-IDF: Deleting node from your rainmaker account",
+          title: vscode.l10n.t(
+            "ESP-IDF: Deleting node from your rainmaker account"
+          ),
           location: ProgressLocation,
         },
         async () => {
@@ -2850,7 +2888,9 @@ export async function activate(context: vscode.ExtensionContext) {
             rainMakerTreeDataProvider.refresh();
           } catch (error) {
             Logger.errorNotify(
-              "Failed to delete node, maybe the node is already marked for delete, please try again after sometime",
+              vscode.l10n.t(
+                "Failed to delete node, maybe the node is already marked for delete, please try again after sometime"
+              ),
               error
             );
           }
@@ -2860,7 +2900,9 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("esp.rainmaker.backend.add_node", async () => {
     Logger.infoNotify(
-      "Coming Soon!! until then you can add nodes using mobile app"
+      vscode.l10n.t(
+        "Coming Soon!! until then you can add nodes using mobile app"
+      )
     );
   });
   registerIDFCommand(
@@ -2930,9 +2972,13 @@ export async function activate(context: vscode.ExtensionContext) {
             await rainMakerTreeDataProvider.refresh();
             Logger.infoNotify("Sent the param update request to cloud");
           } catch (error) {
-            let errorMsg = "Failed to update the param, please try once more";
+            let errorMsg = vscode.l10n.t(
+              "Failed to update the param, please try once more"
+            );
             if (error.response) {
-              errorMsg = `Failed to update param because, ${error.response.data.description}`;
+              errorMsg = `${vscode.l10n.t(
+                "Failed to update param because, "
+              )} ${error.response.data.description}`;
             }
             Logger.errorNotify(errorMsg, error);
           }
@@ -2951,12 +2997,12 @@ export async function activate(context: vscode.ExtensionContext) {
             await vscode.commands.executeCommand("espIdf.selectPort");
           } catch (error) {
             Logger.error(
-              "Unable to execute the command: espIdf.selectPort",
+              vscode.l10n.t("Unable to execute the command: espIdf.selectPort"),
               error
             );
           }
           return Logger.errorNotify(
-            "Select a serial port before flashing",
+            vscode.l10n.t("Select a serial port before flashing"),
             new Error("NOT_SELECTED_PORT")
           );
         }
@@ -2966,7 +3012,7 @@ export async function activate(context: vscode.ExtensionContext) {
         ) as string;
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
-            "Python binary path is not defined",
+            vscode.l10n.t("Python binary path is not defined"),
             new Error("idf.pythonBinPath is not defined")
           );
         }
@@ -2981,7 +3027,7 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         if (!utils.canAccessFile(idfMonitorToolPath, constants.R_OK)) {
           Logger.errorNotify(
-            idfMonitorToolPath + " is not defined",
+            idfMonitorToolPath + vscode.l10n.t(" is not defined"),
             new Error(idfMonitorToolPath + " is not defined")
           );
         }
@@ -3067,8 +3113,9 @@ export async function activate(context: vscode.ExtensionContext) {
               {
                 location: ProgressLocation,
                 cancellable: false,
-                title:
-                  "ESP-IDF: Core-dump detected, please wait while we parse the data received",
+                title: vscode.l10n.t(
+                  "ESP-IDF: Core-dump detected, please wait while we parse the data received"
+                ),
               },
               async (progress) => {
                 const espCoreDumpPyTool = new ESPCoreDumpPyTool(idfPath);
@@ -3092,8 +3139,9 @@ export async function activate(context: vscode.ExtensionContext) {
                   })) === true
                 ) {
                   progress.report({
-                    message:
-                      "Successfully created ELF file from the info received (espcoredump.py)",
+                    message: vscode.l10n.t(
+                      "Successfully created ELF file from the info received (espcoredump.py)"
+                    ),
                   });
                   try {
                     debugAdapterManager.configureAdapter({
@@ -3119,13 +3167,15 @@ export async function activate(context: vscode.ExtensionContext) {
                     });
                   } catch (error) {
                     Logger.errorNotify(
-                      "Failed to launch debugger for postmortem",
+                      vscode.l10n.t("Failed to launch debugger for postmortem"),
                       error
                     );
                   }
                 } else {
                   Logger.warnNotify(
-                    "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+                    vscode.l10n.t(
+                      "Failed to generate the ELF file from the info received, please close the core-dump monitor terminal manually"
+                    )
                   );
                 }
               }
@@ -3169,7 +3219,10 @@ export async function activate(context: vscode.ExtensionContext) {
           .on("error", (err) => {
             let message = err.message;
             if (err && err.message.includes("EADDRINUSE")) {
-              message = `Your port ${wsPort} is not available, use (idf.wssPort) to change to different port`;
+              message = vscode.l10n.t(
+                `Your port {wsPort} is not available, use (idf.wssPort) to change to different port`,
+                { wsPort }
+              );
             }
             Logger.errorNotify(message, err);
             wsServer.close();
@@ -3188,7 +3241,9 @@ export async function activate(context: vscode.ExtensionContext) {
           const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
           if (!sdkconfigFileExists) {
             const buildProject = await vscode.window.showInformationMessage(
-              `Partition table editor requires sdkconfig file. Build the project?`,
+              vscode.l10n.t(
+                `Partition table editor requires sdkconfig file. Build the project?`
+              ),
               "Build"
             );
             if (buildProject === "Build") {
@@ -3202,7 +3257,9 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           if (isCustomPartitionTableEnabled !== "y") {
             const enableCustomPartitionTable = await vscode.window.showInformationMessage(
-              "Custom Partition Table not enabled for the project",
+              vscode.l10n.t(
+                "Custom Partition Table not enabled for the project"
+              ),
               "Enable"
             );
             if (enableCustomPartitionTable === "Enable") {
@@ -3220,7 +3277,9 @@ export async function activate(context: vscode.ExtensionContext) {
               }
             } else {
               throw new Error(
-                "Custom Partition Table not enabled for the project"
+                vscode.l10n.t(
+                  "Custom Partition Table not enabled for the project"
+                )
               );
             }
           }
@@ -3232,7 +3291,9 @@ export async function activate(context: vscode.ExtensionContext) {
           partitionTableFilePath = partitionTableFilePath.replace(/\"/g, "");
           if (!utils.isStringNotEmpty(partitionTableFilePath)) {
             throw new Error(
-              "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
+              vscode.l10n.t(
+                "Empty CONFIG_PARTITION_TABLE_CUSTOM_FILENAME, please add a csv file to generate partition table"
+              )
             );
           }
 
@@ -3243,7 +3304,10 @@ export async function activate(context: vscode.ExtensionContext) {
           if (!utils.fileExists(partitionTableFilePath)) {
             // inform user and create file.
             Logger.infoNotify(
-              `Partition Table File (${partitionTableFilePath}) doesn't exists, we are creating an empty file there`
+              vscode.l10n.t(
+                `Partition Table File {partitionTableFilePath} doesn't exists, we are creating an empty file there`,
+                { partitionTableFilePath }
+              )
             );
             createFileSync(partitionTableFilePath);
           }
@@ -3267,7 +3331,7 @@ export async function activate(context: vscode.ExtensionContext) {
         : vscode.ProgressLocation.Window;
     vscode.window.withProgress(
       {
-        title: "ESP-IDF: Getting eFuse summary for your chip",
+        title: vscode.l10n.t("ESP-IDF: Getting eFuse summary for your chip"),
         location: ProgressLocation,
       },
       async () => {
@@ -3281,7 +3345,9 @@ export async function activate(context: vscode.ExtensionContext) {
             return Logger.errorNotify(error.message, error);
           }
           Logger.errorNotify(
-            "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port",
+            vscode.l10n.t(
+              "Failed to get the eFuse Summary from the chip, please make sure you have selected a valid port"
+            ),
             error
           );
         }
@@ -3336,7 +3402,10 @@ export async function activate(context: vscode.ExtensionContext) {
           Logger.info(summaryResult);
           OutputChannel.show();
         } catch (error) {
-          Logger.errorNotify("Ninja build summary found an error", error);
+          Logger.errorNotify(
+            vscode.l10n.t("Ninja build summary found an error"),
+            error
+          );
         }
       }
     );
@@ -3355,7 +3424,7 @@ export async function activate(context: vscode.ExtensionContext) {
           : vscode.ProgressLocation.Window;
       vscode.window.withProgress(
         {
-          title: "ESP-IDF: Create SBOM summary",
+          title: vscode.l10n.t("ESP-IDF: Create SBOM summary"),
           location: ProgressLocation,
         },
         async () => {
@@ -3431,21 +3500,24 @@ export async function activate(context: vscode.ExtensionContext) {
               : vscode.ProgressLocation.Window;
           vscode.window.withProgress(
             {
-              title:
-                "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while",
+              title: vscode.l10n.t(
+                "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while"
+              ),
               location: ProgressLocation,
             },
             async () => {
               await RainmakerAPIClient.exchangeCodeForTokens(code);
               await rainMakerTreeDataProvider.refresh();
               Logger.infoNotify(
-                "Rainmaker Cloud is connected successfully (via OAuth)!"
+                vscode.l10n.t(
+                  "Rainmaker Cloud is connected successfully (via OAuth)!"
+                )
               );
             }
           );
         } catch (error) {
           return Logger.errorNotify(
-            "Failed to sign-in with Rainmaker (via OAuth)",
+            vscode.l10n.t("Failed to sign-in with Rainmaker (via OAuth)"),
             error,
             { meta: JSON.stringify(error) }
           );
@@ -3495,7 +3567,9 @@ async function getFrameworksPickItems() {
     if (doesIdfPathExists) {
       pickItems.push({
         description: "ESP-IDF",
-        label: `Use current ESP-IDF (${espIdfPath})`,
+        label: vscode.l10n.t(`Use current ESP-IDF {espIdfPath}`, {
+          espIdfPath,
+        }),
         target: espIdfPath,
       });
     }
@@ -3503,7 +3577,9 @@ async function getFrameworksPickItems() {
     if (doesAdfPathExists) {
       pickItems.push({
         description: "ESP-ADF",
-        label: `Use current ESP-ADF (${espAdfPath})`,
+        label: vscode.l10n.t(`Use current ESP-ADF {espAdfPath}`, {
+          espAdfPath,
+        }),
         target: espAdfPath,
       });
     }
@@ -3511,7 +3587,9 @@ async function getFrameworksPickItems() {
     if (doesMdfPathExists) {
       pickItems.push({
         description: "ESP-MDF",
-        label: `Use current ESP-MDF (${espMdfPath})`,
+        label: vscode.l10n.t(`Use current ESP-MDF {espMdfPath}`, {
+          espMdfPath,
+        }),
         target: espMdfPath,
       });
     }
@@ -3519,7 +3597,9 @@ async function getFrameworksPickItems() {
     if (doesMatterPathExists) {
       pickItems.push({
         description: "ESP-Matter",
-        label: `Use current ESP-Matter (${matterPathDir})`,
+        label: vscode.l10n.t(`Use current ESP-Matter {matterPathDir}`, {
+          matterPathDir,
+        }),
         target: matterPathDir,
       });
     }
@@ -3529,7 +3609,9 @@ async function getFrameworksPickItems() {
     if (doesEspRainmakerPathExists) {
       pickItems.push({
         description: "ESP-Rainmaker",
-        label: `Use current ESP-Rainmaker (${rainmakerPathDir})`,
+        label: vscode.l10n.t(`Use current ESP-Rainmaker {rainmakerPathDir}`, {
+          rainmakerPathDir,
+        }),
         target: rainmakerPathDir,
       });
     }
@@ -3539,7 +3621,10 @@ async function getFrameworksPickItems() {
     if (doesEspHomeKitSdkPathExists) {
       pickItems.push({
         description: "ESP-HomeKit-SDK",
-        label: `Use current ESP-HomeKit-SDK (${espHomeKitPathDir})`,
+        label: vscode.l10n.t(
+          `Use current ESP-HomeKit-SDK {espHomeKitPathDir}`,
+          { espHomeKitPathDir }
+        ),
         target: espHomeKitPathDir,
       });
     }
@@ -3556,10 +3641,10 @@ function validateInputForRainmakerDeviceParam(
   type: string
 ): string {
   if (type === "string" && value === "") {
-    return "Enter non empty string";
+    return vscode.l10n.t("Enter non empty string");
   }
   if (type === "int" && !value.match(/^[0-9]+$/)) {
-    return "Enter a valid integer";
+    return vscode.l10n.t("Enter a valid integer");
   }
   return;
 }
@@ -3652,7 +3737,7 @@ async function createCmdsStatusBarItems() {
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
-    "ESP-IDF: Select Port to Use (COM, tty, usbserial)",
+    vscode.l10n.t("ESP-IDF: Select Port to Use (COM, tty, usbserial)"),
     "espIdf.selectPort",
     101
   );
@@ -3660,7 +3745,7 @@ async function createCmdsStatusBarItems() {
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
       "$(gear)" + projectConf,
-      "ESP-IDF: Select Project Configuration",
+      vscode.l10n.t("ESP-IDF: Select Project Configuration"),
       "espIdf.projectConf",
       100
     );
@@ -3668,67 +3753,67 @@ async function createCmdsStatusBarItems() {
 
   statusBarItems["target"] = createStatusBarItem(
     "$(circuit-board) " + idfTarget,
-    "ESP-IDF: Set Espressif Device Target",
+    vscode.l10n.t("ESP-IDF: Set Espressif Device Target"),
     "espIdf.setTarget",
     99
   );
   statusBarItems["workspace"] = createStatusBarItem(
     "$(file-submodule)",
-    "ESP-IDF: Current Project",
+    vscode.l10n.t("ESP-IDF: Current Project"),
     "espIdf.pickAWorkspaceFolder",
     98
   );
   statusBarItems["menuconfig"] = createStatusBarItem(
     "$(gear)",
-    "ESP-IDF: SDK Configuration Editor (menuconfig)",
+    vscode.l10n.t("ESP-IDF: SDK Configuration Editor (menuconfig)"),
     "espIdf.menuconfig.start",
     97
   );
   statusBarItems["clean"] = createStatusBarItem(
     "$(trash)",
-    "ESP-IDF: Full Clean",
+    vscode.l10n.t("ESP-IDF: Full Clean"),
     "espIdf.fullClean",
     96
   );
   statusBarItems["build"] = createStatusBarItem(
     "$(database)",
-    "ESP-IDF: Build Project",
+    vscode.l10n.t("ESP-IDF: Build Project"),
     "espIdf.buildDevice",
     95
   );
   statusBarItems["flashType"] = createStatusBarItem(
     `$(star-empty) ${flashType}`,
-    "ESP-IDF: Select Flash Method",
+    vscode.l10n.t("ESP-IDF: Select Flash Method"),
     "espIdf.selectFlashMethodAndFlash",
     94
   );
   statusBarItems["flash"] = createStatusBarItem(
     `$(zap)`,
-    "ESP-IDF: Flash Device",
+    vscode.l10n.t("ESP-IDF: Flash Device"),
     "espIdf.flashDevice",
     93
   );
   statusBarItems["monitor"] = createStatusBarItem(
     "$(device-desktop)",
-    "ESP-IDF: Monitor Device",
+    vscode.l10n.t("ESP-IDF: Monitor Device"),
     "espIdf.monitorDevice",
     92
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
-    "ESP-IDF: Build, Flash and Monitor",
+    vscode.l10n.t("ESP-IDF: Build, Flash and Monitor"),
     "espIdf.buildFlashMonitor",
     91
   );
   statusBarItems["terminal"] = createStatusBarItem(
     "$(terminal)",
-    "ESP-IDF: Open ESP-IDF Terminal",
+    vscode.l10n.t("ESP-IDF: Open ESP-IDF Terminal"),
     "espIdf.createIdfTerminal",
     90
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
-    "ESP-IDF: Execute Custom Task",
+    vscode.l10n.t("ESP-IDF: Execute Custom Task"),
     "espIdf.customTask",
     89
   );
@@ -3829,7 +3914,9 @@ function createQemuMonitor(
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = await qemuManager.isRunning();
     if (!isQemuLaunched) {
-      vscode.window.showInformationMessage("QEMU is not running. Run first.");
+      vscode.window.showInformationMessage(
+        vscode.l10n.t("QEMU is not running. Run first.")
+      );
       return;
     }
     const qemuTcpPort = idfConf.readParameter(
@@ -3867,7 +3954,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       {
         cancellable: true,
         location: ProgressLocation,
-        title: "ESP-IDF: Building project",
+        title: vscode.l10n.t("ESP-IDF: Building project"),
       },
       async (
         progress: vscode.Progress<{ message: string; increment: number }>,
@@ -3916,8 +4003,9 @@ async function selectFlashMethod() {
     Object.keys(ESP.FlashType),
     {
       ignoreFocusOut: true,
-      placeHolder:
-        "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)",
+      placeHolder: vscode.l10n.t(
+        "Select flash method, you can modify the choice later from 'settings.json' (idf.flashType)"
+      ),
     }
   )) as ESP.FlashType;
   if (!newFlashType) {
@@ -4088,7 +4176,9 @@ class IdfDebugConfigurationProvider
         const isSameAppBinary = await verifyAppBinary(workspaceRoot);
         if (!isSameAppBinary) {
           throw new Error(
-            `Current app binary is different from your project. Flash first.`
+            vscode.l10n.t(
+              `Current app binary is different from your project. Flash first.`
+            )
           );
         }
       }

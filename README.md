@@ -87,7 +87,7 @@ Install ESP-IDF and ESP-IDF Tools by following the [install tutorial](./docs/tut
 - When you are ready, build your project by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
 - Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method and Flash** to select either UART or JTAG. You can also use the **ESP-IDF: Flash (UART) your Project** or **ESP-IDF: Flash (with JTag)** directly.
   > **NOTE:** When using the **ESP-IDF: Select Flash Method and Flash** command, your choice will be saved in the `idf.flashType` configuration setting in the current workspace folder's settings.json.
-- You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor your Device** which will log the device activity in a Visual Studio Code terminal.
+- You can later start a monitor by pressing <kbd>F1</kbd> and typing **ESP-IDF: Monitor Device** which will log the device activity in a Visual Studio Code terminal.
 - To make sure you can debug your device, select the your board by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration** or manually define the openOCD configuration files with `idf.openOcdConfigs` configuration in your settings.json.
 - If you want to start a debug session, just press F5 (make sure you had at least build and flash once before so the debugger works correctly). Check the [Troubleshooting](./README.md#Troubleshooting) section if you have any issues.
 
@@ -135,7 +135,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU Server                                      |                                        |                                           |
 | Launch QEMU Debug Session                               |                                        |                                           |
-| Monitor your device                                     | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
+| Monitor device                                          | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>M</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>M</kbd> |
 | Monitor QEMU Device                                     |                                        |                                           |
 | New Project                                             | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>N</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd> |
 | Open ESP-IDF Terminal                                   | <kbd>⌘</kbd> <kbd>I</kbd> <kbd>T</kbd> | <kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>T</kbd> |

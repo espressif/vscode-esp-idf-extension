@@ -20,17 +20,15 @@ import { ProjectConfElement } from "./projectConfiguration";
 import {
   commands,
   Disposable,
+  l10n,
   Uri,
   ViewColumn,
   WebviewPanel,
   window,
 } from "vscode";
-import { LocDictionary } from "../localizationDictionary";
 import { join } from "path";
 import { ESP } from "../config";
 import { getProjectConfigurationElements, saveProjectConfFile } from ".";
-
-const locDic = new LocDictionary("projectConfigurationPanel");
 
 export class projectConfigurationPanel {
   public static currentPanel: projectConfigurationPanel | undefined;
@@ -67,8 +65,7 @@ export class projectConfigurationPanel {
     column: ViewColumn,
     private workspaceFolder: Uri
   ) {
-    const projectConfPanelTitle = locDic.localize(
-      "projectConfigurationPanel.panelName",
+    const projectConfPanelTitle = l10n.t(
       "ESP-IDF Project Configuration"
     );
 

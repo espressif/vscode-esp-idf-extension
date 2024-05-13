@@ -1,6 +1,0 @@
-{
-  "serial.notSerialPortFoundMessage": "Could not find any serial port available",
-  "serial.portHasBeenSelectedMessage": "Port has been updated to ",
-  "serial.noPortSelectedMessage": "No port selected.",
-  "serial.selectSerialPortMessage": "Select the available serial port where your device is connected."
-}

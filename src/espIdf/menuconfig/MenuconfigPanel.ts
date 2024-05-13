@@ -14,14 +14,11 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { getWebViewFavicon } from "../../utils";
 import { ConfserverProcess } from "./confServerProcess";
 import { Menu } from "./Menu";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-
-const locDic = new LocDictionary(__filename);
 
 export class MenuConfigPanel {
   public static currentPanel: MenuConfigPanel | undefined;
@@ -59,10 +56,7 @@ export class MenuConfigPanel {
   ) {
     this.curWorkspaceFolder = curWorkspaceFolder;
 
-    const menuconfigPanelTitle = locDic.localize(
-      "menuconfig.panelName",
-      "SDK Configuration editor"
-    );
+    const menuconfigPanelTitle = vscode.l10n.t("SDK Configuration editor");
     this.panel = vscode.window.createWebviewPanel(
       MenuConfigPanel.viewType,
       menuconfigPanelTitle,
@@ -85,26 +79,25 @@ export class MenuConfigPanel {
 
     ConfserverProcess.registerListener(this.updateConfigValues);
 
-    const menuconfigViewDict = new LocDictionary("menuconfig", "views");
+    const menuconfigViewDict = {
+      save: vscode.l10n.t("Save"),
+      discard: vscode.l10n.t("Discard"),
+      reset: vscode.l10n.t("Reset"),
+    };
     this.panel.webview.postMessage({
       command: "load_dictionary",
-      text_dictionary: menuconfigViewDict.getDictionary(),
+      text_dictionary: menuconfigViewDict,
     });
 
     this.panel.onDidDispose(
       () => {
         if (!ConfserverProcess.areValuesSaved()) {
-          const changesNotSavedMessage = locDic.localize(
-            "menuconfig.changesNotSaved",
+          const changesNotSavedMessage = vscode.l10n.t(
             "Changes in SDK Configuration editor have not been saved. Would you like to save them?"
           );
-          const saveMsg = locDic.localize("menuconfig.save", "Save");
-          const discardMsg = locDic.localize(
-            "menuconfig.discard",
-            "Don't save"
-          );
-          const returnToGuiconfigMsg = locDic.localize(
-            "menuconfig.returnGuiconfig",
+          const saveMsg = vscode.l10n.t("Save");
+          const discardMsg = vscode.l10n.t("Discard");
+          const returnToGuiconfigMsg = vscode.l10n.t(
             "Return to SDK Configuration editor"
           );
           const isModal = process.platform !== "win32" ? true : false;
@@ -142,12 +135,11 @@ export class MenuConfigPanel {
           );
           break;
         case "setDefault":
-          const changesNotSavedMessage = locDic.localize(
-            "menuconfig.confirmSetDefault",
+          const changesNotSavedMessage = vscode.l10n.t(
             "This action will delete your project sdkconfig. Continue?"
           );
-          const yesMsg = locDic.localize("menuconfig.save", "Yes");
-          const noMsg = locDic.localize("menuconfig.discard", "No");
+          const yesMsg = vscode.l10n.t("Save");
+          const noMsg = vscode.l10n.t("Discard");
           const isModal = process.platform !== "win32" ? true : false;
           const selected = await vscode.window.showInformationMessage(
             changesNotSavedMessage,
@@ -191,16 +183,14 @@ export class MenuConfigPanel {
           break;
         case "saveChanges":
           ConfserverProcess.saveGuiConfigValues();
-          const saveMessage = locDic.localize(
-            "menuconfig.saveValues",
+          const saveMessage = vscode.l10n.t(
             "Saved changes in SDK Configuration editor"
           );
           Logger.infoNotify(saveMessage);
           break;
         case "discardChanges":
           ConfserverProcess.loadGuiConfigValues();
-          const discardMessage = locDic.localize(
-            "menuconfig.discardValues",
+          const discardMessage = vscode.l10n.t(
             "Discarded changes in SDK Configuration editor"
           );
           Logger.infoNotify(discardMessage);

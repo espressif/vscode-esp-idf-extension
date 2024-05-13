@@ -35,18 +35,13 @@ import * as url from "url";
 import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
-import { LocDictionary } from "./localizationDictionary";
 import { Logger } from "./logger/logger";
 import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 
-const locDic = new LocDictionary(__filename);
-const currentFolderMsg = locDic.localize(
-  "utils.currentFolder",
-  "ESP-IDF: Current Project"
-);
+const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
 export let extensionContext: vscode.ExtensionContext;
 let templateDir: string = path.join(
@@ -434,10 +429,7 @@ export function readComponentsDirs(filePath): IdfComponent[] {
 
   const files = fs.readdirSync(filePath);
 
-  const openComponentMsg = locDic.localize(
-    "utils.openComponentTitle",
-    "ESP-IDF: Open IDF Component File"
-  );
+  const openComponentMsg = vscode.l10n.t("ESP-IDF: Open IDF Component File");
 
   for (const file of files) {
     const stats = fs.statSync(path.join(filePath, file));

@@ -118,6 +118,7 @@
     "workspaceContains:**/CMakeLists.txt"
   ],
   "main": "./dist/extension",
+  "l10n": "./l10n",
   "contributes": {
     "problemMatchers": [
       {
@@ -141,7 +142,7 @@
       "activitybar": [
         {
           "id": "idfViewController",
-          "title": "ESP-IDF: Explorer",
+          "title": "%viewContainer.title%",
           "icon": "media/esp.svg"
         }
       ]
@@ -149,38 +150,38 @@
     "views": {
       "debug": [
         {
-          "name": "ESP-IDF: Peripheral",
+          "name": "%view.debug.peripheral%",
           "id": "espIdf.peripheralView"
         }
       ],
       "idfViewController": [
         {
           "id": "idfCommands",
-          "name": "Commands"
+          "name": "%view.idf.idfCommands%"
         },
         {
           "id": "idfSearchResults",
-          "name": "Documentation search results"
+          "name": "%view.idf.idfSearchResults%"
         },
         {
           "id": "idfPartitionExplorer",
-          "name": "Device Partition Explorer"
+          "name": "%view.idf.idfPartitionExplorer%"
         },
         {
           "id": "idfAppTracer",
-          "name": "Application Tracer"
+          "name": "%view.idf.idfAppTracer%"
         },
         {
           "id": "idfAppTraceArchive",
-          "name": "Application Trace Archives"
+          "name": "%view.idf.idfAppTraceArchive%"
         },
         {
           "id": "espRainmaker",
-          "name": "Rainmaker"
+          "name": "%view.idf.espRainmaker%"
         },
         {
-          "name": "eFuse Explorer",
-          "id": "espEFuseExplorer"
+          "id": "espEFuseExplorer",
+          "name": "%view.idf.espEFuseExplorer%"
         }
       ],
       "explorer": [
@@ -193,15 +194,15 @@
     "viewsWelcome": [
       {
         "view": "idfSearchResults",
-        "contents": "On any opened file editor, select some text and right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language, idf.espIdfPath version (latest otherwise) and idf.adapterTargetName."
+        "contents": "%viewWelcome.idfSearchResults%"
       },
       {
         "view": "idfPartitionExplorer",
-        "contents": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh Partition Table."
+        "contents": "%viewWelcome.idfPartitionExplorer%"
       },
       {
         "view": "espIdf.peripheralView",
-        "contents": "Show Peripherals Registers from SVD file defined in ESP-IDF Svd File Path (idf.svdFilePath) configuration setting during active debug session"
+        "contents": "%viewWelcome.peripheralView%"
       }
     ],
     "menus": {
@@ -650,10 +651,10 @@
               "All"
             ],
             "enumDescriptions": [
-              "Show no notifications and do not focus tasks output.",
-              "Show notifications but do not focus tasks output.",
-              "Do not show notifications but focus tasks output.",
-              "Show notifications and focus tasks output."
+              "%param.notificationMode.silent%",
+              "%param.notificationMode.notification%",
+              "%param.notificationMode.output%",
+              "%param.notificationMode.all%"
             ],
             "default": "All",
             "description": "%param.notificationMode%"
@@ -683,7 +684,7 @@
             "title": "Enable Telemetry",
             "type": "boolean",
             "default": true,
-            "description": "Send anonymous telemetry and crash report back to the extension (change to the settings will require restart for immediate effect)"
+            "description": "%param.telemetry%"
           },
           "esp.rainmaker.api.server_url": {
             "type": "string",
@@ -1534,11 +1535,11 @@
     "compile": "rimraf out && tsc -p ./",
     "watch": "webpack --watch --mode development",
     "test": "yarn compile && node ./out/test/runTest.js --VERBOSE 2>&1",
-    "package": "gulp build && vsce package --yarn -o esp-idf-extension.vsix",
+    "package": "yarn clean && vsce package --yarn -o esp-idf-extension.vsix",
     "release": "vsce publish --yarn -p ${VS_MARKETPLACE_TOKEN} --packagePath esp-idf-extension.vsix",
     "open-vsx-release": "ovsx publish esp-idf-extension.vsix -p ${OPENVSX_MARKETPLACE_TOKEN}",
-    "clean": "gulp clean",
-    "validateLocalization": "gulp validateLocalization",
+    "clean": "node clean.js",
+    "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
     "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -l DEBUG"
@@ -1569,6 +1570,7 @@
     "@vscode/debugadapter-testsupport": "^1.51.0",
     "@vscode/debugprotocol": "^1.53.0",
     "@vscode/extension-telemetry": "0.4.8",
+    "@vscode/l10n-dev": "^0.0.35",
     "@vscode/test-electron": "^2.1.2",
     "@vue/compiler-sfc": "^3.3.4",
     "bulma": "^0.9.3",
@@ -1577,9 +1579,6 @@
     "d3-scale": "^4.0.2",
     "file-loader": "^6.2.0",
     "glob": "^7.1.4",
-    "gulp": "^4.0.2",
-    "gulp-cli": "^2.3.0",
-    "gulp-typescript": "^5.0.0-alpha.3",
     "husky": "^6.0.0",
     "jsonic": "^1.0.1",
     "mocha": "^9.2.0",
@@ -1598,7 +1597,6 @@
     "vite": "^4.5.3",
     "vsce": "^2.6.7",
     "vscode-extension-tester": "^7.0.0",
-    "vscode-nls-dev": "^3.3.1",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
     "vue-router": "^4.2.4",
@@ -1607,6 +1605,7 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
     "axios": "^1.6.0",
@@ -1631,7 +1630,6 @@
     "tree-kill": "^1.2.2",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
-    "vscode-nls": "^4.0.0",
     "vue": "^3.3.4",
     "winston": "^2.3.1",
     "ws": "^7.4.6",

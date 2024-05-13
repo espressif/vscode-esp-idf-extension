@@ -3,7 +3,7 @@
 The `ESP-IDF: Launch IDF Monitor for CoreDump / GDB-Stub Mode` command launches a ESP-IDF Monitor terminal listening for core-dump/gdbstub events on which will launch a debug session where you can send gdb commands to
 the chip (without continue, pause or other debug steps).
 
-> **NOTE:** The `ESP-IDF: Monitor your Device` command will not launch a debug session.
+> **NOTE:** The `ESP-IDF: Monitor Device` command will not launch a debug session.
 
 # Using Core Dump
 

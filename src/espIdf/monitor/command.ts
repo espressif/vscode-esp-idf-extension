@@ -16,18 +16,15 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { commands, Uri } from "vscode";
+import { commands, l10n, Uri } from "vscode";
 import { FlashTask } from "../../flash/flashTask";
 import { readParameter } from "../../idfConfiguration";
 import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
-import { LocDictionary } from "../../localizationDictionary";
 import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
 import { getProjectName } from "../../workspaceConfig";
 import { IDFMonitor } from ".";
-
-const locDic = new LocDictionary(__filename);
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
@@ -37,10 +34,7 @@ export async function createNewIdfMonitor(
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = locDic.localize(
-      "monitor.waitProcessIsFinishedMessage",
-      "Wait for ESP-IDF task to finish"
-    );
+    const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time")
@@ -114,7 +108,7 @@ export async function createNewIdfMonitor(
     workspaceFolder,
     toolchainPrefix,
     shellPath,
-    shellExecutableArgs
+    shellExecutableArgs,
   });
   return monitor;
 }
