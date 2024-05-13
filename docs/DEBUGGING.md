@@ -28,15 +28,16 @@ The basic arguments in launch.json are
       "name": "Eclipse CDT Remote",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "initCommands": [
+        "set remotetimeout 10",
         "set remote hardware-watchpoint-limit 2",
         "mon reset halt",
         "maintenance flush register-cache",
-        "thb app_main",
+        "thb app_main"
       ],
-      "gdb": "${command:espIdf.getXtensaGdb}",
+      "gdb": "${command:espIdf.getToolchainGdb}",
       "target": {
         "port": "3333"
-      },
+      }
     }
   ]
 }
@@ -92,7 +93,7 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
       "type": "cppdbg",
       "request": "launch",
       "MIMode": "gdb",
-      "miDebuggerPath": "${command:espIdf.getXtensaGdb}",
+      "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "windows": {
         "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
@@ -100,12 +101,12 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
       "cwd": "${workspaceFolder}",
       "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
       "setupCommands": [
-        { "text": "target remote :3333" },
-        { "text": "set remote hardware-watchpoint-limit 2"},
-        { "text": "mon reset halt" },
-        { "text": "maintenance flush register-cache" }
-        { "text": "thb app_main" },
-      ],
+			  { "text": "set remotetimeout 10" },
+		  ],
+		  "postRemoteConnectCommands": [
+			  { "text": "mon reset halt" },
+			  { "text": "maintenance flush register-cache"},
+		  ],
       "externalConsole": false,
       "logging": {
         "engineLogging": true
@@ -128,7 +129,7 @@ The user can also try using the [Native Debug](https://marketplace.visualstudio.
       "name": "NativeDebug",
       "target": "extended-remote :3333",
       "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-      "gdbpath": "${command:espIdf.getXtensaGdb}",
+      "gdbpath": "${command:espIdf.getToolchainGdb}",
       "cwd": "${workspaceRoot}",
       "autorun": [
         "mon reset halt",
@@ -208,10 +209,11 @@ Example launch.json for ESP-IDF Debug Adapter:
       "tmoScaleFactor": 1,
       "initGdbCommands": [
         "target remote :3333",
+        "set remotetimeout 10",
         "symbol-file /path/to/program.elf",
         "mon reset halt",
         "maintenance flush register-cache",
-        "thb app_main",
+        "thb app_main"
       ],
       "env": {
         "CUSTOM_ENV_VAR": "SOME_VALUE"

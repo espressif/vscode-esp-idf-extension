@@ -1775,13 +1775,13 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.getXtensaGdb", () => {
+  registerIDFCommand("espIdf.getToolchainGdb", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       return await utils.getToolchainPath(workspaceRoot, "gdb");
     });
   });
 
-  registerIDFCommand("espIdf.getXtensaGcc", () => {
+  registerIDFCommand("espIdf.getToolchainGcc", () => {
     return PreCheck.perform([openFolderCheck], async () => {
       return await utils.getToolchainPath(workspaceRoot, "gcc");
     });

@@ -185,15 +185,15 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 We have implemented some utilities commands that can be used in tasks.json and launch.json that can be used like:
 
 ```json
-"miDebuggerPath": "${command:espIdf.getXtensaGdb}"
+"miDebuggerPath": "${command:espIdf.getToolchainGdb}"
 ```
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
 - `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
-- `espIdf.getXtensaGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
-- `espIdf.getXtensaGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+- `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
+- `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 
 See an example in the [debugging](./docs/DEBUGGING.md) documentation.
 

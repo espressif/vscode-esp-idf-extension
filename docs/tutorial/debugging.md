@@ -15,7 +15,7 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> ESP-IDF. By default it will be launched using localhost, port `4444` for Telnet communication, port `6666` for TCL communication and port `3333` for gdb.
 
-> **NOTE:** The user can start or stop the openOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
+> **NOTE:** The user can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
@@ -29,9 +29,9 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 # Navigating Through the Code, Call Stack and Threads
 
-7. When the target is halted, the editor will show the line of code where the program halted and the list of threads in the `Call Stack` sub-window on the `Run` icon in the Activity Bar on the side of Visual Studio Code. The first line of call stack under Thread #1 contains the last called function `app_main()`, which in turned was called from `main_task()` as shown in the previous image. Each line of the stack also contains the file name and line number where the function was called. By clicking on each of the stack entries, you will see the file opened.
+7. When the target is halted, the editor will show the line of code where the program halted and the list of threads in the `Call Stack` sub-window `(a)` on the `Run` icon in the Activity Bar on the side of Visual Studio Code. The first line of call stack under main `(b)` contains the last called function `app_main()`, which in turned was called from `main_task()` as shown in the previous image. Each line of the stack also contains the file name and line number `(c)` where the function was called. By clicking on each of the stack entries, you will see the file opened.
 
-By expanding threads you can navigate throughout the application. Thread #5 that contains much longer call stack where the user can see, besides function calls, numbers like `0x4000bff0` representing address of binary code not provided in source form.
+By expanding threads you can navigate throughout the application. Some threads contains much longer call stack where the user can see, besides function calls, numbers like `0x4000bff0` representing address of binary code not provided in source form.
 
 <p>
   <img src="../../media/tutorials/debug/thread5.png" alt="Threads"  height="500">
@@ -125,10 +125,6 @@ You can check the assembly code from the debugging session by doing a right clic
 # Watchpoints (Data Breakpoints)
 
 See [ESP-IDF breakpoints and watchpoints available](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#breakpoints-and-watchpoints-available) for more information.
-
-<p>
-  <img src="../../media/tutorials/debug/break_on_variable.png" alt="Break on value" height="500">
-</p>
 
 # Next steps
 
