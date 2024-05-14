@@ -21,16 +21,19 @@ export class SerialPortDetails {
   public manufacturer: string;
   public vendorId: string;
   public productId: string;
+  public chipType: string;
 
   constructor(
     comName: string,
     manufacturer?: string,
     vendorId?: string,
-    product?: string
+    product?: string,
+    chipType?: string
   ) {
     this.comName = comName;
     this.manufacturer = manufacturer;
     this.vendorId = vendorId;
     this.productId = product;
+    this.chipType = chipType;
   }
 }
