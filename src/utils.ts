@@ -153,7 +153,7 @@ export function spawn(
       if (timeoutHandler) {
         clearTimeout(timeoutHandler);
       }
-      reject(error)
+      reject(error);
     });
 
     child.on("exit", (code) => {

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
@@ -45,7 +46,7 @@ export class SerialPort {
       const chosen = await vscode.window.showQuickPick(
         portList.map((l: SerialPortDetails) => {
           return {
-            description: l.manufacturer,
+            description: l.manufacturer || l.chipType,
             label: l.comName,
           };
         }),
@@ -91,16 +92,42 @@ export class SerialPort {
           "idf.pythonBinPath",
           workspaceFolder
         ) as string;
+        const idfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
+        const esptoolPath = join(
+          idfPath,
+          "components",
+          "esptool_py",
+          "esptool",
+          "esptool.py"
+        );
+
         const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
         const regexp = /\'(.*?)\'/g;
         const arrayPrint = buff.toString().match(regexp);
-        const choices: SerialPortDetails[] = Array<SerialPortDetails>();
 
+        const choices: SerialPortDetails[] = Array<SerialPortDetails>();
         if (arrayPrint) {
-          arrayPrint.forEach((portStr) => {
+          async function processPorts(portStr) {
             const portChoice = portStr.replace(/'/g, "").trim();
-            choices.push(new SerialPortDetails(portChoice));
-          });
+            let serialPort = new SerialPortDetails(portChoice);
+            try {
+              const chipIdBuffer = await spawn(
+                pythonBinPath,
+                [esptoolPath,"--port", portChoice, "chip_id"],
+                {},
+                1000 // success is quick, failing takes too much time
+              );
+              const regexp = /Detecting chip type\.\.\.(.*?)[\r]?\n/;
+              const chipIdString = chipIdBuffer.toString().match(regexp);
+
+              serialPort.chipType = chipIdString[1].trim();
+            } catch (error) {
+              serialPort.chipType = "not an ESP";
+            }
+            choices.push(serialPort);
+          }
+          const asyncTasks = arrayPrint.map(item => processPorts(item));
+          await Promise.all(asyncTasks);
           resolve(choices);
         } else {
           reject(new Error("No serial ports found"));
