@@ -128,7 +128,8 @@ export class PreCheck {
 export function spawn(
   command: string,
   args: string[] = [],
-  options: any = {}
+  options: any = {},
+  timeout: number = 0
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
@@ -138,13 +139,27 @@ export function spawn(
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
     const child = childProcess.spawn(command, args, options);
+    let timeoutHandler = undefined;
+    if (timeout > 0) {
+      timeoutHandler = setTimeout(() => {
+        child.kill();
+      }, timeout);
+    }
 
     child.stdout.on("data", sendToOutputChannel);
     child.stderr.on("data", sendToOutputChannel);
 
-    child.on("error", (error) => reject(error));
+    child.on("error", (error) => {
+      if (timeoutHandler) {
+        clearTimeout(timeoutHandler);
+      }
+      reject(error)
+    });
 
     child.on("exit", (code) => {
+      if (timeoutHandler) {
+        clearTimeout(timeoutHandler);
+      }
       if (code === 0) {
         resolve(buff);
       } else {
