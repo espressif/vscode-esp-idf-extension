@@ -89,7 +89,7 @@ export class CDTDebugConfigurationProvider
           esp32c2: 2,
           esp32c3: 8,
           esp32c6: 4,
-          esp32h2: 8,
+          esp32h2: 4,
         };
         config.initCommands = config.initCommands.map((cmd: string) =>
           cmd.replace(
