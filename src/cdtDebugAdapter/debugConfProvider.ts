@@ -60,12 +60,45 @@ export class CDTDebugConfigurationProvider
         (!config.initCommands || config.initCommands.length === 0)
       ) {
         config.initCommands = [
-          "set remote hardware-watchpoint-limit 2",
+          "set remotetimeout 20",
+          "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
           "mon reset halt",
           "maintenance flush register-cache",
           "thb app_main",
         ];
       }
+
+      if (config.initCommands && Array.isArray(config.initCommands)) {
+        let idfTarget = readParameter("idf.adapterTargetName", folder);
+        if (idfTarget === "custom") {
+          idfTarget = readParameter("idf.customAdapterTargetName", folder);
+        }
+        type IdfTarget =
+          | "esp32"
+          | "esp32s2"
+          | "esp32s3"
+          | "esp32c2"
+          | "esp32c3"
+          | "esp32c6"
+          | "esp32h2";
+        // Mapping of idfTarget to corresponding CPU watchpoint numbers
+        const idfTargetWatchpointMap: Record<IdfTarget, number> = {
+          esp32: 2,
+          esp32s2: 2,
+          esp32s3: 2,
+          esp32c2: 2,
+          esp32c3: 8,
+          esp32c6: 4,
+          esp32h2: 8,
+        };
+        config.initCommands = config.initCommands.map((cmd: string) =>
+          cmd.replace(
+            "{IDF_TARGET_CPU_WATCHPOINT_NUM}",
+            idfTargetWatchpointMap[idfTarget]
+          )
+        );
+      }
+
       if (
         config.sessionID !== "core-dump.debug.session.ws" &&
         config.sessionID !== "gdbstub.debug.session.ws" &&

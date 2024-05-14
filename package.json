@@ -1495,7 +1495,7 @@
               "gdb": {
                 "type": "string",
                 "description": "Path to gdb",
-                "default": "gdb"
+                "default": "${command:espIdf.getToolchainGdb}"
               },
               "cwd": {
                 "type": "string",
@@ -1594,7 +1594,10 @@
               },
               "target": {
                 "type": "object",
-                "default": {},
+                "default": {
+                  "type": "extended-remote",
+                  "port": "3333"
+                },
                 "properties": {
                   "type": {
                     "type": "string",
@@ -1743,11 +1746,16 @@
               "gdb": {
                 "type": "string",
                 "description": "Path to gdb",
-                "default": "gdb"
+                "default": "${command:espIdf.getToolchainGdb}"
               },
               "cwd": {
                 "type": "string",
                 "description": "Working directory (cwd) to use when launching gdb. Defaults to the directory of the 'program'"
+              },
+              "runOpenOCD": {
+                "type": "boolean",
+                "description": "Run OpenOCD Server",
+                "default": true
               },
               "environment": {
                 "additionalProperties": {
@@ -1837,7 +1845,10 @@
               },
               "target": {
                 "type": "object",
-                "default": {},
+                "default": {
+                  "type": "extended-remote",
+                  "port": "3333"
+                },
                 "properties": {
                   "type": {
                     "type": "string",
@@ -1943,35 +1954,17 @@
           {
             "type": "gdbtarget",
             "request": "attach",
-            "name": "Eclipse CDT GDB Adapter",
-            "initCommands": [
-              "set remote hardware-watchpoint-limit 2",
-              "mon reset halt",
-              "maintenance flush register-cache",
-              "thb app_main"
-            ],
-            "target": {
-              "port": "3333"
-            }
+            "name": "Eclipse CDT GDB Adapter"
           }
         ],
         "configurationSnippets": [
           {
             "label": "Eclipse CDT GDB Adapter",
-            "description": "A new configuration for remote debugging using GDB.",
+            "description": "A espidf configuration for remote debugging using GDB.",
             "body": {
               "type": "gdbtarget",
               "request": "attach",
-              "name": "Eclipse CDT GDB Adapter",
-              "initCommands": [
-                "set remote hardware-watchpoint-limit 2",
-                "mon reset halt",
-                "maintenance flush register-cache",
-                "thb app_main"
-              ],
-              "target": {
-                "port": "3333"
-              }
+              "name": "Eclipse CDT GDB Adapter"
             }
           }
         ]

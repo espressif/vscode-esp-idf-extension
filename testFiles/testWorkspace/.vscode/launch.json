@@ -4,17 +4,7 @@
     {
       "type": "gdbtarget",
       "request": "attach",
-      "name": "Eclipse CDT Remote",
-      "initCommands": [
-        "set remotetimeout 10",
-        "set remote hardware-watchpoint-limit 2",
-        "mon reset halt",
-        "maintenance flush register-cache",
-        "thb app_main"
-      ],
-      "target": {
-        "port": "3333"
-      }
+      "name": "Eclipse CDT GDB Adapter"
     },
     {
       "type": "espidf",

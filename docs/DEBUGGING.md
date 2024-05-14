@@ -7,7 +7,7 @@
 
 The Visual Studio Code uses `.vscode/launch.json` to configure debug as specified in [Visual Studio Code Debugging](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
 
-We recommend using our Eclipse CDT GDB Adapter configuration to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). The ESP-IDF Debug adapter will be deprecated and removed in the next major release.
+We recommend using our `Eclipse CDT GDB Adapter` configuration to debug your ESP-IDF projects, but you can configure launch.json for any GDB debugger extension like [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) and [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug). The ESP-IDF Debug adapter will be deprecated and removed in the next major release.
 
 Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF SVD File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
@@ -17,7 +17,23 @@ If `initCommands`, `gdbinitFile` or `initGdbCommands` are defined in launch.json
 
 The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter).
 
-The basic arguments in launch.json are
+The default configuration is:
+
+```JSON
+{
+  "configurations": [
+    {
+      "type": "gdbtarget",
+      "request": "attach",
+      "name": "Eclipse CDT GDB Adapter"
+    }
+  ]
+}
+```
+
+where required of the arguments are automatically defined and resolved by the extension itself.
+
+In case the user wants more customized control, the basic arguments in launch.json are:
 
 ```JSON
 {
@@ -28,14 +44,15 @@ The basic arguments in launch.json are
       "name": "Eclipse CDT Remote",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "initCommands": [
-        "set remotetimeout 10",
-        "set remote hardware-watchpoint-limit 2",
+        "set remotetimeout 20",
+        "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
         "mon reset halt",
         "maintenance flush register-cache",
         "thb app_main"
       ],
       "gdb": "${command:espIdf.getToolchainGdb}",
       "target": {
+        "type": "extended-remote",
         "port": "3333"
       }
     }
@@ -43,11 +60,17 @@ The basic arguments in launch.json are
 }
 ```
 
-where `program` and `gdb` can be resolved by extension. Some additional arguments you might use are:
+- `program`: ELF file of your project build directory to execute the debug session. The command `${command:espIdf.getProjectName}` will query the extension to find the current build directory project name.
+- `initCommands`: GDB Commands to initialize GDB and target.
+- `gdb`: GDB executable to be used. By default `"${command:espIdf.getToolchainGdb}"` will query the extension to find the ESP-IDF toolchain GDB for the current `IDF_TARGET` of your esp-idf project (esp32, esp32c6, etc.).
+
+> **NOTE** `{IDF_TARGET_CPU_WATCHPOINT_NUM}` is resolved by the extension according to the current `IDF_TARGET` of your esp-idf project (esp32, esp32c6, etc.).
+
+Some additional arguments you might use are:
 
 - `runOpenOCD`: (Default: true). Run extension openOCD Server.
 - `verifyAppBinBeforeDebug`: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.
-- `logFile`: Absolute path to the file to log interaction with gdb.
+- `logFile`: Absolute path to the file to log interaction with gdb. Example: `${workspaceFolder}/gdb.log`.
 - `verbose`: Produce verbose log output.
 - `environment`: Environment variables to apply to the ESP-IDF Debug Adapter. It will replace global environment variables and environment variables used by the extension.
 
@@ -68,7 +91,7 @@ where `program` and `gdb` can be resolved by extension. Some additional argument
 }
 ```
 
-- `target`: Configuration for target to be attached.
+- `target`: Configuration for target to be attached. Specifies how to connect to the device to debug. Usually OpenOCD exposes the chip as a remote target on port `3333`.
 
 ```json
 "target": {
@@ -101,7 +124,7 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
       "cwd": "${workspaceFolder}",
       "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
       "setupCommands": [
-			  { "text": "set remotetimeout 10" },
+			  { "text": "set remotetimeout 20" },
 		  ],
 		  "postRemoteConnectCommands": [
 			  { "text": "mon reset halt" },
@@ -209,7 +232,7 @@ Example launch.json for ESP-IDF Debug Adapter:
       "tmoScaleFactor": 1,
       "initGdbCommands": [
         "target remote :3333",
-        "set remotetimeout 10",
+        "set remotetimeout 20",
         "symbol-file /path/to/program.elf",
         "mon reset halt",
         "maintenance flush register-cache",
