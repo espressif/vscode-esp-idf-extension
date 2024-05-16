@@ -349,7 +349,8 @@ export async function checkPipExists(pyBinPath: string, workingDir: string) {
 export async function checkVenvExists(pyBinPath: string, workingDir: string) {
   try {
     const pipResult = await utils.execChildProcess(
-      `"${pyBinPath}" -c "import venv"`,
+      pyBinPath,
+      ["-c", "import venv"],
       workingDir
     );
     return true;
