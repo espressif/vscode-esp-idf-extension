@@ -69,11 +69,6 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
 
       const fileContents = await readFile(hintsPath, "utf-8");
-
-      if (!isValidYaml(fileContents)) {
-        Logger.infoNotify(`File ${hintsPath} is not a valid YAML file.`);
-        return;
-      }
       const hintsData = yaml.load(fileContents);
 
       const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
@@ -81,41 +76,24 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       this.data = [];
       for (const hintPair of reHintsPairArray) {
         const match = new RegExp(hintPair.re, "i").exec(errorMsg);
-        if (match) {
+        const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
+          .map((m) => m[1].split("|"))
+          .flat()
+          .map(part => part.toLowerCase());
+        if (match || regexParts.some(part => errorMsg.toLowerCase().includes(part))) {
           let finalHint = hintPair.hint;
-
-          if (hintPair.match_to_output && hintPair.hint.includes("{}")) {
-            // Replace {} with the first capturing group from the regex match
+          if (match && hintPair.match_to_output && hintPair.hint.includes("{}")) {
             finalHint = hintPair.hint.replace("{}", match[0]);
+          } else if (!match && hintPair.hint.includes("{}")) {
+            const matchedSubstring = regexParts.find((part) =>
+                errorMsg.toLowerCase().includes(part.toLowerCase())
+            );
+            finalHint = hintPair.hint.replace("{}", matchedSubstring || ""); // Handle case where nothing is matched
           }
-
-          const error = new ErrorHint(hintPair.re, "error");
+          const error = new ErrorHint(errorMsg, "error");
           const hint = new ErrorHint(finalHint, "hint");
           error.addChild(hint);
           this.data.push(error);
-        } else {
-          // Extract parts from the regex pattern and split them by the '|' character
-          const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
-            .map((m) => m[1].split("|"))
-            .flat();
-
-          if (
-            regexParts.some((part) =>
-              errorMsg.toLowerCase().includes(part.toLowerCase())
-            )
-          ) {
-            let finalHint = hintPair.hint;
-
-            const matchedSubstring = regexParts.find((part) =>
-              errorMsg.toLowerCase().includes(part.toLowerCase())
-            );
-            finalHint = hintPair.hint.replace("{}", matchedSubstring);
-
-            const error = new ErrorHint(hintPair.re, "error");
-            const hint = new ErrorHint(finalHint, "hint");
-            error.addChild(hint);
-            this.data.push(error);
-          }
         }
       }
 
@@ -130,16 +108,17 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         }
       }
 
+      // ... (No hints found message)
       if (!this.data.length) {
         this.data.push(
           new ErrorHint(`No hints found for ${errorMsg}`, "error")
         );
       }
-
+  
       this._onDidChangeTreeData.fire();
     } catch (error) {
       Logger.errorNotify(
-        `An error occurred while processing the hints file: ${error.message}`,
+        `Error processing hints file (line ${error.mark?.line}): ${error.message}`,
         error
       );
     }
@@ -213,18 +192,14 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       return Promise.resolve(this.data);
     }
   }
+
+  clearErrorHints() {
+    this.data = [];
+    this._onDidChangeTreeData.fire(); // Notify the view to refresh
+}
 }
 
 function getHintsYmlPath(espIdfPath: string): string {
   const separator = os.platform() === "win32" ? "\\" : "/";
   return `${espIdfPath}${separator}tools${separator}idf_py_actions${separator}hints.yml`;
-}
-
-function isValidYaml(fileContents: string): boolean {
-  try {
-    yaml.load(fileContents);
-    return true;
-  } catch (e) {
-    return false;
-  }
 }

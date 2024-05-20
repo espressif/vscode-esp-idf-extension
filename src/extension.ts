@@ -3026,6 +3026,26 @@ export async function activate(context: vscode.ExtensionContext) {
       await vscode.commands.executeCommand("errorHints.focus");
     }
   });
+
+  // Attach a listener to the diagnostics collection
+  context.subscriptions.push(
+    vscode.languages.onDidChangeDiagnostics((event) => {
+        const errorDiagnostics = event.uris.flatMap((uri) => 
+            vscode.languages.getDiagnostics(uri).filter(
+                (d) => d.severity === vscode.DiagnosticSeverity.Error
+            )
+        );
+
+        if (errorDiagnostics.length > 0) {
+            const errorMsg = errorDiagnostics[0].message; 
+            treeDataProvider.searchError(errorMsg, workspaceRoot);
+            vscode.commands.executeCommand("errorHints.focus");
+        } else {
+            // Clear the error hints view if there are no more error diagnostics
+            treeDataProvider.clearErrorHints();
+        }
+    })
+  );
 }
 
 function validateInputForRainmakerDeviceParam(
