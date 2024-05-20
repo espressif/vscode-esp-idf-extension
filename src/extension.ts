@@ -159,6 +159,7 @@ let statusBarItems: { [key: string]: vscode.StatusBarItem };
 
 const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
+let isDebugRestarted: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 let isMonitorLaunchedByDebug: boolean = false;
 
@@ -415,7 +416,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.debug.onDidTerminateDebugSession((e) => {
-    if (isOpenOCDLaunchedByDebug) {
+    if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
       isOpenOCDLaunchedByDebug = false;
       openOCDManager.stop();
     }
@@ -1415,6 +1416,7 @@ export async function activate(context: vscode.ExtensionContext) {
     ) {
       isOpenOCDLaunchedByDebug = true;
     }
+    isDebugRestarted = false;
   });
 
   vscode.debug.registerDebugAdapterTrackerFactory("gdbtarget", {
@@ -1427,6 +1429,17 @@ export async function activate(context: vscode.ExtensionContext) {
               p.getPeripheral().updateData();
             }
             peripheralTreeProvider.refresh();
+          }
+
+          if (
+            m &&
+            m.type === "event" &&
+            m.event === "output" &&
+            m.body.output.indexOf(
+              `From client: disconnect({"restart":true})`
+            ) !== -1
+          ) {
+            isDebugRestarted = true;
           }
         },
       };
