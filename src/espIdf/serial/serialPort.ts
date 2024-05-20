@@ -23,6 +23,7 @@ import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
+import * as SerialPortLib from "serialport";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -88,50 +89,14 @@ export class SerialPort {
   private list(workspaceFolder: vscode.Uri): Thenable<SerialPortDetails[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        const pythonBinPath = idfConf.readParameter(
-          "idf.pythonBinPath",
-          workspaceFolder
-        ) as string;
-        const idfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
-        const esptoolPath = join(
-          idfPath,
-          "components",
-          "esptool_py",
-          "esptool",
-          "esptool.py"
-        );
+        const listOfSerialPorts = await SerialPortLib.SerialPort.list();
 
-        const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
-        const regexp = /\'(.*?)\'/g;
-        const arrayPrint = buff.toString().match(regexp);
+        const arrayPrint = listOfSerialPorts.map(item => item.path);
 
-        const choices: SerialPortDetails[] = Array<SerialPortDetails>();
-        if (arrayPrint) {
-          async function processPorts(portStr) {
-            const portChoice = portStr.replace(/'/g, "").trim();
-            let serialPort = new SerialPortDetails(portChoice);
-            try {
-              const chipIdBuffer = await spawn(
-                pythonBinPath,
-                [esptoolPath,"--port", portChoice, "chip_id"],
-                {},
-                1000 // success is quick, failing takes too much time
-              );
-              const regexp = /Detecting chip type\.\.\.(.*?)[\r]?\n/;
-              const chipIdString = chipIdBuffer.toString().match(regexp);
-
-              serialPort.chipType = chipIdString[1].trim();
-            } catch (error) {
-              serialPort.chipType = "not an ESP";
-            }
-            choices.push(serialPort);
-          }
-          const asyncTasks = arrayPrint.map(item => processPorts(item));
-          await Promise.all(asyncTasks);
-          resolve(choices);
-        } else {
-          reject(new Error("No serial ports found"));
-        }
+        const choices = listOfSerialPorts.map(item => {
+          return new SerialPortDetails(item.path, item.manufacturer, item.vendorId, item.productId);
+        });
+        resolve(choices);
       } catch (error) {
         reject(error);
       }
