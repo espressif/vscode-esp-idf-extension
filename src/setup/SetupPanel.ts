@@ -436,6 +436,13 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
+          const pathToCheck =
+            selectedIdfVersion.filename === "manual"
+              ? espIdfPath
+              : idfContainerPath;
+          this.checkSpacesInPaths(
+            toolsPath,
+          );
           await expressInstall(
             selectedIdfVersion,
             idfPythonPath,
@@ -565,6 +572,9 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
+          this.checkSpacesInPaths(
+            toolsPath,
+          );
           await downloadIdfTools(
             idfPath,
             toolsPath,
@@ -683,6 +693,21 @@ export class SetupPanel {
       await getOpenOcdRules(Uri.file(this.context.extensionPath));
     } catch (error) {
       this.setupErrHandler(error);
+    }
+  }
+
+  private checkSpacesInPaths(
+    idfToolsPath: string,
+  ) {
+    const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
+    let pathHasSpaces = "";
+    if (doesIdfToolsPathHasSpaces) {
+      pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
+    }
+    if (pathHasSpaces) {
+      OutputChannel.appendLine(pathHasSpaces);
+      Logger.infoNotify(pathHasSpaces);
+      throw new Error(pathHasSpaces);
     }
   }
 
