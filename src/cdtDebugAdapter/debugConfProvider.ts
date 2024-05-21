@@ -60,7 +60,6 @@ export class CDTDebugConfigurationProvider
         (!config.initCommands || config.initCommands.length === 0)
       ) {
         config.initCommands = [
-          "set remotetimeout 20",
           "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
           "mon reset halt",
           "maintenance flush register-cache",
@@ -105,8 +104,10 @@ export class CDTDebugConfigurationProvider
         !config.target
       ) {
         config.target = {
-          type: "extended-remote",
-          port: "3333",
+          connectCommands: [
+            "set remotetimeout 20",
+            "-target-select extended-remote localhost:3333",
+          ],
         };
       }
       if (folder && folder.uri && config.verifyAppBinBeforeDebug) {

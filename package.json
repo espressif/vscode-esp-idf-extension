@@ -1595,8 +1595,10 @@
               "target": {
                 "type": "object",
                 "default": {
-                  "type": "extended-remote",
-                  "port": "3333"
+                  "connectCommands": [
+                    "set remotetimeout 20",
+                    "-target-select extended-remote localhost:3333"
+                  ]
                 },
                 "properties": {
                   "type": {
@@ -1611,6 +1613,17 @@
                       "type": "string"
                     },
                     "default": []
+                  },
+                  "connectCommands": {
+                    "type": "array",
+                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [
+                      "set remotetimeout 20",
+                      "-target-select extended-remote localhost:3333"
+                    ]
                   },
                   "host": {
                     "type": "string",
@@ -1846,8 +1859,10 @@
               "target": {
                 "type": "object",
                 "default": {
-                  "type": "extended-remote",
-                  "port": "3333"
+                  "connectCommands": [
+                    "set remotetimeout 20",
+                    "-target-select extended-remote localhost:3333"
+                  ]
                 },
                 "properties": {
                   "type": {
@@ -1944,6 +1959,17 @@
                         "default": "LF"
                       }
                     }
+                  },
+                  "connectCommands": {
+                    "type": "array",
+                    "description": "Commands to execute for target connection. Normally something like [`-target-select extended-remote localhost:3333`]",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [
+                      "set remotetimeout 20",
+                      "-target-select extended-remote localhost:3333"
+                    ]
                   }
                 }
               }

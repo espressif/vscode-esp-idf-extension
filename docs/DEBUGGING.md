@@ -44,7 +44,6 @@ In case the user wants more customized control, the basic arguments in launch.js
       "name": "Eclipse CDT Remote",
       "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
       "initCommands": [
-        "set remotetimeout 20",
         "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
         "mon reset halt",
         "maintenance flush register-cache",
@@ -52,8 +51,10 @@ In case the user wants more customized control, the basic arguments in launch.js
       ],
       "gdb": "${command:espIdf.getToolchainGdb}",
       "target": {
-        "type": "extended-remote",
-        "port": "3333"
+        "connectCommands": [
+          "set remotetimeout 20",
+          "-target-select extended-remote localhost:3333"
+        ]
       }
     }
   ]
@@ -98,7 +99,8 @@ Some additional arguments you might use are:
   "type": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
   "host": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
   "port": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
-  "parameters": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)"
+  "parameters": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)",
+  "connectCommands": "Replace all previous parameters to specify an array of commands to establish connection"
 }
 ```
 
