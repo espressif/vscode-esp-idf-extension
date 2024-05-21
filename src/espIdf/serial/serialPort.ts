@@ -47,7 +47,7 @@ export class SerialPort {
       const chosen = await vscode.window.showQuickPick(
         portList.map((l: SerialPortDetails) => {
           return {
-            description: l.manufacturer || l.chipType,
+            description: l.chipType || l.manufacturer,
             label: l.comName,
           };
         }),
@@ -60,10 +60,7 @@ export class SerialPort {
       const msg = error.message
         ? error.message
         : "Something went wrong while getting the serial port list";
-      Logger.errorNotify(
-        msg,
-        error
-      );
+      Logger.errorNotify(msg, error);
       OutputChannel.appendLine(msg, "Serial port");
       OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
@@ -91,12 +88,48 @@ export class SerialPort {
       try {
         const listOfSerialPorts = await SerialPortLib.SerialPort.list();
 
-        const arrayPrint = listOfSerialPorts.map(item => item.path);
-
-        const choices = listOfSerialPorts.map(item => {
-          return new SerialPortDetails(item.path, item.manufacturer, item.vendorId, item.productId);
+        const choices = listOfSerialPorts.map((item) => {
+          return new SerialPortDetails(
+            item.path,
+            item.manufacturer,
+            item.vendorId,
+            item.productId
+          );
         });
-        resolve(choices);
+        const pythonBinPath = idfConf.readParameter(
+          "idf.pythonBinPath",
+          workspaceFolder
+        ) as string;
+        const idfPath = idfConf.readParameter(
+          "idf.espIdfPath",
+          workspaceFolder
+        );
+        const esptoolPath = join(
+          idfPath,
+          "components",
+          "esptool_py",
+          "esptool",
+          "esptool.py"
+        );
+        async function processPorts(serialPort: SerialPortDetails) {
+          try {
+            const chipIdBuffer = await spawn(
+              pythonBinPath,
+              [esptoolPath, "--port", serialPort.comName, "chip_id"],
+              {},
+              2000 // success is quick, failing takes too much time
+            );
+            const regexp = /Chip is(.*?)[\r]?\n/;
+            const chipIdString2 = chipIdBuffer.toString().match(regexp);
+
+            serialPort.chipType = chipIdString2[1].trim();
+          } catch (error) {
+            serialPort.chipType = undefined;
+          }
+          return serialPort;
+        }
+
+        resolve(await Promise.all(choices.map((item) => processPorts(item))));
       } catch (error) {
         reject(error);
       }
