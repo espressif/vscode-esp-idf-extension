@@ -123,14 +123,15 @@ export class QemuManager extends EventEmitter {
     const defOptions = {
       launchArgs: [
         "-nographic",
+        "-s",
+        "-S",
         "-machine",
         "esp32",
         "-drive",
         "file=build/merged_qemu.bin,if=mtd,format=raw",
-        "-monitor stdio"
       ],
       tcpPort: readParameter("idf.qemuTcpPort", workspaceFolder),
-      workspaceFolder
+      workspaceFolder,
     } as IQemuOptions;
     this.configure(defOptions);
   }
@@ -186,9 +187,6 @@ export class QemuManager extends EventEmitter {
     this.options.launchArgs.forEach((arg) => {
       qemuArgs.push(arg);
     });
-    qemuArgs.push(
-      `-serial tcp::${this.options.tcpPort.toString()},server,nowait`
-    );
 
     if (typeof this.qemuTerminal === "undefined") {
       this.qemuTerminal = window.createTerminal({
@@ -203,7 +201,7 @@ export class QemuManager extends EventEmitter {
         strictEnv: true,
       });
       window.onDidCloseTerminal((e) => {
-        if (e.name === "ESP-IDF QEMU") {
+        if (e.name === this.qemuTerminal.name) {
           this.stop();
         }
       });

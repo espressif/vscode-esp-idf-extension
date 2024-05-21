@@ -114,15 +114,6 @@ export async function installPythonEnvFromIdfTools(
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
   const virtualEnvPython = join(pyEnvPath, ...pyDir);
-  await installExtensionPyReqs(
-    virtualEnvPython,
-    espDir,
-    idfToolsDir,
-    pyTracker,
-    channel,
-    { env: modifiedEnv },
-    cancelToken
-  );
   return virtualEnvPython;
 }
 

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { ESP } from "../../config";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { window, Terminal, Uri, env } from "vscode";
 
@@ -103,7 +104,8 @@ export class IDFMonitor {
   }
   async dispose() {
     try {
-      process.kill(await this.terminal.processId);
+      this.terminal.sendText(ESP.CTRL_RBRACKET);
+      this.terminal.sendText(`exit`);
     } catch (error) {}
   }
 }

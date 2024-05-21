@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { writeFile, writeJson } from "fs-extra";
+import { pathExists, readFile, writeFile, writeJson } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import * as vscode from "vscode";
@@ -195,18 +195,24 @@ export async function writeTextReport(
   }
   if (reportedResult.latestError) {
     output += `----------------------------------------------------------- Latest error -----------------------------------------------------------------${EOL}`;
-    output += `Latest error at ${
-      reportedResult.latestError.message
-        ? reportedResult.latestError.message
-        : typeof reportedResult.latestError === "string"
-        ? reportedResult.latestError
-        : "Unknown error in ESP-IDF Doctor Command"
-    }${EOL}`;
+    output +=
+      JSON.stringify(
+        reportedResult.latestError,
+        undefined,
+        vscode.workspace.getConfiguration().get("editor.tabSize") || 2
+      ) + EOL;
   }
   output += lineBreak;
+  const logFile = join(context.extensionPath, "esp_idf_vsc_ext.log");
+  const logFileExists = await pathExists(logFile);
+  if (logFileExists) {
+    const logFileContent = await readFile(logFile, "utf8");
+    output += `----------------------------------------------------------- Logfile -----------------------------------------------------------------${EOL}`;
+    output += logFileContent + EOL + lineBreak;
+  }
   const resultFile = join(context.extensionPath, "report.txt");
-  const resultJson = join(context.extensionPath, "report.json");
   await writeFile(resultFile, output);
+  const resultJson = join(context.extensionPath, "report.json");
   await writeJson(resultJson, reportedResult, {
     spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
   });

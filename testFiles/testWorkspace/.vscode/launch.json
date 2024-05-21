@@ -2,6 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "gdbtarget",
+      "request": "attach",
+      "name": "Eclipse CDT GDB Adapter"
+    },
+    {
       "type": "espidf",
       "name": "Launch",
       "request": "launch"
