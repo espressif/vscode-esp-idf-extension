@@ -70,7 +70,7 @@ export async function downloadEspIdfVersionList(
 
 export async function getEspIdfTags() {
   try {
-    const urlToUse = "https://api.github.com/repos/espressif/esp-idf/tags";
+    const urlToUse = "https://api.github.com/repos/espressif/esp-idf/tags?per_page=100";
     const idfTagsResponse = await axios.get<{ name: string }[]>(urlToUse);
     const tagsStrList = idfTagsResponse.data.map((idfTag) => idfTag.name);
     return createEspIdfLinkList(tagsStrList);
