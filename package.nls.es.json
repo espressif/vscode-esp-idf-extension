@@ -50,6 +50,7 @@
 	"espIdf.getEspMdf.title": "Instalar ESP-MDF",
 	"espIdf.getEspRainmaker.title": "Instalar ESP-Rainmaker",
 	"espIdf.heaptrace.title": "Rastreo de montón",
+  "espIdf.idfReconfigureTask.title": "ESP-IDF: Ejecute la tarea de reconfiguración de idf.py",
 	"espIdf.importProject.title": "Importar proyecto ESP-IDF",
 	"espIdf.installEspMatterPyReqs.title": "Instalar paquetes Python de ESP-Matter",
 	"espIdf.installPyReqs.title": "Instalar paquetes Python de la extensión ESP-IDF",

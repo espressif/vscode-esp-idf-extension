@@ -50,6 +50,7 @@
 	"espIdf.getEspMdf.title": "安装 ESP-MDF",
 	"espIdf.getEspRainmaker.title": "安装 ESP-Rainmaker",
 	"espIdf.heaptrace.title": "堆跟踪",
+  "espIdf.idfReconfigureTask.title": "ESP-IDF: 运行IDF.py重新配置任务",
 	"espIdf.importProject.title": "导入 ESP-IDF 项目",
 	"espIdf.installEspMatterPyReqs.title": "安装 ESP-Matter Python 包",
 	"espIdf.installPyReqs.title": "安装 ESP-IDF 扩展 Python 包",

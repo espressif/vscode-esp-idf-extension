@@ -148,6 +148,7 @@ import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
+import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -833,6 +834,45 @@ export async function activate(context: vscode.ExtensionContext) {
         statusBarItems["currentIdfVersion"]
       );
     });
+  });
+
+  registerIDFCommand("espIdf.idfReconfigureTask", async () => {
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    await vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: ProgressLocation,
+        title: "ESP-IDF: Project configuration",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const reconfigureTask = new IdfReconfigureTask(workspaceRoot);
+          await reconfigureTask.reconfigure();
+          await TaskManager.runTasks();
+          if (!cancelToken.isCancellationRequested) {
+            Logger.infoNotify("ESP-IDF Reconfigure Successfully");
+            TaskManager.disposeListeners();
+          }
+        } catch (error) {
+          const errMsg =
+            error && error.message
+              ? error.message
+              : "Error trying to reconfigure the ESP-IDF project";
+          Logger.errorNotify(errMsg, error);
+        }
+      }
+    );
   });
 
   registerIDFCommand("espIdf.customTask", async () => {

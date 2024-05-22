@@ -50,6 +50,7 @@
   "espIdf.getEspMdf.title": "Install ESP-MDF",
   "espIdf.getEspRainmaker.title": "Install ESP-Rainmaker",
   "espIdf.heaptrace.title": "Heap Trace",
+  "espIdf.idfReconfigureTask.title": "ESP-IDF: Run idf.py reconfigure task",
   "espIdf.importProject.title": "Import ESP-IDF Project",
   "espIdf.installEspMatterPyReqs.title": "Install ESP-Matter Python Packages",
   "espIdf.installPyReqs.title": "Install ESP-IDF Extension Python Packages",
