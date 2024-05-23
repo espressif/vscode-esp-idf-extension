@@ -111,6 +111,10 @@ export class SerialPort {
           "esptool",
           "esptool.py"
         );
+        const stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
+        if (stat.type !== vscode.FileType.File) { // esptool.py does not exists
+          throw new Error(`esptool.py does not exists in ${esptoolPath}`);
+        }
         async function processPorts(serialPort: SerialPortDetails) {
           try {
             const chipIdBuffer = await spawn(
@@ -120,9 +124,9 @@ export class SerialPort {
               2000 // success is quick, failing takes too much time
             );
             const regexp = /Chip is(.*?)[\r]?\n/;
-            const chipIdString2 = chipIdBuffer.toString().match(regexp);
+            const chipIdString = chipIdBuffer.toString().match(regexp);
 
-            serialPort.chipType = chipIdString2[1].trim();
+            serialPort.chipType = chipIdString && chipIdString.length > 1 ? chipIdString[1].trim() : undefined;
           } catch (error) {
             serialPort.chipType = undefined;
           }
