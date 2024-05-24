@@ -16,12 +16,14 @@
  * limitations under the License.
  */
 
+import { join } from "path";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
+import * as SerialPortLib from "serialport";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -45,7 +47,7 @@ export class SerialPort {
       const chosen = await vscode.window.showQuickPick(
         portList.map((l: SerialPortDetails) => {
           return {
-            description: l.manufacturer,
+            description: l.chipType || l.manufacturer,
             label: l.comName,
           };
         }),
@@ -58,10 +60,7 @@ export class SerialPort {
       const msg = error.message
         ? error.message
         : "Something went wrong while getting the serial port list";
-      Logger.errorNotify(
-        msg,
-        error
-      );
+      Logger.errorNotify(msg, error);
       OutputChannel.appendLine(msg, "Serial port");
       OutputChannel.appendLineAndShow(JSON.stringify(error));
     }
@@ -87,24 +86,54 @@ export class SerialPort {
   private list(workspaceFolder: vscode.Uri): Thenable<SerialPortDetails[]> {
     return new Promise(async (resolve, reject) => {
       try {
+        const listOfSerialPorts = await SerialPortLib.SerialPort.list();
+
+        const choices = listOfSerialPorts.map((item) => {
+          return new SerialPortDetails(
+            item.path,
+            item.manufacturer,
+            item.vendorId,
+            item.productId
+          );
+        });
         const pythonBinPath = idfConf.readParameter(
           "idf.pythonBinPath",
           workspaceFolder
         ) as string;
-        const buff = await spawn(pythonBinPath, ["get_serial_list.py"]);
-        const regexp = /\'(.*?)\'/g;
-        const arrayPrint = buff.toString().match(regexp);
-        const choices: SerialPortDetails[] = Array<SerialPortDetails>();
-
-        if (arrayPrint) {
-          arrayPrint.forEach((portStr) => {
-            const portChoice = portStr.replace(/'/g, "").trim();
-            choices.push(new SerialPortDetails(portChoice));
-          });
-          resolve(choices);
-        } else {
-          reject(new Error("No serial ports found"));
+        const idfPath = idfConf.readParameter(
+          "idf.espIdfPath",
+          workspaceFolder
+        );
+        const esptoolPath = join(
+          idfPath,
+          "components",
+          "esptool_py",
+          "esptool",
+          "esptool.py"
+        );
+        const stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
+        if (stat.type !== vscode.FileType.File) { // esptool.py does not exists
+          throw new Error(`esptool.py does not exists in ${esptoolPath}`);
         }
+        async function processPorts(serialPort: SerialPortDetails) {
+          try {
+            const chipIdBuffer = await spawn(
+              pythonBinPath,
+              [esptoolPath, "--port", serialPort.comName, "chip_id"],
+              {},
+              2000 // success is quick, failing takes too much time
+            );
+            const regexp = /Chip is(.*?)[\r]?\n/;
+            const chipIdString = chipIdBuffer.toString().match(regexp);
+
+            serialPort.chipType = chipIdString && chipIdString.length > 1 ? chipIdString[1].trim() : undefined;
+          } catch (error) {
+            serialPort.chipType = undefined;
+          }
+          return serialPort;
+        }
+
+        resolve(await Promise.all(choices.map((item) => processPorts(item))));
       } catch (error) {
         reject(error);
       }
