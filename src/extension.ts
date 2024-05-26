@@ -3030,22 +3030,57 @@ export async function activate(context: vscode.ExtensionContext) {
   // Attach a listener to the diagnostics collection
   context.subscriptions.push(
     vscode.languages.onDidChangeDiagnostics((event) => {
-        const errorDiagnostics = event.uris.flatMap((uri) => 
-            vscode.languages.getDiagnostics(uri).filter(
-                (d) => d.severity === vscode.DiagnosticSeverity.Error
-            )
-        );
+      event.uris.forEach(uri => {
+        const diagnostics = vscode.languages.getDiagnostics(uri);
+        console.log(`Diagnostics for ${uri.fsPath}:`, diagnostics);
+      });
 
-        if (errorDiagnostics.length > 0) {
-            const errorMsg = errorDiagnostics[0].message; 
-            treeDataProvider.searchError(errorMsg, workspaceRoot);
-            vscode.commands.executeCommand("errorHints.focus");
-        } else {
-            // Clear the error hints view if there are no more error diagnostics
-            treeDataProvider.clearErrorHints();
-        }
+      const errorDiagnostics = event.uris.flatMap((uri) =>
+        vscode.languages.getDiagnostics(uri).filter(
+          (d) => d.severity === vscode.DiagnosticSeverity.Error
+        )
+      );
+
+      if (errorDiagnostics.length > 0) {
+        const errorMsg = errorDiagnostics[0].message;
+        treeDataProvider.searchError(errorMsg, workspaceRoot);
+        vscode.commands.executeCommand("errorHints.focus");
+      } else {
+        treeDataProvider.clearErrorHints();
+      }
     })
   );
+
+  // Register the HintHoverProvider
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider({ pattern: '**' }, new HintHoverProvider(treeDataProvider))
+  );
+}
+
+class HintHoverProvider implements vscode.HoverProvider {
+  constructor(private hintProvider: ErrorHintProvider) {}
+
+  provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
+    const diagnostics = vscode.languages.getDiagnostics(document.uri);
+
+    for (const diagnostic of diagnostics) {
+      const start = diagnostic.range.start;
+      const end = diagnostic.range.end;
+
+      // Check if the position is within or immediately adjacent to the diagnostic range
+      if (
+        diagnostic.severity === vscode.DiagnosticSeverity.Error &&
+        position.line === start.line &&
+        (position.character >= start.character - 1 && position.character <= end.character + 1)
+      ) {
+        const hint = this.hintProvider.getHintForError(diagnostic.message);
+        if (hint) {
+          return new vscode.Hover(`ESP-IDF Hint: ${hint}`);
+        }
+      }
+    }
+    return null;
+  }
 }
 
 function validateInputForRainmakerDeviceParam(

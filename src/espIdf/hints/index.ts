@@ -42,6 +42,15 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
   private data: ErrorHint[] = [];
 
+  public getHintForError(errorMsg: string): string | undefined {
+    for (const errorHint of this.data) {
+      if (errorHint.label.includes(errorMsg) && errorHint.children.length > 0) {
+        return errorHint.children[0].label;
+      }
+    }
+    return undefined;
+  }
+
   async searchError(errorMsg: string, workspace) {
     const espIdfPath = idfConf.readParameter(
       "idf.espIdfPath",
