@@ -1384,6 +1384,10 @@
         "command": "espIdf.selectCurrentIdfVersion",
         "title": "%espIdf.selectCurrentIdfVersion.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.idfReconfigureTask",
+        "title": "%espIdf.idfReconfigureTask.title%"
       }
     ],
     "breakpoints": [
