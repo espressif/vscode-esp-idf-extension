@@ -123,6 +123,7 @@
   "Use current ESP-Matter {matterPathDir}": "Utilice ESP-Matter actual {matterPathDir}",
   "Use current ESP-Rainmaker {rainmakerPathDir}": "Utilice ESP-Rainmaker actual {rainmakerPathDir}",
   "Use current ESP-HomeKit-SDK {espHomeKitPathDir}": "Utilice ESP-HomeKit-SDK actual {espHomeKitPathDir}",
+  "Use current ESP-Insights {espInsightsPathDir}": "Utilice ESP-Insights actual {espInsightsPathDir}",
   "Enter non empty string": "Introduzca una cadena que no esté vacía",
   "Enter a valid integer": "Introduzca un número entero válido",
   "ESP-IDF: Select Port to Use (COM, tty, usbserial)": "ESP-IDF: seleccione el puerto a usar (COM, tty, usbserial)",

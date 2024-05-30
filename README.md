@@ -132,6 +132,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Install ESP-Matter                                      |                                        |                                           |
 | Install ESP-Rainmaker                                   |                                        |                                           |
 | Install ESP-HomeKit-SDK                                 |                                        |                                           |
+| Install ESP-Insights                                    |                                        |                                           |
 | Launch IDF Monitor for CoreDump / GDB-Stub Mode         |                                        |                                           |
 | Launch QEMU Server                                      |                                        |                                           |
 | Launch QEMU Debug Session                               |                                        |                                           |

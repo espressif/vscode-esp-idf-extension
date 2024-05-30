@@ -58,6 +58,7 @@ export namespace ESP {
     "idf.espMdfPath",
     "idf.espRainmakerPath",
     "idf.espHomeKitSdkPath",
+    "idf.espInsightsPath",
     "idf.gitPath",
     "idf.pythonBinPath",
     "idf.port",

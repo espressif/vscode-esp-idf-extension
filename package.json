@@ -427,6 +427,12 @@
             "description": "%param.espRainmakerPath%",
             "scope": "resource"
           },
+          "idf.espInsightsPath": {
+            "type": "string",
+            "default": "${env:INSIGHTS_PATH}",
+            "description": "%param.espInsightsPath%",
+            "scope": "resource"
+          },
           "idf.espIdfPathWin": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -461,6 +467,12 @@
             "type": "string",
             "default": "${env:HOMEKIT_PATH}",
             "description": "%param.espHomeKitSdkPath%",
+            "scope": "resource"
+          },
+          "idf.espInsightsPathWin": {
+            "type": "string",
+            "default": "${env:INSIGHTS_PATH}",
+            "description": "%param.espInsightsPath%",
             "scope": "resource"
           },
           "idf.port": {
@@ -1220,6 +1232,11 @@
       {
         "command": "espIdf.getEspHomeKitSdk",
         "title": "%espIdf.getEspHomeKitSdk.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.getEspInsights",
+        "title": "%espIdf.getEspInsights.title%",
         "category": "ESP-IDF"
       },
       {
