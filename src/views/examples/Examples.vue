@@ -24,7 +24,7 @@ onMounted(() => {
     <div id="sidenav" class="content">
       <p>
         For external components examples, check
-        <a v-on:click="store.showRegistry">IDF Component Registry</a>
+        <a v-on:click="store.showRegistry">ESP Component Registry</a>
       </p>
       <searchBar />
       <ul>

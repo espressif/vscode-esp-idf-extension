@@ -125,7 +125,7 @@ export namespace ESP {
 
     export namespace ComponentManagerUI {
       export const ViewType = "component-manager-ui";
-      export const Title = "IDF Component Registry";
+      export const Title = "ESP Component Registry";
     }
   }
 }
