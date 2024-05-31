@@ -88,6 +88,11 @@ export class SerialPort {
       try {
         const listOfSerialPorts = await SerialPortLib.SerialPort.list();
 
+        if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
+          reject(new Error('No serial ports found'));
+          return;
+        }
+
         const choices = listOfSerialPorts.map((item) => {
           return new SerialPortDetails(
             item.path,
