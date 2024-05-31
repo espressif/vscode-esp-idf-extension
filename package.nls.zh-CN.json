@@ -3,7 +3,7 @@
 	"debug.initConfig.description": "为启动 ESP-IDF 项目创建新配置",
 	"debug.initConfig.name": "ESP-IDF 调试：启动",
 	"esp.component-manager.cli.addDependencyError": "添加依赖到组件时出错",
-	"esp.component-manager.ui.show.title": "显示组件注册表",
+	"esp.component-manager.ui.show.title": "ESP显示组件注册表",
 	"esp.component-manager.url.description": "组件注册表 URL",
 	"esp.efuse.summary.title": "获取 eFuse 摘要",
 	"esp.rainmaker.backend.add_node.title": "添加新节点",
