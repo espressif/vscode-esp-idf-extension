@@ -3,7 +3,7 @@
 	"debug.initConfig.description": "Uma nova configuração para lançamento de projetos ESP-IDF",
 	"debug.initConfig.name": "Depuração ESP-IDF: lançamento",
 	"esp.component-manager.cli.addDependencyError": "Erro encontrado ao adicionar dependência ao componente",
-	"esp.component-manager.ui.show.title": "Mostrar registro de componentes",
+	"esp.component-manager.ui.show.title": "Mostrar registro de componentes ESP",
 	"esp.component-manager.url.description": "URL de registro do componente",
 	"esp.efuse.summary.title": "Obtenha o resumo do eFuse",
 	"esp.rainmaker.backend.add_node.title": "Adicionar novo nó",

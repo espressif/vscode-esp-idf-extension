@@ -3,7 +3,7 @@
 	"debug.initConfig.description": "Новая конфигурация для запуска проектов ESP-IDF.",
 	"debug.initConfig.name": "Отладка ESP-IDF: запуск",
 	"esp.component-manager.cli.addDependencyError": "Произошла ошибка при добавлении зависимости к компоненту.",
-	"esp.component-manager.ui.show.title": "Показать реестр компонентов",
+	"esp.component-manager.ui.show.title": "Показать реестр компонентов ESP",
 	"esp.component-manager.url.description": "URL-адрес реестра компонентов",
 	"esp.efuse.summary.title": "Получить сводку eFuse",
 	"esp.rainmaker.backend.add_node.title": "Добавить новый узел",
