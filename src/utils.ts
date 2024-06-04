@@ -29,7 +29,7 @@ import {
 } from "fs-extra";
 import * as HttpsProxyAgent from "https-proxy-agent";
 import { marked } from "marked";
-import { EOL } from "os";
+import { EOL, platform } from "os";
 import * as path from "path";
 import * as url from "url";
 import * as vscode from "vscode";
@@ -1248,7 +1248,9 @@ export function getUserShell() {
   if (idfConf.readParameter("idf.customTerminalExecutable")) {
     return "custom";
   }
+
   const config = vscode.workspace.getConfiguration("terminal.integrated");
+
   const shellWindows = config.get("defaultProfile.windows") as string;
   const shellMac = config.get("defaultProfile.osx") as string;
   const shellLinux = config.get("defaultProfile.linux") as string;
@@ -1266,6 +1268,17 @@ export function getUserShell() {
       return shells[i];
     }
   }
+
+  // if no match or no defaultProfile, pick one based on user's OS
+  const userOS = platform();
+  if (userOS === "win32") {
+    return "PowerShell";
+  } else if (userOS === "darwin") {
+    return "zsh";
+  } else if (userOS === "linux") {
+    return "bash";
+  }
+
   // if no match, return null
   return null;
 }
