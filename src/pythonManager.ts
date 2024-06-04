@@ -374,23 +374,34 @@ export async function getPythonBinList(workingDir: string) {
 
 export async function getUnixPythonList(workingDir: string) {
   try {
-    const pythonVersionsRaw = await utils.execChildProcess(
-      "which",
-      ["-a", "python"],
-      workingDir
-    );
-    const pythonVersions = pythonVersionsRaw.trim()
-      ? pythonVersionsRaw.trim().split("\n")
-      : [];
+    let pythonVersions: string[] = [];
+    let python3Versions: string[] = [];
 
-    const python3VersionsRaw = await utils.execChildProcess(
-      "which",
-      ["-a", "python3"],
-      workingDir
-    );
-    const python3Versions = python3VersionsRaw.trim()
-      ? python3VersionsRaw.trim().split("\n")
-      : [];
+    try {
+      const pythonVersionsRaw = await utils.execChildProcess(
+        "which",
+        ["-a", "python"],
+        workingDir
+      );
+      pythonVersions = pythonVersionsRaw.trim()
+        ? pythonVersionsRaw.trim().split("\n")
+        : [];
+    } catch (pythonError) {
+      Logger.warn("Error finding python versions", pythonError);
+    }
+
+    try {
+      const python3VersionsRaw = await utils.execChildProcess(
+        "which",
+        ["-a", "python3"],
+        workingDir
+      );
+      python3Versions = python3VersionsRaw.trim()
+        ? python3VersionsRaw.trim().split("\n")
+        : [];
+    } catch (python3Error) {
+      Logger.warn("Error finding python3 versions", python3Error);
+    }
 
     const combinedVersionsArray = [...pythonVersions, ...python3Versions];
     const uniquePathsSet = new Set(
