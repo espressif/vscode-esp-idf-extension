@@ -155,7 +155,14 @@ export async function installEspSBOM(workspace: Uri) {
   } catch (error) {
     const installResult = await execChildProcess(
       pythonBinPath,
-      ["-m", "pip", "install", "esp-idf-sbom"],
+      [
+        "-m",
+        "pip",
+        "install",
+        "esp-idf-sbom",
+        "--extra-index-url",
+        "https://dl.espressif.com/pypi",
+      ],
       workspace.fsPath,
       OutputChannel.init(),
       { env: modifiedEnv }

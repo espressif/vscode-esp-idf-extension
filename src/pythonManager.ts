@@ -180,6 +180,8 @@ export async function installExtensionPyReqs(
     "--no-warn-script-location",
     "-r",
     debugAdapterRequirements,
+    "--extra-index-url",
+    "https://dl.espressif.com/pypi",
   ];
   await execProcessWithLog(
     virtualEnvPython,
@@ -237,6 +239,8 @@ export async function installEspMatterPyReqs(
     "--no-warn-script-location",
     "-r",
     matterRequirements,
+    "--extra-index-url",
+    "https://dl.espressif.com/pypi",
   ];
   await execProcessWithLog(
     virtualEnvPython,
