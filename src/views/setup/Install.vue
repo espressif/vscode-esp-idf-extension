@@ -69,7 +69,10 @@ const isInstallDisabled = computed(() => {
     hasToolsWhitespace.value ||
     (selectedEspIdfVersion.value.filename !== "manual" &&
       isVersionLessThanFive.value &&
-      hasWhitespaceInEspIdfContainer.value)
+      hasWhitespaceInEspIdfContainer.value) ||
+    !espIdf.value ||
+    !espIdfContainer.value ||
+    !toolsFolder.value
   );
 });
 
@@ -132,6 +135,10 @@ function setToolsFolder(newToolsPath: string) {
 
       <div v-if="hasToolsWhitespace" class="notification is-danger">
         White spaces are not allowed in the ESP-IDF Tools path.
+      </div>
+
+      <div v-if="!toolsFolder" class="notification is-danger">
+        ESP-IDF Tools path should not be empty.
       </div>
 
       <selectPyVersion v-if="isNotWinPlatform" />

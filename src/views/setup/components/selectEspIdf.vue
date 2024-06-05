@@ -85,6 +85,14 @@ const hasWhitespaceInEspIdfContainer = computed(() => {
   return /\s/.test(espIdfContainer.value);
 });
 
+const isPathEmpty = computed(() => {
+  if (selectedEspIdfVersion.value.filename === "manual") {
+    return !espIdf.value;
+  } else {
+    return !espIdfContainer.value;
+  }
+});
+
 const showManualVersionWarning = computed(() => {
   return (
     selectedEspIdfVersion.value.filename === "manual" &&
@@ -179,8 +187,10 @@ watchEffect(() => {
       "
       class="notification is-danger"
     >
-      White spaces are only supported for ESP-IDF path for versions >
-      5.0
+      White spaces are only supported for ESP-IDF path for versions > 5.0.
+    </div>
+    <div v-if="isPathEmpty" class="notification is-danger">
+      ESP-IDF path should not be empty.
     </div>
   </div>
 </template>
