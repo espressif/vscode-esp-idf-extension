@@ -72,6 +72,9 @@ export const useSetupStore = defineStore("setup", () => {
   let pathSep: Ref<string> = ref("/");
   let platform: Ref<string> = ref("");
   let pyExecErrorStatus: Ref<string> = ref("");
+  let whiteSpaceErrorIDF: Ref<string> = ref("");
+  let whiteSpaceErrorTools: Ref<string> = ref("");
+  let whiteSpaceErrorIDFContainer: Ref<string> = ref("");
   let pyReqsLog: Ref<string> = ref("");
   let pyVersionsList: Ref<string[]> = ref([]);
   let saveScope: Ref<number> = ref(1);
@@ -430,5 +433,8 @@ export const useSetupStore = defineStore("setup", () => {
     openShowExamplesPanel,
     requestInitValues,
     toggleContent,
+    whiteSpaceErrorIDF,
+    whiteSpaceErrorTools,
+    whiteSpaceErrorIDFContainer,
   };
 });
