@@ -117,7 +117,7 @@ where:
 Make sure to install the extension and extension debug adapter Python requirements by running the following commands in your terminal:
 
 ```
-PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/esp_debug_adapter/requirements.txt
+PYTHON_INTERPRETER -m pip install --upgrade -r EXTENSION_PATH/esp_debug_adapter/requirements.txt --extra-index-url https://dl.espressif.com/pypi
 ```
 
 where EXTENSION_PATH is
