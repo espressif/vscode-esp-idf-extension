@@ -51,13 +51,13 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     return undefined;
   }
 
-  async searchError(errorMsg: string, workspace) {
+  async searchError(errorMsg: string, workspace): Promise<boolean> {
     const espIdfPath = idfConf.readParameter(
       "idf.espIdfPath",
       workspace
     ) as string;
     const version = await utils.getEspIdfFromCMake(espIdfPath);
-
+  
     if (utils.compareVersion(version.trim(), "5.0") === -1) {
       this.data.push(
         new ErrorHint(
@@ -66,23 +66,24 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         )
       );
       this._onDidChangeTreeData.fire();
-      return;
+      return false;
     }
-
+  
     const hintsPath = getHintsYmlPath(espIdfPath);
-
+  
     try {
       if (!(await pathExists(hintsPath))) {
         Logger.infoNotify(`${hintsPath} does not exist.`);
-        return;
+        return false;
       }
-
+  
       const fileContents = await readFile(hintsPath, "utf-8");
       const hintsData = yaml.load(fileContents);
-
+  
       const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
-
+  
       this.data = [];
+      let meaningfulHintFound = false;
       for (const hintPair of reHintsPairArray) {
         const match = new RegExp(hintPair.re, "i").exec(errorMsg);
         const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
@@ -103,9 +104,13 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
           const hint = new ErrorHint(finalHint, "hint");
           error.addChild(hint);
           this.data.push(error);
+  
+          if (!finalHint.startsWith("No hints found for")) {
+            meaningfulHintFound = true;
+          }
         }
       }
-
+  
       if (this.data.length === 0) {
         for (const hintPair of reHintsPairArray) {
           if (hintPair.re.toLowerCase().includes(errorMsg.toLowerCase())) {
@@ -113,11 +118,14 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
             const hint = new ErrorHint(hintPair.hint, "hint");
             error.addChild(hint);
             this.data.push(error);
+  
+            if (!hintPair.hint.startsWith("No hints found for")) {
+              meaningfulHintFound = true;
+            }
           }
         }
       }
-
-      // ... (No hints found message)
+  
       if (!this.data.length) {
         this.data.push(
           new ErrorHint(`No hints found for ${errorMsg}`, "error")
@@ -125,13 +133,16 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
   
       this._onDidChangeTreeData.fire();
+      return meaningfulHintFound;
     } catch (error) {
       Logger.errorNotify(
         `Error processing hints file (line ${error.mark?.line}): ${error.message}`,
         error
       );
+      return false;
     }
   }
+  
 
   private loadHints(hintsArray: any): ReHintPair[] {
     let reHintsPairArray: ReHintPair[] = [];

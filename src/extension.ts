@@ -3014,47 +3014,61 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // ERROR HINTS
 
-  const treeDataProvider = new ErrorHintProvider(context);
-  vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
+const treeDataProvider = new ErrorHintProvider(context);
+vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
 
-  vscode.commands.registerCommand("espIdf.searchError", async () => {
-    const errorMsg = await vscode.window.showInputBox({
-      placeHolder: "Enter the error message",
-    });
-    if (errorMsg) {
-      treeDataProvider.searchError(errorMsg, workspaceRoot);
+vscode.commands.registerCommand("espIdf.searchError", async () => {
+  const errorMsg = await vscode.window.showInputBox({
+    placeHolder: "Enter the error message",
+  });
+  if (errorMsg) {
+    treeDataProvider.searchError(errorMsg, workspaceRoot);
+    await vscode.commands.executeCommand("errorHints.focus");
+  }
+});
+
+// Function to process diagnostics and update error hints
+const processDiagnostics = async (uri: vscode.Uri) => {
+  const diagnostics = vscode.languages.getDiagnostics(uri);
+  console.log(`Diagnostics for ${uri.fsPath}:`, diagnostics);
+
+  const errorDiagnostics = diagnostics.filter(
+    (d) => d.severity === vscode.DiagnosticSeverity.Error
+  );
+
+  if (errorDiagnostics.length > 0) {
+    const errorMsg = errorDiagnostics[0].message;
+    const meaningfulHintFound = await treeDataProvider.searchError(errorMsg, workspaceRoot);
+    if (meaningfulHintFound) {
       await vscode.commands.executeCommand("errorHints.focus");
     }
-  });
+  } else {
+    treeDataProvider.clearErrorHints();
+  }
+};
 
-  // Attach a listener to the diagnostics collection
-  context.subscriptions.push(
-    vscode.languages.onDidChangeDiagnostics((event) => {
-      event.uris.forEach(uri => {
-        const diagnostics = vscode.languages.getDiagnostics(uri);
-        console.log(`Diagnostics for ${uri.fsPath}:`, diagnostics);
-      });
+// Attach a listener to the diagnostics collection
+context.subscriptions.push(
+  vscode.languages.onDidChangeDiagnostics((event) => {
+    event.uris.forEach((uri) => {
+      processDiagnostics(uri);
+    });
+  })
+);
 
-      const errorDiagnostics = event.uris.flatMap((uri) =>
-        vscode.languages.getDiagnostics(uri).filter(
-          (d) => d.severity === vscode.DiagnosticSeverity.Error
-        )
-      );
+// Listen to the active text editor change event
+context.subscriptions.push(
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      processDiagnostics(editor.document.uri);
+    }
+  })
+);
 
-      if (errorDiagnostics.length > 0) {
-        const errorMsg = errorDiagnostics[0].message;
-        treeDataProvider.searchError(errorMsg, workspaceRoot);
-        vscode.commands.executeCommand("errorHints.focus");
-      } else {
-        treeDataProvider.clearErrorHints();
-      }
-    })
-  );
-
-  // Register the HintHoverProvider
-  context.subscriptions.push(
-    vscode.languages.registerHoverProvider({ pattern: '**' }, new HintHoverProvider(treeDataProvider))
-  );
+// Register the HintHoverProvider
+context.subscriptions.push(
+  vscode.languages.registerHoverProvider({ pattern: "**" }, new HintHoverProvider(treeDataProvider))
+);
 }
 
 class HintHoverProvider implements vscode.HoverProvider {
