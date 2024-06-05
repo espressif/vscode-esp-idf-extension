@@ -1276,15 +1276,6 @@ export async function activate(context: vscode.ExtensionContext) {
           statusBarItems[statusItem] = undefined;
         }
       }
-    } else if (e.affectsConfiguration("idf.openOcdConfigs")) {
-      const openOcdConfigFilesList = idfConf.readParameter(
-        "idf.openOcdConfigs",
-        workspaceRoot
-      );
-      const openOCDConfig: IOpenOCDConfig = {
-        openOcdConfigFilesList,
-      } as IOpenOCDConfig;
-      openOCDManager.configureServer(openOCDConfig);
     } else if (e.affectsConfiguration("idf.adapterTargetName")) {
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
@@ -1332,24 +1323,6 @@ export async function activate(context: vscode.ExtensionContext) {
           statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
         }
       }
-    } else if (e.affectsConfiguration("openocd.tcl.host")) {
-      const tclHost = idfConf.readParameter(
-        "openocd.tcl.host",
-        workspaceRoot
-      ) as string;
-      const openOCDConfig: IOpenOCDConfig = {
-        host: tclHost,
-      } as IOpenOCDConfig;
-      openOCDManager.configureServer(openOCDConfig);
-    } else if (e.affectsConfiguration("openocd.tcl.port")) {
-      const tclPort = idfConf.readParameter(
-        "openocd.tcl.port",
-        workspaceRoot
-      ) as number;
-      const openOCDConfig: IOpenOCDConfig = {
-        port: tclPort,
-      } as IOpenOCDConfig;
-      openOCDManager.configureServer(openOCDConfig);
     } else if (e.affectsConfiguration("idf.flashType")) {
       let flashType = idfConf.readParameter(
         "idf.flashType",
