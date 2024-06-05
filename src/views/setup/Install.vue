@@ -153,6 +153,10 @@ function setToolsFolder(newToolsPath: string) {
 </template>
 
 <style scoped>
+#install {
+  margin: 1% 5%;
+}
+
 .error-message {
   padding: 0.5em;
   margin: 0.5em;
