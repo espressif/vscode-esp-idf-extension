@@ -18,6 +18,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add Eclipse CDT Debug Adapter and update debugging documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1131)
 - [Add Chip Id in port selection](https://github.com/espressif/vscode-esp-idf-extension/pull/1195)
 - [Add idf.py reconfigure task as extension command](https://github.com/espressif/vscode-esp-idf-extension/pull/1198)
+- [Add white spaces support for IDF_PATH and extension tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/1159)
 
 ### Bug Fixes
 
