@@ -441,10 +441,7 @@ export class SetupPanel {
               ? espIdfPath
               : idfContainerPath;
           this.checkSpacesInPaths(
-            pathToCheck,
             toolsPath,
-            idfGitPath,
-            idfPythonPath
           );
           await expressInstall(
             selectedIdfVersion,
@@ -576,10 +573,7 @@ export class SetupPanel {
             idfPythonPath = embedPaths.idfPythonPath;
           }
           this.checkSpacesInPaths(
-            idfPath,
             toolsPath,
-            idfGitPath,
-            idfPythonPath
           );
           await downloadIdfTools(
             idfPath,
@@ -694,41 +688,26 @@ export class SetupPanel {
     return { idfPythonPath, idfGitPath };
   }
 
-  private checkSpacesInPaths(
-    idfPath: string,
-    idfToolsPath: string,
-    gitPath: string,
-    pythonBinPath: string
-  ) {
-    const doesIdfPathHasSpaces = checkSpacesInPath(idfPath);
-    const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
-    const doesGitPathHasSpaces = checkSpacesInPath(gitPath);
-    const doesPythonBinPath = checkSpacesInPath(pythonBinPath);
-    let pathHasSpaces = "";
-    if (doesIdfPathHasSpaces) {
-      pathHasSpaces = `${idfPath} has spaces. Use another location. (IDF_PATH_WITH_SPACES)`;
-    }
-    if (doesIdfToolsPathHasSpaces) {
-      pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
-    }
-    if (doesGitPathHasSpaces) {
-      pathHasSpaces = `${gitPath} has spaces. Use another location. (GIT_PATH_WITH_SPACES)`;
-    }
-    if (doesPythonBinPath) {
-      pathHasSpaces = `${pythonBinPath} has spaces. Use another location. (PYTHON_BIN_PATH_WITH_SPACES)`;
-    }
-    if (pathHasSpaces) {
-      OutputChannel.appendLine(pathHasSpaces);
-      Logger.infoNotify(pathHasSpaces);
-      throw new Error(pathHasSpaces);
-    }
-  }
-
   private async getOpenOcdRulesPath() {
     try {
       await getOpenOcdRules(Uri.file(this.context.extensionPath));
     } catch (error) {
       this.setupErrHandler(error);
+    }
+  }
+
+  private checkSpacesInPaths(
+    idfToolsPath: string,
+  ) {
+    const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
+    let pathHasSpaces = "";
+    if (doesIdfToolsPathHasSpaces) {
+      pathHasSpaces = `${idfToolsPath} has spaces. Use another location. (IDF_TOOLS_PATH_WITH_SPACES)`;
+    }
+    if (pathHasSpaces) {
+      OutputChannel.appendLine(pathHasSpaces);
+      Logger.infoNotify(pathHasSpaces);
+      throw new Error(pathHasSpaces);
     }
   }
 

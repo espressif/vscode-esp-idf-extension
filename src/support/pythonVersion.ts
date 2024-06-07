@@ -26,7 +26,8 @@ export async function getPythonVersion(
 ) {
   try {
     const rawPythonVersion = await execChildProcess(
-      `"${reportedResult.configurationSettings.pythonBinPath}" --version`,
+      reportedResult.configurationSettings.pythonBinPath,
+      ["--version"],
       context.extensionPath
     );
     reportedResult.pythonVersion.output = rawPythonVersion;

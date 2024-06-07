@@ -80,8 +80,10 @@ export class PlatformInformation {
   }
 
   public static GetUnixArchitecture(): Promise<string> {
+    const command = "uname";
+    const args = ["-m"];
     return utils
-      .execChildProcess("uname -m", utils.extensionContext.extensionPath)
+      .execChildProcess(command, args, utils.extensionContext.extensionPath)
       .then((architecture) => {
         if (architecture) {
           return architecture.trim();
@@ -90,11 +92,10 @@ export class PlatformInformation {
   }
 
   private static GetWindowsArchitecture(): Promise<string> {
+    const command = "wmic";
+    const args = ["os", "get", "osarchitecture"];
     return utils
-      .execChildProcess(
-        "wmic os get osarchitecture",
-        utils.extensionContext.extensionPath
-      )
+      .execChildProcess(command, args, utils.extensionContext.extensionPath)
       .then((architecture) => {
         if (architecture) {
           const archArray: string[] = architecture.split(os.EOL);

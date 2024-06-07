@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { useSetupStore } from "./store";
 import { SetupMode } from "./types";
-import { computed } from "vue";
+import { computed, watchEffect } from "vue";
 import folderOpen from "./components/folderOpen.vue";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
@@ -17,6 +17,9 @@ const {
   pyExecErrorStatus,
   toolsFolder,
   setupMode,
+  selectedEspIdfVersion,
+  espIdf,
+  espIdfContainer,
 } = storeToRefs(store);
 
 const isNotWinPlatform = computed(() => {
@@ -25,6 +28,64 @@ const isNotWinPlatform = computed(() => {
 
 const actionButtonText = computed(() => {
   return setupMode.value === SetupMode.advanced ? "Configure Tools" : "Install";
+});
+
+const hasToolsWhitespace = computed(() => {
+  return /\s/.test(toolsFolder.value);
+});
+
+const isVersionLessThanFive = computed(() => {
+  if (!selectedEspIdfVersion.value || !selectedEspIdfVersion.value.version) {
+    return false;
+  }
+
+  const versionString = selectedEspIdfVersion.value.version.match(
+    /(\d+\.\d+\.\d+|\d+\.\d+)/
+  );
+  if (!versionString) {
+    return false;
+  }
+
+  const version = versionString[0].split(".").map((num) => parseInt(num));
+  if (version[0] < 5) {
+    return true;
+  } else if (version[0] === 5 && version[1] === 0 && version[2] === 0) {
+    return true;
+  }
+
+  return false;
+});
+
+const hasWhitespaceInEspIdf = computed(() => {
+  return /\s/.test(espIdf.value);
+});
+
+const hasWhitespaceInEspIdfContainer = computed(() => {
+  return /\s/.test(espIdfContainer.value);
+});
+
+const isInstallDisabled = computed(() => {
+  return (
+    hasToolsWhitespace.value ||
+    (selectedEspIdfVersion.value.filename !== "manual" &&
+      isVersionLessThanFive.value &&
+      hasWhitespaceInEspIdfContainer.value) ||
+    !espIdf.value ||
+    !espIdfContainer.value ||
+    !toolsFolder.value
+  );
+});
+
+watchEffect(() => {
+  if (!hasWhitespaceInEspIdf.value) {
+    store.whiteSpaceErrorIDF = "";
+  }
+  if (!hasWhitespaceInEspIdfContainer.value) {
+    store.whiteSpaceErrorIDFContainer = "";
+  }
+  if (!hasToolsWhitespace.value) {
+    store.whiteSpaceErrorTools = "";
+  }
 });
 
 function setEspIdfErrorStatus() {
@@ -42,6 +103,20 @@ function setToolsFolder(newToolsPath: string) {
 
 <template>
   <div id="install">
+    <div class="notification is-danger error-message" v-if="espIdfErrorStatus">
+      <p>{{ espIdfErrorStatus }}</p>
+      <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
+        <IconClose />
+      </div>
+    </div>
+
+    <div class="notification is-danger error-message" v-if="pyExecErrorStatus">
+      <p>{{ pyExecErrorStatus }}</p>
+      <div class="icon is-large is-size-4" @click="setPyExecErrorStatus">
+        <IconClose />
+      </div>
+    </div>
+
     <div class="notification">
       <div class="field" v-if="isNotWinPlatform && gitVersion">
         <label data-config-id="git-version"
@@ -49,17 +124,7 @@ function setToolsFolder(newToolsPath: string) {
         >
       </div>
 
-      <selectEspIdf></selectEspIdf>
-
-      <div
-        class="notification is-danger error-message"
-        v-if="espIdfErrorStatus"
-      >
-        <p>{{ espIdfErrorStatus }}</p>
-        <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
-          <IconClose />
-        </div>
-      </div>
+      <selectEspIdf />
 
       <folderOpen
         propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH):"
@@ -68,17 +133,15 @@ function setToolsFolder(newToolsPath: string) {
         :openMethod="store.openEspIdfToolsFolder"
       />
 
-      <selectPyVersion v-if="isNotWinPlatform"></selectPyVersion>
-
-      <div
-        class="notification is-danger error-message"
-        v-if="pyExecErrorStatus"
-      >
-        <p>{{ pyExecErrorStatus }}</p>
-        <div class="icon is-large is-size-4" @click="setPyExecErrorStatus">
-          <IconClose />
-        </div>
+      <div v-if="hasToolsWhitespace" class="notification is-danger">
+        White spaces are not allowed in the ESP-IDF Tools path.
       </div>
+
+      <div v-if="!toolsFolder" class="notification is-danger">
+        ESP-IDF Tools path should not be empty.
+      </div>
+
+      <selectPyVersion v-if="isNotWinPlatform" />
 
       <div class="field install-btn">
         <div class="control">
@@ -86,6 +149,7 @@ function setToolsFolder(newToolsPath: string) {
             @click="store.installEspIdf"
             class="button"
             data-config-id="start-install-btn"
+            :disabled="isInstallDisabled"
           >
             {{ actionButtonText }}
           </button>

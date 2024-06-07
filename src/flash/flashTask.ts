@@ -28,19 +28,23 @@ import { ESP } from "../config";
 
 export class FlashTask {
   public static isFlashing: boolean;
-  private workspaceUri: vscode.Uri;
+  private currentWorkspace: vscode.Uri;
   private flashScriptPath: string;
   private model: FlashModel;
   private buildDirPath: string;
   private encryptPartitions: boolean;
+  private idfPathDir: string;
+  private pythonBinPath: string;
+  private modifiedEnv: { [key: string]: string };
+  private processOptions: vscode.ProcessExecutionOptions;
 
   constructor(
-    workspace: vscode.Uri,
+    workspaceUri: vscode.Uri,
     idfPath: string,
     model: FlashModel,
-    encryptPartitions: boolean
+    encryptPartitions: boolean,
   ) {
-    this.workspaceUri = workspace;
+    this.currentWorkspace = workspaceUri;
     this.flashScriptPath = join(
       idfPath,
       "components",
@@ -51,9 +55,22 @@ export class FlashTask {
     this.model = model;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
-      workspace
+      workspaceUri
     ) as string;
     this.encryptPartitions = encryptPartitions;
+    this.idfPathDir = idfConf.readParameter(
+      "idf.espIdfPath",
+      this.currentWorkspace
+    ) as string;
+    this.pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      this.currentWorkspace
+    ) as string;
+    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+    this.processOptions = {
+      cwd: this.buildDirPath,
+      env: this.modifiedEnv,
+    };
   }
 
   public flashing(flag: boolean) {
@@ -83,17 +100,17 @@ export class FlashTask {
     this.verifyArgs();
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
-      this.workspaceUri
+      this.currentWorkspace
     ) as string;
-    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-      (w) => w.uri === this.workspaceUri
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
     );
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
       notificationMode === idfConf.NotificationMode.Output
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
-    let flashExecution: vscode.ShellExecution | vscode.ProcessExecution;
+    let flashExecution: vscode.ProcessExecution;
     switch (flashType) {
       case "UART":
         flashExecution = this._flashExecution();
@@ -112,7 +129,7 @@ export class FlashTask {
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Flash", taskId: "idf-flash-task" },
-      curWorkspaceFolder || vscode.TaskScope.Workspace,
+      currentWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Flash",
       flashExecution,
       ["espIdf"],
@@ -122,49 +139,39 @@ export class FlashTask {
 
   public _flashExecution() {
     this.flashing(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceUri);
     const flasherArgs = this.getFlasherArgs(this.flashScriptPath);
-    const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDirPath,
-      env: modifiedEnv,
-    };
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      this.workspaceUri
-    ) as string;
-    return new vscode.ProcessExecution(pythonBinPath, flasherArgs, options);
+    return new vscode.ProcessExecution(this.pythonBinPath, flasherArgs, this.processOptions);
   }
 
   public _dfuFlashing() {
     this.flashing(true);
     const selectedDfuPath = idfConf.readParameter(
       "idf.selectedDfuDevicePath",
-      this.workspaceUri
+      this.currentWorkspace
     );
     const listDfuDevices = idfConf.readParameter(
       "idf.listDfuDevices",
-      this.workspaceUri
+      this.currentWorkspace
     );
     if (listDfuDevices.length > 1) {
-      const idfPathDir = idfConf.readParameter(
-        "idf.espIdfPath",
-        this.workspaceUri
-      ) as string;
-      const pythonPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        this.workspaceUri
-      ) as string;
-      const idfPy = path.join(idfPathDir, "tools", "idf.py");
-      return new vscode.ShellExecution(
-        `${pythonPath} ${idfPy} dfu-flash --path ${selectedDfuPath}`
-      );
+      const pythonCommand = this.pythonBinPath;
+      const idfPy = path.join(this.idfPathDir, "tools", "idf.py");
+      const args = [
+        idfPy,
+        'dfu-flash',
+        '--path',
+        selectedDfuPath
+      ];
+      return new vscode.ProcessExecution(pythonCommand, args, this.processOptions);
     }
-    return new vscode.ShellExecution(
-      `dfu-util -d 303a:${selectedDFUAdapterId(this.model.chip)} -D ${join(
-        this.buildDirPath,
-        "dfu.bin"
-      )}`
-    );
+    const dfuCommand = "dfu-util";
+    const args =  [
+      "-d",
+      `303a:${Number(selectedDFUAdapterId(this.model.chip)).toString(16)}`,
+      "-D",
+      join(this.buildDirPath, "dfu.bin")
+    ];
+    return new vscode.ProcessExecution(dfuCommand, args, this.processOptions);
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {

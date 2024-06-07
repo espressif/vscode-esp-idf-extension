@@ -28,23 +28,35 @@ import { selectedDFUAdapterId } from "../flash/dfu";
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirPath: string;
-  private curWorkspace: vscode.Uri;
+  private currentWorkspace: vscode.Uri;
   private idfPathDir: string;
   private adapterTargetName: string;
+  private processOptions: vscode.ProcessExecutionOptions;
+  private modifiedEnv: { [key: string]: string };
+  private pythonBinPath: string;
 
-  constructor(workspace: vscode.Uri) {
-    this.curWorkspace = workspace;
+  constructor(workspaceUri: vscode.Uri) {
+    this.currentWorkspace = workspaceUri;
     this.idfPathDir = idfConf.readParameter(
       "idf.espIdfPath",
-      workspace
+      workspaceUri
     ) as string;
     this.adapterTargetName = idfConf.readParameter(
       "idf.adapterTargetName",
-      workspace
+      workspaceUri
     ) as string;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
-      workspace
+      workspaceUri
+    ) as string;
+    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+    this.processOptions = {
+      cwd: this.buildDirPath,
+      env: this.modifiedEnv,
+    };
+    this.pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceUri
     ) as string;
   }
 
@@ -55,43 +67,11 @@ export class BuildTask {
   private async saveBeforeBuild() {
     const shallSaveBeforeBuild = idfConf.readParameter(
       "idf.saveBeforeBuild",
-      this.curWorkspace
+      this.currentWorkspace
     );
     if (shallSaveBeforeBuild) {
       await vscode.workspace.saveAll();
     }
-  }
-
-  public getShellExecution(
-    args: string[],
-    options?: vscode.ShellExecutionOptions
-  ) {
-    return new vscode.ShellExecution(`cmake ${args.join(" ")}`, options);
-  }
-
-  public getNinjaShellExecution(
-    args: string[],
-    options?: vscode.ShellExecutionOptions
-  ) {
-    return new vscode.ShellExecution(`ninja ${args.join(" ")}`, options);
-  }
-
-  public dfuShellExecution(options?: vscode.ShellExecutionOptions) {
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      this.curWorkspace
-    ) as string;
-    return new vscode.ShellExecution(
-      `${pythonBinPath} ${join(
-        this.idfPathDir,
-        "tools",
-        "mkdfu.py"
-      )} write -o ${join(this.buildDirPath, "dfu.bin")} --json ${join(
-        this.buildDirPath,
-        "flasher_args.json"
-      )} --pid ${selectedDFUAdapterId(this.adapterTargetName)}`,
-      options
-    );
   }
 
   public async build() {
@@ -107,17 +87,16 @@ export class BuildTask {
       throw new Error("ALREADY_BUILDING");
     }
     this.building(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
     await ensureDir(this.buildDirPath);
     const canAccessCMake = await isBinInPath(
       "cmake",
-      this.curWorkspace.fsPath,
-      modifiedEnv
+      this.currentWorkspace.fsPath,
+      this.modifiedEnv
     );
     const canAccessNinja = await isBinInPath(
       "ninja",
-      this.curWorkspace.fsPath,
-      modifiedEnv
+      this.currentWorkspace.fsPath,
+      this.modifiedEnv
     );
 
     const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
@@ -127,33 +106,13 @@ export class BuildTask {
       throw new Error("CMake or Ninja executables not found");
     }
 
-    const options: vscode.ShellExecutionOptions = {
-      cwd: this.buildDirPath,
-      env: modifiedEnv,
-    };
-    const shellExecutablePath = idfConf.readParameter(
-      "idf.customTerminalExecutable",
-      this.curWorkspace
-    ) as string;
-    const shellExecutableArgs = idfConf.readParameter(
-      "idf.customTerminalExecutableArgs",
-      this.curWorkspace
-    ) as string[];
-    if (shellExecutablePath) {
-      options.executable = shellExecutablePath;
-    }
-
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      options.shellArgs = shellExecutableArgs;
-    }
-
-    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-      (w) => w.uri === this.curWorkspace
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
     );
 
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
-      this.curWorkspace
+      this.currentWorkspace
     ) as string;
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
@@ -164,7 +123,7 @@ export class BuildTask {
     if (!cmakeCacheExists) {
       let compilerArgs = (idfConf.readParameter(
         "idf.cmakeCompilerArgs",
-        this.curWorkspace
+        this.currentWorkspace
       ) as Array<string>) || [
         "-G",
         "Ninja",
@@ -178,7 +137,7 @@ export class BuildTask {
       compilerArgs.push("-B", this.buildDirPath);
 
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push("-S", this.curWorkspace.fsPath);
+        compilerArgs.push("-S", this.currentWorkspace.fsPath);
       }
 
       const sdkconfigDefaults =
@@ -196,7 +155,7 @@ export class BuildTask {
 
       const enableCCache = idfConf.readParameter(
         "idf.enableCCache",
-        this.curWorkspace
+        this.currentWorkspace
       ) as boolean;
       if (enableCCache && compilerArgs && compilerArgs.length) {
         const indexOfCCache = compilerArgs.indexOf("-DCCACHE_ENABLE=1");
@@ -204,7 +163,7 @@ export class BuildTask {
           compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
-      const compileExecution = this.getShellExecution(compilerArgs, options);
+      const compileExecution = new vscode.ProcessExecution(canAccessCMake, compilerArgs, this.processOptions);
       const compilePresentationOptions = {
         reveal: showTaskOutput,
         showReuseMessage: false,
@@ -217,7 +176,7 @@ export class BuildTask {
           command: "ESP-IDF Compile",
           taskId: "idf-compile-task",
         },
-        curWorkspaceFolder || vscode.TaskScope.Workspace,
+        currentWorkspaceFolder || vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
         ["espIdf"],
@@ -227,10 +186,11 @@ export class BuildTask {
     }
 
     const buildArgs =
-      (idfConf.readParameter("idf.ninjaArgs", this.curWorkspace) as Array<
+      (idfConf.readParameter("idf.ninjaArgs", this.currentWorkspace) as Array<
         string
       >) || [];
-    const buildExecution = this.getNinjaShellExecution(buildArgs, options);
+    const ninjaCommand = "ninja";
+    const buildExecution = new vscode.ProcessExecution(ninjaCommand, buildArgs, this.processOptions);
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -239,7 +199,7 @@ export class BuildTask {
     } as vscode.TaskPresentationOptions;
     TaskManager.addTask(
       { type: "esp-idf", command: "ESP-IDF Build", taskId: "idf-build-task" },
-      curWorkspaceFolder || vscode.TaskScope.Workspace,
+      currentWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
       ["espIdf"],
@@ -249,36 +209,16 @@ export class BuildTask {
 
   public async buildDfu() {
     this.building(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
+    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
     await ensureDir(this.buildDirPath);
 
-    const options: vscode.ShellExecutionOptions = {
-      cwd: this.curWorkspace.fsPath,
-      env: modifiedEnv,
-    };
-
-    const shellExecutablePath = idfConf.readParameter(
-      "idf.customTerminalExecutable",
-      this.curWorkspace
-    ) as string;
-    const shellExecutableArgs = idfConf.readParameter(
-      "idf.customTerminalExecutableArgs",
-      this.curWorkspace
-    ) as string[];
-    if (shellExecutablePath) {
-      options.executable = shellExecutablePath;
-    }
-    if (shellExecutableArgs && shellExecutableArgs.length) {
-      options.shellArgs = shellExecutableArgs;
-    }
-
-    const curWorkspaceFolder = vscode.workspace.workspaceFolders.find(
-      (w) => w.uri === this.curWorkspace
+    const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
+      (w) => w.uri === this.currentWorkspace
     );
 
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
-      this.curWorkspace
+      this.currentWorkspace
     ) as string;
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
@@ -286,7 +226,17 @@ export class BuildTask {
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
 
-    const writeExecution = this.dfuShellExecution(options);
+    const args = [
+      join(this.idfPathDir, "tools", "mkdfu.py"),
+      "write",
+      "-o",
+      join(this.buildDirPath, "dfu.bin"),
+      "--json",
+      join(this.buildDirPath, "flasher_args.json"),
+      "--pid",
+      selectedDFUAdapterId(this.adapterTargetName)
+    ];
+    const writeExecution = new vscode.ProcessExecution(this.pythonBinPath, args, this.processOptions);
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -299,7 +249,7 @@ export class BuildTask {
         command: "ESP-IDF Write DFU.bin",
         taskId: "idf-write-dfu-task",
       },
-      curWorkspaceFolder || vscode.TaskScope.Workspace,
+      currentWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Write DFU.bin",
       writeExecution,
       ["espIdf"],

@@ -31,10 +31,11 @@ function deviceLabel(selectedDevice: string) {
   return "ESP32-S3";
 }
 
-export async function getDfuList(workspace: vscode.Uri) {
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+export async function getDfuList(workspaceUri: vscode.Uri) {
+  const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
   return await execChildProcess(
-    "dfu-util --list",
+    "dfu-util",
+    ["--list"],
     process.cwd(),
     OutputChannel.init(),
     {
@@ -64,14 +65,14 @@ export async function listAvailableDfuDevices(text) {
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
- export function selectedDFUAdapterId(chip: string): number {
+ export function selectedDFUAdapterId(chip: string): string {
   switch (chip) {
     case "esp32s2":
-      return 2;
+      return "2";
     case "esp32s3":
-      return 9;
+      return "9";
     default:
-      return -1;
+      return "-1";
   }
 }
 

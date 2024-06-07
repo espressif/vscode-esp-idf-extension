@@ -32,7 +32,8 @@ export async function jtagFlashCommand(workspace: Uri) {
   let continueFlag = true;
   const isOpenOCDLaunched = await OpenOCDManager.init().promptUserToLaunchOpenOCDServer();
   if (!isOpenOCDLaunched) {
-    const errStr = "Can't perform JTag flash, because OpenOCD server is not running!";
+    const errStr =
+      "Can't perform JTag flash, because OpenOCD server is not running!";
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
@@ -57,7 +58,11 @@ export async function jtagFlashCommand(workspace: Uri) {
     customTask.addCustomTask(CustomTaskType.PreFlash);
     await customTask.runTasks(CustomTaskType.PreFlash);
     await jtag.flash(
-      `program_esp_bins ${buildPath} flasher_args.json verify reset`
+      "program_esp_bins",
+      buildPath,
+      "flasher_args.json",
+      "verify",
+      "reset"
     );
     customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);

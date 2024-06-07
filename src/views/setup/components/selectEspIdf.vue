@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useSetupStore } from "../store";
 import { IdfMirror } from "../types";
 import folderOpen from "./folderOpen.vue";
-import { computed } from "vue";
+import { computed, watchEffect } from "vue";
 
 const store = useSetupStore();
 
@@ -22,7 +22,7 @@ const {
 } = storeToRefs(store);
 
 const idfVersionList = computed(() => {
-  if (showIdfTagList) {
+  if (showIdfTagList.value) {
     const idfVersionWithTagsList = [...espIdfVersionList.value];
     for (const idfTag of espIdfTags.value) {
       const existingVersion = espIdfVersionList.value.find(
@@ -53,6 +53,60 @@ const resultingIdfPath = computed(() => {
   return `${selectedEspIdfVersion.value.version.replace("release/", "")}${
     store.pathSep
   }esp-idf`;
+});
+
+const isVersionLessThanFive = computed(() => {
+  if (!selectedEspIdfVersion.value || !selectedEspIdfVersion.value.version) {
+    return false;
+  }
+
+  const versionString = selectedEspIdfVersion.value.version.match(
+    /(\d+\.\d+\.\d+|\d+\.\d+)/
+  );
+  if (!versionString) {
+    return false;
+  }
+
+  const version = versionString[0].split(".").map((num) => parseInt(num));
+  if (version[0] < 5) {
+    return true;
+  } else if (version[0] === 5 && version[1] === 0 && version[2] === 0) {
+    return true;
+  }
+
+  return false;
+});
+
+const hasWhitespaceInEspIdf = computed(() => {
+  return /\s/.test(espIdf.value);
+});
+
+const hasWhitespaceInEspIdfContainer = computed(() => {
+  return /\s/.test(espIdfContainer.value);
+});
+
+const isPathEmpty = computed(() => {
+  if (selectedEspIdfVersion.value.filename === "manual") {
+    return !espIdf.value;
+  } else {
+    return !espIdfContainer.value;
+  }
+});
+
+const showManualVersionWarning = computed(() => {
+  return (
+    selectedEspIdfVersion.value.filename === "manual" &&
+    hasWhitespaceInEspIdf.value
+  );
+});
+
+watchEffect(() => {
+  if (!hasWhitespaceInEspIdf.value) {
+    store.whiteSpaceErrorIDF = "";
+  }
+  if (!hasWhitespaceInEspIdfContainer.value) {
+    store.whiteSpaceErrorIDFContainer = "";
+  }
 });
 </script>
 
@@ -120,6 +174,24 @@ const resultingIdfPath = computed(() => {
         selectedEspIdfVersion && selectedEspIdfVersion.filename !== 'manual'
       "
     />
+    <div v-if="showManualVersionWarning" class="notification is-warning">
+      Make sure the ESP-IDF version is not lower than 5.0, since white spaces
+      are not supported for earlier versions.
+    </div>
+    <div
+      v-if="
+        selectedEspIdfVersion &&
+        selectedEspIdfVersion.filename !== 'manual' &&
+        isVersionLessThanFive &&
+        hasWhitespaceInEspIdfContainer
+      "
+      class="notification is-danger"
+    >
+      White spaces are only supported for ESP-IDF path for versions > 5.0.
+    </div>
+    <div v-if="isPathEmpty" class="notification is-danger">
+      ESP-IDF path should not be empty.
+    </div>
   </div>
 </template>
 

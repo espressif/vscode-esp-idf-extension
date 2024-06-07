@@ -20,11 +20,17 @@ import { TCLClient } from "../espIdf/openOcd/tcl/tclClient";
 
 export class JTAGFlash {
   constructor(private readonly client: TCLClient) {}
-  async flash(command: string) {
+
+  async flash(command: string, ...args: string[]) {
+    const fullCommand = `${command} ${args.map((arg) => `"${arg}"`).join(" ")}`;
+
     return new Promise((resolve, reject) => {
       this.client
         .on("response", (data) => {
-          const response = data.toString().replace("\x1a", "").trim();
+          const response = data
+            .toString()
+            .replace(TCLClient.DELIMITER, "")
+            .trim();
           if (response !== "0") {
             return reject(
               `Failed to flash the device (JTag), please try again [got response: '${response}', expecting: '0']`
@@ -39,7 +45,7 @@ export class JTAGFlash {
             "Failed to flash (via JTag), due to some unknown error in tcl, please try to relaunch open-ocd"
           );
         })
-        .sendCommand(command);
+        .sendCommand(fullCommand);
     });
   }
 }

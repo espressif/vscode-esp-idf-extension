@@ -64,7 +64,8 @@ export async function checkRequirements(
   );
   modifiedEnv.IDF_PATH = reportedResult.configurationSettings.espIdfPath;
   const requirementsResult = await execChildProcess(
-    `${reportedResult.configurationSettings.pythonBinPath} ${checkPythonDepsScript} -r "${requirementsPath}"`,
+    reportedResult.configurationSettings.pythonBinPath,
+    [checkPythonDepsScript, "-r", requirementsPath],
     context.extensionPath,
     { env: modifiedEnv, cwd: context.extensionPath }
   );
