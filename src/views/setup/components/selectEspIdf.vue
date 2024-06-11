@@ -119,7 +119,7 @@ watchEffect(() => {
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfMirror" @change="clearIDfErrorStatus">
-            <option :value="idfMirror.Espressif">Espressif</option>
+            <option :value="idfMirror.Espressif">Espressif (Better speed for China)</option>
             <option :value="idfMirror.Github">Github</option>
           </select>
         </div>

@@ -337,7 +337,8 @@ export class SetupPanel {
     if (
       errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1 ||
       errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1 ||
-      errMsg.indexOf("IDF_TOOLS_PATH_WITH_SPACES") !== -1
+      errMsg.indexOf("IDF_TOOLS_PATH_WITH_SPACES") !== -1 ||
+      errMsg.indexOf("ERROR_SAME_IDF_PATH_AND__IDF_TOOLS_PATH") !== -1
     ) {
       SetupPanel.postMessage({
         command: "setEspIdfErrorStatus",
@@ -436,13 +437,16 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          const pathToCheck =
+          const idfPathToCheck =
             selectedIdfVersion.filename === "manual"
               ? espIdfPath
               : idfContainerPath;
-          this.checkSpacesInPaths(
-            toolsPath,
-          );
+          this.checkSpacesInPaths(toolsPath);
+
+          if (idfPathToCheck === toolsPath) {
+            const idfPathSameIdfToolsPathMsg = `IDF_PATH and IDF_TOOLS_PATH can't be the same. Please use another location. (ERROR_SAME_IDF_PATH_AND__IDF_TOOLS_PATH)`;
+            throw new Error(idfPathSameIdfToolsPathMsg);
+          }
           await expressInstall(
             selectedIdfVersion,
             idfPythonPath,
@@ -572,14 +576,12 @@ export class SetupPanel {
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
           }
-          this.checkSpacesInPaths(
-            toolsPath,
-          );
+          this.checkSpacesInPaths(toolsPath);
           await downloadIdfTools(
             idfPath,
             toolsPath,
-            pyPath,
-            gitPath,
+            idfPythonPath,
+            idfGitPath,
             mirror,
             saveScope,
             workspaceFolderUri,
@@ -696,9 +698,7 @@ export class SetupPanel {
     }
   }
 
-  private checkSpacesInPaths(
-    idfToolsPath: string,
-  ) {
+  private checkSpacesInPaths(idfToolsPath: string) {
     const doesIdfToolsPathHasSpaces = checkSpacesInPath(idfToolsPath);
     let pathHasSpaces = "";
     if (doesIdfToolsPathHasSpaces) {
