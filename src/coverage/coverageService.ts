@@ -176,8 +176,11 @@ export async function previewReport(dirPath: vscode.Uri) {
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {
-    const msg = e.message ? e.message : e;
-    Logger.error("Error building gcov html.\n" + msg, e);
+    const msg = e && e.message ? e.message : e;
+    Logger.errorNotify(
+      "Error building gcov html.\nCheck the ESP-IDF output for more details.",
+      e
+    );
     OutputChannel.appendLine("Error building gcov html.\n" + msg);
   }
 }

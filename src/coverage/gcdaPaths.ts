@@ -73,13 +73,13 @@ export async function getGcovData(workspaceFolder: Uri) {
       },
       (err, stdout, stderr) => {
         if (err) {
-          const msg = err.message ? err.message : err;
+          const msg = err && err.message ? err.message : err;
           Logger.error(`exec error: ${msg}`, err);
-          return reject();
+          return reject(err);
         }
         const output = [];
         if (!stdout) {
-          return reject();
+          return reject(stderr);
         }
         const parts = stdout.toString().split("\n");
         for (const part of parts) {
