@@ -1894,6 +1894,14 @@ export async function activate(context: vscode.ExtensionContext) {
           ConfserverProcess.loadExistingInstance();
           return;
         }
+        const isIdfProject = utils.checkIsProjectCmakeLists(
+          workspaceRoot.fsPath
+        );
+        if (!isIdfProject) {
+          Logger.infoNotify(
+            vscode.l10n.t("The current directory is not an ESP-IDF project.")
+          );
+        }
         const notificationMode = idfConf.readParameter(
           "idf.notificationMode",
           workspaceRoot

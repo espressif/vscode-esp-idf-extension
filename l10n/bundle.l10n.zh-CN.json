@@ -59,6 +59,7 @@
   "ESP-IDF container files have been added to the project.": "ESP-IDF 容器文件已添加到项目中。",
   "Enter ESP-IDF component name": "输入 ESP-IDF 组件名称",
   "The ESP-IDF component {componentName} has been created": "ESP-IDF 组件 {componentName} 已创建",
+  "The current directory is not an ESP-IDF project.": "当前目录不是ESP-IDF项目",
   "ESP-IDF: SDK Configuration Editor": "ESP-IDF：SDK 配置编辑器",
   "ESP-IDF: Save Default Configuration (save-defconfig)": "ESP-IDF：保存默认配置 (save-defconfig)",
   "Enter target name (IDF_TARGET)": "输入目标名称 (IDF_TARGET)",

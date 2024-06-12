@@ -59,6 +59,7 @@
   "ESP-IDF container files have been added to the project.": "Se han agregado archivos contenedores ESP-IDF al proyecto.",
   "Enter ESP-IDF component name": "Ingrese el nombre del componente ESP-IDF",
   "The ESP-IDF component {componentName} has been created": "Se ha creado el componente ESP-IDF {componentName}",
+  "The current directory is not an ESP-IDF project.": "El directorio actual no es un proyecto ESP-IDF.",
   "ESP-IDF: SDK Configuration Editor": "ESP-IDF: Editor de configuración del SDK",
   "ESP-IDF: Save Default Configuration (save-defconfig)": "ESP-IDF: Guardar configuración predeterminada (save-defconfig)",
   "Enter target name (IDF_TARGET)": "Introduzca el nombre del objetivo (IDF_TARGET)",
