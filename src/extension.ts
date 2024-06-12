@@ -1902,6 +1902,7 @@ export async function activate(context: vscode.ExtensionContext) {
           Logger.infoNotify(
             vscode.l10n.t("The current directory is not an ESP-IDF project.")
           );
+          return;
         }
         const notificationMode = idfConf.readParameter(
           "idf.notificationMode",
