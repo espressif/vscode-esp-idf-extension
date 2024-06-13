@@ -317,6 +317,11 @@ export const useSetupStore = defineStore("setup", () => {
     moveToPySection();
   }
 
+  function setSelectedDownloadMirror(mirror: IdfMirror) {
+    selectedIdfMirror.value =
+      mirror === IdfMirror.Espressif ? IdfMirror.Espressif : IdfMirror.Github;
+  }
+
   function moveToPySection() {
     let content = document.getElementById("espidftools") as HTMLDivElement;
     if (content) {
@@ -427,6 +432,7 @@ export const useSetupStore = defineStore("setup", () => {
     setStatusIdfGit,
     setStatusIdfPython,
     setIdfPythonPercentage,
+    setSelectedDownloadMirror,
     exploreComponents,
     openImportProject,
     openNewProjectPanel,
