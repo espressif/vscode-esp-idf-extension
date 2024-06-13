@@ -57,7 +57,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       workspace
     ) as string;
     const version = await utils.getEspIdfFromCMake(espIdfPath);
-  
+
     if (utils.compareVersion(version.trim(), "5.0") === -1) {
       this.data.push(
         new ErrorHint(
@@ -68,20 +68,20 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       this._onDidChangeTreeData.fire();
       return false;
     }
-  
+
     const hintsPath = getHintsYmlPath(espIdfPath);
-  
+
     try {
       if (!(await pathExists(hintsPath))) {
         Logger.infoNotify(`${hintsPath} does not exist.`);
         return false;
       }
-  
+
       const fileContents = await readFile(hintsPath, "utf-8");
       const hintsData = yaml.load(fileContents);
-  
+
       const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
-  
+
       this.data = [];
       let meaningfulHintFound = false;
       for (const hintPair of reHintsPairArray) {
@@ -89,14 +89,21 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
           .map((m) => m[1].split("|"))
           .flat()
-          .map(part => part.toLowerCase());
-        if (match || regexParts.some(part => errorMsg.toLowerCase().includes(part))) {
+          .map((part) => part.toLowerCase());
+        if (
+          match ||
+          regexParts.some((part) => errorMsg.toLowerCase().includes(part))
+        ) {
           let finalHint = hintPair.hint;
-          if (match && hintPair.match_to_output && hintPair.hint.includes("{}")) {
+          if (
+            match &&
+            hintPair.match_to_output &&
+            hintPair.hint.includes("{}")
+          ) {
             finalHint = hintPair.hint.replace("{}", match[0]);
           } else if (!match && hintPair.hint.includes("{}")) {
             const matchedSubstring = regexParts.find((part) =>
-                errorMsg.toLowerCase().includes(part.toLowerCase())
+              errorMsg.toLowerCase().includes(part.toLowerCase())
             );
             finalHint = hintPair.hint.replace("{}", matchedSubstring || ""); // Handle case where nothing is matched
           }
@@ -104,13 +111,13 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
           const hint = new ErrorHint(finalHint, "hint");
           error.addChild(hint);
           this.data.push(error);
-  
+
           if (!finalHint.startsWith("No hints found for")) {
             meaningfulHintFound = true;
           }
         }
       }
-  
+
       if (this.data.length === 0) {
         for (const hintPair of reHintsPairArray) {
           if (hintPair.re.toLowerCase().includes(errorMsg.toLowerCase())) {
@@ -118,20 +125,20 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
             const hint = new ErrorHint(hintPair.hint, "hint");
             error.addChild(hint);
             this.data.push(error);
-  
+
             if (!hintPair.hint.startsWith("No hints found for")) {
               meaningfulHintFound = true;
             }
           }
         }
       }
-  
+
       if (!this.data.length) {
         this.data.push(
           new ErrorHint(`No hints found for ${errorMsg}`, "error")
         );
       }
-  
+
       this._onDidChangeTreeData.fire();
       return meaningfulHintFound;
     } catch (error) {
@@ -142,7 +149,6 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       return false;
     }
   }
-  
 
   private loadHints(hintsArray: any): ReHintPair[] {
     let reHintsPairArray: ReHintPair[] = [];
@@ -216,10 +222,41 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   clearErrorHints() {
     this.data = [];
     this._onDidChangeTreeData.fire(); // Notify the view to refresh
-}
+  }
 }
 
 function getHintsYmlPath(espIdfPath: string): string {
   const separator = os.platform() === "win32" ? "\\" : "/";
   return `${espIdfPath}${separator}tools${separator}idf_py_actions${separator}hints.yml`;
+}
+
+export class HintHoverProvider implements vscode.HoverProvider {
+  constructor(private hintProvider: ErrorHintProvider) {}
+
+  provideHover(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.Hover> {
+    const diagnostics = vscode.languages.getDiagnostics(document.uri);
+
+    for (const diagnostic of diagnostics) {
+      const start = diagnostic.range.start;
+      const end = diagnostic.range.end;
+
+      // Check if the position is within or immediately adjacent to the diagnostic range
+      if (
+        diagnostic.severity === vscode.DiagnosticSeverity.Error &&
+        position.line === start.line &&
+        position.character >= start.character - 1 &&
+        position.character <= end.character + 1
+      ) {
+        const hint = this.hintProvider.getHintForError(diagnostic.message);
+        if (hint) {
+          return new vscode.Hover(`ESP-IDF Hint: ${hint}`);
+        }
+      }
+    }
+    return null;
+  }
 }

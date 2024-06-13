@@ -132,7 +132,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
-import { ErrorHintProvider } from "./espIdf/hints/index";
+import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3012,89 +3012,62 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   await checkExtensionSettings(context.extensionPath, workspaceRoot);
 
-  // ERROR HINTS
+  // Hints Viewer
 
-const treeDataProvider = new ErrorHintProvider(context);
-vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
+  const treeDataProvider = new ErrorHintProvider(context);
+  vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
 
-vscode.commands.registerCommand("espIdf.searchError", async () => {
-  const errorMsg = await vscode.window.showInputBox({
-    placeHolder: "Enter the error message",
-  });
-  if (errorMsg) {
-    treeDataProvider.searchError(errorMsg, workspaceRoot);
-    await vscode.commands.executeCommand("errorHints.focus");
-  }
-});
-
-// Function to process diagnostics and update error hints
-const processDiagnostics = async (uri: vscode.Uri) => {
-  const diagnostics = vscode.languages.getDiagnostics(uri);
-  console.log(`Diagnostics for ${uri.fsPath}:`, diagnostics);
-
-  const errorDiagnostics = diagnostics.filter(
-    (d) => d.severity === vscode.DiagnosticSeverity.Error
-  );
-
-  if (errorDiagnostics.length > 0) {
-    const errorMsg = errorDiagnostics[0].message;
-    const meaningfulHintFound = await treeDataProvider.searchError(errorMsg, workspaceRoot);
-    if (meaningfulHintFound) {
+  vscode.commands.registerCommand("espIdf.searchError", async () => {
+    const errorMsg = await vscode.window.showInputBox({
+      placeHolder: "Enter the error message",
+    });
+    if (errorMsg) {
+      treeDataProvider.searchError(errorMsg, workspaceRoot);
       await vscode.commands.executeCommand("errorHints.focus");
     }
-  } else {
-    treeDataProvider.clearErrorHints();
-  }
-};
+  });
 
-// Attach a listener to the diagnostics collection
-context.subscriptions.push(
-  vscode.languages.onDidChangeDiagnostics((event) => {
-    event.uris.forEach((uri) => {
-      processDiagnostics(uri);
-    });
-  })
-);
+  // Function to process diagnostics and update error hints
+  const processDiagnostics = async (uri: vscode.Uri) => {
+    const diagnostics = vscode.languages.getDiagnostics(uri);
 
-// Listen to the active text editor change event
-context.subscriptions.push(
-  vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor) {
-      processDiagnostics(editor.document.uri);
+    const errorDiagnostics = diagnostics.filter(
+      (d) => d.severity === vscode.DiagnosticSeverity.Error
+    );
+
+    if (errorDiagnostics.length > 0) {
+      const errorMsg = errorDiagnostics[0].message;
+      await treeDataProvider.searchError(errorMsg, workspaceRoot);
+    } else {
+      treeDataProvider.clearErrorHints();
     }
-  })
-);
+  };
 
-// Register the HintHoverProvider
-context.subscriptions.push(
-  vscode.languages.registerHoverProvider({ pattern: "**" }, new HintHoverProvider(treeDataProvider))
-);
-}
+  // Attach a listener to the diagnostics collection
+  context.subscriptions.push(
+    vscode.languages.onDidChangeDiagnostics((event) => {
+      event.uris.forEach((uri) => {
+        processDiagnostics(uri);
+      });
+    })
+  );
 
-class HintHoverProvider implements vscode.HoverProvider {
-  constructor(private hintProvider: ErrorHintProvider) {}
-
-  provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
-    const diagnostics = vscode.languages.getDiagnostics(document.uri);
-
-    for (const diagnostic of diagnostics) {
-      const start = diagnostic.range.start;
-      const end = diagnostic.range.end;
-
-      // Check if the position is within or immediately adjacent to the diagnostic range
-      if (
-        diagnostic.severity === vscode.DiagnosticSeverity.Error &&
-        position.line === start.line &&
-        (position.character >= start.character - 1 && position.character <= end.character + 1)
-      ) {
-        const hint = this.hintProvider.getHintForError(diagnostic.message);
-        if (hint) {
-          return new vscode.Hover(`ESP-IDF Hint: ${hint}`);
-        }
+  // Listen to the active text editor change event
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) {
+        processDiagnostics(editor.document.uri);
       }
-    }
-    return null;
-  }
+    })
+  );
+
+  // Register the HintHoverProvider
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      { pattern: "**" },
+      new HintHoverProvider(treeDataProvider)
+    )
+  );
 }
 
 function validateInputForRainmakerDeviceParam(
