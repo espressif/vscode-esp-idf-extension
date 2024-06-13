@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ConfigurationTarget, Progress, StatusBarItem, Uri } from "vscode";
+import { ConfigurationTarget, Progress, StatusBarItem, Uri, env } from "vscode";
 import { IdfToolsManager } from "../idfToolsManager";
 import * as utils from "../utils";
 import { getEspIdfTags, getEspIdfVersions } from "./espIdfVersionList";
-import { IdfSetup, IEspIdfLink } from "../views/setup/types";
+import { IdfMirror, IdfSetup, IEspIdfLink } from "../views/setup/types";
 import { getPythonList } from "./installPyReqs";
 import { pathExists } from "fs-extra";
 import path from "path";
@@ -33,6 +33,7 @@ import { packageJson } from "../utils";
 import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface ISetupInitArgs {
+  downloadMirror: IdfMirror;
   espIdfPath: string;
   espToolsPath: string;
   existingIdfSetups: IdfSetup[];
@@ -134,7 +135,13 @@ export async function getSetupInitialValues(
   const idfSetups = await getPreviousIdfSetups(false);
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
+  const initialDownloadMirror =
+    env.language.toLowerCase().indexOf("zh-cn") !== -1 ||
+    env.language.toLowerCase().indexOf("zh-tw") !== -1
+      ? IdfMirror.Espressif
+      : IdfMirror.Github;
   const setupInitArgs = {
+    downloadMirror: initialDownloadMirror,
     espIdfVersionsList,
     espIdfTagsList,
     extensionVersion,

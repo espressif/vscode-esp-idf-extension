@@ -99,6 +99,9 @@ window.addEventListener("message", (event) => {
       if (typeof msg.saveScope !== "undefined") {
         store.saveScope = msg.saveScope;
       }
+      if (typeof msg.downloadMirror !== "undefined") {
+        store.setSelectedDownloadMirror(msg.downloadMirror);
+      }
       break;
     case "setEspIdfErrorStatus":
       if (typeof msg.errorMsg !== "undefined") {

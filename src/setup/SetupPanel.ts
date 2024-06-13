@@ -216,6 +216,7 @@ export class SetupPanel {
           const pathSep = path.sep;
           this.panel.webview.postMessage({
             command: "initialLoad",
+            downloadMirror: setupArgs.downloadMirror,
             espIdfContainer: defaultEspIdfPathContainer,
             espIdf: setupArgs.espIdfPath,
             extensionVersion: setupArgs.extensionVersion,
