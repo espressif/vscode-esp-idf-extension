@@ -166,7 +166,7 @@ export async function previewReport(dirPath: vscode.Uri) {
       return;
     }
     const gcovObj = await getGcovData(dirPath);
-    const reportHtml = await createGcovHtmlReport(gcovObj);
+    const reportHtml = createGcovHtmlReport(gcovObj);
     gcovHtmlPanel = vscode.window.createWebviewPanel(
       "gcoveragePreview",
       "GCC Code Coverage Report",
@@ -181,6 +181,6 @@ export async function previewReport(dirPath: vscode.Uri) {
       "Error building gcov html.\nCheck the ESP-IDF output for more details.",
       e
     );
-    OutputChannel.appendLine("Error building gcov html.\n" + msg);
+    OutputChannel.appendLine("Error building gcov html from gcda files.\n" + msg);
   }
 }
