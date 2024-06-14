@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { VueLoaderPlugin } = require("vue-loader");
 const webpack = require("webpack");
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const packageConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
@@ -53,22 +53,25 @@ const extensionConfig = {
       },
       {
         test: /node-gyp-build\.js$/,
-        loader: 'string-replace-loader',
+        loader: "string-replace-loader",
         options: {
           search: /path\.join\(dir, 'prebuilds'/g,
           replace: "path.join(__dirname, 'prebuilds'",
-        }
-      }
+        },
+      },
     ],
   },
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "./node_modules/@serialport/bindings-cpp/prebuilds"),
-          to: path.resolve(__dirname, "./dist/prebuilds")
-        }
-      ]
+          from: path.resolve(
+            __dirname,
+            "./node_modules/@serialport/bindings-cpp/prebuilds"
+          ),
+          to: path.resolve(__dirname, "./dist/prebuilds"),
+        },
+      ],
     }),
   ],
   resolve: {
@@ -126,6 +129,13 @@ const webViewConfig = {
       "main.ts"
     ),
     welcomePage: path.resolve(__dirname, "src", "views", "welcome", "main.ts"),
+    troubleshoot: path.resolve(
+      __dirname,
+      "src",
+      "views",
+      "troubleshoot",
+      "main.ts"
+    ),
   },
   output: {
     path: path.resolve(__dirname, "dist", "views"),
@@ -208,7 +218,6 @@ const webViewConfig = {
     compress: true,
     port: 9000,
   },
-  
 };
 
 module.exports = [extensionConfig, webViewConfig];

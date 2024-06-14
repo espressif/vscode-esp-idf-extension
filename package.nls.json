@@ -33,6 +33,7 @@
   "espIdf.customTask.title": "Execute Custom Task",
   "espIdf.disposeConfserverProcess.title": "Dispose Current SDK Configuration Editor Server Process",
   "espIdf.doctorCommand.title": "Doctor Command",
+	"espIdf.troubleshootPanel.title": "ESP-IDF: Troubleshoot Form",
   "espIdf.efuse.clearResults.title": "Clear eFuse Summary",
   "espIdf.eraseFlash.title": "Erase Flash Memory from Device",
   "espIdf.examples.title": "Show Examples Projects",

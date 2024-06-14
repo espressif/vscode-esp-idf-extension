@@ -150,6 +150,7 @@ import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvid
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
+import { TroubleshootingPanel } from "./support/troubleshootPanel";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2752,10 +2753,17 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           const reportOutput = await writeTextReport(reportedResult, context);
           await vscode.env.clipboard.writeText(reportOutput);
+          await vscode.window.showTextDocument(
+            vscode.Uri.file(path.join(context.extensionPath, "report.txt"))
+          );
           return reportedResult;
         }
       }
     );
+  });
+
+  registerIDFCommand("espIdf.troubleshootPanel", async () => {
+    TroubleshootingPanel.createOrShow(context, workspaceRoot);
   });
 
   registerIDFCommand(

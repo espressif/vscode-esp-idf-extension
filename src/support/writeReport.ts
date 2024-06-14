@@ -230,7 +230,6 @@ export function replaceUserPath(report: reportObj): reportObj {
     re = new RegExp(result, "g");
   }
   const parsedReport = strReport.replace(re, "<HOMEPATH>");
-  Logger.warnNotify(parsedReport, { tag: "DOCTOR COMMAND" });
 
   return JSON.parse(parsedReport);
 }

@@ -1260,6 +1260,10 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.troubleshootPanel",
+        "title": "%espIdf.troubleshootPanel.title%"
+      },
+      {
         "command": "espIdf.createNewComponent",
         "title": "%espIdf.createNewComponent.title%",
         "category": "ESP-IDF"

@@ -33,6 +33,7 @@
 	"espIdf.customTask.title": "执行自定义任务",
 	"espIdf.disposeConfserverProcess.title": "释放当前 SDK 配置编辑器服务器进程",
 	"espIdf.doctorCommand.title": "诊断命令",
+	"espIdf.troubleshootPanel.title": "ESP-IDF：疑难解答表格",
 	"espIdf.efuse.clearResults.title": "清除 eFuse 摘要",
 	"espIdf.eraseFlash.title": "擦除设备的闪存",
 	"espIdf.examples.title": "显示示例项目",

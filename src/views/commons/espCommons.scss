@@ -91,7 +91,7 @@ button > span.icon > i:hover {
   color: var(--vscode-input-placeholderForeground);
 }
 .select select:hover,
-.textarea,
+.textarea:hover,
 .input:hover {
   border-color: var(--vscode-inputOption-activeBorder) !important;
 }
