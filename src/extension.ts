@@ -1476,7 +1476,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.genCoverage", () => {
     return PreCheck.perform([openFolderCheck], async () => {
-      await covRenderer.renderCoverage();
+      try {
+        await covRenderer.renderCoverage();
+      } catch (e) {
+        const msg = e && e.message ? e.message : e;
+        Logger.errorNotify(
+          "Error building gcov data.\nCheck the ESP-IDF output for more details.",
+          e
+        );
+        OutputChannel.appendLine("Error building gcov data fro gcda files.\n" + msg);
+      }
     });
   });
 
