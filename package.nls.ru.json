@@ -78,7 +78,6 @@
 	"espIdf.selectNotificationMode.title": "Выберите режим вывода и уведомления",
 	"espIdf.selectOpenOcdConfigFiles.title": "Выберите конфигурацию платы OpenOCD",
 	"espIdf.selectPort.title": "Выберите порт для использования (COM, tty, usbserial)",
-	"espIdf.setDefaultConfig.title": "Установить файл SDKConfig по умолчанию в проекте",
 	"espIdf.setGcovConfig.title": "Настройка Project SDKConfig для покрытия",
 	"espIdf.setMatterDevicePath.title": "Установите путь к устройству ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
 	"espIdf.setPath.title": "Настроить пути",

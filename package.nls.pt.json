@@ -78,7 +78,6 @@
 	"espIdf.selectNotificationMode.title": "Selecione o modo de saída e notificação",
 	"espIdf.selectOpenOcdConfigFiles.title": "Selecione a configuração da placa OpenOCD",
 	"espIdf.selectPort.title": "Selecione a porta a ser usada (COM, tty, usbserial)",
-	"espIdf.setDefaultConfig.title": "Definir arquivo SDKConfig padrão no projeto",
 	"espIdf.setGcovConfig.title": "Configurar o projeto SDKConfig para cobertura",
 	"espIdf.setMatterDevicePath.title": "Definir caminho do dispositivo ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
 	"espIdf.setPath.title": "Configurar caminhos",

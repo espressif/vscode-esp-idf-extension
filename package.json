@@ -62,7 +62,6 @@
     "onCommand:espIdf.configDevice",
     "onCommand:espIdf.menuconfig.start",
     "onCommand:espIdf.cmakeListsEditor.start",
-    "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
     "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
@@ -1014,11 +1013,6 @@
       {
         "command": "espIdf.cmakeListsEditor.start",
         "title": "%espIdf.cmakeListsEditor.start.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.setDefaultConfig",
-        "title": "%espIdf.setDefaultConfig.title%",
         "category": "ESP-IDF"
       },
       {
