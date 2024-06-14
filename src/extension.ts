@@ -1485,7 +1485,9 @@ export async function activate(context: vscode.ExtensionContext) {
           "Error building gcov data.\nCheck the ESP-IDF output for more details.",
           e
         );
-        OutputChannel.appendLine("Error building gcov data fro gcda files.\n" + msg);
+        OutputChannel.appendLine(
+          "Error building gcov data fro gcda files.\n" + msg
+        );
       }
     });
   });
