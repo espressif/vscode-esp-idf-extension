@@ -33,6 +33,7 @@
 	"espIdf.customTask.title": "Выполнить пользовательскую задачу",
 	"espIdf.disposeConfserverProcess.title": "Удалить текущий серверный процесс редактора конфигурации SDK",
 	"espIdf.doctorCommand.title": "Доктор Команда",
+	"espIdf.troubleshootPanel.title": "ESP-IDF: форма устранения неполадок",
 	"espIdf.efuse.clearResults.title": "Очистить сводку eFuse",
 	"espIdf.eraseFlash.title": "Очистить флэш-память с устройства",
 	"espIdf.examples.title": "Показать примеры проектов",

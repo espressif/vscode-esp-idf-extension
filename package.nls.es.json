@@ -33,6 +33,7 @@
 	"espIdf.customTask.title": "Ejecutar tarea personalizada",
 	"espIdf.disposeConfserverProcess.title": "Disponer proceso del servidor actual del editor de configuración SDK",
 	"espIdf.doctorCommand.title": "Comando de Doctor",
+	"espIdf.troubleshootPanel.title": "ESP-IDF: Formulario de solución de problemas",
 	"espIdf.efuse.clearResults.title": "Limpiar resumen de efuse",
 	"espIdf.eraseFlash.title": "Borrar memoria Flash del dispositivo",
 	"espIdf.examples.title": "Mostrar proyectos de ejemplo",
