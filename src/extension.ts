@@ -150,6 +150,7 @@ import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvid
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
+import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3079,6 +3080,7 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error(idfMonitorToolPath + " is not defined")
           );
         }
+        await installWebsocketClient(workspaceRoot);
         const buildDirPath = idfConf.readParameter(
           "idf.buildPath",
           workspaceRoot
