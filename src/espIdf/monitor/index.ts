@@ -61,11 +61,16 @@ export class IDFMonitor {
     this.terminal.show();
     this.terminal.dispose = this.dispose.bind(this);
     const shellType = getUserShell();
-    // Function to quote paths; PowerShell requires single quotes for paths with spaces
-    const quotePath = (path) =>
-      shellType === "PowerShell"
-        ? `'${path.replace(/'/g, "''")}'`
-        : `"${path}"`;
+
+    // Function to quote paths for PowerShell and correctly handle spaces for Bash
+    const quotePath = (path) => {
+      if (shellType === "PowerShell") {
+        return `'${path.replace(/'/g, "''")}'`;
+      } else {
+        return `'${path}'`;
+      }
+    };
+
     const baudRateToUse =
       this.config.baudRate ||
       modifiedEnv.IDF_MONITOR_BAUD ||
@@ -110,7 +115,7 @@ export class IDFMonitor {
       this.terminal.sendText(`& ${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(`& ${args.join(" ")}`);
     } else {
-      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(args.join(" "));
     }
 
