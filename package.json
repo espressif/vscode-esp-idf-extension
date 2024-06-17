@@ -551,8 +551,7 @@
           "idf.cmakeCompilerArgs": {
             "type": "array",
             "default": [
-              "-G",
-              "Ninja",
+              "-G=Ninja",
               "-DPYTHON_DEPS_CHECKED=1",
               "-DESP_PLATFORM=1"
             ],
