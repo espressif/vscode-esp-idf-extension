@@ -129,12 +129,13 @@ export function spawn(
   command: string,
   args: string[] = [],
   options: any = {},
-  timeout: number = 0
+  timeout: number = 0,
+  silent: boolean = false // this switches the output to console off the output is only returned, not printed
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
-    OutputChannel.appendLine(data.toString());
+    !silent && OutputChannel.appendLine(data.toString());
   };
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
