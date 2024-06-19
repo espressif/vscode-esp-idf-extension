@@ -149,8 +149,18 @@ export async function generateCoverageForEditors(
     }
   } catch (error) {
     const msg = error.message ? error.message : error;
-    Logger.error("Error generate editor coverage.\n" + msg, error);
-    OutputChannel.appendLine("Error generating editor coverage.\n" + msg);
+    Logger.error(
+      "Error generate editor coverage.\n" +
+        "Check the ESP-IDF output for more details." +
+        msg,
+      error
+    );
+    OutputChannel.appendLine(
+      "Error generating editor coverage.\n" +
+        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n" +
+        msg
+    );
   }
   return coveredEditors;
 }
@@ -178,9 +188,15 @@ export async function previewReport(dirPath: vscode.Uri) {
   } catch (e) {
     const msg = e && e.message ? e.message : e;
     Logger.errorNotify(
-      "Error building gcov html.\nCheck the ESP-IDF output for more details.",
+      "Error building gcov html.\n" +
+        "Check the ESP-IDF output for more details.",
       e
     );
-    OutputChannel.appendLine("Error building gcov html from gcda files.\n" + msg);
+    OutputChannel.appendLine(
+      "Error building gcov html.\n" +
+        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n" +
+        msg
+    );
   }
 }
