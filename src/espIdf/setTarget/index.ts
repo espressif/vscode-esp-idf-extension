@@ -100,8 +100,8 @@ export async function setIdfTarget(placeHolderMsg: string) {
         );
         const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
         const boards = await getBoards(
-          selectedTarget.target,
-          openOcdScriptsPath
+          openOcdScriptsPath,
+          selectedTarget.target
         );
         const choices = boards.map((b) => {
           return {

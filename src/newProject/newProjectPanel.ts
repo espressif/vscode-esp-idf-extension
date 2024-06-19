@@ -76,6 +76,9 @@ export class NewProjectPanel {
     if (newProjectArgs.espMdfPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
     }
+    if (newProjectArgs.espMatterPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMatterPath));
+    }
     if (newProjectArgs.espHomeKitSdkPath) {
       localResourceRoots.push(
         vscode.Uri.file(newProjectArgs.espHomeKitSdkPath)
@@ -112,7 +115,6 @@ export class NewProjectPanel {
           if (
             message.components &&
             message.containerFolder &&
-            message.openOcdConfigFiles &&
             message.port &&
             message.projectName &&
             message.target &&
@@ -121,11 +123,11 @@ export class NewProjectPanel {
             this.createProject(
               JSON.parse(message.components),
               message.target,
-              message.openOcdConfigFiles,
               message.port,
               message.containerFolder,
               message.projectName,
               JSON.parse(message.template),
+              message.openOcdConfigFiles,
               newProjectArgs.workspaceFolder
             );
           }
@@ -198,11 +200,11 @@ export class NewProjectPanel {
   private async createProject(
     components: IComponent[],
     idfTarget: string,
-    openOcdConfigs: string,
     port: string,
     projectDirectory: string,
     projectName: string,
     template: IExample,
+    openOcdConfigs?: string,
     workspaceFolder?: vscode.Uri
   ) {
     const newProjectPath = path.join(projectDirectory, projectName);
@@ -284,8 +286,8 @@ export class NewProjectPanel {
           const settingsJson = await setCurrentSettingsInTemplate(
             settingsJsonPath,
             idfTarget,
-            openOcdConfigs,
             port,
+            openOcdConfigs,
             workspaceFolder
           );
           await writeJSON(settingsJsonPath, settingsJson, {

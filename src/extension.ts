@@ -2236,7 +2236,7 @@ export async function activate(context: vscode.ExtensionContext) {
           workspaceRoot
         ) as string;
       }
-      const boards = await getBoards(idfTarget, openOcdScriptsPath);
+      const boards = await getBoards(openOcdScriptsPath, idfTarget);
       const choices = boards.map((b) => {
         return {
           description: `${b.description} (${b.configFiles})`,

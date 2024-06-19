@@ -29,6 +29,7 @@ export interface INewProjectArgs {
   espIdfPath: string;
   espAdfPath: string;
   espMdfPath: string;
+  espMatterPath: string;
   espHomeKitSdkPath: string;
   boards: IdfBoard[];
   components: IComponent[];
@@ -65,7 +66,6 @@ export async function getNewProjectArgs(
   const espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const targetList = defaultBoards;
-  progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const espIdfPath = idfConf.readParameter(
     "idf.espIdfPath",
     workspace
@@ -76,6 +76,10 @@ export async function getNewProjectArgs(
   ) as string;
   const espMdfPath = idfConf.readParameter(
     "idf.espMdfPath",
+    workspace
+  ) as string;
+  const espMatterPath = idfConf.readParameter(
+    "idf.espMatterPath",
     workspace
   ) as string;
   const espHomeKitSdkPath = idfConf.readParameter(
@@ -94,6 +98,11 @@ export async function getNewProjectArgs(
     const adfTemplates = getExamplesList(espAdfPath);
     templates["ESP-ADF"] = adfTemplates;
   }
+  const matterExists = await dirExistPromise(espMatterPath);
+  if (matterExists) {
+    const matterTemplates = getExamplesList(espMatterPath);
+    templates["ESP-Matter"] = matterTemplates;
+  }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
     const mdfTemplates = getExamplesList(espMdfPath);
@@ -111,6 +120,7 @@ export async function getNewProjectArgs(
     espAdfPath: adfExists ? espAdfPath : undefined,
     espIdfPath: idfExists ? espIdfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
+    espMatterPath: matterExists ? espMatterPath : undefined,
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath: undefined,
     serialPortList,
     targetList,

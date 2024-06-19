@@ -23,8 +23,8 @@ import { Uri } from "vscode";
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
   idfTarget: string,
-  openOcdConfigs: string,
   port: string,
+  openOcdConfigs?: string,
   workspace?: Uri
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
@@ -52,10 +52,12 @@ export async function setCurrentSettingsInTemplate(
   if (mdfPathDir) {
     settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
   }
-  settingsJson["idf.openOcdConfigs"] =
-    openOcdConfigs.indexOf(",") !== -1
-      ? openOcdConfigs.split(",")
-      : [openOcdConfigs];
+  if (openOcdConfigs) {
+    settingsJson["idf.openOcdConfigs"] =
+      openOcdConfigs.indexOf(",") !== -1
+        ? openOcdConfigs.split(",")
+        : [openOcdConfigs];
+  }
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
   }
