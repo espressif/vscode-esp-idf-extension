@@ -3863,7 +3863,7 @@ async function createCmdsStatusBarItems() {
       workspaceRoot
     );
   }
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot);
+  let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot, false);
   const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
 
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
