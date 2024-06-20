@@ -31,6 +31,7 @@ export interface INewProjectArgs {
   espMdfPath: string;
   espMatterPath: string;
   espHomeKitSdkPath: string;
+  espRainmakerPath: string;
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
@@ -42,7 +43,7 @@ export interface INewProjectArgs {
 export async function getNewProjectArgs(
   extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri,
+  workspace: Uri
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
@@ -86,6 +87,10 @@ export async function getNewProjectArgs(
     "idf.espHomeKitSdkPath",
     workspace
   ) as string;
+  const espRainmakerPath = idfConf.readParameter(
+    "idf.espRainmakerPath",
+    workspace
+  ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
   templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(espIdfPath);
@@ -98,10 +103,15 @@ export async function getNewProjectArgs(
     const adfTemplates = getExamplesList(espAdfPath);
     templates["ESP-ADF"] = adfTemplates;
   }
+  const rainmakerExists = await dirExistPromise(espRainmakerPath);
+  if (rainmakerExists) {
+    const rainmakerTemplates = getExamplesList(espRainmakerPath);
+    templates["ESP-RAINMAKER"] = rainmakerTemplates;
+  }
   const matterExists = await dirExistPromise(espMatterPath);
   if (matterExists) {
     const matterTemplates = getExamplesList(espMatterPath);
-    templates["ESP-Matter"] = matterTemplates;
+    templates["ESP-MATTER"] = matterTemplates;
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
@@ -121,7 +131,8 @@ export async function getNewProjectArgs(
     espIdfPath: idfExists ? espIdfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
     espMatterPath: matterExists ? espMatterPath : undefined,
-    espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath: undefined,
+    espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,
+    espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,
     serialPortList,
     targetList,
     templates,

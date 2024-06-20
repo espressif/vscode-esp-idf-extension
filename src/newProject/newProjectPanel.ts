@@ -79,6 +79,9 @@ export class NewProjectPanel {
     if (newProjectArgs.espMatterPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMatterPath));
     }
+    if (newProjectArgs.espRainmakerPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espRainmakerPath));
+    }
     if (newProjectArgs.espHomeKitSdkPath) {
       localResourceRoots.push(
         vscode.Uri.file(newProjectArgs.espHomeKitSdkPath)
