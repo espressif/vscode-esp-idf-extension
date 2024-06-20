@@ -139,6 +139,13 @@
       }
     ],
     "viewsContainers": {
+      "panel": [
+        {
+          "id": "espIdfHints",
+          "title": "ESP-IDF",
+          "icon": "media/dep.svg"
+        }
+      ],
       "activitybar": [
         {
           "id": "idfViewController",
@@ -148,6 +155,13 @@
       ]
     },
     "views": {
+      "espIdfHints": [
+        {
+          "id": "errorHints",
+          "name": "Error Hints",
+          "title": "Error Hints ($errorHints.count$)"
+        }
+      ],
       "debug": [
         {
           "name": "%view.debug.peripheral%",
@@ -206,7 +220,18 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "espIdf.searchError",
+          "group": "navigation"
+        }
+      ],
       "view/title": [
+        {
+          "command": "espIdf.searchError",
+          "group": "navigation",
+          "when": "view == errorHints"
+        },
         {
           "command": "espIdf.partition.table.refresh",
           "group": "navigation",
@@ -270,6 +295,9 @@
         }
       ],
       "editor/context": [
+        {
+          "command": "espIdf.searchError"
+        },
         {
           "command": "espIdf.searchInEspIdfDocs",
           "group": "navigation",
@@ -956,6 +984,10 @@
       }
     ],
     "commands": [
+      {
+        "command": "espIdf.searchError",
+        "title": "%espIdf.searchError.title%"
+      },
       {
         "command": "espIdf.createFiles",
         "title": "%espIdf.createFiles.title%",
@@ -2096,6 +2128,7 @@
     "file-loader": "^6.2.0",
     "glob": "^7.1.4",
     "husky": "^6.0.0",
+    "js-yaml": "^4.1.0",
     "jsonic": "^1.0.1",
     "mocha": "^9.2.0",
     "mocha-junit-reporter": "^1.23.3",
@@ -2123,6 +2156,7 @@
   },
   "dependencies": {
     "@vscode/l10n": "^0.0.18",
+    "@types/js-yaml": "^4.0.5",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
     "axios": "^1.6.0",

@@ -149,6 +149,7 @@ import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
+import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3608,6 +3609,63 @@ export async function activate(context: vscode.ExtensionContext) {
     workspaceRoot,
     statusBarItems["currentIdfVersion"]
   );
+
+  // Hints Viewer
+
+   const treeDataProvider = new ErrorHintProvider(context);
+   vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
+ 
+   vscode.commands.registerCommand("espIdf.searchError", async () => {
+     const errorMsg = await vscode.window.showInputBox({
+       placeHolder: "Enter the error message",
+     });
+     if (errorMsg) {
+       treeDataProvider.searchError(errorMsg, workspaceRoot);
+       await vscode.commands.executeCommand("errorHints.focus");
+     }
+   });
+ 
+   // Function to process diagnostics and update error hints
+   const processDiagnostics = async (uri: vscode.Uri) => {
+     const diagnostics = vscode.languages.getDiagnostics(uri);
+ 
+     const errorDiagnostics = diagnostics.filter(
+       (d) => d.severity === vscode.DiagnosticSeverity.Error
+     );
+ 
+     if (errorDiagnostics.length > 0) {
+       const errorMsg = errorDiagnostics[0].message;
+       await treeDataProvider.searchError(errorMsg, workspaceRoot);
+     } else {
+       treeDataProvider.clearErrorHints();
+     }
+   };
+ 
+   // Attach a listener to the diagnostics collection
+   context.subscriptions.push(
+     vscode.languages.onDidChangeDiagnostics((event) => {
+       event.uris.forEach((uri) => {
+         processDiagnostics(uri);
+       });
+     })
+   );
+ 
+   // Listen to the active text editor change event
+   context.subscriptions.push(
+     vscode.window.onDidChangeActiveTextEditor((editor) => {
+       if (editor) {
+         processDiagnostics(editor.document.uri);
+       }
+     })
+   );
+ 
+   // Register the HintHoverProvider
+   context.subscriptions.push(
+     vscode.languages.registerHoverProvider(
+       { pattern: "**" },
+       new HintHoverProvider(treeDataProvider)
+     )
+   );
 }
 
 async function getFrameworksPickItems() {
