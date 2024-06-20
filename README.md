@@ -70,7 +70,8 @@ Install ESP-IDF and ESP-IDF Tools by following the [install tutorial](./docs/tut
 
   > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information. Default is User settings.
 
-- On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values. 
+- On the first time using the extension, press <kbd>F1</kbd> to show the Visual Studio Code Command Palette and type **ESP-IDF: Configure ESP-IDF extension** to open the extension configuration wizard. This will install ESP-IDF, ESP-IDF tools, create a virtual python environment with ESP-IDF and this extension python packages and configure the extension settings with these values.
+
   > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
   > **NOTE:** Please take a look at [Install tutorial](./docs/tutorial/install.md) documentation or the [Setup documentation](./docs/SETUP.md) for details about extension setup and configuration.
@@ -163,6 +164,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
 | Unit Test: Build and flash unit test app for testing    |                                        |                                           |
 | Unit Test: Install ESP-IDF PyTest requirements          |                                        |                                           |
 | Search Error Hint                                       |                                        |                                           |
+
 # About commands
 
 1. The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](https://github.com/espressif/arduino-esp32) as a ESP-IDF component in your current directory (`${CURRENT_DIRECTORY}/components/arduino`).

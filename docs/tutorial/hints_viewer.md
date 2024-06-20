@@ -4,14 +4,16 @@ This feature enhances your development experience by providing helpful hints for
 
 ## Features
 
-
 ### Hover Over Errors for Hints
+
 When you hover over errors in the text editor, if the error matches one listed in our hints.yml file, a hint is displayed.
+
 <p>
   <img src="../../media/tutorials/hints_viewer/hover.gif" alt="Gif of hovering feature">
 </p>
 
 ### Bottom Panel for Hints
+
 1. **Automatic Updates:** The ESP-IDF bottom panel automatically updates to display hints based on the errors in your currently opened file.
 <br>
 <p>
@@ -23,4 +25,3 @@ When you hover over errors in the text editor, if the error matches one listed i
 <p>
   <img src="../../media/tutorials/hints_viewer/manual_search.gif" alt="Gif of manual search">
 </p>
-
