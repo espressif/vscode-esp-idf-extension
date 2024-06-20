@@ -1483,11 +1483,13 @@ export async function activate(context: vscode.ExtensionContext) {
       } catch (e) {
         const msg = e && e.message ? e.message : e;
         Logger.errorNotify(
-          "Error building gcov data.\nCheck the ESP-IDF output for more details.",
+          "Error building gcov data from gcda files.\nCheck the ESP-IDF output for more details.",
           e
         );
         OutputChannel.appendLine(
-          "Error building gcov data fro gcda files.\n" + msg
+          msg +"\nError building gcov data from gcda files.\n\n" +
+        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
         );
       }
     });
