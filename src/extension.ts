@@ -1611,8 +1611,7 @@ export async function activate(context: vscode.ExtensionContext) {
               pyPath,
               espIdfPath,
               toolsPath,
-              undefined,
-              OutputChannel.init()
+              undefined
             );
             vscode.window.showInformationMessage(
               vscode.l10n.t("ESP-IDF Python Requirements has been installed")
@@ -1692,7 +1691,6 @@ export async function activate(context: vscode.ExtensionContext) {
               espMatterPath,
               pyPath,
               undefined,
-              OutputChannel.init(),
               cancelToken
             );
 

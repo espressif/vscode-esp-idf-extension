@@ -437,14 +437,11 @@ export class InstallManager {
     pkg: IPackage,
     cancelToken?: vscode.CancellationToken
   ) {
-    const versionToUse = idfToolsManager.getVersionToUse(pkg);
     return installEspIdfToolFromIdf(
       idfToolsManager.espIdfPath,
       pythonBinPath,
       this.installPath,
       pkg.name,
-      versionToUse,
-      OutputChannel.init(),
       cancelToken
     );
   }

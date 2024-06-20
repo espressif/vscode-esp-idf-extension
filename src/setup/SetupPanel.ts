@@ -334,7 +334,7 @@ export class SetupPanel {
   }
 
   setupErrHandler(error: Error) {
-    const errMsg = error.message ? error.message : "Error during ESP-IDF setup";
+    const errMsg = error && error.message ? error.message : "Error during ESP-IDF setup";
     if (
       errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1 ||
       errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1 ||

@@ -295,7 +295,6 @@ export async function installPythonReqs(
         espMatterPath,
         pyPath,
         undefined,
-        OutputChannel.init(),
         cancelToken
       );
     }

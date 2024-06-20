@@ -130,11 +130,14 @@ export function spawn(
   args: string[] = [],
   options: any = {},
   timeout: number = 0,
-  silent: boolean = false // this switches the output to console off the output is only returned, not printed
+  silent: boolean = false, // this switches the output to console off the output is only returned, not printed,
+  cancelToken?: vscode.CancellationToken,
+  outputString?: string
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
+    outputString += buff.toString();
     !silent && OutputChannel.appendLine(data.toString());
   };
   return new Promise((resolve, reject) => {
@@ -145,6 +148,12 @@ export function spawn(
       timeoutHandler = setTimeout(() => {
         child.kill();
       }, timeout);
+    }
+
+    if (cancelToken) {
+      cancelToken.onCancellationRequested((e) => {
+        child.kill();
+      });
     }
 
     child.stdout.on("data", sendToOutputChannel);
@@ -526,7 +535,10 @@ export function execChildProcess(
           }
           if (stderr && stderr.length > 0) {
             message += stderr;
-            if (stderr.includes("Error")) {
+            if (
+              !stderr.toLowerCase().startsWith("warning") &&
+              stderr.includes("Error")
+            ) {
               err = true;
             }
           }
@@ -548,7 +560,10 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          if (stderr.includes("Error")) {
+          if (
+            !stderr.toLowerCase().startsWith("warning") &&
+            stderr.includes("Error")
+          ) {
             return reject(new Error(stderr));
           }
         }
