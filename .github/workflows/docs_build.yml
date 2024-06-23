@@ -6,11 +6,11 @@ on:
     - master
     - release/*
     paths:
-    - 'docs/**'
+    - 'docs_espressif/**'
     - '.github/workflows/docs_build.yml'
   pull_request:
     paths:
-    - 'docs/**'
+    - 'docs_espressif/**'
     - '.github/workflows/docs_build.yml'
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         sudo apt install python3-pip python3-setuptools
         # GitHub CI installs pip3 and setuptools outside the path.
         # Update the path to include them and run.
-        cd ./docs
+        cd ./docs_espressif
         PATH=/home/runner/.local/bin:$PATH pip3 install -r requirements.txt --prefer-binary
         PATH=/home/runner/.local/bin:$PATH SPHINXOPTS="-W" build-docs -l en
     - name: Archive Docs
@@ -47,7 +47,7 @@ jobs:
     - name: Deploy Documentation to preview server
       env:
         # Deploy to production server
-        # DOCS_BUILD_DIR: "./docs/_build/"
+        # DOCS_BUILD_DIR: "./docs_espressif/_build/"
         DOCS_DEPLOY_PRIVATEKEY: ${{ secrets.DOCS_PREVIEW_PRIVATEKEY }}
         DOCS_DEPLOY_PATH: ${{ secrets.DOCS_PREVIEW_PATH }}
         DOCS_DEPLOY_SERVER: ${{ secrets.DOCS_PREVIEW_SERVER }}
@@ -56,13 +56,13 @@ jobs:
       run: |
         sudo apt update
         sudo apt install python3-pip python3-setuptools
-        source ./docs/utils.sh
+        source ./docs_espressif/utils.sh
         add_doc_server_ssh_keys $DOCS_DEPLOY_PRIVATEKEY $DOCS_DEPLOY_SERVER $DOCS_DEPLOY_SERVER_USER
         export GIT_VER=$(git describe --always)
         echo "PIP install requirements..."
-        pip3 install --user -r ./docs/requirements.txt
+        pip3 install --user -r ./docs_espressif/requirements.txt
         echo "Building the Docs..."
-        cd ./docs && build-docs -l en
+        cd ./docs_espressif && build-docs -l en
         echo "Deploy the Docs..."
         export DOCS_BUILD_DIR=$GITHUB_WORKSPACE/docs/
         cd $GITHUB_WORKSPACE/docs
