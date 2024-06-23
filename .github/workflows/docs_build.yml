@@ -64,6 +64,6 @@ jobs:
         echo "Building the Docs..."
         cd ./docs_espressif && build-docs -l en
         echo "Deploy the Docs..."
-        export DOCS_BUILD_DIR=$GITHUB_WORKSPACE/docs/
-        cd $GITHUB_WORKSPACE/docs
+        export DOCS_BUILD_DIR=$GITHUB_WORKSPACE/docs_espressif/
+        cd $GITHUB_WORKSPACE/docs_espressif
         deploy-docs
