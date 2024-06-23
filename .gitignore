@@ -19,3 +19,8 @@ results/
 report.txt
 report.json
 test-resources/**
+/docs_espressif/_build/
+/docs_espressif/.DS_Store
+/docs_espressif/en/.DS_Store
+/docs_espressif/en/additionalfeatures/.DS_Store
+/docs_espressif/_static/.DS_Store
