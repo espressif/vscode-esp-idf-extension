@@ -27,7 +27,7 @@ jobs:
         submodules: true
     - uses: actions/setup-python@v5
       with:
-        cache-dependency-path: docs/requirements.txt
+        cache-dependency-path: docs_espressif/requirements.txt
         cache: 'pip'
         python-version: '3.10'
     - name: Build
