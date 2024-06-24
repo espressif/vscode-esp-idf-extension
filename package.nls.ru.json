@@ -80,7 +80,6 @@
 	"espIdf.selectPort.title": "Выберите порт для использования (COM, tty, usbserial)",
 	"espIdf.setGcovConfig.title": "Настройка Project SDKConfig для покрытия",
 	"espIdf.setMatterDevicePath.title": "Установите путь к устройству ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
-	"espIdf.setPath.title": "Настроить пути",
 	"espIdf.setTarget.title": "Установите целевое устройство Espressif",
 	"espIdf.setup.title": "Настройка расширения ESP-IDF",
 	"espIdf.size.title": "Анализ размера двоичных файлов",

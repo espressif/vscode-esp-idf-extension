@@ -80,7 +80,6 @@
 	"espIdf.selectPort.title": "Selecione a porta a ser usada (COM, tty, usbserial)",
 	"espIdf.setGcovConfig.title": "Configurar o projeto SDKConfig para cobertura",
 	"espIdf.setMatterDevicePath.title": "Definir caminho do dispositivo ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
-	"espIdf.setPath.title": "Configurar caminhos",
 	"espIdf.setTarget.title": "Definir destino do dispositivo Espressif",
 	"espIdf.setup.title": "Configurar extensão ESP-IDF",
 	"espIdf.size.title": "Análise de tamanho dos binários",

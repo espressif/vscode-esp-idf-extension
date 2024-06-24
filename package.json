@@ -57,7 +57,6 @@
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
-    "onCommand:espIdf.setPath",
     "onCommand:espIdf.selectConfTarget",
     "onCommand:espIdf.menuconfig.start",
     "onCommand:espIdf.cmakeListsEditor.start",
@@ -1003,11 +1002,6 @@
       {
         "command": "espIdf.createIdfTerminal",
         "title": "%espIdf.createIdfTerminal.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.setPath",
-        "title": "%espIdf.setPath.title%",
         "category": "ESP-IDF"
       },
       {

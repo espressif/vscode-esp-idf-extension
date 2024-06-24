@@ -163,12 +163,6 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
             <td></td>
         </tr>
         <tr>
-            <td>Configure Paths</td>
-            <td>Allow you to manually define IDF_PATH, IDF_TOOLS_PATH and paths to be appended to PATH (IDF Tools)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
             <td>Select output and notification mode</td>
             <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows the user to set if to show notifications, show output, both or none of them.</td>
             <td></td>

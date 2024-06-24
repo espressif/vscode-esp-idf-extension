@@ -109,12 +109,6 @@ Here's the complete HTML table that combines the given information:
             <td></td>
         </tr>
         <tr>
-            <td>Configure Paths</td>
-            <td>Allow you to manually define IDF_PATH, IDF_TOOLS_PATH and paths to be appended to PATH (IDF Tools)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
             <td>Configure Project SDKConfig for Coverage</td>
             <td>Set required values in your project SDKConfig to enable Code Coverage</td>
             <td></td>

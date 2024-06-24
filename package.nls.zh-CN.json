@@ -80,7 +80,6 @@
 	"espIdf.selectPort.title": "选择要使用的端口 (COM、tty、usbserial)",
 	"espIdf.setGcovConfig.title": "为项目 SDKConfig 配置覆盖率",
 	"espIdf.setMatterDevicePath.title": "设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)",
-	"espIdf.setPath.title": "配置路径",
 	"espIdf.setTarget.title": "设置 Espressif 设备目标",
 	"espIdf.setup.title": "配置 ESP-IDF 扩展",
 	"espIdf.size.title": "分析二进制文件的大小",
