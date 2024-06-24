@@ -149,6 +149,7 @@ import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
+import { getEspInsights } from "./espInsights/espInsightsDownload";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -782,6 +783,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.getEspRainmaker", async () =>
     getEspRainmaker(workspaceRoot)
+  );
+
+  registerIDFCommand("espIdf.getEspInsights", async () =>
+    getEspInsights(workspaceRoot)
   );
 
   registerIDFCommand("espIdf.setMatterDevicePath", async () => {
@@ -3637,6 +3642,11 @@ async function getFrameworksPickItems() {
     workspaceRoot
   ) as string;
 
+  const espInsightsPathDir = idfConf.readParameter(
+    "idf.espInsightsPath",
+    workspaceRoot
+  ) as string;
+
   const pickItems = [];
   try {
     const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
@@ -3702,6 +3712,19 @@ async function getFrameworksPickItems() {
           { espHomeKitPathDir }
         ),
         target: espHomeKitPathDir,
+      });
+    }
+
+    const doesEspInsightsExists = await utils.dirExistPromise(
+      espInsightsPathDir
+    );
+    if (doesEspInsightsExists) {
+      pickItems.push({
+        description: "ESP-Insights",
+        label: vscode.l10n.t(`Use current ESP-Insights {espInsightsPathDir}`, {
+          espInsightsPathDir,
+        }),
+        target: espInsightsPathDir,
       });
     }
   } catch (error) {

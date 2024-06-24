@@ -30,6 +30,7 @@ export interface INewProjectArgs {
   espAdfPath: string;
   espMdfPath: string;
   espHomeKitSdkPath: string;
+  espInsightsPath: string;
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
@@ -82,6 +83,10 @@ export async function getNewProjectArgs(
     "idf.espHomeKitSdkPath",
     workspace
   ) as string;
+  const espInsightsPath = idfConf.readParameter(
+    "idf.espInsightsPath",
+    workspace
+  ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
   templates["Extension"] = getExamplesList(extensionPath, "templates");
   const idfExists = await dirExistPromise(espIdfPath);
@@ -104,6 +109,13 @@ export async function getNewProjectArgs(
     const homeKitSdkTemplates = getExamplesList(espHomeKitSdkPath);
     templates["ESP-HOMEKIT-SDK"] = homeKitSdkTemplates;
   }
+  const espInsightsExists = await dirExistPromise(
+    espInsightsPath
+  );
+  if (espInsightsExists) {
+    const espInsightsTemplates = getExamplesList(espInsightsPath);
+    templates["ESP-Insights"] = espInsightsTemplates;
+  }
   progress.report({ increment: 50, message: "Initializing wizard..." });
   return {
     boards: espBoards,
@@ -112,6 +124,7 @@ export async function getNewProjectArgs(
     espIdfPath: idfExists ? espIdfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath: undefined,
+    espInsightsPath: espInsightsExists ? espInsightsPath : undefined,
     serialPortList,
     targetList,
     templates,

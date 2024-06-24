@@ -14,6 +14,8 @@ Besides ESP-IDF, you can install other frameworks to extend the extension functi
 
 5. [ESP-HomeKit-SDK](https://github.com/espressif/esp-homekit-sdk) can be clone with the **Install ESP-HomeKit-SDK** command to the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
 
+6. [ESP-Insights](https://github.com/espressif/esp-insights) can be clone with the **Install ESP-Insights** command to the selected directory and set `idf.espInsightsPath` (`idf.espInsightsPathWin` in Windows) configuration setting.
+
 > **NOTE:** You can also just set each configuration setting with the framework directory path if you already have them. For example, on Visual Studio Code menu `View` -> `Command Palette..`. -> type `Preferences: Open Settings (UI)` and search for ESP-ADF (or other framework) to manually set this path.
 
 > **NOTE:** Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.

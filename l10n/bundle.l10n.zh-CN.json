@@ -123,6 +123,7 @@
   "Use current ESP-Matter {matterPathDir}": "使用当前 ESP-Matter {matterPathDir}",
   "Use current ESP-Rainmaker {rainmakerPathDir}": "使用当前的 ESP-Rainmaker {rainmakerPathDir}",
   "Use current ESP-HomeKit-SDK {espHomeKitPathDir}": "使用当前的 ESP-HomeKit-SDK {espHomeKitPathDir}",
+  "Use current ESP-Insights {espInsightsPathDir}": "使用当前的 ESP-Insights {espInsightsPathDir}",
   "Enter non empty string": "输入非空字符串",
   "Enter a valid integer": "输入有效的整数",
   "ESP-IDF: Select Port to Use (COM, tty, usbserial)": "ESP-IDF：选择要使用的端口（COM、tty、usbserial）",
