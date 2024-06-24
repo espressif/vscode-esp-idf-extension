@@ -34,6 +34,7 @@ import { generateConfigurationReport } from ".";
 import { Logger } from "../logger/logger";
 import { writeTextReport } from "./writeReport";
 import { EOL } from "os";
+import { Telemetry } from "../telemetry";
 
 export class TroubleshootingPanel {
   public static currentPanel: TroubleshootingPanel | undefined;
@@ -148,8 +149,13 @@ export class TroubleshootingPanel {
           await generateConfigurationReport(context, workspace, reportedResult);
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
-          // TODO Send Data to JIRA API
           await env.clipboard.writeText(troubleshootOutput);
+          Telemetry.sendEvent("UserTroubleshootReport", {
+            title,
+            description,
+            stepsToReproduce,
+            report: reportOutput,
+          });
           Logger.infoNotify(
             l10n.t("ESP-IDF Troubleshoot Report has been generated.")
           );
@@ -166,8 +172,13 @@ export class TroubleshootingPanel {
           );
           const reportOutput = await writeTextReport(reportedResult, context);
           troubleshootOutput += reportOutput;
-          // TODO Send Data to JIRA API
           await env.clipboard.writeText(troubleshootOutput);
+          Telemetry.sendEvent("UserTroubleshootReport", {
+            title,
+            description,
+            stepsToReproduce,
+            report: reportOutput,
+          });
         }
       }
     );

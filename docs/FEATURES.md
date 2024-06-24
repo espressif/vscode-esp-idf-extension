@@ -139,6 +139,12 @@ Here's the complete HTML table that combines the given information:
             <td></td>
         </tr>
         <tr>
+            <td>Troubleshoot Form</td>
+            <td>Launch UI for user to send a troubleshoot report with steps to reproduce, run a diagnostic of the extension setup settings and extension logs to send to telemetry backend.</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
             <td>Encrypt and Flash your Project</td>
             <td>Execute flashing the project program to device while adding <strong>--encrypt</strong> for partitions to be encrypted.</td>
             <td></td>
