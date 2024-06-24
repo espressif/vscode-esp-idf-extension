@@ -133,12 +133,6 @@ Here's the complete HTML table that combines the given information:
             <td></td>
         </tr>
         <tr>
-            <td>Device configuration</td>
-            <td>Allow you to manually define serial port, flashing baud rate, openOCD Configuration files and target chip (IDF_TARGET)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
             <td>Dispose Current SDK Configuration Editor Server Process</td>
             <td>If you already executed the SDK Configuration editor, a cache process will remain in the background for faster re opening. This command will dispose of such cache process.</td>
             <td></td>
@@ -492,7 +486,7 @@ In Visual Studio Code, for **ESP-IDF: Monitor Device** we use the shell executab
 
 The user can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. The output is shown in menu `View` -> `Output` -> `OpenOCD`. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for Gdb.
 
-Before using the OpenOCD server, you need to set the proper values for OpenOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in OpenOCD using **ESP-IDF: Select OpenOCD Board Configuration** or use **ESP-IDF: Device Configuration** to manually set any value you desire.
+Before using the OpenOCD server, you need to set the proper values for OpenOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in OpenOCD using **ESP-IDF: Select OpenOCD Board Configuration**.
 
 > **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 

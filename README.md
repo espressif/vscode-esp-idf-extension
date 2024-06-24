@@ -169,12 +169,6 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
             <td></td>
         </tr>
         <tr>
-            <td>Device configuration</td>
-            <td>Allow you to manually define serial port, flashing baud rate, openOCD Configuration files and target chip (IDF_TARGET)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
             <td>Select output and notification mode</td>
             <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows the user to set if to show notifications, show output, both or none of them.</td>
             <td></td>

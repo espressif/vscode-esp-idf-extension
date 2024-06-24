@@ -23,7 +23,6 @@
 	"espIdf.clearDocsSearchResult.title": "Limpiar resultados de búsqueda de ESP-IDF",
 	"espIdf.clearSavedIdfSetups.title": "Limpiar configuraciones de ESP-IDF guardadas",
 	"espIdf.cmakeListsEditor.start.title": "Editor CMakeLists.txt",
-	"espIdf.configDevice.title": "Configuración del dispositivo",
 	"espIdf.createDevContainer.title": "Agregar configuración de contenedor Docker",
 	"espIdf.createFiles.title": "Crear proyecto a partir de la plantilla de extensión",
 	"espIdf.createIdfTerminal.title": "Abrir terminal ESP-IDF",

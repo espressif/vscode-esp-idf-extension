@@ -59,7 +59,6 @@
     "onCommand:espIdf.createVsCodeFolder",
     "onCommand:espIdf.setPath",
     "onCommand:espIdf.selectConfTarget",
-    "onCommand:espIdf.configDevice",
     "onCommand:espIdf.menuconfig.start",
     "onCommand:espIdf.cmakeListsEditor.start",
     "onCommand:espIdf.selectPort",
@@ -1019,11 +1018,6 @@
       {
         "command": "espIdf.setTarget",
         "title": "%espIdf.setTarget.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.configDevice",
-        "title": "%espIdf.configDevice.title%",
         "category": "ESP-IDF"
       },
       {

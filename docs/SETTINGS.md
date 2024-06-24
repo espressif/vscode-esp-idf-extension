@@ -4,7 +4,7 @@ This extension contributes the following settings that can be later updated in s
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device Configuration`, `Set Espressif Device Target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with Multiple Projects](./MULTI_PROJECTS.md). Use the `Select where to Save Configuration Settings` command to choose where to save settings when using this extension commands.
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Set Espressif Device Target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with Multiple Projects](./MULTI_PROJECTS.md). Use the `Select where to Save Configuration Settings` command to choose where to save settings when using this extension commands.
 
 > **NOTE:** All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
 
@@ -68,7 +68,7 @@ This is how the extension uses them:
 1. `idf.adapterTargetName` is used to select the chipset (esp32, esp32s2, esp32s3, esp32c3 and custom) on which to run the extension commands.
    > **NOTE** When you use the command **ESP-IDF: Set Espressif Device Target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration Files.
    >
-   > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device Configuration** and select `Enter OpenOCD Configuration File Paths List` by entering each file separated by comma ",".
+   > > If you want to customize the `idf.openOcdConfigs` alone, you can use the **ESP-IDF: Select OpenOCD Board Configuration** or modify your settings.json directly.
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
 4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.

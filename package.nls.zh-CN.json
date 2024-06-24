@@ -23,7 +23,6 @@
 	"espIdf.clearDocsSearchResult.title": "清除 ESP-IDF 搜索结果",
 	"espIdf.clearSavedIdfSetups.title": "清除保存的 ESP-IDF 设置",
 	"espIdf.cmakeListsEditor.start.title": "CMakeLists.txt 编辑器",
-	"espIdf.configDevice.title": "设备配置",
 	"espIdf.createDevContainer.title": "添加 Docker 容器配置",
 	"espIdf.createFiles.title": "从扩展模板创建项目",
 	"espIdf.createIdfTerminal.title": "打开 ESP-IDF 终端",

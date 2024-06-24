@@ -23,7 +23,6 @@
   "espIdf.clearDocsSearchResult.title": "Clear ESP-IDF Search Results",
   "espIdf.clearSavedIdfSetups.title": "Clear Saved ESP-IDF Setups",
   "espIdf.cmakeListsEditor.start.title": "CMakeLists.txt Editor",
-  "espIdf.configDevice.title": "Device Configuration",
   "espIdf.createDevContainer.title": "Add Docker Container Configuration",
   "espIdf.createFiles.title": "Create Project from Extension Template",
   "espIdf.createIdfTerminal.title": "Open ESP-IDF Terminal",
