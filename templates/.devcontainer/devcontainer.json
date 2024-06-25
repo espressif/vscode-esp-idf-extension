@@ -27,7 +27,8 @@
 				"idf.gitPath": "/usr/bin/git"
 			},
 			"extensions": [
-				"espressif.esp-idf-extension"
+				"espressif.esp-idf-extension",
+				"espressif.esp-idf-web"
 			]
 		}
 	},
