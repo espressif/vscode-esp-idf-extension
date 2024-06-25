@@ -17,14 +17,15 @@
 import { existsSync } from "fs";
 import { Logger } from "../logger/logger";
 import { spawn, appendIdfAndToolsToPath } from "../utils";
-import { Uri, l10n } from "vscode";
+import { CancellationToken, Uri, l10n } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 
 export async function addDependency(
   workspace: Uri,
   dependency: string,
-  component: string
+  component: string,
+  cancelToken: CancellationToken
 ) {
   try {
     const idfPathDir = readParameter("idf.espIdfPath", workspace);
@@ -51,7 +52,7 @@ export async function addDependency(
     const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
       cwd: workspace.fsPath,
       env: modifiedEnv,
-    });
+    }, undefined, undefined, cancelToken);
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`
     );

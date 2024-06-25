@@ -98,11 +98,37 @@ export class ComponentManagerUIPanel {
   }
 
   private async onMessage(message: IMessage, workspaceUri: Uri) {
+    const notificationMode = readParameter(
+      "idf.notificationMode",
+      workspaceUri
+    ) as string;
+    const ProgressLocation =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
     switch (message.message) {
       case "install":
         if (!message.dependency) return;
         const component = message.component || "main";
-        addDependency(this.workspaceRoot, message.dependency, component);
+        await vscode.window.withProgress(
+          {
+            cancellable: false,
+            location: ProgressLocation,
+            title: `ESP-IDF: Adding ${message.dependency} to component ${component}...`,
+          },
+          async (
+            progress: vscode.Progress<{ message: string; increment: number }>,
+            cancelToken: vscode.CancellationToken
+          ) => {
+            await addDependency(
+              this.workspaceRoot,
+              message.dependency,
+              component,
+              cancelToken
+            );
+          }
+        );
         break;
 
       case "create-project-from-example":
@@ -117,15 +143,6 @@ export class ComponentManagerUIPanel {
         if (!selectedFolder) {
           return;
         }
-        const notificationMode = readParameter(
-          "idf.notificationMode",
-          workspaceUri
-        ) as string;
-        const ProgressLocation =
-          notificationMode === NotificationMode.All ||
-          notificationMode === NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
         await vscode.window.withProgress(
           {
             location: ProgressLocation,
