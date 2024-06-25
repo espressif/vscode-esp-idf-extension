@@ -125,8 +125,7 @@ export class BuildTask {
         "idf.cmakeCompilerArgs",
         this.currentWorkspace
       ) as Array<string>) || [
-        "-G",
-        "Ninja",
+        "-G=Ninja",
         "-DPYTHON_DEPS_CHECKED=1",
         "-DESP_PLATFORM=1",
       ];
@@ -134,10 +133,10 @@ export class BuildTask {
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
       }
-      compilerArgs.push("-B", this.buildDirPath);
+      compilerArgs.push(`-B=${this.buildDirPath}`);
 
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push("-S", this.currentWorkspace.fsPath);
+        compilerArgs.push(`-S=${this.currentWorkspace.fsPath}`);
       }
 
       const sdkconfigDefaults =
