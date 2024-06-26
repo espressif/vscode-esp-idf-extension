@@ -49,6 +49,7 @@ import { getOpenOcdRules } from "./addOpenOcdRules";
 import { checkSpacesInPath, getEspIdfFromCMake } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 import { clearPreviousIdfSetups } from "./existingIdfSetups";
+import * as fs from "fs";
 
 export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
@@ -82,6 +83,14 @@ export class SetupPanel {
   private static readonly viewType = "setupPanel";
   private readonly panel: WebviewPanel;
   private disposables: Disposable[] = [];
+
+  private async checkFileExists(filePath: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      fs.access(filePath, fs.constants.F_OK, (err) => {
+        resolve(!err);
+      });
+    });
+  }
 
   constructor(
     private context: ExtensionContext,
@@ -325,6 +334,16 @@ export class SetupPanel {
         case "exploreComponents":
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
+        case "checkFileExists":
+          if (message.path) {
+            const fileExists = await this.checkFileExists(message.path);
+            this.panel.webview.postMessage({
+              command: "checkFileExistsResponse",
+              path: message.path,
+              exists: fileExists,
+            });
+          }
+          break;
         default:
           break;
       }
@@ -443,7 +462,6 @@ export class SetupPanel {
               ? espIdfPath
               : idfContainerPath;
           this.checkSpacesInPaths(toolsPath);
-
           if (idfPathToCheck === toolsPath) {
             const idfPathSameIdfToolsPathMsg = `IDF_PATH and IDF_TOOLS_PATH can't be the same. Please use another location. (ERROR_SAME_IDF_PATH_AND__IDF_TOOLS_PATH)`;
             throw new Error(idfPathSameIdfToolsPathMsg);

@@ -1,3 +1,61 @@
+<template>
+  <div id="install">
+    <div class="notification is-danger error-message" v-if="espIdfErrorStatus">
+      <p>{{ espIdfErrorStatus }}</p>
+      <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
+        <IconClose />
+      </div>
+    </div>
+
+    <div class="notification is-danger error-message" v-if="pyExecErrorStatus">
+      <p>{{ pyExecErrorStatus }}</p>
+      <div class="icon is-large is-size-4" @click="setPyExecErrorStatus">
+        <IconClose />
+      </div>
+    </div>
+
+    <div class="notification">
+      <div class="field" v-if="isNotWinPlatform && gitVersion">
+        <label data-config-id="git-version"
+          >Git version: {{ gitVersion }}</label
+        >
+      </div>
+
+      <selectEspIdf />
+
+      <folderOpen
+        propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH):"
+        :propModel="toolsFolder"
+        :propMutate="setToolsFolder"
+        :openMethod="store.openEspIdfToolsFolder"
+      />
+
+      <div v-if="hasToolsWhitespace" class="notification is-danger">
+        White spaces are not allowed in the ESP-IDF Tools path.
+      </div>
+
+      <div v-if="!toolsFolder" class="notification is-danger">
+        ESP-IDF Tools path should not be empty.
+      </div>
+
+      <selectPyVersion v-if="isNotWinPlatform" />
+
+      <div class="field install-btn">
+        <div class="control">
+          <button
+            @click="store.installEspIdf"
+            class="button"
+            data-config-id="start-install-btn"
+            :disabled="isInstallDisabled || store.isInstallButtonDisabled"
+          >
+            {{ actionButtonText }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useSetupStore } from "./store";
@@ -20,6 +78,7 @@ const {
   selectedEspIdfVersion,
   espIdf,
   espIdfContainer,
+  isInstallButtonDisabled,
 } = storeToRefs(store);
 
 const isNotWinPlatform = computed(() => {
@@ -100,64 +159,6 @@ function setToolsFolder(newToolsPath: string) {
   store.toolsFolder = newToolsPath;
 }
 </script>
-
-<template>
-  <div id="install">
-    <div class="notification is-danger error-message" v-if="espIdfErrorStatus">
-      <p>{{ espIdfErrorStatus }}</p>
-      <div class="icon is-large is-size-4" @click="setEspIdfErrorStatus">
-        <IconClose />
-      </div>
-    </div>
-
-    <div class="notification is-danger error-message" v-if="pyExecErrorStatus">
-      <p>{{ pyExecErrorStatus }}</p>
-      <div class="icon is-large is-size-4" @click="setPyExecErrorStatus">
-        <IconClose />
-      </div>
-    </div>
-
-    <div class="notification">
-      <div class="field" v-if="isNotWinPlatform && gitVersion">
-        <label data-config-id="git-version"
-          >Git version: {{ gitVersion }}</label
-        >
-      </div>
-
-      <selectEspIdf />
-
-      <folderOpen
-        propLabel="Enter ESP-IDF Tools directory (IDF_TOOLS_PATH):"
-        :propModel="toolsFolder"
-        :propMutate="setToolsFolder"
-        :openMethod="store.openEspIdfToolsFolder"
-      />
-
-      <div v-if="hasToolsWhitespace" class="notification is-danger">
-        White spaces are not allowed in the ESP-IDF Tools path.
-      </div>
-
-      <div v-if="!toolsFolder" class="notification is-danger">
-        ESP-IDF Tools path should not be empty.
-      </div>
-
-      <selectPyVersion v-if="isNotWinPlatform" />
-
-      <div class="field install-btn">
-        <div class="control">
-          <button
-            @click="store.installEspIdf"
-            class="button"
-            data-config-id="start-install-btn"
-            :disabled="isInstallDisabled"
-          >
-            {{ actionButtonText }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 #install {

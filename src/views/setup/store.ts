@@ -97,6 +97,75 @@ export const useSetupStore = defineStore("setup", () => {
   let toolsFolder: Ref<string> = ref("");
   let toolsResults: Ref<IEspIdfTool[]> = ref([]);
   let extensionVersion: Ref<string> = ref("");
+  let idfPathError: Ref<string> = ref("");
+  let isInstallButtonDisabled: Ref<boolean> = ref(false);
+
+  function setIdfPathError(error: string) {
+    idfPathError.value = error;
+    isInstallButtonDisabled.value = !!error;
+  }
+
+  function validateEspIdfPath(path: string) {
+    vscode.postMessage({
+      command: "checkFileExists",
+      path: `${path}/tools/idf.py`,
+    });
+  }
+
+  function openEspIdfFolder(): Promise<string | undefined> {
+    return new Promise((resolve) => {
+      vscode.postMessage({
+        command: "openEspIdfFolder",
+      });
+      window.addEventListener("message", function handler(event) {
+        if (event.data.command === "updateEspIdfFolder") {
+          window.removeEventListener("message", handler);
+          resolve(event.data.selectedFolder);
+        }
+      });
+    });
+  }
+
+  function openEspIdfContainerFolder(): Promise<string | undefined> {
+    return new Promise((resolve) => {
+      vscode.postMessage({
+        command: "openEspIdfContainerFolder",
+      });
+      window.addEventListener("message", function handler(event) {
+        if (event.data.command === "updateEspIdfContainerFolder") {
+          window.removeEventListener("message", handler);
+          resolve(event.data.selectedContainerFolder);
+        }
+      });
+    });
+  }
+
+  function openEspIdfToolsFolder(): Promise<string | undefined> {
+    return new Promise((resolve) => {
+      vscode.postMessage({
+        command: "openEspIdfToolsFolder",
+      });
+      window.addEventListener("message", function handler(event) {
+        if (event.data.command === "updateEspIdfToolsFolder") {
+          window.removeEventListener("message", handler);
+          resolve(event.data.selectedToolsFolder);
+        }
+      });
+    });
+  }
+
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    if (message.command === "checkFileExistsResponse") {
+      if (!message.exists) {
+        setIdfPathError(
+          "The path for ESP-IDF is not valid: /tools/idf.py not found."
+        );
+      } else {
+        setIdfPathError("");
+      }
+    }
+  });
 
   function checkEspIdfTools() {
     const pyPath =
@@ -149,22 +218,6 @@ export const useSetupStore = defineStore("setup", () => {
       pyPath,
       toolsPath: toolsFolder.value,
       saveScope: saveScope.value,
-    });
-  }
-
-  function openEspIdfFolder() {
-    vscode.postMessage({
-      command: "openEspIdfFolder",
-    });
-  }
-  function openEspIdfContainerFolder() {
-    vscode.postMessage({
-      command: "openEspIdfContainerFolder",
-    });
-  }
-  function openEspIdfToolsFolder() {
-    vscode.postMessage({
-      command: "openEspIdfToolsFolder",
     });
   }
 
@@ -442,5 +495,9 @@ export const useSetupStore = defineStore("setup", () => {
     whiteSpaceErrorIDF,
     whiteSpaceErrorTools,
     whiteSpaceErrorIDFContainer,
+    idfPathError,
+    isInstallButtonDisabled,
+    setIdfPathError,
+    validateEspIdfPath,
   };
 });
