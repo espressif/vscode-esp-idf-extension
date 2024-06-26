@@ -73,7 +73,9 @@ export class AbstractCloning {
     OutputChannel.appendLine(
       `Cloning mirror ${
         mirror == ESP.IdfMirror.Espressif ? "Espressif" : "Github"
-      } with URL ${mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO}`
+      } with URL ${
+        mirror === ESP.IdfMirror.Espressif ? this.GITEE_REPO : this.GITHUB_REPO
+      }`
     );
     return this.spawnWithProgress(
       this.gitBinPath,
@@ -188,6 +190,9 @@ export class AbstractCloning {
           cancelToken.onCancellationRequested((e) => {
             this.cancel();
           });
+          if (typeof recursiveDownload === "undefined") {
+            recursiveDownload = mirrorOption.target !== ESP.IdfMirror.Espressif;
+          }
           await this.downloadByCloning(
             installDirPath,
             undefined,
@@ -195,6 +200,9 @@ export class AbstractCloning {
             recursiveDownload,
             mirrorOption.target
           );
+          if (mirrorOption.target === ESP.IdfMirror.Espressif) {
+            await this.updateSubmodules(resultingPath, undefined, progress);
+          }
           const target = idfConf.readParameter("idf.saveScope");
           await idfConf.writeParameter(configurationId, resultingPath, target);
           Logger.infoNotify(`${this.name} has been installed`);
@@ -260,11 +268,12 @@ export class AbstractCloning {
     const lines = gitModules.split("\n");
 
     function getSubmoduleUrl(line: string) {
-      const matches = line.match(
-        /^submodule\.([^.]*)\.(?:url=)..\/..\/(.*).git$/
-      );
-      if (matches) {
-        const [, subPath, url] = matches;
+      const subpathMatch = line.match(/^submodule\.([^.]*?)\.url.*$/);
+      const subPath = subpathMatch ? subpathMatch[1] : "";
+
+      const locationMatch = line.match(/.*\/(.*)\.git/);
+      let url = locationMatch ? locationMatch[1] : "";
+      if (subPath && url) {
         return { subPath, url };
       }
       return null;
