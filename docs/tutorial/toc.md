@@ -20,3 +20,4 @@
 16. [Open Existing ESP-IDF Project](./existing_idf_project.md)
 17. [Using the Project Configuration](./project_configuration.md) editor.
 18. [Using Multiple Build Configuration with the Project Configuration Editor](./multiple_config.md)
+19. [ESP-IDF Hints viewer](./hints_viewer.md)

@@ -19,6 +19,8 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add Chip Id in port selection](https://github.com/espressif/vscode-esp-idf-extension/pull/1195)
 - [Add idf.py reconfigure task as extension command](https://github.com/espressif/vscode-esp-idf-extension/pull/1198)
 - [Add white spaces support for IDF_PATH and extension tasks](https://github.com/espressif/vscode-esp-idf-extension/pull/1159)
+- [Add Hints viewers bar and code editor highlight](https://github.com/espressif/vscode-esp-idf-extension/pull/1225)
+- [Add docs espressif files and workflow](https://github.com/espressif/vscode-esp-idf-extension/pull/1226)
 
 ### Bug Fixes
 
