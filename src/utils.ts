@@ -1027,14 +1027,8 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
-    "esptool_py",
-    "esptool"
-  );
-  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
-    modifiedEnv.IDF_PATH,
-    "components",
     "espcoredump"
-  )}`;
+  );
   IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
     modifiedEnv.IDF_PATH,
     "components",
