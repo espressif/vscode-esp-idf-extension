@@ -267,14 +267,12 @@ window.addEventListener("message", (event) => {
         store.setStatusIdfPython(msg.status);
       }
       break;
-    case "checkFileExistsResponse":
-      if (typeof msg.exists !== "undefined") {
-        if (!msg.exists) {
-          store.idfPathError =
-            "The path for ESP-IDF is not valid: /tools/idf.py not found.";
-        } else {
-          store.idfPathError = "";
-        }
+    case "canAccessFileResponse":
+      if (!msg.exists) {
+        store.idfPathError =
+          "The path for ESP-IDF is not valid: /tools/idf.py not found.";
+      } else {
+        store.idfPathError = "";
       }
       break;
     default:

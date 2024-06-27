@@ -107,7 +107,7 @@ export const useSetupStore = defineStore("setup", () => {
 
   function validateEspIdfPath(path: string) {
     vscode.postMessage({
-      command: "checkFileExists",
+      command: "canAccessFile",
       path: `${path}/tools/idf.py`,
     });
   }
@@ -156,7 +156,7 @@ export const useSetupStore = defineStore("setup", () => {
 
   window.addEventListener("message", (event) => {
     const message = event.data;
-    if (message.command === "checkFileExistsResponse") {
+    if (message.command === "canAccessFileResponse") {
       if (!message.exists) {
         setIdfPathError(
           "The path for ESP-IDF is not valid: /tools/idf.py not found."
