@@ -20,6 +20,7 @@ import {
   ConfigurationTarget,
   Progress,
   ProgressLocation,
+  WorkspaceFolder,
   window,
 } from "vscode";
 import {
@@ -33,11 +34,8 @@ import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 
-export async function setIdfTarget(placeHolderMsg: string) {
+export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: WorkspaceFolder) {
   const configurationTarget = ConfigurationTarget.WorkspaceFolder;
-  let workspaceFolder = await window.showWorkspaceFolderPick({
-    placeHolder: `Pick Workspace Folder to which settings should be applied`,
-  });
   if (!workspaceFolder) {
     return;
   }

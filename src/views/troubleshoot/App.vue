@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import { useTroubleShootingStore } from "./store";
+import { storeToRefs } from "pinia";
+
+const store = useTroubleShootingStore();
+
+const { title, stepsToReproduce, description } = storeToRefs(store);
+</script>
+
 <template>
   <div class="section">
     <div class="control centerize">
@@ -64,15 +73,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useTroubleShootingStore } from "./store";
-import { storeToRefs } from "pinia";
-
-const store = useTroubleShootingStore();
-
-const { title, stepsToReproduce, description } = storeToRefs(store);
-</script>
 
 <style scoped lang="scss">
 @import "../commons/espCommons.scss";

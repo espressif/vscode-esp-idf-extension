@@ -101,6 +101,6 @@ export async function getIdfTargetFromSdkconfig(
     workspacePath
   );
   if (statusItem) {
-    statusItem.text = "$(circuit-board) " + idfTarget;
+    statusItem.text = "$(chip) " + idfTarget;
   }
 }

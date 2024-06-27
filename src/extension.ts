@@ -71,7 +71,7 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
-import { constants, createFileSync, pathExists } from "fs-extra";
+import { constants, createFileSync, pathExists, readJson } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
@@ -1136,7 +1136,7 @@ export async function activate(context: vscode.ExtensionContext) {
       } as IDebugAdapterConfig;
       debugAdapterManager.configureAdapter(debugAdapterConfig);
       if (statusBarItems && statusBarItems["target"]) {
-        statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+        statusBarItems["target"].text = "$(chip) " + idfTarget;
       }
     } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
@@ -1164,7 +1164,7 @@ export async function activate(context: vscode.ExtensionContext) {
         } as IDebugAdapterConfig;
         debugAdapterManager.configureAdapter(debugAdapterConfig);
         if (statusBarItems && statusBarItems["target"]) {
-          statusBarItems["target"].text = "$(circuit-board) " + idfTarget;
+          statusBarItems["target"].text = "$(chip) " + idfTarget;
         }
       }
     } else if (e.affectsConfiguration("idf.flashType")) {
@@ -1839,7 +1839,10 @@ export async function activate(context: vscode.ExtensionContext) {
       const enterDeviceTargetMsg = vscode.l10n.t(
         "Enter target name (IDF_TARGET)"
       );
-      await setIdfTarget(enterDeviceTargetMsg);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        workspaceRoot
+      );
+      await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
     });
   });
 
@@ -2608,6 +2611,49 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.troubleshootPanel", async () => {
     TroubleshootingPanel.createOrShow(context, workspaceRoot);
+  });
+
+  registerIDFCommand("espIdf.debug", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        workspaceRoot
+      );
+      const launchJsonPath = path.join(
+        workspaceRoot.fsPath,
+        ".vscode",
+        "launch.json"
+      );
+      const launchJsonPathExist = await pathExists(launchJsonPath);
+      if (!launchJsonPathExist) {
+        await vscode.window.showInformationMessage(
+          vscode.l10n.t(
+            `No launch.json found.
+             Use the ESP-IDF: Add vscode Configuration Folder command.`
+          )
+        );
+        return;
+      }
+      const launchJson = await readJson(launchJsonPath);
+      if (
+        launchJson &&
+        launchJson.configurations &&
+        launchJson.configurations.length
+      ) {
+        for (const conf of launchJson.configurations) {
+          if (conf.type === "gdbtarget") {
+            await vscode.debug.startDebugging(workspaceFolder, conf.name);
+            return;
+          }
+        }
+      }
+      await vscode.window.showInformationMessage(
+        vscode.l10n.t(
+          `No gdbtarget configuration found in launch.json.
+           Delete launch.json and use the ESP-IDF: Add vscode Configuration Folder' command.`
+        )
+      );
+      return;
+    });
   });
 
   registerIDFCommand(
@@ -3732,7 +3778,7 @@ async function createCmdsStatusBarItems() {
   }
 
   statusBarItems["target"] = createStatusBarItem(
-    "$(circuit-board) " + idfTarget,
+    "$(chip) " + idfTarget,
     vscode.l10n.t("ESP-IDF: Set Espressif Device Target"),
     "espIdf.setTarget",
     99
@@ -3756,7 +3802,7 @@ async function createCmdsStatusBarItems() {
     96
   );
   statusBarItems["build"] = createStatusBarItem(
-    "$(database)",
+    "$(symbol-property)",
     vscode.l10n.t("ESP-IDF: Build Project"),
     "espIdf.buildDevice",
     95
@@ -3779,23 +3825,29 @@ async function createCmdsStatusBarItems() {
     "espIdf.monitorDevice",
     92
   );
+  statusBarItems["debug"] = createStatusBarItem(
+    "$(debug-alt)",
+    vscode.l10n.t("ESP-IDF: Debug"),
+    "espIdf.debug",
+    91
+  );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
     vscode.l10n.t("ESP-IDF: Build, Flash and Monitor"),
     "espIdf.buildFlashMonitor",
-    91
+    90
   );
   statusBarItems["terminal"] = createStatusBarItem(
     "$(terminal)",
     vscode.l10n.t("ESP-IDF: Open ESP-IDF Terminal"),
     "espIdf.createIdfTerminal",
-    90
+    89
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     "$(diff-renamed)",
     vscode.l10n.t("ESP-IDF: Execute Custom Task"),
     "espIdf.customTask",
-    89
+    88
   );
   return statusBarItems;
 }
