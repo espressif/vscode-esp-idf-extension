@@ -38,7 +38,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
    > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information.
 
-7. In Visual Studio Code, select menu "View" and "Command Palette" and type `configure esp-idf extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option. You can also choose where to save settings in the setup wizard.
+7. In Visual Studio Code, select menu "View" and "Command Palette" and type `configure esp-idf extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option.
    > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
 <p>

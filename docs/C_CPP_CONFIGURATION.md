@@ -21,19 +21,14 @@ For the default configuration, you must build your project beforehand in order t
       "includePath": [
         "${config:idf.espIdfPath}/components/**",
         "${config:idf.espIdfPathWin}/components/**",
-        "${config:idf.espAdfPath}/components/**",
-        "${config:idf.espAdfPathWin}/components/**",
         "${workspaceFolder}/**"
       ],
       "browse": {
         "path": [
           "${config:idf.espIdfPath}/components",
           "${config:idf.espIdfPathWin}/components",
-          "${config:idf.espAdfPath}/components/**",
-          "${config:idf.espAdfPathWin}/components/**",
           "${workspaceFolder}"
-        ],
-        "limitSymbolsToIncludedHeaders": false
+        ]
       }
     }
   ],
@@ -57,19 +52,14 @@ For this configuration to work, you need to set you C/C++ Extension IntelliSense
       "includePath": [
         "${config:idf.espIdfPath}/components/**",
         "${config:idf.espIdfPathWin}/components/**",
-        "${config:idf.espAdfPath}/components/**",
-        "${config:idf.espAdfPathWin}/components/**",
         "${workspaceFolder}/**"
       ],
       "browse": {
         "path": [
           "${config:idf.espIdfPath}/components",
           "${config:idf.espIdfPathWin}/components",
-          "${config:idf.espAdfPath}/components/**",
-          "${config:idf.espAdfPathWin}/components/**",
           "${workspaceFolder}"
-        ],
-        "limitSymbolsToIncludedHeaders": false
+        ]
       }
     }
   ],
