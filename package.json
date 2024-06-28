@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif chips with ESP-IDF",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -2141,8 +2141,8 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
-    "@vscode/l10n": "^0.0.18",
     "@types/js-yaml": "^4.0.5",
+    "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
     "axios": "^1.6.0",
