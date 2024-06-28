@@ -60,7 +60,8 @@ export async function selectIdfSetup(
   return selectedIdfSetupOption.target;
 }
 
-export async function getCurrentIdfSetup(workspaceFolder: Uri) {
+export async function getCurrentIdfSetup(workspaceFolder: Uri,
+  logToChannel: boolean = true) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
@@ -80,6 +81,6 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri) {
     version: idfVersion,
     isValid: false,
   };
-  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup);
+  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
   return currentIdfSetup;
 }

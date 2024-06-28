@@ -29,7 +29,9 @@ export interface INewProjectArgs {
   espIdfPath: string;
   espAdfPath: string;
   espMdfPath: string;
+  espMatterPath: string;
   espHomeKitSdkPath: string;
+  espRainmakerPath: string;
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
@@ -41,7 +43,7 @@ export interface INewProjectArgs {
 export async function getNewProjectArgs(
   extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri,
+  workspace: Uri
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
@@ -65,7 +67,6 @@ export async function getNewProjectArgs(
   const espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const targetList = defaultBoards;
-  progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const espIdfPath = idfConf.readParameter(
     "idf.espIdfPath",
     workspace
@@ -78,8 +79,16 @@ export async function getNewProjectArgs(
     "idf.espMdfPath",
     workspace
   ) as string;
+  const espMatterPath = idfConf.readParameter(
+    "idf.espMatterPath",
+    workspace
+  ) as string;
   const espHomeKitSdkPath = idfConf.readParameter(
     "idf.espHomeKitSdkPath",
+    workspace
+  ) as string;
+  const espRainmakerPath = idfConf.readParameter(
+    "idf.espRainmakerPath",
     workspace
   ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
@@ -93,6 +102,16 @@ export async function getNewProjectArgs(
   if (adfExists) {
     const adfTemplates = getExamplesList(espAdfPath);
     templates["ESP-ADF"] = adfTemplates;
+  }
+  const rainmakerExists = await dirExistPromise(espRainmakerPath);
+  if (rainmakerExists) {
+    const rainmakerTemplates = getExamplesList(espRainmakerPath);
+    templates["ESP-RAINMAKER"] = rainmakerTemplates;
+  }
+  const matterExists = await dirExistPromise(espMatterPath);
+  if (matterExists) {
+    const matterTemplates = getExamplesList(espMatterPath);
+    templates["ESP-MATTER"] = matterTemplates;
   }
   const mdfExists = await dirExistPromise(espMdfPath);
   if (mdfExists) {
@@ -111,7 +130,9 @@ export async function getNewProjectArgs(
     espAdfPath: adfExists ? espAdfPath : undefined,
     espIdfPath: idfExists ? espIdfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
-    espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath: undefined,
+    espMatterPath: matterExists ? espMatterPath : undefined,
+    espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,
+    espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,
     serialPortList,
     targetList,
     templates,

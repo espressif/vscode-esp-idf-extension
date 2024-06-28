@@ -1,7 +1,7 @@
 {
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
-  "description": "Develop and debug applications for Espressif ESP32, ESP32-S2 chips with ESP-IDF",
+  "description": "Develop and debug applications for Espressif chips with ESP-IDF",
   "version": "1.7.1",
   "license": "Apache-2.0",
   "publisher": "espressif",
@@ -57,12 +57,9 @@
     "onCommand:espIdf.addArduinoAsComponentToCurFolder",
     "onCommand:espIdf.createIdfTerminal",
     "onCommand:espIdf.createVsCodeFolder",
-    "onCommand:espIdf.setPath",
     "onCommand:espIdf.selectConfTarget",
-    "onCommand:espIdf.configDevice",
     "onCommand:espIdf.menuconfig.start",
     "onCommand:espIdf.cmakeListsEditor.start",
-    "onCommand:espIdf.setDefaultConfig",
     "onCommand:espIdf.selectPort",
     "onCommand:espIdf.setTarget",
     "onCommand:espIdf.buildDevice",
@@ -1008,11 +1005,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.setPath",
-        "title": "%espIdf.setPath.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.selectConfTarget",
         "title": "%espIdf.selectConfTarget.title%",
         "category": "ESP-IDF"
@@ -1020,11 +1012,6 @@
       {
         "command": "espIdf.setTarget",
         "title": "%espIdf.setTarget.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.configDevice",
-        "title": "%espIdf.configDevice.title%",
         "category": "ESP-IDF"
       },
       {
@@ -1045,11 +1032,6 @@
       {
         "command": "espIdf.cmakeListsEditor.start",
         "title": "%espIdf.cmakeListsEditor.start.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.setDefaultConfig",
-        "title": "%espIdf.setDefaultConfig.title%",
         "category": "ESP-IDF"
       },
       {
@@ -1295,6 +1277,10 @@
         "command": "espIdf.doctorCommand",
         "title": "%espIdf.doctorCommand.title%",
         "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.troubleshootPanel",
+        "title": "%espIdf.troubleshootPanel.title%"
       },
       {
         "command": "espIdf.createNewComponent",
@@ -2137,6 +2123,7 @@
     "pretty-quick": "^2.0.1",
     "process": "^0.11.10",
     "reflect-metadata": "^0.1.13",
+    "rimraf": "^5.0.7",
     "sass": "^1.49.8",
     "sass-loader": "^10",
     "string-replace-loader": "^3.1.0",

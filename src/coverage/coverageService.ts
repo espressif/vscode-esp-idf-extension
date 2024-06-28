@@ -149,8 +149,18 @@ export async function generateCoverageForEditors(
     }
   } catch (error) {
     const msg = error.message ? error.message : error;
-    Logger.error("Error generate editor coverage.\n" + msg, error);
-    OutputChannel.appendLine("Error generating editor coverage.\n" + msg);
+    Logger.error(
+      "Error generate editor coverage.\n" +
+        "Check the ESP-IDF output for more details." +
+        msg,
+      error
+    );
+    OutputChannel.appendLine(
+      msg +
+        "\nError generating editor coverage.\n" +
+        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
+    );
   }
   return coveredEditors;
 }
@@ -166,7 +176,7 @@ export async function previewReport(dirPath: vscode.Uri) {
       return;
     }
     const gcovObj = await getGcovData(dirPath);
-    const reportHtml = await createGcovHtmlReport(gcovObj);
+    const reportHtml = createGcovHtmlReport(gcovObj);
     gcovHtmlPanel = vscode.window.createWebviewPanel(
       "gcoveragePreview",
       "GCC Code Coverage Report",
@@ -176,8 +186,17 @@ export async function previewReport(dirPath: vscode.Uri) {
     gcovHtmlPanel.webview.html = reportHtml;
     gcovHtmlPanel.onDidDispose(() => (gcovHtmlPanel = undefined));
   } catch (e) {
-    const msg = e.message ? e.message : e;
-    Logger.error("Error building gcov html.\n" + msg, e);
-    OutputChannel.appendLine("Error building gcov html.\n" + msg);
+    const msg = e && e.message ? e.message : e;
+    Logger.errorNotify(
+      "Error building gcov html.\n" +
+        "Check the ESP-IDF output for more details.",
+      e
+    );
+    OutputChannel.appendLine(
+      msg +
+        "\nError building gcov html.\n" +
+        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
+    );
   }
 }

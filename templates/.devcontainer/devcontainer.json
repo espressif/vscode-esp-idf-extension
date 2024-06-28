@@ -1,5 +1,3 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.183.0/containers/ubuntu
 {
 	"name": "ESP-IDF QEMU",
 	"build": {
@@ -17,7 +15,7 @@
 			},
 			"extensions": [
 				"espressif.esp-idf-extension"
-			],
+			]
 		},
 		"codespaces": {
 			"settings": {
@@ -29,8 +27,9 @@
 				"idf.gitPath": "/usr/bin/git"
 			},
 			"extensions": [
-				"espressif.esp-idf-extension"
-			],
+				"espressif.esp-idf-extension",
+				"espressif.esp-idf-web"
+			]
 		}
 	},
 	"runArgs": ["--privileged"]

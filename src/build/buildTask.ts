@@ -162,7 +162,11 @@ export class BuildTask {
           compilerArgs.push("-DCCACHE_ENABLE=1");
         }
       }
-      const compileExecution = new vscode.ProcessExecution(canAccessCMake, compilerArgs, this.processOptions);
+      const compileExecution = new vscode.ProcessExecution(
+        canAccessCMake,
+        compilerArgs,
+        this.processOptions
+      );
       const compilePresentationOptions = {
         reveal: showTaskOutput,
         showReuseMessage: false,
@@ -189,7 +193,11 @@ export class BuildTask {
         string
       >) || [];
     const ninjaCommand = "ninja";
-    const buildExecution = new vscode.ProcessExecution(ninjaCommand, buildArgs, this.processOptions);
+    const buildExecution = new vscode.ProcessExecution(
+      ninjaCommand,
+      buildArgs,
+      this.processOptions
+    );
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
@@ -233,9 +241,13 @@ export class BuildTask {
       "--json",
       join(this.buildDirPath, "flasher_args.json"),
       "--pid",
-      selectedDFUAdapterId(this.adapterTargetName)
+      selectedDFUAdapterId(this.adapterTargetName),
     ];
-    const writeExecution = new vscode.ProcessExecution(this.pythonBinPath, args, this.processOptions);
+    const writeExecution = new vscode.ProcessExecution(
+      this.pythonBinPath,
+      args,
+      this.processOptions
+    );
     const buildPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,

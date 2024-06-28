@@ -33,10 +33,17 @@ export async function checkExtensionSettings(
   if (!showSetupWindow) {
     return;
   }
-  const isExtensionConfigured = await isCurrentInstallValid(workspace);
-  if (isExtensionConfigured) {
-    vscode.commands.executeCommand("espIdf.welcome.start");
-    return;
+  try {
+    const isExtensionConfigured = await isCurrentInstallValid(workspace);
+    if (isExtensionConfigured) {
+      vscode.commands.executeCommand("espIdf.welcome.start");
+      return;
+    }
+  } catch (error) {
+    const msg = error.message
+      ? error.message
+      : "Checking if current install is valid throws an error.";
+    Logger.error(msg, error);
   }
   const notificationMode = readParameter(
     "idf.notificationMode",

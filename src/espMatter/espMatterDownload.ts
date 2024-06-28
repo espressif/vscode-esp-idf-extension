@@ -104,9 +104,10 @@ export class EspMatterCloning extends AbstractCloning {
     if (shellExecutableArgs && shellExecutableArgs.length) {
       shellOptions.shellArgs = shellExecutableArgs;
     }
-    const curWorkspaceFolder = workspace.workspaceFolders.find(
-      (w) => w.uri === this.currWorkspace
-    );
+    const curWorkspaceFolder =
+      workspace.workspaceFolders && workspace.workspaceFolders.length
+        ? workspace.workspaceFolders.find((w) => w.uri === this.currWorkspace)
+        : undefined;
 
     const buildGnExec = this.getShellExecution(bootstrapFilePath, shellOptions);
     const notificationMode = readParameter(
@@ -294,7 +295,6 @@ export async function installPythonReqs(
         espMatterPath,
         pyPath,
         undefined,
-        OutputChannel.init(),
         cancelToken
       );
     }

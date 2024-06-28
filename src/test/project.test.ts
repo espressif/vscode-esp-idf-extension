@@ -152,8 +152,8 @@ suite("Project tests", () => {
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
       "esp32",
-      openOcdConfigs,
       "no port",
+      openOcdConfigs,
       Uri.file(projectPath)
     );
     assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);

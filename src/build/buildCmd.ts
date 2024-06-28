@@ -28,6 +28,8 @@ import { IdfSizeTask } from "../espIdf/size/idfSizeTask";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
+import { createFlashModel } from "../flash/flashModelBuilder";
+import { OutputChannel } from "../logger/outputChannel";
 
 export async function buildCommand(
   workspace: vscode.Uri,
@@ -38,7 +40,9 @@ export async function buildCommand(
   const buildTask = new BuildTask(workspace);
   const customTask = new CustomTask(workspace);
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
-    const waitProcessIsFinishedMsg = vscode.l10n.t("Wait for ESP-IDF build or flash to finish");
+    const waitProcessIsFinishedMsg = vscode.l10n.t(
+      "Wait for ESP-IDF build or flash to finish"
+    );
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
       new Error("One_Task_At_A_Time")
@@ -86,6 +90,8 @@ export async function buildCommand(
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successfully");
+      const flashCmd = await buildFinishFlashCmd(workspace);
+      OutputChannel.appendLineAndShow(flashCmd, "Build");
       TaskManager.disposeListeners();
     }
   } catch (error) {
@@ -103,4 +109,53 @@ export async function buildCommand(
   }
   buildTask.building(false);
   return continueFlag;
+}
+
+
+
+export async function buildFinishFlashCmd(workspace: vscode.Uri) {
+  const buildPath = readParameter(
+    "idf.buildPath",
+    workspace
+  ) as string;
+  const flasherArgsPath = join(buildPath, "flasher_args.json");
+  const flasherArgsExists = await pathExists(flasherArgsPath);
+  if (!flasherArgsExists) {
+    return;
+  }
+  const port = readParameter("idf.port", workspace);
+  const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
+
+  const flasherArgsModel = await createFlashModel(
+    flasherArgsPath,
+    port,
+    flashBaudRate
+  );
+
+  let flashFiles = `--flash_mode ${flasherArgsModel.mode}`;
+  flashFiles += ` --flash_size ${flasherArgsModel.size}`;
+  flashFiles += ` --flash_freq ${flasherArgsModel.frequency} `;
+  for (const flashFile of flasherArgsModel.flashSections) {
+    flashFiles += `${flashFile.address} ${flashFile.binFilePath} `;
+  }
+
+  let flashString = "Project build complete. To flash, run:\n";
+  flashString +=
+    "ESP-IDF: Flash your project in the ESP-IDF Visual Studio Code Extension\n";
+  flashString += "or in a ESP-IDF Terminal:\n";
+  flashString += "idf.py flash\n";
+  flashString += "or\r\nidf.py -p PORT flash\n";
+  flashString += "or\r\n";
+  flashString += `python -m esptool --chip ${
+    flasherArgsModel.chip
+  } -b ${flashBaudRate} --before ${flasherArgsModel.before} --after ${
+    flasherArgsModel.after
+  } ${
+    flasherArgsModel.stub === false ? "--no-stub" : ""
+  } --port ${port} write_flash ${flashFiles}\n`;
+  flashString += `or from the "${buildPath}" directory\n`;
+  flashString += `python -m esptool --chip ${flasherArgsModel.chip} `;
+  flashString += `-b ${flashBaudRate} --before ${flasherArgsModel.before} `;
+  flashString += `--after ${flasherArgsModel.after} write_flash "@flash_args"`;
+  return flashString;
 }

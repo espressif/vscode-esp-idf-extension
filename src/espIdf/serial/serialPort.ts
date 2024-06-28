@@ -89,7 +89,7 @@ export class SerialPort {
         const listOfSerialPorts = await SerialPortLib.SerialPort.list();
 
         if (!listOfSerialPorts || listOfSerialPorts.length === 0) {
-          reject(new Error('No serial ports found'));
+          reject(new Error("No serial ports found"));
           return;
         }
 
@@ -116,8 +116,11 @@ export class SerialPort {
           "esptool",
           "esptool.py"
         );
-        const stat = await vscode.workspace.fs.stat(vscode.Uri.file(esptoolPath));
-        if (stat.type !== vscode.FileType.File) { // esptool.py does not exists
+        const stat = await vscode.workspace.fs.stat(
+          vscode.Uri.file(esptoolPath)
+        );
+        if (stat.type !== vscode.FileType.File) {
+          // esptool.py does not exists
           throw new Error(`esptool.py does not exists in ${esptoolPath}`);
         }
         async function processPorts(serialPort: SerialPortDetails) {
@@ -126,12 +129,16 @@ export class SerialPort {
               pythonBinPath,
               [esptoolPath, "--port", serialPort.comName, "chip_id"],
               {},
-              2000 // success is quick, failing takes too much time
+              2000, // success is quick, failing takes too much time
+              true
             );
             const regexp = /Chip is(.*?)[\r]?\n/;
             const chipIdString = chipIdBuffer.toString().match(regexp);
 
-            serialPort.chipType = chipIdString && chipIdString.length > 1 ? chipIdString[1].trim() : undefined;
+            serialPort.chipType =
+              chipIdString && chipIdString.length > 1
+                ? chipIdString[1].trim()
+                : undefined;
           } catch (error) {
             serialPort.chipType = undefined;
           }

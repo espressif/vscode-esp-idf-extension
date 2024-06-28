@@ -51,8 +51,8 @@ export function getOpenOcdScripts(workspace: Uri): string {
 }
 
 export async function getBoards(
-  idfTarget: string = "",
-  openOcdScriptsPath: string = ""
+  openOcdScriptsPath: string = "",
+  idfTarget: string = ""
 ) {
   if (!openOcdScriptsPath) {
     const filteredDefaultBoards = defaultBoards.filter((b) => {

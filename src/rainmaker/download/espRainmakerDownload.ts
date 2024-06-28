@@ -26,7 +26,8 @@ export class RainmakerCloning extends AbstractCloning {
       "https://github.com/espressif/esp-rainmaker.git",
       "ESP-RAINMAKER",
       "master",
-      gitBinPath
+      gitBinPath,
+      "https://gitee.com/EspressifSystems/esp-rainmaker.git"
     );
   }
 }

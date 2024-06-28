@@ -4,7 +4,7 @@ This extension contributes the following settings that can be later updated in s
 
 > **NOTE:** Please consider that `~`, `%VARNAME%` and `$VARNAME` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a `${env:VARNAME}` such as `${env:HOME}` or you can refer to other configuration parameter path with `${config:SETTINGID}` such as `${config:idf.espIdfPath}`.
 
-The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Configure Paths`, `Device Configuration`, `Set Espressif Device Target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with Multiple Projects](./MULTI_PROJECTS.md). Use the `Select where to Save Configuration Settings` command to choose where to save settings when using this extension commands.
+The `idf.saveScope` allows the user to specify where to save settings when using commands such as `Set Espressif Device Target` and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. For more information please take a look at [Working with Multiple Projects](./MULTI_PROJECTS.md). Use the `Select where to Save Configuration Settings` command to choose where to save settings when using this extension commands.
 
 > **NOTE:** All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
 
@@ -68,7 +68,7 @@ This is how the extension uses them:
 1. `idf.adapterTargetName` is used to select the chipset (esp32, esp32s2, esp32s3, esp32c3 and custom) on which to run the extension commands.
    > **NOTE** When you use the command **ESP-IDF: Set Espressif Device Target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration Files.
    >
-   > > If you want to customize the `idf.openOcdConfigs` alone, you can modify your user settings.json or use **ESP-IDF: Device Configuration** and select `Enter OpenOCD Configuration File Paths List` by entering each file separated by comma ",".
+   > > If you want to customize the `idf.openOcdConfigs` alone, you can use the **ESP-IDF: Select OpenOCD Board Configuration** or modify your settings.json directly.
 2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
 3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
 4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
@@ -155,14 +155,6 @@ These settings allow to support additional frameworks together with ESP-IDF:
 | `idf.espRainmakerPath`    | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
 | `idf.espRainmakerPathWin` | Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH) |
 | `idf.sbomFilePath`        | Path to create ESP-IDF SBOM report                              |
-
-The **ESP-IDF: Install ESP-ADF** command will clone ESP-ADF and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows).
-The **ESP-IDF: Install ESP-MDF** command will clone ESP-MDF and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows).
-The **ESP-IDF: Install ESP-Matter** command will clone ESP-Matter and set `idf.espMatterPath`. The **ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
-The **ESP-IDF: Install ESP-Rainmaker** command will clone ESP-Rainmaker and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
-The **ESP-IDF: Install ESP-HomeKit-SDK** command will clone ESP-HomeKit-SDK inside the selected directory and set `idf.espHomeKitSdkPath` (`idf.espHomeKitSdkPathWin` in Windows) configuration setting.
-
-The **ESP-IDF: Show Examples Projects** command allows you create a new project using one of the examples in ESP-IDF, ESP-ADF, ESP-Matter or ESP-MDF directory if related configuration settings are set, or to create projects from examples found in the ESP Component Registry.
 
 ## Use of Environment Variables in ESP-IDF settings.json and tasks.json
 

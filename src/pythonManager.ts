@@ -13,19 +13,18 @@
 // limitations under the License.
 
 import { PyReqLog } from "./PyReqLog";
-import { CancellationToken, ExtensionContext, OutputChannel } from "vscode";
+import { CancellationToken, ExtensionContext } from "vscode";
 import * as utils from "./utils";
 import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import { delimiter, dirname, join, sep } from "path";
+import { OutputChannel } from "./logger/outputChannel";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
   pythonBinPath: string,
   idfToolsPath: string,
   toolName: string,
-  toolVersion: string,
-  channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
   const idfToolsPyPath = join(espDir, "tools", "idf_tools.py");
@@ -44,13 +43,11 @@ export async function installEspIdfToolFromIdf(
         pythonBinPath,
         args,
         idfToolsPath,
-        channel,
+        OutputChannel.init(),
         { cwd: idfToolsPath, env: modifiedEnv },
         cancelToken
       );
-      if (channel) {
-        channel.appendLine(processResult);
-      }
+      OutputChannel.appendLine(processResult);
       return resolve();
     } catch (error) {
       return reject(error);
@@ -65,7 +62,6 @@ export async function installPythonEnvFromIdfTools(
   pythonBinPath: string,
   gitPath: string,
   context: ExtensionContext,
-  channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
   const idfToolsPyPath = join(espDir, "tools", "idf_tools.py");
@@ -105,10 +101,8 @@ export async function installPythonEnvFromIdfTools(
   await execProcessWithLog(
     pythonBinPath,
     [idfToolsPyPath, "install-python-env"],
-    idfToolsDir,
     pyTracker,
-    channel,
-    { env: modifiedEnv },
+    { env: modifiedEnv, cwd: idfToolsDir },
     cancelToken
   );
 
@@ -125,8 +119,7 @@ export async function installExtensionPyReqs(
   espDir: string,
   idfToolsDir: string,
   pyTracker?: PyReqLog,
-  channel?: OutputChannel,
-  opts?: { env: NodeJS.ProcessEnv; cwd?: string },
+  opts?: { env: NodeJS.ProcessEnv; cwd: string },
   cancelToken?: CancellationToken
 ) {
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
@@ -137,9 +130,7 @@ export async function installExtensionPyReqs(
   );
   if (!utils.canAccessFile(debugAdapterRequirements, constants.R_OK)) {
     Logger.warnNotify(debugAdapterRequirements + reqDoesNotExists);
-    if (channel) {
-      channel.appendLine(debugAdapterRequirements + reqDoesNotExists);
-    }
+    OutputChannel.appendLine(debugAdapterRequirements + reqDoesNotExists);
     return;
   }
   const espIdfVersion = await utils.getEspIdfFromCMake(espDir);
@@ -168,9 +159,7 @@ export async function installExtensionPyReqs(
   if (pyTracker) {
     pyTracker.Log = installDAPyPkgsMsg;
   }
-  if (channel) {
-    channel.appendLine(installDAPyPkgsMsg + "\n");
-  }
+  OutputChannel.appendLine(installDAPyPkgsMsg + "\n");
   const args = [
     "-m",
     "pip",
@@ -180,13 +169,13 @@ export async function installExtensionPyReqs(
     "--no-warn-script-location",
     "-r",
     debugAdapterRequirements,
+    "--extra-index-url",
+    "https://dl.espressif.com/pypi",
   ];
   await execProcessWithLog(
     virtualEnvPython,
     args,
-    idfToolsDir,
     pyTracker,
-    channel,
     opts,
     cancelToken
   );
@@ -198,13 +187,12 @@ export async function installEspMatterPyReqs(
   espMatterDir: string,
   pythonBinPath: string,
   pyTracker?: PyReqLog,
-  channel?: OutputChannel,
   cancelToken?: CancellationToken
 ) {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
-  const opts = { env: modifiedEnv };
+  const opts = { env: modifiedEnv, cwd: idfToolsDir };
   const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
   const pyDir =
     process.platform === "win32"
@@ -216,9 +204,7 @@ export async function installEspMatterPyReqs(
   const matterRequirements = join(espMatterDir, "requirements.txt");
   if (!utils.canAccessFile(matterRequirements, constants.R_OK)) {
     Logger.warnNotify(matterRequirements + reqDoesNotExists);
-    if (channel) {
-      channel.appendLine(matterRequirements + reqDoesNotExists);
-    }
+    OutputChannel.appendLine(matterRequirements + reqDoesNotExists);
     throw new Error();
   }
   const installMatterPyPkgsMsg = `Installing ESP-Matter python packages in ${virtualEnvPython} ...\n`;
@@ -226,9 +212,7 @@ export async function installEspMatterPyReqs(
   if (pyTracker) {
     pyTracker.Log = installMatterPyPkgsMsg;
   }
-  if (channel) {
-    channel.appendLine(installMatterPyPkgsMsg + "\n");
-  }
+  OutputChannel.appendLine(installMatterPyPkgsMsg + "\n");
   const args = [
     "-m",
     "pip",
@@ -237,13 +221,13 @@ export async function installEspMatterPyReqs(
     "--no-warn-script-location",
     "-r",
     matterRequirements,
+    "--extra-index-url",
+    "https://dl.espressif.com/pypi",
   ];
   await execProcessWithLog(
     virtualEnvPython,
     args,
-    idfToolsDir,
     pyTracker,
-    channel,
     opts,
     cancelToken
   );
@@ -252,26 +236,22 @@ export async function installEspMatterPyReqs(
 export async function execProcessWithLog(
   cmd: string,
   args: string[],
-  workDir: string,
   pyTracker?: PyReqLog,
-  channel?: OutputChannel,
-  opts?: { env: NodeJS.ProcessEnv },
+  opts?: { env: NodeJS.ProcessEnv; cwd: string },
   cancelToken?: CancellationToken
 ) {
-  const processResult = await utils.execChildProcess(
+  const processResult = await utils.spawn(
     cmd,
     args,
-    workDir,
-    channel,
     opts,
-    cancelToken
+    undefined,
+    undefined,
+    cancelToken,
+    pyTracker.Log
   );
   Logger.info(processResult + "\n");
   if (pyTracker) {
     pyTracker.Log = processResult + "\n";
-  }
-  if (channel) {
-    channel.appendLine(processResult + "\n");
   }
 }
 

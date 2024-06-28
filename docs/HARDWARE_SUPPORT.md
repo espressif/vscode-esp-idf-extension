@@ -24,7 +24,7 @@ In addition to ESP-IDF chips, there are several boards configurations files impl
 
 - [Espressif Mesh Development Framework (ESP-MDF)](https://github.com/espressif/esp-mdf) to develop with the [ESP-WIFI-MESH](https://docs.espressif.com/projects/esp-idf/en/stable/api-guides/mesh.html) networking protocol. The **Install ESP-MDF** will clone ESP-MDF to a selected directory and set `idf.espMdfPath` (`idf.espMdfPathWin` in Windows) configuration setting.
 
-- [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` configuration setting. **ESP-Matter is Not Supported in Windows**.
+- [Espressif Matter Framework (ESP-Matter)](https://github.com/espressif/esp-matter) to develop with the [Matter](https://buildwithmatter.com/) unified IP-based connectivity protocol. The **Install ESP-Matter** will clone ESP-Matter to a selected directory and set `idf.espMatterPath` configuration setting. **ESP-Matter is Not Supported in Windows**. Make sure to install <a href="https://github.com/espressif/connectedhomeip/blob/v1.1-branch/docs/guides/BUILDING.md#prerequisites">Matter system prerequisites</a> first.
 
 - [Espressif Rainmaker](https://github.com/espressif/esp-rainmaker) can be clone with the **ESP-IDF: Install ESP-Rainmaker** to a selected and set `idf.espRainmakerPath` (`idf.espRainmakerPathWin` in Windows) configuration setting.
 

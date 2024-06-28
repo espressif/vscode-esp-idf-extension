@@ -43,7 +43,9 @@ export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
     {
       cwd: workspaceFolder.fsPath,
       env: modifiedEnv,
-    }
+    },
+    undefined,
+    true
   );
   const listTargetsArray = listTargetsResult.toString().trim().split(EOL);
 
@@ -61,7 +63,9 @@ export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
     {
       cwd: workspaceFolder.fsPath,
       env: modifiedEnv,
-    }
+    },
+    undefined,
+    true
   );
   const listTargetsWithPreviewArray = listTargetsWithPreviewResult
     .toString()
@@ -86,5 +90,3 @@ export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
   } as IdfTarget);
   return resultTargetArray;
 }
-
-

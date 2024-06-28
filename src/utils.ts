@@ -129,12 +129,16 @@ export function spawn(
   command: string,
   args: string[] = [],
   options: any = {},
-  timeout: number = 0
+  timeout: number = 0,
+  silent: boolean = false, // this switches the output to console off the output is only returned, not printed,
+  cancelToken?: vscode.CancellationToken,
+  outputString?: string
 ): Promise<Buffer> {
   let buff = Buffer.alloc(0);
   const sendToOutputChannel = (data: Buffer) => {
     buff = Buffer.concat([buff, data]);
-    OutputChannel.appendLine(data.toString());
+    outputString += buff.toString();
+    !silent && OutputChannel.appendLine(data.toString());
   };
   return new Promise((resolve, reject) => {
     options.cwd = options.cwd || path.resolve(path.join(__dirname, ".."));
@@ -144,6 +148,12 @@ export function spawn(
       timeoutHandler = setTimeout(() => {
         child.kill();
       }, timeout);
+    }
+
+    if (cancelToken) {
+      cancelToken.onCancellationRequested((e) => {
+        child.kill();
+      });
     }
 
     child.stdout.on("data", sendToOutputChannel);
@@ -525,7 +535,10 @@ export function execChildProcess(
           }
           if (stderr && stderr.length > 0) {
             message += stderr;
-            if (stderr.includes("Error")) {
+            if (
+              !stderr.toLowerCase().startsWith("warning") &&
+              stderr.includes("Error")
+            ) {
               err = true;
             }
           }
@@ -547,7 +560,10 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           Logger.error(stderr, new Error(stderr));
-          if (stderr.includes("Error")) {
+          if (
+            !stderr.toLowerCase().startsWith("warning") &&
+            stderr.includes("Error")
+          ) {
             return reject(new Error(stderr));
           }
         }
@@ -1011,14 +1027,8 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   let IDF_ADD_PATHS_EXTRAS = path.join(
     modifiedEnv.IDF_PATH,
     "components",
-    "esptool_py",
-    "esptool"
-  );
-  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
-    modifiedEnv.IDF_PATH,
-    "components",
     "espcoredump"
-  )}`;
+  );
   IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
     modifiedEnv.IDF_PATH,
     "components",

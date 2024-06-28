@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 24th June 2021 4:20:56 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,10 @@ suite("OpenOCD Board tests", () => {
 
   setup(async () => {
     try {
-      const openOcdEspConfigJsonPath = join(openOcdScriptsPath, "esp-config.json");
+      const openOcdEspConfigJsonPath = join(
+        openOcdScriptsPath,
+        "esp-config.json"
+      );
       boardJsonObj = await readJSON(openOcdEspConfigJsonPath);
     } catch (error) {
       console.log(error);
@@ -44,11 +47,17 @@ suite("OpenOCD Board tests", () => {
   });
 
   test("OpenOCD Boards method", async () => {
-    const boards = await getBoards(boardJsonObj.boards[0].target, openOcdScriptsPath);
+    const boards = await getBoards(
+      openOcdScriptsPath,
+      boardJsonObj.boards[0].target
+    );
     assert.equal(boards[0].name, boardJsonObj.boards[0].name);
     assert.equal(boards[0].description, boardJsonObj.boards[0].description);
     assert.equal(boards[0].target, boardJsonObj.boards[0].target);
-    assert.deepEqual(boards[0].configFiles, boardJsonObj.boards[0].config_files);
+    assert.deepEqual(
+      boards[0].configFiles,
+      boardJsonObj.boards[0].config_files
+    );
   });
 
   test("Check default boards", async () => {

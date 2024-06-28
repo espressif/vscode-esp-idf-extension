@@ -79,7 +79,6 @@ export async function installPyReqs(
     sysPyBinPath,
     gitPath,
     context,
-    OutputChannel.init(),
     cancelToken
   );
   if (virtualEnvPyBin) {

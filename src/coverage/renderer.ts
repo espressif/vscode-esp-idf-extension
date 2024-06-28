@@ -234,8 +234,12 @@ export class CoverageRenderer {
       editor.setDecorations(this.marginDecoratorType, []);
     }
     this.cache = [];
-    this.coverageWatcher.dispose();
-    this.editorEventListener.dispose();
+    if (this.coverageWatcher) {
+      this.coverageWatcher.dispose();
+    }
+    if (this.editorEventListener) {
+      this.editorEventListener.dispose();
+    }
   }
 
   public dispose() {

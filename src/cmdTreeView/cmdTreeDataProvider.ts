@@ -203,7 +203,7 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
       "Build",
       CommandType.Command,
       "espIdf.buildDevice",
-      "database"
+      "symbol-property"
     );
 
     const sizeCmd = new CommandItem(
@@ -239,6 +239,13 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
       CommandType.Command,
       "espIdf.monitorDevice",
       "device-desktop"
+    );
+
+    const debugCmd = new CommandItem(
+      "Debug",
+      CommandType.Command,
+      "espIdf.debug",
+      "debug-alt"
     );
 
     const openOCD = new CommandItem(
@@ -277,6 +284,7 @@ export class CommandsProvider implements TreeDataProvider<CommandItem> {
       flashCmd,
       eraseFlash,
       monitorCmd,
+      debugCmd,
       openOCD,
       terminalCmd,
       doctorCmd,
