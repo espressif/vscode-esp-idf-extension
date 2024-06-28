@@ -43,6 +43,7 @@ const idfVersionList = computed(() => {
 function clearIDfErrorStatus() {
   store.espIdfErrorStatus = "";
   store.whiteSpaceErrorIDFContainer = "";
+  store.idfPathError = "";
 }
 
 function setEspIdfPath(idfPath: string) {
@@ -54,7 +55,9 @@ function setEspIdfContainerPath(idfContainerPath: string) {
 }
 
 function validatePathOnBlur(path: string) {
-  store.validateEspIdfPath(path);
+  if (selectedEspIdfVersion.value.filename === "manual") {
+    store.validateEspIdfPath(path);
+  }
 }
 
 const resultingIdfPath = computed(() => {
