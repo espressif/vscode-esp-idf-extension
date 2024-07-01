@@ -24,3 +24,6 @@ test-resources/**
 /docs_espressif/en/.DS_Store
 /docs_espressif/en/additionalfeatures/.DS_Store
 /docs_espressif/_static/.DS_Store
+/docs_espressif/.venv
+/docs_espressif/_build
+/docs_espressif/__pycache__
