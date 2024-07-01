@@ -53,6 +53,9 @@ jobs:
               body += `\n* [${art.name}.zip](https://nightly.link/${owner}/${repo}/actions/artifacts/${art.id}.zip)`;
             }
 
+            const pr_num = ${{github.event.number}};
+            body += `\n [Espressif docs preview](https://preview-docs.espressif.com/projects/vscode-esp-idf-extension/en/${pr_num}-merge/index.html)`;
+
             core.info("Review thread message body:", body);
 
             for (const pr of pull_requests) {
