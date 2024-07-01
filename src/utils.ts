@@ -1255,7 +1255,6 @@ export function markdownToWebviewHtml(
 }
 
 export function getUserShell() {
-
   const shell = vscode.env.shell;
 
   // list of shells to check
