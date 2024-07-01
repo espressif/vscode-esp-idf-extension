@@ -1266,7 +1266,7 @@ export function getUserShell() {
   const shellLinux = config.get("defaultProfile.linux") as string;
 
   // list of shells to check
-  const shells = ["PowerShell", "Command Prompt", "bash", "zsh"];
+  const shells = ["PowerShell", "Command Prompt", "bash", "zsh", "Git Bash"];
 
   // if user's shell is in the list, return it
   for (let i = 0; i < shells.length; i++) {

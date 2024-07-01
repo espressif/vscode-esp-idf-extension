@@ -66,6 +66,8 @@ export class IDFMonitor {
     const quotePath = (path) => {
       if (shellType === "PowerShell") {
         return `'${path.replace(/'/g, "''")}'`;
+      } else if (shellType === "Command Prompt") {
+        return `"${path}"`;
       } else {
         return `'${path}'`;
       }
@@ -114,6 +116,9 @@ export class IDFMonitor {
     if (shellType === "PowerShell") {
       this.terminal.sendText(`& ${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(`& ${args.join(" ")}`);
+    } else if (shellType === "Command Prompt") {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+      this.terminal.sendText(args.join(" "));
     } else {
       this.terminal.sendText(`${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(args.join(" "));
