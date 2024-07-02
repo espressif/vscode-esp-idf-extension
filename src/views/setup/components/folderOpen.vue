@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { IconFolder, IconFolderOpened } from "@iconify-prerendered/vue-codicon";
 import { computed } from "vue";
+import { defineProps, defineEmits } from "vue";
 import { useSetupStore } from "../store";
+
 let folderIcon = "folder";
-const store = useSetupStore();
 const props = defineProps<{
   keyEnterMethod?: () => void;
   onChangeMethod?: () => void;
-  openMethod: () => void;
+  openMethod: () => Promise<string | undefined>;
   propLabel: string;
   propModel: string;
   propMutate: (val: string) => void;
   staticText?: string;
 }>();
+
+const store = useSetupStore();
+const emit = defineEmits(["blur"]);
 
 const dataModel = computed({
   get() {
@@ -31,6 +35,17 @@ function onKeyEnter() {
     props.keyEnterMethod();
   }
 }
+
+async function selectFolder() {
+  const folder = await props.openMethod();
+  if (folder !== undefined) {
+    props.propMutate(folder);
+    emit("blur", folder);
+    if (props.onChangeMethod) {
+      props.onChangeMethod();
+    }
+  }
+}
 </script>
 
 <template>
@@ -42,6 +57,7 @@ function onKeyEnter() {
           type="text"
           class="input"
           v-model="dataModel"
+          @blur="$emit('blur', dataModel)"
           @keyup.enter="onKeyEnter"
         />
       </div>
@@ -54,10 +70,10 @@ function onKeyEnter() {
           style="text-decoration: none;"
           @mouseover="folderIcon = 'folder-opened'"
           @mouseout="folderIcon = 'folder'"
-          v-on:click="openMethod"
+          @click="selectFolder"
         >
-          <IconFolderOpened v-if="(folderIcon === 'folder-opened')" />
-          <IconFolder v-if="(folderIcon === 'folder')" />
+          <IconFolderOpened v-if="folderIcon === 'folder-opened'" />
+          <IconFolder v-if="folderIcon === 'folder'" />
         </div>
       </div>
     </div>

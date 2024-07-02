@@ -46,7 +46,13 @@ import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
-import { checkSpacesInPath, getEspIdfFromCMake } from "../utils";
+import {
+  checkSpacesInPath,
+  getEspIdfFromCMake,
+  canAccessFile,
+  execChildProcess,
+  compareVersion,
+} from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 import { clearPreviousIdfSetups } from "./existingIdfSetups";
 
@@ -325,6 +331,34 @@ export class SetupPanel {
         case "exploreComponents":
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
+        case "canAccessFile":
+          if (message.pathIdfPy) {
+            const fileExists = await canAccessFile(message.pathIdfPy);
+            if (!fileExists) {
+              this.panel.webview.postMessage({
+                command: "canAccessFileResponse",
+                path: message.path,
+                exists: fileExists,
+              });
+            } else {
+              let versionEspIdf = message.currentVersion;
+              if (!versionEspIdf) {
+                versionEspIdf = await getEspIdfFromCMake(message.path);
+              }
+              // compareVersion returns a negative value if versionEspIdf is less than "5.0"
+              const noWhiteSpaceSupport =
+                compareVersion(versionEspIdf, "5.0") < 0;
+              const hasWhitespace = /\s/.test(message.path);
+              this.panel.webview.postMessage({
+                command: "canAccessFileResponse",
+                path: message.path,
+                exists: fileExists,
+                noWhiteSpaceSupport,
+                hasWhitespace,
+              });
+            }
+          }
+          break;
         default:
           break;
       }
@@ -334,7 +368,8 @@ export class SetupPanel {
   }
 
   setupErrHandler(error: Error) {
-    const errMsg = error && error.message ? error.message : "Error during ESP-IDF setup";
+    const errMsg =
+      error && error.message ? error.message : "Error during ESP-IDF setup";
     if (
       errMsg.indexOf("ERROR_EXISTING_ESP_IDF") !== -1 ||
       errMsg.indexOf("IDF_PATH_WITH_SPACES") !== -1 ||
@@ -443,7 +478,6 @@ export class SetupPanel {
               ? espIdfPath
               : idfContainerPath;
           this.checkSpacesInPaths(toolsPath);
-
           if (idfPathToCheck === toolsPath) {
             const idfPathSameIdfToolsPathMsg = `IDF_PATH and IDF_TOOLS_PATH can't be the same. Please use another location. (ERROR_SAME_IDF_PATH_AND__IDF_TOOLS_PATH)`;
             throw new Error(idfPathSameIdfToolsPathMsg);
