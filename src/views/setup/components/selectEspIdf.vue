@@ -115,8 +115,30 @@ watchEffect(() => {
 
 watch(selectedEspIdfVersion, (newVal) => {
   clearIDfErrorStatus();
-  validatePathOnBlur(newVal.filename === "manual" ? espIdf.value : espIdfContainer.value);
+  if (newVal.filename === "manual") {
+    validatePathOnBlur(espIdf.value);
+  } else {
+    validatePathOnBlur(espIdfContainer.value);
+  }
 });
+
+watch(
+  () => store.espIdf,
+  (newValue) => {
+    if (newValue && selectedEspIdfVersion.value.filename === "manual") {
+      store.validateEspIdfPath(newValue);
+    }
+  }
+);
+
+watch(
+  () => store.espIdfContainer,
+  (newValue) => {
+    if (newValue && selectedEspIdfVersion.value.filename !== "manual") {
+      store.validateEspIdfPath(newValue);
+    }
+  }
+);
 </script>
 
 <template>
@@ -128,7 +150,9 @@ watch(selectedEspIdfVersion, (newVal) => {
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfMirror" @change="clearIDfErrorStatus">
-            <option :value="idfMirror.Espressif">Espressif</option>
+            <option :value="idfMirror.Espressif"
+              >Espressif (Better speed for China)</option
+            >
             <option :value="idfMirror.Github">Github</option>
           </select>
         </div>

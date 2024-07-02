@@ -38,6 +38,7 @@ try {
 }
 
 export const useSetupStore = defineStore("setup", () => {
+  let espIdfVersion: Ref<string> = ref("");
   let areToolsValid: Ref<boolean> = ref(false);
   let espIdf: Ref<string> = ref("");
   let espIdfContainer: Ref<string> = ref("");
@@ -100,16 +101,23 @@ export const useSetupStore = defineStore("setup", () => {
   let idfPathError: Ref<string> = ref("");
   let isInstallButtonDisabled: Ref<boolean> = ref(false);
 
+  function clearIdfPathError() {
+    idfPathError.value = "";
+    isInstallButtonDisabled.value = false;
+  }
+
   function setIdfPathError(error: string) {
     idfPathError.value = error;
     isInstallButtonDisabled.value = !!error;
   }
 
   function validateEspIdfPath(path: string) {
+    clearIdfPathError();
     vscode.postMessage({
       command: "canAccessFile",
       path,
-      pathIdfPy: `${path}/tools/idf.py`
+      pathIdfPy: `${path}/tools/idf.py`,
+      currentVersion: espIdfVersion.value,
     });
   }
 
@@ -315,7 +323,12 @@ export const useSetupStore = defineStore("setup", () => {
 
   function setSelectedEspIdfVersion(selectedEspIdfVer: IEspIdfLink) {
     selectedEspIdfVersion.value = selectedEspIdfVer;
+    espIdfVersion.value = selectedEspIdfVer.version;
     idfDownloadStatus.value.id = selectedEspIdfVer.name;
+    // Trigger validation whenever the version changes
+    if (espIdf.value) {
+      validateEspIdfPath(espIdf.value);
+    }
   }
 
   function setToolChecksum(toolData: { name: string; checksum: boolean }) {
@@ -500,5 +513,7 @@ export const useSetupStore = defineStore("setup", () => {
     isInstallButtonDisabled,
     setIdfPathError,
     validateEspIdfPath,
+    clearIdfPathError,
+    espIdfVersion,
   };
 });

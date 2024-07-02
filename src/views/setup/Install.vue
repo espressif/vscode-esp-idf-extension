@@ -2,13 +2,25 @@
 import { storeToRefs } from "pinia";
 import { useSetupStore } from "./store";
 import { SetupMode } from "./types";
-import { computed, watchEffect } from "vue";
+import { computed, watchEffect, onMounted, onUnmounted } from "vue";
 import folderOpen from "./components/folderOpen.vue";
 import selectEspIdf from "./components/selectEspIdf.vue";
 import selectPyVersion from "./components/selectPyVersion.vue";
 import { IconClose } from "@iconify-prerendered/vue-codicon";
 
 const store = useSetupStore();
+
+onMounted(() => {
+  if (store.espIdf) {
+    store.validateEspIdfPath(store.espIdf);
+  } else if (store.espIdfContainer) {
+    store.validateEspIdfPath(store.espIdfContainer);
+  }
+});
+
+onUnmounted(() => {
+  store.clearIdfPathError();
+});
 
 const {
   espIdfErrorStatus,
