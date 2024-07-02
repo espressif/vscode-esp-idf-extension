@@ -15,12 +15,9 @@ A new terminal being launched with the build output and a notification bar with 
 
 You could modify the behavior of the build task with **idf.cmakeCompilerArgs** for Cmake configure step and **idf.ninjaArgs** for Ninja step. For example, using ``idf.ninjaArgs: [-j N]`` where N is the number of jobs run in parallel.
 
-Next step is to :ref:`Flash onto the device <flash the device>`.
+After building the application size analysis task will be executed in a terminal showing the size analysis results.  You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
 
-Size analysis of generated binaries
---------------------------------------
-
-Select menu **View**, **Command Palette**, type **ESP-IDF: Size Analysis of the Binaries** command to visually review the application size information.
-
-.. image:: ../../media/tutorials/basic_use/size.png
+.. image:: ../../media/tutorials/basic_use/size_terminal.png
   :height: 500px
+
+Next step is to :ref:`Flash onto the device <flash the device>`.

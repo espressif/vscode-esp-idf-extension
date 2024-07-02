@@ -11,3 +11,4 @@ Linux / MacOS
 - `Git <https://git-scm.com/downloads>`_.
 - Install the following `ESP-IDF Prerequisites <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites>`_.
 
+Next proceed to :ref:`Install ESP-IDF and Tools <installation>`.

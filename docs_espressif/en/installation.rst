@@ -1,4 +1,6 @@
-Installation
+.. _installation:
+
+Install ESP-IDF and Tools
 ===============================
 
 After installing Visual Studio Code you need to install the ESP-IDF extension for Visual Studio Code.
@@ -18,12 +20,18 @@ After, choose the **ESP-IDF: Configure ESP-IDF Extension** command.
   
   * For versions of ``ESP-IDF < 5.0``, spaces are not supported inside configured paths.
 
+.. image:: ../../media/tutorials/setup/select-mode.png
+  :height: 950px
+
 Choose **Express** and select the download server:
 
 - **Espressif**: Faster speed in China using Espressif Download servers links.
 - **Github**: Using github releases links.
 
 Pick an ESP-IDF version to download or use the ``find ESP-IDF in your system`` option to search for existing ESP-IDF directory.
+
+.. image:: ../../media/tutorials/setup/select-esp-idf.png
+  :height: 950px
 
 Choose the location for ESP-IDF Tools ( ``IDF_TOOLS_PATH``) which is ``$HOME\.espressif`` on MacOS/Linux and ``%USERPROFILE%\.espressif`` on Windows by default.
 
@@ -35,12 +43,18 @@ Choose the location for ESP-IDF Tools ( ``IDF_TOOLS_PATH``) which is ``$HOME\.es
 
 Click ``Install`` to begin download and install of ESP-IDF and ESP-IDF tools.
 
+
 A page will appear with the setup progress status showing 
 - ESP-IDF download progress, 
 - ESP-IDF Tools download and install progress
 - Creation of a python virtual environment and ESP-IDF python requirements.
 
+.. image:: ../../media/tutorials/setup/install-status.png
+  :height: 950px
+
 If everything is installed correctly, the user will see a message that all settings have been configured. 
+
+.. image:: ../../media/tutorials/setup/install-complete.png
 
 Next step is to :ref:`Start a ESP-IDF Project <start a esp-idf project>`.
 

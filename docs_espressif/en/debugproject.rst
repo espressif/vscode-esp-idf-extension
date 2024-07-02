@@ -14,7 +14,6 @@ Make sure that openOCD configuration files are correct by selecting menu **View*
 To start debugging select menu **Run** and **Start Debugging** or just press F5.
 
 .. image:: ../../media/tutorials/debug/init_halted.png
-  :height: 500px
 
 You can see the output from GDB in the debug console and the openOCD output in the menu **View** -> **Output** -> Select **ESP-IDF** from dropdown output.
 
@@ -38,7 +37,6 @@ When the target is halted, the editor will show the line of code where the progr
 By expanding threads you can navigate throughout the application. Some threads contains much longer call stack where the user can see, besides function calls, numbers like ``0x4000bff0`` representing address of binary code not provided in source form.
 
 .. image:: ../../media/tutorials/debug/thread5.png
-  :height: 500px
 
 Go back to the ``app_main()`` in Thread #1 to familiar code of blink.c file that will be examined in more details in the following examples. Debugger makes it easy to navigate through the code of entire application. This comes handy when stepping through the code and working with breakpoints and will be discussed below.
 
@@ -51,7 +49,6 @@ When debugging, we would like to be able to stop the application at critical lin
 Let's establish two breakpoints when the state of LED changes. Based on the code listing above, this happens at lines 57 and 80. To set a breakpoint, go to the desired line and press F9 or click on the circle shown next to the line number (editor margin). The list of breakpoints is shown in the ``Breakpoints`` sub-window on the ``Run`` icon in the Activity Bar on the side of Visual Studio Code.
 
 .. image:: ../../media/tutorials/debug/breakpoint.png
-  :height: 500px
 
 .. note::
   Consider that ESP32 has a maximum of 2 hardware breakpoints. Please look at `ESP-IDF Debugging tips: Breakpoints <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-breakpoints>`_ for more information.
@@ -74,7 +71,6 @@ Before being able to demonstrate this functionality, using information discussed
 Resume program by entering pressing F5 and let it halt. Now press “Step Over (F10)”, one by one couple of times, to see how debugger is stepping one program line at a time.
 
 .. image:: ../../media/tutorials/debug/step_over.png
-  :height: 500px
 
 Stepping Through the Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,14 +78,12 @@ Stepping Through the Code
 If you press “Step Into (F11)” instead, then debugger will step inside subroutine call.
 
 .. image:: ../../media/tutorials/debug/step_into.png
-  :height: 500px
-
-If you press “Step Out (Shift + F11)” instead, then debugger will step outside the subroutine call.
-
-.. image:: ../../media/tutorials/debug/step_out.png
-  :height: 500px
 
 In this particular case debugger stepped inside ``vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS)`` and effectively moved to `tasks.c` code. See `Why stepping with “next” does not bypass subroutine calls? <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-why-next-works-as-step>`_ for potential limitations using the ``next`` command.
+
+∂If you press “Step Out (Shift + F11)” instead, then debugger will step outside the subroutine call.
+
+.. image:: ../../media/tutorials/debug/step_out.png
 
 Watching and Setting Program Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -103,7 +97,6 @@ Next in the ``Watch`` sub-window on the ``Run`` icon in the Activity Bar on the 
 Continue the program execution by pressing F5. Each time the program is halted, you will see ``i`` being incremented.
 
 .. image:: ../../media/tutorials/debug/watch_set_program_vars.png
-  :height: 500px
 
 Setting Conditional Breakpoint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -115,7 +108,6 @@ To set a new conditional breakpoint, go to the desired line and right click on t
 For this example, go to line 79 and right click on the circle shown next to the line number (editor margin) and select ``Add Conditional Breakpoint`` action and set ``i=2``. When you start the debug, it will stop on line 79 when ``i`` has value of 2.
 
 .. image:: ../../media/tutorials/debug/conditional_breakpoint.png
-  :height: 500px
 
 Disassembly view
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -123,7 +115,6 @@ Disassembly view
 You can check the assembly code from the debugging session by doing a right click in any line in of source code file and pressing ``Open Disassembly View``. This will open the **Disassemble View** showing the assembly code with C code where you can set breakpoints too.
 
 .. image:: ../../media/tutorials/debug/disassembly_view.png
-  :height: 500px
 
 Watchpoints (Data Breakpoints)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,10 +124,11 @@ See `ESP-IDF breakpoints and watchpoints available <https://docs.espressif.com/p
 Send commands to GDB
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can send any GDB commands in the Debug console with ``> COMMAND``. For example ``> i threads``.
+You can send any GDB commands in the Debug console with ``> COMMAND``. For example ``> i threads``. 
+
+You can also see binary data variables content clicking ``View Binary Data`` next to variable name.
 
 .. image:: ../../media/tutorials/debug/gdb_commands.png
-  :height: 500px
 
 More about `Command Line Debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/debugging-examples.html#command-line>`_.
 
@@ -146,7 +138,6 @@ ESP-IDF: Peripheral View
 Our extension implements a ``ESP-IDF: Peripheral View`` tree view in the ``Run and Debug`` view which will use the SVD file defined in the **IDF Svd File Path (idf.svdFilePath)** configuration setting to populate a set of peripherals registers values for the active debug session target. You could download Espressif SVD files from `Espressif SVD <https://github.com/espressif/svd>`_ repository.
 
 .. image:: ../../media/tutorials/debug/peripheral_viewer.png
-  :height: 500px
 
 
 Post-mortem debug use cases
