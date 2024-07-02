@@ -46,20 +46,22 @@ function goTo(route: string, setupMode: SetupMode) {
     <div class="centerize notification" v-if="hasPrerequisites">
       <div class="control centerize home-title">
         <h1 class="title is-spaced">Welcome.</h1>
-        <p v-if="platform !== 'win32'">
-          Make sure that
-          <a
-            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
-            v-if="platform === 'darwin'"
-            >ESP-IDF Prerequisites for MacOS</a
-          >
-          <a
-            href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
-            v-if="platform === 'linux'"
-            >ESP-IDF Prerequisites for Linux</a
-          >
-        </p>
-        <p>are installed before choosing the setup mode.</p>
+        <div v-if="platform !== 'win32'" class="prerequisites-info">
+          <p>Make sure that</p>
+          <p>
+            <a
+              href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html"
+              v-if="platform === 'darwin'"
+              >ESP-IDF Prerequisites for MacOS</a
+            >
+            <a
+              href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html"
+              v-if="platform === 'linux'"
+              >ESP-IDF Prerequisites for Linux</a
+            >
+          </p>
+          <p>are installed before choosing the setup mode.</p>
+        </div>
         <h2 class="subtitle">Choose a setup mode.</h2>
         <selectSaveScope />
       </div>
@@ -171,6 +173,19 @@ function goTo(route: string, setupMode: SetupMode) {
 
 div.notification.is-danger {
   background-color: var(--vscode-editorGutter-deletedBackground);
+}
+
+.prerequisites-info {
+  text-align: center;
+  margin: 1em 0;
+
+  p {
+    margin: 0.5em 0;
+  }
+
+  a {
+    font-weight: bold;
+  }
 }
 </style>
 ./types
