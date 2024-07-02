@@ -11,6 +11,7 @@
 .yarnrc
 dist/**/*.map
 docs
+docs_espressif
 ci
 esp/**
 esp_idf_docs_index_lang_*.json

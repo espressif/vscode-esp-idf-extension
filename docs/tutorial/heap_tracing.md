@@ -18,7 +18,7 @@ For this example, the project has been already configured for application tracin
 
 4. Click the `ESP-IDF Explorer` in the [Activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `ESP-IDF APP TRACER` section, click the `Start Heap Trace`. This will execute the extension's openOCD server and send the corresponding tracing commands to generate a tracing log. You can see the generated tracing log in the `APP TRACE ARCHIVES` named with `Heap Trace Log #1`. Each time you execute `Start Heap Trace` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
 
-> **NOTE:** The OpenOCD server output is shown in menu `View` -> Output -> OpenOCD.
+> **NOTE:** The OpenOCD server output is shown in menu `View` -> Output -> ESP-IDF.
 
 > **NOTE:** Make sure that OspenOCD configuration files are properly configured as described in [Debugging tutorial](./debugging.md).
 

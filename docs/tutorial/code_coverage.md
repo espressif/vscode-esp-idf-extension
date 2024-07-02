@@ -40,7 +40,7 @@ The example will enable the following options by default:
 
 > **NOTE:** There is also a **ESP-IDF: Build, Flash and Start a Monitor on your Device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>D</kbd> keyboard shortcut).
 
-7. Next step is to launch OpenOCD and send some commands. To start openOCD from the extension, execute the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. OpenOCD server output is shown in menu `View` -> `Output` -> `OpenOCD`.
+7. Next step is to launch OpenOCD and send some commands. To start openOCD from the extension, execute the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. OpenOCD server output is shown in menu `View` -> `Output` -> `ESP-IDF`.
 
 8. Launch a new terminal with menu Terminal -> New Terminal and execute `telnet <oocd_host> <oocd_port>` which by default is `telnet localhost 4444`. Latest macOS users can use `nc <oocd_host> <oocd_port>` if `telnet` is not in the system.
 
