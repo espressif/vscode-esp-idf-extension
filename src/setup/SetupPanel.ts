@@ -46,10 +46,9 @@ import { createPyReqs } from "./pyReqsInstallStep";
 import { downloadIdfTools } from "./toolsDownloadStep";
 import { installIdfGit, installIdfPython } from "./embedGitPy";
 import { getOpenOcdRules } from "./addOpenOcdRules";
-import { checkSpacesInPath, getEspIdfFromCMake, canAccessFile } from "../utils";
+import { checkSpacesInPath, getEspIdfFromCMake, canAccessFile, execChildProcess, compareVersion } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
 import { clearPreviousIdfSetups } from "./existingIdfSetups";
-import * as fs from "fs";
 
 export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
@@ -327,13 +326,24 @@ export class SetupPanel {
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
         case "canAccessFile":
-          if (message.path) {
-            const fileExists = await canAccessFile(message.path);
-            this.panel.webview.postMessage({
-              command: "canAccessFileResponse",
-              path: message.path,
-              exists: fileExists,
-            });
+          if (message.pathIdfPy) {
+            const fileExists = await canAccessFile(message.pathIdfPy);
+            if(!fileExists) {
+              this.panel.webview.postMessage({
+                command: "canAccessFileResponse",
+                path: message.path,
+                exists: fileExists,
+              });
+            } else {
+              const versionEspIdf = await getEspIdfFromCMake(message.path);
+              const noWhiteSpaceSupport = compareVersion("5.0", versionEspIdf);
+              this.panel.webview.postMessage({
+                command: "canAccessFileResponse",
+                path: message.path,
+                exists: fileExists,
+                noWhiteSpaceSupport
+              });
+            }
           }
           break;
         default:

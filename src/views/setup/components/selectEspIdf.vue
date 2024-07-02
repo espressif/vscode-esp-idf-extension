@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useSetupStore } from "../store";
 import { IdfMirror } from "../types";
 import folderOpen from "./folderOpen.vue";
-import { computed, watchEffect } from "vue";
+import { computed, watchEffect, watch } from "vue";
 
 const store = useSetupStore();
 
@@ -104,13 +104,6 @@ const isPathEmpty = computed(() => {
   }
 });
 
-const showManualVersionWarning = computed(() => {
-  return (
-    selectedEspIdfVersion.value.filename === "manual" &&
-    hasWhitespaceInEspIdf.value
-  );
-});
-
 watchEffect(() => {
   if (!hasWhitespaceInEspIdf.value) {
     store.whiteSpaceErrorIDF = "";
@@ -118,6 +111,11 @@ watchEffect(() => {
   if (!hasWhitespaceInEspIdfContainer.value) {
     store.whiteSpaceErrorIDFContainer = "";
   }
+});
+
+watch(selectedEspIdfVersion, (newVal) => {
+  clearIDfErrorStatus();
+  validatePathOnBlur(newVal.filename === "manual" ? espIdf.value : espIdfContainer.value);
 });
 </script>
 
@@ -187,10 +185,6 @@ watchEffect(() => {
         selectedEspIdfVersion && selectedEspIdfVersion.filename !== 'manual'
       "
     />
-    <div v-if="showManualVersionWarning" class="notification is-warning">
-      Make sure the ESP-IDF version is not lower than 5.0, since white spaces
-      are not supported for earlier versions.
-    </div>
     <div
       v-if="
         selectedEspIdfVersion &&
@@ -200,7 +194,7 @@ watchEffect(() => {
       "
       class="notification is-danger"
     >
-      White spaces are only supported for ESP-IDF path for versions > 5.0.
+      White spaces are only supported for ESP-IDF path for versions >= 5.0.
     </div>
     <div v-if="isPathEmpty" class="notification is-danger">
       ESP-IDF path should not be empty.

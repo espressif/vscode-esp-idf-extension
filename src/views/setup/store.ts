@@ -108,7 +108,8 @@ export const useSetupStore = defineStore("setup", () => {
   function validateEspIdfPath(path: string) {
     vscode.postMessage({
       command: "canAccessFile",
-      path: `${path}/tools/idf.py`,
+      path,
+      pathIdfPy: `${path}/tools/idf.py`
     });
   }
 

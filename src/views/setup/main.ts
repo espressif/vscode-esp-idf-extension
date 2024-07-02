@@ -272,7 +272,9 @@ window.addEventListener("message", (event) => {
         store.idfPathError =
           "The path for ESP-IDF is not valid: /tools/idf.py not found.";
       } else {
-        store.idfPathError = "";
+        if(msg.noWhiteSpaceSupport)
+        store.idfPathError = 
+          "White spaces are only supported for ESP-IDF path for versions >= 5.0.";
       }
       break;
     default:
