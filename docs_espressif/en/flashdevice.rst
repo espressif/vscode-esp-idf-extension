@@ -11,7 +11,6 @@ To flash the project, select menu **View**, **Command Palette** and type **ESP-I
   * ``UART`` is the most common option for most Espressif devices.
 
 .. image:: ../../media/tutorials/basic_use/flash.png
-  :height: 975px
 
 .. note::
   * There is an **idf.flashBaudRate** configuration settings to modify the flashing baud rate.
@@ -24,8 +23,6 @@ Next step is to :ref:`Monitor the output <monitor the output>`.
 Links
 -------------------
 
-`ESP-PROG guide <https://docs.espressif.com/projects/espressif-esp-iot-solution/en/latest/hw-reference/ESP-Prog_guide.html>`_
-
-`Configuration of OpenOCD for Specific Target <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_ to understand which board or configuration to use for your specific hardware.
-
-`Establishing serial connection <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/establish-serial-connection.html>`_
+* `ESP-PROG guide <https://docs.espressif.com/projects/espressif-esp-iot-solution/en/latest/hw-reference/ESP-Prog_guide.html>`_ for hardware connection and configuration.
+* `Configuration of OpenOCD for Specific Target <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_ to understand which board or configuration to use for your specific hardware.
+* `Establishing serial connection <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/establish-serial-connection.html>`_ with Espressif serial device.

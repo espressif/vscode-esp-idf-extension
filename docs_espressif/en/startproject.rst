@@ -13,7 +13,6 @@ The first option is recommended as it allows you to configure the project while 
 In Visual Studio Code, select menu **View**, **Command Palette** and type **ESP-IDF: New Project**.
 
 .. image:: ../../media/tutorials/new_project/new_project_init.png
-  :height: 300px
 
 - Choose the project name,
 - Choose where to create this new project
@@ -36,14 +35,12 @@ Choose ESP-IDF from the dropdown if you want to use an example as template.
   If you want to create a blank project, choose ESP-IDF ``sample_project`` or  Extension ``template-app``.
 
 .. image:: ../../media/tutorials/new_project/new_project_templates.png
-  :height: 500px
 
 Choose your desired template and click the **Create Project Using Template <template-name>** button where **<template-name>** is the name of the selected template.
 
 After the project is created, a notification window will show up to open the newly created project or not.
 
 .. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :height: 100px
 
 2. Using **Show Examples Projects**
 -----------------------------------
@@ -57,7 +54,6 @@ When you select an example the readme will be shown and a **Create project using
 Choose a destination to create the new project. A notification will be shown to Open folder in a new window.
 
 .. image:: ../../media/tutorials/new_project/new_project_confirm.png
-  :height: 100px
 
 3. Opening an Existing ESP-IDF Project
 ----------------------------------------

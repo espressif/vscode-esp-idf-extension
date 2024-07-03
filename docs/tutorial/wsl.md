@@ -190,7 +190,7 @@ the interface is the same as [Internal USB-serial](#internal-usb-serial), that i
 
 ### Additional steps for debugging
 
-Make sure to run `ESP-IDF: Add OpenOCD rules file (For Linux users)` command and `ESP-IDF: Install ESP-IDF Python Packages` command to add openOCD rules and install debug adapter python packages in the WSL before running openOCD and starting a debug session with the ESP-IDF Debug Adapter.
+Make sure to run `ESP-IDF: Add OpenOCD rules file (For Linux users)` command to add openOCD rules in the WSL before running openOCD and starting a debug session.
 
 ## Debugging
 

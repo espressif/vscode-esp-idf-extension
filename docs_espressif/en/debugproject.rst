@@ -17,6 +17,8 @@ To start debugging select menu **Run** and **Start Debugging** or just press F5.
 
 You can see the output from GDB in the debug console and the openOCD output in the menu **View** -> **Output** -> Select **ESP-IDF** from dropdown output.
 
+This cover the basic functionality of the ESP-IDF extension. Take a look at the :ref:`Additional IDE Features<additional features>` documentation for more.
+
 What happens in the background ?
 -------------------------------------
 
@@ -79,9 +81,12 @@ If you press “Step Into (F11)” instead, then debugger will step inside subro
 
 .. image:: ../../media/tutorials/debug/step_into.png
 
-In this particular case debugger stepped inside ``vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS)`` and effectively moved to `tasks.c` code. See `Why stepping with “next” does not bypass subroutine calls? <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-why-next-works-as-step>`_ for potential limitations using the ``next`` command.
+In this particular case debugger stepped inside ``vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS)`` and effectively moved to `tasks.c` code. 
 
-∂If you press “Step Out (Shift + F11)” instead, then debugger will step outside the subroutine call.
+.. note::
+  * See `Why stepping with “next” does not bypass subroutine calls? <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-why-next-works-as-step>`_ for potential limitations using the ``next`` command.
+
+If you press “Step Out (Shift + F11)” instead, then debugger will step outside the subroutine call.
 
 .. image:: ../../media/tutorials/debug/step_out.png
 
