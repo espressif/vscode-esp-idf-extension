@@ -130,15 +130,6 @@ watch(
     }
   }
 );
-
-watch(
-  () => store.espIdfContainer,
-  (newValue) => {
-    if (newValue && selectedEspIdfVersion.value.filename !== "manual") {
-      store.validateEspIdfPath(newValue);
-    }
-  }
-);
 </script>
 
 <template>
