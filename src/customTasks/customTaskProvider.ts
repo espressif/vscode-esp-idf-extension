@@ -17,8 +17,8 @@
  */
 
 import {
-  ProcessExecution,
-  ProcessExecutionOptions,
+  ShellExecution,
+  ShellExecutionOptions,
   TaskPanelKind,
   TaskPresentationOptions,
   TaskRevealKind,
@@ -40,26 +40,18 @@ export enum CustomTaskType {
 
 export class CustomTask {
   public static isRunningCustomTask: boolean;
-  private processOptions: ProcessExecutionOptions;
-  private buildDirPath: string;
-  private currentWorkspace: Uri;
-  private modifiedEnv: { [key: string]: string };
 
-  constructor(private workspaceUri: Uri) {
-    this.currentWorkspace = workspaceUri;
-    this.buildDirPath = readParameter(
-      "idf.buildPath",
-      this.currentWorkspace
-    ) as string;
-    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
-    this.processOptions = {
-      cwd: this.buildDirPath,
-      env: this.modifiedEnv,
-    };
-  }
+  constructor(private currentWorkspace: Uri) {}
 
   public isRunning(flag: boolean) {
     CustomTask.isRunningCustomTask = flag;
+  }
+
+  public getProcessExecution(
+    cmdString: string,
+    options: ShellExecutionOptions
+  ) {
+    return new ShellExecution(`${cmdString}`, options);
   }
 
   public addCustomTask(taskType: CustomTaskType) {
@@ -91,6 +83,25 @@ export class CustomTask {
     if (!command) {
       return;
     }
+    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
+    const options: ShellExecutionOptions = {
+      cwd: this.currentWorkspace.fsPath,
+      env: modifiedEnv,
+    };
+    const shellExecutablePath = readParameter(
+      "idf.customTerminalExecutable",
+      this.currentWorkspace
+    ) as string;
+    const shellExecutableArgs = readParameter(
+      "idf.customTerminalExecutableArgs",
+      this.currentWorkspace
+    ) as string[];
+    if (shellExecutablePath) {
+      options.executable = shellExecutablePath;
+    }
+    if (shellExecutableArgs && shellExecutableArgs.length) {
+      options.shellArgs = shellExecutableArgs;
+    }
     const notificationMode = readParameter(
       "idf.notificationMode",
       this.currentWorkspace
@@ -100,7 +111,7 @@ export class CustomTask {
       notificationMode === NotificationMode.Output
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
-    const customExecution = new ProcessExecution(command, this.processOptions);
+    const customExecution = this.getProcessExecution(command, options);
     const customTaskPresentationOptions = {
       reveal: showTaskOutput,
       showReuseMessage: false,
