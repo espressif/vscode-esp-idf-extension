@@ -1,3 +1,5 @@
+.. _multiple projects:
+
 Working with Multiple Projects
 ==================================
 

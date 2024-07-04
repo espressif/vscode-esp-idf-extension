@@ -1,3 +1,5 @@
+.. _unit testing:
+
 ESP-IDF Unit testing with Unity
 ===================================
 

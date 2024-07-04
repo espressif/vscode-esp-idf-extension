@@ -18,7 +18,8 @@ The ESP-IDF Extension for VSCode Code empowers developers to efficiently develop
     Debug Your Project<debugproject>
     Additional IDE Features<additionalfeatures>
     Troubleshooting<troubleshooting>
-    All Settings<settings>
+    Settings<settings>
+    See all Commands<commands>
     FAQs<faqs>
 
 Features

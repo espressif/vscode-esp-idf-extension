@@ -1,3 +1,5 @@
+.. _qemu:
+
 ESP-IDF QEMU Integration with Visual Studio Code
 ===================================================
 
