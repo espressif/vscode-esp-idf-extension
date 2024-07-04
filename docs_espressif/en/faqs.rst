@@ -24,6 +24,7 @@ Chances are that your issue have been posted before in the `ESP-IDF github repos
 Please take a look at the `build system documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#example-project>`_ to understand how to use each file.
 
 .. code-block::
+
   - myProject/
               - CMakeLists.txt
               - sdkconfig
@@ -46,6 +47,7 @@ Take a look at `Configure JTAG Interface <https://docs.espressif.com/projects/es
 On Windows, you could try using `IDF-ENV <https://github.com/espressif/idf-env>`_ just running the following command in a Powershell terminal:
 
 .. code-block::
+  
   Invoke-WebRequest 'https://dl.espressif.com/dl/idf-env/idf-env.exe' -OutFile .\idf-env.exe; .\idf-env.exe driver install --espressif --ftdi --silabs
 
 Drivers are also part of the `IDF-Installer <https://dl.espressif.com/dl/esp-idf>`_.
