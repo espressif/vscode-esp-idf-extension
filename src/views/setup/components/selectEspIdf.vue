@@ -115,6 +115,7 @@ watchEffect(() => {
 
 watch(selectedEspIdfVersion, (newVal) => {
   clearIDfErrorStatus();
+  store.clearIdfPathError();
   if (newVal.filename === "manual") {
     validatePathOnBlur(espIdf.value);
   } else {
