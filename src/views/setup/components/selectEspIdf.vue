@@ -122,15 +122,6 @@ watch(selectedEspIdfVersion, (newVal) => {
     validatePathOnBlur(espIdfContainer.value);
   }
 });
-
-watch(
-  () => store.espIdf,
-  (newValue) => {
-    if (newValue && selectedEspIdfVersion.value.filename === "manual") {
-      store.validateEspIdfPath(newValue);
-    }
-  }
-);
 </script>
 
 <template>
