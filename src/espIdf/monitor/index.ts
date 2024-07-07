@@ -65,9 +65,9 @@ export class IDFMonitor {
     // Function to quote paths for PowerShell and correctly handle spaces for Bash
     const quotePath = (path) => {
       if (shellType === "PowerShell") {
-        return `'${path.replace(/'/g, "''")}'`;
+        return `"${path.replace(/'/g, "''")}"`;
       } else {
-        return `'${path}'`;
+        return `"${path}"`;
       }
     };
 
