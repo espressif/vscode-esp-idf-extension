@@ -137,7 +137,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
     </thead>
     <tbody>
         <tr>
-            <td rowspan=9 align="center">Configuration</td>
+            <td rowspan=7 align="center">Configuration</td>
             <td>Add OpenOCD rules file (For Linux users)</td>
             <td>Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.</td>
             <td></td>
