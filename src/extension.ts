@@ -219,18 +219,6 @@ const webIdeCheck = [
   cmdNotForWebIdeMsg,
 ] as utils.PreCheckInput;
 
-const minOpenOcdVersionCheck = async function () {
-  const currOpenOcdVersion = await openOCDManager.version();
-  return [
-    () =>
-      PreCheck.openOCDVersionValidator(
-        "v0.10.0-esp32-20201125",
-        currOpenOcdVersion
-      ),
-    `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`,
-  ] as utils.PreCheckInput;
-};
-
 const minIdfVersionCheck = async function (
   minVersion: string,
   workspace: vscode.Uri
@@ -4084,10 +4072,18 @@ async function startFlashing(
   }
 
   if (flashType === ESP.FlashType.JTAG) {
-    const openOcdMinCheck = await minOpenOcdVersionCheck();
-    PreCheck.perform([openOcdMinCheck], async () => {
-      return await jtagFlashCommand(workspaceRoot);
-    });
+    const currOpenOcdVersion = await openOCDManager.version();
+    const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
+      "v0.10.0-esp32-20201125",
+      currOpenOcdVersion
+    );
+    if (!openOCDVersionIsValid) {
+      Logger.infoNotify(
+        `Minimum OpenOCD version v0.10.0-esp32-20201125 is required while you have ${currOpenOcdVersion} version installed`
+      );
+      return;
+    }
+    return await jtagFlashCommand(workspaceRoot);
   } else {
     const arrDfuDevices = idfConf.readParameter(
       "idf.listDfuDevices",
