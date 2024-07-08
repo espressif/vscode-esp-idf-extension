@@ -97,6 +97,7 @@ function onChange(e) {
             class="input is-small"
             placeholder="0"
             @change="onChange"
+            @wheel.prevent
           />
         </div>
       </div>
