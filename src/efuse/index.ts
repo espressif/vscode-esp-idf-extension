@@ -71,10 +71,11 @@ export class ESPEFuseManager {
       ],
       {}
     );
-    const eFuseFields = await readJson(tempFile);
+    const eFuseFields = await this.readSummary();
     unlink(tempFile, (err) => {
       Logger.error("Failed to delete the tmp espfuse json file", err, "ESPEFuseManager summary");
     });
+    
     const resp = {};
     for (const name in eFuseFields) {
       const fields = eFuseFields[name];
@@ -91,6 +92,32 @@ export class ESPEFuseManager {
       resp[fields.category].push(fields);
     }
     return resp;
+  }
+  async readSummary() {
+    const tempFile = join(tmpdir(), "espefusejsondump.tmp");
+    await spawn(
+      this.pythonPath,
+      [
+        this.toolPath,
+        "-p",
+        this.serialPort,
+        "summary",
+        "--format",
+        "json",
+        "--file",
+        tempFile,
+      ],
+      {}
+    );
+    const eFuseFields = await readJson(tempFile);
+    unlink(tempFile, (err) => {
+      if (err) {
+        Logger.error("Failed to delete the tmp espfuse json file", err, {
+          tag: "ESPeFuse",
+        });
+      }
+    });
+    return eFuseFields;
   }
 
   private get toolPath(): string {
