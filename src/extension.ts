@@ -1181,9 +1181,11 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  vscode.debug.registerDebugAdapterDescriptorFactory(
-    "gdbtarget",
-    new CDTDebugAdapterDescriptorFactory()
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory(
+      "gdbtarget",
+      new CDTDebugAdapterDescriptorFactory()
+    )
   );
 
   vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
