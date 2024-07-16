@@ -171,7 +171,7 @@ function onChange(e) {
     </div>
 
     <p v-show="isHelpVisible" class="content">
-      KCONFIG Name <pre style="font-weight: 600;">{{ config.name }}</pre>
+      KCONFIG Name: <label style="font-weight: 900;">{{ config.name }}</label>
     </p>
     <div v-show="isHelpVisible" class="content" v-html="config.help" />
 
