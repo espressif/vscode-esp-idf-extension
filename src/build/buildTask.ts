@@ -21,7 +21,11 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  getSDKConfigFilePath,
+  isBinInPath,
+} from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
@@ -137,6 +141,11 @@ export class BuildTask {
 
       if (compilerArgs.indexOf("-S") === -1) {
         compilerArgs.push(`-S=${this.currentWorkspace.fsPath}`);
+      }
+
+      const sdkconfigFile = getSDKConfigFilePath(this.currentWorkspace);
+      if (compilerArgs.indexOf("SDKCONFIG") === -1) {
+        compilerArgs.push(`-DSDKCONFIG=${sdkconfigFile}`);
       }
 
       const sdkconfigDefaults =
