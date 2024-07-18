@@ -64,8 +64,10 @@ export class IDFMonitor {
 
     // Function to quote paths for PowerShell and correctly handle spaces for Bash
     const quotePath = (path) => {
-      if (shellType === "PowerShell") {
+      if (shellType.includes("powershell")) {
         return `'${path.replace(/'/g, "''")}'`;
+      } else if (shellType.includes("cmd")) {
+        return `"${path}"`;
       } else {
         return `'${path}'`;
       }
@@ -111,9 +113,12 @@ export class IDFMonitor {
     const envSetCmd = process.platform === "win32" ? "set" : "export";
     const quotedIdfPath = quotePath(modifiedEnv.IDF_PATH);
 
-    if (shellType === "PowerShell") {
+    if (shellType.includes("powershell")) {
       this.terminal.sendText(`& ${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(`& ${args.join(" ")}`);
+    } else if (shellType.includes("cmd")) {
+      this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
+      this.terminal.sendText(args.join(" "));
     } else {
       this.terminal.sendText(`${envSetCmd} IDF_PATH=${quotedIdfPath}`);
       this.terminal.sendText(args.join(" "));
