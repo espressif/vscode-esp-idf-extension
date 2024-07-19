@@ -3,6 +3,9 @@ Using Docker Container
 
 In this tutorial we leverage the `Espressif docker image <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-docker-image.html>`_ and few steps to enable `idf.py flash` and `idf.py monitor` to work in the container the serial ports should be configured to be passed to WSL from host Windows machine.
 
+.. warning::
+  * For MacOS users, unfortunately USB Passthrough is not yet supported in MacOS. If you are trying to connect to a Espressif device serial port from a docker container in MacOS, you could try using the `Remote Serial Port <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-docker-image.html?highlight=docker#using-remote-serial-port>`_. The RFC port can be manually defined in the **idf.port** configuration setting for the **ESP-IDF: Flash your Project** command to work.
+
 In this tutorial will show you how to develop your projects based on ``Visual Studio Code`` + ``ESP-IDF extension`` + ``ESP-IDF Docker Image`` to execute all ESP-IDF extension features.
 
 Required Tools
