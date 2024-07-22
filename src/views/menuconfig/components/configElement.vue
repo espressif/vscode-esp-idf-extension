@@ -97,6 +97,7 @@ function onChange(e) {
             class="input is-small"
             placeholder="0"
             @change="onChange"
+            @wheel.prevent
           />
         </div>
       </div>
@@ -169,6 +170,9 @@ function onChange(e) {
       </div>
     </div>
 
+    <p v-show="isHelpVisible" class="help-kconfig-title">
+      KCONFIG Name: <label style="font-weight: 900;">{{ config.name }}</label>
+    </p>
     <div v-show="isHelpVisible" class="content" v-html="config.help" />
 
     <div v-if="config.type !== 'choice'">
@@ -256,5 +260,9 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .menu-title {
   display: inline-block;
+}
+.help-kconfig-title {
+  padding: 0 18px;
+  margin-left: 10px;
 }
 </style>
