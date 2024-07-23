@@ -40,6 +40,7 @@ import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
 import { installEspMatterPyReqs } from "../pythonManager";
 import { platform } from "os";
+import { appendIdfAndToolsToPath } from "../utils";
 
 export class EspMatterCloning extends AbstractCloning {
   public static isBuildingGn: boolean;
@@ -86,9 +87,11 @@ export class EspMatterCloning extends AbstractCloning {
     if (!bootstrapFilePathExists) {
       return;
     }
+    const modifiedEnv = appendIdfAndToolsToPath(this.currWorkspace);
     EspMatterCloning.isBuildingGn = true;
     const shellOptions: ShellExecutionOptions = {
       cwd: workingDir,
+      env: modifiedEnv
     };
     const shellExecutablePath = readParameter(
       "idf.customTerminalExecutable",
