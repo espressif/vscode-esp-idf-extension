@@ -48,7 +48,7 @@ app.mount("#app");
 
 router.beforeEach((to, from, next) => {
   if (from.path === "/autoinstall" && to.path !== "/autoinstall") {
-    store.clearIdfPathError();
+    store.setIdfPathError("");
   }
   next();
 });
@@ -284,7 +284,7 @@ window.addEventListener("message", (event) => {
           "White spaces are only supported for ESP-IDF path for versions >= 5.0."
         );
       } else {
-        store.clearIdfPathError();
+        store.setIdfPathError("");
       }
       break;
     default:

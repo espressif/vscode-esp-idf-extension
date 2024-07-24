@@ -332,8 +332,9 @@ export class SetupPanel {
           await commands.executeCommand("esp.component-manager.ui.show");
           break;
         case "canAccessFile":
-          if (message.pathIdfPy) {
-            const fileExists = await canAccessFile(message.pathIdfPy);
+          if (message.path) {
+            const pathIdfPy = path.join(message.path, 'tools', 'idf.py');
+            const fileExists = await canAccessFile(pathIdfPy);
             if (!fileExists) {
               this.panel.webview.postMessage({
                 command: "canAccessFileResponse",

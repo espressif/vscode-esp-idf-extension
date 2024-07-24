@@ -19,7 +19,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  store.clearIdfPathError();
+  store.setIdfPathError("");
 });
 
 const {

@@ -116,7 +116,6 @@ export const useSetupStore = defineStore("setup", () => {
     vscode.postMessage({
       command: "canAccessFile",
       path,
-      pathIdfPy: `${path}/tools/idf.py`,
       currentVersion: espIdfVersion.value,
     });
   }
