@@ -64,6 +64,7 @@ export class CDTDebugConfigurationProvider
           "mon reset halt",
           "maintenance flush register-cache",
           "thb app_main",
+          "c"
         ];
       }
 
