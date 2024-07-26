@@ -36,6 +36,7 @@ import { NotificationMode, readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function validateReqs(
   buildDirPath: string,
@@ -158,7 +159,7 @@ export async function getMergeExecution(
     cwd: buildDir,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(

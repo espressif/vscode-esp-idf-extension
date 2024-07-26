@@ -472,9 +472,7 @@ export class SetupPanel {
               toolsPath,
               idfVersion,
               progress,
-              cancelToken,
-              saveScope,
-              workspaceFolderUri
+              cancelToken
             );
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
@@ -610,9 +608,7 @@ export class SetupPanel {
               toolsPath,
               idfVersion,
               progress,
-              cancelToken,
-              saveScope,
-              workspaceFolderUri
+              cancelToken
             );
             idfGitPath = embedPaths.idfGitPath;
             idfPythonPath = embedPaths.idfPythonPath;
@@ -700,9 +696,7 @@ export class SetupPanel {
     toolsPath: string,
     idfVersion: string,
     progress: Progress<{ message: string; increment?: number }>,
-    cancelToken: CancellationToken,
-    saveScope: ConfigurationTarget,
-    workspaceFolderUri: Uri
+    cancelToken: CancellationToken
   ) {
     const idfGitPath = await installIdfGit(toolsPath, progress, cancelToken);
     SetupPanel.postMessage({
@@ -719,14 +713,15 @@ export class SetupPanel {
       command: "updateIdfPythonStatus",
       status: StatusType.installed,
     });
-    const confTarget = idfConf.readParameter(
-      "idf.saveScope"
-    ) as ConfigurationTarget;
+    await idfConf.writeParameter(
+      "idf.pythonInstallPath",
+      idfPythonPath,
+      ConfigurationTarget.Global
+    );
     await idfConf.writeParameter(
       "idf.gitPath",
       idfGitPath,
-      saveScope,
-      workspaceFolderUri
+      ConfigurationTarget.Global
     );
     return { idfPythonPath, idfGitPath };
   }

@@ -13,12 +13,18 @@
 // limitations under the License.
 
 import { PyReqLog } from "./PyReqLog";
-import { CancellationToken, ExtensionContext } from "vscode";
+import {
+  CancellationToken,
+  ConfigurationTarget,
+  ExtensionContext,
+  Uri,
+} from "vscode";
 import * as utils from "./utils";
 import { constants, pathExists } from "fs-extra";
 import { Logger } from "./logger/logger";
 import { delimiter, dirname, join, sep } from "path";
 import { OutputChannel } from "./logger/outputChannel";
+import { readParameter, writeParameter } from "./idfConfiguration";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
@@ -96,7 +102,11 @@ export async function installPythonEnvFromIdfTools(
     });
   }
 
-  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
+  await writeParameter(
+    "idf.pythonInstallPath",
+    pythonBinPath,
+    ConfigurationTarget.Global
+  );
 
   await execProcessWithLog(
     pythonBinPath,
@@ -106,11 +116,11 @@ export async function installPythonEnvFromIdfTools(
     cancelToken
   );
 
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
-  const virtualEnvPython = join(pyEnvPath, ...pyDir);
+  const virtualEnvPython = await getPythonEnvPath(
+    espDir,
+    idfToolsDir,
+    pythonBinPath
+  );
   return virtualEnvPython;
 }
 
@@ -193,12 +203,11 @@ export async function installEspMatterPyReqs(
     Object.assign({}, process.env)
   );
   const opts = { env: modifiedEnv, cwd: idfToolsDir };
-  const pyEnvPath = await getPythonEnvPath(espDir, idfToolsDir, pythonBinPath);
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
-  const virtualEnvPython = join(pyEnvPath, ...pyDir);
+  const virtualEnvPython = await getPythonEnvPath(
+    espDir,
+    idfToolsDir,
+    pythonBinPath
+  );
 
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   const matterRequirements = join(espMatterDir, "requirements.txt");
@@ -255,6 +264,54 @@ export async function execProcessWithLog(
   }
 }
 
+export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
+  let pythonPath = await getPythonPath(workspaceFolder);
+  let espIdfDir = (await readParameter(
+    "idf.espIdfPath",
+    workspaceFolder
+  )) as string;
+  let idfToolsDir = (await readParameter(
+    "idf.toolsPath",
+    workspaceFolder
+  )) as string;
+  const virtualEnvPython = await getPythonEnvPath(
+    espIdfDir,
+    idfToolsDir,
+    pythonPath
+  );
+  return virtualEnvPython;
+}
+
+export async function getPythonPath(workspaceFolder: Uri) {
+  let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
+  if (!sysPythonBinPath) {
+    sysPythonBinPath = await getSystemPython(workspaceFolder);
+    if (sysPythonBinPath) {
+      await writeParameter(
+        "idf.pythonInstallPath",
+        sysPythonBinPath,
+        ConfigurationTarget.Global
+      );
+    }
+  }
+  return sysPythonBinPath;
+}
+
+export async function getSystemPython(workspaceFolder: Uri) {
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const pythonCode = `import sys; print('{}'.format(sys.base_prefix))`;
+  const args = ["-c", pythonCode];
+  const pythonVersion = (
+    await utils.execChildProcess(pythonBinPath, args, workspaceFolder.fsPath)
+  ).replace(/(\n|\r|\r\n)/gm, "");
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+  const sysPythonBinPath = join(pythonVersion, ...pyDir);
+  return sysPythonBinPath;
+}
+
 export async function getPythonEnvPath(
   espIdfDir: string,
   idfToolsDir: string,
@@ -273,8 +330,13 @@ export async function getPythonEnvPath(
       : "x.x";
   const resultVersion = `idf${espIdfVersion}_py${pythonVersion}_env`;
   const idfPyEnvPath = join(idfToolsDir, "python_env", resultVersion);
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+  const fullIdfPyEnvPath = join(idfPyEnvPath, ...pyDir);
 
-  return idfPyEnvPath;
+  return fullIdfPyEnvPath;
 }
 
 export async function checkPythonExists(pythonBin: string, workingDir: string) {

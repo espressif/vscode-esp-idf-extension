@@ -32,6 +32,7 @@ import {
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class ConfserverProcess {
   public static async initWithProgress(
@@ -69,11 +70,13 @@ export class ConfserverProcess {
   }
 
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
       if (!ConfserverProcess.instance) {
         ConfserverProcess.instance = new ConfserverProcess(
           workspaceFolder,
-          extensionPath
+          extensionPath,
+          pythonBinPath
         );
       }
       ConfserverProcess.instance.emitter.once("valuesLoaded", resolve);
@@ -205,10 +208,7 @@ export class ConfserverProcess {
       process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      currWorkspace
-    ) as string;
+    const pythonBinPath = await getVirtualEnvPythonPath(currWorkspace);
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       currWorkspace
@@ -292,17 +292,13 @@ export class ConfserverProcess {
   private extensionPath: string;
   private kconfigsMenus: Menu[];
 
-  constructor(workspaceFolder: vscode.Uri, extensionPath: string) {
+  constructor(workspaceFolder: vscode.Uri, extensionPath: string, pythonBinPath: string) {
     this.workspaceFolder = workspaceFolder;
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
     this.espIdfPath =
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      workspaceFolder
-    ) as string;
     this.configFile = getSDKConfigFilePath(workspaceFolder);
 
     process.env.IDF_TARGET = "esp32";

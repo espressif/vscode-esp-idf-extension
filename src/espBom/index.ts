@@ -37,6 +37,7 @@ import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function createSBOM(workspaceUri: Uri) {
   try {
@@ -141,7 +142,7 @@ export async function createSBOM(workspaceUri: Uri) {
 }
 
 export async function installEspSBOM(workspace: Uri) {
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
   const modifiedEnv = appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(

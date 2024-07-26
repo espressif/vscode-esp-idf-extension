@@ -38,7 +38,7 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
-import { installEspMatterPyReqs } from "../pythonManager";
+import { getVirtualEnvPythonPath, installEspMatterPyReqs } from "../pythonManager";
 import { platform } from "os";
 
 export class EspMatterCloning extends AbstractCloning {
@@ -259,7 +259,7 @@ export async function installPythonReqs(
   workspace?: Uri
 ) {
   const espIdfPath = readParameter("idf.espIdfPath", workspace);
-  const pyPath = readParameter("idf.pythonBinPath", workspace);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
   const confToolsPath = readParameter("idf.toolsPath", workspace);
@@ -293,7 +293,7 @@ export async function installPythonReqs(
         espIdfPath,
         toolsPath,
         espMatterPath,
-        pyPath,
+        pythonBinPath,
         undefined,
         cancelToken
       );

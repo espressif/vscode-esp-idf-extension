@@ -78,6 +78,7 @@ import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
+  getVirtualEnvPythonPath,
   installEspMatterPyReqs,
   installExtensionPyReqs,
 } from "./pythonManager";
@@ -620,10 +621,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (IDFMonitor.terminal) {
         IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
       }
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        workspaceRoot
-      ) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
       const idfPathDir = idfConf.readParameter(
         "idf.espIdfPath",
         workspaceRoot
@@ -1424,10 +1422,7 @@ export async function activate(context: vscode.ExtensionContext) {
               confToolsPath ||
               process.env.IDF_TOOLS_PATH ||
               path.join(containerPath, ".espressif");
-            const pyPath = idfConf.readParameter(
-              "idf.pythonBinPath",
-              workspaceRoot
-            ) as string;
+            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-IDF extension Python Requirements...`
@@ -1502,10 +1497,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "idf.espMatterPath",
               workspaceRoot
             ) as string;
-            const pyPath = idfConf.readParameter(
-              "idf.pythonBinPath",
-              workspaceRoot
-            ) as string;
+            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-Matter Python Requirements...`
@@ -2944,14 +2936,12 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error("NOT_SELECTED_PORT")
           );
         }
-        const pythonBinPath = idfConf.readParameter(
-          "idf.pythonBinPath",
-          workspaceRoot
-        ) as string;
+
+        const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
             vscode.l10n.t("Python binary path is not defined"),
-            new Error("idf.pythonBinPath is not defined")
+            new Error("The Python Binary Path is not defined")
           );
         }
         const idfPath = idfConf.readParameter(
@@ -3328,10 +3318,7 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       async () => {
         try {
-          const pythonBinPath = idfConf.readParameter(
-            "idf.pythonBinPath",
-            workspaceRoot
-          ) as string;
+          const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
           const ninjaSummaryScript = path.join(
             context.extensionPath,
             "external",

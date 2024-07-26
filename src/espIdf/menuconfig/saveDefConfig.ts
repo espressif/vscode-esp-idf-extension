@@ -33,6 +33,7 @@ import { Logger } from "../../logger/logger";
 import { join } from "path";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { pathExists } from "fs-extra";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -96,7 +97,7 @@ export async function getSaveDefConfigExecution(
     cwd: wsFolder.fsPath,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(

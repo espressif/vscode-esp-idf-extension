@@ -26,6 +26,7 @@ import { R_OK } from "constants";
 import { getProjectName } from "../../workspaceConfig";
 import { IDFMonitor, MonitorConfig } from ".";
 import { ESP } from "../../config";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
@@ -54,10 +55,7 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",

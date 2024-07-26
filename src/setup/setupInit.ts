@@ -22,7 +22,7 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
+import { addIdfPath, getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 import {
   createIdfSetup,
   getPreviousIdfSetups,
@@ -30,7 +30,7 @@ import {
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
-import { getCurrentIdfSetup } from "../versionSwitcher";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -253,10 +253,7 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     "idf.customExtraPaths",
     workspaceFolder
   ) as string;
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
 
   // FIX idf.customExtraVars from string to object
   // REMOVE THIS LINE after next release
@@ -314,7 +311,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
 
 export async function saveSettings(
   espIdfPath: string,
-  pythonBinPath: string,
   exportedPaths: string,
   exportedVars: { [key: string]: string },
   toolsPath: string,
@@ -333,12 +329,6 @@ export async function saveSettings(
   await idfConf.writeParameter(
     "idf.espIdfPath",
     espIdfPath,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
-    "idf.pythonBinPath",
-    pythonBinPath,
     confTarget,
     workspaceFolder
   );
@@ -363,11 +353,10 @@ export async function saveSettings(
   await idfConf.writeParameter(
     "idf.gitPath",
     gitPath,
-    confTarget,
-    workspaceFolder
+    ConfigurationTarget.Global
   );
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder);
-  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfVersion.version;
-  await createIdfSetup(espIdfPath, toolsPath, pythonBinPath, gitPath);
+  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  await addIdfPath(espIdfPath, pythonBinPath, currentIdfSetup.version, toolsPath, gitPath);
+  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfSetup.version;
   Logger.infoNotify("ESP-IDF has been configured");
 }

@@ -76,7 +76,6 @@ export async function loadEspIdfJson(toolsPath: string) {
 
 export async function addIdfPath(
   idfPath: string,
-  pythonPath: string,
   version: string,
   toolsPath: string,
   gitPath: string

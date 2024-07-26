@@ -39,6 +39,7 @@ import {
   spawn,
 } from "../../utils";
 import { CSV2JSON } from "../../views/partition-table/util";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -83,7 +84,7 @@ export class PartitionTreeDataProvider
       const modifiedEnv = appendIdfAndToolsToPath(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
       const idfPath = readParameter("idf.espIdfPath", workspace);
-      const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(workspace);
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {

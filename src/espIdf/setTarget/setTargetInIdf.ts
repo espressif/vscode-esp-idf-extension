@@ -28,6 +28,7 @@ import {
 } from "../../utils";
 import { ConfserverProcess } from "../menuconfig/confServerProcess";
 import { IdfTarget } from "./getTargets";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function setTargetInIDF(
   workspaceFolder: WorkspaceFolder,
@@ -59,10 +60,7 @@ export async function setTargetInIDF(
     modifiedEnv.IDF_CCACHE_ENABLE = undefined;
   }
   setTargetArgs.push("set-target", selectedTarget.target);
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder.uri
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder.uri);
   const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
     cwd: workspaceFolder.uri.fsPath,
     env: modifiedEnv,

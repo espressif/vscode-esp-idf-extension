@@ -33,6 +33,7 @@ import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { OutputChannel } from "../../logger/outputChannel";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
@@ -141,11 +142,7 @@ export class DebugAdapterManager extends EventEmitter {
         );
         this.appOffset = model.app.address;
       }
-
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        this.currentWorkspace
-      ) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
 
       const toolchainPrefix = getToolchainToolName(this.target, "");
       const adapterArgs = [

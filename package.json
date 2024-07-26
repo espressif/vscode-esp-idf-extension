@@ -512,6 +512,12 @@
             "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
+          "idf.pythonInstallPath": {
+            "type": "string",
+            "default": "",
+            "description": "%param.pythonBinPath%",
+            "scope": "application"
+          },
           "idf.flashBaudRate": {
             "type": "string",
             "default": "460800",
@@ -817,13 +823,13 @@
           "idf.gitPath": {
             "type": "string",
             "description": "%param.gitPath.title%",
-            "scope": "resource",
+            "scope": "application",
             "default": "/usr/bin/git"
           },
           "idf.gitPathWin": {
             "type": "string",
             "description": "%param.gitPath.title%",
-            "scope": "resource",
+            "scope": "application",
             "default": "${env:programfiles}\\Git\\cmd\\git.exe"
           },
           "idf.enableUpdateSrcsToCMakeListsFile": {

@@ -21,10 +21,11 @@ import { readParameter } from "../../idfConfiguration";
 import { pathExists } from "fs-extra";
 import { Uri } from "vscode";
 import { extensionContext, startPythonReqsProcess } from "../../utils";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function checkDebugAdapterRequirements(workspaceFolder: Uri) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     extensionContext.extensionPath,
     "esp_debug_adapter",

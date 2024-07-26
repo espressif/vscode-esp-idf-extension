@@ -22,6 +22,7 @@ import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { OutputChannel } from "../../logger/outputChannel";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function flashBinaryToPartition(
   offset: string,
@@ -48,10 +49,7 @@ export async function flashBinaryToPartition(
         const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
         const serialPort = readParameter("idf.port", workspaceFolder);
         const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-        const pythonBinPath = readParameter(
-          "idf.pythonBinPath",
-          workspaceFolder
-        ) as string;
+        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
         const esptoolPath = join(
           idfPath,
           "components",
