@@ -24,6 +24,7 @@ import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
 import * as SerialPortLib from "serialport";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -101,10 +102,8 @@ export class SerialPort {
             item.productId
           );
         });
-        const pythonBinPath = idfConf.readParameter(
-          "idf.pythonBinPath",
-          workspaceFolder
-        ) as string;
+
+        const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
         const idfPath = idfConf.readParameter(
           "idf.espIdfPath",
           workspaceFolder

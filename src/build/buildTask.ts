@@ -24,6 +24,7 @@ import * as idfConf from "../idfConfiguration";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -33,7 +34,6 @@ export class BuildTask {
   private adapterTargetName: string;
   private processOptions: vscode.ProcessExecutionOptions;
   private modifiedEnv: { [key: string]: string };
-  private pythonBinPath: string;
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
@@ -54,10 +54,6 @@ export class BuildTask {
       cwd: this.buildDirPath,
       env: this.modifiedEnv,
     };
-    this.pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      workspaceUri
-    ) as string;
   }
 
   public building(flag: boolean) {
@@ -216,7 +212,6 @@ export class BuildTask {
 
   public async buildDfu() {
     this.building(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
     await ensureDir(this.buildDirPath);
 
     const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
@@ -243,8 +238,9 @@ export class BuildTask {
       "--pid",
       selectedDFUAdapterId(this.adapterTargetName),
     ];
+    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
     const writeExecution = new vscode.ProcessExecution(
-      this.pythonBinPath,
+      pythonBinPath,
       args,
       this.processOptions
     );

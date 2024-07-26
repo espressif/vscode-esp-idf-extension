@@ -3,7 +3,6 @@
   "idf.espIdfPath": "${env:IDF_PATH}",
   "idf.espMdfPath": "/test/esp-mdf",
   "idf.port": "/serialport",
-  "idf.pythonBinPath": "/opt/esp/python_env/idf4.4_py3.8_env/bin/python",
   "idf.openOcdConfigs": [
       "board/esp32-wrover-kit-3.3v.cfg"
   ],

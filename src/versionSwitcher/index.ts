@@ -65,10 +65,6 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
-  const pythonPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
 
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
@@ -77,7 +73,6 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
     idfPath,
     gitPath,
     toolsPath,
-    python: pythonPath,
     version: idfVersion,
     isValid: false,
   };

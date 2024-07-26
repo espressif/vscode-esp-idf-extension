@@ -160,7 +160,6 @@ suite("Project tests", () => {
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
     assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
-    assert.ok(newSettingsJson["idf.pythonBinPath"].indexOf("python") !== -1);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
     assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
     assert.equal(

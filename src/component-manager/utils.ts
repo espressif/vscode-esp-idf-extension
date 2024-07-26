@@ -20,6 +20,7 @@ import { spawn, appendIdfAndToolsToPath } from "../utils";
 import { CancellationToken, Uri, l10n } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function addDependency(
   workspace: Uri,
@@ -31,10 +32,7 @@ export async function addDependency(
     const idfPathDir = readParameter("idf.espIdfPath", workspace);
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = readParameter(
-      "idf.pythonBinPath",
-      workspace
-    ) as string;
+    const pythonBinPath = await getVirtualEnvPythonPath(workspace);
     const enableCCache = readParameter(
       "idf.enableCCache",
       workspace
@@ -77,7 +75,7 @@ export async function createProject(
     const idfPathDir = readParameter("idf.espIdfPath");
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = readParameter("idf.pythonBinPath") as string;
+    const pythonBinPath = await getVirtualEnvPythonPath(workspace);
 
     if (
       !existsSync(idfPathDir) ||

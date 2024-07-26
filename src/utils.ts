@@ -1009,15 +1009,6 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     );
   }
 
-  modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath", curWorkspace)}` ||
-    `${process.env.PYTHON}` ||
-    `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
-
-  modifiedEnv.IDF_PYTHON_ENV_PATH =
-    path.dirname(path.dirname(modifiedEnv.PYTHON)) ||
-    process.env.IDF_PYTHON_ENV_PATH;
-
   const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
   let pathToGitDir;
   if (gitPath && gitPath !== "git") {

@@ -30,20 +30,16 @@ import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class IdfReconfigureTask {
   private buildDirPath: string;
   private curWorkspace: Uri;
   private idfPathDir: string;
-  private pythonBinPath: string;
 
   constructor(workspace: Uri) {
     this.curWorkspace = workspace;
     this.idfPathDir = readParameter("idf.espIdfPath", workspace) as string;
-    this.pythonBinPath = readParameter(
-      "idf.pythonBinPath",
-      workspace
-    ) as string;
     this.buildDirPath = readParameter("idf.buildPath", workspace) as string;
   }
 
@@ -101,8 +97,10 @@ export class IdfReconfigureTask {
 
     reconfigureArgs.push("reconfigure");
 
+    const pythonBinPath = await getVirtualEnvPythonPath(this.curWorkspace);
+
     const reconfigureExecution = new ProcessExecution(
-      this.pythonBinPath,
+      pythonBinPath,
       reconfigureArgs,
       options
     );

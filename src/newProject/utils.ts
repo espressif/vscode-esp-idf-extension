@@ -34,7 +34,6 @@ export async function setCurrentSettingsInTemplate(
   const extraPaths = readParameter("idf.customExtraPaths", workspace);
   const extraVars = readParameter("idf.customExtraVars", workspace);
   const toolsDir = readParameter("idf.toolsPath", workspace);
-  const pyPath = readParameter("idf.pythonBinPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
   settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
   if (extraPaths) {
@@ -60,9 +59,6 @@ export async function setCurrentSettingsInTemplate(
   }
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
-  }
-  if (pyPath) {
-    settingsJson["idf.pythonBinPath" + isWin] = pyPath;
   }
   if (toolsDir) {
     settingsJson["idf.toolsPath" + isWin] = toolsDir;

@@ -23,16 +23,14 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
 import { pathExists } from "fs-extra";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
   const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
   const serialPort = readParameter("idf.port", workspaceFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   const esptoolPath = join(
     idfPath,
     "components",
