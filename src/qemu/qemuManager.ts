@@ -161,7 +161,7 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath(this.options.workspaceFolder);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.options.workspaceFolder);
     const isQemuBinInPath = await isBinInPath(
       this.execString,
       this.options.workspaceFolder.fsPath,

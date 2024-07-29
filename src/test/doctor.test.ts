@@ -143,7 +143,7 @@ suite("Doctor Command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
-    getConfigurationSettings(
+    await getConfigurationSettings(
       reportObj,
       vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
     );
@@ -170,10 +170,6 @@ suite("Doctor Command tests", () => {
     assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.pythonBinPath,
-      settingsJsonObj["idf.pythonBinPath"]
     );
     assert.deepEqual(
       reportObj.configurationSettings.openOcdConfigs,
@@ -301,7 +297,10 @@ suite("Doctor Command tests", () => {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
+    expectedOutput += `System python Path (idf.pythonInstallPath) ${
+      reportObj.configurationSettings.sysPythonBinPath
+    }${os.EOL}`;
+    expectedOutput += `Virtual env Python Path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
     expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;

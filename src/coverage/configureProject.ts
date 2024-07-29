@@ -30,31 +30,31 @@ import {
 import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
-  const appTraceDestTrax = getConfigValueFromSDKConfig(
+  const appTraceDestTrax = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_DEST_TRAX",
     workspacePath
   );
-  const appTraceEnable = getConfigValueFromSDKConfig(
+  const appTraceEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ENABLE",
     workspacePath
   );
-  const appTraceLockEnable = getConfigValueFromSDKConfig(
+  const appTraceLockEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_LOCK_ENABLE",
     workspacePath
   );
-  const onPanicHostFlushTmo = getConfigValueFromSDKConfig(
+  const onPanicHostFlushTmo = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ONPANIC_HOST_FLUSH_TMO",
     workspacePath
   );
-  const postmortemFlushThresh = getConfigValueFromSDKConfig(
+  const postmortemFlushThresh = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_POSTMORTEM_FLUSH_THRESH",
     workspacePath
   );
-  const appTracePendingDataSizeMax = getConfigValueFromSDKConfig(
+  const appTracePendingDataSizeMax = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_PENDING_DATA_SIZE_MAX",
     workspacePath
   );
-  const appTraceGcovEnable = getConfigValueFromSDKConfig(
+  const appTraceGcovEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_GCOV_ENABLE",
     workspacePath
   );

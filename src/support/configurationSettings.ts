@@ -15,16 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getVirtualEnvPythonPath } from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
 
-export function getConfigurationSettings(
+export async function getConfigurationSettings(
   reportedResult: reportObj,
   scope?: Uri
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   const conf = workspace.getConfiguration("", scope);
   reportedResult.workspaceFolder = scope ? scope.fsPath: "No workspace folder is open";
+  const pythonVenvPath = await getVirtualEnvPythonPath(scope);
   reportedResult.configurationSettings = {
     espAdfPath: conf.get("idf.espAdfPath" + winFlag),
     espIdfPath: conf.get("idf.espIdfPath" + winFlag),
@@ -36,7 +38,7 @@ export function getConfigurationSettings(
     customExtraPaths: conf.get("idf.customExtraPaths"),
     customExtraVars: conf.get("idf.customExtraVars"),
     notificationMode: conf.get("idf.notificationMode"),
-    pythonBinPath: conf.get("idf.pythonBinPath" + winFlag),
+    pythonBinPath: pythonVenvPath,
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),
     openOcdConfigs:
@@ -45,6 +47,7 @@ export function getConfigurationSettings(
     toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
+    sysPythonBinPath: conf.get("idf.pythonInstallPath"),
     gitPath: conf.get("idf.gitPath" + winFlag)
   };
 }

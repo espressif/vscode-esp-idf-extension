@@ -861,7 +861,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.customTask", async () => {
     try {
       const customTask = new CustomTask(workspaceRoot);
-      customTask.addCustomTask(CustomTaskType.Custom);
+      await customTask.addCustomTask(CustomTaskType.Custom);
       await TaskManager.runTasks();
     } catch (error) {
       const errMsg =
@@ -2980,7 +2980,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+        let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
           workspaceRoot
         );
         const noReset = idfConf.readParameter(
@@ -3179,7 +3179,9 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
-          const sdkconfigFilePath = utils.getSDKConfigFilePath(workspaceRoot);
+          const sdkconfigFilePath = await utils.getSDKConfigFilePath(
+            workspaceRoot
+          );
           const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
           if (!sdkconfigFileExists) {
             const buildProject = await vscode.window.showInformationMessage(
@@ -3193,7 +3195,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             return;
           }
-          const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
+          const isCustomPartitionTableEnabled = await utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM",
             workspaceRoot
           );
@@ -3226,7 +3228,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           }
 
-          let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
+          let partitionTableFilePath = await utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
             workspaceRoot
           );
@@ -3708,6 +3710,13 @@ async function createCmdsStatusBarItems() {
   if (!enableStatusBar) {
     return {};
   }
+  if (!workspaceRoot) {
+    workspaceRoot =
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders.length
+        ? vscode.workspace.workspaceFolders[0].uri
+        : undefined;
+  }
   const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   let flashType = idfConf.readParameter(
@@ -4085,8 +4094,8 @@ async function startFlashing(
 }
 
 function createIdfTerminal() {
-  PreCheck.perform([webIdeCheck, openFolderCheck], () => {
-    const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
+  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,

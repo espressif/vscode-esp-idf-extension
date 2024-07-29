@@ -43,7 +43,7 @@ export async function setTargetInIDF(
     workspaceFolder.uri
   ) as string;
   const idfPy = join(idfPathDir, "tools", "idf.py");
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder.uri);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder.uri);
   modifiedEnv.IDF_TARGET = undefined;
   const enableCCache = readParameter(
     "idf.enableCCache",

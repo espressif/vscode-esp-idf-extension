@@ -32,7 +32,7 @@ function deviceLabel(selectedDevice: string) {
 }
 
 export async function getDfuList(workspaceUri: vscode.Uri) {
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
   return await execChildProcess(
     "dfu-util",
     ["--list"],

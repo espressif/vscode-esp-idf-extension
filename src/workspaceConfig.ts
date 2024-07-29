@@ -83,14 +83,16 @@ export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
   statusItem?: vscode.StatusBarItem
 ) {
-  let sdkConfigPath = getSDKConfigFilePath(workspacePath);
+  let sdkConfigPath = await getSDKConfigFilePath(workspacePath);
   const doesSdkconfigExists = await pathExists(sdkConfigPath);
   if (!doesSdkconfigExists) {
     return;
   }
-  const idfTarget = utils
-    .getConfigValueFromSDKConfig("CONFIG_IDF_TARGET", workspacePath)
-    .replace(/\"/g, "");
+  const configIdfTarget = await utils.getConfigValueFromSDKConfig(
+    "CONFIG_IDF_TARGET",
+    workspacePath
+  );
+  const idfTarget = configIdfTarget.replace(/\"/g, "");
   if (!idfTarget) {
     return;
   }

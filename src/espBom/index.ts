@@ -52,7 +52,7 @@ export async function createSBOM(workspaceUri: Uri) {
         `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
       );
     }
-    const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
     const sbomFilePath = readParameter(
       "idf.sbomFilePath",
       workspaceUri
@@ -143,7 +143,7 @@ export async function createSBOM(workspaceUri: Uri) {
 
 export async function installEspSBOM(workspace: Uri) {
   const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

@@ -62,8 +62,8 @@ export async function getGcovData(workspaceFolder: Uri) {
     command += ` "${path}"`;
   }
 
-  return new Promise<IGcovOutput[]>((resolve, reject) => {
-    const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+  return new Promise<IGcovOutput[]>(async (resolve, reject) => {
+    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
     exec(
       command,
       {

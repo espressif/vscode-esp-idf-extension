@@ -21,7 +21,6 @@ import { Progress, ProgressLocation, Uri, window } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { appendIdfAndToolsToPath, spawn } from "../../utils";
-import { OutputChannel } from "../../logger/outputChannel";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function flashBinaryToPartition(
@@ -46,7 +45,7 @@ export async function flashBinaryToPartition(
     },
     async (progress: Progress<{ message: string; increment: number }>) => {
       try {
-        const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+        const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
         const serialPort = readParameter("idf.port", workspaceFolder);
         const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
         const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);

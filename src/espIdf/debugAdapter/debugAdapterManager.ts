@@ -298,7 +298,7 @@ export class DebugAdapterManager extends EventEmitter {
       );
     }
     this.target = idfTarget;
-    this.env = appendIdfAndToolsToPath(this.currentWorkspace);
+    this.env = await appendIdfAndToolsToPath(this.currentWorkspace);
     this.env.PYTHONPATH = path.join(
       extensionPath,
       "esp_debug_adapter",

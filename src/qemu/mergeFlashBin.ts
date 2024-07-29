@@ -153,7 +153,7 @@ export async function getMergeExecution(
   model: FlashModel,
   wsFolder: Uri
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
   const mergeArgs = getMergeArgs(esptoolPath, model);
   const options: ProcessExecutionOptions = {
     cwd: buildDir,

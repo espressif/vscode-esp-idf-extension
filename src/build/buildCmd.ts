@@ -55,7 +55,7 @@ export async function buildCommand(
     buildTask.building(false);
   });
   try {
-    customTask.addCustomTask(CustomTaskType.PreBuild);
+    await customTask.addCustomTask(CustomTaskType.PreBuild);
     await buildTask.build();
     await TaskManager.runTasks();
     const enableSizeTask = (await readParameter(
@@ -66,7 +66,7 @@ export async function buildCommand(
       const sizeTask = new IdfSizeTask(workspace);
       await sizeTask.getSizeInfo();
     }
-    customTask.addCustomTask(CustomTaskType.PostBuild);
+    await customTask.addCustomTask(CustomTaskType.PostBuild);
     await TaskManager.runTasks();
     if (flashType === ESP.FlashType.DFU) {
       const buildPath = readParameter("idf.buildPath", workspace) as string;

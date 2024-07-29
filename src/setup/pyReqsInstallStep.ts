@@ -18,6 +18,7 @@ import { installPyReqs } from "./installPyReqs";
 import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
 import { getOpenOcdRules } from "./addOpenOcdRules";
+import { addIdfPath } from "./espIdfJson";
 
 export async function createPyReqs(
   idfPath: string,
@@ -56,6 +57,7 @@ export async function createPyReqs(
     workspaceFolderUri,
     espIdfStatusBar
   );
+  await addIdfPath(idfPath, virtualEnvPath, toolsPath, gitPath);
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
     status: StatusType.installed,

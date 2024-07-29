@@ -87,7 +87,7 @@ export async function runTaskForCommand(
   cancelToken.onCancellationRequested(() => {
     TaskManager.cancelTasks();
   });
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
 
   const options: ShellExecutionOptions = {
     cwd: workspaceFolder.fsPath,

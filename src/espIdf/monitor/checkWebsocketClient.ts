@@ -23,7 +23,7 @@ import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function installWebsocketClient(workspace: Uri) {
   const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

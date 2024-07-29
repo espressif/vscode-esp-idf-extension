@@ -30,7 +30,7 @@ import {
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -253,11 +253,16 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     "idf.customExtraPaths",
     workspaceFolder
   ) as string;
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-
+  
   // FIX idf.customExtraVars from string to object
   // REMOVE THIS LINE after next release
   updateCustomExtraVars(workspaceFolder);
+  
+  // FIX use system Python path as setting instead venv
+  // REMOVE this line after neext release
+  const sysPythonBinPath = await getPythonPath(workspaceFolder);
+
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
 
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
@@ -356,7 +361,6 @@ export async function saveSettings(
     ConfigurationTarget.Global
   );
   let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
-  await addIdfPath(espIdfPath, pythonBinPath, currentIdfSetup.version, toolsPath, gitPath);
   espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfSetup.version;
   Logger.infoNotify("ESP-IDF has been configured");
 }
