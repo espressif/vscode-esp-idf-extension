@@ -62,11 +62,6 @@ export class FlashTask {
       "idf.espIdfPath",
       this.currentWorkspace
     ) as string;
-    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
-    this.processOptions = {
-      cwd: this.buildDirPath,
-      env: this.modifiedEnv,
-    };
   }
 
   public flashing(flag: boolean) {
@@ -108,6 +103,11 @@ export class FlashTask {
         ? vscode.TaskRevealKind.Always
         : vscode.TaskRevealKind.Silent;
     let flashExecution: vscode.ProcessExecution;
+    this.modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    this.processOptions = {
+      cwd: this.buildDirPath,
+      env: this.modifiedEnv,
+    };
     switch (flashType) {
       case "UART":
         flashExecution = this._flashExecution(pythonBinPath);

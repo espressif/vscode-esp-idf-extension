@@ -42,7 +42,7 @@ export async function generateConfigurationReport(
   currentWorkspace: vscode.Uri,
   reportedResult: reportObj
 ) {
-  getConfigurationSettings(reportedResult, currentWorkspace);
+  await getConfigurationSettings(reportedResult, currentWorkspace);
   await checkSystemInfo(reportedResult);
   await getConfigurationAccess(reportedResult, context);
   checkSpacesInSettings(reportedResult);

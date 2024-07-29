@@ -49,7 +49,7 @@ export class ESPCoreDumpPyTool {
   public async generateCoreELFFile(options: CoreELFGenerationOptions) {
     let resp: Buffer;
     try {
-      const env = appendIdfAndToolsToPath(options.workspaceUri);
+      const env = await appendIdfAndToolsToPath(options.workspaceUri);
       resp = await spawn(
         options.pythonBinPath,
         [

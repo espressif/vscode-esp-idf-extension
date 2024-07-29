@@ -81,7 +81,7 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const modifiedEnv = appendIdfAndToolsToPath(workspace);
+      const modifiedEnv = await appendIdfAndToolsToPath(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
       const idfPath = readParameter("idf.espIdfPath", workspace);
       const pythonBinPath = await getVirtualEnvPythonPath(workspace);
@@ -103,7 +103,7 @@ export class PartitionTreeDataProvider
       }
       let partitionTableOffset = "";
       if (partitionTableOffsetOption.target.indexOf("sdkconfig") !== -1) {
-        partitionTableOffset = getConfigValueFromSDKConfig(
+        partitionTableOffset = await getConfigValueFromSDKConfig(
           "CONFIG_PARTITION_TABLE_OFFSET",
           workspace
         );

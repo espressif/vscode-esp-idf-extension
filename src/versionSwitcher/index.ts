@@ -26,6 +26,7 @@ import { readParameter } from "../idfConfiguration";
 import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
+import { getPythonPath } from "../pythonManager";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -65,6 +66,10 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
+
+  // FIX use system Python path as setting instead venv
+  // REMOVE this line after neext release
+  const sysPythonBinPath = await getPythonPath(workspaceFolder);
 
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);

@@ -92,7 +92,7 @@ export async function getSaveDefConfigExecution(
   wsFolder: Uri
 ) {
   const saveDefConfArgs = [join(idfPath, "tools", "idf.py"), "save-defconfig"];
-  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
   const options: ProcessExecutionOptions = {
     cwd: wsFolder.fsPath,
     env: modifiedEnv,

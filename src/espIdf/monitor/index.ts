@@ -45,8 +45,8 @@ export class IDFMonitor {
     this.config = config;
   }
 
-  start() {
-    const modifiedEnv = appendIdfAndToolsToPath(this.config.workspaceFolder);
+  async start() {
+    const modifiedEnv = await appendIdfAndToolsToPath(this.config.workspaceFolder);
     this.terminal = window.createTerminal({
       name: `ESP-IDF Monitor ${this.config.wsPort ? "(--ws enabled)" : ""}`,
       env: modifiedEnv,

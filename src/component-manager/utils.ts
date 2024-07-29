@@ -31,7 +31,7 @@ export async function addDependency(
   try {
     const idfPathDir = readParameter("idf.espIdfPath", workspace);
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath(workspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(workspace);
     const pythonBinPath = await getVirtualEnvPythonPath(workspace);
     const enableCCache = readParameter(
       "idf.enableCCache",
@@ -74,7 +74,7 @@ export async function createProject(
   try {
     const idfPathDir = readParameter("idf.espIdfPath");
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath(workspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(workspace);
     const pythonBinPath = await getVirtualEnvPythonPath(workspace);
 
     if (

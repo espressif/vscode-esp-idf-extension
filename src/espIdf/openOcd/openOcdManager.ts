@@ -55,7 +55,7 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public async version(): Promise<string> {
-    const modifiedEnv = appendIdfAndToolsToPath(this.workspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
     if (!isBinInPath("openocd", this.workspace.fsPath, modifiedEnv)) {
       return "";
     }
@@ -151,7 +151,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath(this.workspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
     if (!isBinInPath("openocd", this.workspace.fsPath, modifiedEnv)) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"

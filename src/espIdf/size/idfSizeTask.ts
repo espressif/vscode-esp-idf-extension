@@ -38,19 +38,12 @@ export class IdfSizeTask {
   private currentWorkspace: Uri;
   private idfSizePath: string;
   private buildDirPath: string;
-  private processOptions: ProcessExecutionOptions;
-  private modifiedEnv: { [key: string]: string };
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
     const idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
     this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
     this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
-    this.modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
-    this.processOptions = {
-      cwd: this.buildDirPath,
-      env: this.modifiedEnv,
-    };
   }
 
   private async mapFilePath() {
@@ -64,7 +57,13 @@ export class IdfSizeTask {
     const mapFilePath = await this.mapFilePath();
     const args = [this.idfSizePath, mapFilePath];
 
-    const sizeExecution = new ProcessExecution(pythonCommand, args, this.processOptions);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const processOptions = {
+      cwd: this.buildDirPath,
+      env: modifiedEnv,
+    };
+
+    const sizeExecution = new ProcessExecution(pythonCommand, args, processOptions);
     const notificationMode = readParameter(
       "idf.notificationMode",
       this.currentWorkspace

@@ -31,7 +31,7 @@ export abstract class XtensaTools {
   }
 
   protected async call(args: string[]): Promise<Buffer> {
-    const env = appendIdfAndToolsToPath(this.workspaceRoot);
+    const env = await appendIdfAndToolsToPath(this.workspaceRoot);
     try {
       return await spawn(this.toolName, args, { env });
     } catch (error) {

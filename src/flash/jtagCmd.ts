@@ -55,7 +55,7 @@ export async function jtagFlashCommand(workspace: Uri) {
     buildPath = buildPath.replace(/\\/g, "/");
   }
   try {
-    customTask.addCustomTask(CustomTaskType.PreFlash);
+    await customTask.addCustomTask(CustomTaskType.PreFlash);
     await customTask.runTasks(CustomTaskType.PreFlash);
     await jtag.flash(
       "program_esp_bins",
@@ -64,7 +64,7 @@ export async function jtagFlashCommand(workspace: Uri) {
       "verify",
       "reset"
     );
-    customTask.addCustomTask(CustomTaskType.PostFlash);
+    await customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);
     const msg = "⚡️ Flashed Successfully (JTag)";
     OutputChannel.appendLineAndShow(msg, "Flash");

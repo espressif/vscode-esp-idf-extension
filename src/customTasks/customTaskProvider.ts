@@ -54,7 +54,7 @@ export class CustomTask {
     return new ShellExecution(`${cmdString}`, options);
   }
 
-  public addCustomTask(taskType: CustomTaskType) {
+  public async addCustomTask(taskType: CustomTaskType) {
     let command: string;
     let taskName: string;
     switch (taskType) {
@@ -83,7 +83,7 @@ export class CustomTask {
     if (!command) {
       return;
     }
-    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
     const options: ShellExecutionOptions = {
       cwd: this.currentWorkspace.fsPath,
       env: modifiedEnv,
@@ -163,7 +163,10 @@ export class CustomTask {
         ) as string;
         break;
       case CustomTaskType.Custom:
-        command = readParameter("idf.customTask", this.currentWorkspace) as string;
+        command = readParameter(
+          "idf.customTask",
+          this.currentWorkspace
+        ) as string;
       default:
         break;
     }

@@ -32,8 +32,6 @@ export class BuildTask {
   private currentWorkspace: vscode.Uri;
   private idfPathDir: string;
   private adapterTargetName: string;
-  private processOptions: vscode.ProcessExecutionOptions;
-  private modifiedEnv: { [key: string]: string };
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
@@ -49,11 +47,6 @@ export class BuildTask {
       "idf.buildPath",
       workspaceUri
     ) as string;
-    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
-    this.processOptions = {
-      cwd: this.buildDirPath,
-      env: this.modifiedEnv,
-    };
   }
 
   public building(flag: boolean) {
@@ -84,15 +77,20 @@ export class BuildTask {
     }
     this.building(true);
     await ensureDir(this.buildDirPath);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const processOptions = {
+      cwd: this.buildDirPath,
+      env: modifiedEnv,
+    };
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.currentWorkspace.fsPath,
-      this.modifiedEnv
+      modifiedEnv
     );
     const canAccessNinja = await isBinInPath(
       "ninja",
       this.currentWorkspace.fsPath,
-      this.modifiedEnv
+      modifiedEnv
     );
 
     const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
@@ -161,7 +159,7 @@ export class BuildTask {
       const compileExecution = new vscode.ProcessExecution(
         canAccessCMake,
         compilerArgs,
-        this.processOptions
+        processOptions
       );
       const compilePresentationOptions = {
         reveal: showTaskOutput,
@@ -192,7 +190,7 @@ export class BuildTask {
     const buildExecution = new vscode.ProcessExecution(
       ninjaCommand,
       buildArgs,
-      this.processOptions
+      processOptions
     );
     const buildPresentationOptions = {
       reveal: showTaskOutput,
@@ -239,10 +237,15 @@ export class BuildTask {
       selectedDFUAdapterId(this.adapterTargetName),
     ];
     const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const processOptions = {
+      cwd: this.buildDirPath,
+      env: modifiedEnv,
+    };
     const writeExecution = new vscode.ProcessExecution(
       pythonBinPath,
       args,
-      this.processOptions
+      processOptions
     );
     const buildPresentationOptions = {
       reveal: showTaskOutput,

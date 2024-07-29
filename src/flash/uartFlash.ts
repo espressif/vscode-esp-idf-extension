@@ -71,9 +71,9 @@ export async function flashCommand(
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
     });
-    customTask.addCustomTask(CustomTaskType.PreFlash);
+    await customTask.addCustomTask(CustomTaskType.PreFlash);
     await flashTask.flash(flashType);
-    customTask.addCustomTask(CustomTaskType.PostFlash);
+    await customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;

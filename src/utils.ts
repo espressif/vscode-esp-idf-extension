@@ -40,6 +40,7 @@ import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
+import { getVirtualEnvPythonPath } from "./pythonManager";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -248,7 +249,7 @@ export async function setCCppPropertiesJsonCompilerPath(
   if (!doesPathExists) {
     return;
   }
-  const modifiedEnv = appendIdfAndToolsToPath(curWorkspaceFsPath);
+  const modifiedEnv = await appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
   const compilerAbsolutePath = await isBinInPath(
@@ -282,7 +283,7 @@ export async function getToolchainPath(
   workspaceUri: vscode.Uri,
   tool: string = "gcc"
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, tool);
   try {
@@ -364,7 +365,7 @@ export function getVariableFromCMakeLists(workspacePath: string, key: string) {
   return match ? match[1] : "";
 }
 
-export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
+export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
   let sdkconfigFilePath = "";
   try {
     sdkconfigFilePath = getVariableFromCMakeLists(
@@ -390,7 +391,7 @@ export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
       .replace(/"/g, "");
   }
   if (!sdkconfigFilePath) {
-    const modifiedEnv = appendIdfAndToolsToPath(workspacePath);
+    const modifiedEnv = await appendIdfAndToolsToPath(workspacePath);
     sdkconfigFilePath = modifiedEnv.SDKCONFIG;
   }
   if (!sdkconfigFilePath) {
@@ -402,11 +403,11 @@ export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
   return sdkconfigFilePath;
 }
 
-export function getConfigValueFromSDKConfig(
+export async function getConfigValueFromSDKConfig(
   key: string,
   workspacePath: vscode.Uri
-): string {
-  const sdkconfigFilePath = getSDKConfigFilePath(workspacePath);
+): Promise<string> {
+  const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
   if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
@@ -416,7 +417,7 @@ export function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export function getMonitorBaudRate(workspacePath: vscode.Uri) {
+export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
   let sdkMonitorBaudRate = "";
   try {
     sdkMonitorBaudRate = idfConf.readParameter(
@@ -424,7 +425,7 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
       workspacePath
     ) as string;
     if (!sdkMonitorBaudRate) {
-      sdkMonitorBaudRate = getConfigValueFromSDKConfig(
+      sdkMonitorBaudRate = await getConfigValueFromSDKConfig(
         "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
         workspacePath
       );
@@ -438,8 +439,8 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
   return sdkMonitorBaudRate;
 }
 
-export function delConfigFile(workspaceRoot: vscode.Uri) {
-  const sdkconfigFile = getSDKConfigFilePath(workspaceRoot);
+export async function delConfigFile(workspaceRoot: vscode.Uri) {
+  const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);
 }
 
@@ -812,7 +813,7 @@ export async function cleanDirtyGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
     const resetResult = await execChildProcess(
       gitPath,
       ["reset", "--hard", "--recurse-submodule"],
@@ -838,7 +839,7 @@ export async function fixFileModeGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
     const fixFileModeResult = await execChildProcess(
       gitPath,
       ["config", "--local", "core.fileMode", "false"],
@@ -926,7 +927,7 @@ export function validateFileSizeAndChecksum(
   });
 }
 
-export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
+export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
@@ -1008,6 +1009,16 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "zap"
     );
   }
+
+  const pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
+  modifiedEnv.PYTHON =
+    pythonBinPath ||
+    `${process.env.PYTHON}` ||
+    `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
+
+  modifiedEnv.IDF_PYTHON_ENV_PATH =
+    path.dirname(path.dirname(pythonBinPath)) ||
+    process.env.IDF_PYTHON_ENV_PATH;
 
   const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
   let pathToGitDir;
@@ -1117,7 +1128,9 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  const modifiedEnv = appendIdfAndToolsToPath(extensionContext.extensionUri);
+  const modifiedEnv = await appendIdfAndToolsToPath(
+    extensionContext.extensionUri
+  );
   return execChildProcess(
     pythonBinPath,
     [reqFilePath, "-r", requirementsPath],

@@ -265,15 +265,9 @@ export async function execProcessWithLog(
 }
 
 export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
-  let pythonPath = await getPythonPath(workspaceFolder);
-  let espIdfDir = (await readParameter(
-    "idf.espIdfPath",
-    workspaceFolder
-  )) as string;
-  let idfToolsDir = (await readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  )) as string;
+  let pythonPath = readParameter("idf.pythonInstallPath") as string;
+  let espIdfDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
+  let idfToolsDir = readParameter("idf.toolsPath", workspaceFolder) as string;
   const virtualEnvPython = await getPythonEnvPath(
     espIdfDir,
     idfToolsDir,
@@ -298,7 +292,7 @@ export async function getPythonPath(workspaceFolder: Uri) {
 }
 
 export async function getSystemPython(workspaceFolder: Uri) {
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
   const pythonCode = `import sys; print('{}'.format(sys.base_prefix))`;
   const args = ["-c", pythonCode];
   const pythonVersion = (
@@ -307,7 +301,7 @@ export async function getSystemPython(workspaceFolder: Uri) {
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
+      : ["bin", "python3"];
   const sysPythonBinPath = join(pythonVersion, ...pyDir);
   return sysPythonBinPath;
 }

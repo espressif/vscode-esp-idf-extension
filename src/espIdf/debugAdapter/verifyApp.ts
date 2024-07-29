@@ -26,7 +26,7 @@ import { pathExists } from "fs-extra";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function verifyAppBinary(workspaceFolder: Uri) {
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
   const serialPort = readParameter("idf.port", workspaceFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", workspaceFolder);
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);

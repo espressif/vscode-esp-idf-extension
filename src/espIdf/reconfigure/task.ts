@@ -44,7 +44,7 @@ export class IdfReconfigureTask {
   }
 
   public async reconfigure() {
-    const modifiedEnv = appendIdfAndToolsToPath(this.curWorkspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.curWorkspace);
     const options: ProcessExecutionOptions = {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
