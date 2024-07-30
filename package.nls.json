@@ -120,7 +120,6 @@
   "param.espMatterPath": "Path to locate ESP-Matter framework (ESP_MATTER_PATH)",
   "param.espMdfPath": "Path to locate ESP-MDF framework (MDF_PATH)",
   "param.espRainmakerPath": "Path to locate ESP-Rainmaker framework (RMAKER_PATH)",
-  "param.exportPaths": "Paths to be appended to PATH",
   "param.exportVars": "Variables to be added to system environment variables",
   "param.flashBaudRate": "ESP-IDF Flash Baud rate",
   "param.gitPath.title": "Git executable path",

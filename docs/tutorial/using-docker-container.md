@@ -176,7 +176,6 @@ For more information about `devcontainer.json`, please refer to the comments.
   "settings": {
     "terminal.integrated.defaultProfile.linux": "bash",
     "idf.espIdfPath": "/opt/esp/idf",
-    "idf.customExtraPaths": "",
     "idf.toolsPath": "/opt/esp",
     "idf.gitPath": "/usr/bin/git"
   },

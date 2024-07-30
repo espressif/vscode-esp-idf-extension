@@ -246,9 +246,6 @@ export class SetupPanel {
             message.tools &&
             message.saveScope
           ) {
-            const { exportedPaths, exportedVars } = this.getCustomSetupSettings(
-              JSON.parse(message.tools)
-            );
             this.panel.webview.postMessage({
               command: "updateEspIdfToolsStatus",
               status: StatusType.installed,
@@ -257,8 +254,6 @@ export class SetupPanel {
               message.espIdfPath,
               message.toolsPath,
               message.pyBinPath,
-              exportedPaths,
-              exportedVars,
               setupArgs.gitPath,
               message.saveScope,
               context,
@@ -547,23 +542,6 @@ export class SetupPanel {
     });
   }
 
-  private getCustomSetupSettings(toolsInfo: IEspIdfTool[]) {
-    const exportedPaths = toolsInfo
-      .reduce((prev, curr, i) => {
-        return prev + path.delimiter + curr.path;
-      }, "")
-      .slice(1);
-    const exportedVars: { [key: string]: string } = {};
-    for (let tool of toolsInfo) {
-      for (let envKey of Object.keys(tool.env)) {
-        if (Object.keys(exportedVars).indexOf(envKey) === -1) {
-          exportedVars[envKey] = tool.env[envKey];
-        }
-      }
-    }
-    return { exportedPaths, exportedVars };
-  }
-
   private async installEspIdfTools(
     idfPath: string,
     pyPath: string,
@@ -639,8 +617,6 @@ export class SetupPanel {
     idfPath: string,
     toolsPath: string,
     pyPath: string,
-    exportPaths: string,
-    exportVars: { [key: string]: string },
     gitPath: string,
     saveScope: ConfigurationTarget,
     context: ExtensionContext,
@@ -675,8 +651,6 @@ export class SetupPanel {
             idfPath,
             toolsPath,
             pyPath,
-            exportPaths,
-            exportVars,
             gitPath,
             saveScope,
             context,

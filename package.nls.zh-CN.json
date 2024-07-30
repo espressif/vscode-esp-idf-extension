@@ -120,7 +120,6 @@
 	"param.espMatterPath": "定位 ESP-Matter 框架的路径 (ESP_MATTER_PATH)",
 	"param.espMdfPath": "定位 ESP-MDF 框架的路径 (MDF_PATH)",
 	"param.espRainmakerPath": "定位 ESP-Rainmaker 框架的路径 (RMAKER_PATH)",
-	"param.exportPaths": "要附加到 PATH 的路径",
 	"param.exportVars": "要添加到系统环境变量的变量",
 	"param.flashBaudRate": "ESP-IDF 烧录波特率",
 	"param.gitPath.title": "Git 可执行文件路径",

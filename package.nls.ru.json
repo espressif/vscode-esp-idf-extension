@@ -120,7 +120,6 @@
 	"param.espMatterPath": "Путь для поиска структуры ESP-Matter (ESP_MATTER_PATH)",
 	"param.espMdfPath": "Путь для поиска платформы ESP-MDF (MDF_PATH)",
 	"param.espRainmakerPath": "Путь к инфраструктуре ESP-Rainmaker (RMAKER_PATH)",
-	"param.exportPaths": "Пути для добавления в PATH",
 	"param.exportVars": "Переменные, добавляемые в переменные системной среды",
 	"param.flashBaudRate": "Скорость передачи флэш-памяти ESP-IDF",
 	"param.gitPath.title": "Путь к исполняемому файлу Git",

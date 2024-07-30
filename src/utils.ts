@@ -41,6 +41,7 @@ import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
 import { getVirtualEnvPythonPath } from "./pythonManager";
+import { IdfToolsManager } from "./idfToolsManager";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -289,7 +290,7 @@ export async function getToolchainPath(
   try {
     return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
   } catch (error) {
-    Logger.errorNotify(`${tool} is not found in idf.customExtraPaths`, error);
+    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error);
     return;
   }
 }
@@ -931,26 +932,6 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
-  const extraPaths = idfConf.readParameter(
-    "idf.customExtraPaths",
-    curWorkspace
-  );
-
-  const customVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    curWorkspace
-  ) as { [key: string]: string };
-  if (customVars) {
-    try {
-      for (const envVar in customVars) {
-        if (envVar) {
-          modifiedEnv[envVar] = customVars[envVar];
-        }
-      }
-    } catch (error) {
-      Logger.errorNotify("Invalid custom environment variables format", error);
-    }
-  }
 
   const containerPath =
     process.platform === "win32" ? modifiedEnv.USERPROFILE : modifiedEnv.HOME;
@@ -986,6 +967,45 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
   const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
   modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
+
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    modifiedEnv.IDF_PATH
+  );
+
+  const extraPaths = await idfToolsManager.exportPathsInString(
+    path.join(modifiedEnv.IDF_TOOLS_PATH, "tools"),
+    ["cmake", "ninja"]
+  );
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    curWorkspace
+  ) as { [key: string]: string };
+  if (customExtraVars) {
+    try {
+      for (const envVar in customExtraVars) {
+        if (envVar) {
+          modifiedEnv[envVar] = customExtraVars[envVar];
+        }
+      }
+    } catch (error) {
+      Logger.errorNotify("Invalid user environment variables format", error);
+    }
+  }
+  const customVars = await idfToolsManager.exportVars(
+    path.join(modifiedEnv.IDF_TOOLS_PATH, "tools")
+  );
+
+  if (customVars) {
+    try {
+      for (const envVar in customVars) {
+        if (envVar) {
+          modifiedEnv[envVar] = customVars[envVar];
+        }
+      }
+    } catch (error) {
+      Logger.errorNotify("Invalid ESP-IDF environment variables format", error);
+    }
+  }
 
   let pathToPigweed: string;
 

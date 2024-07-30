@@ -124,7 +124,6 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
         "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
       },
       "cwd": "${workspaceFolder}",
-      "environment": [{ "name": "PATH", "value": "${config:idf.customExtraPaths}" }],
       "setupCommands": [
 			  { "text": "set remotetimeout 20" },
 		  ],

@@ -96,7 +96,7 @@ export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: Work
           configurationTarget,
           workspaceFolder.uri
         );
-        const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
+        const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder.uri);
         const boards = await getBoards(
           openOcdScriptsPath,
           selectedTarget.target
