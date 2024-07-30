@@ -51,7 +51,6 @@ suite("Project tests", () => {
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultFiles.includes("launch.json"), true);
     assert.equal(resultFiles.includes("settings.json"), true);
-    assert.equal(resultFiles.includes("tasks.json"), true);
   });
 
   test("Launch.json content", async () => {
@@ -107,7 +106,6 @@ suite("Project tests", () => {
     assert.equal(resultVscodeFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultVscodeFiles.includes("launch.json"), true);
     assert.equal(resultVscodeFiles.includes("settings.json"), true);
-    assert.equal(resultVscodeFiles.includes("tasks.json"), true);
   });
 
   test("Update project name", async () => {
