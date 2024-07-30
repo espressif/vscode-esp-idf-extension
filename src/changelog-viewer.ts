@@ -21,6 +21,7 @@ import { commands, ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "./config";
 import { Logger } from "./logger/logger";
 import { packageJson } from "./utils";
+import { NotificationMode, readParameter } from "./idfConfiguration";
 
 export namespace ChangelogViewer {
   export async function showChangeLogAndUpdateVersion(cxt: ExtensionContext) {
@@ -30,8 +31,12 @@ export namespace ChangelogViewer {
     );
     //get current_version from package.json
     const currentVersion = packageJson.version;
+    const notificationMode = readParameter("idf.notificationMode") as string;
+    const enableNotification =
+      notificationMode === NotificationMode.All ||
+      notificationMode === NotificationMode.Notifications;
     //check
-    if (currentVersion !== storedVersion) {
+    if (currentVersion !== storedVersion && enableNotification) {
       //new version update
       const msg = `It seems like the ESP-IDF Extension just got updated to version ${currentVersion}, checkout the changelog to see what new features got added`;
       const resp = await window.showInformationMessage(

@@ -34,7 +34,7 @@ jobs:
         run: echo "${{ steps.idftest.outputs.result }}" | tee test-result.xml
 
       - name: Upload if failed test results
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: test-result.xml
@@ -44,7 +44,7 @@ jobs:
         run: yarn package
 
       - name: Upload .vsix File
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: esp-idf-extension.vsix
           path: esp-idf-extension.vsix
