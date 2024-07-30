@@ -31,17 +31,9 @@ export async function setCurrentSettingsInTemplate(
   const idfPathDir = readParameter("idf.espIdfPath", workspace);
   const adfPathDir = readParameter("idf.espAdfPath", workspace);
   const mdfPathDir = readParameter("idf.espMdfPath", workspace);
-  const extraPaths = readParameter("idf.customExtraPaths", workspace);
-  const extraVars = readParameter("idf.customExtraVars", workspace);
   const toolsDir = readParameter("idf.toolsPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
   settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
-  if (extraPaths) {
-    settingsJson["idf.customExtraPaths"] = extraPaths;
-  }
-  if (extraVars) {
-    settingsJson["idf.customExtraVars"] = extraVars;
-  }
   if (idfPathDir) {
     settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
   }

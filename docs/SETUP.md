@@ -19,9 +19,8 @@ If ESP-IDF and corresponding ESP-IDF Tools are found, these paths will be saved 
 These settings, as described in [ESP-IDF Specific Settings](./SETTINGS.md#ESP-IDF-Specific-Settings), are:
 
 - `idf.espIdfPath` for IDF_PATH,
-- `idf.customExtraPaths` for ESP-IDF Tools paths to be appended to environment variable PATH,
-- `idf.pythonBinPath` for absolute virtual environment python path and
-- `idf.customExtraVars` for additional environment variables from ESP-IDF Tools such as OPENOCD_SCRIPTS.
+- `idf.toolsPath` for IDF_TOOLS_PATH
+- `idf.customExtraVars` for additional user defined environment variables.
 
 > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review the [Visual Studio Code Settings Precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
 
@@ -74,11 +73,7 @@ MacOS/Linux
 ```json
 {
   "idf.espIdfPath": "path/to/esp-idf",
-  "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
-  },
-  "idf.pythonBinPath": "PYTHON_INTERPRETER",
+  "idf.toolsPath": "path/to/.espressif",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "board/esp32-wrover.cfg"
@@ -92,11 +87,7 @@ Windows
 ```json
 {
   "idf.espIdfPathWin": "path/to/esp-idf",
-  "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
-  },
-  "idf.pythonBinPathWin": "PYTHON_INTERPRETER",
+  "idf.toolsPath": "path/to/.espressif",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "board/esp32-wrover.cfg"
@@ -132,34 +123,9 @@ This method also need to install extension and debug adapter requirements.txt as
 
 # Example Configuration Setting Values
 
-An example ESP-IDF path is to set `idf.espIdfPath` to `/home/myUser/to/esp-idf` (MacOS/Linux) or set `idf.espIdfPathWin` to `C:\Users\myUser\esp\esp-idf` (Windows)
+An example ESP-IDF path is to set `idf.espIdfPath` to `/home/myUser/esp/esp-idf` (MacOS/Linux) or set `idf.espIdfPathWin` to `C:\Users\myUser\esp\esp-idf` (Windows)
 
-An example python path for `idf.pythonBinPath` (MacOS/Linux) is
-
-- `/home/myUser/.espressif/python_env/idf4.0_py3.5_env/bin/python`
-
-An example python path for `idf.pythonBinPathWin` (Windows) is
-
-- `C:\Users\myUser\.espressif\python_env\idf4.0_py3.5_env\Scripts\python.exe`
-
-For example if required ESP-IDF Tools are:
-
-- OpenOCD executable path is `/home/myUser/.espressif/tools/openocd-esp32/version/openocd-esp32/bin/openocd` or `C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin\openocd` (Windows)
-- XtensaEsp32 executable path is `/home/myUser/.espressif/tools/xtensa-esp32/version/xtensa-esp32/bin/xtensa-esp32-gcc` or `C:\Users\myUser\.espressif\tools\xtensa\version\xtensa-esp32\bin\xtensa-esp32-gcc` (Windows)
-
-you need to set in `idf.customExtraPaths`:
-
-- MacOS/Linux
-
-```
-/home/myUser/.espressif/tools/openocd/version/openocd-esp32/bin:/home/myUser/.espressif/tools/xtensa-esp32/version/xtensa-esp32/bin
-```
-
-- Windows
-
-```
-C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin;C:\Users\myUser\.espressif\tools\xtensa-esp32\version\xtensa-esp32\bin
-```
+ESP-IDF Tools path is to set `idf.toolsPath` to `/home/myUser/.espressif` (MacOS/Linux) or set `idf.toolsPathWin` to `C:\Users\myUser\.espressif` (Windows)
 
 `idf.customExtraVars` is an JSON object saved in Visual Studio Code's settings.json (**Make sure to replace \${TOOL_PATH} with the existing tool directory path**):
 
@@ -169,8 +135,6 @@ C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin;C:\User
   }
 ```
 
-The list of required ESP-IDF Tools (`idf.customExtraPaths`) and environment variables (`idf.customExtraVars`) can be found in `$IDF_PATH/tools/tools.json`
-
-> **NOTE:** Make sure to replace \${TOOL_PATH} of `$IDF_PATH/tools/tools.json` in`idf.customExtraPaths` and `idf.customExtraVars` with existing ESP-IDF tool directory path.
+The list of required ESP-IDF Tools and environment variables can be found in `$IDF_PATH/tools/tools.json`.
 
 `idf.openOcdConfigs` use OpenOCD Configuration files depending on your board and chip target. More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).

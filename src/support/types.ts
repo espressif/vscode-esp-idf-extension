@@ -39,7 +39,8 @@ export class Configuration {
   espMatterPath: string;
   espHomeKitPath: string;
   customExtraPaths: string;
-  customExtraVars: { [key: string]: string };
+  idfExtraVars: { [key: string]: string };
+  userExtraVars: { [key: string]: string };
   notificationMode: string;
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];

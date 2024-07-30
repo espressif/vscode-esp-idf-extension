@@ -63,7 +63,7 @@ export async function getNewProjectArgs(
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
-  const openOcdScriptsPath = getOpenOcdScripts(workspace);
+  const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   const espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
   const targetList = defaultBoards;

@@ -214,30 +214,6 @@ export async function getSetupInitialValues(
   return setupInitArgs;
 }
 
-function updateCustomExtraVars(workspaceFolder: Uri) {
-  const extraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  );
-  if (typeof extraVars === "string") {
-    try {
-      const extraVarsObj = JSON.parse(extraVars);
-      const target = idfConf.readParameter("idf.saveScope");
-      idfConf.writeParameter(
-        "idf.customExtraVars",
-        extraVarsObj,
-        target,
-        workspaceFolder
-      );
-    } catch (err) {
-      const msg = err.message
-        ? err.message
-        : "Error changing idf.customExtraVars from string to object";
-      Logger.errorNotify(msg, err);
-    }
-  }
-}
-
 export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
@@ -249,17 +225,9 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
-  const extraPaths = idfConf.readParameter(
-    "idf.customExtraPaths",
-    workspaceFolder
-  ) as string;
-  
-  // FIX idf.customExtraVars from string to object
-  // REMOVE THIS LINE after next release
-  updateCustomExtraVars(workspaceFolder);
   
   // FIX use system Python path as setting instead venv
-  // REMOVE this line after neext release
+  // REMOVE this line after next release
   const sysPythonBinPath = await getPythonPath(workspaceFolder);
 
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
@@ -295,6 +263,10 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
       extraReqPaths.push("ninja");
     }
   }
+  const extraPaths = await idfToolsManager.exportPathsInString(
+    path.join(toolsPath, "tools"),
+    extraReqPaths
+  );
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
     extraPaths,
@@ -316,8 +288,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
 
 export async function saveSettings(
   espIdfPath: string,
-  exportedPaths: string,
-  exportedVars: { [key: string]: string },
   toolsPath: string,
   gitPath: string,
   saveScope: ConfigurationTarget,
@@ -340,18 +310,6 @@ export async function saveSettings(
   await idfConf.writeParameter(
     "idf.toolsPath",
     toolsPath,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
-    "idf.customExtraPaths",
-    exportedPaths,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
-    "idf.customExtraVars",
-    exportedVars,
     confTarget,
     workspaceFolder
   );

@@ -33,21 +33,8 @@ export async function useIdfSetupSettings(
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    setupConf.idfPath
-  );
-
-  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-    join(setupConf.toolsPath, "tools"),
-    ["cmake", "ninja"]
-  );
-  const exportedVars = await idfToolsManager.exportVars(
-    join(setupConf.toolsPath, "tools")
-  );
   await saveSettings(
     setupConf.idfPath,
-    exportedToolsPaths,
-    exportedVars,
     setupConf.toolsPath,
     setupConf.gitPath,
     saveScope,

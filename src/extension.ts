@@ -2044,7 +2044,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
     try {
-      const openOcdScriptsPath = getOpenOcdScripts(workspaceRoot);
+      const openOcdScriptsPath = await getOpenOcdScripts(workspaceRoot);
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
         workspaceRoot
@@ -2115,8 +2115,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
-    return getOpenOcdScripts(workspaceRoot);
+  registerIDFCommand("espIdf.getOpenOcdScriptValue", async () => {
+    return await getOpenOcdScripts(workspaceRoot);
   });
 
   registerIDFCommand("espIdf.size", () => {

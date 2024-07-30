@@ -500,18 +500,6 @@
             "description": "%param.port%",
             "scope": "resource"
           },
-          "idf.pythonBinPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
-            "scope": "resource"
-          },
-          "idf.pythonBinPathWin": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
-            "scope": "resource"
-          },
           "idf.pythonInstallPath": {
             "type": "string",
             "default": "python",
@@ -601,12 +589,6 @@
             "type": "string",
             "default": "",
             "description": "%param.customAdapterTargetName%",
-            "scope": "resource"
-          },
-          "idf.customExtraPaths": {
-            "type": "string",
-            "default": "",
-            "description": "%param.exportPaths%",
             "scope": "resource"
           },
           "idf.customExtraVars": {

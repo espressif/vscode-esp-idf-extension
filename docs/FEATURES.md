@@ -442,7 +442,7 @@ The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](
 
 Click <kbd>F5</kbd> to start debugging. To configure the debug behaviour, please review [DEBUGGING](./DEBUGGING.md).
 
-> **NOTE** For correct debug experience, first define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md), `build` your project, choose the right serial port, `flash` the program to your device.
+> **NOTE** For correct debug experience, first define the correct settings configuration using [SETUP](./SETUP.md), `build` your project, choose the right serial port, `flash` the program to your device.
 
 ## CMakeLists.txt Editor
 

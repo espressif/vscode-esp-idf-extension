@@ -159,11 +159,6 @@ suite("Project tests", () => {
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
     assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
-    assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
-    assert.equal(
-      newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"],
-      "${env:OPENOCD_SCRIPTS}"
-    );
   });
 
   suiteTeardown(async () => {

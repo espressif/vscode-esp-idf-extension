@@ -45,14 +45,23 @@ export async function writeTextReport(
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
-  output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
+  output += `Custom extra paths ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (
-    reportedResult.configurationSettings.customExtraVars &&
-    Object.keys(reportedResult.configurationSettings.customExtraVars)
+    reportedResult.configurationSettings.idfExtraVars &&
+    Object.keys(reportedResult.configurationSettings.idfExtraVars)
   ) {
-    output += `Custom extra vars (idf.customExtraVars)${EOL}`;
-    for (let key in reportedResult.configurationSettings.customExtraVars) {
-      output += `    ${key}: ${reportedResult.configurationSettings.customExtraVars[key]}${EOL}`;
+    output += `ESP-IDF extra vars${EOL}`;
+    for (let key in reportedResult.configurationSettings.idfExtraVars) {
+      output += `    ${key}: ${reportedResult.configurationSettings.idfExtraVars[key]}${EOL}`;
+    }
+  }
+  if (
+    reportedResult.configurationSettings.userExtraVars &&
+    Object.keys(reportedResult.configurationSettings.userExtraVars)
+  ) {
+    output += `User extra vars (idf.customExtraVars)${EOL}`;
+    for (let key in reportedResult.configurationSettings.userExtraVars) {
+      output += `    ${key}: ${reportedResult.configurationSettings.userExtraVars[key]}${EOL}`;
     }
   }
   output += `System python Path (idf.pythonInstallPath) ${reportedResult.configurationSettings.sysPythonBinPath}${EOL}`;

@@ -120,7 +120,6 @@
 	"param.espMatterPath": "Ruta para localizar el framework ESP-Matter (ESP_MATTER_PATH)",
 	"param.espMdfPath": "Ruta para localizar el framework ESP-MDF (MDF_PATH)",
 	"param.espRainmakerPath": "Ruta para localizar el framework ESP-Rainmaker (RMAKER_PATH)",
-	"param.exportPaths": "Rutas que se agregarán a PATH",
 	"param.exportVars": "Variables que se agregarán a las variables de entorno del sistema",
 	"param.flashBaudRate": "Tasa de baudios de flasheo ESP-IDF",
 	"param.gitPath.title": "Ruta del ejecutable de Git",

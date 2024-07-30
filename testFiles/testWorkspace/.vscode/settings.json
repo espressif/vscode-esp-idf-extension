@@ -10,10 +10,6 @@
   "idf.gitPath": "/usr/bin/git",
   "files.simpleDialog.enable": true,
   "window.dialogStyle": "custom",
-  "idf.customExtraPaths": "${env:PATH}",
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "${env:OPENOCD_SCRIPTS}"
-  },
   "idf.notificationMode": "Output",
   "idf.showOnboardingOnInit": false,
   "idf.pythonInstallPath": "python"
