@@ -514,7 +514,7 @@
           },
           "idf.pythonInstallPath": {
             "type": "string",
-            "default": "",
+            "default": "python",
             "description": "%param.pythonBinPath%",
             "scope": "application"
           },
