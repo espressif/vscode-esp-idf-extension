@@ -18,7 +18,6 @@
     ".vscode-test",
     "esp",
     "node_modules",
-    "src/views",
     "test-resources"
   ]
 }
