@@ -15,5 +15,6 @@
     "OPENOCD_SCRIPTS": "${env:OPENOCD_SCRIPTS}"
   },
   "idf.notificationMode": "Output",
-  "idf.showOnboardingOnInit": false
+  "idf.showOnboardingOnInit": false,
+  "idf.pythonInstallPath": "python"
 }
