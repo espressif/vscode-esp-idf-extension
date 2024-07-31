@@ -21,7 +21,12 @@ import { join } from "path";
 import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import {
+  appendIdfAndToolsToPath,
+  isBinInPath,
+  getEspIdfFromCMake,
+  compareVersion,
+} from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 
@@ -121,14 +126,36 @@ export class BuildTask {
         : vscode.TaskRevealKind.Silent;
 
     if (!cmakeCacheExists) {
-      let compilerArgs = (idfConf.readParameter(
-        "idf.cmakeCompilerArgs",
-        this.currentWorkspace
-      ) as Array<string>) || [
-        "-G=Ninja",
-        "-DPYTHON_DEPS_CHECKED=1",
-        "-DESP_PLATFORM=1",
-      ];
+      const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
+      let defaultCompilerArgs;
+      if (espIdfVersion === "x.x") {
+        Logger.warn(
+          "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
+        );
+        defaultCompilerArgs = [
+          "-G=Ninja",
+          "-DPYTHON_DEPS_CHECKED=1",
+          "-DESP_PLATFORM=1",
+        ];
+      } else if (compareVersion(espIdfVersion, "4.4") >= 0) {
+        defaultCompilerArgs = [
+          "-G=Ninja",
+          "-DPYTHON_DEPS_CHECKED=1",
+          "-DESP_PLATFORM=1",
+        ];
+      } else {
+        defaultCompilerArgs = [
+          "-G",
+          "Ninja",
+          "-DPYTHON_DEPS_CHECKED=1",
+          "-DESP_PLATFORM=1",
+        ];
+      }
+      let compilerArgs =
+        (idfConf.readParameter(
+          "idf.cmakeCompilerArgs",
+          this.currentWorkspace
+        ) as Array<string>) || defaultCompilerArgs;
       let buildPathArgsIndex = compilerArgs.indexOf("-B");
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, 2);
