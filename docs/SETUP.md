@@ -52,7 +52,7 @@ Setup wizard provides 3 choices:
 
 so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment.
 
-> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
+> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in ESP-IDF Virtual environment Python path you use contains these libraries. This will be dropped in later versions of ESP-IDF.
 
 > **NOTE**: If you want to use an ESP-IDF version < 5.0, make sure that IDF_PATH and IDF_TOOLS_PATH don't have any spaces since they were no suported in previous versions.
 

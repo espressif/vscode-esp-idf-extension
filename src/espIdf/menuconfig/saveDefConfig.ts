@@ -101,7 +101,7 @@ export async function getSaveDefConfigExecution(
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(
-      `idf.pythonBinPath doesn't exist. Configure the extension first.`
+      `Virtual environment Python path doesn't exist. Configure the extension first.`
     );
   }
   return new ProcessExecution(pythonBinPath, saveDefConfArgs, options);
