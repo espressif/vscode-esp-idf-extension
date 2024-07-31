@@ -278,7 +278,8 @@ export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
 
 export async function getPythonPath(workspaceFolder: Uri) {
   let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
-  if (!sysPythonBinPath) {
+  const doesSysPythonBinPathExist = await pathExists(sysPythonBinPath);
+  if (!doesSysPythonBinPathExist) {
     sysPythonBinPath = await getSystemPython(workspaceFolder);
     if (sysPythonBinPath) {
       await writeParameter(

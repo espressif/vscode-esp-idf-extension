@@ -59,7 +59,7 @@ export async function createNewIdfMonitor(
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
+      new Error("Virtual environment Python path is not defined")
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;

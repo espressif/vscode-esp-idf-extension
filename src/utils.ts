@@ -40,7 +40,7 @@ import { getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
-import { getVirtualEnvPythonPath } from "./pythonManager";
+import { getPythonPath, getVirtualEnvPythonPath } from "./pythonManager";
 import { IdfToolsManager } from "./idfToolsManager";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
@@ -1029,7 +1029,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "zap"
     );
   }
-
+  const sysPythonPath = await getPythonPath(curWorkspace);
   const pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
   modifiedEnv.PYTHON =
     pythonBinPath ||

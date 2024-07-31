@@ -18,7 +18,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | `idf.buildPathWin`              | Custom build directory name for extension commands. (Default: \${workspaceFolder}\\build) |
 | `idf.sdkconfigDefaults`         | List of sdkconfig default values for initial build configuration                          |
 | `idf.cmakeCompilerArgs`         | Arguments for CMake compilation task                                                      |
-| `idf.customExtraVars`           | Variables to be added to system environment variables                                     |
+| `idf.customExtraVars`           | User defined variables to be added to system environment variables                        |
 | `idf.gitPath`                   | Path to git executable                                                                    |
 | `idf.gitPathWin`                | Path to git executable in Windows                                                         |
 | `idf.enableCCache`              | Enable CCache on build task (make sure CCache is in PATH)                                 |

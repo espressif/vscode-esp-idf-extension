@@ -301,7 +301,7 @@ suite("Doctor Command tests", () => {
     expectedOutput += `System python Path (idf.pythonInstallPath) ${
       reportObj.configurationSettings.sysPythonBinPath
     }${os.EOL}`;
-    expectedOutput += `Virtual env Python Path (computed) ${
+    expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
     expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;

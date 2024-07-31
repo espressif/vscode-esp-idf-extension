@@ -149,7 +149,7 @@ export class NVSPartitionTable {
       if (!canAccessFile(pythonBinPath, constants.R_OK)) {
         Logger.errorNotify(
           "Python binary path is not defined",
-          new Error("idf.pythonBinPath is not defined")
+          new Error("Virtual environment Python path is not defined")
         );
       }
       if (!canAccessFile(this.filePath, constants.R_OK)) {
