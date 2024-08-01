@@ -56,8 +56,6 @@ These settings are specific to the ESP32 Chip/Board
 | `idf.port`                                       | Path of Selected Device port                                                           |                           |
 | `idf.portWin`                                    | Path of Selected Device Port in Windows                                                |                           |
 | `openocd.jtag.command.force_unix_path_separator` | Forced to Use `/` as Path sep. for Win32 Based OS Instead of `\\`                      | User, Remote or Workspace |
-| `idf.listDfuDevices`                             | List of DFU Devices Connected to USB                                                   | User, Remote or Workspace |
-| `idf.selectedDfuDevicePath`                      | Selected DFU Device Connected to USB                                                   | User, Remote or Workspace |
 | `idf.svdFilePath`                                | SVD File Absolute Path to Resolve Chip Debug Peripheral Tree view                      | User, Remote or Workspace |
 
 This is how the extension uses them:

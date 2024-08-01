@@ -120,7 +120,7 @@ export class BuildTask {
         this.currentWorkspace
       ) as Array<string>) || [
         "-G=Ninja",
-        "-DPYTHON_DEPS_CHECKED=1",
+        "-DPYTHON_DEPS_CHECKED=2",
         "-DESP_PLATFORM=1",
       ];
       let buildPathArgsIndex = compilerArgs.indexOf("-B");
@@ -234,7 +234,7 @@ export class BuildTask {
       "--json",
       join(this.buildDirPath, "flasher_args.json"),
       "--pid",
-      selectedDFUAdapterId(this.adapterTargetName),
+      selectedDFUAdapterId(this.adapterTargetName).toString(),
     ];
     const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);

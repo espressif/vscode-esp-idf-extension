@@ -89,6 +89,11 @@ export async function flashCommand(
       return Logger.errorNotify(errStr, error);
     }
     FlashTask.isFlashing = false;
+    if (error.message === "NO_DFU_DEVICE_SELECTED") {
+      const errStr = "No DFU was selected";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      return Logger.infoNotify(errStr);
+    }
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
       const errStr = "No DFU capable USB device available found";
       OutputChannel.appendLineAndShow(errStr, "Flash");
