@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { readParameter, writeParameter } from "../idfConfiguration";
 import * as vscode from "vscode";
 import { appendIdfAndToolsToPath, execChildProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
@@ -33,7 +31,7 @@ function deviceLabel(selectedDevice: string) {
 
 export async function getDfuList(workspaceUri: vscode.Uri) {
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
-  return await execChildProcess(
+  const dfuListStr =  await execChildProcess(
     "dfu-util",
     ["--list"],
     process.cwd(),
@@ -44,19 +42,15 @@ export async function getDfuList(workspaceUri: vscode.Uri) {
       cwd: process.cwd(),
     }
   );
+  const arrayDfuDevices = listAvailableDfuDevices(dfuListStr);
+  return arrayDfuDevices;
 }
 
-export async function listAvailableDfuDevices(text) {
-  const target = readParameter("idf.saveScope");
+export function listAvailableDfuDevices(text: string) {
   const regex = new RegExp(
     /\[([0-9a-fA-F]{4}\:[0-9a-fA-F]{4}\]) ver=.+, devnum=[0-9]+, cfg=.+, intf=.+, path=".+", alt=.+, name=".+", serial=".+"/g
   );
   const arrayDfuDevices = text.match(regex);
-  if (arrayDfuDevices) {
-    await writeParameter("idf.listDfuDevices", arrayDfuDevices, target);
-  } else {
-    await writeParameter("idf.listDfuDevices", [], target);
-  }
   return arrayDfuDevices;
 }
 
@@ -65,19 +59,18 @@ export async function listAvailableDfuDevices(text) {
  * @param {string} chip - String to identify the chip (IDF_TARGET)
  * @returns {number} PID Number for DFU
  */
- export function selectedDFUAdapterId(chip: string): string {
+ export function selectedDFUAdapterId(chip: string): number {
   switch (chip) {
     case "esp32s2":
-      return "2";
+      return 2;
     case "esp32s3":
-      return "9";
+      return 9;
     default:
-      return "-1";
+      return -1;
   }
 }
 
 export async function selectDfuDevice(arrDfuDevices: string[]) {
-  const target = readParameter("idf.saveScope");
   let options = [];
   for (let i = 0; i < arrDfuDevices.length; i++) {
     options.push(
@@ -97,13 +90,8 @@ export async function selectDfuDevice(arrDfuDevices: string[]) {
   if (selectedDfuDevice) {
     const regex = new RegExp(/path="[0-9.]+-[0-9.]+"/g);
     const pathValue = selectedDfuDevice.detail.match(regex)[0].slice(6, -1);
-
-    await writeParameter(
-      "idf.selectedDfuDevicePath",
-      pathValue,
-      target
-    );
+    return pathValue;
   } else {
-    await writeParameter("idf.selectedDfuDevicePath", "", target);
+    throw new Error("NO_DFU_DEVICE_SELECTED");
   }
 }

@@ -121,7 +121,6 @@ import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
 import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
-import { selectDfuDevice } from "./flash/dfu";
 import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
@@ -4070,13 +4069,6 @@ async function startFlashing(
     }
     return await jtagFlashCommand(workspaceRoot);
   } else {
-    const arrDfuDevices = idfConf.readParameter(
-      "idf.listDfuDevices",
-      workspaceRoot
-    ) as string[];
-    if (flashType === ESP.FlashType.DFU && arrDfuDevices.length > 1) {
-      await selectDfuDevice(arrDfuDevices);
-    }
     const idfPathDir = idfConf.readParameter(
       "idf.espIdfPath",
       workspaceRoot

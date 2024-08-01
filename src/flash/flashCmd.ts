@@ -24,7 +24,7 @@ import { FlashTask } from "./flashTask";
 import { BuildTask } from "../build/buildTask";
 import { Logger } from "../logger/logger";
 import { getProjectName } from "../workspaceConfig";
-import { getDfuList, listAvailableDfuDevices } from "./dfu";
+import { getDfuList } from "./dfu";
 import { ESP } from "../config";
 import { OutputChannel } from "../logger/outputChannel";
 
@@ -92,8 +92,7 @@ export async function verifyCanFlash(
     workspace
   ) as ESP.FlashType;
   if (selectedFlashType === ESP.FlashType.DFU) {
-    const data = await getDfuList(workspace);
-    const listDfu = await listAvailableDfuDevices(data);
+    const listDfu = await getDfuList(workspace);
     if (!listDfu) {
       const errStr = "No DFU capable USB device available found";
       OutputChannel.show();

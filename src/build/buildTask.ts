@@ -272,7 +272,7 @@ export class BuildTask {
       "--json",
       join(this.buildDirPath, "flasher_args.json"),
       "--pid",
-      selectedDFUAdapterId(this.adapterTargetName),
+      selectedDFUAdapterId(this.adapterTargetName).toString(),
     ];
     const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
