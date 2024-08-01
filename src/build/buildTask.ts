@@ -152,11 +152,14 @@ export class BuildTask {
           "-DESP_PLATFORM=1",
         ];
       }
-      let compilerArgs =
-        (idfConf.readParameter(
-          "idf.cmakeCompilerArgs",
-          this.currentWorkspace
-        ) as Array<string>) || defaultCompilerArgs;
+      let compilerArgs = idfConf.readParameter(
+        "idf.cmakeCompilerArgs",
+        this.currentWorkspace
+      ) as Array<string>;
+
+      if (!compilerArgs || compilerArgs.length === 0) {
+        compilerArgs = defaultCompilerArgs;
+      }
       let buildPathArgsIndex = compilerArgs.indexOf("-B");
       if (buildPathArgsIndex !== -1) {
         compilerArgs.splice(buildPathArgsIndex, useEqualSign ? 1 : 2);
