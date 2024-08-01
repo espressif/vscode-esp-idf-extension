@@ -23,9 +23,13 @@ jobs:
         with:
           run: /ui-entrypoint.sh
 
+      - name: See if screenshots are generated
+        if: failure()
+        run: ls /github/workspace/test-resources/screenshots
+
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with: 
           name: screenshots
-          path: test-resources/screenshots/*.png
+          path: /github/workspace/test-resources/screenshots
