@@ -128,6 +128,7 @@ export class BuildTask {
     if (!cmakeCacheExists) {
       const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
       let defaultCompilerArgs;
+      const useEqualSign = compareVersion(espIdfVersion, "4.4") >= 0;
       if (espIdfVersion === "x.x") {
         Logger.warn(
           "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
@@ -137,7 +138,7 @@ export class BuildTask {
           "-DPYTHON_DEPS_CHECKED=1",
           "-DESP_PLATFORM=1",
         ];
-      } else if (compareVersion(espIdfVersion, "4.4") >= 0) {
+      } else if (useEqualSign) {
         defaultCompilerArgs = [
           "-G=Ninja",
           "-DPYTHON_DEPS_CHECKED=1",
@@ -158,12 +159,19 @@ export class BuildTask {
         ) as Array<string>) || defaultCompilerArgs;
       let buildPathArgsIndex = compilerArgs.indexOf("-B");
       if (buildPathArgsIndex !== -1) {
-        compilerArgs.splice(buildPathArgsIndex, 2);
+        compilerArgs.splice(buildPathArgsIndex, useEqualSign ? 1 : 2);
       }
-      compilerArgs.push(`-B=${this.buildDirPath}`);
-
+      if (useEqualSign) {
+        compilerArgs.push(`-B=${this.buildDirPath}`);
+      } else {
+        compilerArgs.push("-B", this.buildDirPath);
+      }
       if (compilerArgs.indexOf("-S") === -1) {
-        compilerArgs.push(`-S=${this.currentWorkspace.fsPath}`);
+        if (useEqualSign) {
+          compilerArgs.push(`-S=${this.currentWorkspace.fsPath}`);
+        } else {
+          compilerArgs.push("-S", this.currentWorkspace.fsPath);
+        }
       }
 
       const sdkconfigDefaults =
