@@ -25,6 +25,7 @@ import { Logger } from "./logger/logger";
 import { delimiter, dirname, join, sep } from "path";
 import { OutputChannel } from "./logger/outputChannel";
 import { readParameter, writeParameter } from "./idfConfiguration";
+import { ESP } from "./config";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
@@ -293,18 +294,53 @@ export async function getPythonPath(workspaceFolder: Uri) {
 }
 
 export async function getSystemPython(workspaceFolder: Uri) {
-  const pythonBinPath = readParameter("idf.pythonBinPath") as string;
-  const pythonCode = `import sys; print('{}'.format(sys.base_prefix))`;
-  const args = ["-c", pythonCode];
-  const pythonVersion = (
-    await utils.execChildProcess(pythonBinPath, args, workspaceFolder.fsPath)
-  ).replace(/(\n|\r|\r\n)/gm, "");
-  const pyDir =
-    process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python3"];
-  const sysPythonBinPath = join(pythonVersion, ...pyDir);
-  return sysPythonBinPath;
+  let pythonBinPath = readParameter(
+    "idf.pythonBinPath",
+    workspaceFolder
+  ) as string;
+  const pythonBinPathExists = await pathExists(pythonBinPath);
+  if (pythonBinPathExists) {
+    const pythonCode = `import sys; print('{}'.format(sys.base_prefix))`;
+    const args = ["-c", pythonCode];
+    const workingDir =
+      workspaceFolder && workspaceFolder.fsPath
+        ? workspaceFolder.fsPath
+        : __dirname;
+    const pythonVersion = (
+      await utils.execChildProcess(pythonBinPath, args, workingDir)
+    ).replace(/(\n|\r|\r\n)/gm, "");
+    const pyDir =
+      process.platform === "win32"
+        ? ["Scripts", "python.exe"]
+        : ["bin", "python3"];
+    const sysPythonBinPath = join(pythonVersion, ...pyDir);
+    return sysPythonBinPath;
+  }
+
+  if (process.platform !== "win32") {
+    const sysPythonBinPathList = await getUnixPythonList(__dirname);
+    return sysPythonBinPathList.length ? sysPythonBinPathList[0] : "python3";
+  } else {
+    const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder);
+    const idfToolsDir = readParameter(
+      "idf.toolsPath",
+      workspaceFolder
+    ) as string;
+    const idfVersion = await utils.getEspIdfFromCMake(idfPathDir);
+    const pythonVersionToUse =
+      idfVersion >= "5.0"
+        ? ESP.URL.IDF_EMBED_PYTHON.VERSION
+        : ESP.URL.OLD_IDF_EMBED_PYTHON.VERSION;
+    const idfPyDestPath = join(
+      idfToolsDir,
+      "tools",
+      "idf-python",
+      pythonVersionToUse,
+      "Scripts",
+      "python.exe"
+    );
+    return idfPyDestPath;
+  }
 }
 
 export async function getPythonEnvPath(

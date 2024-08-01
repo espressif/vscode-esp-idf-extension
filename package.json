@@ -2129,7 +2129,7 @@
     "genLocalizationBundle": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "webpack": "webpack --mode production",
     "ui-test": "yarn compile && extest setup-and-run -y -i -u -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json 'out/ui-test/*-test.js'",
-    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -l DEBUG -o testFiles/testWorkspace/.vscode/settings.json"
+    "ci-test": "yarn compile && extest setup-and-run './out/ui-test/*-test.js' -u -s test-resources -o testFiles/testWorkspace/.vscode/settings.json -l DEBUG"
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
@@ -2187,7 +2187,7 @@
     "typescript": "^5.2.2",
     "vite": "^4.5.3",
     "vsce": "^2.6.7",
-    "vscode-extension-tester": "^7.0.0",
+    "vscode-extension-tester": "7.3.2",
     "vue-hot-reload-api": "^2.3.2",
     "vue-loader": "^17.2.2",
     "vue-router": "^4.2.4",
