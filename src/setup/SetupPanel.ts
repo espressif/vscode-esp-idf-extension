@@ -342,8 +342,13 @@ export class SetupPanel {
                 exists: fileExists,
               });
             } else {
-              let versionEspIdf = message.currentVersion;
-              if (!versionEspIdf) {
+              let versionEspIdf;
+              if (
+                message.currentVersion &&
+                typeof message.currentVersion === "string"
+              ) {
+                versionEspIdf = message.currentVersion;
+              } else {
                 versionEspIdf = await getEspIdfFromCMake(message.path);
               }
               // compareVersion returns a negative value if versionEspIdf is less than "5.0"
