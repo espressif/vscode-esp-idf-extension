@@ -41,6 +41,7 @@ import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
+import { showInfoNotificationWithAction, executeCommand } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
@@ -3666,6 +3667,44 @@ export async function activate(context: vscode.ExtensionContext) {
       new HintHoverProvider(treeDataProvider)
     )
   );
+
+  checkAndNotifyMissingCompileCommands();
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      checkAndNotifyMissingCompileCommands();
+    })
+  );
+}
+
+function checkAndNotifyMissingCompileCommands() {
+  if (vscode.workspace.workspaceFolders) {
+    vscode.workspace.workspaceFolders.forEach(async (folder) => {
+      try {
+        const isIdfProject = utils.checkIsProjectCmakeLists(folder.uri.fsPath);
+        if (isIdfProject) {
+          const compileCommandsPath = path.join(
+            folder.uri.fsPath,
+            "build",
+            "compile_commands.json"
+          );
+          const compileCommandsExists = await pathExists(compileCommandsPath);
+
+          if (!compileCommandsExists) {
+            showInfoNotificationWithAction(
+              "compile_commands.json is missing. This may cause errors with the Microsoft C/C++ extension.",
+              "Generate compile_commands.json",
+              executeCommand("espIdf.idfReconfigureTask")
+            );
+          }
+        }
+      } catch (error) {
+        const msg = error.message
+          ? error.message
+          : "Error checking for compile_commands.json file.";
+        Logger.error(msg, error);
+      }
+    });
+  }
 }
 
 async function getFrameworksPickItems() {
