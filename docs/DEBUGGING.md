@@ -46,8 +46,7 @@ In case the user wants more customized control, the basic arguments in launch.js
       "initCommands": [
         "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
         "mon reset halt",
-        "maintenance flush register-cache",
-        "thb app_main"
+        "maintenance flush register-cache"
       ],
       "gdb": "${command:espIdf.getToolchainGdb}",
       "target": {
@@ -62,7 +61,8 @@ In case the user wants more customized control, the basic arguments in launch.js
 ```
 
 - `program`: ELF file of your project build directory to execute the debug session. The command `${command:espIdf.getProjectName}` will query the extension to find the current build directory project name.
-- `initCommands`: GDB Commands to initialize GDB and target.
+- `initCommands`: GDB Commands to initialize GDB and target. The default value is `["set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}", "mon reset halt", "maintenance flush register-cache"]`.
+- `initialBreakpoint`: When `initCommands` is not defined, this command will add to default initCommands a hardward breakpoint at the given function name. For example `app_main`, the default value, will add `thb app_main` to default initCommmands. If set to "", an empty string, no initial breakpoint will be set.
 - `gdb`: GDB executable to be used. By default `"${command:espIdf.getToolchainGdb}"` will query the extension to find the ESP-IDF toolchain GDB for the current `IDF_TARGET` of your esp-idf project (esp32, esp32c6, etc.).
 
 > **NOTE** `{IDF_TARGET_CPU_WATCHPOINT_NUM}` is resolved by the extension according to the current `IDF_TARGET` of your esp-idf project (esp32, esp32c6, etc.).

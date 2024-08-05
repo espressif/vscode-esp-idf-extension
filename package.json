@@ -1579,6 +1579,11 @@
                 },
                 "default": []
               },
+              "initialBreakpoint": {
+                "type": "string",
+                "description": "Hardware breakpoint being set initially as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. Ignored if user defines initCommands",
+                "default": "app_main"
+              },
               "preRunCommands": {
                 "type": "array",
                 "description": "List of GDB commands sent after loading image on target before resuming target.",
@@ -1842,6 +1847,11 @@
                   "type": "string"
                 },
                 "default": []
+              },
+              "initialBreakpoint": {
+                "type": "string",
+                "description": "Hardware breakpoint being set initially as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. Ignored if user defines initCommands",
+                "default": "app_main"
               },
               "preRunCommands": {
                 "type": "array",
