@@ -3,7 +3,7 @@ import { storeToRefs } from "pinia";
 import { useSetupStore } from "../store";
 import { IdfMirror } from "../types";
 import folderOpen from "./folderOpen.vue";
-import { computed, watchEffect } from "vue";
+import { computed, watchEffect, watch } from "vue";
 
 const store = useSetupStore();
 
@@ -19,6 +19,9 @@ const {
   selectedEspIdfVersion,
   selectedIdfMirror,
   showIdfTagList,
+  whiteSpaceErrorIDFContainer,
+  idfPathError,
+  isInstallButtonDisabled,
 } = storeToRefs(store);
 
 const idfVersionList = computed(() => {
@@ -39,6 +42,8 @@ const idfVersionList = computed(() => {
 
 function clearIDfErrorStatus() {
   store.espIdfErrorStatus = "";
+  store.whiteSpaceErrorIDFContainer = "";
+  store.idfPathError = "";
 }
 
 function setEspIdfPath(idfPath: string) {
@@ -47,6 +52,12 @@ function setEspIdfPath(idfPath: string) {
 
 function setEspIdfContainerPath(idfContainerPath: string) {
   store.espIdfContainer = idfContainerPath;
+}
+
+function validatePathOnBlur(path: string) {
+  if (selectedEspIdfVersion.value.filename === "manual") {
+    store.validateEspIdfPath(path);
+  }
 }
 
 const resultingIdfPath = computed(() => {
@@ -93,19 +104,22 @@ const isPathEmpty = computed(() => {
   }
 });
 
-const showManualVersionWarning = computed(() => {
-  return (
-    selectedEspIdfVersion.value.filename === "manual" &&
-    hasWhitespaceInEspIdf.value
-  );
-});
-
 watchEffect(() => {
   if (!hasWhitespaceInEspIdf.value) {
     store.whiteSpaceErrorIDF = "";
   }
   if (!hasWhitespaceInEspIdfContainer.value) {
     store.whiteSpaceErrorIDFContainer = "";
+  }
+});
+
+watch(selectedEspIdfVersion, (newVal) => {
+  clearIDfErrorStatus();
+  store.clearIdfPathError();
+  if (newVal.filename === "manual") {
+    validatePathOnBlur(espIdf.value);
+  } else {
+    validatePathOnBlur(espIdfContainer.value);
   }
 });
 </script>
@@ -119,7 +133,9 @@ watchEffect(() => {
       <div class="control">
         <div class="select">
           <select v-model="selectedIdfMirror" @change="clearIDfErrorStatus">
-            <option :value="idfMirror.Espressif">Espressif (Better speed for China)</option>
+            <option :value="idfMirror.Espressif"
+              >Espressif (Better speed for China)</option
+            >
             <option :value="idfMirror.Github">Github</option>
           </select>
         </div>
@@ -158,6 +174,7 @@ watchEffect(() => {
       :propMutate="setEspIdfPath"
       :openMethod="store.openEspIdfFolder"
       :onChangeMethod="clearIDfErrorStatus"
+      @blur="validatePathOnBlur"
       v-if="
         selectedEspIdfVersion && selectedEspIdfVersion.filename === 'manual'
       "
@@ -170,14 +187,11 @@ watchEffect(() => {
       :openMethod="store.openEspIdfContainerFolder"
       :onChangeMethod="clearIDfErrorStatus"
       :staticText="resultingIdfPath"
+      @blur="validatePathOnBlur"
       v-if="
         selectedEspIdfVersion && selectedEspIdfVersion.filename !== 'manual'
       "
     />
-    <div v-if="showManualVersionWarning" class="notification is-warning">
-      Make sure the ESP-IDF version is not lower than 5.0, since white spaces
-      are not supported for earlier versions.
-    </div>
     <div
       v-if="
         selectedEspIdfVersion &&
@@ -187,10 +201,13 @@ watchEffect(() => {
       "
       class="notification is-danger"
     >
-      White spaces are only supported for ESP-IDF path for versions > 5.0.
+      White spaces are only supported for ESP-IDF path for versions >= 5.0.
     </div>
     <div v-if="isPathEmpty" class="notification is-danger">
       ESP-IDF path should not be empty.
+    </div>
+    <div v-if="idfPathError" class="notification is-danger">
+      {{ idfPathError }}
     </div>
   </div>
 </template>

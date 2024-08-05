@@ -46,6 +46,13 @@ app.use(pinia);
 app.use(router);
 app.mount("#app");
 
+router.beforeEach((to, from, next) => {
+  if (from.path === "/autoinstall" && to.path !== "/autoinstall") {
+    store.setIdfPathError("");
+  }
+  next();
+});
+
 const store = useSetupStore();
 
 window.addEventListener("message", (event) => {
@@ -265,6 +272,19 @@ window.addEventListener("message", (event) => {
     case "updateIdfPythonStatus":
       if (msg.status) {
         store.setStatusIdfPython(msg.status);
+      }
+      break;
+    case "canAccessFileResponse":
+      if (!msg.exists) {
+        store.setIdfPathError(
+          "The path for ESP-IDF is not valid: /tools/idf.py not found."
+        );
+      } else if (msg.noWhiteSpaceSupport && msg.hasWhitespace) {
+        store.setIdfPathError(
+          "White spaces are only supported for ESP-IDF path for versions >= 5.0."
+        );
+      } else {
+        store.setIdfPathError("");
       }
       break;
     default:
