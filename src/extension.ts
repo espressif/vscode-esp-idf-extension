@@ -1102,6 +1102,7 @@ export async function activate(context: vscode.ExtensionContext) {
         100
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      ConfserverProcess.dispose();
     });
   });
 
