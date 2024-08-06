@@ -157,5 +157,7 @@
   "Discarded changes in SDK Configuration editor": "Alterações descartadas no editor de configuração do SDK",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Erro encontrado ao adicionar a dependência {dependency} ao componente \"{component}\"",
   "Error encountered while creating project from example \"{example}\"": "Erro encontrado ao criar o projeto do exemplo \"{example}\"",
-  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF"
+  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "O arquivo compile_commands.json está faltando. Isso pode causar erros com extensões de análise de código.",
+  "Generate compile_commands.json": "Gerar compile_commands.json"
 }

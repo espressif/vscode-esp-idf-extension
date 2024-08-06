@@ -157,5 +157,7 @@
   "Discarded changes in SDK Configuration editor": "SDK 配置编辑器中放弃的更改",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "将依赖项 {dependency} 添加到组件“{component}”时遇到错误",
   "Error encountered while creating project from example \"{example}\"": "从示例“{example}”创建项目时遇到错误",
-  "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或刷新完成"
+  "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或刷新完成",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "缺少 compile_commands.json 文件。这可能会导致代码分析扩展出错。",
+  "Generate compile_commands.json": "生成 compile_commands.json"
 }
