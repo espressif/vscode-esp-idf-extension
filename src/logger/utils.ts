@@ -23,11 +23,3 @@ export async function showInfoNotificationWithAction(
     await Promise.resolve(action());
   }
 }
-
-// Helper functions for common actions
-export function executeCommand(
-  commandId: string,
-  ...args: any[]
-): NotificationAction {
-  return () => vscode.commands.executeCommand(commandId, ...args);
-}

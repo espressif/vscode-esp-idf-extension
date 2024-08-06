@@ -41,7 +41,7 @@ import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
-import { showInfoNotificationWithAction, executeCommand } from "./logger/utils";
+import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
@@ -359,11 +359,26 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
-
-  vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
-    if (PreCheck.isWorkspaceFolderOpen()) {
-      for (const ws of e.removed) {
-        if (workspaceRoot && ws.uri === workspaceRoot) {
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
+      if (PreCheck.isWorkspaceFolderOpen()) {
+        for (const ws of e.removed) {
+          if (workspaceRoot && ws.uri === workspaceRoot) {
+            workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+            await getIdfTargetFromSdkconfig(
+              workspaceRoot,
+              statusBarItems["target"]
+            );
+            if (statusBarItems && statusBarItems["port"]) {
+              statusBarItems["port"].text =
+                "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+            }
+            const coverageOptions = getCoverageOptions(workspaceRoot);
+            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+            break;
+          }
+        }
+        if (typeof workspaceRoot === undefined) {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
           await getIdfTargetFromSdkconfig(
             workspaceRoot,
@@ -376,39 +391,30 @@ export async function activate(context: vscode.ExtensionContext) {
           }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
-          break;
         }
+        const buildDirPath = idfConf.readParameter(
+          "idf.buildPath",
+          workspaceRoot
+        ) as string;
+        const projectName = await getProjectName(buildDirPath);
+        const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
+        const debugAdapterConfig = {
+          currentWorkspace: workspaceRoot,
+          elfFile: projectElfFile,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        const openOCDConfig: IOpenOCDConfig = {
+          workspace: workspaceRoot,
+        } as IOpenOCDConfig;
+        openOCDManager.configureServer(openOCDConfig);
+        qemuManager.configure({
+          workspaceFolder: workspaceRoot,
+        } as IQemuOptions);
+        await checkAndNotifyMissingCompileCommands();
       }
-      if (typeof workspaceRoot === undefined) {
-        workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
-        await getIdfTargetFromSdkconfig(
-          workspaceRoot,
-          statusBarItems["target"]
-        );
-        const coverageOptions = getCoverageOptions(workspaceRoot);
-        covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
-      }
-      const buildDirPath = idfConf.readParameter(
-        "idf.buildPath",
-        workspaceRoot
-      ) as string;
-      const projectName = await getProjectName(buildDirPath);
-      const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
-      const debugAdapterConfig = {
-        currentWorkspace: workspaceRoot,
-        elfFile: projectElfFile,
-      } as IDebugAdapterConfig;
-      debugAdapterManager.configureAdapter(debugAdapterConfig);
-      const openOCDConfig: IOpenOCDConfig = {
-        workspace: workspaceRoot,
-      } as IOpenOCDConfig;
-      openOCDManager.configureServer(openOCDConfig);
-      qemuManager.configure({
-        workspaceFolder: workspaceRoot,
-      } as IQemuOptions);
-    }
-    ConfserverProcess.dispose();
-  });
+      ConfserverProcess.dispose();
+    })
+  );
 
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
@@ -3569,13 +3575,7 @@ export async function activate(context: vscode.ExtensionContext) {
       new HintHoverProvider(treeDataProvider)
     )
   );
-
   checkAndNotifyMissingCompileCommands();
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      checkAndNotifyMissingCompileCommands();
-    })
-  );
 }
 
 function checkAndNotifyMissingCompileCommands() {
@@ -3593,9 +3593,11 @@ function checkAndNotifyMissingCompileCommands() {
 
           if (!compileCommandsExists) {
             showInfoNotificationWithAction(
-              "compile_commands.json is missing. This may cause errors with the Microsoft C/C++ extension.",
-              "Generate compile_commands.json",
-              executeCommand("espIdf.idfReconfigureTask")
+              vscode.l10n.t(
+                "compile_commands.json is missing. This may cause errors with code analysis extensions."
+              ),
+              vscode.l10n.t("Generate compile_commands.json"),
+              () => vscode.commands.executeCommand("espIdf.idfReconfigureTask")
             );
           }
         }
@@ -3603,7 +3605,7 @@ function checkAndNotifyMissingCompileCommands() {
         const msg = error.message
           ? error.message
           : "Error checking for compile_commands.json file.";
-        Logger.error(msg, error);
+        Logger.error(msg, error, "extension compileCommandsExists");
       }
     });
   }
