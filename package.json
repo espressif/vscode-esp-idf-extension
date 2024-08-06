@@ -575,11 +575,7 @@
           },
           "idf.cmakeCompilerArgs": {
             "type": "array",
-            "default": [
-              "-G=Ninja",
-              "-DPYTHON_DEPS_CHECKED=1",
-              "-DESP_PLATFORM=1"
-            ],
+            "default": [],
             "description": "%param.cmakeCompilerArgs%",
             "scope": "resource"
           },
