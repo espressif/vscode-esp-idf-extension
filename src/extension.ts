@@ -97,11 +97,16 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
-import { verifyCanFlash } from "./flash/flashCmd";
+import {
+  verifyCanFlash,
+  isFlashEncryptionEnabled,
+  checkFlashEncryption,
+  FlashCheckResultType,
+  FlashCheckResult,
+} from "./flash/flashCmd";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
@@ -133,6 +138,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
@@ -1724,10 +1730,12 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.flashDFU", () => flash(false, ESP.FlashType.DFU));
   registerIDFCommand("espIdf.flashUart", () =>
-    flash(false, ESP.FlashType.UART)
+    flash(isFlashEncryptionEnabled(workspaceRoot), ESP.FlashType.UART)
   );
   registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashDevice", flash);
+  registerIDFCommand("espIdf.flashDevice", () =>
+    flash(isFlashEncryptionEnabled(workspaceRoot))
+  );
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -3890,7 +3898,7 @@ const build = (flashType?: ESP.FlashType) => {
   });
 };
 const flash = (
-  encryptPartition: boolean = false,
+  encryptPartitions: boolean = false,
   flashType?: ESP.FlashType
 ) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
@@ -3919,7 +3927,7 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await startFlashing(cancelToken, flashType, encryptPartition);
+        await startFlashing(cancelToken, flashType, encryptPartitions);
         OutputChannel.appendLine(
           "Flash has finished. You can monitor with ESP-IDF: Monitor your device command"
         );
@@ -3981,6 +3989,27 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+
+    // This validation doesn't allows users to use build,flash, monitor command if flash encryption is enabled for release mode
+    // because monitoring command resets the device which is not recommended.
+    // Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+    if (isFlashEncryptionEnabled(workspaceRoot)) {
+      const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
+        "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+        workspaceRoot
+      );
+      if (valueReleaseModeEnabled == "y") {
+        const errorMessage =
+          "Flash, Build, Monitor command is not available while Flash Encryption is set for 'Release mode'. Use normal build and flash commands";
+        const error = new Error(errorMessage);
+        OutputChannel.appendLineAndShow(errorMessage, "Build, Flash, Monitor");
+        Logger.errorNotify(errorMessage, error, {
+          tag: "Build, Flash, Monitor",
+        });
+        return;
+      }
+    }
+
     await vscode.window.withProgress(
       {
         cancellable: true,
@@ -4005,7 +4034,13 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           message: "Flashing project into device...",
           increment: 60,
         });
-        canContinue = await startFlashing(cancelToken, flashType, false);
+
+        let encryptPartitions = isFlashEncryptionEnabled(workspaceRoot);
+        canContinue = await startFlashing(
+          cancelToken,
+          flashType,
+          encryptPartitions
+        );
         if (!canContinue) {
           return;
         }
@@ -4048,6 +4083,9 @@ async function selectFlashMethod() {
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspaceRoot
   );
+  vscode.window.showInformationMessage(
+    `Flash method changed to ${newFlashType}.`
+  );
   return newFlashType;
 }
 
@@ -4058,6 +4096,23 @@ async function startFlashing(
 ) {
   if (!flashType) {
     flashType = await selectFlashMethod();
+  }
+
+  if (encryptPartitions) {
+    const encryptionValidationResult = await checkFlashEncryption(
+      flashType,
+      workspaceRoot
+    );
+    if (!encryptionValidationResult.success) {
+      if (
+        encryptionValidationResult.resultType ===
+        FlashCheckResultType.ErrorEfuseNotSet
+      ) {
+        encryptPartitions = false;
+      } else {
+        return;
+      }
+    }
   }
 
   const port = idfConf.readParameter("idf.port", workspaceRoot);
