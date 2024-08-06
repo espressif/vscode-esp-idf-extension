@@ -17,16 +17,14 @@ import { StatusType } from "../views/setup/types";
 import { installPyReqs } from "./installPyReqs";
 import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
-import { getEspIdfFromCMake } from "../utils";
-import { addIdfPath } from "./espIdfJson";
 import { getOpenOcdRules } from "./addOpenOcdRules";
+import { addIdfPath } from "./espIdfJson";
+import { writeParameter } from "../idfConfiguration";
 
 export async function createPyReqs(
   idfPath: string,
   toolsPath: string,
   pyPath: string,
-  exportPaths: string,
-  exportVars: { [key: string]: string },
   gitPath: string,
   saveScope: vscode.ConfigurationTarget,
   context: vscode.ExtensionContext,
@@ -48,19 +46,20 @@ export async function createPyReqs(
     progress,
     cancelToken
   );
+  await writeParameter(
+    "idf.pythonInstallPath",
+    pyPath,
+    vscode.ConfigurationTarget.Global
+  );
   await saveSettings(
     idfPath,
-    virtualEnvPath,
-    exportPaths,
-    exportVars,
     toolsPath,
     gitPath,
     saveScope,
     workspaceFolderUri,
     espIdfStatusBar
   );
-  let idfPathVersion = await getEspIdfFromCMake(idfPath);
-  await addIdfPath(idfPath, virtualEnvPath, idfPathVersion, toolsPath, gitPath);
+  await addIdfPath(idfPath, virtualEnvPath, toolsPath, gitPath);
   SetupPanel.postMessage({
     command: "updatePyVEnvStatus",
     status: StatusType.installed,

@@ -45,17 +45,27 @@ export async function writeTextReport(
   output += `ESP-MDF Path (idf.espMdfPath) ${reportedResult.configurationSettings.espMdfPath}${EOL}`;
   output += `ESP-Matter Path (idf.espMatterPath) ${reportedResult.configurationSettings.espMatterPath}${EOL}`;
   output += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportedResult.configurationSettings.espHomeKitPath}${EOL}`;
-  output += `Custom extra paths (idf.customExtraPaths) ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
+  output += `Custom extra paths ${reportedResult.configurationSettings.customExtraPaths}${EOL}`;
   if (
-    reportedResult.configurationSettings.customExtraVars &&
-    Object.keys(reportedResult.configurationSettings.customExtraVars)
+    reportedResult.configurationSettings.idfExtraVars &&
+    Object.keys(reportedResult.configurationSettings.idfExtraVars)
   ) {
-    output += `Custom extra vars (idf.customExtraVars)${EOL}`;
-    for (let key in reportedResult.configurationSettings.customExtraVars) {
-      output += `    ${key}: ${reportedResult.configurationSettings.customExtraVars[key]}${EOL}`;
+    output += `ESP-IDF extra vars${EOL}`;
+    for (let key in reportedResult.configurationSettings.idfExtraVars) {
+      output += `    ${key}: ${reportedResult.configurationSettings.idfExtraVars[key]}${EOL}`;
     }
   }
-  output += `Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
+  if (
+    reportedResult.configurationSettings.userExtraVars &&
+    Object.keys(reportedResult.configurationSettings.userExtraVars)
+  ) {
+    output += `User extra vars (idf.customExtraVars)${EOL}`;
+    for (let key in reportedResult.configurationSettings.userExtraVars) {
+      output += `    ${key}: ${reportedResult.configurationSettings.userExtraVars[key]}${EOL}`;
+    }
+  }
+  output += `System python Path (idf.pythonInstallPath) ${reportedResult.configurationSettings.sysPythonBinPath}${EOL}`;
+  output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
   output += `ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSettings.toolsPath}${EOL}`;
@@ -80,7 +90,8 @@ export async function writeTextReport(
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
   }
-  output += `Access to Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
+  output += `Access to System python Path (idf.pythonInstallPath) ${reportedResult.configurationAccess.sysPythonBinPath}${EOL}`;
+  output += `Access to Virtual environment Python path (computed) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
   output += `Access to ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationAccess.toolsPath}${EOL}`;
@@ -96,7 +107,8 @@ export async function writeTextReport(
     .customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
-  output += `Spaces in Virtual env Python Path (idf.pythonBinPath) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
+  output += `Spaces in System python Path (idf.pythonInstallPath) ${reportedResult.configurationSpacesValidation.sysPythonBinPath}${EOL}`;
+  output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
   output += `Spaces in ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;
   output += `Git version ${
@@ -161,7 +173,7 @@ export async function writeTextReport(
       }
     }
   }
-  output += `-------------------------------------------------- Python packages in idf.pythonBinPath ----------------------------------------------------${EOL}`;
+  output += `-------------------------------------------------- Python packages in Virtual environment Python path (computed) ---------------------------${EOL}`;
   if (reportedResult.configurationSettings.pythonPackages) {
     for (let pkg of reportedResult.configurationSettings.pythonPackages) {
       output += `${pkg.name} version: ${pkg.version}${EOL}`;

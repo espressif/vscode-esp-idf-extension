@@ -26,7 +26,6 @@ export interface IEspIdfLink {
 export interface IdfSetup {
   id: string;
   version: string;
-  python: string;
   toolsPath: string;
   idfPath: string;
   gitPath: string;

@@ -78,6 +78,7 @@ import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
 import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
+  getVirtualEnvPythonPath,
   installEspMatterPyReqs,
   installExtensionPyReqs,
 } from "./pythonManager";
@@ -120,7 +121,6 @@ import { CustomTask, CustomTaskType } from "./customTasks/customTaskProvider";
 import { TaskManager } from "./taskManager";
 import { WelcomePanel } from "./welcome/panel";
 import { getWelcomePageInitialValues } from "./welcome/welcomeInit";
-import { selectDfuDevice } from "./flash/dfu";
 import { getEspMatter } from "./espMatter/espMatterDownload";
 import { setIdfTarget } from "./espIdf/setTarget";
 import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
@@ -628,10 +628,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (monitorTerminal) {
         monitorTerminal.sendText(ESP.CTRL_RBRACKET);
       }
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        workspaceRoot
-      ) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
       const idfPathDir = idfConf.readParameter(
         "idf.espIdfPath",
         workspaceRoot
@@ -871,7 +868,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.customTask", async () => {
     try {
       const customTask = new CustomTask(workspaceRoot);
-      customTask.addCustomTask(CustomTaskType.Custom);
+      await customTask.addCustomTask(CustomTaskType.Custom);
       await TaskManager.runTasks();
     } catch (error) {
       const errMsg =
@@ -1433,10 +1430,7 @@ export async function activate(context: vscode.ExtensionContext) {
               confToolsPath ||
               process.env.IDF_TOOLS_PATH ||
               path.join(containerPath, ".espressif");
-            const pyPath = idfConf.readParameter(
-              "idf.pythonBinPath",
-              workspaceRoot
-            ) as string;
+            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-IDF extension Python Requirements...`
@@ -1511,10 +1505,7 @@ export async function activate(context: vscode.ExtensionContext) {
               "idf.espMatterPath",
               workspaceRoot
             ) as string;
-            const pyPath = idfConf.readParameter(
-              "idf.pythonBinPath",
-              workspaceRoot
-            ) as string;
+            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-Matter Python Requirements...`
@@ -2061,7 +2052,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectOpenOcdConfigFiles", async () => {
     try {
-      const openOcdScriptsPath = getOpenOcdScripts(workspaceRoot);
+      const openOcdScriptsPath = await getOpenOcdScripts(workspaceRoot);
       let idfTarget = idfConf.readParameter(
         "idf.adapterTargetName",
         workspaceRoot
@@ -2132,8 +2123,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  registerIDFCommand("espIdf.getOpenOcdScriptValue", () => {
-    return getOpenOcdScripts(workspaceRoot);
+  registerIDFCommand("espIdf.getOpenOcdScriptValue", async () => {
+    return await getOpenOcdScripts(workspaceRoot);
   });
 
   registerIDFCommand("espIdf.size", () => {
@@ -2953,14 +2944,12 @@ export async function activate(context: vscode.ExtensionContext) {
             new Error("NOT_SELECTED_PORT")
           );
         }
-        const pythonBinPath = idfConf.readParameter(
-          "idf.pythonBinPath",
-          workspaceRoot
-        ) as string;
+
+        const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
             vscode.l10n.t("Python binary path is not defined"),
-            new Error("idf.pythonBinPath is not defined")
+            new Error("The Python Binary Path is not defined")
           );
         }
         const idfPath = idfConf.readParameter(
@@ -2999,7 +2988,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
         const wsPort = idfConf.readParameter("idf.wssPort", workspaceRoot);
         const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-        let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(
+        let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
           workspaceRoot
         );
         const noReset = idfConf.readParameter(
@@ -3045,8 +3034,8 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer = new WSServer(wsPort);
         wsServer.start();
         wsServer
-          .on("started", () => {
-            monitor.start();
+          .on("started", async () => {
+            await monitor.start();
           })
           .on("core-dump-detected", async (resp) => {
             const notificationMode = idfConf.readParameter(
@@ -3194,7 +3183,9 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!args) {
         // try to get the partition table name from sdkconfig and if not found create one
         try {
-          const sdkconfigFilePath = utils.getSDKConfigFilePath(workspaceRoot);
+          const sdkconfigFilePath = await utils.getSDKConfigFilePath(
+            workspaceRoot
+          );
           const sdkconfigFileExists = await pathExists(sdkconfigFilePath);
           if (!sdkconfigFileExists) {
             const buildProject = await vscode.window.showInformationMessage(
@@ -3208,7 +3199,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
             return;
           }
-          const isCustomPartitionTableEnabled = utils.getConfigValueFromSDKConfig(
+          const isCustomPartitionTableEnabled = await utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM",
             workspaceRoot
           );
@@ -3241,7 +3232,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }
           }
 
-          let partitionTableFilePath = utils.getConfigValueFromSDKConfig(
+          let partitionTableFilePath = await utils.getConfigValueFromSDKConfig(
             "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME",
             workspaceRoot
           );
@@ -3333,10 +3324,7 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       async () => {
         try {
-          const pythonBinPath = idfConf.readParameter(
-            "idf.pythonBinPath",
-            workspaceRoot
-          ) as string;
+          const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
           const ninjaSummaryScript = path.join(
             context.extensionPath,
             "external",
@@ -3726,6 +3714,13 @@ async function createCmdsStatusBarItems() {
   if (!enableStatusBar) {
     return {};
   }
+  if (!workspaceRoot) {
+    workspaceRoot =
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders.length
+        ? vscode.workspace.workspaceFolders[0].uri
+        : undefined;
+  }
   const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
   let idfTarget = idfConf.readParameter("idf.adapterTargetName", workspaceRoot);
   let flashType = idfConf.readParameter(
@@ -3966,7 +3961,7 @@ function createQemuMonitor(
       monitorTerminal.sendText(ESP.CTRL_RBRACKET);
       monitorTerminal.sendText(`exit`);
     }
-    monitorTerminal = idfMonitor.start();
+    monitorTerminal = await idfMonitor.start();
   });
 }
 
@@ -4087,13 +4082,6 @@ async function startFlashing(
     }
     return await jtagFlashCommand(workspaceRoot);
   } else {
-    const arrDfuDevices = idfConf.readParameter(
-      "idf.listDfuDevices",
-      workspaceRoot
-    ) as string[];
-    if (flashType === ESP.FlashType.DFU && arrDfuDevices.length > 1) {
-      await selectDfuDevice(arrDfuDevices);
-    }
     const idfPathDir = idfConf.readParameter(
       "idf.espIdfPath",
       workspaceRoot
@@ -4111,8 +4099,8 @@ async function startFlashing(
 }
 
 function createIdfTerminal() {
-  PreCheck.perform([webIdeCheck, openFolderCheck], () => {
-    const modifiedEnv = utils.appendIdfAndToolsToPath(workspaceRoot);
+  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
@@ -4158,7 +4146,7 @@ async function createIdfMonitor(
     monitorTerminal.sendText(ESP.CTRL_RBRACKET);
     monitorTerminal.sendText(`exit`);
   }
-  monitorTerminal = idfMonitor.start();
+  monitorTerminal = await idfMonitor.start();
   if (noReset) {
     const idfPath = idfConf.readParameter(
       "idf.espIdfPath",

@@ -59,7 +59,6 @@ export async function clearPreviousIdfSetups() {
 export async function createIdfSetup(
   idfPath: string,
   toolsPath: string,
-  pythonPath: string,
   gitPath: string
 ) {
   const idfSetupId = getIdfMd5sum(idfPath);
@@ -69,12 +68,12 @@ export async function createIdfSetup(
     idfPath,
     gitPath,
     toolsPath,
-    python: pythonPath,
     version: idfVersion,
     isValid: false,
   };
   newIdfSetup.isValid = await checkIdfSetup(newIdfSetup);
   addIdfSetup(newIdfSetup);
+  return newIdfSetup;
 }
 
 export function addIdfSetup(newIdfSetup: IdfSetup) {
@@ -99,7 +98,6 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         id: idfInstalledKey,
         idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
         gitPath: espIdfJson.gitPath,
-        python: espIdfJson.idfInstalled[idfInstalledKey].python,
         version: espIdfJson.idfInstalled[idfInstalledKey].version,
         toolsPath: toolsPath,
         isValid: false,

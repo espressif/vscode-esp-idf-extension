@@ -22,6 +22,7 @@ import { Logger } from "../../../logger/logger";
 import * as idfConf from "../../../idfConfiguration";
 import { canAccessFile, execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
+import { getVirtualEnvPythonPath } from "../../../pythonManager";
 
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
@@ -133,10 +134,8 @@ export class NVSPartitionTable {
       const idfPathDir =
         idfConf.readParameter("idf.espIdfPath", this.workspaceFolder) ||
         process.env.IDF_PATH;
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        this.workspaceFolder
-      ) as string;
+
+      const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceFolder);
       const dirPath = dirname(this.filePath);
       const fileName = basename(this.filePath);
       const resultName = fileName.replace(".csv", ".bin");
@@ -150,7 +149,7 @@ export class NVSPartitionTable {
       if (!canAccessFile(pythonBinPath, constants.R_OK)) {
         Logger.errorNotify(
           "Python binary path is not defined",
-          new Error("idf.pythonBinPath is not defined")
+          new Error("Virtual environment Python path is not defined")
         );
       }
       if (!canAccessFile(this.filePath, constants.R_OK)) {

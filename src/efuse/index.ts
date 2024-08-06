@@ -23,6 +23,7 @@ import { tmpdir } from "os";
 import { readJson, unlink } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { Uri } from "vscode";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export type ESPEFuseSummary = {
   [category: string]: [
@@ -46,19 +47,18 @@ export type ESPEFuseSummary = {
 };
 
 export class ESPEFuseManager {
-  private pythonPath: string;
   private idfPath: string;
 
   constructor(private workspace: Uri) {
-    this.pythonPath = readParameter("idf.pythonBinPath", workspace) as string;
     this.idfPath =
       readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
   }
 
   async summary(): Promise<ESPEFuseSummary> {
     const tempFile = join(tmpdir(), "espefusejsondump.tmp");
+    const pythonPath = await getVirtualEnvPythonPath(this.workspace);
     await spawn(
-      this.pythonPath,
+      pythonPath,
       [
         this.toolPath,
         "-p",

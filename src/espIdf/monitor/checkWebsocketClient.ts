@@ -17,13 +17,13 @@
  */
 
 import { Uri } from "vscode";
-import { readParameter } from "../../idfConfiguration";
 import { OutputChannel } from "../../logger/outputChannel";
 import { appendIdfAndToolsToPath, execChildProcess } from "../../utils";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function installWebsocketClient(workspace: Uri) {
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

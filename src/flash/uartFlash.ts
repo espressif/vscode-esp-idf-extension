@@ -71,9 +71,9 @@ export async function flashCommand(
     cancelToken.onCancellationRequested(() => {
       FlashTask.isFlashing = false;
     });
-    customTask.addCustomTask(CustomTaskType.PreFlash);
+    await customTask.addCustomTask(CustomTaskType.PreFlash);
     await flashTask.flash(flashType);
-    customTask.addCustomTask(CustomTaskType.PostFlash);
+    await customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {
       FlashTask.isFlashing = false;
@@ -89,6 +89,11 @@ export async function flashCommand(
       return Logger.errorNotify(errStr, error);
     }
     FlashTask.isFlashing = false;
+    if (error.message === "NO_DFU_DEVICE_SELECTED") {
+      const errStr = "No DFU was selected";
+      OutputChannel.appendLineAndShow(errStr, "Flash");
+      return Logger.infoNotify(errStr);
+    }
     if (error.message === "Task ESP-IDF Flash exited with code 74") {
       const errStr = "No DFU capable USB device available found";
       OutputChannel.appendLineAndShow(errStr, "Flash");

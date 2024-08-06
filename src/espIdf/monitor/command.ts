@@ -25,6 +25,7 @@ import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
 import { getProjectName } from "../../workspaceConfig";
 import { IDFMonitor } from ".";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
@@ -55,19 +56,16 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
+      new Error("Virtual environment Python path is not defined")
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
+  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(workspaceFolder);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(

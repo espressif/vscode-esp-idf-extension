@@ -33,6 +33,7 @@ import { EOL } from "os";
 import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { OutputChannel } from "../../logger/outputChannel";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
@@ -78,7 +79,7 @@ export class DebugAdapterManager extends EventEmitter {
 
   private constructor(context: vscode.ExtensionContext) {
     super();
-    this.configureWithDefaultValues(context.extensionPath);
+    this.configureWithDefaultValues(context.extensionUri);
     OutputChannel.init();
     this.chan = Buffer.alloc(0);
   }
@@ -88,10 +89,7 @@ export class DebugAdapterManager extends EventEmitter {
       if (this.isRunning()) {
         return;
       }
-      const workspace = PreCheck.isWorkspaceFolderOpen()
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : "";
-      if (!isBinInPath("openocd", workspace, this.env)) {
+      if (!isBinInPath("openocd", this.currentWorkspace.fsPath, this.env)) {
         return reject(
           new Error("Invalid OpenOCD bin path or access is denied for the user")
         );
@@ -141,11 +139,7 @@ export class DebugAdapterManager extends EventEmitter {
         );
         this.appOffset = model.app.address;
       }
-
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        this.currentWorkspace
-      ) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
 
       const toolchainPrefix = getToolchainToolName(this.target, "");
       const adapterArgs = [
@@ -277,12 +271,12 @@ export class DebugAdapterManager extends EventEmitter {
     return this.adapter && !this.adapter.killed;
   }
 
-  private async configureWithDefaultValues(extensionPath: string) {
+  private async configureWithDefaultValues(extensionPath: vscode.Uri) {
     this.currentWorkspace = PreCheck.isWorkspaceFolderOpen()
       ? vscode.workspace.workspaceFolders[0].uri
-      : undefined;
+      : extensionPath;
     this.debugAdapterPath = path.join(
-      extensionPath,
+      extensionPath.fsPath,
       "esp_debug_adapter",
       "debug_adapter_main.py"
     );
@@ -301,9 +295,9 @@ export class DebugAdapterManager extends EventEmitter {
       );
     }
     this.target = idfTarget;
-    this.env = appendIdfAndToolsToPath(this.currentWorkspace);
+    this.env = await appendIdfAndToolsToPath(this.currentWorkspace);
     this.env.PYTHONPATH = path.join(
-      extensionPath,
+      extensionPath.fsPath,
       "esp_debug_adapter",
       "debug_adapter"
     );

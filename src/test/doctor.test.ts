@@ -143,7 +143,7 @@ suite("Doctor Command tests", () => {
     const settingsJsonObj = await readJSON(
       join(__dirname, "../../testFiles/testWorkspace/.vscode/settings.json")
     );
-    getConfigurationSettings(
+    await getConfigurationSettings(
       reportObj,
       vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
     );
@@ -160,20 +160,8 @@ suite("Doctor Command tests", () => {
       settingsJsonObj["idf.espMdfPath"]
     );
     assert.equal(
-      reportObj.configurationSettings.customExtraPaths,
-      settingsJsonObj["idf.customExtraPaths"]
-    );
-    assert.deepEqual(
-      reportObj.configurationSettings.customExtraVars,
-      settingsJsonObj["idf.customExtraVars"]
-    );
-    assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.pythonBinPath,
-      settingsJsonObj["idf.pythonBinPath"]
     );
     assert.deepEqual(
       reportObj.configurationSettings.openOcdConfigs,
@@ -291,17 +279,29 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
     expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
     expectedOutput += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
-    expectedOutput += `Custom extra paths (idf.customExtraPaths) ${customExtraPaths}${os.EOL}`;
+    expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
     if (
-      reportObj.configurationSettings.customExtraVars &&
-      Object.keys(reportObj.configurationSettings.customExtraVars)
+      reportObj.configurationSettings.idfExtraVars &&
+      Object.keys(reportObj.configurationSettings.idfExtraVars)
     ) {
-      expectedOutput += `Custom extra vars (idf.customExtraVars)${os.EOL}`;
-      for (let key in reportObj.configurationSettings.customExtraVars) {
-        expectedOutput += `    ${key}: ${reportObj.configurationSettings.customExtraVars[key]}${os.EOL}`;
+      expectedOutput += `ESP-IDF extra vars${os.EOL}`;
+      for (let key in reportObj.configurationSettings.idfExtraVars) {
+        expectedOutput += `    ${key}: ${reportObj.configurationSettings.idfExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `Virtual env Python Path (idf.pythonBinPath) ${
+    if (
+      reportObj.configurationSettings.userExtraVars &&
+      Object.keys(reportObj.configurationSettings.userExtraVars)
+    ) {
+      expectedOutput += `User extra vars (idf.customExtraVars)${os.EOL}`;
+      for (let key in reportObj.configurationSettings.userExtraVars) {
+        expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
+      }
+    }
+    expectedOutput += `System python Path (idf.pythonInstallPath) ${
+      reportObj.configurationSettings.sysPythonBinPath
+    }${os.EOL}`;
+    expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
     expectedOutput += `Serial port (idf.port) ${reportObj.configurationSettings.serialPort}${os.EOL}`;

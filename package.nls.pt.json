@@ -119,7 +119,6 @@
 	"param.espMatterPath": "Caminho para localizar a estrutura ESP-Matter (ESP_MATTER_PATH)",
 	"param.espMdfPath": "Caminho para localizar a estrutura ESP-MDF (MDF_PATH)",
 	"param.espRainmakerPath": "Caminho para localizar a estrutura ESP-Rainmaker (RMAKER_PATH)",
-	"param.exportPaths": "Caminhos a serem anexados ao PATH",
 	"param.exportVars": "Variáveis ​​a serem adicionadas às variáveis ​​de ambiente do sistema",
 	"param.flashBaudRate": "Taxa de transmissão de flash ESP-IDF",
 	"param.gitPath.title": "Caminho executável do Git",
