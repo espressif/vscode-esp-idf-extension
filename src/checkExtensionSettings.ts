@@ -43,7 +43,7 @@ export async function checkExtensionSettings(
     const msg = error.message
       ? error.message
       : "Checking if current install is valid throws an error.";
-    Logger.error(msg, error);
+    Logger.error(msg, error, "checkExtensionSettings");
   }
   const notificationMode = readParameter(
     "idf.notificationMode",

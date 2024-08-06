@@ -1509,7 +1509,7 @@ export async function activate(context: vscode.ExtensionContext) {
             ? error.message
             : "Error checking PyTest python packages";
         OutputChannel.appendLine(msg, "idf-unit-test");
-        Logger.error(msg, error);
+        Logger.error(msg, error, "extension checkPytestRequirements");
       }
 
       const notificationMode = idfConf.readParameter(
@@ -1539,7 +1539,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 ? error.message
                 : "Error installing PyTest python packages";
             OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error);
+            Logger.error(msg, error, "extension installPyTestPackages");
           }
         }
       );
@@ -1590,7 +1590,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 ? error.message
                 : "Error build or flashing PyTest Unit App for project";
             OutputChannel.appendLine(msg, "idf-unit-test");
-            Logger.error(msg, error);
+            Logger.error(msg, error, "extension buildFlashTestApp");
           }
         }
       );
@@ -2133,7 +2133,7 @@ export async function activate(context: vscode.ExtensionContext) {
           if (buildProject === "Build") {
             vscode.commands.executeCommand("espIdf.buildDevice");
           }
-          Logger.error(msg, error);
+          Logger.error(msg, error, "extension IDFSizePanel");
           return;
         }
         Logger.errorNotify(error.message, error);
@@ -2518,7 +2518,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const errMsg = error.message
             ? error.message
             : "Configuration report error";
-          Logger.error(errMsg, error);
+          Logger.error(errMsg, error, "extension DoctorCommand");
           Logger.warnNotify(
             vscode.l10n.t(
               "Extension configuration report has been copied to clipboard with errors"
@@ -2882,7 +2882,8 @@ export async function activate(context: vscode.ExtensionContext) {
           } catch (error) {
             Logger.error(
               vscode.l10n.t("Unable to execute the command: espIdf.selectPort"),
-              error
+              error,
+              "extension launchWSServerAndMonitor selectPort"
             );
           }
           return Logger.errorNotify(
@@ -4118,7 +4119,11 @@ class IdfDebugConfigurationProvider
       const msg = error.message
         ? error.message
         : "Some build files doesn't exist. Build this project first.";
-      Logger.error(error.message, error);
+      Logger.error(
+        error.message,
+        error,
+        "extension IdfDebugConfigurationProvider"
+      );
       const startBuild = await vscode.window.showInformationMessage(
         msg,
         "Build"

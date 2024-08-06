@@ -80,15 +80,16 @@ export async function buildCommand(
         return Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
         );
+      } else {
+        await buildTask.buildDfu();
+        await TaskManager.runTasks();
       }
-      await buildTask.buildDfu();
-      await TaskManager.runTasks();
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successfully");
       const flashCmd = await buildFinishFlashCmd(workspace);
-      OutputChannel.appendLineAndShow(flashCmd, "Build");
+      OutputChannel.appendLine(flashCmd, "Build");
       TaskManager.disposeListeners();
     }
   } catch (error) {

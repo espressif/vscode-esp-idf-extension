@@ -148,7 +148,7 @@ export class AppTracePanel {
             const err = new Error(
               `Unrecognized command received from webview (idf-trace) file: ${__filename}`
             );
-            Logger.error(err.message, err);
+            Logger.error(err.message, err, "AppTracePanel unrecognized command");
             break;
         }
       },

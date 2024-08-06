@@ -74,7 +74,7 @@ export async function verifyCanFlash(
       const errStr = "Unable to execute the command: espIdf.selectPort";
       OutputChannel.show();
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      Logger.error(errStr, error);
+      Logger.error(errStr, error, "verifyCanFlash selectPort");
     }
     const errStr = "Select a port before flashing";
     OutputChannel.show();

@@ -273,7 +273,8 @@ export class AppTraceManager extends EventEmitter {
     tclClient.on("error", (error: Error) => {
       Logger.error(
         `Some error prevailed while checking the tracking status`,
-        error
+        error,
+        "AppTraceManager appTracingStatusChecker"
       );
       this.shallContinueCheckingStatus = false;
       onStop();

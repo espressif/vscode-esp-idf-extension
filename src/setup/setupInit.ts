@@ -209,7 +209,7 @@ export async function getSetupInitialValues(
       }
     }
   } catch (error) {
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "setupInit getSetupInitialValues");
   }
   return setupInitArgs;
 }

@@ -48,7 +48,7 @@ export async function createNewIdfMonitor(
     try {
       await commands.executeCommand("espIdf.selectPort");
     } catch (error) {
-      Logger.error("Unable to execute the command: espIdf.selectPort", error);
+      Logger.error("Unable to execute the command: espIdf.selectPort", error, "command createNewIdfMonitor");
     }
     Logger.errorNotify(
       "Select a serial port before flashing",

@@ -85,7 +85,7 @@ export async function checkIdfSetup(setupConf: IdfSetup,
       error && error.message
         ? error.message
         : `Error checking Idf Setup ${setupConf.idfPath}`;
-    Logger.error(msg, error);
+    Logger.error(msg, error, "espIdfSetup checkIdfSetup");
     return false;
   }
 }

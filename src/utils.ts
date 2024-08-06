@@ -106,7 +106,8 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error
+        error,
+        "src utils openOCDVersionValidator"
       );
       return false;
     }
@@ -120,7 +121,8 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error
+        error,
+        "src utils espIdfVersionValidator"
       );
       return false;
     }
@@ -176,7 +178,7 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err);
+        Logger.error(err.message, err, "src utils spawn");
         reject(err);
       }
     });
@@ -190,7 +192,11 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     fs.accessSync(filePath, mode);
     return true;
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${filePath}`, error);
+    Logger.error(
+      `Cannot access filePath: ${filePath}`,
+      error,
+      "src utils canAccessFile"
+    );
     return false;
   }
 }
@@ -440,7 +446,7 @@ export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
     const errMsg = error.message
       ? error.message
       : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
-    Logger.error(errMsg, error);
+    Logger.error(errMsg, error, "src utils getMonitorBaudRate");
   }
   return sdkMonitorBaudRate;
 }
@@ -561,12 +567,14 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error);
+            Logger.error(error.message, error, "utils execChildProcess");
           }
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          Logger.error(stderr, new Error(stderr));
+          if (!stderr.startsWith("Open On-Chip Debugger v")) {
+            Logger.error(stderr, new Error(stderr), "utils execChildProcess");
+          }
           if (
             !stderr.toLowerCase().startsWith("warning") &&
             stderr.includes("Error")
@@ -1137,7 +1145,11 @@ export async function isBinInPath(
         : selectedResult;
     }
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${binaryName}`, error);
+    Logger.error(
+      `Cannot access filePath: ${binaryName}`,
+      error,
+      "src utils isBinInPath"
+    );
   }
   return "";
 }

@@ -70,7 +70,7 @@ export class BuildTask {
     } catch (error) {
       const errorMessage =
         "Failed to save unsaved files, ignoring and continuing with the build";
-      Logger.error(errorMessage, error);
+      Logger.error(errorMessage, error, "build saveBeforeBuild");
       Logger.warnNotify(errorMessage);
     }
     if (BuildTask.isBuilding) {

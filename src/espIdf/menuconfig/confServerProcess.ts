@@ -243,7 +243,7 @@ export class ConfserverProcess {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.error(errorMsg, new Error(errorMsg));
+          Logger.error(errorMsg, new Error(errorMsg), "ConfserverProcess setDefaultValues");
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
@@ -425,6 +425,6 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(data.toString(), new Error(data.toString()));
+    Logger.error(data.toString(), new Error(data.toString()), "ConfserverProcess printError");
   }
 }

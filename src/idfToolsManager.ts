@@ -261,7 +261,7 @@ export class IdfToolsManager {
         this.toolsManagerChannel.appendLine(errMsg);
         this.toolsManagerChannel.appendLine(error);
       }
-      Logger.error(errMsg, error);
+      Logger.error(errMsg, error, "IdfToolsManager checkBinariesVersion");
       return errMsg;
     }
   }

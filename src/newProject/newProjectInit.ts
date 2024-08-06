@@ -57,7 +57,7 @@ export async function getNewProjectArgs(
       ? error.message
       : "Error looking for serial ports.";
     Logger.infoNotify(msg);
-    Logger.error(msg, error);
+    Logger.error(msg, error, "getNewProjectArgs getSerialPort");
     serialPortList = ["no port"];
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });

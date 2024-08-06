@@ -153,7 +153,8 @@ export async function generateCoverageForEditors(
       "Error generate editor coverage.\n" +
         "Check the ESP-IDF output for more details." +
         msg,
-      error
+      error,
+      "coverageService generateCoverageForEditors"
     );
     OutputChannel.appendLine(
       msg +

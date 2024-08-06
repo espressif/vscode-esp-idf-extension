@@ -53,18 +53,21 @@ export class Logger {
     winston.warn(message, metadata);
   }
 
-  public static errorNotify(message: string, error: Error, metadata?: any) {
+  public static errorNotify(message: string, error: Error, category: string, metadata?: any) {
     if (!metadata) {
       metadata = {};
     }
     metadata.user = true;
-    Logger.error(message, error, metadata);
+    Logger.error(message, error, category, metadata);
   }
 
-  public static error(message: string, error: Error, metadata?: any) {
+  public static error(message: string, error: Error, category: string, metadata?: any) {
     Logger.checkInitialized();
     Telemetry.sendException(error, {
-      errorMessage: message,
+      givenMessage: message,
+      errorMessage: error.message,
+      errorStack: error.stack,
+      category,
       capturedBy: "Logger",
     });
     winston.log("error", message, {
