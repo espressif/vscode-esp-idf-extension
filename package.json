@@ -1581,7 +1581,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Hardware breakpoint being set initially as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. Ignored if user defines initCommands",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
                 "default": "app_main"
               },
               "preRunCommands": {
@@ -1850,7 +1850,7 @@
               },
               "initialBreakpoint": {
                 "type": "string",
-                "description": "Hardware breakpoint being set initially as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. Ignored if user defines initCommands",
+                "description": "Initial hardware breakpoint being set as 'thb <value>'. For a value 'app_main' result in 'thb app_main' in initCommands. If user set an empty string '' no initial breakpoint will be set and if let undefined it will use the default 'thb app_main'. Ignored if user defines initCommands argument.",
                 "default": "app_main"
               },
               "preRunCommands": {

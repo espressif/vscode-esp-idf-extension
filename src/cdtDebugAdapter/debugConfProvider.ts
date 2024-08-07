@@ -64,7 +64,9 @@ export class CDTDebugConfigurationProvider
           "mon reset halt",
           "maintenance flush register-cache",
         ];
-        if (config.initialBreakpoint) {
+        if (typeof config.initialBreakpoint === "undefined") {
+          config.initCommands.push(`thb app_main`);
+        } else if (config.initialBreakpoint) {
           config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
         }
       }
