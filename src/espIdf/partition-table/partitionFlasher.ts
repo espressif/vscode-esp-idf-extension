@@ -72,7 +72,7 @@ export async function flashBinaryToPartition(
         let msg = error.message
           ? error.message
           : "Error flashing binary to device";
-        Logger.errorNotify(msg, error);
+        Logger.errorNotify(msg, error, "flashBinaryToPartition");
       }
     }
   );

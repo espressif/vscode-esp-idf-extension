@@ -61,7 +61,7 @@ export class SerialPort {
       const msg = error.message
         ? error.message
         : "Something went wrong while getting the serial port list";
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, "SerialPort displayList");
       OutputChannel.appendLine(msg, "Serial port");
       OutputChannel.appendLineAndShow(JSON.stringify(error));
     }

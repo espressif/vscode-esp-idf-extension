@@ -107,7 +107,7 @@ export async function checkExtensionSettings(
         const msg = error.message
           ? error.message
           : "Error loading initial configuration.";
-        Logger.errorNotify(msg, error);
+        Logger.errorNotify(msg, error, "checkExtensionSettings");
         if (showSetupWindow) {
           vscode.commands.executeCommand("espIdf.setup.start");
         }

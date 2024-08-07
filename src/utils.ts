@@ -68,7 +68,11 @@ export class PreCheck {
     preCheckFunctions.forEach((preCheck: PreCheckInput) => {
       if (!preCheck[0]()) {
         isPassedAll = false;
-        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"));
+        Logger.errorNotify(
+          preCheck[1],
+          new Error("PRECHECK_FAILED"),
+          "utils precheck failed"
+        );
       }
     });
     if (isPassedAll) {
@@ -296,7 +300,9 @@ export async function getToolchainPath(
   try {
     return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
   } catch (error) {
-    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error);
+    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error,
+      "utils getToolchainPath"
+    );
     return;
   }
 }
@@ -696,7 +702,8 @@ export async function getElfFilePath(
   } catch (error) {
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
-      error
+      error,
+      "utils getElfFilePath"
     );
     return;
   }
@@ -812,7 +819,11 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       return "Not found";
     }
   } catch (error) {
-    Logger.errorNotify("Git is not found in current environment", error);
+    Logger.errorNotify(
+      "Git is not found in current environment",
+      error,
+      "utils checkGitExists"
+    );
     return "Not found";
   }
 }
@@ -839,7 +850,7 @@ export async function cleanDirtyGitRepository(
     Logger.info(resetResult + EOL);
   } catch (error) {
     const errMsg = error.message ? error.message : "Error resetting repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, "utils cleanDirtyGitRepository");
   }
 }
 
@@ -885,7 +896,7 @@ export async function fixFileModeGitRepository(
     const errMsg = error.message
       ? error.message
       : "Error fixing FileMode in repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, "utils fixFileModeGitRepository");
   }
 }
 
@@ -1004,7 +1015,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid user environment variables format", error);
+      Logger.errorNotify("Invalid user environment variables format", error, "appendIdfAndToolsToPath idf.customExtraVars");
     }
   }
   const customVars = await idfToolsManager.exportVars(
@@ -1019,7 +1030,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid ESP-IDF environment variables format", error);
+      Logger.errorNotify("Invalid ESP-IDF environment variables format", error, "appendIdfAndToolsToPath idf tools env vars");
     }
   }
 

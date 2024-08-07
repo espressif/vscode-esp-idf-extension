@@ -42,7 +42,8 @@ export async function verifyCanFlash(
     OutputChannel.appendLineAndShow(waitProcessIsFinishedMsg, "Flash");
     return Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      "flashCmd verifyCanFlash already build flash task running"
     );
   }
 
@@ -51,7 +52,8 @@ export async function verifyCanFlash(
     const errStr = `Build is required before Flashing, ${buildPath} can't be accessed`;
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("BUILD_PATH_ACCESS_ERROR"));
+    return Logger.errorNotify(errStr, new Error("BUILD_PATH_ACCESS_ERROR"),
+    "flashCmd verifyCanFlash build path doesnt exist");
   }
   if (!(await pathExists(join(buildPath, "flasher_args.json")))) {
     const errStr =
@@ -79,13 +81,15 @@ export async function verifyCanFlash(
     const errStr = "Select a port before flashing";
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_PORT"));
+    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_PORT"),
+    "flashCmd verifyCanFlash select port");
   }
   if (!flashBaudRate) {
     const errStr = "Select a baud rate before flashing";
     OutputChannel.show();
     OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_BAUD_RATE"));
+    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_BAUD_RATE"),
+    "flashCmd verifyCanFlash no flashbaudrate");
   }
   const selectedFlashType = idfConf.readParameter(
     "idf.flashType",
@@ -97,7 +101,8 @@ export async function verifyCanFlash(
       const errStr = "No DFU capable USB device available found";
       OutputChannel.show();
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      return Logger.errorNotify(errStr, new Error("NO_DFU_DEVICES_FOUND"));
+      return Logger.errorNotify(errStr, new Error("NO_DFU_DEVICES_FOUND"),
+      "flashCmd verifyCanFlash no dfu device found");
     }
   }
   return continueFlag;

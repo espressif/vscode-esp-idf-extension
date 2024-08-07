@@ -52,7 +52,8 @@ export class DocSearchResultTreeDataProvider
       if (!url) {
         Logger.errorNotify(
           "Cannot call this command directly, click on any ESP-IDF search result!",
-          new Error("INVALID_INVOCATION")
+          new Error("INVALID_INVOCATION"),
+          "DocSearchResultTreeDataProvider espIdf.openDocUrl"
         );
         return;
       }

@@ -37,7 +37,8 @@ export async function createNewIdfMonitor(
     const waitProcessIsFinishedMsg = l10n.t("Wait for ESP-IDF task to finish");
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      "createNewIdfMonitor wait for building flashing task to finish"
     );
     return;
   }
@@ -52,14 +53,16 @@ export async function createNewIdfMonitor(
     }
     Logger.errorNotify(
       "Select a serial port before flashing",
-      new Error("NOT_SELECTED_PORT")
+      new Error("NOT_SELECTED_PORT"),
+      "createNewIdfMonitor select a serial port"
     );
   }
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("Virtual environment Python path is not defined")
+      new Error("Virtual environment Python path is not defined"),
+      "createNewIdfMonitor pythonBinPath not defined"
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
@@ -69,7 +72,8 @@ export async function createNewIdfMonitor(
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
       idfMonitorToolPath + " is not defined",
-      new Error(idfMonitorToolPath + " is not defined")
+      new Error(idfMonitorToolPath + " is not defined"),
+      "createNewIdfMonitor idf_monitor not found"
     );
   }
   const buildDirPath = readParameter(

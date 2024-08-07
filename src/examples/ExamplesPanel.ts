@@ -165,7 +165,7 @@ export class ExamplesPlanel {
             ComponentManagerUIPanel.show(extensionPath, emptyURI);
           } catch (error) {
             OutputChannel.appendLine(error.message);
-            Logger.errorNotify(error.message, error);
+            Logger.errorNotify(error.message, error, "ExamplesPanel show registry");
           }
         default:
           return;

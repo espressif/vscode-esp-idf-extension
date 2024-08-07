@@ -209,7 +209,8 @@ export class DebugAdapterManager extends EventEmitter {
         if (!signal && code && code !== 0) {
           Logger.errorNotify(
             `ESP-IDF Debug Adapter exit with error code ${code}`,
-            new Error("Spawn exit with non-zero" + code)
+            new Error("Spawn exit with non-zero" + code),
+            "DebugAdapterManager start"
           );
         }
         this.stop();
@@ -326,7 +327,11 @@ export class DebugAdapterManager extends EventEmitter {
         return resultGdbInitPath;
       }
     } catch (error) {
-      Logger.errorNotify("Error creating gdbinit file", error);
+      Logger.errorNotify(
+        "Error creating gdbinit file",
+        error,
+        "DebugAdapterManager makeGdbinitFile"
+      );
     }
     return;
   }

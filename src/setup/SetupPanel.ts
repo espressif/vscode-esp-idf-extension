@@ -398,7 +398,7 @@ export class SetupPanel {
       });
     }
     OutputChannel.appendLine(errMsg);
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, "SetupPanel error handler");
     OutputChannel.show();
     SetupPanel.postMessage({
       command: "goToCustomPage",

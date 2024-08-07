@@ -190,7 +190,7 @@ export class AppTraceManager extends EventEmitter {
         });
       }
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(error.message, error, "AppTraceManager start");
     }
   }
 

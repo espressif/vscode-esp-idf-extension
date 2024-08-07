@@ -175,7 +175,7 @@ export class MenuConfigPanel {
                     progress
                   );
                 } catch (error) {
-                  Logger.errorNotify(error.message, error);
+                  Logger.errorNotify(error.message, error, "MenuConfigPanel setDefaultValues");
                 }
               }
             );

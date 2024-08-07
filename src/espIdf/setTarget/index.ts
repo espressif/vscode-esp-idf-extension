@@ -107,7 +107,7 @@ export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: Work
           Logger.info(err.message.toString());
           OutputChannel.append(err.message.toString());
         } else {
-          Logger.errorNotify(err, err);
+          Logger.errorNotify(err, err, "setIdfTarget");
           OutputChannel.append(err);
         }
       }

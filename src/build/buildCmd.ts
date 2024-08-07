@@ -45,7 +45,8 @@ export async function buildCommand(
     );
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      "buildCmd buildCommand"
     );
     return;
   }
@@ -94,14 +95,15 @@ export async function buildCommand(
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify("Already a build is running!", error);
+      return Logger.errorNotify("Already a build is running!", error, "buildCommand");
     }
     if (error.message === "BUILD_TERMINATED") {
       return Logger.warnNotify(`Build is Terminated`);
     }
     Logger.errorNotify(
       "Something went wrong while trying to build the project",
-      error
+      error,
+      "buildCommand"
     );
     continueFlag = false;
   }

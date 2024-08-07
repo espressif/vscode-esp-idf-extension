@@ -137,7 +137,7 @@ export async function createSBOM(workspaceUri: Uri) {
     const msg = error.message
       ? error.message
       : "Error create SBOM Report or check vulnerabilities.";
-    Logger.errorNotify(msg, error);
+    Logger.errorNotify(msg, error, "createSBOM");
   }
 }
 

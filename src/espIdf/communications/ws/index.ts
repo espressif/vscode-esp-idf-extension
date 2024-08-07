@@ -92,7 +92,8 @@ export class WSServer extends EventEmitter {
             } catch (error) {
               Logger.errorNotify(
                 `Failed to parse the websocket message`,
-                error
+                error,
+                "WSServer start"
               );
               this.emit("unknown-message", data, error);
             }

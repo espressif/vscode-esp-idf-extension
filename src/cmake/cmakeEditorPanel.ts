@@ -149,7 +149,7 @@ export class CmakeListsEditorPanel {
               fileName: fileUri.fsPath,
             });
           } catch (error) {
-            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error);
+            Logger.errorNotify(`Failed reading ${fileUri.fsPath}`, error, "CmakeListsEditorPanel loadCMakeListSchema");
           }
         case "saveChanges":
           if (message.newValues) {
