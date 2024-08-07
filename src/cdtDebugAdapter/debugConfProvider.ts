@@ -65,7 +65,7 @@ export class CDTDebugConfigurationProvider
           "maintenance flush register-cache",
         ];
         if (config.initialBreakpoint) {
-          config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`, "c");
+          config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
         }
       }
 
