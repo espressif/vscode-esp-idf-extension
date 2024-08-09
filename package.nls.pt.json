@@ -160,6 +160,8 @@
 	"param.uncoveredDarkTheme": "Cor de fundo para linhas descobertas no tema Dark para cobertura ESP-IDF.",
 	"param.uncoveredLightTheme": "Cor de fundo para linhas descobertas no tema Light para cobertura ESP-IDF.",
 	"param.useIDFKConfigStyle": "Habilitar/desabilitar validação de estilo ESP-IDF para arquivos Kconfig",
+	"param.enableSerialPortChipIdRequest.title": "Habilite a detecção do ID do chip e mostre na lista de seleção de porta serial",
+  "param.useSerialPortVendorProductFilter.title": "Use USB productID e vendorID para filtrar dispositivos Espressif conhecidos",
 	"trace.poll_period.description": "poll_period será definido para o apptrace",
 	"trace.skip_size.description": "skip_size será definido para o apptrace",
 	"trace.stop_tmo.description": "stop_tmo será definido para o apptrace",
