@@ -199,7 +199,9 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     Logger.error(
       `Cannot access filePath: ${filePath}`,
       error,
-      "src utils canAccessFile"
+      "src utils canAccessFile",
+      undefined,
+      false
     );
     return false;
   }
@@ -579,7 +581,7 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           if (!stderr.startsWith("Open On-Chip Debugger v")) {
-            Logger.error(stderr, new Error(stderr), "utils execChildProcess");
+            Logger.error(stderr, new Error(stderr), "utils execChildProcess stderr");
           }
           if (
             !stderr.toLowerCase().startsWith("warning") &&
@@ -1156,10 +1158,15 @@ export async function isBinInPath(
         : selectedResult;
     }
   } catch (error) {
+    let pathNameInEnv: string = Object.keys(process.env).find(
+      (k) => k.toUpperCase() == "PATH"
+    );
     Logger.error(
-      `Cannot access filePath: ${binaryName}`,
+      `Cannot access binary filePath: ${binaryName}`,
       error,
-      "src utils isBinInPath"
+      "src utils isBinInPath",
+      { envPath: pathNameInEnv ? env[pathNameInEnv]: undefined },
+      false
     );
   }
   return "";

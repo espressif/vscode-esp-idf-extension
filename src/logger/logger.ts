@@ -53,23 +53,37 @@ export class Logger {
     winston.warn(message, metadata);
   }
 
-  public static errorNotify(message: string, error: Error, category: string, metadata?: any) {
+  public static errorNotify(
+    message: string,
+    error: Error,
+    category: string,
+    metadata?: any,
+    sendTelemetry: boolean = true
+  ) {
     if (!metadata) {
       metadata = {};
     }
     metadata.user = true;
-    Logger.error(message, error, category, metadata);
+    Logger.error(message, error, category, metadata, sendTelemetry);
   }
 
-  public static error(message: string, error: Error, category: string, metadata?: any) {
+  public static error(
+    message: string,
+    error: Error,
+    category: string,
+    metadata?: any,
+    sendTelemetry: boolean = true
+  ) {
     Logger.checkInitialized();
-    Telemetry.sendException(error, {
-      givenMessage: message,
-      errorMessage: error.message,
-      errorStack: error.stack,
-      category,
-      capturedBy: "Logger",
-    });
+    if (sendTelemetry) {
+      Telemetry.sendException(error, {
+        givenMessage: message,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        category,
+        capturedBy: "Logger",
+      });
+    }
     winston.log("error", message, {
       ...metadata,
       message: error.message,
