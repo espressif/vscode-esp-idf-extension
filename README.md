@@ -38,7 +38,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
    > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information.
 
-7. In Visual Studio Code, select menu "View" and "Command Palette" and type `configure esp-idf extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option. You can also choose where to save settings in the setup wizard.
+7. In Visual Studio Code, select menu "View" and "Command Palette" and type `configure esp-idf extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option.
    > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
 <p>
@@ -79,7 +79,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 20. When you are ready, build your project by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
 
-21. Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method and Flash** to select either `UART`, `DFU` or `JTAG` depending on your serial connection.
+21. Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method** to select either `UART`, `DFU` or `JTAG` depending on your serial connection.
 
 > **NOTE:** You can also use the **ESP-IDF: Flash (UART) your Project** or **ESP-IDF: Flash (with JTag)** directly.
 
@@ -137,7 +137,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
     </thead>
     <tbody>
         <tr>
-            <td rowspan=9 align="center">Configuration</td>
+            <td rowspan=7 align="center">Configuration</td>
             <td>Add OpenOCD rules file (For Linux users)</td>
             <td>Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.</td>
             <td></td>

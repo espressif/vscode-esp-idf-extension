@@ -61,7 +61,7 @@ The user will see a new terminal being launched with the flash output and a noti
 
 10. Now to start monitoring your device, use the **ESP-IDF: Monitor Device** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>M</kbd> keyboard shortcut). The user will see a new terminal being launched with the `idf.py monitor` output.
 
-> **NOTE** The ESP-IDF Monitor baud rate value is taken from `idf.monitorBaudRate` with fallback on your project's SDKConfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify `idf.customExtraVars`.
+> **NOTE** The ESP-IDF Monitor baud rate value can be override from `idf.monitorBaudRate` with fallback on your project's SDKConfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting. Please review [ESP-IDF Settings](../SETTINGS.md)) to see how to modify `idf.customExtraVars`.
 
 <p>
   <img src="../../media/tutorials/basic_use/monitor.png" alt="Monitor" width="975">
