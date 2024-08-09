@@ -95,7 +95,7 @@ export async function verifyAppBinary(workspaceFolder: Uri) {
     const msg = error.message
       ? error.message
       : "Something wrong while verifying app binary.";
-    Logger.errorNotify(msg, error);
+    Logger.errorNotify(msg, error, "verifyAppBinary");
     return false;
   }
 }

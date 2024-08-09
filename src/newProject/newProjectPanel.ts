@@ -318,7 +318,7 @@ export class NewProjectPanel {
           }
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, "NewProjectPanel createProject");
         }
       }
     );

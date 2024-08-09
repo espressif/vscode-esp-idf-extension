@@ -67,7 +67,7 @@ export class ESPCoreDumpPyTool {
       );
       return true;
     } catch (error) {
-      Logger.error("espcoredump.py failed", error, { output: resp.toString() });
+      Logger.error("espcoredump.py failed", error, "ESPCoreDumpPyTool generateCoreELFFile", { output: resp.toString() });
       return false;
     }
   }

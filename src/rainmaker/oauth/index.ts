@@ -36,7 +36,7 @@ export class RainmakerOAuthManager {
       url = new URL(oAuthURL);
     } catch (error) {
       const err = new Error(`Invalid OAuth Server URL, ${oAuthURL}`);
-      Logger.errorNotify(err.message, err);
+      Logger.errorNotify(err.message, err, "RainmakerOAuthManager openExternalOAuthURL");
       throw err;
     }
 

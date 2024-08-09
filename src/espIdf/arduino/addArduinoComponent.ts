@@ -85,7 +85,7 @@ export class ArduinoComponentInstaller {
         if (!signal && code !== 0) {
           const errorMsg = `Arduino ESP32 cloning has exit with ${code}`;
           OutputChannel.appendLine(errorMsg);
-          Logger.errorNotify(errorMsg, new Error(errorMsg));
+          Logger.errorNotify(errorMsg, new Error(errorMsg), "addArduinoComponent cloneArduinoInComponentsFolder");
           reject(new Error(errorMsg));
         }
         resolve();

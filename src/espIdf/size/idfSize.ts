@@ -131,7 +131,7 @@ export class IDFSize {
       const throwableError = new Error(
         vscode.l10n.t("Error encountered while calling idf_size.py")
       );
-      Logger.error(error.message, error);
+      Logger.error(error.message, error, "IDFSize idfCommandInvoker");
       throw throwableError;
     }
   }

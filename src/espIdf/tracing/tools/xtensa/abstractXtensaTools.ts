@@ -37,7 +37,8 @@ export abstract class XtensaTools {
     } catch (error) {
       Logger.errorNotify(
         `Make sure ${this.toolName} is set in the Path with proper permission`,
-        error
+        error,
+        "XtensaTools call"
       );
     }
   }

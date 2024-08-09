@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 6th May 2021 2:29:08 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * 
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,9 +23,7 @@ import { readParameter } from "../idfConfiguration";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { CustomTask, CustomTaskType } from "../customTasks/customTaskProvider";
-import { TaskManager } from "../taskManager";
 import { Uri } from "vscode";
-import { join } from "path";
 import { OutputChannel } from "../logger/outputChannel";
 
 export async function jtagFlashCommand(workspace: Uri) {
@@ -72,7 +70,8 @@ export async function jtagFlashCommand(workspace: Uri) {
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
     OutputChannel.appendLine(msg, "Flash");
-    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"));
+    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"),
+    "jtagFlashCommand");
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

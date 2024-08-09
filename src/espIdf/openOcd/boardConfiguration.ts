@@ -42,7 +42,7 @@ export function getOpenOcdScripts(workspace: Uri): string {
       ? process.env.OPENOCD_SCRIPTS
       : undefined;
   } catch (error) {
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "boardConfiguration getOpenOcdScripts");
     openOcdScriptsPath = process.env.OPENOCD_SCRIPTS
       ? process.env.OPENOCD_SCRIPTS
       : undefined;
@@ -92,7 +92,7 @@ export async function getBoards(
     });
     return idfTarget ? filteredEspBoards : espBoards;
   } catch (error) {
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "boardConfiguration getBoards");
     const filteredDefaultBoards = defaultBoards.filter((b) => {
       return b.target === idfTarget;
     });

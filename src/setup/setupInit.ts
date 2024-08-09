@@ -209,7 +209,7 @@ export async function getSetupInitialValues(
       }
     }
   } catch (error) {
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "setupInit getSetupInitialValues");
   }
   return setupInitArgs;
 }
@@ -233,7 +233,7 @@ function updateCustomExtraVars(workspaceFolder: Uri) {
       const msg = err.message
         ? err.message
         : "Error changing idf.customExtraVars from string to object";
-      Logger.errorNotify(msg, err);
+      Logger.errorNotify(msg, err, "setupInit updateCustomExtraVars");
     }
   }
 }

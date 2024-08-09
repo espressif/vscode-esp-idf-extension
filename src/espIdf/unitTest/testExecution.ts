@@ -74,7 +74,7 @@ export async function runPyTestWithTestCase(
         ? error.message
         : "Error configuring PyTest Unit App for project";
     OutputChannel.appendLine(msg, "idf-unit-test");
-    Logger.error(msg, error);
+    Logger.error(msg, error, "runPyTestWithTestCase");
   }
 }
 

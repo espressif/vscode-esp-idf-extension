@@ -182,7 +182,7 @@ export class EspMatterCloning extends AbstractCloning {
           );
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, "EspMatterCloning initEsp32PlatformSubmodules");
         }
       }
     );
@@ -244,7 +244,8 @@ export class EspMatterCloning extends AbstractCloning {
           OutputChannel.appendLine(msg);
           Logger.errorNotify(
             "ESP32 platform submodules cloning error",
-            new Error(msg)
+            new Error(msg),
+            "EspMatterCloning checkoutEsp32PlatformSubmodules"
           );
           return reject(new Error(msg));
         }
@@ -347,11 +348,12 @@ export async function getEspMatter(workspace?: Uri) {
     if (msg === "ALREADY_BUILDING") {
       return Logger.errorNotify(
         "ESP-Matter bootstrap is already running!",
-        error
+        error,
+        "getEspMatter or bootstraping already running"
       );
     }
     EspMatterCloning.isBuildingGn = false;
-    return Logger.errorNotify(msg, error);
+    return Logger.errorNotify(msg, error, "getEspMatter");
   }
 
   try {
@@ -362,7 +364,7 @@ export async function getEspMatter(workspace?: Uri) {
       : typeof error === "string"
       ? error
       : "Error installing ESP-Matter Python Requirements";
-    return Logger.errorNotify(msg, error);
+    return Logger.errorNotify(msg, error, "getEspMatter installPythonReqs");
   }
   window.showInformationMessage("ESP-Matter has been successfully installed");
 }

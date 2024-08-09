@@ -112,7 +112,7 @@ export class ExamplesPlanel {
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
               const msg = `Error copying ESP-IDF example.`;
-              Logger.error(msg, error);
+              Logger.error(msg, error, "ExamplesPanel copyFromSrcProject");
               const opt = await vscode.window.showErrorMessage(
                 msg,
                 "Show Docs",
@@ -161,7 +161,7 @@ export class ExamplesPlanel {
             ComponentManagerUIPanel.show(extensionPath, emptyURI);
           } catch (error) {
             OutputChannel.appendLine(error.message);
-            Logger.errorNotify(error.message, error);
+            Logger.errorNotify(error.message, error, "ExamplesPanel show registry");
           }
         default:
           return;

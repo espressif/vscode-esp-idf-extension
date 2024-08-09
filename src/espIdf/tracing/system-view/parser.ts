@@ -50,7 +50,8 @@ export class SystemViewResultParser {
         } catch (error) {
           Logger.errorNotify(
             "Failed to parse JSON from SVDAT file, make sure you've the proper version of sysviewtrace_proc.py installed and it supports JSON format output with (-j) flag",
-            error
+            error,
+            "SystemViewResultParser parseWithProgress"
           );
         }
       }

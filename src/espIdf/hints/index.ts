@@ -144,7 +144,8 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     } catch (error) {
       Logger.errorNotify(
         `Error processing hints file (line ${error.mark?.line}): ${error.message}`,
-        error
+        error,
+        "ErrorHintProvider searchError"
       );
       return false;
     }

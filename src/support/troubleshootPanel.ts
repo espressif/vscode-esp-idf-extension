@@ -164,7 +164,7 @@ export class TroubleshootingPanel {
           const errMsg = error.message
             ? error.message
             : "Configuration report error";
-          Logger.error(errMsg, error);
+          Logger.error(errMsg, error, "TroubleshootingPanel createTroubleshootingReport");
           Logger.warnNotify(
             l10n.t(
               "Extension configuration report has been copied to clipboard with errors"

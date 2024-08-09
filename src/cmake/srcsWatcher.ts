@@ -83,7 +83,7 @@ export class UpdateCmakeLists {
             ? error.message
             : "Error updating srcs in CMakeLists.txt";
           this.writeFinished();
-          Logger.error(msg, error);
+          Logger.error(msg, error, "updateSrcsInCmakeLists");
         }
       }
     );

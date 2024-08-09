@@ -194,7 +194,11 @@ export class PeripheralTreeForSession extends PeripheralBaseNode {
           this.errMessage = `Unable to parse SVD file ${
             this.svdFileName
           }: ${e.toString()}`;
-          Logger.errorNotify(this.errMessage, new Error(this.errMessage));
+          Logger.errorNotify(
+            this.errMessage,
+            new Error(this.errMessage),
+            "PeripheralTreeForSession sessionStarted"
+          );
           if (debug.activeDebugConsole) {
             debug.activeDebugConsole.appendLine(this.errMessage);
           }
@@ -278,8 +282,10 @@ export class PeripheralTreeView
       }
       if (this.sessionPeripheralsMap.get(session.id)) {
         this._onDidChangeTreeData.fire(undefined);
-        const err = new Error(`Internal Error: Session ${session.name} id=${session.id} already in the tree view?`)
-        Logger.errorNotify(err.message, err);
+        const err = new Error(
+          `Internal Error: Session ${session.name} id=${session.id} already in the tree view?`
+        );
+        Logger.errorNotify(err.message, err, "peripheralTreeView debugSessionStarted alreadyInTreeView");
         resolve(undefined);
         return;
       }
@@ -297,8 +303,10 @@ export class PeripheralTreeView
       try {
         await regs.sessionStarted(svdFilePath, thresh); // Should never reject
       } catch (e) {
-        const err = new Error(`Internal Error: Unexpected rejection of promise ${e}`);
-        Logger.errorNotify(err.message, err);
+        const err = new Error(
+          `Internal Error: Unexpected rejection of promise ${e}`
+        );
+        Logger.errorNotify(err.message, err, "peripheralTreeView debugSessionStarted");
       } finally {
         this._onDidChangeTreeData.fire(undefined);
       }

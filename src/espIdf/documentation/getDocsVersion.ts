@@ -47,7 +47,8 @@ export async function getDocsVersion() {
   } catch (error) {
     Logger.error(
       `Error parsing object from ${ESP.URL.Docs.IDF_VERSIONS}`,
-      error
+      error,
+      "getDocsVersion"
     );
   }
 }
@@ -65,7 +66,7 @@ export function getDocsLocaleLang() {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
     localeLang = localeConf.locale === "zh-CN" ? "zh_CN" : "en";
   } catch (error) {
-    Logger.error("Error getting current vscode language", error);
+    Logger.error("Error getting current vscode language", error, "getDocsVersion getDocsLocaleLang");
   }
   return localeLang;
 }

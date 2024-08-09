@@ -110,7 +110,7 @@ export class OpenOCDManager extends EventEmitter {
       }
     } catch (error) {
       const msg = error.message ? error.message : JSON.stringify(error);
-      Logger.error(msg, error);
+      Logger.error(msg, error, "OpenOCDManager commandHandler");
       OutputChannel.appendLine(msg, "OpenOCD");
     }
     return true;
@@ -218,7 +218,7 @@ export class OpenOCDManager extends EventEmitter {
           " "
         )}`;
         const err = new Error(errorMsg);
-        Logger.error(errorMsg + `\n❌ ${errStr}`, err);
+        Logger.error(errorMsg + `\n❌ ${errStr}`, err, "OpenOCDManager stderr");
         OutputChannel.appendLine(`❌ ${errStr}`, "OpenOCD");
         this.emit("error", err, this.chan);
       }
@@ -245,7 +245,7 @@ export class OpenOCDManager extends EventEmitter {
       if (!signal && code && code !== 0) {
         Logger.error(
           `OpenOCD Exit with non-zero error code ${code}`,
-          new Error("Spawn exit with non-zero" + code)
+          new Error("Spawn exit with non-zero" + code), "OpenOCDManager close"
         );
         OutputChannel.appendLine(
           `OpenOCD Exit with non-zero error code ${code}`,

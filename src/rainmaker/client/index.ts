@@ -251,7 +251,7 @@ export class RainmakerAPIClient {
     const UnknownError = new Error(
       "Unknown Error while trying to login with rainmaker server"
     );
-    Logger.error(UnknownError.message, UnknownError, { meta });
+    Logger.error(UnknownError.message, UnknownError, "RainmakerAPIClient throwUnknownError", { meta });
     throw UnknownError;
   }
   private static setUserLoggedInContext(v: boolean) {

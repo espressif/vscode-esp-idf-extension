@@ -45,7 +45,8 @@ export async function buildCommand(
     );
     Logger.errorNotify(
       waitProcessIsFinishedMsg,
-      new Error("One_Task_At_A_Time")
+      new Error("One_Task_At_A_Time"),
+      "buildCmd buildCommand"
     );
     return;
   }
@@ -80,30 +81,32 @@ export async function buildCommand(
         workspace
       ) as string;
       if (adapterTargetName !== "esp32s2" && adapterTargetName !== "esp32s3") {
-        return Logger.warnNotify(
+        Logger.warnNotify(
           `The selected device target "${adapterTargetName}" is not compatible for DFU, as a result the DFU.bin was not created.`
         );
+      } else {
+        await buildTask.buildDfu();
+        await TaskManager.runTasks();
       }
-      await buildTask.buildDfu();
-      await TaskManager.runTasks();
     }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successfully");
       const flashCmd = await buildFinishFlashCmd(workspace);
-      OutputChannel.appendLineAndShow(flashCmd, "Build");
+      OutputChannel.appendLine(flashCmd, "Build");
       TaskManager.disposeListeners();
     }
   } catch (error) {
     if (error.message === "ALREADY_BUILDING") {
-      return Logger.errorNotify("Already a build is running!", error);
+      return Logger.errorNotify("Already a build is running!", error, "buildCommand");
     }
     if (error.message === "BUILD_TERMINATED") {
       return Logger.warnNotify(`Build is Terminated`);
     }
     Logger.errorNotify(
       "Something went wrong while trying to build the project",
-      error
+      error,
+      "buildCommand"
     );
     continueFlag = false;
   }
