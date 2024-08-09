@@ -63,8 +63,12 @@ export class CDTDebugConfigurationProvider
           "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
           "mon reset halt",
           "maintenance flush register-cache",
-          "thb app_main",
         ];
+        if (typeof config.initialBreakpoint === "undefined") {
+          config.initCommands.push(`thb app_main`);
+        } else if (config.initialBreakpoint) {
+          config.initCommands.push(`thb ${config.initialBreakpoint.trim()}`);
+        }
       }
 
       if (config.initCommands && Array.isArray(config.initCommands)) {

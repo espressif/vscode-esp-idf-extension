@@ -247,7 +247,7 @@ export async function execProcessWithLog(
     undefined,
     undefined,
     cancelToken,
-    pyTracker.Log
+    undefined
   );
   Logger.info(processResult + "\n");
   if (pyTracker) {

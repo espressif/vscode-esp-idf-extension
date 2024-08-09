@@ -2623,13 +2623,14 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         return;
       }
-      const launchJson = await readJson(launchJsonPath);
-      if (
-        launchJson &&
-        launchJson.configurations &&
-        launchJson.configurations.length
-      ) {
-        for (const conf of launchJson.configurations) {
+      const config = vscode.workspace.getConfiguration("launch", workspaceRoot);
+
+      // retrieve values
+      const configurations = config.get(
+        "configurations"
+      ) as vscode.DebugConfiguration[];
+      if (configurations && configurations.length) {
+        for (const conf of configurations) {
           if (conf.type === "gdbtarget") {
             await vscode.debug.startDebugging(workspaceFolder, conf.name);
             return;
