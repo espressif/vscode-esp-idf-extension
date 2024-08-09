@@ -24,6 +24,7 @@ import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
 import * as SerialPortLib from "serialport";
+import { ESP } from "../../config";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -93,7 +94,7 @@ export class SerialPort {
           return;
         }
 
-        const choices = listOfSerialPorts.map((item) => {
+        let choices = listOfSerialPorts.map((item) => {
           return new SerialPortDetails(
             item.path,
             item.manufacturer,
@@ -109,6 +110,30 @@ export class SerialPort {
           "idf.espIdfPath",
           workspaceFolder
         );
+        const enableSerialPortChipIdRequest = idfConf.readParameter(
+          "idf.enableSerialPortChipIdRequest",
+          workspaceFolder
+        ) as boolean;
+        const useSerialPortVendorProductFilter = idfConf.readParameter(
+          "idf.enableSerialPortChipIdRequest",
+          workspaceFolder
+        ) as boolean;
+        if (useSerialPortVendorProductFilter) {
+          choices = choices.filter((port) => {
+            const vendorIdNumber = parseInt(port.vendorId, 16);
+            const productIdNumber = parseInt(port.productId, 16);
+            return ESP.USB_PORT_FILTERS.some(
+              (filter) =>
+                filter.vendorId === vendorIdNumber &&
+                filter.productId === productIdNumber
+            );
+          });
+        }
+
+        if (!enableSerialPortChipIdRequest) {
+          return choices;
+        }
+
         const esptoolPath = join(
           idfPath,
           "components",
@@ -145,7 +170,11 @@ export class SerialPort {
           return serialPort;
         }
 
-        resolve(await Promise.all(choices.map((item) => processPorts(item))));
+        resolve(
+          await Promise.all(
+            choices.map((item) => processPorts(item))
+          )
+        );
       } catch (error) {
         reject(error);
       }

@@ -162,6 +162,8 @@
   "param.uncoveredLightTheme": "Background color for uncovered lines in Light theme for ESP-IDF Coverage.",
   "param.useIDFKConfigStyle": "Enable/Disable ESP-IDF style validation for Kconfig files",
   "param.hintsViewer.title": "Path to the hints file.",
+  "param.enableSerialPortChipIdRequest.title": "Enable detecting the chip id and show on serial port selection list",
+  "param.useSerialPortVendorProductFilter.title": "Use USB productID and vendorID to filter known Espressif devices",
   "trace.poll_period.description": "poll_period will be set for the apptrace",
   "trace.skip_size.description": "skip_size will be set for the apptrace",
   "trace.stop_tmo.description": "stop_tmo will be set for the apptrace",

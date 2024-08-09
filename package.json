@@ -971,6 +971,18 @@
             "scope": "resource",
             "default": "espidf.spdx",
             "description": "%param.sbomFilePath.title%"
+          },
+          "idf.enableSerialPortChipIdRequest": {
+            "type":"boolean",
+            "scope": "application",
+            "default": true,
+            "description": "%param.enableSerialPortChipIdRequest.title%"
+          },
+          "idf.useSerialPortVendorProductFilter": {
+            "type":"boolean",
+            "scope": "application",
+            "default": true,
+            "description": "%param.useSerialPortVendorProductFilter.title%"
           }
         }
       }
