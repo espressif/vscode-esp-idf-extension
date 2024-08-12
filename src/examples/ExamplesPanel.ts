@@ -93,6 +93,8 @@ export class ExamplesPlanel {
                 canSelectFolders: true,
                 canSelectFiles: false,
                 canSelectMany: false,
+                openLabel: "Select Folder for New Project",
+                title: `Choose Project Location for ${message.name} example`,
               });
             }
             if (!selectedFolder) {
@@ -144,7 +146,9 @@ export class ExamplesPlanel {
                 example_detail: contentStr,
               });
             } catch (err) {
-              const notAvailable = vscode.l10n.t("No README.md available for this project.");
+              const notAvailable = vscode.l10n.t(
+                "No README.md available for this project."
+              );
               Logger.info(notAvailable);
               Logger.info(err);
               this.panel.webview.postMessage({
