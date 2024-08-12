@@ -6,7 +6,7 @@ Developers can use this library to send application specific state of execution 
 
 Let's open a ESP-IDF project. For this tutorial we will use the [system/app_trace_to_host](https://github.com/espressif/esp-idf/tree/master/examples/system/app_trace_to_host) example.
 
-1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
+1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If you don't see the option, please review the setup in [Install tutorial](./install.md).
 
 2. A window will be open with a list a projects, go the **system** section and choose the `app_trace_to_host`. You will see a **Create Project Using Example app_trace_to_host** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
 

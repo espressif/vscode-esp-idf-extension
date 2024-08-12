@@ -4,7 +4,12 @@ The minimum requirements for running the ESP-IDF Extension with the VSCode are b
 
 - `Visual Studio Code <https://code.visualstudio.com/>`_.
 
-Linux / MacOS
+Windows
+-------------------------------
+
+No additional prerequisites required, the installation step will take care of the rest.
+
+MacOS/Linux
 -------------------------------
 
 - `Python 3.12 <https://www.python.org/downloads/>`_ and above.

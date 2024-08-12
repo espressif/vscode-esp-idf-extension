@@ -7,18 +7,18 @@ Troubleshooting
   * Use **idf.openOcdDebugLevel** configuration setting to 4 or more to show debug logging in OpenOCD server output.
   * Use **logLevel** in your ``<project-directory>/.vscode/launch.json`` to 3 or more to show more debug adapter output.
 
-In Visual Studio Code select menu **View** -> **Output** -> **ESP-IDF**. This output information is useful to know what is happening in the extension.
+In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension.
 
-In Visual Studio Code select menu **View** then click **Command Palette...** and type **ESP-IDF: Doctor Command** to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
+In Visual Studio Code select menu **View** > **Command Palette...** and type **ESP-IDF: Doctor Command** to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
 
 Check log file which can be obtained from:
 
 Windows 
   ``%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log``
-Linux & MacOSX
+MacOS/Linux
   ``$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log``
 
-In Visual Studio Code, select menu **Help** -> **Toggle Developer Tools** and copy any error in the Console tab related to this extension.
+In Visual Studio Code, select menu **Help** > **Toggle Developer Tools** and copy any error in the Console tab related to this extension.
 
 Visual Studio Code allows the user to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project is using the right settings. The **ESP-IDF: Doctor command** output will show the settings actually being used.
 

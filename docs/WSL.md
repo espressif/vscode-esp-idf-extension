@@ -65,7 +65,7 @@ Now configure the USB serial device to be able to connect to the WSL with `usbip
 
 1. Open PowerShell command prompt with administrator rights and then type in the command `usbipd list` for a list of USB serial devices.
 
-2. To access the specify device which is from local Windows on WSL, the user needs to bind this device to WSL. Open PowerShell command prompt with administrator right and then type in the command `usbipd bind -b <BUSID>`:
+2. To access the specify device which is from local Windows on WSL, you needs to bind this device to WSL. Open PowerShell command prompt with administrator right and then type in the command `usbipd bind -b <BUSID>`:
 
    > **Note**: this command only needs to type in only one time,unless the computer has restarted.
 
@@ -79,7 +79,7 @@ Now configure the USB serial device to be able to connect to the WSL with `usbip
 
 it means that `usbipd` tool has been installed successfully on both side if all commands above can work well.
 
-The user might need to install/update pip in the virtual environment like:
+You might need to install/update pip in the virtual environment like:
 
 # Visual Studio Code
 
@@ -91,6 +91,6 @@ To develop in WSL, install the [Remote - WSL](ttps://marketplace.visualstudio.co
 
 # **Configure the ESP-IDF extension as explained in the [Install](./tutorial/install.md) tutorial or in [Setup](./SETUP.md) documentation.**
 
-> **Note**: Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder with the **ESP-IDF: Select where to Save Configuration Settings** command as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
+> **Note**: Running the setup from WSL could override the Windows host machine configuration settings since it is using your Settings by default. Consider saving settings to a workspace or workspace folder with the **ESP-IDF: Select where to Save Configuration Settings** command as described in the [working with multiple projects document](./MULTI_PROJECTS.md).
 
 Create an ESP-IDF Project and use ESP-IDF extension features. You can follow the [WSL Tutorial](./tutorial/wsl.md#practice) for an example.

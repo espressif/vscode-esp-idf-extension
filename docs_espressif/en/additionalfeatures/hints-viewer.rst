@@ -1,7 +1,11 @@
+.. _hints viewer:
+
 Hints Viewer
 =================
 
 This feature enhances your development experience by providing helpful hints for errors detected in your code.
+
+``idf.py`` will try to suggest hints on how to resolve errors. It works with a database of hints stored in ``$IDF_PATH/tools/idf_py_actions/hints.yml`` and the hints will be printed if a match is found for the given error. 
 
 Features
 -------------

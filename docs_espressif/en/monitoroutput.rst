@@ -3,9 +3,19 @@
 Monitor the Output
 ===============================
 
-Before monitoring the device's output, the user needs to specify the serial port of the device, select menu **View**, **Command Palette** and type **ESP-IDF: Select Port to Use** command.
+To view the serial monitor output from your device, please follow the instructions below:
 
-To start monitoring your device, select menu **View**, **Command Palette** and type **ESP-IDF: Monitor Device** command.
+1. Select the Serial Port:
+
+- Navigate to **View** > **Command Palette**.
+
+- Type **ESP-IDF: Select Port to Use** and select the command to specify the serial port of your device.
+
+2. Start Monitoring:
+
+- Go to **View** > **Command Palette**.
+
+- Type **ESP-IDF: Monitor Device** and select the command to start monitoring your device.
 
 .. image:: ../../media/tutorials/basic_use/monitor.png
 

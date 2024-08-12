@@ -1,7 +1,11 @@
 ESP-IDF Settings
 =======================
 
-This extension contributes the following settings that can be later updated in settings.json or from VS Code Settings Preference Menu by selecting menu **View** -> **Command Palette** -> **Preferences: Open Settings (UI)**.
+This extension contributes the following settings that can be later updated in settings.json or from VS Code Settings Preference Menu by:
+
+- Navigate to **View** > **Command Palette**.
+
+- Type **Preferences: Open Settings (UI)** and select the command to open the Setting management window.
 
 .. note::
   Please consider that ``~``, ``%VARNAME%`` and ``$VARNAME`` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a ``${env:VARNAME}`` such as ``${env:HOME}`` or you can refer to other configuration parameter path with ``${config:SETTINGID}`` such as ``${config:idf.espIdfPath}``.

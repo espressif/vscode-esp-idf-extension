@@ -2,7 +2,7 @@
 
 This extension provides many features to ease development of ESP-IDF Projects.
 
-- Quick [Configure ESP-IDF Extension](./SETUP.md) for first time user to help the user download, install and setup ESP-IDF and required tools within this Visual Studio Code extension.
+- Quick [Configure ESP-IDF Extension](./SETUP.md) for first time user to help you download, install and setup ESP-IDF and required tools within this Visual Studio Code extension.
 - Quick prototyping by copying ESP-IDF examples with **ESP-IDF: Show ESP-IDF Examples Projects**.
 - Syntax highlighting for [KConfig](#Kconfig-files-editor) and ESP-IDF Kconfig style syntax validation if `idf.useIDFKconfigStyle` is enabled.
 - GUI [SDK Configuration Editor](#SDK-Configuration-editor) to configure your ESP-IDF project (esp-idf menuconfig).
@@ -248,7 +248,7 @@ Here's the complete HTML table that combines the given information:
         </tr>
         <tr>
             <td>Launch IDF Monitor for CoreDump / GDB-Stub Mode</td>
-            <td>Launch ESP-IDF Monitor with websocket capabilities. If the user has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.</td>
+            <td>Launch ESP-IDF Monitor with websocket capabilities. If you has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.</td>
             <td></td>
             <td></td>
         </tr>
@@ -377,7 +377,7 @@ Here's the complete HTML table that combines the given information:
         </tr>
         <tr>
             <td>Select output and notification mode</td>
-            <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows the user to set if to show notifications, show output, both or none of them.</td>
+            <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows you to set if to show notifications, show output, both or none of them.</td>
             <td></td>
             <td></td>
         </tr>
@@ -395,7 +395,7 @@ Here's the complete HTML table that combines the given information:
         </tr>
         <tr>
             <td>Show Examples Projects</td>
-            <td>Launch UI to show examples from selected framework and allow the user to create a project from them. This command will show frameworks already configured in the extension so if
+            <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension so if
             you want to see ESP-Rainmaker examples you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath) and then execute this command to see the examples.</td>
             <td></td>
             <td></td>
@@ -454,7 +454,7 @@ On CMakeLists.txt file right click this extension provides a custom CMakeLists.t
 
 ## Custom Tasks
 
-There are couple of custom tasks that the user can implement by using one of these configuration settings:
+There are couple of custom tasks that you can implement by using one of these configuration settings:
 
 1. Set `idf.customTask` to define a custom task to be executed with **ESP-IDF: Execute Custom Task** command or the activity bar icon.
 2. Set `idf.preBuildTask` to define a custom task to be executed before **ESP-IDF: Build your Project** command task.
@@ -484,13 +484,13 @@ In Visual Studio Code, for **ESP-IDF: Monitor Device** we use the shell executab
 
 ## OpenOCD Server
 
-The user can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. The output is shown in menu `View` -> `Output` -> `OpenOCD`. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for Gdb.
+you can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the Visual Studio Code status bar. The output is shown in menu `View` -> `Output` -> `OpenOCD`. By default it will be launched using localhost, port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for Gdb.
 
 Before using the OpenOCD server, you need to set the proper values for OpenOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in OpenOCD using **ESP-IDF: Select OpenOCD Board Configuration**.
 
-> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+> **NOTE:** you can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-The resulting OpenOCD server launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`. The `idf.openOcdDebugLevel` is a number used to define the OpenOCD Log Level (0-4) and `idf.openOcdLaunchArgs` is a string array of any custom openOCD launch arguments the user wants to use.
+The resulting OpenOCD server launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`. The `idf.openOcdDebugLevel` is a number used to define the OpenOCD Log Level (0-4) and `idf.openOcdLaunchArgs` is a string array of any custom openOCD launch arguments you wants to use.
 
 ## Partition Table Tree
 
@@ -498,9 +498,9 @@ Click the`ESP-IDF Explorer` in the [Activity Bar](https://code.visualstudio.com/
 
 ## SDK Configuration Editor
 
-This extension includes a GUI Menuconfig using the `ESP-IDF: SDK Configuration Editor` command that reads your current project folder's `sdkconfig` file (if available, otherwise it would take default values) and start the [ESP-IDF JSON Configuration Server](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=confserver#json-configuration-server) process (confserver.py in **\${IDF_PATH}**/tools) that enables the user to redefine ESP-IDF project and board configuration.
+This extension includes a GUI Menuconfig using the `ESP-IDF: SDK Configuration Editor` command that reads your current project folder's `sdkconfig` file (if available, otherwise it would take default values) and start the [ESP-IDF JSON Configuration Server](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=confserver#json-configuration-server) process (confserver.py in **\${IDF_PATH}**/tools) that enables you to redefine ESP-IDF project and board configuration.
 
-When the user modify a parameter value, the value is send to the `confserver.py` process, which return the new value and other values modified to GUI Menuconfig and then update the values in the UI.
+When you modify a parameter value, the value is send to the `confserver.py` process, which return the new value and other values modified to GUI Menuconfig and then update the values in the UI.
 
 Values are not automatically saved to the SDKConfig file until you click save changes. You can cancel any changes and load the values from the SDKConfig file by clicking cancel changes. If you click set default the current SDKConfig file is replaced by a template SDKConfig file and then loaded into the GUI Menuconfig rendered values.
 
@@ -512,7 +512,7 @@ An IDF GUI Menuconfig log in `ESP-IDF` Output (Menu View -> Output) is created t
 
 ## Set Espressif Device Target
 
-The **ESP-IDF: Set Espressif Device Target** allows the user to choose among Espressif different chips based on [idf.py set-target](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=target#selecting-idf-target).
+The **ESP-IDF: Set Espressif Device Target** allows you to choose among Espressif different chips based on [idf.py set-target](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=target#selecting-idf-target).
 
 When you use this command, the following files are set:
 

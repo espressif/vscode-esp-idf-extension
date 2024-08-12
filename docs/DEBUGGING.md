@@ -33,7 +33,7 @@ The default configuration is:
 
 where required of the arguments are automatically defined and resolved by the extension itself.
 
-In case the user wants more customized control, the basic arguments in launch.json are:
+In case you wants more customized control, the basic arguments in launch.json are:
 
 ```JSON
 {
@@ -108,7 +108,7 @@ Other arguments please review this extension's package.json `gdbtarget` debugger
 
 ## Use Microsoft C/C++ Extension to Debug
 
-The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to debug, the community recommend this launch.json configuration:
+you can also use [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) to debug, the community recommend this launch.json configuration:
 
 ```JSON
 {
@@ -143,7 +143,7 @@ The user can also use [Microsoft C/C++ Extension](https://marketplace.visualstud
 
 # Using NativeDebug
 
-The user can also try using the [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug) extension with this example launch.json configuration:
+you can also try using the [Native Debug](https://marketplace.visualstudio.com/items?itemName=webfreak.debug) extension with this example launch.json configuration:
 
 ```JSON
 {
@@ -170,7 +170,7 @@ The user can also try using the [Native Debug](https://marketplace.visualstudio.
 
 **DEPRECATED NOTICE**: We are deprecating the use of our ESP-IDF Debug Adapter in favor of using the Eclipse CDT GDB Adapter. It will removed from extension in the future major release.
 
-This extension includes the [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) which implement the debug adapter protocol (DAP) to communicate Xtensa's Toolchain and OpenOCD with Visual Studio Code allowing the user to easily debug ESP-IDF applications. Visual Studio Code will:
+This extension includes the [ESP-IDF Debug Adapter](https://github.com/espressif/esp-debug-adapter) which implement the debug adapter protocol (DAP) to communicate Xtensa's Toolchain and OpenOCD with Visual Studio Code allowing you to easily debug ESP-IDF applications. Visual Studio Code will:
 
 1. Launch the debug adapter server in port `debugPort` given in launch.json if `mode` is `auto` or
 2. Connect to existing debug adapter server in port `debugPort` if `mode` is `manual`.
@@ -201,7 +201,7 @@ The ESP-IDF Debug Adapter settings for launch.json are:
   > **NOTE**: If `gdbinitFile` is defined, these commands will be ignored.
 - `logLevel`: Debug Adapter logging level (0-4), 5 - for a full OOCD log. Default: 2.
 - `mode`: Can be either `auto`, to start the Debug Adapter and OpenOCD server within the extension or `manual`, to connect to an already running Debug Adapter and OpenOCD session. Default: auto.
-  > **NOTE:** If set to `manual`, OpenOCD and ESP-IDF Debug Adapter have to be manually executed by the user and the extension will just try to connect to existing servers at configured ports.
+  > **NOTE:** If set to `manual`, OpenOCD and ESP-IDF Debug Adapter have to be manually executed by you and the extension will just try to connect to existing servers at configured ports.
 - `name`: The name of the debug launch configuration. This will be shown in the Run view (Menu View -> Run).
 - `type`: Type of debug configuration. It **must** be `espidf`.
 - `verifyAppBinBeforeDebug`: (Default `false`) If enabled the extension will verify that the current workspace folder `build/${project-name}.bin` is the same of the target device application. `${project-name}` is the name of the project (i.e blink) and is obtained from the `build/project_description.json`. Set this to `true` to add application binary validation before debug session.

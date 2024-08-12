@@ -3,9 +3,40 @@
 Debug Your Project
 ===============================
 
-Before debbugging the project, the user needs to specify the serial port of the device, select menu **View**, **Command Palette** and type **ESP-IDF: Select Port to Use** command.
+Debug Table of Content (ToC)
+--------------------------------
 
-Make sure that openOCD configuration files are correct by selecting menu **View**, **Command Palette** the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
+1. :ref:`Start a debug session`
+2. :ref:`What happens in the background ?`
+3. :ref:`Using the Visual Studio Code debugger`
+4. :ref:`Navigating Through the Code, Call Stack and Threads`
+5. :ref:`Setting and Clearing Breakpoints`
+6. :ref:`Halting the Target Manually`
+7. :ref:`Stepping Through the Code`
+8. :ref:`Watching and Setting Program Variables`
+9. :ref:`Setting Conditional Breakpoint`
+10. :ref:`Disassembly view`
+11. :ref:`Watchpoints (Data Breakpoints)`
+12. :ref:`Send commands to GDB`
+13. :ref:`ESP-IDF: Peripheral View`
+14. :ref:`Post-mortem debug use cases`
+
+Start a debug session
+--------------------------------
+
+Before debbugging the project, the user needs to specify the serial port of the device:
+
+1. Select the Serial Port:
+
+- Navigate to **View** > **Command Palette**.
+
+- Type **ESP-IDF: Select Port to Use** and select the command to specify the serial port of your device.
+
+2. Make sure that openOCD configuration files are correct by:
+
+- Navigate to **View** > **Command Palette**.
+
+- Type **ESP-IDF: Select OpenOCD Board Configuration** and select the command to to choose the openOCD configuration files for the extension openOCD server.
 
 .. note::
   * Please review `Configuration of OpenOCD for Specific Target <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_ to understand which board or configuration to use for your specific hardware.
@@ -15,16 +46,26 @@ To start debugging select menu **Run** and **Start Debugging** or just press F5.
 
 .. image:: ../../media/tutorials/debug/init_halted.png
 
-You can see the output from GDB in the debug console and the openOCD output in the menu **View** -> **Output** -> Select **ESP-IDF** from dropdown output.
+You can see the output from GDB in the debug console and the OpenOCD output in the menu **View** > **Output** > Select **ESP-IDF** from dropdown output.
 
 This cover the basic functionality of the ESP-IDF extension. Take a look at the :ref:`Additional IDE Features<additional features>` documentation for more.
+
 
 What happens in the background ?
 -------------------------------------
 
-First OpenOCD server is launched in the background and the output is shown in menu **View** -> **Output** -> Select **ESP-IDF** from the dropdown. By default it will be launched using localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for gdb. The user can modify **openocd.tcl.host** and **openocd.tcl.port** configuration settings to modify these values. You can also set **idf.openOcdDebugLevel** to lower or increase (0-4) the messages from OpenOCD in the ESP-IDF output.
+.. figure:: ../_static/jtag-debugging-overview.jpg
+    :align: center
+    :alt: JTAG debugging - overview diagram
+    :figclass: align-center
 
-Next The `Eclipse CDT GDB Adapter <https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter>`_ is launched in the background and the output is shown in the Debug Console. This debug adapter will start the connection to the device and launch the GDB debug session.
+    JTAG debugging - overview diagram
+
+1. First OpenOCD server is launched in the background and the output is shown in menu **View** > **Output** > Select **ESP-IDF** from the dropdown.
+
+By default it will be launched using localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for gdb. The user can modify **openocd.tcl.host** and **openocd.tcl.port** configuration settings to modify these values. You can also set **idf.openOcdDebugLevel** to lower or increase (0-4) the messages from OpenOCD in the ESP-IDF output.
+
+2. Next The `Eclipse CDT GDB Adapter <https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter>`_ is launched in the background and the output is shown in the ``Debug Console``. This debug adapter will start the connection to the device by launch the GDB debug session.
 
 This adapter is a middle man between Visual Studio Code, configured toolchain GDB and OpenOCD server. You can see how `Espressif chips debugging works <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works>`_ and how Visual Studio Code use `Debug adapters <https://microsoft.github.io/debug-adapter-protocol/overview>`_ to communicate with many debug tools.
 

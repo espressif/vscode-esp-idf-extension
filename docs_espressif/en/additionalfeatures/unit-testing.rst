@@ -5,7 +5,7 @@ ESP-IDF Unit testing with Unity
 
 When you are developing an application using ESP-IDF and you are considering adding unit testing for your components functions, this extension can help to discover and execute tests on your device based on Unity as described in `Unit Testing in ESP32 <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/unit-tests.html>`_ documentation.
 
-The extension explores tests in your current project workspace folders that follow the convension in the former documentation, this is, all tests files that follow `**/test/test_*.c` glob pattern in your current workspace folders. The tests cases are parsed with the ``TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)`` regular expression matching the following test file format:
+The extension explores tests in your current project workspace folders that follow the convension in the former documentation, this is, all tests files that follow ``**/test/test_*.c`` glob pattern in your current workspace folders. The tests cases are parsed with the ``TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)`` regular expression matching the following test file format:
 
 .. code-block:: C
 
@@ -45,7 +45,7 @@ Running the tests
 When the user click on the Testing Tab in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_, the extension will try to find all test files and test cases and save the list of test components to add later in step 3.
 
 .. note::
-  User needs to install ESP-IDF PyTest python requirements by selecting menu **View**, **Command Palette** and type **ESP-IDF Unit Test: Install ESP-IDF PyTest requirements**. Select the command and see the pytest package installation output.
+  User needs to install ESP-IDF PyTest python requirements by selecting menu **View** > **Command Palette** and type **ESP-IDF Unit Test: Install ESP-IDF PyTest requirements**. Select the command and see the pytest package installation output.
 
 When it press the run button on a test, it will configure the current project before the tests as follows:
 

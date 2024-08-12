@@ -23,7 +23,7 @@ For this tutorial we will use the get-started's blink example.
 
 We can observe when we re-open the file in a regular text-editor changes are reflected.
 
-3. Now let's create a new ESP-IDF component in this project to modify its ``CMakeLists.txt``. Click menu **View** -> **Command Palette**, type **ESP-IDF: Create New ESP-IDF Component** and enter the new component name.
+3. Now let's create a new ESP-IDF component in this project to modify its ``CMakeLists.txt``. Click menu **View** > **Command Palette** and type **ESP-IDF: Create New ESP-IDF Component** and enter the new component name.
 
 4. A new component will be created in ``<project_path>/blink/components/<component_name>``. Opening in the regular text editor, the user will see an ``idf_component_register`` method with:
 

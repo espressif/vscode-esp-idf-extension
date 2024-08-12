@@ -325,7 +325,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Partition tree from target device and flash bin to partition](https://github.com/espressif/vscode-esp-idf-extension/pull/478)
 - [Project creation unit testing](https://github.com/espressif/vscode-esp-idf-extension/pull/479)
 - [Update debug adapter to latest commit](https://github.com/espressif/vscode-esp-idf-extension/pull/481)
-- [Use Espressif mirrors for ESP-IDF tools download in setup wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/514)
+- [Use Espressif mirrors for ESP-IDF Tools download in setup wizard](https://github.com/espressif/vscode-esp-idf-extension/pull/514)
 - Add CCache [enable setting](https://github.com/espressif/vscode-esp-idf-extension/pull/517) into [build task](https://github.com/espressif/vscode-esp-idf-extension/pull/523)
 - [Add serial port and IDF_TARGET to status bar](https://github.com/espressif/vscode-esp-idf-extension/pull/519)
 

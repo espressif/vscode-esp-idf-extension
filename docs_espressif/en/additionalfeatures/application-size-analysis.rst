@@ -1,10 +1,20 @@
 ESP-IDF Application Size Analysis
 ===================================
 
-After building with select menu **View**, **Command Palette**, type **ESP-IDF: Build your Project** command; a the application size analysis task will be executed in a terminal showing the size analysis results. You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
+The ESP-IDF Application Size Analysis tool provides a detailed breakdown of your application’s memory usage, helping developers optimize storage allocation. For a visual size analysis:
 
-.. image:: ../../../media/tutorials/basic_use/size_terminal.png
+- Navigate to **View** > **Command Palette**.
 
-For a visual output, Select menu **View**, **Command Palette**, type **ESP-IDF: Size Analysis of the Binaries** command to visually review the application size information.
+- Type **ESP-IDF: Size Analysis of the Binaries** and select the command to visually review the application size information.
 
 .. image:: ../../../media/tutorials/basic_use/size.png
+
+Follow the below instructions to view applciation size analysis from CLI:
+
+- Navigate to **View** > **Command Palette**.
+
+- Type **ESP-IDF: Build your Project** and select the command to specify the build your project.
+
+- The application size analysis task will be executed in a terminal showing the size analysis results. You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
+
+.. image:: ../../../media/tutorials/basic_use/size_terminal.png

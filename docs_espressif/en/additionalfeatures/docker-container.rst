@@ -176,7 +176,7 @@ Observe that there is a ``.devcontainer`` folder in the example_project folder, 
 
 If the user readers also need to generate their own ``.devcontainer`` folder content, as follows:
 
-1. open example project with vscode and then press menu **View**, click on **Command Palette**.
+1. Open example project with vscode and then press menu **View** > **Command Palette**.
 2. In the pop-up dialog box, search for the **ESP-IDF: Add Docker Container Configuration** command.
 3. The ``.devcontainer`` folder will be generated for the currently opened project.
 
