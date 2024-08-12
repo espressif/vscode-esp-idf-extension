@@ -581,7 +581,11 @@ export function execChildProcess(
         }
         if (stderr && stderr.length > 2) {
           if (!stderr.startsWith("Open On-Chip Debugger v")) {
-            Logger.error(stderr, new Error(stderr), "utils execChildProcess stderr");
+            Logger.error(
+              stderr,
+              new Error(stderr),
+              "utils execChildProcess stderr"
+            );
           }
           if (
             !stderr.toLowerCase().startsWith("warning") &&
@@ -1165,7 +1169,7 @@ export async function isBinInPath(
       `Cannot access binary filePath: ${binaryName}`,
       error,
       "src utils isBinInPath",
-      { envPath: pathNameInEnv ? env[pathNameInEnv]: undefined },
+      { envPath: pathNameInEnv ? env[pathNameInEnv] : undefined },
       false
     );
   }
