@@ -74,7 +74,11 @@ export async function installIdfGit(
   }
 
   const gitZipPathExists = await pathExists(idfGitZipPath);
-  if (!gitZipPathExists) {
+  if (gitZipPathExists) {
+    const existingMsg = `Using existing ${idfGitZipPath}`;
+    OutputChannel.appendLine(existingMsg);
+    Logger.info(existingMsg);
+  } else {
     const msgDownload = `Downloading ${idfGitZipPath}...`;
     progress.report({ message: msgDownload });
     OutputChannel.appendLine(msgDownload);
@@ -85,10 +89,10 @@ export async function installIdfGit(
       pkgProgress,
       cancelToken
     );
-  } else {
-    const existingMsg = `Using existing ${idfGitZipPath}`;
-    OutputChannel.appendLine(existingMsg);
-    Logger.info(existingMsg);
+  }
+  const doesZipfileExist = await pathExists(idfGitZipPath);
+  if (!doesZipfileExist) {
+    throw new Error(`${idfGitZipPath} was not downloaded.`);
   }
   const installingMsg = `Installing ${idfGitDestPath} ...`;
   progress.report({ message: installingMsg });
@@ -150,7 +154,11 @@ export async function installIdfPython(
     }
   }
   const pyZipPathExists = await pathExists(idfPyZipPath);
-  if (!pyZipPathExists) {
+  if (pyZipPathExists) {
+    const usingExistingPathMsg = `Using existing ${idfPyZipPath}`;
+    OutputChannel.appendLine(usingExistingPathMsg);
+    Logger.info(usingExistingPathMsg);
+  } else {
     progress.report({ message: `Downloading ${idfPyZipPath}...` });
     await downloadManager.downloadWithRetries(
       pythonURLToUse,
@@ -158,10 +166,10 @@ export async function installIdfPython(
       pkgProgress,
       cancelToken
     );
-  } else {
-    const usingExistingPathMsg = `Using existing ${idfPyZipPath}`;
-    OutputChannel.appendLine(usingExistingPathMsg);
-    Logger.info(usingExistingPathMsg);
+  }
+  const doesZipfileExist = await pathExists(idfPyZipPath);
+  if (!doesZipfileExist) {
+    throw new Error(`${idfPyZipPath} was not downloaded.`);
   }
   progress.report({ message: `Installing ${idfPyDestPath}...` });
   await installManager.installZipFile(idfPyZipPath, idfPyDestPath, cancelToken);
@@ -175,11 +183,12 @@ export async function installIdfPython(
       { cwd: idfPyDestPath }
     );
   } else {
-    await spawn(join(idfPyDestPath, "python.exe"),
-    ["-m", "pip", "install", "virtualenv"],
-    {cwd : idfPyDestPath}
+    await spawn(
+      join(idfPyDestPath, "python.exe"),
+      ["-m", "pip", "install", "virtualenv"],
+      { cwd: idfPyDestPath }
     );
   }
-  
+
   return join(idfPyDestPath, "python.exe");
 }
