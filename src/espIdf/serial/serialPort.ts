@@ -115,7 +115,7 @@ export class SerialPort {
           workspaceFolder
         ) as boolean;
         const useSerialPortVendorProductFilter = idfConf.readParameter(
-          "idf.enableSerialPortChipIdRequest",
+          "idf.useSerialPortVendorProductFilter",
           workspaceFolder
         ) as boolean;
         if (useSerialPortVendorProductFilter) {
@@ -131,7 +131,7 @@ export class SerialPort {
         }
 
         if (!enableSerialPortChipIdRequest) {
-          return choices;
+          return resolve(choices);
         }
 
         const esptoolPath = join(
