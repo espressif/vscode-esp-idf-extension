@@ -81,7 +81,7 @@ export class AppTraceManager extends EventEmitter {
       "0 = Starts Immediately; else wait",
       "trace.wait4halt",
       (value: string): string => {
-        if (value.match(/^[0-9]*$/g)) {
+        if (value.match(/^[0-1]$/g)) {
           return "";
         }
         return "Invalid wait4halt value, please enter only number";
@@ -109,7 +109,7 @@ export class AppTraceManager extends EventEmitter {
     validatorFunction: (value: string) => string,
     workspace: vscode.Uri
   ) {
-    const savedConf = idfConf.readParameter(paramName, workspace);
+    const savedConf = idfConf.readParameter(paramName, workspace) as string;
     const userInput = await vscode.window.showInputBox({
       placeHolder: placeholder,
       value: savedConf,
@@ -157,10 +157,10 @@ export class AppTraceManager extends EventEmitter {
           workspace
         );
         this.workspaceFolder = workspace;
-        const traceSize = idfConf.readParameter("trace.trace_size", workspace);
-        const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace);
-        const wait4halt = idfConf.readParameter("trace.wait4halt", workspace);
-        const skipSize = idfConf.readParameter("trace.skip_size", workspace);
+        const traceSize = idfConf.readParameter("trace.trace_size", workspace) as string;
+        const stopTmo = idfConf.readParameter("trace.stop_tmo", workspace) as string;
+        const wait4halt = idfConf.readParameter("trace.wait4halt", workspace) as string;
+        const skipSize = idfConf.readParameter("trace.skip_size", workspace) as string;
         const startTrackingHandler = this.sendCommandToTCLSession(
           [
             "esp",
