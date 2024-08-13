@@ -2,7 +2,7 @@
 
 Let's open a ESP-IDF project. For this tutorial we will use the `system/console` example.
 
-1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
+1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If you doesn't see the option, please review the setup in [Install tutorial](./install.md).
 
 2. A window will be open with a list a projects, go the **system** section and choose the `console`. You will see a **Create Project Using Example Console** button in the top and a description of the project below. Click the button and choose the containing directory. The project will be opened in a new window.
 
@@ -29,12 +29,12 @@ Let's open a ESP-IDF project. For this tutorial we will use the `system/console`
 # Name, Type, SubType, Offset, Size, Flag
 ```
 
-6. Once partition table editor is open, the user can edit the partition table as desired. For more information please refer to [this article](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html).
+6. Once partition table editor is open, you can edit the partition table as desired. For more information please refer to [this article](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html).
 
 <p>
   <img src="../../media/tutorials/partition_table/partition_editor.png" alt="Partition Table Editor" height="500">
 </p>
 
-7. Once the user is satisfied press `Save` to save the changes, _this will override the content of csv file_.
+7. Once you is satisfied press `Save` to save the changes, _this will override the content of csv file_.
 
 8. Now you can click the `Select Flash Method, Build, Flash` right top buttons in order to finish flashing the partition table to the chip.

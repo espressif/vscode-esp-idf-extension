@@ -69,7 +69,7 @@ In case you wants more customized control, the basic arguments in launch.json ar
 
 Some additional arguments you might use are:
 
-- `runOpenOCD`: (Default: true). Run extension openOCD Server.
+- `runOpenOCD`: (Default: true). Run extension OpenOCD Server.
 - `verifyAppBinBeforeDebug`: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.
 - `logFile`: Absolute path to the file to log interaction with gdb. Example: `${workspaceFolder}/gdb.log`.
 - `verbose`: Produce verbose log output.

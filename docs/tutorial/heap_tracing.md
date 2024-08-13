@@ -4,7 +4,7 @@ Heap Tracing allows tracing of code which allocates/frees memory. More informati
 
 Let's open a ESP-IDF project. For this tutorial we will use the `system/sysview_tracing_heap_log` example.
 
-1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
+1. Click menu View -> Command Palette... and search for the **ESP-IDF: Show Examples Projects** command and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If you doesn't see the option, please review the setup in [Install tutorial](./install.md).
 
 2. A window will be open with a list a projects, go the **system** section and choose the `sysview_tracing_heap_log`. You will see a **Create Project Using Example sysview_tracing_heap_log** button in the top and a description of the project below. Click the button and the project will be opened in a new window.
 
@@ -16,7 +16,7 @@ For this example, the project has been already configured for application tracin
 
 3. Configure, build and flash your project as explained in the [Basic use tutorial](./basic_use.md).
 
-4. Click the `ESP-IDF Explorer` in the [Activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `ESP-IDF APP TRACER` section, click the `Start Heap Trace`. This will execute the extension's openOCD server and send the corresponding tracing commands to generate a tracing log. You can see the generated tracing log in the `APP TRACE ARCHIVES` named with `Heap Trace Log #1`. Each time you execute `Start Heap Trace` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
+4. Click the `ESP-IDF Explorer` in the [Activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `ESP-IDF APP TRACER` section, click the `Start Heap Trace`. This will execute the extension's OpenOCD server and send the corresponding tracing commands to generate a tracing log. You can see the generated tracing log in the `APP TRACE ARCHIVES` named with `Heap Trace Log #1`. Each time you execute `Start Heap Trace` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
 
 > **NOTE:** The OpenOCD server output is shown in menu `View` -> Output -> ESP-IDF.
 

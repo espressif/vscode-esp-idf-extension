@@ -1,5 +1,3 @@
-.. _troubleshooting:
-
 Troubleshooting
 ===============================
 
@@ -20,7 +18,7 @@ MacOS/Linux
 
 In Visual Studio Code, select menu **Help** > **Toggle Developer Tools** and copy any error in the Console tab related to this extension.
 
-Visual Studio Code allows the user to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project is using the right settings. The **ESP-IDF: Doctor command** output will show the settings actually being used.
+Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project is using the right settings. The **ESP-IDF: Doctor command** output will show the settings actually being used.
 
 Review the `OpenOCD troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ related to the **OpenOCD** output, for application tracing, debug or any OpenOCD related issues.
 
@@ -29,4 +27,4 @@ If there is any Python package error, please try to reinstall the required pytho
 .. note::
   * When downloading ESP-IDF using git cloning in Windows if you receive errors like "unable to create symlink", enabling **Developer Mode** while cloning ESP-IDF could help resolve the issue.
 
-If the user can't resolve the error, please search in the `github repository issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing errors or open a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
+If you can't resolve the error, please search in the `github repository issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing errors or open a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.

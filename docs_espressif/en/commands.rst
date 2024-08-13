@@ -77,7 +77,7 @@ All commands start with ``ESP-IDF:``.
    * - Install ESP-HomeKit-SDK
      - Clone ESP-HomeKit-SDK inside the selected directory and set **idf.espHomeKitSdkPath** (**idf.espHomeKitSdkPathWin** in Windows) configuration setting.
    * - Launch IDF Monitor for CoreDump / GDB-Stub Mode
-     - Launch ESP-IDF Monitor with websocket capabilities. If the user has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.
+     - Launch ESP-IDF Monitor with websocket capabilities. If you has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.
    * - Launch QEMU Server
      - As described in :ref:`QEMU documentation <qemu>` this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.
    * - Launch QEMU Debug Session
@@ -115,17 +115,17 @@ All commands start with ``ESP-IDF:``.
    * - Select port to use
      - Select which serial port to use for ESP-IDF tasks like flashing or monitor your device.
    * - Select OpenOCD Board Configuration
-     - Select the openOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.
+     - Select the OpenOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.
    * - Select where to save configuration settings
      - In Visual Studio Code settings can be saved in 3 places: User Settings (global settings), workspace ( .code-workspace file) or workspace folder (.vscode/settings.json).
    * - Select output and notification mode
-     - This extension shows many notifications and output in the Output window **ESP-IDF**. This command allows the user to set if to show notifications, show output, both or none of them.
+     - This extension shows many notifications and output in the Output window **ESP-IDF**. This command allows you to set if to show notifications, show output, both or none of them.
    * - Set Espressif device target
      - This will set the target for the current project (IDF_TARGET). Similar to **idf.py set-target**. For example if you want to use ESP32 or ESP32-C3 you need to execute this command.
    * - Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)
      - The **ESP-IDF: Set ESP-MATTER Device Path (ESP_MATTER_DEVICE_PATH)** is used to define the device path for ESP-Matter. ESP-Matter is not supported in Windows.
    * - Show Examples Projects
-     - Launch UI to show examples from selected framework and allow the user to create a project from them. This command will show frameworks already configured in the extension so if you want to see ESP-Rainmaker examples you need to run the **Install ESP-Rainmaker** first (or set the equivalent setting idf.espRainmakerPath) and then execute this command to see the examples.
+     - Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension so if you want to see ESP-Rainmaker examples you need to run the **Install ESP-Rainmaker** first (or set the equivalent setting idf.espRainmakerPath) and then execute this command to see the examples.
    * - Show Ninja Build Summary
      - Execute the Chromium ninja-build-summary.py
    * - Size analysis of the binaries

@@ -18,7 +18,7 @@ The extension explores tests in your current project workspace folders that foll
 Configure the ESP-IDF Project to enable unit tests in the extension
 -------------------------------------------------------------------------
 
-Let's say the user has a ESP-IDF project with the following structure:
+Let's say you have a ESP-IDF project with the following structure:
 
 .. code-block::
 
@@ -35,14 +35,14 @@ Let's say the user has a ESP-IDF project with the following structure:
 
 Inside the ``testable`` component, unit tests are added into ``test`` directory. ``test`` directory contains source files of the tests and the component makefile (component.mk / CMakeLists.txt).
 
-If the user wants to add tests for a ``testable`` component, just need to define a ``test`` subdirectory and add ``test_name.c`` files with the different test cases to run.
+If you want to add tests for a ``testable`` component, just need to define a ``test`` subdirectory and add ``test_name.c`` files with the different test cases to run.
 
 This is the structure from the `ESP-IDF unit_test example <https://github.com/espressif/esp-idf/tree/master/examples/system/unit_test>`_ which can serve as reference.
 
 Running the tests
 --------------------------------------------
 
-When the user click on the Testing Tab in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_, the extension will try to find all test files and test cases and save the list of test components to add later in step 3.
+When you click on the Testing Tab in the `Visual Studio Code Activity bar <https://code.visualstudio.com/docs/getstarted/userinterface>`_, the extension will try to find all test files and test cases and save the list of test components to add later in step 3.
 
 .. note::
   User needs to install ESP-IDF PyTest python requirements by selecting menu **View** > **Command Palette** and type **ESP-IDF Unit Test: Install ESP-IDF PyTest requirements**. Select the command and see the pytest package installation output.

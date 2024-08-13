@@ -1,6 +1,6 @@
 # Project Configuration Editor
 
-To allow the user to have multiple configurations for the same project, the user can define several settings to produce different build results. For example, take a look at the [Multiple configuration tutorial](./tutorial/multiple_config.md) which uses the ESP-IDF CMake build system [multi_config](https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config) example.
+To allow you to have multiple configurations for the same project, you can define several settings to produce different build results. For example, take a look at the [Multiple configuration tutorial](./tutorial/multiple_config.md) which uses the ESP-IDF CMake build system [multi_config](https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config) example.
 
 Use the `ESP-IDF: Open Project Configuration` to manage the project configuration profiles to record the following settings for each configuration:
 
@@ -26,7 +26,7 @@ Use the `ESP-IDF: Open Project Configuration` to manage the project configuratio
 
 After defining a profile and the settings for each profile use the `ESP-IDF: Select Project Configuration` command to choose the configuration to override extension configuration settings.
 
-There are many use cases for having multiple configurations profiles. It allows the user to store settings together and easily switch between one and the other. Let's explore one of this use cases here, having a development and production build profiles.
+There are many use cases for having multiple configurations profiles. It allows you to store settings together and easily switch between one and the other. Let's explore one of this use cases here, having a development and production build profiles.
 
 # Development and Release Profiles for ESP-IDF Project
 

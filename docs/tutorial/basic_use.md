@@ -77,7 +77,7 @@ See other [ESP-IDF Extension Features](../FEATURES.md).
 
 ## About JTAG Flashing
 
-JTAG flash mode requires openOCD v0.10.0-esp32-20201125 or later. To replace OpenOCD, just get one of the latest [OpenOCD releases](https://github.com/espressif/openocd-esp32/releases) and replace in `idf.customExtraPaths` the OpenOCD binary path like:
+JTAG flash mode requires OpenOCD v0.10.0-esp32-20201125 or later. To replace OpenOCD, just get one of the latest [OpenOCD releases](https://github.com/espressif/openocd-esp32/releases) and replace in `idf.customExtraPaths` the OpenOCD binary path like:
 
 ```
 c:\\esp\\tools\\.espressif\\tools\\openocd-esp32\\v0.10.0-esp32-20200709\\openocd-esp32\\bin

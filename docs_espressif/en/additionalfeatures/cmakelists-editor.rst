@@ -1,6 +1,9 @@
 CMakeLists.txt Editor
 ==============================
 
+.. warning::
+  * This will override any existing code in the file with the one generated in the editor. If you have any code not included in the schema (or single line comments) use a regular text editor instead.
+
 When you right click on any CMakeLists.txt file this extension provides a custom CMakeLists.txt Editor to fill an ESP-IDF Project and Component Registration as specified in:
 
 - `ESP-IDF Project CMakeLists.txt <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file>`_
@@ -11,7 +14,7 @@ You need to choose which kind of CMakeLists.txt file (project or component) to e
 .. note::
   * All inputs are described in the `CMakeLists.txt schema <https://github.com/espressif/vscode-esp-idf-extension/blob/master/cmakeListsSchema.json>`_
   * This editor doesn't support all CMake functions and syntaxes. This editor should only be used for simple CMakeLists.txt options such as component registration (using idf_component_register) and basic project elements. If you need more customization or advanced CMakeLists.txt, consider reviewing `ESP-IDF Build System <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html>`_. Also review **CMakeLists.txt editor schema** for a list of supported code.
-  * THIS WILL OVERRIDE ANY EXISTING CODE IN THE FILE WITH THE ONE GENERATED IN THE EDITOR. IF YOU HAVE ANY CODE NOT INCLUDED IN THE SCHEMA (OR SINGLE LINE COMMENTS) USE A REGULAR TEXT EDITOR INSTEAD**
+
 
 For this tutorial we will use the get-started's blink example.
 
@@ -25,7 +28,7 @@ We can observe when we re-open the file in a regular text-editor changes are ref
 
 3. Now let's create a new ESP-IDF component in this project to modify its ``CMakeLists.txt``. Click menu **View** > **Command Palette** and type **ESP-IDF: Create New ESP-IDF Component** and enter the new component name.
 
-4. A new component will be created in ``<project_path>/blink/components/<component_name>``. Opening in the regular text editor, the user will see an ``idf_component_register`` method with:
+4. A new component will be created in ``<project_path>/blink/components/<component_name>``. Opening in the regular text editor, you will see an ``idf_component_register`` method with:
 
 .. code-block:: C
 
@@ -45,7 +48,7 @@ Right click on ``<project_path>/blink/components/<component_name>/CMakeLists.txt
 
 7. As described in `ESP-IDF Component CMakeLists.txt Files <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files>`_, ``REQUIRES`` is used to list the component dependencies. Type ``mbedtls`` and click the ``+`` button (can also press enter on typing).
 
-8. Click on ``Save`` button and close the CMakeLists.txt editor. If you open ``<project_path>/blink/components/<component_name>/CMakeLists.txt`` on a regular text editor, the user will see:
+8. Click on ``Save`` button and close the CMakeLists.txt editor. If you open ``<project_path>/blink/components/<component_name>/CMakeLists.txt`` on a regular text editor, you will see:
 
 .. code-block:: C
   
@@ -53,4 +56,11 @@ Right click on ``<project_path>/blink/components/<component_name>/CMakeLists.txt
                          INCLUDE_DIRS "include"
                          REQUIRES "mbedtls")
 
-9. Check `ESP-IDF Project CMakeLists.txt <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file>`_ and `ESP-IDF Component CMakeLists.txt Files <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files>`_ for additional fields information.
+Reference links
+-----------------------
+
+To review all fields used in the CMakeLists.txt editor go to:
+
+1. `ESP-IDF Project CMakeLists.txt <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#project-cmakelists-file>`_  
+
+2. `ESP-IDF Component CMakeLists.txt Files <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files>`_

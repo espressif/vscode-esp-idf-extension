@@ -1,7 +1,7 @@
 FAQs
 ===============================
 
-**I have an issue or error with the Visual Studio Code extension, what can I do ?**
+**I have an issue or error with the Visual Studio Code extension, what can I do?**
 
 Take a look at the :ref:`Troubleshooting documentation <troubleshooting>` so you can see the error in the extension. You might be able to fix the issue yourself or give enough information for others to help you with the problem.
 
@@ -11,15 +11,15 @@ Search the `ESP-IDF extension repository <https://github.com/espressif/vscode-es
 
 Check out `ESP-FAQ <https://docs.espressif.com/projects/espressif-esp-faq/en/latest/>`_ or the `ESP-IDF forum <https://esp32.com>`_ itself.
 
-**I try to build my project but there is an error and I don't know what is happening. What to do ?**
+**I try to build my project but there is an error and I don't know what is happening. What to do?**
 
 First of all, have you configure the IDE plugin/extension properly ? Make sure to review the documentation to :ref:`Install ESP-IDF and Tools <installation>`.
 
 There was error in the setup or in your project code itself. Gather the :ref:`Troubleshooting documentation <troubleshooting>` and look for errors in these files. 
 
-Chances are that your issue have been posted before in the `ESP-IDF github repository <https://github.com/espressif/vscode-esp-idf-extension>`_ or `ESP-IDF forum <https://esp32.com>`_ . If not, you can open a new GitHub issue or open a topic in the forum.
+Chances are that your issue have been posted before in the `ESP-IDF github repository <https://github.com/espressif/vscode-esp-idf-extension>`_ or `ESP-IDF forum <https://esp32.com>`_. If not, you can open a new GitHub issue or open a topic in the forum.
 
-**How does a ESP-IDF project looks like ?**
+**How does a ESP-IDF project looks like?**
 
 Please take a look at the `build system documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#example-project>`_ to understand how to use each file.
 
@@ -40,7 +40,7 @@ Please take a look at the `build system documentation <https://docs.espressif.co
                             - src2.c
 
 
-**I tried flashing my project but I have an error similar to "Error: unable to open ftdi device with vid ". What to do ?**
+**I tried flashing my project but I have an error similar to "Error: unable to open ftdi device with vid ". What to do?**
 
 Take a look at `Configure JTAG Interface <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html>`_ to make sure that your drivers are defined correctly.
 
@@ -59,9 +59,9 @@ Using the `IDF-ENV <https://github.com/espressif/idf-env>`_ you can manage sever
 **While trying to debug my project I have encountered an issue. What should I do?**
 
 First review the `ESP-IDF JTAG Debugging documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#jtag-debugging-setup-openocd>`_ to understand how debugging works and the expected configuration of your device.
-The debugger is connected to openOCD. Please take a look at `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ for any openOCD errors you might have encountered.
+The debugger is connected to OpenOCD. Please take a look at `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ for any OpenOCD errors you might have encountered.
 
-Check your IDE integration log files and post an issue in the respective GitHub repository if the issue is not related to openOCD itself. Take a look at the :ref:`Troubleshooting documentation <troubleshooting>` so you can see the error in the extension.
+Check your IDE integration log files and post an issue in the respective GitHub repository if the issue is not related to OpenOCD itself. Take a look at the :ref:`Troubleshooting documentation <troubleshooting>` so you can see the error in the extension.
 
 **I have an issue flashing my Espressif device, What should i do?**
 

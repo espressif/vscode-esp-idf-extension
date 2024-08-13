@@ -1,38 +1,54 @@
 Project Configuration Editor
 ====================================
 
-To allow the user to have multiple configurations for the same project, the user can define several settings to produce different build results. For example, take a look at the `Multiple configuration tutorial <multiple_config>`_ which uses the ESP-IDF CMake build system `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example.
+To allow you to have multiple configurations for the same project, you can define several settings to produce different build results. For example, take a look at the `Multiple configuration tutorial <multiple_config>`_ which uses the ESP-IDF CMake build system `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example.
 
 1. Click menu **View** > **Command Palette...** 
 2. Type **ESP-IDF: Open Project Configuration** and select the command. 
 3. This will launch a Project configuration wizard to manage the project configuration profiles to record the following settings for each configuration:
 
-- **idf.cmakeCompilerArgs**
-- **idf.ninjaArgs**
-- **idf.buildPath**
-- **idf.sdkconfigFilePath**
-- **idf.sdkconfigDefaults**
-
-- **idf.customExtraVars**
-- **idf.adapterTargetName**
-- **idf.flashBaudRate**
-- **idf.monitorBaudRate**
-
-- **idf.openOcdDebugLevel**
-- **idf.openOcdConfigs**
-- **idf.openOcdLaunchArgs**
-
-- **idf.preBuildTask**
-- **idf.postBuildTask**
-- **idf.preFlashTask**
-- **idf.postFlashTask**
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| Setting ID                        | Description                                                                               |
++===================================+===========================================================================================+
+| **idf.cmakeCompilerArgs**         | Arguments for CMake compilation task                                                      |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.ninjaArgs**                 | Arguments for Ninja build task                                                            |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.buildPath**                 | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build)  |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | Absolute path for sdkconfig file                                                          |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.sdkconfigDefaults**         | List of sdkconfig default values for initial build configuration                          |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.customExtraVars**           | Variables to be added to system environment variables                                     |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.adapterTargetName**         | ESP-IDF Target Chip (Example: esp32)                                                      |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.flashBaudRate**             | Flash Baud rate                                                                           |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.monitorBaudRate**           | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)    |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.openOcdDebugLevel**         | Set openOCD Debug Level (0-4) Default: 2                                                  |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.openOcdConfigs**            | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                       |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.openOcdLaunchArgs**         | Launch Arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs          |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.preBuildTask**              | Command string to execute before build task                                               |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.postBuildTask**             | Command string to execute after build task                                                |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.preFlashTask**              | Command string to execute before flash task                                               |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.postFlashTask**             | Command string to execute after flash task                                                |
++-----------------------------------+-------------------------------------------------------------------------------------------+
 
 4. After defining a profile and the settings for each profile use:
 
 - Click menu **View** > **Command Palette...** 
 - Type **ESP-IDF: Select Project Configuration** command to choose the configuration to override extension configuration settings.
 
-There are many use cases for having multiple configurations profiles. It allows the user to store settings together and easily switch between one and the other. Let's explore one of this use cases here, having a development and production build profiles.
+There are many use cases for having multiple configurations profiles. It allows you to store settings together and easily switch between one and the other. Let's explore one of this use cases here, having a development and production build profiles.
 
 Development and Release Profiles for ESP-IDF Project
 -------------------------------------------------------

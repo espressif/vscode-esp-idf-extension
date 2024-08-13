@@ -17,7 +17,7 @@ Flash onto the Device
 
 - Choose ``UART``, ``JTAG`` or ``DFU`` flash mode. 
 
-3. Flashing task will start in the previously selected serial port, a new terminal will be launched with the flash task output and a notification bar with ``Flashing Project`` message until it is done then a Flash done message when finished.
+3. The flashing task will beign on the previously selected serial port, launching a new terminal displaying the flash task output. While flashing is in progress, a notification bar will display ``ESP-IDF: Flashing project`` Once the process is complete, the message will change to ``Flash Done ⚡️``.
 
 .. note::
   ``UART`` is the most common option for most Espressif devices.
@@ -35,7 +35,7 @@ Flash onto the Device
 Next step is to :ref:`Monitor the output <monitor the output>`.
 
 Other flashing commands
--------------------
+--------------------------
 
 You can also choose the flashing type ``UART``, ``JTAG`` or ``DFU`` (esp32s2 or esp32s3) based on your hardware connection.
 

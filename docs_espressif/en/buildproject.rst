@@ -1,5 +1,3 @@
-.. _build the project:
-
 Build the Project
 ===============================
 
@@ -14,11 +12,11 @@ Build the Project
 .. image:: ../../media/tutorials/basic_use/build.png
 
 .. note::
-  There is a **idf.notificationMode** configuration setting if the user does not wants to see the output automatically. Please review `ESP-IDF Settings <settings>` to see how to modify this configuration setting.
+  There is a **idf.notificationMode** configuration setting if you do not want to see the output automatically. Please review `ESP-IDF Settings <settings>` to see how to modify this configuration setting.
 
 You could modify the behavior of the build task with **idf.cmakeCompilerArgs** for Cmake configure step and **idf.ninjaArgs** for Ninja step. For example, using ``idf.ninjaArgs: [-j N]`` where N is the number of jobs run in parallel.
 
-3. After building the application size analysis task will be executed in a terminal showing the size analysis results.  You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
+3. After building the application, the size analysis task will be executed in a terminal, showing the binaries size analysis results. You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
 
 .. image:: ../../media/tutorials/basic_use/size_terminal.png
 

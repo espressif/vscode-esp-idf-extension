@@ -10,17 +10,17 @@ Partition Table Editor
 
 .. image:: ../../../media/tutorials/partition_table/partition_table_custom.png
 
-- If the partition table file doesn't exists, when you execute the command the file will be created. But if the partition table file already exists, make sure that the first two lines of the partion table csv file are:
+- If the partition table file doesn't exists, when you execute the command the file will be created. But if the partition table file already exists, make sure that the first two lines of the partion table CSV file are:
 
 .. code-block::
 
   # ESP-IDF Partition Table
   # Name, Type, SubType, Offset, Size, Flag
 
-- Once partition table editor is open, the user can edit the partition table as desired. For more information please refer to `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_ documentation.
+- Once partition table editor is open, you can edit the partition table as desired. For more information please refer to `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_ documentation.
 
 .. image:: ../../../media/tutorials/partition_table/partition_editor.png
 
-- Once the user is satisfied press ``Save`` to save the changes, `this will overrid the content of csv file`.
+- Once you are satisfied press ``Save`` to save the changes, ``this will override the content of CSV file``.
 
 - Now you can click the ``Select Flash Method``, ``Build``, ``Flash`` right top buttons in order to build and flash the partition table to the chip.

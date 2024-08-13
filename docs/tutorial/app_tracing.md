@@ -18,11 +18,11 @@ For this example, the project has been already configured for application tracin
 
 3. Configure, build and flash your project as explained in the [Basic use tutorial](./basic_use.md).
 
-4. Click the `ESP-IDF Explorer` in the [activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `IDF APP TRACER` section, click the `Start App Trace`. This will execute the extension's openOCD server and send the corresponding tracing commands to generate a tracing log. You can see the generated tracing log in the `APP TRACE ARCHIVES` named with `Trace Log #1`. Each time you execute `Start App Trace` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
+4. Click the `ESP-IDF Explorer` in the [activity bar](https://code.visualstudio.com/docs/getstarted/userinterface). On the `IDF APP TRACER` section, click the `Start App Trace`. This will execute the extension's OpenOCD server and send the corresponding tracing commands to generate a tracing log. You can see the generated tracing log in the `APP TRACE ARCHIVES` named with `Trace Log #1`. Each time you execute `Start App Trace` a new tracing will be generated and shown in the archives list. You can also start tracing by running the **ESP-IDF: App Trace** command.
 
-> **NOTE:** The openOCD server output is shown in menu `View` -> Output -> ESP-IDF.
+> **NOTE:** The OpenOCD server output is shown in menu `View` -> Output -> ESP-IDF.
 
-> **NOTE:** Make sure that openOCD configuration files are properly configured as described in [Debugging tutorial](./debugging.md).
+> **NOTE:** Make sure that OpenOCD configuration files are properly configured as described in [Debugging tutorial](./debugging.md).
 
 <p>
   <img src="../../media/tutorials/app_trace/start_tracing.png" alt="Start Tracing" height="500">

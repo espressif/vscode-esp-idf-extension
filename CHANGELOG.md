@@ -43,9 +43,9 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 - [Fix SDK Configuration editor info button](https://github.com/espressif/vscode-esp-idf-extension/pull/1123)
 - [Update docker container documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1127)
-- [Add openOCD troubleshooting link in error output](https://github.com/espressif/vscode-esp-idf-extension/pull/1137)
+- [Add OpenOCD troubleshooting link in error output](https://github.com/espressif/vscode-esp-idf-extension/pull/1137)
 - [Fix jtag pre post flash task](https://github.com/espressif/vscode-esp-idf-extension/pull/1156)
-- [Remove openOCD error messages from notifications](https://github.com/espressif/vscode-esp-idf-extension/pull/1157)
+- [Remove OpenOCD error messages from notifications](https://github.com/espressif/vscode-esp-idf-extension/pull/1157)
 - [Remove workspace folder selection from serial port selection](https://github.com/espressif/vscode-esp-idf-extension/pull/1167)
 
 ## [1.7.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.7.0)
@@ -197,7 +197,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Remove managed components on full clean command](https://github.com/espressif/vscode-esp-idf-extension/pull/793)
 - [Allow user to customize the build directory path](https://github.com/espressif/vscode-esp-idf-extension/pull/794)
 - [Light ESP-Matter download](https://github.com/espressif/vscode-esp-idf-extension/pull/820) Thanks @Diegorro98!
-- [Add input for custom openOCD board](https://github.com/espressif/vscode-esp-idf-extension/pull/830)
+- [Add input for custom OpenOCD board](https://github.com/espressif/vscode-esp-idf-extension/pull/830)
 - [Add variables parsing and view binary data in debugging session](https://github.com/espressif/vscode-esp-idf-extension/pull/831)
 
 ### Bug Fixes
@@ -230,7 +230,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add existing project tutorial](https://github.com/espressif/vscode-esp-idf-extension/pull/771)
 - [Add preview targets support in idf.py set-target](https://github.com/espressif/vscode-esp-idf-extension/pull/767)
 - [Peripheral Register view](https://github.com/espressif/vscode-esp-idf-extension/pull/755)
-- [Add custom openOCD server launch arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/777)
+- [Add custom OpenOCD server launch arguments](https://github.com/espressif/vscode-esp-idf-extension/pull/777)
 
 ### Bug Fixes
 
@@ -306,9 +306,9 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Fix multiple save scope calls on workspace folder setup](https://github.com/espressif/vscode-esp-idf-extension/pull/526)
 - [Fix documentation links](https://github.com/espressif/vscode-esp-idf-extension/pull/528)
 - [Fix spaces in git path](https://github.com/espressif/vscode-esp-idf-extension/pull/533)
-- [Remove openOCD copy rules button](https://github.com/espressif/vscode-esp-idf-extension/pull/544)
+- [Remove OpenOCD copy rules button](https://github.com/espressif/vscode-esp-idf-extension/pull/544)
 - [Update cppdbg launch json default configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/555) Thanks @rdancer !
-- [Fix openOCD configuration files in project wizard and settings](https://github.com/espressif/vscode-esp-idf-extension/pull/569)
+- [Fix OpenOCD configuration files in project wizard and settings](https://github.com/espressif/vscode-esp-idf-extension/pull/569)
 - [Fix idf size UI issues due to idf_size.py schema changes](https://github.com/espressif/vscode-esp-idf-extension/pull/535)
 - [Fix WSL detection and add WSL enable configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/578)
 - [Add silent notification for error messages](https://github.com/espressif/vscode-esp-idf-extension/pull/582)
@@ -319,7 +319,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 ### Features and enhancements
 
 - [Add ESP-IDF QEMU integration](https://github.com/espressif/vscode-esp-idf-extension/pull/451) to monitor and debug on emulated ESP32.
-- [Add openOCD rules command and button on setup wizard end for Linux users](https://github.com/espressif/vscode-esp-idf-extension/pull/470)
+- [Add OpenOCD rules command and button on setup wizard end for Linux users](https://github.com/espressif/vscode-esp-idf-extension/pull/470)
 - [Add verify matching binary before debug](https://github.com/espressif/vscode-esp-idf-extension/pull/472)
 - [Heap tracing using gdbinit file](https://github.com/espressif/vscode-esp-idf-extension/pull/467)
 - [Partition tree from target device and flash bin to partition](https://github.com/espressif/vscode-esp-idf-extension/pull/478)
@@ -332,7 +332,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 ### Bug Fixes
 
 - [Add git executable before venv](https://github.com/espressif/vscode-esp-idf-extension/pull/468)
-- [Add openOCD debug level configuration setting and fix ESP-IDF version without git history](https://github.com/espressif/vscode-esp-idf-extension/pull/518)
+- [Add OpenOCD debug level configuration setting and fix ESP-IDF version without git history](https://github.com/espressif/vscode-esp-idf-extension/pull/518)
 - [Add save scope reference in documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/489)
 - [Chinese localization fixes](https://github.com/espressif/vscode-esp-idf-extension/pull/507) Thanks @larryli !
 - [Fix arduino as component cloning promise await if directory exists](https://github.com/espressif/vscode-esp-idf-extension/pull/481)
@@ -356,7 +356,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 - [Fix app trace file path](https://github.com/espressif/vscode-esp-idf-extension/pull/431)
 - [Fix setup on Windows](https://github.com/espressif/vscode-esp-idf-extension/pull/444)
-- [Fix reset values on SDK Configuration editor and openOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/459)
+- [Fix reset values on SDK Configuration editor and OpenOCD version validator](https://github.com/espressif/vscode-esp-idf-extension/pull/459)
 - [Add extension templates in new project](https://github.com/espressif/vscode-esp-idf-extension/pull/461)
 - [Fix monitor closing before flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/463)
 
@@ -374,7 +374,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 - [Fix remove package.json dependencies](https://github.com/espressif/vscode-esp-idf-extension/commit/2c34b8fa6704e28aef47b22bf00bbffb0481799c)
 - [Enable IDF Component manager configuration setting](https://github.com/espressif/vscode-esp-idf-extension/pull/389)
-- [Fix openOCD default boards configuration files](https://github.com/espressif/vscode-esp-idf-extension/pull/391)
+- [Fix OpenOCD default boards configuration files](https://github.com/espressif/vscode-esp-idf-extension/pull/391)
 - [Fix binaries included in flashing](https://github.com/espressif/vscode-esp-idf-extension/pull/406)
 
 ## [1.0.3](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.0.3)
@@ -449,7 +449,7 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 
 - [ESP-IDF: Doctor command](https://github.com/espressif/vscode-esp-idf-extension/pull/255) to generate an extension configuration report.
 - [Enhance readme and documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/284)
-- [Select openOCD board command](https://github.com/espressif/vscode-esp-idf-extension/pull/286) based on esp-config.json from OpenOCD repository.
+- [Select OpenOCD board command](https://github.com/espressif/vscode-esp-idf-extension/pull/286) based on esp-config.json from OpenOCD repository.
 - [Russian localization for commands](https://github.com/espressif/vscode-esp-idf-extension/pull/216) Thanks @Vasilius-001 !
 
 ### Bug Fixes

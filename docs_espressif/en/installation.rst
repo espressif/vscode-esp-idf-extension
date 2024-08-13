@@ -48,9 +48,12 @@ After installing Visual Studio Code you need to install the ESP-IDF extension fo
 
 .. image:: ../../media/tutorials/setup/install-status.png
 
-6. If everything is installed correctly, the user will see a message that all settings have been configured. 
+6. If everything is installed correctly, you will see a message that all settings have been configured. 
 
 .. image:: ../../media/tutorials/setup/install-complete.png
+
+.. note::
+  For Linux users, a message is shown to add OpenOCD rules in ``/etc/udev/rules.d`` which you need to run with sudo privileges.
 
 7. Next step is to :ref:`Start a ESP-IDF Project <start a esp-idf project>`.
 

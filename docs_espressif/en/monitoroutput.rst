@@ -1,5 +1,3 @@
-.. _monitor the output:
-
 Monitor the Output
 ===============================
 

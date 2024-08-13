@@ -36,7 +36,7 @@ This is how the extension uses them:
 
 1. `idf.customExtraPaths` is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as `openocd` or `cmake` (i.e. build your current project) else extension commands will try to use what is already in your system PATH.
    > **NOTE:** In **ESP-IDF: Configure ESP-IDF Extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in `idf.customExtraPaths`.
-2. `idf.customExtraVars` stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
+2. `idf.customExtraVars` stores any custom environment variable such as OPENOCD_SCRIPTS, which is the OpenOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
 3. `idf.espIdfPath` (or `idf.espIdfPathWin` in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
 4. `idf.pythonBinPath` (or `idf.espIdfPathWin` in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF Extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in `idf.pythonBinPath`. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF Extension**
 5. `idf.gitPath` (or `idf.gitPathWin` in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
@@ -55,7 +55,7 @@ These settings are specific to the ESP32 Chip/Board
 | `idf.monitorBaudRate`                            | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
 | `idf.openOcdConfigs`                             | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
 | `idf.openOcdLaunchArgs`                          | Launch Arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs       |                           |
-| `idf.openOcdDebugLevel`                          | Set openOCD Debug Level (0-4) Default: 2                                               |                           |
+| `idf.openOcdDebugLevel`                          | Set OpenOCD Debug Level (0-4) Default: 2                                               |                           |
 | `idf.port`                                       | Path of Selected Device port                                                           |                           |
 | `idf.portWin`                                    | Path of Selected Device Port in Windows                                                |                           |
 | `openocd.jtag.command.force_unix_path_separator` | Forced to Use `/` as Path sep. for Win32 Based OS Instead of `\\`                      | User, Remote or Workspace |
@@ -75,7 +75,7 @@ This is how the extension uses them:
 5. `idf.openOcdConfigs` is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
 6. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
 7. `idf.openOcdDebugLevel`: Log level for OpenOCD Server output from 0 to 4.
-8. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting OpenOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
+8. `idf.openOcdLaunchArgs`: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code Coverage Specific Settings
 

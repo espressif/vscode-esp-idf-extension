@@ -10,7 +10,7 @@ This extension contributes the following settings that can be later updated in s
 .. note::
   Please consider that ``~``, ``%VARNAME%`` and ``$VARNAME`` are not recognized when set on ANY of this extension configuration settings. You can instead set any environment variable in the path using a ``${env:VARNAME}`` such as ``${env:HOME}`` or you can refer to other configuration parameter path with ``${config:SETTINGID}`` such as ``${config:idf.espIdfPath}``.
 
-The **idf.saveScope** allows the user to specify where to save settings when using commands such as **Set Espressif Device Target** and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. Use the **Select where to Save Configuration Settings** command to choose where to save settings when using this extension commands.
+The **idf.saveScope** allows you to specify where to save settings when using commands such as **Set Espressif Device Target** and other commands. Possible values are Global (User Settings), Workspace and WorkspaceFolder. Use the **Select where to Save Configuration Settings** command to choose where to save settings when using this extension commands.
 
 .. note::
   All settings can be applied to Global (User Settings), Workspace and WorkspaceFolder unless Scope is specified.
@@ -26,6 +26,8 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 | **idf.buildPath**                 | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build)  |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.buildPathWin**              | Custom build directory name for extension commands. (Default: \${workspaceFolder}\\build) |
++-----------------------------------+-------------------------------------------------------------------------------------------+
+| **idf.sdkconfigFilePath**         | Absolute path for sdkconfig file                                                          |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.sdkconfigDefaults**         | List of sdkconfig default values for initial build configuration                          |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
@@ -63,7 +65,7 @@ This is how the extension uses them:
 
 1. **idf.customExtraPaths** is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as ``openocd`` or ``cmake`` (i.e. build your current project) else extension commands will try to use what is already in your system PATH.
    > **NOTE:** In **ESP-IDF: Configure ESP-IDF Extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in **idf.customExtraPaths**.
-2. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in openocd server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
+2. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
 3. **idf.espIdfPath** (or **idf.espIdfPathWin** in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
 4. **idf.pythonBinPath** (or **idf.espIdfPathWin** in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF Extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in **idf.pythonBinPath**. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF Extension**
 5. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
@@ -115,7 +117,7 @@ This is how the extension uses them:
 5. **idf.openOcdConfigs** is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``). More information `OpenOCD JTAG Target configuration <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_.
 6. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
 7. **idf.openOcdDebugLevel**: Log level for OpenOCD Server output from 0 to 4.
-8. **idf.openOcdLaunchArgs**: Launch arguments string array for openOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
+8. **idf.openOcdLaunchArgs**: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
 
 .. note::
   * When you use the command **ESP-IDF: Set Espressif Device Target** it will override **idf.adapterTargetName** with selected chip and **idf.openOcdConfigs** with its default OpenOCD Configuration Files.

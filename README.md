@@ -73,7 +73,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 17. Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif Device Target** command.
 
-18. Use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
+18. Use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the OpenOCD configuration files for the extension OpenOCD server.
 
 19. Next configure your ESP-IDF project by pressing <kbd>F1</kbd> and typing **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where you can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
@@ -89,7 +89,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
     > **NOTE:** you can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
-24. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and openOCD is connecting correctly so the debugger works correctly).
+24. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and OpenOCD is connecting correctly so the debugger works correctly).
 
 Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
@@ -241,7 +241,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         </tr>
         <tr>
             <td>Select OpenOCD Board Configuration</td>
-            <td>Select the openOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.</td>
+            <td>Select the OpenOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.</td>
             <td></td>
             <td></td>
         </tr>
@@ -589,8 +589,8 @@ We have implemented some utilities commands that can be used in tasks.json and l
 ```
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
-- `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
-- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
+- `espIdf.getOpenOCDScriptValue`: Return the value of OpenOCD_SCRIPTS from `idf.customExtraVars` or from system OpenOCD_SCRIPTS environment variable.
+- `espIdf.getOpenOCDConfig`: Return the OpenOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
 - `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 - `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
@@ -607,16 +607,16 @@ A template Tasks.json is included when creating a project using **ESP-IDF: Creat
 4. `Clean` - Clean the project
 5. `Flash` - Flash the device
 6. `Monitor` - Start a monitor terminal
-7. `OpenOCD` - Start the openOCD server
+7. `OpenOCD` - Start the OpenOCD server
 8. `BuildFlash` - Execute a build followed by a flash command.
 
-Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system environment variables with openocd scripts folder path.
+Note that for OpenOCD tasks you need to define `OpenOCD_SCRIPTS` in your system environment variables with OpenOCD scripts folder path.
 
 # Troubleshooting
 
 If something is not working please check for any error on one of these:
 
-> **NOTE:** Use `idf.openOcdDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
+> **NOTE:** Use `idf.OpenOCDDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
 
 > **NOTE:** Use `logLevel` in your <project-directory>/.vscode/launch.json to 3 or more to show more debug adapter output.
 
@@ -631,7 +631,7 @@ If something is not working please check for any error on one of these:
 
 5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
 
-6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
+6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
 If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Please consider that this extension install ESP-IDF, this extension's and ESP-IDF Debug Adapter python packages when running the **ESP-IDF: Configure ESP-IDF Extension** setup wizard.
 

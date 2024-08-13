@@ -18,7 +18,7 @@ Espressif chips has a number of eFuses which can store system and user parameter
   <img src="../../media/tutorials/efuse/efuse_list.png" alt="eFuse Explorer list" height="300">
 </p>
 
-4. If you click on any category, the user will see the category Efuses and Values.
+4. If you click on any category, you will see the category Efuses and Values.
 
 <p>
   <img src="../../media/tutorials/efuse/efuse_expanded.png" alt="eFuse Explorer expanded"  height="300">

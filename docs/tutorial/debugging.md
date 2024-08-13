@@ -5,7 +5,7 @@
 This tutorial shows you how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
 
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
-2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or **ESP-IDF: Set Espressif Device Target**.
+2. Set the proper values for OpenOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in OpenOCD using **ESP-IDF: Select OpenOCD Board Configuration** or **ESP-IDF: Set Espressif Device Target**.
 
 > **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
 

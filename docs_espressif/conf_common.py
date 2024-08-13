@@ -6,6 +6,7 @@ languages = ['en', 'zh_CN']
 
 extensions += ['sphinx_copybutton',
                'sphinxcontrib.wavedrom',
+               'sphinx.ext.autosectionlabel'
                ]
 
 # link roles config

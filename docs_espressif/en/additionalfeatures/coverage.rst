@@ -1,7 +1,7 @@
 ESP-IDF Coverage
 ===============================
 
-Source code coverage is data indicating the count and frequency of every program execution path that has been taken within a program runtime. `Gcov <https://en.wikipedia.org/wiki/Gcov>`_ is a GCC tool that, when used in concert with the compiler, can generate log files indicating the execution count of each line of a source code.
+Source code coverage is data indicating the count and frequency of every program execution path that has been taken within a program runtime. `GCOV <https://en.wikipedia.org/wiki/Gcov>`_ is a GCC tool that, when used in concert with the compiler, can generate log files indicating the execution count of each line of a source code.
 
 Your ESP-IDF project should be configured to generate ``gcda/gcno`` coverage files using ``gcov``. Please read `GCOV Code Coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ to learn more about code coverage with GCOV in ESP-IDF projects.
 
@@ -16,20 +16,20 @@ Let's use the ESP-IDF `GCOV Example <https://github.com/espressif/esp-idf/tree/m
 
 - Type **ESP-IDF: Show Examples Projects** and choose ``Use Current ESP-IDF (/path/to/esp-idf)``. 
 
-If the user doesn't see the option, please review the current ESP-IDF setup in :ref:`Installation <installation>`.
+If you don't see the option, please review the current ESP-IDF setup in :ref:`Installation <installation>`.
 
 - A window will be open with a list a projects, go the **system** section and choose the ``gcov``. You will see a **Create Project Using Example gcov** button in the top and a description of the project below. Click **Create Project Using Example GCOV** button.
 
 .. image:: ../../../media/tutorials/coverage/gcov_example.png
 
-- Now select a container directory where to copy the example project. For example, if the user choose ``/Users/myUser/someFolder`` the resulting folder will be ``/Users/myUser/someFolder/gcov``. This new project directory will be created and opened in Visual Studio Code.
+- Now select a container directory where to copy the example project. For example, if you choose ``/Users/myUser/someFolder`` the resulting folder will be ``/Users/myUser/someFolder/gcov``. This new project directory will be created and opened in Visual Studio Code.
 
-- First the user should select an Espressif target (esp32, esp32s2, etc.) with:
+- First you should select an Espressif target (esp32, esp32s2, etc.) with:
 
   - Navigate to **View** > **Command Palette**.
   - Type **ESP-IDF: Set Espressif Device Target** command. Default is ``esp32`` and the one used in this tutorial.
 
-- Next configure your sdkconfig project with the **ESP-IDF: Configure Project SDKConfig for Coverage** command or by yourself using the **ESP-IDF: SDK Configuration Editor** command where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
+- Next configure your sdkconfig project with the **ESP-IDF: Configure Project SDKConfig for Coverage** command or by yourself using the **ESP-IDF: SDK Configuration Editor** command where you can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 .. image:: ../../../media/tutorials/basic_use/gui_menuconfig.png
 
@@ -49,9 +49,9 @@ If the user doesn't see the option, please review the current ESP-IDF setup in :
 - Launch a new terminal with menu **Terminal** > New Terminal and execute ``telnet <oocd_host> <oocd_port>`` which by default is ``telnet localhost 4444``. Latest MacOS users can use ``nc <oocd_host> <oocd_port>`` if ``telnet`` is not in the system.
 
 .. note::
-  The user can modify **openocd.tcl.host** and **openocd.tcl.port** configuration settings to modify these values.
+  you can modify **openocd.tcl.host** and **openocd.tcl.port** configuration settings to modify these values.
 
-- Send the openOCD command ``esp gcov dump`` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the ``esp gcov`` command for instant run-time dump.
+- Send the OpenOCD command ``esp gcov dump`` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the ``esp gcov`` command for instant run-time dump.
 
 .. image:: ../../../media/tutorials/coverage/oocd_cmds.png
 
@@ -75,5 +75,5 @@ Visual Studio code support ``"red"``, ``rgb(255,0,120)`` or ``rgba(120,0,0,0.1)`
 
 .. image:: ../../../media/tutorials/coverage/html_report.png
 
-.. warning::
+.. note::
   * Check the :ref:`Troubleshooting <troubleshooting>` section if you have any issues.

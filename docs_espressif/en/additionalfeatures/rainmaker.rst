@@ -9,10 +9,10 @@ Click the ``ESP-IDF Explorer`` in the `Activity bar <https://code.visualstudio.c
 
 .. image:: ../../../media/tutorials/rainmaker/connect.png
 
-The user will be prompted for the authentication method to connect with Rainmaker, either using the Rainmaker account user and password or with an OAuth app like Google, Github or Apple.
+You will be prompted for the authentication method to connect with Rainmaker, either using the Rainmaker account user and password or with an OAuth app like Google, Github or Apple.
 
 .. note::
-  * For OAuth to work properly, the user will be asked to provide permission to Visual Studio Code and the broswer to open Visual Studio Code back once the OAuth flow is done.
+  * For OAuth to work properly, you will be asked to provide permission to Visual Studio Code and the broswer to open Visual Studio Code back once the OAuth flow is done.
 
 .. image:: ../../../media/tutorials/rainmaker/auth_method.png
 

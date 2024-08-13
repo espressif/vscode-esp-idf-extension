@@ -10,7 +10,7 @@ Please take a look at [Coverage](../COVERAGE.md) for more information about code
 
 Let's use the ESP-IDF [GCOV Example](https://github.com/espressif/esp-idf/tree/master/examples/system/gcov) for this tutorial.
 
-1. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If the user doesn't see the option, please review the setup in [Install tutorial](./install.md).
+1. Click menu View -> Command Palette... and type **ESP-IDF: Show Examples Projects** and choose `Use Current ESP-IDF (/path/to/esp-idf)`. If you don't see the option, please review the setup in [Install tutorial](./install.md).
 
 2. A window will be open with a list a projects, go the **system** section and choose the `gcov`. You will see a **Create Project Using Example gcov** button in the top and a description of the project below. Click **Create Project Using Example GCOV** button.
 
@@ -18,11 +18,11 @@ Let's use the ESP-IDF [GCOV Example](https://github.com/espressif/esp-idf/tree/m
   <img src="../../media/tutorials/coverage/gcov_example.png" alt="GCov example" height="500">
 </p>
 
-3. Now select a container directory where to copy the example project. For example, if the user choose `/Users/myUser/someFolder` the resulting folder will be `/Users/myUser/someFolder/gcov`. This new project directory will be created and opened in Visual Studio Code.
+3. Now select a container directory where to copy the example project. For example, if you choose `/Users/myUser/someFolder` the resulting folder will be `/Users/myUser/someFolder/gcov`. This new project directory will be created and opened in Visual Studio Code.
 
-4. First the user should select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif Device Target** command. Default is `esp32` and the one used in this tutorial.
+4. First you should select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif Device Target** command. Default is `esp32` and the one used in this tutorial.
 
-5. Next configure your sdkconfig project with the **ESP-IDF: Configure Project SDKConfig for Coverage** command or by yourself using the **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
+5. Next configure your sdkconfig project with the **ESP-IDF: Configure Project SDKConfig for Coverage** command or by yourself using the **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where you can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 <p>
   <img src="../../media/tutorials/basic_use/gui_menuconfig.png" alt="GUI Menuconfig" height="500">
@@ -44,9 +44,9 @@ The example will enable the following options by default:
 
 8. Launch a new terminal with menu Terminal -> New Terminal and execute `telnet <oocd_host> <oocd_port>` which by default is `telnet localhost 4444`. Latest macOS users can use `nc <oocd_host> <oocd_port>` if `telnet` is not in the system.
 
-> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+> **NOTE:** you can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
-9. First send the openOCD command `esp gcov dump` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the `esp gcov` command for instant run-time dump.
+9. First send the OpenOCD command `esp gcov dump` for hard-coded dump which will dump two hard-coded dumps based on this example. After that send the `esp gcov` command for instant run-time dump.
 
 <p>
   <img src="../../media/tutorials/coverage/oocd_cmds.png" alt="OpenOCD Commands" width="950">
@@ -69,7 +69,7 @@ Please review [Settings](../SETTINGS.md) to see how to modify these configuratio
 
 11. When finished, use the **ESP-IDF: Remove Editor Coverage** command to remove the code coverage.
 
-12. The user can generate a html report using the **ESP-IDF: Get HTML Coverage Report for Project** command.
+12. You can generate a html report using the **ESP-IDF: Get HTML Coverage Report for Project** command.
 
 <p>
   <img src="../../media/tutorials/coverage/html_report.png" alt="html report" width="950">
