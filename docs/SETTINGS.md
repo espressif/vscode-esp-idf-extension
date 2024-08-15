@@ -60,6 +60,7 @@ These settings are specific to the ESP32 Chip/Board
 | `idf.portWin`                                    | Path of Selected Device Port in Windows                                                |                           |
 | `idf.enableSerialPortChipIdRequest`              | Enable detecting the chip id and show on serial port selection list                    |                           |
 | `idf.useSerialPortVendorProductFilter`           | Use USB productID and vendorID to filter known Espressif devices                       |                           |
+| `idf.usbSerialPortFilters`                       | USB serial port productID and vendorID list to filter                                  |                           |
 | `openocd.jtag.command.force_unix_path_separator` | Forced to Use `/` as Path sep. for Win32 Based OS Instead of `\\`                      | User, Remote or Workspace |
 | `idf.listDfuDevices`                             | List of DFU Devices Connected to USB                                                   | User, Remote or Workspace |
 | `idf.selectedDfuDevicePath`                      | Selected DFU Device Connected to USB                                                   | User, Remote or Workspace |

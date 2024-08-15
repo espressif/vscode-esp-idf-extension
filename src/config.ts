@@ -35,24 +35,6 @@ export namespace ESP {
       "esp_idf_project_configuration.json";
   }
 
-  export const USB_PORT_FILTERS: { vendorId: number; productId: number }[] = [
-    { vendorId: 0x10c4, productId: 0xea60 } /* CP2102/CP2102N */,
-    { vendorId: 0x0403, productId: 0x6010 } /* FT2232H */,
-    {
-      vendorId: 0x303a,
-      productId: 0x1001,
-    } /* Espressif USB_SERIAL_JTAG */,
-    {
-      vendorId: 0x303a,
-      productId: 0x1002,
-    } /* Espressif esp-usb-bridge firmware */,
-    { vendorId: 0x303a, productId: 0x0002 } /* ESP32-S2 USB_CDC */,
-    { vendorId: 0x303a, productId: 0x0009 } /* ESP32-S3 USB_CDC */,
-    { vendorId: 0x1a86, productId: 0x55d4 } /* CH9102F */,
-    { vendorId: 0x1a86, productId: 0x7523 } /* CH340T */,
-    { vendorId: 0x0403, productId: 0x6001 } /* FT232R */,
-  ];
-
   export enum FlashType {
     JTAG = "JTAG",
     UART = "UART",

@@ -118,15 +118,20 @@ export class SerialPort {
           "idf.useSerialPortVendorProductFilter",
           workspaceFolder
         ) as boolean;
+        const usbSerialPortFilters = idfConf.readParameter(
+          "idf.usbSerialPortFilters",
+          workspaceFolder
+        ) as { [key: string]: { vendorId: string; productId: string } };
         if (useSerialPortVendorProductFilter) {
-          choices = choices.filter((port) => {
-            const vendorIdNumber = parseInt(port.vendorId, 16);
-            const productIdNumber = parseInt(port.productId, 16);
-            return ESP.USB_PORT_FILTERS.some(
-              (filter) =>
-                filter.vendorId === vendorIdNumber &&
-                filter.productId === productIdNumber
-            );
+          const filterDictKeys = new Set<string>(
+            Object.keys(usbSerialPortFilters).map((key) => {
+              const { vendorId, productId } = usbSerialPortFilters[key];
+              return `${vendorId}-${productId}`;
+            })
+          );
+          choices = choices.filter(({ vendorId, productId }) => {
+            const key = `0x${vendorId}-0x${productId}`;
+            return filterDictKeys.has(key);
           });
         }
 
@@ -170,11 +175,7 @@ export class SerialPort {
           return serialPort;
         }
 
-        resolve(
-          await Promise.all(
-            choices.map((item) => processPorts(item))
-          )
-        );
+        resolve(await Promise.all(choices.map((item) => processPorts(item))));
       } catch (error) {
         reject(error);
       }

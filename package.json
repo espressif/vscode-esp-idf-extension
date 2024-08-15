@@ -973,16 +973,73 @@
             "description": "%param.sbomFilePath.title%"
           },
           "idf.enableSerialPortChipIdRequest": {
-            "type":"boolean",
+            "type": "boolean",
             "scope": "application",
             "default": true,
             "description": "%param.enableSerialPortChipIdRequest.title%"
           },
           "idf.useSerialPortVendorProductFilter": {
-            "type":"boolean",
+            "type": "boolean",
             "scope": "application",
-            "default": true,
+            "default": false,
             "description": "%param.useSerialPortVendorProductFilter.title%"
+          },
+          "idf.usbSerialPortFilters": {
+            "type": "object",
+            "scope": "application",
+            "description": "%param.usbSerialPortFilters.title%",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "vendorId": {
+                  "type": "string",
+                  "description": "%param.usbSerialPortFilters.vendorId%"
+                },
+                "productId": {
+                  "type": "string",
+                  "description": "%param.usbSerialPortFilters.productId%"
+                }
+              },
+              "additionalProperties": false
+            },
+            "default": {
+              "CP2102/CP2102N": {
+                "vendorId": "0x10c4",
+                "productId": "0xea60"
+              },
+              "FT2232H": {
+                "vendorId": "0x0403",
+                "productId": "0x6010"
+              },
+              "Espressif USB_SERIAL_JTAG": {
+                "vendorId": "0x303a",
+                "productId": "0x1001"
+              },
+              "Espressif esp-usb-bridge firmware": {
+                "vendorId": "0x303a",
+                "productId": "0x1002"
+              },
+              "ESP32-S2 USB_CDC": {
+                "vendorId": "0x303a",
+                "productId": "0x0002"
+              },
+              "ESP32-S3 USB_CDC": {
+                "vendorId": "0x303a",
+                "productId": "0x0009"
+              },
+              "CH9102F": {
+                "vendorId": "0x1a86",
+                "productId": "0x55d4"
+              },
+              "CH340T": {
+                "vendorId": "0x1a86",
+                "productId": "0x7523"
+              },
+              "FT232R": {
+                "vendorId": "0x0403",
+                "productId": "0x6001"
+              }
+            }
           }
         }
       }
