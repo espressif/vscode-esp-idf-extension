@@ -525,7 +525,10 @@
               "board/esp32-wrover.cfg"
             ],
             "description": "%param.openOcdConfigFilesList%",
-            "scope": "resource"
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.adapterTargetName": {
             "type": "string",
@@ -571,19 +574,28 @@
             "type": "array",
             "default": [],
             "description": "%param.cmakeCompilerArgs%",
-            "scope": "resource"
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.sdkconfigDefaults": {
             "type": "array",
             "default": [],
             "description": "%param.sdkconfigDefaults%",
-            "scope": "resource"
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.ninjaArgs": {
             "type": "array",
             "default": [],
             "description": "%param.ninjaArgs%",
-            "scope": "resource"
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.customAdapterTargetName": {
             "type": "string",
@@ -634,7 +646,10 @@
           "trace.wait4halt": {
             "type": "number",
             "default": 0,
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "scope": "resource",
             "description": "%trace.wait4halt.description%"
           },
@@ -849,7 +864,10 @@
             "type": "array",
             "default": [],
             "description": "%param.openOcdLaunchArgs%",
-            "scope": "resource"
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
           },
           "idf.preBuildTask": {
             "type": "string",
@@ -939,7 +957,10 @@
             "type": "array",
             "description": "%param.customTerminalExecutableArgs.title%",
             "scope": "resource",
-            "default": []
+            "default": [],
+            "items": {
+              "type": "string"
+            }
           },
           "idf.sdkconfigFilePath": {
             "type": "string",
