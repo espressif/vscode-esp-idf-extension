@@ -1090,6 +1090,7 @@ export async function activate(context: vscode.ExtensionContext) {
         commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
       ConfserverProcess.dispose();
     });
   });
