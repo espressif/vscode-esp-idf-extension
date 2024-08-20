@@ -1,6 +1,6 @@
 # Project Configuration Editor
 
-To allow the user to have multiple configurations for the same project, the user can define several settings to produce different build results. For example, take a look at the [Multiple Configuration Tutorial](./tutorial/multiple_config.md).
+To allow you to have multiple configurations for the same project, you can define several settings to produce different build results. For example, take a look at the [Multiple Configuration Tutorial](./tutorial/multiple_config.md).
 
 Use the `ESP-IDF: Open Project Configuration` to manage the project configuration profiles to record the following settings for each configuration:
 

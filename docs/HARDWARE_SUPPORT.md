@@ -18,7 +18,7 @@ In addition to ESP-IDF chips, there are several boards configurations files impl
 
 # Current Frameworks Supported in the Extension
 
-- [Arduino-ESP32](https://github.com/espressif/arduino-esp32) allows the user to add Arduino libraries as a ESP-IDF component in your current directory to use Arduino code in your ESP-IDF projects with the **Add Arduino-ESP32 as ESP-IDF Component** extension command.
+- [Arduino-ESP32](https://github.com/espressif/arduino-esp32) allows you to add Arduino libraries as a ESP-IDF component in your current directory to use Arduino code in your ESP-IDF projects with the **Add Arduino-ESP32 as ESP-IDF Component** extension command.
 
 - [Espressif Audio Development Framework (ESP-ADF)](https://github.com/espressif/esp-adf) is the official audio development framework for the ESP32 and ESP32-S2 SoCs. The **Install ESP-ADF** will clone ESP-ADF to a selected directory and set `idf.espAdfPath` (`idf.espAdfPathWin` in Windows) configuration setting.
 

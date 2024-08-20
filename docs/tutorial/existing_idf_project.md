@@ -32,4 +32,4 @@ As shown in [Working with multiple projects](../MULTI_PROJECTS.md), there are ma
 
 2. You can already use the existing setup to build, flash and monitor the existing project. To debug, you need the `esp-idf` launch.json which can be added by running the `ESP-IDF: Add .vscode Configuration Folder` command.
 
-3. If you want to open the project within the ESP-IDF Docker container, use the `ESP-IDF: Add Docker Container Configuration` command to add the `.devcontainer` directory which allows the user to use the `Remote - Containers: Open Folder in Remote Container` to open the existing project into a container.
+3. If you want to open the project within the ESP-IDF Docker container, use the `ESP-IDF: Add Docker Container Configuration` command to add the `.devcontainer` directory which allows you to use the `Remote - Containers: Open Folder in Remote Container` to open the existing project into a container.

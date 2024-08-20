@@ -13,7 +13,7 @@ TEST_CASE("test name", "[module name]")
 
 ## Configure the ESP-IDF Project to enable unit tests in the extension
 
-Let's say the user has a ESP-IDF project with the following structure:
+Let's say you has a ESP-IDF project with the following structure:
 
 ```
 unit_test
@@ -29,13 +29,13 @@ unit_test
 
 Inside the `testable` component, unit tests are added into `test` directory. `test` directory contains source files of the tests and the component makefile (component.mk / CMakeLists.txt).
 
-If the user wants to add tests for a `testable` component, just need to define a `test` subdirectory and add `test_name.c` files with the different test cases to run.
+If you wants to add tests for a `testable` component, just need to define a `test` subdirectory and add `test_name.c` files with the different test cases to run.
 
 This is the structure from the [unit_test](https://github.com/espressif/esp-idf/tree/master/examples/system/unit_test) ESP-IDF example which can serve as reference.
 
 ## Running the tests
 
-When the user click on the Testing Tab in the Activity bar, the extension will try to find all test files and test cases and save the list of test components to add later in step 3. When it press the run button on a test, it will configure the current project before the tests as follows:
+When you click on the Testing Tab in the Activity bar, the extension will try to find all test files and test cases and save the list of test components to add later in step 3. When it press the run button on a test, it will configure the current project before the tests as follows:
 
 1. Check that PyTest requirements from ESP-IDF are satisfied.
 

@@ -49,7 +49,7 @@ Setup wizard provides 3 choices:
 > **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages where `EXTENSION_PATH` is located in:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
-- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
+- MacOS/Linux: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
 
 so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment.
 
@@ -63,10 +63,10 @@ After choosing any of the previous options, a status page is displayed showing E
 
 # JSON Manual Configuration
 
-The user can manually configure the extension by setting the following configuration settings with corresponding values. Please take a look at [Configuration Settings](./SETTINGS.md) for more information.
+You can manually configure the extension by setting the following configuration settings with corresponding values. Please take a look at [Configuration Settings](./SETTINGS.md) for more information.
 
-1. With Visual Studio Code Command Palette (F1 or View Menu -> Command Palette) and type **Preferences: Open Settings (JSON)**. This will open the user global settings for Visual Studio Code.
-   > **NOTE:** The user could choose to modify its workspace settings.json for a workspace limited configuration or a project limited configuration in the project's `.vscode/settings.json`. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
+1. With Visual Studio Code Command Palette (F1 or View Menu -> Command Palette) and type **Preferences: Open Settings (JSON)**. This will open you global settings for Visual Studio Code.
+   > **NOTE:** You could choose to modify its workspace settings.json for a workspace limited configuration or a project limited configuration in the project's `.vscode/settings.json`. Please take a look at [Working with multiple projects](./MULTI_PROJECTS.md).
 2. Your settings.json should look like:
 
 MacOS/Linux
@@ -149,7 +149,7 @@ For example if required ESP-IDF Tools are:
 
 you need to set in `idf.customExtraPaths`:
 
-- Linux/MacOS
+- MacOS/Linux
 
 ```
 /home/myUser/.espressif/tools/openocd/version/openocd-esp32/bin:/home/myUser/.espressif/tools/xtensa-esp32/version/xtensa-esp32/bin

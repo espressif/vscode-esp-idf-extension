@@ -44,4 +44,4 @@ To install from `.vsix` File:
 `${VSCODE_EXTENSION_DIR}` is the location of the extension:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\`
-- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/`
+- MacOS/Linux: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/`

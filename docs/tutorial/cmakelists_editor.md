@@ -27,7 +27,7 @@ We can observe when we re-open the file in a regular text-editor changes are ref
 
 3. Now let's create a new ESP-IDF component in this project to modify its `CMakeLists.txt`. Click menu `View` -> `Command Palette`, type **ESP-IDF: Create New ESP-IDF Component** and enter the new component name.
 
-4. A new component will be created in `<project_path>/blink/components/<component_name>`. Opening in the regular text editor, the user will see an `idf_component_register` method with:
+4. A new component will be created in `<project_path>/blink/components/<component_name>`. Opening in the regular text editor, you will see an `idf_component_register` method with:
 
 ```
 idf_component_register(SRCS "my_component.c"
@@ -48,7 +48,7 @@ Right click on `<project_path>/blink/components/<component_name>/CMakeLists.txt`
 
 7. As described in [ESP-IDF Component CMakeLists.txt Files](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#component-cmakelists-files), `REQUIRES` is used to list the component dependencies. Type `mbedtls` and click the `+` button (can also press enter on typing).
 
-8. Click on `Save` button and close the CMakeLists.txt editor. If you open `<project_path>/blink/components/<component_name>/CMakeLists.txt` on a regular text editor, the user will see:
+8. Click on `Save` button and close the CMakeLists.txt editor. If you open `<project_path>/blink/components/<component_name>/CMakeLists.txt` on a regular text editor, you will see:
 
 ```
 idf_component_register(SRCS "my_component.c"

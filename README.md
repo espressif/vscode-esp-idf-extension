@@ -24,9 +24,9 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 2.  Install ESP-IDF system requirements for your operating system:
 
-- Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
-- Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
 - For Windows the [C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools) might be required.
+- Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
+- Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
 
 3. In Visual Studio Code, Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of Visual Studio Code or the **View: Extensions** command (shortcut: <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd> or <kbd>Ctrl+Shift+X</kbd>.
 
@@ -38,7 +38,7 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
    > **NOTE:** Please take a look at [Working with multiple projects](./docs/MULTI_PROJECTS.md) for more information.
 
-7. In Visual Studio Code, select menu "View" and "Command Palette" and type `configure esp-idf extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option. You can also choose where to save settings in the setup wizard.
+7. In Visual Studio Code, select menu "View" and "Command Palette" and type `Configure ESP-IDF Extension`. After, choose the **ESP-IDF: Configure ESP-IDF Extension** option.
    > **NOTE:** For versions of ESP-IDF < 5.0, spaces are not supported inside configured paths.
 
 <p>
@@ -54,14 +54,14 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 10. Choose the location for ESP-IDF Tools (also known as `IDF_TOOLS_PATH`) which is `$HOME\.espressif` on MacOS/Linux and `%USERPROFILE%\.espressif` on Windows by default.
 
-11. If your operating system is Linux or MacOS, choose the python executable to create ESP-IDF virtual environment.
+11. If your operating system is MacOS/Linux, choose the python executable to create ESP-IDF virtual environment.
 
     > **NOTE:** Windows users don't need to select a python executable since it is part of the setup.
     > **NOTE:** Make sure that `IDF_TOOLS_PATH` doesn't have any spaces to avoid any build issues. Also make sure that `IDF_TOOLS_PATH` is not the same directory as `IDF_PATH`.
 
-12. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
+12. You will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
 
-13. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension. Otherwise check the [Troubleshooting](#Troubleshooting) section if you have any issues.
+13. If everything is installed correctly, you will see a message that all settings have been configured. You can start using the extension. Otherwise check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
 14. Press <kbd>F1</kbd> and type **ESP-IDF: Show Examples Projects** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
 
@@ -73,13 +73,13 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 17. Select an Espressif target (esp32, esp32s2, etc.) with the **ESP-IDF: Set Espressif Device Target** command.
 
-18. Use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the openOCD configuration files for the extension openOCD server.
+18. Use the **ESP-IDF: Select OpenOCD Board Configuration** to choose the OpenOCD configuration files for the extension OpenOCD server.
 
-19. Next configure your ESP-IDF project by pressing <kbd>F1</kbd> and typing **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where the user can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
+19. Next configure your ESP-IDF project by pressing <kbd>F1</kbd> and typing **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where you can modify the ESP-IDF project settings. After all changes are made, click save and close this window.
 
 20. When you are ready, build your project by pressing <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
 
-21. Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method and Flash** to select either `UART`, `DFU` or `JTAG` depending on your serial connection.
+21. Flash to your device by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method** to select either `UART`, `DFU` or `JTAG` depending on your serial connection.
 
 > **NOTE:** You can also use the **ESP-IDF: Flash (UART) your Project** or **ESP-IDF: Flash (with JTag)** directly.
 
@@ -87,9 +87,9 @@ Make sure to review our [documentation](./docs/ONBOARDING.md) first to properly 
 
 23. To make sure you can debug your device, select your board configuration by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration**. You can test the connection by pressing <kbd>F1</kbd> and typing **ESP-IDF: OpenOCD Manager**. The output is shown in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
 
-    > **NOTE:** The user can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
+    > **NOTE:** you can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
-24. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and openOCD is connecting correctly so the debugger works correctly).
+24. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and OpenOCD is connecting correctly so the debugger works correctly).
 
 Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
@@ -137,7 +137,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
     </thead>
     <tbody>
         <tr>
-            <td rowspan=9 align="center">Configuration</td>
+            <td rowspan=7 align="center">Configuration</td>
             <td>Add OpenOCD rules file (For Linux users)</td>
             <td>Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.</td>
             <td></td>
@@ -164,7 +164,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         </tr>
         <tr>
             <td>Select output and notification mode</td>
-            <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows the user to set if to show notifications, show output, both or none of them.</td>
+            <td>This extension shows many notifications and output in the Output window <strong>ESP-IDF</strong>. This command allows you to set if to show notifications, show output, both or none of them.</td>
             <td></td>
             <td></td>
         </tr>
@@ -185,7 +185,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         <tr>
             <td rowspan=11 align="center">Basic</td>
             <td>Show Examples Projects</td>
-            <td>Launch UI to show examples from selected framework and allow the user to create a project from them. This command will show frameworks already configured in the extension so if
+            <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension so if
             you want to see ESP-Rainmaker examples you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath) and then execute this command to see the examples.</td>
             <td></td>
             <td></td>
@@ -241,7 +241,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         </tr>
         <tr>
             <td>Select OpenOCD Board Configuration</td>
-            <td>Select the openOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.</td>
+            <td>Select the OpenOCD configuration files that match your Espressif device target. For example if you are using DevKitC or ESP-Wrover-Kit. This is necessary for flashing with JTAG or debugging your device.</td>
             <td></td>
             <td></td>
         </tr>
@@ -254,7 +254,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         <tr>
             <td rowspan=5 align="center">Project creation</td>
             <td>Show Examples Projects</td>
-            <td>Launch UI to show examples from selected framework and allow the user to create a project from them. This command will show frameworks already configured in the extension so if
+            <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension so if
             you want to see ESP-Rainmaker examples you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath) and then execute this command to see the examples.</td>
             <td></td>
             <td></td>
@@ -444,7 +444,7 @@ Click <kbd>F1</kbd> to show Visual studio code actions, then type **ESP-IDF** to
         </tr>
         <tr>
             <td>Launch IDF Monitor for CoreDump / GDB-Stub Mode</td>
-            <td>Launch ESP-IDF Monitor with websocket capabilities. If the user has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.</td>
+            <td>Launch ESP-IDF Monitor with websocket capabilities. If you has configured the panic handler to gdbstub or core dump, the monitor will launch a post mortem debug session of the chip.</td>
             <td></td>
             <td></td>
         </tr>
@@ -589,8 +589,8 @@ We have implemented some utilities commands that can be used in tasks.json and l
 ```
 
 - `espIdf.getExtensionPath`: Get the installed location absolute path.
-- `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
-- `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
+- `espIdf.getOpenOCDScriptValue`: Return the value of OpenOCD_SCRIPTS from `idf.customExtraVars` or from system OpenOCD_SCRIPTS environment variable.
+- `espIdf.getOpenOCDConfig`: Return the OpenOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
 - `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
 - `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting and `idf.customExtraPaths`.
@@ -607,37 +607,37 @@ A template Tasks.json is included when creating a project using **ESP-IDF: Creat
 4. `Clean` - Clean the project
 5. `Flash` - Flash the device
 6. `Monitor` - Start a monitor terminal
-7. `OpenOCD` - Start the openOCD server
+7. `OpenOCD` - Start the OpenOCD server
 8. `BuildFlash` - Execute a build followed by a flash command.
 
-Note that for OpenOCD tasks you need to define `OPENOCD_SCRIPTS` in your system environment variables with openocd scripts folder path.
+Note that for OpenOCD tasks you need to define `OpenOCD_SCRIPTS` in your system environment variables with OpenOCD scripts folder path.
 
 # Troubleshooting
 
 If something is not working please check for any error on one of these:
 
-> **NOTE:** Use `idf.openOcdDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
+> **NOTE:** Use `idf.OpenOCDDebugLevel` configuration setting to 3 or more to show debug logging in OpenOCD server output.
 
 > **NOTE:** Use `logLevel` in your <project-directory>/.vscode/launch.json to 3 or more to show more debug adapter output.
 
-1. In Visual Studio Code select menu **View** -> **Output** -> **ESP-IDF**. This output information is useful to know what is happening in the extension.
-2. In Visual Studio Code select menu **View** then click **Command Palette...** and type `ESP-IDF: Doctor Command` to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
+1. In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension.
+2. In Visual Studio Code select menu **View** >  **Command Palette...** and type `ESP-IDF: Doctor Command` to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
 3. Check log file which can be obtained from:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log`
 - Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log`
 
-4. In Visual Studio Code, select menu **Help** -> `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
+4. In Visual Studio Code, select menu **Help** > `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
 
-5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows the user to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
+5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
 
-6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
+6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
 If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Please consider that this extension install ESP-IDF, this extension's and ESP-IDF Debug Adapter python packages when running the **ESP-IDF: Configure ESP-IDF Extension** setup wizard.
 
 > **NOTE:** When downloading ESP-IDF using git cloning in Windows if you receive errors like "unable to create symlink", enabling `Developer Mode` while cloning ESP-IDF could help resolve the issue.
 
-If the user can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).
+If you can't resolve the error, please search in the [github repository issues](http://github.com/espressif/vscode-esp-idf-extension/issues) for existing errors or open a new issue [here](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose).
 
 # Code of Conduct
 

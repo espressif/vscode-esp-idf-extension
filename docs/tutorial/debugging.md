@@ -2,10 +2,10 @@
 
 > **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
-This tutorial shows the user how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
+This tutorial shows you how to debug ESP-IDF projects using the Visual Studio Code extension for ESP-IDF. If you haven't configured the extension as explained in [Install tutorial](./install.md) please do it first.
 
 1. Configure, build and flash your project as explained in [Basic use tutorial](./basic_use.md).
-2. Set the proper values for openOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in openOCD using **ESP-IDF: Select OpenOCD Board Configuration** or **ESP-IDF: Set Espressif Device Target**.
+2. Set the proper values for OpenOCD Configuration files in the `idf.openOCDConfigs` configuration setting. You can choose a specific board listed in OpenOCD using **ESP-IDF: Select OpenOCD Board Configuration** or **ESP-IDF: Set Espressif Device Target**.
 
 > **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
 
@@ -15,9 +15,9 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 4. OpenOCD server is launched in the background and the output is shown in menu `View` -> Output -> ESP-IDF. By default it will be launched using localhost, port `4444` for Telnet communication, port `6666` for TCL communication and port `3333` for gdb.
 
-> **NOTE:** The user can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
+> **NOTE:** You can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
-> **NOTE:** The user can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
+> **NOTE:** You can modify `openocd.tcl.host` and `openocd.tcl.port` configuration settings to modify these values. You can also set `idf.openOcdDebugLevel` to lower or increase (0-4) the messages from OpenOCD in the OpenOCD output. Please review [ESP-IDF Settings](../SETTINGS.md) to see how to modify these configuration settings.
 
 5. The [Eclipse CDT GDB Adapter](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter) is launched in the background and the output is shown in the Debug Console. This adapter is a proxy between Visual Studio Code, configured toolchain GDB and OpenOCD server. Please review [Debugging](../DEBUGGING.md) for more information how to customize the debugging behavior by modifying launch.json arguments.
 
@@ -31,7 +31,7 @@ Several steps will be automatically done for you but explained for clarity. You 
 
 7. When the target is halted, the editor will show the line of code where the program halted and the list of threads in the `Call Stack` sub-window `(a)` on the `Run` icon in the Activity Bar on the side of Visual Studio Code. The first line of call stack under main `(b)` contains the last called function `app_main()`, which in turned was called from `main_task()` as shown in the previous image. Each line of the stack also contains the file name and line number `(c)` where the function was called. By clicking on each of the stack entries, you will see the file opened.
 
-By expanding threads you can navigate throughout the application. Some threads contains much longer call stack where the user can see, besides function calls, numbers like `0x4000bff0` representing address of binary code not provided in source form.
+By expanding threads you can navigate throughout the application. Some threads contains much longer call stack where you can see, besides function calls, numbers like `0x4000bff0` representing address of binary code not provided in source form.
 
 <p>
   <img src="../../media/tutorials/debug/thread5.png" alt="Threads"  height="500">
@@ -54,7 +54,7 @@ When debugging, we would like to be able to stop the application at critical lin
 
 The Visual Studio Code shows a **Debug toolbar** on the top of the editor with several actions as explained in [Visual Studio Code Debug Actions](https://code.visualstudio.com/docs/editor/debugging#_debug-actions).
 
-9. If you press F5 (Continue/Pause) the processor will run and halt at the next breakpoint. If you press F5 again, it will stop at the next breakpoint and so on. The user will be able to see that LED is changing the state after each click to "Continue" program execution.
+9. If you press F5 (Continue/Pause) the processor will run and halt at the next breakpoint. If you press F5 again, it will stop at the next breakpoint and so on. you will be able to see that LED is changing the state after each click to "Continue" program execution.
 
 # Halting the Target Manually
 
@@ -147,6 +147,6 @@ You can start a monitor session that can capture fatal error events with `ESP-ID
 - **Core Dump** is configured when `Core Dump's Data Destination` is set to either `UART` or `FLASH` using the `ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 - **GDB Stub** is configured when `Panic Handler Behaviour` is set to `Invoke GDBStub` using the`ESP-IDF: SDK Configuration Editor` extension command or `idf.py menuconfig` in a terminal.
 
-The user can modify the debug session as shown in the [Debugging](../DEBUGGING.md) documentation by customizing launch.json arguments such as custom initial gdb commands.
+you can modify the debug session as shown in the [Debugging](../DEBUGGING.md) documentation by customizing launch.json arguments such as custom initial gdb commands.
 
 See other [ESP-IDF extension features](../FEATURES.md).

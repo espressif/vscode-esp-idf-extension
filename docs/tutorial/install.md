@@ -31,13 +31,13 @@
   <img src="../../media/tutorials/setup/select-esp-idf.png" alt="Select ESP-IDF" width="950">
 </p>
 
-11. The user will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
+11. You will see a page showing the setup progress status showing ESP-IDF download progress, ESP-IDF Tools download and install progress as well as the creation of a python virtual environment.
 
 <p>
   <img src="../../media/tutorials/setup/install-status.png" alt="Install status" width="950">
 </p>
 
-12. (OPTIONAL) If the user have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, select to either download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
+12. (OPTIONAL) If you have chosen the **Advanced** option, after ESP-IDF is downloaded and extracted, select to either download ESP-IDF Tools or manually provide each ESP-IDF tool absolute path and required environment variables.
     > **NOTE:** Consider that `IDF_PATH` requires each ESP-IDF tool to be of the version described in `IDF_PATH`/tools/tools.json.
     > If it is desired to use a different ESP-IDF tool version, check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration)
 
@@ -45,20 +45,20 @@
   <img src="../../media/tutorials/setup/advanced.png" alt="Select ESP-IDF Tools" width="950">
 </p>
 
-13. (OPTIONAL) If the user has chosen the **Advanced** mode and selected to manually provide each ESP-IDF tool absolute path, please enter the executable container directory for each binary as shown below:
+13. (OPTIONAL) If you has chosen the **Advanced** mode and selected to manually provide each ESP-IDF tool absolute path, please enter the executable container directory for each binary as shown below:
     > **NOTE:** Check [JSON Manual Configuration](../SETUP.md#JSON-Manual-Configuration) for more information.
 
 <p>
   <img src="../../media/tutorials/setup/advanced-manual.png" alt="Enter ESP-IDF Tools paths manually" width="950">
 </p>
 
-14. If everything is installed correctly, the user will see a message that all settings have been configured. You can start using the extension.
+14. If everything is installed correctly, you will see a message that all settings have been configured. You can start using the extension.
 
 <p>
   <img src="../../media/tutorials/setup/install-complete.png" alt="Install complete">
 </p>
 
-> **NOTE**: > The advance mode allows the user to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path. Again, if chose an ESP-IDF version < 5.0, make sure each ESP-IDF tool path doesn't have any spaces, since they were no suported in previous versions..
+> **NOTE**: > The advance mode allows you to choose to use existing ESP-IDF tools by manually entering each ESP-IDF tool absolute path. Again, if chose an ESP-IDF version < 5.0, make sure each ESP-IDF tool path doesn't have any spaces, since they were no suported in previous versions..
 
 15. Now that the extension setup is finally done, check the [Basic use](./basic_use.md) to learn how to use the SDK Configuration editor, build, flash and monitor your Espressif device.
 
@@ -67,7 +67,7 @@
 > **NOTE:** the setup wizard will install ESP-IDF Python packages and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages. Make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment. The `EXTENSION_PATH` is:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
-- Linux & MacOSX: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
+- MacOS/Linux: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
 
 # Installing Nightly Build
 

@@ -30,7 +30,7 @@ This test report outlines the verification of the functionality of the **ESP-IDF
 - **IDF Target:** [IDF_TARGET under test]
 - **Custom Extra Paths:** Containing all IDF Tools Path for current environment
 
-Press menu **View**, click on **Command Palette** and type **ESP-IDF: Doctor Command**. You can copy the Extension Configuration Settings section here.
+Press menu **View** > **Command Palette** and type **ESP-IDF: Doctor Command**. You can copy the Extension Configuration Settings section here.
 
 ---
 
@@ -42,7 +42,7 @@ _Note: Each test case should outline the steps taken, expected results, and actu
 
 _Steps:_
 
-1. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Configure ESP-IDF Extension** and select it.
+1. Press menu **View** > **Command Palette** and type **ESP-IDF: Configure ESP-IDF Extension** and select it.
 2. A Window will load with several options. You can select where to save the setup settings. Select **Express** option.
 3. Select download server : Github or Espressif (for Chinese mirrors).
 4. Select ESP-IDF version to download, based on desired test.
@@ -66,9 +66,9 @@ _Actual Results:_
 
 _Steps:_
 
-1. Open ESP-IDF project to test. You can create one using the menu **View**, click on **Command Palette** and type **ESP-IDF: Show Examples Projects**, choose the **Use Current ESP-IDF** framework (or other framework to test). A Window will appear with a list of examples to choose from. Pick one of these examples and click on the **Create Project Using Example <name>** and choose where to create this new project.
-2. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Set Espressif Device Target** and choose the **IDF_TARGET** for this testing report (esp32, esp32 S2 , etc.).
-3. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Build your Project** and select it.
+1. Open ESP-IDF project to test. You can create one using the menu **View** > **Command Palette** and type **ESP-IDF: Show Examples Projects**, choose the **Use Current ESP-IDF** framework (or other framework to test). A Window will appear with a list of examples to choose from. Pick one of these examples and click on the **Create Project Using Example <name>** and choose where to create this new project.
+2. Press menu **View** > **Command Palette** and type **ESP-IDF: Set Espressif Device Target** and choose the **IDF_TARGET** for this testing report (esp32, esp32 S2 , etc.).
+3. Press menu **View** > **Command Palette** and type **ESP-IDF: Build your Project** and select it.
 
 > **NOTE**: Each IDF_TARGET has to be built
 
@@ -86,9 +86,9 @@ _Dependency_: Depends on Test Case 2
 
 _Steps:_
 
-1. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Select Port to Use** and select it.
+1. Press menu **View** > **Command Palette** and type **ESP-IDF: Select Port to Use** and select it.
 2. Choose the Serial Port to connect and the workspace folder where to save the `idf.port` configuration setting.
-3. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Flash your Project** and select it.
+3. Press menu **View** > **Command Palette** and type **ESP-IDF: Flash your Project** and select it.
 4. Select the flash method UART. Flashing should begin after.
    > **NOTE:** JTAG and DFU flash test results could be added here or added in a separated test case.
 
@@ -106,9 +106,9 @@ _Dependency_: Depends on Test Case 2 and Test Case 3
 
 _Steps:_
 
-1. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Select port to use** and select it.
+1. Press menu **View** > **Command Palette** and type **ESP-IDF: Select port to use** and select it.
 2. Choose the serial port to connect and the workspace folder where to save the `idf.port` configuration setting.
-3. Press menu **View**, click on **Command Palette** and type **ESP-IDF: Monitor Device** and select it.
+3. Press menu **View** > **Command Palette** and type **ESP-IDF: Monitor Device** and select it.
 4. ESP-IDF Monitor should begin after.
 
 _Expected Results:_

@@ -10,9 +10,9 @@ You need to have a ESP32-S2 board and ESP Rainmaker Account, if you don't have t
   <img src="../../media/tutorials/rainmaker/connect.png" alt="Rainmaker Connect">
 </p>
 
-2. The user will be prompted for the authentication method to connect with Rainmaker, either using the Rainmaker account user and password or with an OAuth app like Google, Github or Apple.
+2. You will be prompted for the authentication method to connect with Rainmaker, either using the Rainmaker account user and password or with an OAuth app like Google, Github or Apple.
 
-> For OAuth to work properly, the user will be asked to provide permission to Visual Studio Code and the broswer to open Visual Studio Code back once the OAuth flow is done.
+> For OAuth to work properly, you will be asked to provide permission to Visual Studio Code and the broswer to open Visual Studio Code back once the OAuth flow is done.
 
 <p>
   <img src="../../media/tutorials/rainmaker/auth_method.png" alt="Rainmaker Auth Method">

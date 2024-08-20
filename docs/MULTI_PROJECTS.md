@@ -37,8 +37,8 @@ Projects folders (Known in vscode as workspace folders) and workspace level sett
 Settings in the root folder's `.code-workspace` can be used when your **ESP-IDF Current Project** directory doesn't contain a `.vscode/settings.json` file.
 
 If you want to open a project with multiple subprojects in Visual Studio Code, click Menu **File** then **Open Workspace** which will open a window to select the `.code-workspace` file describing your workspace.
-You can either manually create this `.code-workspace` file and define all sub folders (projects) or when you click Menu **File** --> **Save Workspace as...** which doesn't automatically add any folder inside the current directory.
-You can add a folder to the workspace when you click Menu **File** --> **Add Folder to Workspace...**.
+You can either manually create this `.code-workspace` file and define all sub folders (projects) or when you click Menu **File** > **Save Workspace as...** which doesn't automatically add any folder inside the current directory.
+You can add a folder to the workspace when you click Menu **File** > **Add Folder to Workspace...**.
 
 > **NOTE:** You still need to manually select the corresponding debug configuration in the Debug tab of your current workspace folder. There is a project directory suffix on each debug configuration.
 
@@ -72,9 +72,9 @@ and `my-ws.code-workspace`:
 }
 ```
 
-1. If you open Visual Studio Code, click Menu **File** and run **Open Workspace** and open `my-ws.code-workspace` you will see just the folders defined in this workspace (`/my-projects-root/project1` and `/my-projects-root/project2`).
+1. If you open Visual Studio Code, click Menu **File** > **Open Workspace** and open `my-ws.code-workspace` you will see just the folders defined in this workspace (`/my-projects-root/project1` and `/my-projects-root/project2`).
    - For `project1`, Visual Studio Code will use the settings from `my-ws.code-workspace` first then other required settings from the User Settings.
    - For `project2`, Visual Studio Code will use those settings from `/my-projects-root/project2/.vscode/settings.json` first, then all required (and not found) settings from `my-ws.code-workspace` and finally in the Visual Studio Code User settings.
 2. If you just open the `/my-projects-root` or `/my-projects-root/project1` directory Visual Studio Code will use the User Settings.
    - If you just open the `/my-projects-root/project2` directory Visual Studio Code will use the `/my-projects-root/project2/.vscode/settings.json` then other required settings from the User Settings.
-     > **NOTE:** If you open `/my-projects-root`, any of the sub projects will not be recognized as Workspace Folders, you need to add them to `my-ws.code-workspace` (manually or using **File** --> **Add Folder to Workspace...**) and open this workspace as specified before.
+     > **NOTE:** If you open `/my-projects-root`, any of the sub projects will not be recognized as Workspace Folders, you need to add them to `my-ws.code-workspace` (manually or using **File** > **Add Folder to Workspace...**) and open this workspace as specified before.

@@ -56,6 +56,7 @@ jobs:
             core.info("Review thread message body:", body);
 
             for (const pr of pull_requests) {
+              body += `\n [Espressif docs preview](https://preview-docs.espressif.com/projects/vscode-esp-idf-extension/en/${pr.number}-merge/index.html)`;
               await upsertComment(owner, repo, pr.number,
                 "nightly-link", body);
             }
