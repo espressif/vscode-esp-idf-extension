@@ -20,20 +20,20 @@ import * as vscode from "vscode";
 import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
 import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
+import { getIdfTargetFromSdkconfig } from "../../../../workspaceConfig";
 
 export abstract class XtensaTools {
   protected readonly workspaceRoot: vscode.Uri;
-  protected readonly toolName: string;
 
-  constructor(workspaceRoot: vscode.Uri, toolName: string) {
+  constructor(workspaceRoot: vscode.Uri, private toolName: string) {
     this.workspaceRoot = workspaceRoot;
-    this.toolName = this.toolNameForTarget(toolName);
   }
-
+  
   protected async call(args: string[]): Promise<Buffer> {
     const env = await appendIdfAndToolsToPath(this.workspaceRoot);
+    const toolName = await this.toolNameForTarget(this.toolName);
     try {
-      return await spawn(this.toolName, args, { env });
+      return await spawn(toolName, args, { env });
     } catch (error) {
       Logger.errorNotify(
         `Make sure ${this.toolName} is set in the Path with proper permission`,
@@ -42,17 +42,8 @@ export abstract class XtensaTools {
     }
   }
 
-  private toolNameForTarget(toolName: string): string {
-    let idfTarget = idfConf.readParameter(
-      "idf.adapterTargetName",
-      this.workspaceRoot
-    );
-    if (idfTarget == "custom") {
-      idfTarget = idfConf.readParameter(
-        "idf.customAdapterTargetName",
-        this.workspaceRoot
-      );
-    }
+  private async  toolNameForTarget(toolName: string) {
+    let idfTarget = await getIdfTargetFromSdkconfig(this.workspaceRoot);
     const toolNameResult = getToolchainToolName(idfTarget, toolName);
     return toolNameResult ? toolNameResult : `unknown-tracing-tool`;
   }

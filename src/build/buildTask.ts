@@ -30,22 +30,18 @@ import {
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirPath: string;
   private currentWorkspace: vscode.Uri;
   private idfPathDir: string;
-  private adapterTargetName: string;
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
     this.idfPathDir = idfConf.readParameter(
       "idf.espIdfPath",
-      workspaceUri
-    ) as string;
-    this.adapterTargetName = idfConf.readParameter(
-      "idf.adapterTargetName",
       workspaceUri
     ) as string;
     this.buildDirPath = idfConf.readParameter(
@@ -258,6 +254,8 @@ export class BuildTask {
       "idf.notificationMode",
       this.currentWorkspace
     ) as string;
+
+    const adapterTargetName = await getIdfTargetFromSdkconfig(this.currentWorkspace);
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
       notificationMode === idfConf.NotificationMode.Output
@@ -272,7 +270,7 @@ export class BuildTask {
       "--json",
       join(this.buildDirPath, "flasher_args.json"),
       "--pid",
-      selectedDFUAdapterId(this.adapterTargetName).toString(),
+      selectedDFUAdapterId(adapterTargetName).toString(),
     ];
     const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
     const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);

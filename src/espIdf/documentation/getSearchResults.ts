@@ -16,6 +16,7 @@ import { Uri } from "vscode";
 import * as idfConf from "../../idfConfiguration";
 import { getEspIdfFromCMake } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export class IDocResult {
   public name: string;
@@ -47,18 +48,9 @@ export async function seachInEspDocs(
     idfConf.readParameter("idf.espIdfPath", workspaceFolder) ||
     process.env.IDF_PATH;
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
-  let idfTarget = idfConf.readParameter(
-    "idf.adapterTargetName",
-    workspaceFolder
-  );
-  if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter(
-      "idf.customAdapterTargetName",
-      workspaceFolder
-    );
-  }
+  let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
-  let targetToUse: string;
+  let targetToUse: string = "esp32";
   if (!docVersion) {
     docVersion = docsVersions.find((docVer) => docVer.name === "latest");
   }

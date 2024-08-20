@@ -46,8 +46,6 @@ These settings are specific to the ESP32 Chip/Board
 
 | Setting                                          | Description                                                                            | Scope                     |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------- |
-| `idf.adapterTargetName`                          | ESP-IDF Target Chip (Example: esp32)                                                   |                           |
-| `idf.customAdapterTargetName`                    | Custom Target Name for ESP-IDF Debug Adapter                                           |                           |
 | `idf.flashBaudRate`                              | Flash Baud rate                                                                        |                           |
 | `idf.monitorBaudRate`                            | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |                           |
 | `idf.openOcdConfigs`                             | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                    |                           |
@@ -63,17 +61,12 @@ These settings are specific to the ESP32 Chip/Board
 
 This is how the extension uses them:
 
-1. `idf.adapterTargetName` is used to select the chipset (esp32, esp32s2, esp32s3, esp32c3 and custom) on which to run the extension commands.
-   > **NOTE** When you use the command **ESP-IDF: Set Espressif Device Target** it will override `idf.adapterTargetName` with selected chip and `idf.openOcdConfigs` with its default OpenOCD Configuration Files.
-   >
-   > > If you want to customize the `idf.openOcdConfigs` alone, you can use the **ESP-IDF: Select OpenOCD Board Configuration** or modify your settings.json directly.
-2. `idf.customAdapterTargetName` is used when `idf.adapterTargetName` is set to `custom`.
-3. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
-4. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
-5. `idf.openOcdConfigs` is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
-6. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
-7. `idf.openOcdDebugLevel`: Log level for OpenOCD Server output from 0 to 4.
-8. `idf.openOcdLaunchArgs`: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
+1. `idf.flashBaudRate` is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
+2. `idf.monitorBaudRate` is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig `CONFIG_ESPTOOLPY_MONITOR_BAUD` (idf.py monitor' baud rate). This value can also be override by setting the environment variable `IDF_MONITOR_BAUD` or `MONITORBAUD` in your system environment variables or this extension's `idf.customExtraVars` configuration setting.
+3. `idf.openOcdConfigs` is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]). More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).
+4. `idf.port` (or `idf.portWin` in Windows) is used as the serial port value for the extension commands.
+5. `idf.openOcdDebugLevel`: Log level for OpenOCD Server output from 0 to 4.
+6. `idf.openOcdLaunchArgs`: Launch arguments string array for openOCD. The resulting OpenOCD launch command looks like this: `openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}`.
 
 ## Code Coverage Specific Settings
 

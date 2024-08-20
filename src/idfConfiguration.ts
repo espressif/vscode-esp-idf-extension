@@ -69,8 +69,6 @@ export function parameterToProjectConfigMap(param: string) {
       return currentProjectConf.env;
     case "idf.flashBaudRate":
       return currentProjectConf.flashBaudRate;
-    case "idf.adapterTargetName":
-      return currentProjectConf.idfTarget;
     case "idf.monitorBaudRate":
       return currentProjectConf.monitorBaudRate;
     case "idf.openOcdDebugLevel":

@@ -67,10 +67,6 @@ window.addEventListener("message", (event) => {
         store.serialPortList = msg.serialPortList;
         store.selectedPort = msg.serialPortList[0];
       }
-      if (msg.targetList) {
-        store.targetList = msg.targetList;
-        store.target = msg.targetList[0];
-      }
       if (msg.templates) {
         store.templatesRootPath = msg.templates;
       }

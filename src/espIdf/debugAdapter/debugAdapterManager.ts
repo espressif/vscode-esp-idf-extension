@@ -34,6 +34,7 @@ import { outputFile, constants } from "fs-extra";
 import { createFlashModel } from "../../flash/flashModelBuilder";
 import { OutputChannel } from "../../logger/outputChannel";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export interface IDebugAdapterConfig {
   appOffset?: string;
@@ -284,16 +285,7 @@ export class DebugAdapterManager extends EventEmitter {
     this.isOocdDisabled = false;
     this.port = 43474;
     this.logLevel = 0;
-    let idfTarget = idfConf.readParameter(
-      "idf.adapterTargetName",
-      this.currentWorkspace
-    );
-    if (idfTarget === "custom") {
-      idfTarget = idfConf.readParameter(
-        "idf.customAdapterTargetName",
-        this.currentWorkspace
-      );
-    }
+    let idfTarget = await getIdfTargetFromSdkconfig(this.currentWorkspace);
     this.target = idfTarget;
     this.env = await appendIdfAndToolsToPath(this.currentWorkspace);
     this.env.PYTHONPATH = path.join(

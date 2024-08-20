@@ -36,7 +36,7 @@ For the default configuration, you must build your project beforehand in order t
 }
 ```
 
-> **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create Project from Extension Template` or you add the configuration files to an existing project using the `Add .vscode Configuration Folder`, this file is created with the compilerPath of the configured toolchain for your current `idf.adapterTargetName`.
+> **NOTE:** When you create a project using the extension commands such as `Show Examples Projects`, `New Project`, `Create Project from Extension Template` or you add the configuration files to an existing project using the `Add .vscode Configuration Folder`, this file is created with the compilerPath of the configured toolchain for your current `IDF_TARGET` in sdkconfig.
 
 ## Recursive search configuration
 

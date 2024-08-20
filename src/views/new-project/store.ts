@@ -47,26 +47,22 @@ export const useNewProjectStore = defineStore("newProject", () => {
   const selectedPort: Ref<string> = ref("");
   const selectedTemplate: Ref<IExample> = ref({ name: "", path: "" });
   const serialPortList: Ref<string[]> = ref([]);
-  const target: Ref<IdfBoard> = ref({
-    name: "",
-    description: "",
-    target: "",
-    configFiles: [],
-  });
-  const targetList: Ref<IdfBoard[]> = ref([]);
   const templateDetail: Ref<string> = ref("");
   const templatesRootPath: Ref<{ [key: string]: IExampleCategory }> = ref({});
   const searchString = ref("");
 
   function createProject() {
+    const configFiles =
+      selectedBoard && selectedBoard.value.name === "Custom board"
+        ? openOcdConfigFiles.value
+        : selectedBoard.value.configFiles.join(",");
     vscode.postMessage({
       command: "createProject",
       components: JSON.stringify(components.value),
       containerFolder: containerDirectory.value,
-      openOcdConfigFiles: openOcdConfigFiles.value,
+      openOcdConfigFiles: configFiles,
       port: selectedPort.value,
       projectName: projectName.value,
-      target: target.value.target,
       template: JSON.stringify(selectedTemplate.value),
     });
   }
@@ -110,8 +106,6 @@ export const useNewProjectStore = defineStore("newProject", () => {
     selectedPort,
     selectedTemplate,
     serialPortList,
-    target,
-    targetList,
     templateDetail,
     templatesRootPath,
     createProject,

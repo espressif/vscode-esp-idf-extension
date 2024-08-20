@@ -592,8 +592,8 @@ We have implemented some utilities commands that can be used in tasks.json and l
 - `espIdf.getOpenOcdScriptValue`: Return the value of OPENOCD_SCRIPTS computed from ESP-IDF Tools path or from `idf.customExtraVars` or from system OPENOCD_SCRIPTS environment variable.
 - `espIdf.getOpenOcdConfig`: Return the openOCD configuration files as string. Example `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`.
 - `espIdf.getProjectName`: Return the project name from current workspace folder `build/project_description.json`.
-- `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by `idf.adapterTargetName` configuration setting.
-- `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by `idf.adapterTargetName` configuration setting.
+- `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by current IDF_TARGET in sdkconfig.
+- `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by current IDF_TARGET in sdkconfig.
 
 See an example in the [debugging](./docs/DEBUGGING.md) documentation.
 

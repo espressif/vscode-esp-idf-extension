@@ -149,7 +149,6 @@ suite("Project tests", () => {
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
-      "esp32",
       "no port",
       openOcdConfigs,
       Uri.file(projectPath)

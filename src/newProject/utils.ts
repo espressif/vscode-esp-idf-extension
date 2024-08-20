@@ -22,7 +22,6 @@ import { Uri } from "vscode";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
-  idfTarget: string,
   port: string,
   openOcdConfigs?: string,
   workspace?: Uri
@@ -33,7 +32,6 @@ export async function setCurrentSettingsInTemplate(
   const mdfPathDir = readParameter("idf.espMdfPath", workspace);
   const toolsDir = readParameter("idf.toolsPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
-  settingsJson["idf.adapterTargetName"] = idfTarget || "esp32";
   if (idfPathDir) {
     settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
   }

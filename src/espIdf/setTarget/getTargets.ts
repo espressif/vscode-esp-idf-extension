@@ -81,10 +81,5 @@ export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
       isPreview: true,
     } as IdfTarget);
   }
-  resultTargetArray.push({
-    isPreview: false,
-    label: "Custom target",
-    target: "custom",
-  } as IdfTarget);
   return resultTargetArray;
 }

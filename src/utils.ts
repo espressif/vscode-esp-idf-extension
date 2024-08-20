@@ -36,7 +36,7 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
-import { getProjectName } from "./workspaceConfig";
+import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
@@ -392,8 +392,10 @@ export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
       .replace(/"/g, "");
   }
   if (!sdkconfigFilePath) {
-    const modifiedEnv = await appendIdfAndToolsToPath(workspacePath);
-    sdkconfigFilePath = modifiedEnv.SDKCONFIG;
+    sdkconfigFilePath = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspacePath
+    ) as string;
   }
   if (!sdkconfigFilePath) {
     sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
@@ -965,7 +967,10 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     curWorkspace
   ) as string;
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
-  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  const matterPathDir = idfConf.readParameter(
+    "idf.espMatterPath",
+    curWorkspace
+  ) as string;
   modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
 
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
@@ -1086,14 +1091,10 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  let idfTarget = idfConf.readParameter("idf.adapterTargetName", curWorkspace);
-  if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter(
-      "idf.customAdapterTargetName",
-      curWorkspace
-    );
+  let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
+  if (idfTarget) {
+    modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
   }
-  modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
   let enableComponentManager = idfConf.readParameter(
     "idf.enableIdfComponentManager",

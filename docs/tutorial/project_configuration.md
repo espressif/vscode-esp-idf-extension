@@ -11,7 +11,6 @@ Use the `ESP-IDF: Open Project Configuration` to manage the project configuratio
 `idf.sdkconfigDefaults`
 
 `idf.customExtraVars`
-`idf.adapterTargetName`
 `idf.flashBaudRate`
 `idf.monitorBaudRate`
 

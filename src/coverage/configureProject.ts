@@ -28,6 +28,7 @@ import {
   CancellationToken,
 } from "vscode";
 import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = await getConfigValueFromSDKConfig(
@@ -122,10 +123,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   const idfPath =
     readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
-  let idfTarget = readParameter("idf.adapterTargetName", workspacePath);
-  if (idfTarget === "custom") {
-    idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);
-  }
+  let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);
   let docVersion = docsVersions.find(
     (docVer) => docVer.name === idfVersion
   );

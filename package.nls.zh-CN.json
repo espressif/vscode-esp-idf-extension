@@ -182,6 +182,6 @@
 	"view.idf.idfSearchResults": "文档搜索结果",
 	"viewContainer.title": "ESP-IDF：资源管理器",
 	"viewWelcome.idfPartitionExplorer": "显示您的设备的分区列表，选择要将二进制文件 (.bin) 烧录到的分区。\n\n选择您的设备串行端口，然后单击刷新分区表。",
-	"viewWelcome.idfSearchResults": "在任何已打开的文件编辑器中，选择一些文本，右键单击并选择 ESP-IDF：在文档中搜索以在此处获取匹配的结果。\n\n结果基于您当前的 VS Code 语言、idf.espIdfPath 版本 (否则为最新版本) 和 idf.adapterTargetName。",
+	"viewWelcome.idfSearchResults": "在任何已打开的文件编辑器中，选择一些文本，右键单击并选择 ESP-IDF：在文档中搜索以在此处获取匹配的结果。\n\n结果基于您当前的 VS Code 语言、idf.espIdfPath 版本 (否则为最新版本)",
 	"viewWelcome.peripheralView": "显示在活动调试会话期间在 ESP-IDF Svd 文件路径 (idf.svdFilePath) 配置设置中定义的外围设备寄存器"
 }

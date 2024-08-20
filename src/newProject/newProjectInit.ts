@@ -23,7 +23,6 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
-import { defaultBoards } from "../espIdf/openOcd/defaultBoards";
 
 export interface INewProjectArgs {
   espIdfPath: string;
@@ -35,7 +34,6 @@ export interface INewProjectArgs {
   boards: IdfBoard[];
   components: IComponent[];
   serialPortList: string[];
-  targetList: IdfBoard[];
   templates: { [key: string]: IExampleCategory };
   workspaceFolder: Uri;
 }
@@ -64,9 +62,8 @@ export async function getNewProjectArgs(
   }
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
-  const espBoards = await getBoards(openOcdScriptsPath);
+  let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
-  const targetList = defaultBoards;
   const espIdfPath = idfConf.readParameter(
     "idf.espIdfPath",
     workspace
@@ -134,7 +131,6 @@ export async function getNewProjectArgs(
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,
     espRainmakerPath: rainmakerExists ? espRainmakerPath : undefined,
     serialPortList,
-    targetList,
     templates,
   } as INewProjectArgs;
 }

@@ -530,34 +530,6 @@
               "type": "string"
             }
           },
-          "idf.adapterTargetName": {
-            "type": "string",
-            "default": "esp32",
-            "enum": [
-              "esp32",
-              "esp32c2",
-              "esp32c3",
-              "esp32c6",
-              "esp32h2",
-              "esp32p4",
-              "esp32s2",
-              "esp32s3",
-              "custom"
-            ],
-            "enumDescriptions": [
-              "esp32",
-              "esp32 C2",
-              "esp32 C3",
-              "esp32 C6",
-              "esp32 H2",
-              "esp32 P4",
-              "esp32 S2",
-              "esp32 S3",
-              "custom"
-            ],
-            "description": "%param.adapterTargetName%",
-            "scope": "resource"
-          },
           "idf.buildPath": {
             "type": "string",
             "default": "${workspaceFolder}/build",
@@ -596,12 +568,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "idf.customAdapterTargetName": {
-            "type": "string",
-            "default": "",
-            "description": "%param.customAdapterTargetName%",
-            "scope": "resource"
           },
           "idf.customExtraVars": {
             "description": "%param.exportVars%",
