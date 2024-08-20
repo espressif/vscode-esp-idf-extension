@@ -2151,7 +2151,7 @@
     "@vscode/l10n": "^0.0.18",
     "ansi-to-html": "^0.6.11",
     "assert": "^2.1.0",
-    "axios": "^1.6.0",
+    "axios": "^1.7.4",
     "bignumber.js": "^9.0.1",
     "del": "^4.1.1",
     "es6-promisify": "^6.0.0",
