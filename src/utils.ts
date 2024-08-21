@@ -397,6 +397,9 @@ export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
       workspacePath
     ) as string;
   }
+  if (!workspacePath) {
+    return;
+  }
   if (!sdkconfigFilePath) {
     sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
   }
