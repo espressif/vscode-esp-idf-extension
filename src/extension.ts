@@ -3920,10 +3920,11 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await startFlashing(cancelToken, flashType, encryptPartition);
-        OutputChannel.appendLine(
-          "Flash has finished. You can monitor with ESP-IDF: Monitor your device command"
-        );
+        if (await startFlashing(cancelToken, flashType, encryptPartition)) {
+          OutputChannel.appendLine(
+            "Flash has finished. You can monitor your device with ESP-IDF: Monitor command"
+          );
+        }
       }
     );
   });
