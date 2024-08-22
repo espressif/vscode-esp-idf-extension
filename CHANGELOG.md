@@ -8,6 +8,21 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.8.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.8.1)
+
+### Bug Fixes
+
+- [Fix monitor for Command Prompt](https://github.com/espressif/vscode-esp-idf-extension/pull/1234)
+- [Update chinese localization](https://github.com/espressif/vscode-esp-idf-extension/pull/1229) Thanks @Tinyu-Zhao !
+- [Add Kconfig name in SDK Configuration Editor](https://github.com/espressif/vscode-esp-idf-extension/pull/1241)
+- [Add validation for existing setup path](https://github.com/espressif/vscode-esp-idf-extension/pull/1228)
+- [Fix custom tasks execution](https://github.com/espressif/vscode-esp-idf-extension/pull/1238)
+- [Fix jtag flash on build flash monitor command](https://github.com/espressif/vscode-esp-idf-extension/pull/1245)
+- [Fix CMake arguments for CMake < 3.20](https://github.com/espressif/vscode-esp-idf-extension/pull/1266)
+- [Fix ESP-IDF Debug status bar button](https://github.com/espressif/vscode-esp-idf-extension/pull/1261)
+- [Add esp32p4 watchpoints](https://github.com/espressif/vscode-esp-idf-extension/pull/1280) Thanks @ftab !
+- [Add Espressif projects documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1231)
+
 ## [1.8.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.8.0)
 
 ### Features and enhancements
