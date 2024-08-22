@@ -355,7 +355,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
   const buildWatcher = vscode.workspace.createFileSystemWatcher(
-    ".bin_timestamp",
+    "**/.bin_timestamp",
     true,
     false,
     true
