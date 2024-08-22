@@ -356,12 +356,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const buildWatcher = vscode.workspace.createFileSystemWatcher(
     "**/.bin_timestamp",
-    true,
+    false,
     false,
     true
   );
 
-  const buildWatcherDisposable = buildWatcher.onDidChange(async (e) => {
+  const binTimestampEventFunc = async (e: vscode.Uri) => {
     const buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       workspaceRoot
@@ -371,8 +371,16 @@ export async function activate(context: vscode.ExtensionContext) {
     if (qemuBinExists) {
       vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
     }
-  });
+  };
+
+  const buildWatcherDisposable = buildWatcher.onDidChange(
+    binTimestampEventFunc
+  );
   context.subscriptions.push(buildWatcherDisposable);
+  const buildWatcherCreateDisposable = buildWatcher.onDidCreate(
+    binTimestampEventFunc
+  );
+  context.subscriptions.push(buildWatcherCreateDisposable);
 
   vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
     if (PreCheck.isWorkspaceFolderOpen()) {
