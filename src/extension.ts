@@ -351,6 +351,7 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
     }
+    await binTimestampEventFunc(e);
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
 
@@ -369,7 +370,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const qemuBinPath = path.join(buildDirPath, "merged_qemu.bin");
     const qemuBinExists = await pathExists(qemuBinPath);
     if (qemuBinExists) {
-      vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
+      await vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
     }
   };
 
