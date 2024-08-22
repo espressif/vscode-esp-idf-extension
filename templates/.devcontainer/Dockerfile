@@ -8,6 +8,8 @@ ARG USER_GID=$USER_UID
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
+RUN apt-get update -y && apt-get install udev -y
+
 RUN groupadd --gid $USER_GID $CONTAINER_USER \
   && adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" ${CONTAINER_USER} \
   && usermod -a -G root $CONTAINER_USER && usermod -a -G dialout $CONTAINER_USER

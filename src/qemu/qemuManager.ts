@@ -114,7 +114,7 @@ export class QemuManager extends EventEmitter {
         "-machine",
         idfTarget,
         "-drive",
-        `file=${qemuFile.fsPath},if=mtd,format=raw`,
+        `file='${qemuFile.fsPath}',if=mtd,format=raw`,
       ];
     } else {
       return [
