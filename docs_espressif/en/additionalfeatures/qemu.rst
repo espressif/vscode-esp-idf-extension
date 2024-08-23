@@ -22,4 +22,4 @@ Development steps:
 8. If you want to launch a QEMU debug session, use the **ESP-IDF: Launch QEMU Debug Session** commmand, which will stop any existing QEMU server and launch a new QEMU server for debugging.
 
 .. note::
-  Using QEMU is not limited to a docker container, basically the extension assumes that ``qemu-system-xtensa`` is available in the environment variable PATH for the **ESP-IDF: Launch QEMU Server** command and that a QEMU server is running for **ESP-IDF: Monitor QEMU Device** and **ESP-IDF: Launch QEMU Debug Session**.
+  Using QEMU is not limited to a docker container, basically the extension assumes that ``qemu-system-xtensa`` or ``qemu-system-riscv32`` is available in the environment variable PATH for the **ESP-IDF: Launch QEMU Server** command and that a QEMU server is running for **ESP-IDF: Monitor QEMU Device** and **ESP-IDF: Launch QEMU Debug Session**.

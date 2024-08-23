@@ -33,8 +33,6 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.cmakeCompilerArgs**         | Arguments for CMake compilation task                                                      |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.customExtraPaths**          | Paths to be appended to \$PATH                                                            |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.customExtraVars**           | Variables to be added to system environment variables                                     |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.gitPath**                   | Path to git executable                                                                    |
@@ -51,9 +49,7 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.ninjaArgs**                 | Arguments for Ninja build task                                                            |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.pythonBinPath**             | Python absolute binary path used to execute ESP-IDF Python Scripts                        |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.pythonBinPathWin**          | Python absolute binary path used to execute ESP-IDF Python Scripts in Windows             |
+| **idf.pythonInstallPath**         | System python absolute path used to compute ESP-IDF python virtual environment            |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.toolsPath**                 | Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)                                             |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
@@ -63,14 +59,13 @@ These are the configuration settings that ESP-IDF extension contributes to your 
 
 This is how the extension uses them:
 
-1. **idf.customExtraPaths** is pre-appended to your system environment variable PATH within Visual Studio Code **(not modifying your system environment)** before executing any of our extension commands such as ``openocd`` or ``cmake`` (i.e. build your current project) else extension commands will try to use what is already in your system PATH.
-   > **NOTE:** In **ESP-IDF: Configure ESP-IDF Extension** you can download ESP-IDF Tools or skip IDF Tools download and manually enter all required ESP-IDF Tools as explain in [SETUP](./SETUP.md) which will be saved in **idf.customExtraPaths**.
-2. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
-3. **idf.espIdfPath** (or **idf.espIdfPathWin** in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**
-4. **idf.pythonBinPath** (or **idf.espIdfPathWin** in Windows) is used to executed python scripts within the extension. In **ESP-IDF: Configure ESP-IDF Extension** we first select a system-wide python executable from which to create a python virtual environment and we save the executable from this virtual environment in **idf.pythonBinPath**. All required python packages by ESP-IDF are installed in this virtual environment, if using **ESP-IDF: Configure ESP-IDF Extension**
-5. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
+1. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension commands process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
+2. **idf.espIdfPath** (or **idf.espIdfPathWin** in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**. It is also used to compute the list of ESP-IDF tools to add to environment variable PATH and the python virtual environment path together from **idf.toolsPath** and **idf.pythonInstallPath**.
+3. **idf.pythonInstallPath** is the system python absolute path used to compute ESP-IDF python virtual environment from **idf.toolsPath** and **idf.espIdfPath** where ESP-IDF python packages will be installed and used.
+4. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
+5. **idf.toolsPath** (or **idf.toolsPathWin** in Windows) is used to compute the list of ESP-IDF tools to add to environment variable PATH and the python virtual environment path together from **idf.pythonInstallPath** and **idf.espIdfPath**.
 
-> **NOTE**: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We use a modified process environment in all of this extension tasks and child processes which should not affect any other system process or extension. Please review the content of **idf.customExtraPaths** and **idf.customExtraVars** in case you have issues with other extensions.
+> **NOTE**: From Visual Studio Code extension context, we can't modify your system PATH or any other environment variable. We use a modified process environment in all of this extension tasks and child processes which should not affect any other system process or extension. Please review the content of **idf.customExtraVars** in case you have issues with other extensions.
 
 Board/Chip Specific Settings
 -------------------------------------------------------------------------
@@ -80,10 +75,6 @@ These settings are specific to the ESP32 Chip/Board
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | Setting                                            | Description                                                                            |
 +====================================================+========================================================================================+
-| **idf.adapterTargetName**                          | ESP-IDF Target Chip (Example: esp32)                                                   |
-+----------------------------------------------------+----------------------------------------------------------------------------------------+
-| **idf.customAdapterTargetName**                    | Custom Target Name for ESP-IDF Debug Adapter                                           |
-+----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.flashBaudRate**                              | Flash Baud rate                                                                        |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.monitorBaudRate**                            | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE) |
@@ -106,23 +97,17 @@ These settings are specific to the ESP32 Chip/Board
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **openocd.jtag.command.force_unix_path_separator** | Forced to Use ``/`` as Path sep. for Win32 Based OS Instead of ``\\``                  |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
-| **idf.listDfuDevices**                             | List of DFU Devices Connected to USB                                                   |
-+----------------------------------------------------+----------------------------------------------------------------------------------------+
-| **idf.selectedDfuDevicePath**                      | Selected DFU Device Connected to USB                                                   |
-+----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.svdFilePath**                                | SVD File Absolute Path to Resolve Chip Debug Peripheral Tree view                      |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 
 This is how the extension uses them:
 
-1. **idf.adapterTargetName** is used to select the chipset (esp32, esp32s2, esp32s3, esp32c3 and custom) on which to run the extension commands.
-2. **idf.customAdapterTargetName** is used when **idf.adapterTargetName** is set to **custom**.
-3. **idf.flashBaudRate** is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
-4. **idf.monitorBaudRate** is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig ``CONFIG_ESPTOOLPY_MONITOR_BAUD`` (idf.py monitor' baud rate). This value can also be override by setting the environment variable ``IDF_MONITOR_BAUD`` or ``MONITORBAUD`` in your system environment variables or this extension's **idf.customExtraVars** configuration setting.
-5. **idf.openOcdConfigs** is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``). More information `OpenOCD JTAG Target configuration <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_.
-6. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
-7. **idf.openOcdDebugLevel**: Log level for OpenOCD Server output from 0 to 4.
-8. **idf.openOcdLaunchArgs**: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
+1. **idf.flashBaudRate** is the baud rate value used for the **ESP-IDF: Flash your Project** command and [ESP-IDF Debug](./DEBUGGING.md).
+2. **idf.monitorBaudRate** is the ESP-IDF Monitor baud rate value and fallback from your project's skdconfig ``CONFIG_ESPTOOLPY_MONITOR_BAUD`` (idf.py monitor' baud rate). This value can also be override by setting the environment variable ``IDF_MONITOR_BAUD`` or ``MONITORBAUD`` in your system environment variables or this extension's **idf.customExtraVars** configuration setting.
+3. **idf.openOcdConfigs** is used to store an string array of OpenOCD scripts directory relative path config files to use with OpenOCD server. (Example: ``["interface/ftdi/esp32_devkitj_v1.cfg", "board/esp32-wrover.cfg"]``). More information `OpenOCD JTAG Target configuration <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target>`_.
+4. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
+5. **idf.openOcdDebugLevel**: Log level for OpenOCD Server output from 0 to 4.
+6. **idf.openOcdLaunchArgs**: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
 
 .. note::
   * When you use the command **ESP-IDF: Set Espressif Device Target** it will override **idf.adapterTargetName** with selected chip and **idf.openOcdConfigs** with its default OpenOCD Configuration Files.
