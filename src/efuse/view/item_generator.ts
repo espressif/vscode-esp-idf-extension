@@ -51,7 +51,10 @@ export function FieldsForCategory(
   return fields.map((v) => {
     const item = new ESPEFuseTreeDataItem(v.name);
     item.tooltip = v.writeable ? "writable" : "read only";
-    item.description = v.value;
+    item.description =
+      typeof v.value === "boolean" || typeof v.value === "number"
+        ? JSON.stringify(v.value)
+        : v.value;
     item.iconPath = v.writeable
       ? ThemeIconFor("edit", "merge.currentHeaderBackground")
       : ThemeIconFor("book", "button.background");
