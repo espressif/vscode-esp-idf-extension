@@ -3751,12 +3751,18 @@ async function createCmdsStatusBarItems() {
     "espIdf.selectCurrentIdfVersion",
     102
   );
+  statusBarItems["flashType"] = createStatusBarItem(
+    `$(star-empty) ${flashType}`,
+    vscode.l10n.t("ESP-IDF: Select Flash Method"),
+    "espIdf.selectFlashMethodAndFlash",
+    101
+  );
 
   statusBarItems["port"] = createStatusBarItem(
     "$(plug)" + port,
     vscode.l10n.t("ESP-IDF: Select Port to Use (COM, tty, usbserial)"),
     "espIdf.selectPort",
-    101
+    100
   );
 
   if (projectConf) {
@@ -3764,44 +3770,37 @@ async function createCmdsStatusBarItems() {
       "$(gear)" + projectConf,
       vscode.l10n.t("ESP-IDF: Select Project Configuration"),
       "espIdf.projectConf",
-      100
+      99
     );
   }
-
   statusBarItems["target"] = createStatusBarItem(
     "$(chip) " + idfTarget,
     vscode.l10n.t("ESP-IDF: Set Espressif Device Target"),
     "espIdf.setTarget",
-    99
+    98
   );
   statusBarItems["workspace"] = createStatusBarItem(
     "$(file-submodule)",
     vscode.l10n.t("ESP-IDF: Current Project"),
     "espIdf.pickAWorkspaceFolder",
-    98
+    97
   );
   statusBarItems["menuconfig"] = createStatusBarItem(
     "$(gear)",
     vscode.l10n.t("ESP-IDF: SDK Configuration Editor (menuconfig)"),
     "espIdf.menuconfig.start",
-    97
+    96
   );
   statusBarItems["clean"] = createStatusBarItem(
     "$(trash)",
     vscode.l10n.t("ESP-IDF: Full Clean"),
     "espIdf.fullClean",
-    96
+    95
   );
   statusBarItems["build"] = createStatusBarItem(
     "$(symbol-property)",
     vscode.l10n.t("ESP-IDF: Build Project"),
     "espIdf.buildDevice",
-    95
-  );
-  statusBarItems["flashType"] = createStatusBarItem(
-    `$(star-empty) ${flashType}`,
-    vscode.l10n.t("ESP-IDF: Select Flash Method"),
-    "espIdf.selectFlashMethodAndFlash",
     94
   );
   statusBarItems["flash"] = createStatusBarItem(
@@ -3816,16 +3815,16 @@ async function createCmdsStatusBarItems() {
     "espIdf.monitorDevice",
     92
   );
-  statusBarItems["debug"] = createStatusBarItem(
-    "$(debug-alt)",
-    vscode.l10n.t("ESP-IDF: Debug"),
-    "espIdf.debug",
-    91
-  );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     "$(flame)",
     vscode.l10n.t("ESP-IDF: Build, Flash and Monitor"),
     "espIdf.buildFlashMonitor",
+    91
+  );
+  statusBarItems["debug"] = createStatusBarItem(
+    "$(debug-alt)",
+    vscode.l10n.t("ESP-IDF: Debug"),
+    "espIdf.debug",
     90
   );
   statusBarItems["terminal"] = createStatusBarItem(
@@ -3847,9 +3846,9 @@ function createStatusBarItem(
   icon: string,
   tooltip: string,
   cmd: string,
-  priority: number
+  priority: number,
+  alignment: vscode.StatusBarAlignment = vscode.StatusBarAlignment.Left
 ) {
-  const alignment: vscode.StatusBarAlignment = vscode.StatusBarAlignment.Left;
   const statusBarItem = vscode.window.createStatusBarItem(alignment, priority);
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
