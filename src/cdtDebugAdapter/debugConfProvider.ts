@@ -30,6 +30,7 @@ import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { getToolchainPath } from "../utils";
+import { createNewIdfMonitor } from "../espIdf/monitor/command";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
@@ -123,6 +124,17 @@ export class CDTDebugConfigurationProvider
             `Current app binary is different from your project. Flash first.`
           );
         }
+      }
+      const useMonitorWithDebug = readParameter(
+        "idf.launchMonitorOnDebugSession",
+        folder
+      );
+      if (
+        config.sessionID !== "core-dump.debug.session.ws" &&
+        config.sessionID !== "gdbstub.debug.session.ws" &&
+        useMonitorWithDebug
+      ) {
+        await createNewIdfMonitor(folder.uri, true);
       }
       const openOCDManager = OpenOCDManager.init();
       if (
