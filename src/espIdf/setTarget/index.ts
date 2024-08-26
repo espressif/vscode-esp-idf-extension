@@ -22,6 +22,7 @@ import {
   ProgressLocation,
   WorkspaceFolder,
   window,
+  l10n,
 } from "vscode";
 import {
   NotificationMode,
@@ -34,7 +35,10 @@ import { getBoards, getOpenOcdScripts } from "../openOcd/boardConfiguration";
 import { getTargetsFromEspIdf } from "./getTargets";
 import { setTargetInIDF } from "./setTargetInIdf";
 
-export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: WorkspaceFolder) {
+export async function setIdfTarget(
+  placeHolderMsg: string,
+  workspaceFolder: WorkspaceFolder
+) {
   const configurationTarget = ConfigurationTarget.WorkspaceFolder;
   if (!workspaceFolder) {
     return;
@@ -98,17 +102,19 @@ export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: Work
             workspaceFolder.uri
           );
         }
-
         await setTargetInIDF(workspaceFolder, selectedTarget);
       } catch (err) {
         const errMsg =
-          err && err.message ? err.message : "Error running idf.py set-target";
-        if (errMsg.indexOf("are satisfied") > -1) {
-          Logger.info(err.message.toString());
-          OutputChannel.append(err.message.toString());
+          err instanceof Error
+            ? err.message
+            : l10n.t("Unknown error occurred while setting IDF target.");
+
+        if (errMsg.includes("are satisfied")) {
+          Logger.info(errMsg);
+          OutputChannel.appendLine(errMsg);
         } else {
-          Logger.errorNotify(err, err, "setIdfTarget");
-          OutputChannel.append(err);
+          Logger.errorNotify(errMsg, err, "setIdfTarget");
+          OutputChannel.appendLine(errMsg);
         }
       }
     }

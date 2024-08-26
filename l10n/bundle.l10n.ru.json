@@ -183,5 +183,6 @@
   "Doctor Command": "Доктор Команда",
   "Execute Custom Task": "Выполнить пользовательскую задачу",
   "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF.",
-  "Target {0} Set Successfully": "Цель {0} успешно установлена."
+  "Target {0} Set Successfully.": "Цель {0} успешно установлена.",
+  "Unknown error occurred while setting IDF target.": "Произошла неизвестная ошибка при установке цели IDF."
 }
