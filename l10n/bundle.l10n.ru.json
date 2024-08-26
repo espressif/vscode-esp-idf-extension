@@ -182,5 +182,6 @@
   "Open ESP-IDF Terminal": "Открыть терминал ESP-IDF",
   "Doctor Command": "Доктор Команда",
   "Execute Custom Task": "Выполнить пользовательскую задачу",
-  "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF."
+  "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF.",
+  "Target {0} Set Successfully": "Цель {0} успешно установлена."
 }
