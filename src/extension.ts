@@ -37,6 +37,7 @@ import {
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
+import { ComponentsTreeDataProvider } from "./espIdf/projectSpecificComponents/tree/componentsTreeDataProvider"
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
@@ -48,6 +49,7 @@ import {
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
+  updateProjectSpecificComponentsTree,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
@@ -179,6 +181,9 @@ let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
 let gdbHeapTraceManager: GdbHeapTraceManager;
 
+// Specific Project Components
+let componentsTreeDataProvider: ComponentsTreeDataProvider;
+
 // Partition table
 let partitionTableTreeDataProvider: PartitionTreeDataProvider;
 
@@ -300,6 +305,12 @@ export async function activate(context: vscode.ExtensionContext) {
     peripheralTreeView.onDidCollapseElement((e) => {
       e.element.expanded = false;
     });
+
+    // Specific Project Components tree view
+    const refreshCommand = vscode.commands.registerCommand('espIdf.projectSpecificComponents.refresh', () => {
+      componentsTreeDataProvider.refresh(workspaceRoot);
+  });
+    context.subscriptions.push(refreshCommand);
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
@@ -904,6 +915,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
         }
         updateIdfComponentsTree(workspaceRoot);
+        updateProjectSpecificComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
           currentWorkSpace: option.name,
@@ -3687,7 +3699,10 @@ function registerQemuStatusBarItem(context: vscode.ExtensionContext) {
 }
 
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
+  componentsTreeDataProvider = new ComponentsTreeDataProvider(workspaceRoot);
+
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
+
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
   espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();

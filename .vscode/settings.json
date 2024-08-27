@@ -34,5 +34,15 @@
     }
   ],
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "workbench.editor.enablePreview": true
+  "workbench.editor.enablePreview": true,
+  "idf.espIdfPathWin": "C:\\Users\\radur\\esp171\\v5.2.2\\esp-idf",
+  "idf.pythonBinPathWin": "C:\\Users\\radur\\esptools171\\python_env\\idf5.2_py3.11_env\\Scripts\\python.exe",
+  "idf.toolsPathWin": "C:\\Users\\radur\\esptools171",
+  "idf.customExtraPaths": "C:\\Users\\radur\\esptools171\\tools\\xtensa-esp-elf-gdb\\14.2_20240403\\xtensa-esp-elf-gdb\\bin;C:\\Users\\radur\\esptools171\\tools\\riscv32-esp-elf-gdb\\14.2_20240403\\riscv32-esp-elf-gdb\\bin;C:\\Users\\radur\\esptools171\\tools\\xtensa-esp-elf\\esp-13.2.0_20230928\\xtensa-esp-elf\\bin;C:\\Users\\radur\\esptools171\\tools\\riscv32-esp-elf\\esp-13.2.0_20230928\\riscv32-esp-elf\\bin;C:\\Users\\radur\\esptools171\\tools\\esp32ulp-elf\\2.35_20220830\\esp32ulp-elf\\bin;C:\\Users\\radur\\esptools171\\tools\\cmake\\3.24.0\\bin;C:\\Users\\radur\\esptools171\\tools\\openocd-esp32\\v0.12.0-esp32-20240318\\openocd-esp32\\bin;C:\\Users\\radur\\esptools171\\tools\\ninja\\1.11.1;C:\\Users\\radur\\esptools171\\tools\\idf-exe\\1.0.3;C:\\Users\\radur\\esptools171\\tools\\ccache\\4.8\\ccache-4.8-windows-x86_64;C:\\Users\\radur\\esptools171\\tools\\dfu-util\\0.11\\dfu-util-0.11-win64;C:\\Users\\radur\\esptools171\\tools\\esp-rom-elfs\\20230320",
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "C:\\Users\\radur\\esptools171\\tools\\openocd-esp32\\v0.12.0-esp32-20240318/openocd-esp32/share/openocd/scripts",
+    "IDF_CCACHE_ENABLE": "1",
+    "ESP_ROM_ELF_DIR": "C:\\Users\\radur\\esptools171\\tools\\esp-rom-elfs\\20230320/"
+  },
+  "idf.gitPathWin": "C:\\Users\\radur\\esptools171\\tools\\idf-git\\2.39.2\\cmd\\git.exe"
 }
