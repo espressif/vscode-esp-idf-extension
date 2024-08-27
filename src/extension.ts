@@ -308,7 +308,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Specific Project Components tree view
     const refreshCommand = vscode.commands.registerCommand('espIdf.projectSpecificComponents.refresh', () => {
-      componentsTreeDataProvider.refresh(workspaceRoot);
+      componentsTreeDataProvider.refresh();
   });
     context.subscriptions.push(refreshCommand);
 

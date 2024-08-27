@@ -1,6 +1,4 @@
 import * as vscode from "vscode";
-import * as fs from 'fs';
-import * as path from 'path';
 import * as yaml from 'js-yaml';
 
 class Component extends vscode.TreeItem {
@@ -17,15 +15,24 @@ class Component extends vscode.TreeItem {
 export class ComponentsTreeDataProvider implements vscode.TreeDataProvider<Component> {
     private _onDidChangeTreeData: vscode.EventEmitter<Component | undefined | null | void> = new vscode.EventEmitter<Component | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<Component | undefined | null | void> = this._onDidChangeTreeData.event;
-     private workspaceFolder: vscode.Uri;
+    private workspaceFolder?: vscode.Uri;
 
     constructor(workspaceFolder: vscode.Uri | undefined) {
         this.workspaceFolder = workspaceFolder;
+
+        // Watch the idf_component.yml file for changes
+        if (workspaceFolder) {
+            const idfComponentPath = vscode.Uri.joinPath(this.workspaceFolder, 'main', 'idf_component.yml');
+            const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(idfComponentPath, '*'));
+            
+            watcher.onDidChange(() => this.refresh());
+            watcher.onDidCreate(() => this.refresh());
+            watcher.onDidDelete(() => this.refresh());
+        }
     }
 
-    refresh(workspaceFolder: vscode.Uri): void {
-        this.workspaceFolder = workspaceFolder;
-        this._onDidChangeTreeData.fire();
+    refresh(): void {
+        this._onDidChangeTreeData.fire();  // Trigger UI update for the tree
     }
 
     getTreeItem(element: Component): vscode.TreeItem {
@@ -70,7 +77,7 @@ export class ComponentsTreeDataProvider implements vscode.TreeDataProvider<Compo
                 return [new Component('No dependencies found', vscode.TreeItemCollapsibleState.None)];
             }
         } catch (err) {
-            vscode.window.showErrorMessage(`Error reading idf_component.yml: ${err}`);
+            vscode.window.showErrorMessage(`Error reading idf_component.yml: ${(err as Error).message}`);
             return [new Component('Error reading file', vscode.TreeItemCollapsibleState.None)];
         }
     }

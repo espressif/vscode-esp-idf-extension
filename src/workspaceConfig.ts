@@ -113,5 +113,5 @@ export function updateProjectSpecificComponentsTree(workspaceFolder: vscode.Uri)
     projectSpecificComponentsProvider = new ComponentsTreeDataProvider(workspaceFolder);
     vscode.window.registerTreeDataProvider("projectSpecificComponents", projectSpecificComponentsProvider);
   }
-  projectSpecificComponentsProvider.refresh(workspaceFolder);
+  projectSpecificComponentsProvider.refresh();
 }
