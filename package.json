@@ -110,7 +110,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
-    "onView:projectSpecificComponents",
+    "onView:espRegistryComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
     "workspaceContains:**/CMakeLists.txt"
@@ -202,8 +202,8 @@
           "name": "%view.components.name%"
         },
         {
-          "id": "projectSpecificComponents",
-          "name": "%view.idf.projectSpecificComponents%"
+          "id": "espRegistryComponents",
+          "name": "%view.idf.espRegistryComponents%"
         }
       ]
     },
@@ -230,9 +230,9 @@
       ],
       "view/title": [
         {
-          "command": "espIdf.projectSpecificComponents.refresh",
+          "command": "espIdf.espRegistryComponents.refresh",
           "group": "navigation",
-          "when": "view == projectSpecificComponents"
+          "when": "view == espRegistryComponents"
         },
         {
           "command": "espIdf.searchError",
@@ -992,8 +992,8 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.projectSpecificComponents.refresh",
-        "title": "%espIdf.projectSpecificComponentsRefresh.title%",
+        "command": "espIdf.espRegistryComponents.refresh",
+        "title": "%espIdf.espRegistryComponentsRefresh.title%",
         "category": "ESP-IDF",
         "icon": "$(refresh)"
       },

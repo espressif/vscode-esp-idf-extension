@@ -37,7 +37,7 @@ import {
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
-import { ComponentsTreeDataProvider } from "./espIdf/projectSpecificComponents/tree/componentsTreeDataProvider"
+import { ComponentsTreeDataProvider } from "./espIdf/espRegistryComponents/tree/componentsTreeDataProvider"
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
@@ -49,7 +49,7 @@ import {
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
-  updateProjectSpecificComponentsTree,
+  updateEspRegistryComponentsTree,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
@@ -307,7 +307,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     // Specific Project Components tree view
-    const refreshCommand = vscode.commands.registerCommand('espIdf.projectSpecificComponents.refresh', () => {
+    const refreshCommand = vscode.commands.registerCommand('espIdf.espRegistryComponents.refresh', () => {
       componentsTreeDataProvider.refresh();
   });
     context.subscriptions.push(refreshCommand);
@@ -915,7 +915,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
         }
         updateIdfComponentsTree(workspaceRoot);
-        updateProjectSpecificComponentsTree(workspaceRoot);
+        updateEspRegistryComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
           currentWorkSpace: option.name,

@@ -17,7 +17,7 @@ import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import { ComponentsTreeDataProvider } from "../src/espIdf/projectSpecificComponents/tree/componentsTreeDataProvider"
+import { ComponentsTreeDataProvider } from "../src/espIdf/espRegistryComponents/tree/componentsTreeDataProvider"
 import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
@@ -26,7 +26,7 @@ import { getSDKConfigFilePath } from "./utils";
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
   updateIdfComponentsTree(workspaceRoot);
-  updateProjectSpecificComponentsTree(workspaceRoot);
+  updateEspRegistryComponentsTree(workspaceRoot);
   const workspaceFolderInfo = {
     clickCommand: "espIdf.pickAWorkspaceFolder",
     currentWorkSpace: vscode.workspace.workspaceFolders[0].name,
@@ -107,11 +107,11 @@ export async function getIdfTargetFromSdkconfig(
   }
 }
 
-let projectSpecificComponentsProvider: ComponentsTreeDataProvider;
-export function updateProjectSpecificComponentsTree(workspaceFolder: vscode.Uri) {
-  if (typeof projectSpecificComponentsProvider === "undefined") {
-    projectSpecificComponentsProvider = new ComponentsTreeDataProvider(workspaceFolder);
-    vscode.window.registerTreeDataProvider("projectSpecificComponents", projectSpecificComponentsProvider);
+let espRegistryComponentsProvider: ComponentsTreeDataProvider;
+export function updateEspRegistryComponentsTree(workspaceFolder: vscode.Uri) {
+  if (typeof espRegistryComponentsProvider === "undefined") {
+    espRegistryComponentsProvider = new ComponentsTreeDataProvider(workspaceFolder);
+    vscode.window.registerTreeDataProvider("espRegistryComponents", espRegistryComponentsProvider);
   }
-  projectSpecificComponentsProvider.refresh();
+  espRegistryComponentsProvider.refresh();
 }
