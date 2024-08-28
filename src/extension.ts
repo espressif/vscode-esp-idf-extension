@@ -3944,17 +3944,16 @@ function createQemuMonitor() {
         `-serial tcp::${qemuTcpPort},server,nowait`,
       ],
     } as IQemuOptions);
-    qemuManager.start();
-    const serialPort = `socket://localhost:${qemuTcpPort}`;
+    await qemuManager.start();
     if (IDFMonitor.terminal) {
-      IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+      await utils.sleep(1000);
     }
+    const serialPort = `socket://localhost:${qemuTcpPort}`;
     const noReset = idfConf.readParameter(
       "idf.monitorNoReset",
       workspaceRoot
     ) as boolean;
     await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
-    IDFMonitor.start();
   });
 }
 
