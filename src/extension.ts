@@ -306,7 +306,7 @@ export async function activate(context: vscode.ExtensionContext) {
       e.element.expanded = false;
     });
 
-    // Specific Project Components tree view
+    // ESP Registry Components tree view
     const refreshCommand = vscode.commands.registerCommand('espIdf.espRegistryComponents.refresh', () => {
       componentsTreeDataProvider.refresh();
   });
