@@ -117,6 +117,65 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "walkthroughs": [
+      {
+        "id": "espIdf.walkthrough",
+        "title": "Get Started with ESP-IDF",
+        "description": "Discover the custom UI elements added by the Espressif IDF extension for VS Code",
+        "steps": [
+          {
+            "id": "status-bar",
+            "title": "Status Bar Integration",
+            "description": "The Status Bar displays basic commands of our extension, providing quick access to important actions for your Espressif IDF development.",
+            "media": {
+              "image": "media/walkthrough/status-bar.png",
+              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
+            },
+            "completionEvents": ["onView:espressif-ide.statusBar"]
+          },
+          {
+            "id": "esp-idf-explorer",
+            "title": "ESP-IDF: Explorer in Activity Bar",
+            "description": "We've added a custom Explorer to the Activity Bar called 'ESP-IDF: Explorer'. This is your central hub for Espressif IDF development.",
+            "media": {
+              "image": "media/walkthrough/esp-idf-explorer.png",
+              "altText": "Screenshot of ESP-IDF: Explorer in Activity Bar"
+            },
+            "completionEvents": ["onView:espressif-ide.espIdfExplorer"]
+          },
+          {
+            "id": "commands-section",
+            "title": "Commands Section",
+            "description": "The 'Commands' section in the ESP-IDF Explorer provides quick access to all extension commands. You can use these directly from here or by opening the Command Palette.",
+            "media": {
+              "image": "media/walkthrough/commands-section.png",
+              "altText": "Screenshot of Commands section in ESP-IDF: Explorer"
+            },
+            "completionEvents": ["onView:espressif-ide.commandsSection"]
+          },
+          {
+            "id": "project-components",
+            "title": "Project Components in Explorer",
+            "description": "In the Explorer view, you'll find a new tree view called 'Project Components'. This allows you to navigate through the components inside the esp-idf components directory.",
+            "media": {
+              "image": "media/walkthrough/project-components.png",
+              "altText": "Screenshot of Project Components tree view in Explorer"
+            },
+            "completionEvents": ["onView:espressif-ide.projectComponents"]
+          },
+          {
+            "id": "peripheral-viewer",
+            "title": "ESP-IDF: Peripheral Viewer in Debug Explorer",
+            "description": "The Debug Explorer now includes an 'ESP-IDF: Peripheral Viewer'. This tool allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.",
+            "media": {
+              "image": "media/walkthrough/peripheral-viewer.png",
+              "altText": "Screenshot of ESP-IDF: Peripheral Viewer in Debug Explorer"
+            },
+            "completionEvents": ["onView:espressif-ide.peripheralViewer"]
+          }
+        ]
+      }
+    ],
     "problemMatchers": [
       {
         "name": "espIdf",
@@ -232,6 +291,13 @@
       }
     ],
     "menus": {
+      "extension/context": [
+        {
+          "command": "espIdf.openWalkthrough",
+          "when": "extension =~ /^espressif.esp-idf-extension$/ && extensionStatus == installed",
+          "group": "zzz"
+      }
+      ],
       "editor/title": [
         {
           "command": "espIdf.searchError",
@@ -610,6 +676,12 @@
             "default": true,
             "scope": "window",
             "description": "%param.showOnboardingOnInit%"
+          },
+          "idf.hasWalkthroughBeenShown": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "description": "%param.hasWalkthroughBeenShown%"
           },
           "trace.poll_period": {
             "type": "number",
@@ -1033,6 +1105,10 @@
       }
     ],
     "commands": [
+      {
+        "command": "espIdf.openWalkthrough",
+        "title": "ESP-IDF: Open Get Started Walkthrough"
+      },
       {
         "command": "espIdf.searchError",
         "title": "%espIdf.searchError.title%"
