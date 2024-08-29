@@ -76,7 +76,7 @@ To install the nightly build follow the instructions below.
 Nightly builds are available for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a> or <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension-open.vsix.zip">OpenVSX</a>.
 
 - Open VS Code
-- Go to Extensions
+- Click menu `View` and then `Extensions`
 - Click on the `...` from the top and choose `Install from VSIX...`
 - Browse to the VSIX file you downloaded
 - Wait for the extension to install
