@@ -1070,7 +1070,8 @@
       {
         "command": "espIdf.selectPort",
         "title": "%espIdf.selectPort.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.buildDevice",
@@ -1085,17 +1086,20 @@
       {
         "command": "espIdf.flashUart",
         "title": "%espIdf.flashUart.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.flashDFU",
         "title": "%espIdf.flashDFU.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.flashAndEncryptDevice",
         "title": "%espIdf.flashAndEncryptDevice.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.monitorDevice",
@@ -1105,7 +1109,8 @@
       {
         "command": "espIdf.buildFlashMonitor",
         "title": "%espIdf.buildFlashMonitor.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.pickAWorkspaceFolder",
@@ -1224,7 +1229,8 @@
       {
         "command": "espIdf.launchWSServerAndMonitor",
         "category": "ESP-IDF",
-        "title": "%espIdf.launchWSServerAndMonitor.title%"
+        "title": "%espIdf.launchWSServerAndMonitor.title%",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.searchInEspIdfDocs",
@@ -1285,12 +1291,14 @@
       {
         "command": "espIdf.jtag_flash",
         "title": "%espIdf.jtag_flash.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.selectFlashMethodAndFlash",
         "title": "%espIdf.selectFlashMethodAndFlash.title%",
-        "category": "ESP-IDF"
+        "category": "ESP-IDF",
+        "when": "!isWeb"
       },
       {
         "command": "espIdf.fullClean",
