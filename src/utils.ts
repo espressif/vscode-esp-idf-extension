@@ -1399,7 +1399,7 @@ export async function getConfigValueFromBuild(
     "idf.buildPath",
     workspacePath
   ) as string;
-  const jsonFilePath = path.join(buildPath, "config/sdkconfig.json");
+  const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
   try {
     const data = await readFile(jsonFilePath, "utf-8");
     const config = JSON.parse(data);
