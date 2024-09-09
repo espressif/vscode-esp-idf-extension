@@ -102,14 +102,13 @@ import { writeTextReport } from "./support/writeReport";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
+import { verifyCanFlash } from "./flash/flashCmd";
 import {
-  verifyCanFlash,
   isFlashEncryptionEnabled,
-  checkFlashEncryption,
   FlashCheckResultType,
-  FlashCheckResult,
+  checkFlashEncryption,
   isJtagDisabled,
-} from "./flash/flashCmd";
+} from "./flash/verifyFlashEncryption";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
