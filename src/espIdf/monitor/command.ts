@@ -24,13 +24,12 @@ import { BuildTask } from "../../build/buildTask";
 import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
 import { getProjectName } from "../../workspaceConfig";
-import { IDFMonitor } from ".";
+import { IDFMonitor, MonitorConfig } from ".";
+import { ESP } from "../../config";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
   noReset: boolean = false,
-  enableTimestamps: boolean = false,
-  customTimestampFormat: string = "",
   serialPort?: string
 ) {
   if (BuildTask.isBuilding || FlashTask.isFlashing) {
@@ -94,7 +93,15 @@ export async function createNewIdfMonitor(
     "idf.customTerminalExecutableArgs",
     workspaceFolder
   ) as string[];
-  const monitor = new IDFMonitor({
+  const enableTimestamps = readParameter(
+    "idf.monitorEnableTimestamps",
+    workspaceFolder
+  ) as boolean;
+  const customTimestampFormat = readParameter(
+    "idf.monitorCustomTimestampFormat",
+    workspaceFolder
+  ) as string;
+  const idfMonitorConfig: MonitorConfig = {
     port,
     baudRate: sdkMonitorBaudRate,
     pythonBinPath,
@@ -109,6 +116,21 @@ export async function createNewIdfMonitor(
     toolchainPrefix,
     shellPath,
     shellExecutableArgs,
-  });
-  return monitor;
+  };
+  IDFMonitor.updateConfiguration(idfMonitorConfig);
+  if (IDFMonitor.terminal) {
+    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+  }
+  IDFMonitor.start();
+  if (noReset) {
+    const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
+    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
+    if (idfVersion <= "5.0") {
+      const monitorDelay = readParameter(
+        "idf.monitorStartDelayBeforeDebug",
+        workspaceFolder
+      ) as number;
+      await utils.sleep(monitorDelay);
+    }
+  }
 }

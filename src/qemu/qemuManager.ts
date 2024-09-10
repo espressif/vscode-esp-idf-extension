@@ -201,7 +201,7 @@ export class QemuManager extends EventEmitter {
         strictEnv: true,
       });
       window.onDidCloseTerminal((e) => {
-        if (e.name === this.qemuTerminal.name) {
+        if (e.processId === this.qemuTerminal.processId) {
           this.stop();
         }
       });

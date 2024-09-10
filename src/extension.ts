@@ -165,7 +165,6 @@ const openOCDManager = OpenOCDManager.init();
 let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
-let isMonitorLaunchedByDebug: boolean = false;
 
 // QEMU
 const qemuManager = QemuManager.init();
@@ -197,9 +196,6 @@ let eFuseExplorer: ESPEFuseTreeDataProvider;
 // Peripheral Tree Data Provider
 let peripheralTreeProvider: PeripheralTreeView;
 let peripheralTreeView: vscode.TreeView<PeripheralBaseNode>;
-
-// Process to execute build, debug or monitor
-let monitorTerminal: vscode.Terminal;
 
 // Websocket Server
 let wsServer: WSServer;
@@ -413,10 +409,6 @@ export async function activate(context: vscode.ExtensionContext) {
       openOCDManager.stop();
     }
     debugAdapterManager.stop();
-    if (isMonitorLaunchedByDebug) {
-      isMonitorLaunchedByDebug = false;
-      monitorTerminal.dispose();
-    }
   });
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -625,8 +617,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.eraseFlash", async () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-      if (monitorTerminal) {
-        monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+      if (IDFMonitor.terminal) {
+        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
       }
       const pythonBinPath = idfConf.readParameter(
         "idf.pythonBinPath",
@@ -1201,8 +1193,7 @@ export async function activate(context: vscode.ExtensionContext) {
           session.configuration.sessionID !== "core-dump.debug.session.ws" &&
           useMonitorWithDebug
         ) {
-          isMonitorLaunchedByDebug = true;
-          await createIdfMonitor(true);
+          await createNewIdfMonitor(workspaceRoot, true);
         }
         if (
           launchMode === "auto" &&
@@ -2388,9 +2379,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.qemuDebug", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      if (monitorTerminal) {
-        monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-        monitorTerminal.sendText(`exit`);
+      if (IDFMonitor.terminal) {
+        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
       }
       const buildDirPath = idfConf.readParameter(
         "idf.buildPath",
@@ -3023,7 +3013,7 @@ export async function activate(context: vscode.ExtensionContext) {
           "idf.customTerminalExecutableArgs",
           workspaceRoot
         ) as string[];
-        const monitor = new IDFMonitor({
+        IDFMonitor.updateConfiguration({
           port,
           baudRate: sdkMonitorBaudRate,
           pythonBinPath,
@@ -3046,8 +3036,12 @@ export async function activate(context: vscode.ExtensionContext) {
         wsServer = new WSServer(wsPort);
         wsServer.start();
         wsServer
-          .on("started", () => {
-            monitor.start();
+          .on("started", async () => {
+            if (IDFMonitor.terminal) {
+              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+              await utils.sleep(500);
+            }
+            IDFMonitor.start();
           })
           .on("core-dump-detected", async (resp) => {
             const notificationMode = idfConf.readParameter(
@@ -3118,7 +3112,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         "core-dump.debug.session.ws"
                       ) {
                         wsServer.done();
-                        monitor.dispose();
+                        IDFMonitor.dispose();
                         wsServer.close();
                       }
                     });
@@ -3160,7 +3154,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   session.configuration.sessionID === "gdbstub.debug.session.ws"
                 ) {
                   wsServer.done();
-                  monitor.dispose();
+                  IDFMonitor.dispose();
                   wsServer.close();
                 }
               });
@@ -3929,11 +3923,7 @@ const flash = (
   });
 };
 
-function createQemuMonitor(
-  noReset: boolean = false,
-  enableTimestamps: boolean = false,
-  customTimestampFormat: string = ""
-) {
+function createQemuMonitor() {
   PreCheck.perform([openFolderCheck], async () => {
     const isQemuLaunched = qemuManager.isRunning();
     if (isQemuLaunched) {
@@ -3954,20 +3944,16 @@ function createQemuMonitor(
         `-serial tcp::${qemuTcpPort},server,nowait`,
       ],
     } as IQemuOptions);
-    qemuManager.start();
-    const serialPort = `socket://localhost:${qemuTcpPort}`;
-    const idfMonitor = await createNewIdfMonitor(
-      workspaceRoot,
-      noReset,
-      enableTimestamps,
-      customTimestampFormat,
-      serialPort
-    );
-    if (monitorTerminal) {
-      monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-      monitorTerminal.sendText(`exit`);
+    await qemuManager.start();
+    if (IDFMonitor.terminal) {
+      await utils.sleep(1000);
     }
-    monitorTerminal = idfMonitor.start();
+    const serialPort = `socket://localhost:${qemuTcpPort}`;
+    const noReset = idfConf.readParameter(
+      "idf.monitorNoReset",
+      workspaceRoot
+    ) as boolean;
+    await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
   });
 }
 
@@ -4015,9 +4001,8 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
             message: "Launching monitor...",
             increment: 10,
           });
-          if (monitorTerminal) {
-            monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-            monitorTerminal.sendText(`exit`);
+          if (IDFMonitor.terminal) {
+            IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
           }
           createMonitor();
         }
@@ -4066,8 +4051,8 @@ async function startFlashing(
     "idf.flashBaudRate",
     workspaceRoot
   );
-  if (monitorTerminal) {
-    monitorTerminal.sendText(ESP.CTRL_RBRACKET);
+  if (IDFMonitor.terminal) {
+    IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
   }
   const canFlash = await verifyCanFlash(flashBaudRate, port, workspaceRoot);
   if (!canFlash) {
@@ -4132,54 +4117,14 @@ function createMonitor() {
       "idf.monitorNoReset",
       workspaceRoot
     ) as boolean;
-    const enableTimestamps = idfConf.readParameter(
-      "idf.monitorEnableTimestamps",
-      workspaceRoot
-    ) as boolean;
-    const customTimestampFormat = idfConf.readParameter(
-      "idf.monitorCustomTimestampFormat",
-      workspaceRoot
-    ) as string;
-    await createIdfMonitor(noReset, enableTimestamps, customTimestampFormat);
+    await createNewIdfMonitor(workspaceRoot, noReset);
   });
-}
-
-async function createIdfMonitor(
-  noReset: boolean = false,
-  enableTimestamps: boolean = false,
-  customTimestampFormat: string = ""
-) {
-  const idfMonitor = await createNewIdfMonitor(
-    workspaceRoot,
-    noReset,
-    enableTimestamps,
-    customTimestampFormat
-  );
-  if (monitorTerminal) {
-    monitorTerminal.sendText(ESP.CTRL_RBRACKET);
-    monitorTerminal.sendText(`exit`);
-  }
-  monitorTerminal = idfMonitor.start();
-  if (noReset) {
-    const idfPath = idfConf.readParameter(
-      "idf.espIdfPath",
-      workspaceRoot
-    ) as string;
-    const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-    if (idfVersion <= "5.0") {
-      const monitorDelay = idfConf.readParameter(
-        "idf.monitorStartDelayBeforeDebug",
-        workspaceRoot
-      ) as number;
-      await utils.sleep(monitorDelay);
-    }
-  }
 }
 
 export function deactivate() {
   Telemetry.dispose();
-  if (monitorTerminal) {
-    monitorTerminal.dispose();
+  if (IDFMonitor.terminal) {
+    IDFMonitor.dispose();
   }
   OutputChannel.end();
   ConfserverProcess.dispose();
