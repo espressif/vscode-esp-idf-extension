@@ -40,7 +40,7 @@ onMounted(() => {
           class="button"
           id="create-button"
         >
-          Create project using example {{ selectedExample.name }}
+          Select location for creating {{ selectedExample.name }} project
         </button>
       </div>
       <div

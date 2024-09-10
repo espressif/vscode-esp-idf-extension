@@ -44,7 +44,7 @@ describe("Example Create testing", async () => {
       By.id("create-button")
     );
     expect(await createProjectButton.getText()).has.string(
-      "Create project using example"
+      "Select location for creating"
     );
 
     const containerPath = resolve(__dirname, "..", "..", "testFiles");
