@@ -3922,7 +3922,7 @@ const flash = (
         }
         if (await startFlashing(cancelToken, flashType, encryptPartition)) {
           OutputChannel.appendLine(
-            "Flash has finished. You can monitor your device with ESP-IDF: Monitor command"
+            "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor command'"
           );
         }
       }
