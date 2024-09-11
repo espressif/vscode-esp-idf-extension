@@ -50,7 +50,7 @@ To update openOCD launch arguments, open the project's `settings.json` and add o
 }
 ```
 
-where ``0x20000`` is your application image offset used in the partition table.
+where `0x20000` is your application image offset used in the partition table.
 
 # Navigating Through the Code, Call Stack and Threads
 
