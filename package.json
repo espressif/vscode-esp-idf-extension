@@ -1038,6 +1038,10 @@
               "FT232R": {
                 "vendorId": "0x0403",
                 "productId": "0x6001"
+              },
+              "USB CDC-ACM": {
+                "vendorId": "0x10c4",
+                "productId": "0xea60"
               }
             }
           }
