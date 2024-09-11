@@ -4062,26 +4062,6 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
 
-    // This validation doesn't allows users to use build,flash, monitor command if flash encryption is enabled for release mode
-    // because monitoring command resets the device which is not recommended.
-    // Reset should happen by Bootloader itself once it completes encrypting all artifacts.
-    if (isFlashEncryptionEnabled(workspaceRoot)) {
-      const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
-        "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
-        workspaceRoot
-      );
-      if (valueReleaseModeEnabled == "y") {
-        const errorMessage =
-          "Flash, Build, Monitor command is not available while Flash Encryption is set for 'Release mode'. Use normal build and flash commands";
-        const error = new Error(errorMessage);
-        OutputChannel.appendLineAndShow(errorMessage, "Build, Flash, Monitor");
-        Logger.errorNotify(errorMessage, error, {
-          tag: "Build, Flash, Monitor",
-        });
-        return;
-      }
-    }
-
     await vscode.window.withProgress(
       {
         cancellable: true,
@@ -4124,7 +4104,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           if (IDFMonitor.terminal) {
             IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
           }
-          createMonitor();
+          await createMonitor();
         }
       }
     );
@@ -4263,20 +4243,46 @@ function createIdfTerminal() {
   });
 }
 
-function createMonitor() {
+async function createMonitor() {
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
     if (vscode.env.uiKind === vscode.UIKind.Web) {
       vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
       return;
     }
-    const noReset = idfConf.readParameter(
-      "idf.monitorNoReset",
-      workspaceRoot
-    ) as boolean;
+    const noReset = await shouldDisableMonitorReset();
     await createNewIdfMonitor(workspaceRoot, noReset);
   });
 }
+
+/**
+ * Determines if the monitor reset should be disabled.
+ * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
+ * because by default monitoring command resets the device which is not recommended.
+ * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+ *
+ * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
+ */
+const shouldDisableMonitorReset = async (): Promise<boolean> => {
+  const configNoReset = idfConf.readParameter(
+    "idf.monitorNoReset",
+    workspaceRoot
+  );
+
+  if (configNoReset === true) {
+    return true;
+  }
+
+  if (isFlashEncryptionEnabled(workspaceRoot)) {
+    const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
+      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+      workspaceRoot
+    );
+    return valueReleaseModeEnabled === "y";
+  }
+
+  return false;
+};
 
 export function deactivate() {
   Telemetry.dispose();
