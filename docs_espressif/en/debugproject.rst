@@ -8,27 +8,29 @@ Table of Content (ToC)
 
 2. :ref:`What happens in the background?`
 
-3. :ref:`Navigating Through the Code, Call Stack and Threads`
+3. :ref:`Setting a custom application image offset`
 
-4. :ref:`Setting and Clearing Breakpoints`
+4. :ref:`Navigating Through the Code, Call Stack and Threads`
 
-5. :ref:`Halting the Target Manually`
+5. :ref:`Setting and Clearing Breakpoints`
 
-6. :ref:`Stepping Through the Code`
+6. :ref:`Halting the Target Manually`
 
-7. :ref:`Watching and Setting Program Variables`
+7. :ref:`Stepping Through the Code`
 
-8. :ref:`Setting Conditional Breakpoint`
+8. :ref:`Watching and Setting Program Variables`
 
-9. :ref:`Disassembly view`
+9. :ref:`Setting Conditional Breakpoint`
 
-10. :ref:`Watchpoints (Data Breakpoints)`
+10. :ref:`Disassembly view`
 
-11. :ref:`Send commands to GDB`
+11. :ref:`Watchpoints (Data Breakpoints)`
 
-12. :ref:`ESP-IDF: Peripheral View`
+12. :ref:`Send commands to GDB`
 
-13. :ref:`Post-mortem debug use cases`
+13. :ref:`ESP-IDF: Peripheral View`
+
+14. :ref:`Post-mortem debug use cases`
 
 
 Start a debug session
@@ -77,6 +79,34 @@ By default it will be launched using localhost, port ``4444`` for Telnet communi
 2. Next The `Eclipse CDT GDB Adapter <https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter>`_ is launched in the background and the output is shown in the ``Debug Console``. This debug adapter will start the connection to the device by launch the GDB debug session.
 
 This adapter is a middle man between Visual Studio Code, configured toolchain GDB and OpenOCD server. You can see how `Espressif chips debugging works <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works>`_ and how Visual Studio Code use `Debug adapters <https://microsoft.github.io/debug-adapter-protocol/overview>`_ to communicate with many debug tools.
+
+Setting a custom application image offset
+-------------------------------------------------------------
+
+If you modify the application image offset you need to modify openOCD launch arguments to update the application image offset. This can happens if OpenOCD output (Menu View -> Output -> `ESP-IDF`) shows an error like this:
+
+.. code-block::
+
+  Failed to get flash maps (-6)!
+  ❌ Error: Failed to get flash maps (-6)!
+  Warn : Application image is invalid! Check configured binary flash offset 'appimage_offset'.
+
+To update openOCD launch arguments, open the project's ``.vscode/settings.json`` and add or modify:
+
+.. code-block:: JSON
+
+  {
+    "idf.openOcdLaunchArgs": [
+      "-c",
+      "init",
+      "-c",
+      "reset halt",
+      "-c",
+      "esp appimage_offset 0x20000"
+    ]
+  }
+
+where ``0x20000`` is your application image offset used in the partition table.
 
 Navigating Through the Code, Call Stack and Threads
 -------------------------------------------------------

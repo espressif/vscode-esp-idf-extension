@@ -13,6 +13,31 @@ Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and 
 
 If `initCommands`, `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
 
+# Setting a custom application image offset
+
+If you modify the application image offset you need to modify openOCD launch arguments to update the application image offset. This can happens if OpenOCD output (Menu View -> Output -> `ESP-IDF`) shows an error like this:
+
+```
+ Failed to get flash maps (-6)!\n❌ Error: Failed to get flash maps (-6)!\nWarn : Application image is invalid! Check configured binary flash offset 'appimage_offset'.
+```
+
+To update openOCD launch arguments, open the project's `settings.json` and add or modify:
+
+```json
+{
+  "idf.openOcdLaunchArgs": [
+    "-c",
+    "init",
+    "-c",
+    "reset halt",
+    "-c",
+    "esp appimage_offset 0x20000"
+  ]
+}
+```
+
+where `0x20000` is your application image offset used in the partition table.
+
 ## Using the Eclipse CDT GDB Debug Adapter
 
 The Eclipse CDT team have published a GDB debug adapter as NPM package which we include in our extension dependencies. For more information about the debug adapter please review [CDT-GDB-Adapter Github Repository](https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter).

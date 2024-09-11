@@ -27,6 +27,31 @@ Several steps will be automatically done for you but explained for clarity. You 
   <img src="../../media/tutorials/debug/init_halted.png" alt="Initial halted" height="500">
 </p>
 
+# Setting a custom application image offset
+
+If you modify the application image offset you need to modify openOCD launch arguments to update the application image offset. This can happens if OpenOCD output (Menu View -> Output -> `ESP-IDF`) shows an error like this:
+
+```
+ Failed to get flash maps (-6)!\n❌ Error: Failed to get flash maps (-6)!\nWarn : Application image is invalid! Check configured binary flash offset 'appimage_offset'.
+```
+
+To update openOCD launch arguments, open the project's `settings.json` and add or modify:
+
+```json
+{
+  "idf.openOcdLaunchArgs": [
+    "-c",
+    "init",
+    "-c",
+    "reset halt",
+    "-c",
+    "esp appimage_offset 0x20000"
+  ]
+}
+```
+
+where ``0x20000`` is your application image offset used in the partition table.
+
 # Navigating Through the Code, Call Stack and Threads
 
 7. When the target is halted, the editor will show the line of code where the program halted and the list of threads in the `Call Stack` sub-window `(a)` on the `Run` icon in the Activity Bar on the side of Visual Studio Code. The first line of call stack under main `(b)` contains the last called function `app_main()`, which in turned was called from `main_task()` as shown in the previous image. Each line of the stack also contains the file name and line number `(c)` where the function was called. By clicking on each of the stack entries, you will see the file opened.
