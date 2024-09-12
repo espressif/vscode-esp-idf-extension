@@ -98,6 +98,12 @@ These settings are specific to the ESP32 Chip/Board
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.portWin**                                    | Path of Selected Device Port in Windows                                                |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
+| **idf.enableSerialPortChipIdRequest**              | Enable detecting the chip id and show on serial port selection list                    |
++----------------------------------------------------+----------------------------------------------------------------------------------------+
+| **idf.useSerialPortVendorProductFilter**           | Enable use of idf.usbSerialPortFilters list to filter serial port devices list         |
++----------------------------------------------------+----------------------------------------------------------------------------------------+
+| **idf.usbSerialPortFilters**                       | USB productID and vendorID list to filter known Espressif devices                      |
++----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **openocd.jtag.command.force_unix_path_separator** | Forced to Use ``/`` as Path sep. for Win32 Based OS Instead of ``\\``                  |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.listDfuDevices**                             | List of DFU Devices Connected to USB                                                   |
@@ -106,7 +112,6 @@ These settings are specific to the ESP32 Chip/Board
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
 | **idf.svdFilePath**                                | SVD File Absolute Path to Resolve Chip Debug Peripheral Tree view                      |
 +----------------------------------------------------+----------------------------------------------------------------------------------------+
-
 
 This is how the extension uses them:
 
