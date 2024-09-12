@@ -126,11 +126,15 @@ export class SerialPort {
           const filterDictKeys = new Set<string>(
             Object.keys(usbSerialPortFilters).map((key) => {
               const { vendorId, productId } = usbSerialPortFilters[key];
-              return `${vendorId}-${productId}`;
+              return `${vendorId ? vendorId.toLowerCase() : undefined}-${
+                productId ? productId.toLowerCase() : undefined
+              }`;
             })
           );
           choices = choices.filter(({ vendorId, productId }) => {
-            const key = `0x${vendorId}-0x${productId}`;
+            const key = `0x${vendorId ? vendorId.toLowerCase() : undefined}-0x${
+              productId ? productId.toLowerCase() : undefined
+            }`;
             return filterDictKeys.has(key);
           });
         }
