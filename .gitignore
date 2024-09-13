@@ -19,6 +19,8 @@ results/
 report.txt
 report.json
 test-resources/**
+/docs_espressif/__pycache__/
+/docs_espressif/.venv/
 /docs_espressif/_build/
 /docs_espressif/.DS_Store
 /docs_espressif/en/.DS_Store

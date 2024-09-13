@@ -24,6 +24,7 @@ import { spawn } from "../../utils";
 import { SerialPortDetails } from "./serialPortDetails";
 import { OutputChannel } from "../../logger/outputChannel";
 import * as SerialPortLib from "serialport";
+import { ESP } from "../../config";
 
 export class SerialPort {
   public static shared(): SerialPort {
@@ -93,7 +94,7 @@ export class SerialPort {
           return;
         }
 
-        const choices = listOfSerialPorts.map((item) => {
+        let choices = listOfSerialPorts.map((item) => {
           return new SerialPortDetails(
             item.path,
             item.manufacturer,
@@ -109,6 +110,39 @@ export class SerialPort {
           "idf.espIdfPath",
           workspaceFolder
         );
+        const enableSerialPortChipIdRequest = idfConf.readParameter(
+          "idf.enableSerialPortChipIdRequest",
+          workspaceFolder
+        ) as boolean;
+        const useSerialPortVendorProductFilter = idfConf.readParameter(
+          "idf.useSerialPortVendorProductFilter",
+          workspaceFolder
+        ) as boolean;
+        const usbSerialPortFilters = idfConf.readParameter(
+          "idf.usbSerialPortFilters",
+          workspaceFolder
+        ) as { [key: string]: { vendorId: string; productId: string } };
+        if (useSerialPortVendorProductFilter) {
+          const filterDictKeys = new Set<string>(
+            Object.keys(usbSerialPortFilters).map((key) => {
+              const { vendorId, productId } = usbSerialPortFilters[key];
+              return `${vendorId ? vendorId.toLowerCase() : undefined}-${
+                productId ? productId.toLowerCase() : undefined
+              }`;
+            })
+          );
+          choices = choices.filter(({ vendorId, productId }) => {
+            const key = `0x${vendorId ? vendorId.toLowerCase() : undefined}-0x${
+              productId ? productId.toLowerCase() : undefined
+            }`;
+            return filterDictKeys.has(key);
+          });
+        }
+
+        if (!enableSerialPortChipIdRequest) {
+          return resolve(choices);
+        }
+
         const esptoolPath = join(
           idfPath,
           "components",
