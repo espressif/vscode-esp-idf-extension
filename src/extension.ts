@@ -97,11 +97,16 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
 import { verifyCanFlash } from "./flash/flashCmd";
+import {
+  isFlashEncryptionEnabled,
+  FlashCheckResultType,
+  checkFlashEncryption,
+  isJtagDisabled,
+} from "./flash/verifyFlashEncryption";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
 import { createNewIdfMonitor } from "./espIdf/monitor/command";
@@ -133,6 +138,7 @@ import {
 } from "./project-conf";
 import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
+import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
@@ -1715,10 +1721,12 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   registerIDFCommand("espIdf.flashDFU", () => flash(false, ESP.FlashType.DFU));
   registerIDFCommand("espIdf.flashUart", () =>
-    flash(false, ESP.FlashType.UART)
+    flash(isFlashEncryptionEnabled(workspaceRoot), ESP.FlashType.UART)
   );
   registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashDevice", flash);
+  registerIDFCommand("espIdf.flashDevice", () =>
+    flash(isFlashEncryptionEnabled(workspaceRoot))
+  );
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -3885,7 +3893,7 @@ const build = (flashType?: ESP.FlashType) => {
   });
 };
 const flash = (
-  encryptPartition: boolean = false,
+  encryptPartitions: boolean = false,
   flashType?: ESP.FlashType
 ) => {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
@@ -3914,7 +3922,7 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        if (await startFlashing(cancelToken, flashType, encryptPartition)) {
+        if (await startFlashing(cancelToken, flashType, encryptPartitions)) {
           OutputChannel.appendLine(
             "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor command'"
           );
@@ -3969,6 +3977,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+
     await vscode.window.withProgress(
       {
         cancellable: true,
@@ -3993,7 +4002,13 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           message: "Flashing project into device...",
           increment: 60,
         });
-        canContinue = await startFlashing(cancelToken, flashType, false);
+
+        let encryptPartitions = isFlashEncryptionEnabled(workspaceRoot);
+        canContinue = await startFlashing(
+          cancelToken,
+          flashType,
+          encryptPartitions
+        );
         if (!canContinue) {
           return;
         }
@@ -4005,7 +4020,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           if (IDFMonitor.terminal) {
             IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
           }
-          createMonitor();
+          await createMonitor();
         }
       }
     );
@@ -4035,6 +4050,9 @@ async function selectFlashMethod() {
     vscode.ConfigurationTarget.WorkspaceFolder,
     workspaceRoot
   );
+  vscode.window.showInformationMessage(
+    `Flash method changed to ${newFlashType}.`
+  );
   return newFlashType;
 }
 
@@ -4045,6 +4063,23 @@ async function startFlashing(
 ) {
   if (!flashType) {
     flashType = await selectFlashMethod();
+  }
+
+  if (encryptPartitions) {
+    const encryptionValidationResult = await checkFlashEncryption(
+      flashType,
+      workspaceRoot
+    );
+    if (!encryptionValidationResult.success) {
+      if (
+        encryptionValidationResult.resultType ===
+        FlashCheckResultType.ErrorEfuseNotSet
+      ) {
+        encryptPartitions = false;
+      } else {
+        return;
+      }
+    }
   }
 
   const port = idfConf.readParameter("idf.port", workspaceRoot);
@@ -4061,6 +4096,25 @@ async function startFlashing(
   }
 
   if (flashType === ESP.FlashType.JTAG) {
+    // Check if JTAG is disabled on the hardware
+    const eFuse = new ESPEFuseManager(workspaceRoot);
+    const eFuseSummary = await eFuse.readSummary();
+    const jtagStatus = isJtagDisabled(eFuseSummary);
+    if (jtagStatus.disabled) {
+      Logger.errorNotify(
+        vscode.l10n.t("Cannot flash via JTAG method: {0}", jtagStatus.message),
+        new Error("JTAG Disabled")
+      );
+      return;
+    } else if (jtagStatus.requiresVerification) {
+      const message = vscode.l10n.t(
+        "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.",
+        jtagStatus.message
+      );
+      Logger.warnNotify(message);
+      return;
+    }
+
     const currOpenOcdVersion = await openOCDManager.version();
     const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
       "v0.10.0-esp32-20201125",
@@ -4112,15 +4166,41 @@ function createIdfTerminal() {
   });
 }
 
-function createMonitor() {
+async function createMonitor() {
   PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
-    const noReset = idfConf.readParameter(
-      "idf.monitorNoReset",
-      workspaceRoot
-    ) as boolean;
+    const noReset = await shouldDisableMonitorReset();
     await createNewIdfMonitor(workspaceRoot, noReset);
   });
 }
+
+/**
+ * Determines if the monitor reset should be disabled.
+ * If flash encryption is enabled for release mode, we add --no-reset flag for monitoring
+ * because by default monitoring command resets the device which is not recommended.
+ * Reset should happen by Bootloader itself once it completes encrypting all artifacts.
+ *
+ * @returns {Promise<boolean>} True if monitor reset should be disabled, false otherwise.
+ */
+const shouldDisableMonitorReset = async (): Promise<boolean> => {
+  const configNoReset = idfConf.readParameter(
+    "idf.monitorNoReset",
+    workspaceRoot
+  );
+
+  if (configNoReset === true) {
+    return true;
+  }
+
+  if (isFlashEncryptionEnabled(workspaceRoot)) {
+    const valueReleaseModeEnabled = await utils.getConfigValueFromSDKConfig(
+      "CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE",
+      workspaceRoot
+    );
+    return valueReleaseModeEnabled === "y";
+  }
+
+  return false;
+};
 
 export function deactivate() {
   Telemetry.dispose();

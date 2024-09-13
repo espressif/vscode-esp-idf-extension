@@ -157,5 +157,12 @@
   "Discarded changes in SDK Configuration editor": "SDK 配置编辑器中放弃的更改",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "将依赖项 {dependency} 添加到组件“{component}”时遇到错误",
   "Error encountered while creating project from example \"{example}\"": "从示例“{example}”创建项目时遇到错误",
-  "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或刷新完成"
+  "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或刷新完成",
+  "Cannot flash via JTAG method: {0}": "无法通过JTAG方法刷写：{0}",
+  "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.": "{0}\n\nJTAG配置可能取决于硬件配置。请在继续之前查阅您特定型号的ESP32技术文档，以确保正确的JTAG配置。",
+  "JTAG is permanently disabled in hardware ({0} is set).": "JTAG在硬件上被永久禁用（已设置{0}）。",
+  "USB-to-JTAG functionality is disabled ({0} is set).": "USB-to-JTAG功能已禁用（已设置{0}）。",
+  "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG已软禁用（{0}设置为奇数值：{1}）。",
+  "JTAG selection may be affected by strapping configuration ({0} is set).": "JTAG选择可能受到硬件配置的影响（已设置{0}）。",
+  "JTAG is not disabled.": "JTAG未被禁用。"
 }

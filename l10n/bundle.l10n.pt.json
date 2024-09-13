@@ -157,5 +157,12 @@
   "Discarded changes in SDK Configuration editor": "Alterações descartadas no editor de configuração do SDK",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Erro encontrado ao adicionar a dependência {dependency} ao componente \"{component}\"",
   "Error encountered while creating project from example \"{example}\"": "Erro encontrado ao criar o projeto do exemplo \"{example}\"",
-  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF"
+  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF",
+  "Cannot flash via JTAG method: {0}": "Não é possível flashear pelo método JTAG: {0}",
+  "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.": "{0}\n\nA configuração JTAG pode depender da configuração do hardware. Por favor, consulte a documentação técnica do ESP32 para o seu modelo específico para garantir a configuração adequada do JTAG antes de prosseguir.",
+  "JTAG is permanently disabled in hardware ({0} is set).": "JTAG está permanentemente desativado no hardware ({0} está definido).",
+  "USB-to-JTAG functionality is disabled ({0} is set).": "A funcionalidade USB para JTAG está desativada ({0} está definido).",
+  "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG está desativado por software ({0} está definido com um valor ímpar: {1}).",
+  "JTAG selection may be affected by strapping configuration ({0} is set).": "A seleção JTAG pode ser afetada pela configuração de strapping ({0} está definido).",
+  "JTAG is not disabled.": "JTAG não está desativado."
 }
