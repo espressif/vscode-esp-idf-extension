@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
 import * as yaml from "js-yaml";
+import * as path from "path";
+import * as fs from "fs-extra";
 
-class Component extends vscode.TreeItem {
+export class Component extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
@@ -11,6 +13,7 @@ class Component extends vscode.TreeItem {
     this.tooltip = `${this.label}${
       this.description ? ` - ${this.description}` : ""
     }`;
+    this.contextValue = "component"; // This will be used to show the delete command in context menu
   }
 }
 
@@ -115,6 +118,66 @@ export class ComponentsTreeDataProvider
           vscode.TreeItemCollapsibleState.None
         ),
       ];
+    }
+  }
+
+  async deleteComponentFromYml(
+    componentName: string,
+    workspaceFolder: vscode.Uri
+  ): Promise<void> {
+    const idfComponentPath = vscode.Uri.joinPath(
+      this.workspaceFolder || workspaceFolder,
+      "main",
+      "idf_component.yml"
+    );
+
+    try {
+      // Delete from idf_component.yml
+      const fileContents = await vscode.workspace.fs.readFile(idfComponentPath);
+      const data = yaml.load(fileContents.toString()) as any;
+
+      if (data && data.dependencies && data.dependencies[componentName]) {
+        delete data.dependencies[componentName];
+        const newContents = yaml.dump(data);
+        await vscode.workspace.fs.writeFile(
+          idfComponentPath,
+          Buffer.from(newContents)
+        );
+
+        // Delete the component folder
+        const managedComponentsPath = path.join(
+          workspaceFolder.fsPath,
+          "managed_components"
+        );
+        const componentFolderName = componentName.replace("/", "__");
+        const componentFolderPath = path.join(
+          managedComponentsPath,
+          componentFolderName
+        );
+
+        if (await fs.pathExists(componentFolderPath)) {
+          await fs.remove(componentFolderPath);
+          vscode.window.showInformationMessage(
+            `Deleted component "${componentName}" from path ${componentFolderPath}`
+          );
+        } else {
+          vscode.window.showWarningMessage(
+            `Component folder not found: ${componentFolderPath}`
+          );
+        }
+
+        this.refresh();
+      } else {
+        vscode.window.showWarningMessage(
+          `Component ${componentName} not found in idf_component.yml`
+        );
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Error updating idf_component.yml or deleting component folder: ${
+          (err as Error).message
+        }`
+      );
     }
   }
 }

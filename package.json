@@ -281,6 +281,11 @@
       ],
       "view/item/context": [
         {
+          "command": "espIdf.deleteComponent",
+          "when": "view == espRegistryComponents",
+          "group": "inline"
+        },
+        {
           "command": "esp.rainmaker.backend.logout",
           "when": "view == espRainmaker && viewItem == account",
           "group": "inline"
@@ -996,6 +1001,11 @@
         "title": "%espIdf.espRegistryComponentsRefresh.title%",
         "category": "ESP-IDF",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.deleteComponent",
+        "title": "Delete Component",
+        "icon": "$(trash)"
       },
       {
         "command": "espIdf.createFiles",

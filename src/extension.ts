@@ -37,7 +37,10 @@ import {
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
-import { ComponentsTreeDataProvider } from "./espIdf/espRegistryComponents/tree/componentsTreeDataProvider"
+import {
+  ComponentsTreeDataProvider,
+  Component,
+} from "./espIdf/espRegistryComponents/tree/componentsTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
@@ -306,11 +309,25 @@ export async function activate(context: vscode.ExtensionContext) {
       e.element.expanded = false;
     });
 
-    // ESP Registry Components tree view
-    const refreshCommand = vscode.commands.registerCommand('espIdf.espRegistryComponents.refresh', () => {
+  // ESP Registry Components tree view actions
+  const refreshCommand = vscode.commands.registerCommand(
+    "espIdf.espRegistryComponents.refresh",
+    () => {
       componentsTreeDataProvider.refresh();
-  });
-    context.subscriptions.push(refreshCommand);
+    }
+  );
+  context.subscriptions.push(refreshCommand);
+
+  const deleteComponentCommand = vscode.commands.registerCommand(
+    "espIdf.deleteComponent",
+    (component: Component) => {
+      componentsTreeDataProvider.deleteComponentFromYml(
+        component.label,
+        workspaceRoot
+      );
+    }
+  );
+  context.subscriptions.push(deleteComponentCommand);
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
