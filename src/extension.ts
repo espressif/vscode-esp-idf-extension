@@ -37,6 +37,10 @@ import {
   TraceType,
 } from "./espIdf/tracing/tree/appTraceArchiveTreeDataProvider";
 import { AppTraceTreeDataProvider } from "./espIdf/tracing/tree/appTraceTreeDataProvider";
+import {
+  ComponentsTreeDataProvider,
+  Component,
+} from "./espIdf/espRegistryComponents/tree/componentsTreeDataProvider";
 import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
@@ -48,6 +52,7 @@ import {
   getProjectName,
   initSelectedWorkspace,
   updateIdfComponentsTree,
+  updateEspRegistryComponentsTree,
 } from "./workspaceConfig";
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
@@ -178,6 +183,9 @@ let appTraceArchiveTreeDataProvider: AppTraceArchiveTreeDataProvider;
 let appTraceManager: AppTraceManager;
 let gdbHeapTraceManager: GdbHeapTraceManager;
 
+// Specific Project Components
+let componentsTreeDataProvider: ComponentsTreeDataProvider;
+
 // Partition table
 let partitionTableTreeDataProvider: PartitionTreeDataProvider;
 
@@ -296,6 +304,26 @@ export async function activate(context: vscode.ExtensionContext) {
     peripheralTreeView.onDidCollapseElement((e) => {
       e.element.expanded = false;
     });
+
+  // ESP Registry Components tree view actions
+  const refreshCommand = vscode.commands.registerCommand(
+    "espIdf.espRegistryComponents.refresh",
+    () => {
+      componentsTreeDataProvider.refresh();
+    }
+  );
+  context.subscriptions.push(refreshCommand);
+
+  const deleteComponentCommand = vscode.commands.registerCommand(
+    "espIdf.deleteComponent",
+    (component: Component) => {
+      componentsTreeDataProvider.deleteComponentFromYml(
+        component.label,
+        workspaceRoot
+      );
+    }
+  );
+  context.subscriptions.push(deleteComponentCommand);
 
   // register openOCD status bar item
   registerOpenOCDStatusBarItem(context);
@@ -896,6 +924,7 @@ export async function activate(context: vscode.ExtensionContext) {
             "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
         }
         updateIdfComponentsTree(workspaceRoot);
+        updateEspRegistryComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
           currentWorkSpace: option.name,
@@ -3681,7 +3710,10 @@ function registerQemuStatusBarItem(context: vscode.ExtensionContext) {
 }
 
 function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
+  componentsTreeDataProvider = new ComponentsTreeDataProvider(workspaceRoot);
+
   appTraceTreeDataProvider = new AppTraceTreeDataProvider();
+
   appTraceArchiveTreeDataProvider = new AppTraceArchiveTreeDataProvider();
 
   espIdfDocsResultTreeDataProvider = new DocSearchResultTreeDataProvider();

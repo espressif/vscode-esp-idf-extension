@@ -110,6 +110,7 @@
     "onView:idfPartitionExplorer",
     "onView:espRainmaker",
     "onView:idfComponents",
+    "onView:espRegistryComponents",
     "workspaceContains:**/project_description.json",
     "workspaceContains:**/sdkconfig",
     "workspaceContains:**/CMakeLists.txt"
@@ -199,6 +200,10 @@
         {
           "id": "idfComponents",
           "name": "%view.components.name%"
+        },
+        {
+          "id": "espRegistryComponents",
+          "name": "%view.idf.espRegistryComponents%"
         }
       ]
     },
@@ -224,6 +229,11 @@
         }
       ],
       "view/title": [
+        {
+          "command": "espIdf.espRegistryComponents.refresh",
+          "group": "navigation",
+          "when": "view == espRegistryComponents"
+        },
         {
           "command": "espIdf.searchError",
           "group": "navigation",
@@ -270,6 +280,11 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "espIdf.deleteComponent",
+          "when": "view == espRegistryComponents",
+          "group": "inline"
+        },
         {
           "command": "esp.rainmaker.backend.logout",
           "when": "view == espRainmaker && viewItem == account",
@@ -1047,7 +1062,19 @@
     "commands": [
       {
         "command": "espIdf.searchError",
-        "title": "%espIdf.searchError.title%"
+        "title": "%espIdf.searchError.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.espRegistryComponents.refresh",
+        "title": "%espIdf.espRegistryComponentsRefresh.title%",
+        "category": "ESP-IDF",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "espIdf.deleteComponent",
+        "title": "Delete Component",
+        "icon": "$(trash)"
       },
       {
         "command": "espIdf.createFiles",
