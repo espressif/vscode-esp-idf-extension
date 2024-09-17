@@ -157,5 +157,7 @@
   "Discarded changes in SDK Configuration editor": "Отменены изменения в редакторе конфигурации SDK.",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Произошла ошибка при добавлении зависимости {dependent} к компоненту \"{comment}\".",
   "Error encountered while creating project from example \"{example}\"": "Ошибка при создании проекта из примера \"{example}\".",
-  "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF."
+  "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF.",
+  "Target {0} Set Successfully.": "Цель {0} успешно установлена.",
+  "Unknown error occurred while setting IDF target.": "Произошла неизвестная ошибка при установке цели IDF."
 }

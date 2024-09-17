@@ -157,5 +157,7 @@
   "Discarded changes in SDK Configuration editor": "Alterações descartadas no editor de configuração do SDK",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Erro encontrado ao adicionar a dependência {dependency} ao componente \"{component}\"",
   "Error encountered while creating project from example \"{example}\"": "Erro encontrado ao criar o projeto do exemplo \"{example}\"",
-  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF"
+  "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF",
+  "Target {0} Set Successfully.": "Alvo {0} definido com sucesso.",
+  "Unknown error occurred while setting IDF target.": "Ocorreu um erro desconhecido ao definir o alvo IDF."
 }
