@@ -336,7 +336,6 @@ export async function getSystemPython(workspaceFolder: Uri) {
       "tools",
       "idf-python",
       pythonVersionToUse,
-      "Scripts",
       "python.exe"
     );
     return idfPyDestPath;
