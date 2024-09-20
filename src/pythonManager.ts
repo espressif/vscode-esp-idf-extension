@@ -310,9 +310,7 @@ export async function getSystemPython(workspaceFolder: Uri) {
       await utils.execChildProcess(pythonBinPath, args, workingDir)
     ).replace(/(\n|\r|\r\n)/gm, "");
     const pyDir =
-      process.platform === "win32"
-        ? ["python.exe"]
-        : ["bin", "python3"];
+      process.platform === "win32" ? ["python.exe"] : ["bin", "python3"];
     const sysPythonBinPath = join(pythonVersion, ...pyDir);
     return sysPythonBinPath;
   }
