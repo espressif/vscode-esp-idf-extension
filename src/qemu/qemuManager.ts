@@ -31,7 +31,7 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
 import { statusBarItems } from "../statusBar";
-import { advancedCommandDictionary, AdvancedCommandKeys } from "../cmdTreeView/cmdStore";
+import { AdvancedCommandKeys, createAdvancedCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export interface IQemuOptions {
   launchArgs: string[];
@@ -235,6 +235,7 @@ export class QemuManager extends EventEmitter {
         1005
       );
       this._statusBarItem.text = "[ESP-IDF: QEMU]";
+      const advancedCommandDictionary = createAdvancedCommandDictionary();
       this._statusBarItem.tooltip = advancedCommandDictionary[AdvancedCommandKeys.QemuServer].tooltip;
       this._statusBarItem.command = AdvancedCommandKeys.QemuServer;
       this._statusBarItem.show();

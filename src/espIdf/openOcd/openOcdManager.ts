@@ -31,7 +31,7 @@ import {
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import { statusBarItems } from "../../statusBar";
-import { commandDictionary, CommandKeys } from "../../cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "../../cmdTreeView/cmdStore";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -281,6 +281,7 @@ export class OpenOCDManager extends EventEmitter {
       1000
     );
     this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
+    const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
     this.statusBar.show();

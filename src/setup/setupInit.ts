@@ -36,7 +36,7 @@ import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 import { getCurrentIdfSetup } from "../versionSwitcher";
-import { commandDictionary, CommandKeys } from "../cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -326,6 +326,7 @@ export async function saveSettings(
   );
   let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
   if (espIdfStatusBar) {
+    const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId

@@ -161,10 +161,10 @@ import {
   statusBarItems,
 } from "./statusBar";
 import {
-  advancedCommandDictionary,
   AdvancedCommandKeys,
-  commandDictionary,
   CommandKeys,
+  createAdvancedCommandDictionary,
+  createCommandDictionary,
 } from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
@@ -174,13 +174,13 @@ let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
 
-const openOCDManager = OpenOCDManager.init();
+let openOCDManager: OpenOCDManager;
 let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 
 // QEMU
-const qemuManager = QemuManager.init();
+let qemuManager: QemuManager;
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -276,6 +276,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
+
+  openOCDManager = OpenOCDManager.init();
+  qemuManager = QemuManager.init();
+
+  const advancedCommandDictionary = createAdvancedCommandDictionary();
+  const commandDictionary = createCommandDictionary();
 
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
@@ -1095,7 +1101,10 @@ export async function activate(context: vscode.ExtensionContext) {
           AdvancedCommandKeys.SelectProjectConfiguration
         ].tooltip,
         AdvancedCommandKeys.SelectProjectConfiguration,
-        99
+        99,
+        advancedCommandDictionary[
+          AdvancedCommandKeys.SelectProjectConfiguration
+        ].checkboxState
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
