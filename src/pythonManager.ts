@@ -311,7 +311,7 @@ export async function getSystemPython(workspaceFolder: Uri) {
     ).replace(/(\n|\r|\r\n)/gm, "");
     const pyDir =
       process.platform === "win32"
-        ? ["Scripts", "python.exe"]
+        ? ["python.exe"]
         : ["bin", "python3"];
     const sysPythonBinPath = join(pythonVersion, ...pyDir);
     return sysPythonBinPath;
