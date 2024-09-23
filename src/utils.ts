@@ -36,10 +36,12 @@ import * as vscode from "vscode";
 import { IdfComponent } from "./idfComponent";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
-import { getProjectName } from "./workspaceConfig";
+import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
+import { getPythonPath, getVirtualEnvPythonPath } from "./pythonManager";
+import { IdfToolsManager } from "./idfToolsManager";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -248,7 +250,7 @@ export async function setCCppPropertiesJsonCompilerPath(
   if (!doesPathExists) {
     return;
   }
-  const modifiedEnv = appendIdfAndToolsToPath(curWorkspaceFsPath);
+  const modifiedEnv = await appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
   const compilerAbsolutePath = await isBinInPath(
@@ -282,13 +284,13 @@ export async function getToolchainPath(
   workspaceUri: vscode.Uri,
   tool: string = "gcc"
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, tool);
   try {
     return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
   } catch (error) {
-    Logger.errorNotify(`${tool} is not found in idf.customExtraPaths`, error);
+    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error);
     return;
   }
 }
@@ -364,7 +366,7 @@ export function getVariableFromCMakeLists(workspacePath: string, key: string) {
   return match ? match[1] : "";
 }
 
-export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
+export async function getSDKConfigFilePath(workspacePath: vscode.Uri) {
   let sdkconfigFilePath = "";
   try {
     sdkconfigFilePath = getVariableFromCMakeLists(
@@ -390,8 +392,13 @@ export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
       .replace(/"/g, "");
   }
   if (!sdkconfigFilePath) {
-    const modifiedEnv = appendIdfAndToolsToPath(workspacePath);
-    sdkconfigFilePath = modifiedEnv.SDKCONFIG;
+    sdkconfigFilePath = idfConf.readParameter(
+      "idf.sdkconfigFilePath",
+      workspacePath
+    ) as string;
+  }
+  if (!workspacePath) {
+    return;
   }
   if (!sdkconfigFilePath) {
     sdkconfigFilePath = path.join(workspacePath.fsPath, "sdkconfig");
@@ -402,11 +409,11 @@ export function getSDKConfigFilePath(workspacePath: vscode.Uri) {
   return sdkconfigFilePath;
 }
 
-export function getConfigValueFromSDKConfig(
+export async function getConfigValueFromSDKConfig(
   key: string,
   workspacePath: vscode.Uri
-): string {
-  const sdkconfigFilePath = getSDKConfigFilePath(workspacePath);
+): Promise<string> {
+  const sdkconfigFilePath = await getSDKConfigFilePath(workspacePath);
   if (!canAccessFile(sdkconfigFilePath, fs.constants.R_OK)) {
     throw new Error("sdkconfig file doesn't exists or can't be read");
   }
@@ -416,7 +423,7 @@ export function getConfigValueFromSDKConfig(
   return match ? match[1] : "";
 }
 
-export function getMonitorBaudRate(workspacePath: vscode.Uri) {
+export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
   let sdkMonitorBaudRate = "";
   try {
     sdkMonitorBaudRate = idfConf.readParameter(
@@ -424,7 +431,7 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
       workspacePath
     ) as string;
     if (!sdkMonitorBaudRate) {
-      sdkMonitorBaudRate = getConfigValueFromSDKConfig(
+      sdkMonitorBaudRate = await getConfigValueFromSDKConfig(
         "CONFIG_ESP_CONSOLE_UART_BAUDRATE",
         workspacePath
       );
@@ -438,8 +445,8 @@ export function getMonitorBaudRate(workspacePath: vscode.Uri) {
   return sdkMonitorBaudRate;
 }
 
-export function delConfigFile(workspaceRoot: vscode.Uri) {
-  const sdkconfigFile = getSDKConfigFilePath(workspaceRoot);
+export async function delConfigFile(workspaceRoot: vscode.Uri) {
+  const sdkconfigFile = await getSDKConfigFilePath(workspaceRoot);
   fs.unlinkSync(sdkconfigFile);
 }
 
@@ -812,7 +819,7 @@ export async function cleanDirtyGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
     const resetResult = await execChildProcess(
       gitPath,
       ["reset", "--hard", "--recurse-submodule"],
@@ -838,7 +845,7 @@ export async function fixFileModeGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
     const fixFileModeResult = await execChildProcess(
       gitPath,
       ["config", "--local", "core.fileMode", "false"],
@@ -926,30 +933,10 @@ export function validateFileSizeAndChecksum(
   });
 }
 
-export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
+export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
     Object.assign({}, process.env)
   );
-  const extraPaths = idfConf.readParameter(
-    "idf.customExtraPaths",
-    curWorkspace
-  );
-
-  const customVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    curWorkspace
-  ) as { [key: string]: string };
-  if (customVars) {
-    try {
-      for (const envVar in customVars) {
-        if (envVar) {
-          modifiedEnv[envVar] = customVars[envVar];
-        }
-      }
-    } catch (error) {
-      Logger.errorNotify("Invalid custom environment variables format", error);
-    }
-  }
 
   const containerPath =
     process.platform === "win32" ? modifiedEnv.USERPROFILE : modifiedEnv.HOME;
@@ -983,8 +970,50 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     curWorkspace
   ) as string;
   modifiedEnv.IDF_TOOLS_PATH = toolsPath || defaultToolsPath;
-  const matterPathDir = idfConf.readParameter("idf.espMatterPath") as string;
+  const matterPathDir = idfConf.readParameter(
+    "idf.espMatterPath",
+    curWorkspace
+  ) as string;
   modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
+
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    modifiedEnv.IDF_PATH
+  );
+
+  const extraPaths = await idfToolsManager.exportPathsInString(
+    path.join(modifiedEnv.IDF_TOOLS_PATH, "tools"),
+    ["cmake", "ninja"]
+  );
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    curWorkspace
+  ) as { [key: string]: string };
+  if (customExtraVars) {
+    try {
+      for (const envVar in customExtraVars) {
+        if (envVar) {
+          modifiedEnv[envVar] = customExtraVars[envVar];
+        }
+      }
+    } catch (error) {
+      Logger.errorNotify("Invalid user environment variables format", error);
+    }
+  }
+  const customVars = await idfToolsManager.exportVars(
+    path.join(modifiedEnv.IDF_TOOLS_PATH, "tools")
+  );
+
+  if (customVars) {
+    try {
+      for (const envVar in customVars) {
+        if (envVar) {
+          modifiedEnv[envVar] = customVars[envVar];
+        }
+      }
+    } catch (error) {
+      Logger.errorNotify("Invalid ESP-IDF environment variables format", error);
+    }
+  }
 
   let pathToPigweed: string;
 
@@ -1008,14 +1037,15 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       "zap"
     );
   }
-
+  const sysPythonPath = await getPythonPath(curWorkspace);
+  const pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
   modifiedEnv.PYTHON =
-    `${idfConf.readParameter("idf.pythonBinPath", curWorkspace)}` ||
+    pythonBinPath ||
     `${process.env.PYTHON}` ||
     `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
 
   modifiedEnv.IDF_PYTHON_ENV_PATH =
-    path.dirname(path.dirname(modifiedEnv.PYTHON)) ||
+    path.dirname(path.dirname(pythonBinPath)) ||
     process.env.IDF_PYTHON_ENV_PATH;
 
   const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
@@ -1064,14 +1094,10 @@ export function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  let idfTarget = idfConf.readParameter("idf.adapterTargetName", curWorkspace);
-  if (idfTarget === "custom") {
-    idfTarget = idfConf.readParameter(
-      "idf.customAdapterTargetName",
-      curWorkspace
-    );
+  let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
+  if (idfTarget) {
+    modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
   }
-  modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
 
   let enableComponentManager = idfConf.readParameter(
     "idf.enableIdfComponentManager",
@@ -1126,7 +1152,9 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  const modifiedEnv = appendIdfAndToolsToPath(extensionContext.extensionUri);
+  const modifiedEnv = await appendIdfAndToolsToPath(
+    extensionContext.extensionUri
+  );
   return execChildProcess(
     pythonBinPath,
     [reqFilePath, "-r", requirementsPath],

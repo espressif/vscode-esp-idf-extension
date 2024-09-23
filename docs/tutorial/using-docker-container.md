@@ -176,8 +176,6 @@ For more information about `devcontainer.json`, please refer to the comments.
   "settings": {
     "terminal.integrated.defaultProfile.linux": "bash",
     "idf.espIdfPath": "/opt/esp/idf",
-    "idf.customExtraPaths": "",
-    "idf.pythonBinPath": "/opt/esp/python_env/idf5.3_py3.10_env/bin/python",
     "idf.toolsPath": "/opt/esp",
     "idf.gitPath": "/usr/bin/git"
   },

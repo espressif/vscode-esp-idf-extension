@@ -37,6 +37,7 @@ import { join } from "path";
 import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function createSBOM(workspaceUri: Uri) {
   try {
@@ -51,7 +52,7 @@ export async function createSBOM(workspaceUri: Uri) {
         `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
       );
     }
-    const modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
+    const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
     const sbomFilePath = readParameter(
       "idf.sbomFilePath",
       workspaceUri
@@ -141,8 +142,8 @@ export async function createSBOM(workspaceUri: Uri) {
 }
 
 export async function installEspSBOM(workspace: Uri) {
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspace) as string;
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,

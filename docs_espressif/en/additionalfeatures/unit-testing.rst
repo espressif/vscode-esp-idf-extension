@@ -54,7 +54,7 @@ When it press the run button on a test, it will configure the current project be
 .. note::
   Unit tests in this extension requires `ESP-IDF PyTest requirements <https://github.com/espressif/esp-idf/blob/master/tools/requirements/requirements.pytest.txt>`_ to be installed in your Python virtual environment.
 
-2. Install ESP-IDF PyTest requirements if they are not found in the python current virtual environment specified in **idf.pythonBinPath** configuration setting in settings.json.
+2. Install ESP-IDF PyTest requirements if they are not found in the python current virtual environment specified in **idf.toolsPath** configuration setting in settings.json.
 
 3. Copy the unity-app from the extension template and add the test components to the main CMakeLists.txt ``TEST_COMPONENTS`` cmake variable. The extension unity-app is a basic ESP-IDF application with a unity menu that will be built and flashed on the current **idf.port** serial device with all test cases that were found during exploration step.
 

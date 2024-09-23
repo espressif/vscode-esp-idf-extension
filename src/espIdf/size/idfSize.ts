@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Friday, 21st June 2019 10:57:18 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,12 +23,13 @@ import { Logger } from "../../logger/logger";
 import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import * as utils from "../../utils";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class IDFSize {
-  private readonly workspaceRoot: vscode.Uri;
+  private readonly workspaceFolderUri: vscode.Uri;
   private isCanceled: boolean;
   constructor(workspaceRoot: vscode.Uri) {
-    this.workspaceRoot = workspaceRoot;
+    this.workspaceFolderUri = workspaceRoot;
   }
   public cancel() {
     this.isCanceled = true;
@@ -55,7 +56,7 @@ export class IDFSize {
       let locMsg = vscode.l10n.t("Gathering Overview");
       const espIdfPath = idfConf.readParameter(
         "idf.espIdfPath",
-        this.workspaceRoot
+        this.workspaceFolderUri
       ) as string;
       const version = await utils.getEspIdfFromCMake(espIdfPath);
       const formatArgs =
@@ -96,7 +97,7 @@ export class IDFSize {
   private async mapFilePath() {
     const buildDirPath = idfConf.readParameter(
       "idf.buildPath",
-      this.workspaceRoot
+      this.workspaceFolderUri
     ) as string;
     const projectName = await getProjectName(buildDirPath);
     return path.join(buildDirPath, `${projectName}.map`);
@@ -105,7 +106,7 @@ export class IDFSize {
   private idfPath(): string {
     const idfPathDir = idfConf.readParameter(
       "idf.espIdfPath",
-      this.workspaceRoot
+      this.workspaceFolderUri
     );
     return path.join(idfPathDir, "tools");
   }
@@ -117,10 +118,9 @@ export class IDFSize {
   private async idfCommandInvoker(args: string[]) {
     const idfPath = this.idfPath();
     try {
-      const pythonBinPath = idfConf.readParameter(
-        "idf.pythonBinPath",
-        this.workspaceRoot
-      ) as string;
+      const pythonBinPath = await getVirtualEnvPythonPath(
+        this.workspaceFolderUri
+      );
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: idfPath,
       });

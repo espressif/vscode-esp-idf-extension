@@ -36,14 +36,6 @@ export async function downloadIdfTools(
   onReqPkgs?: string[],
 ) {
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(idfPath);
-  const exportPaths = await idfToolsManager.exportPathsInString(
-    path.join(toolsPath, "tools"),
-    onReqPkgs
-  );
-  const exportVars = await idfToolsManager.exportVars(
-    path.join(toolsPath, "tools"),
-    onReqPkgs
-  );
   const requiredTools = await idfToolsManager.getRequiredToolsInfo(
     toolsPath,
     undefined,
@@ -70,8 +62,6 @@ export async function downloadIdfTools(
     idfPath,
     toolsPath,
     pyPath,
-    exportPaths,
-    exportVars,
     gitPath,
     saveScope,
     context,

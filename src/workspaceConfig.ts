@@ -17,7 +17,6 @@ import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
-import { writeParameter } from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { getSDKConfigFilePath } from "./utils";
@@ -83,24 +82,21 @@ export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
   statusItem?: vscode.StatusBarItem
 ) {
-  let sdkConfigPath = getSDKConfigFilePath(workspacePath);
+  let sdkConfigPath = await getSDKConfigFilePath(workspacePath);
   const doesSdkconfigExists = await pathExists(sdkConfigPath);
   if (!doesSdkconfigExists) {
     return;
   }
-  const idfTarget = utils
-    .getConfigValueFromSDKConfig("CONFIG_IDF_TARGET", workspacePath)
-    .replace(/\"/g, "");
+  const configIdfTarget = await utils.getConfigValueFromSDKConfig(
+    "CONFIG_IDF_TARGET",
+    workspacePath
+  );
+  const idfTarget = configIdfTarget.replace(/\"/g, "");
   if (!idfTarget) {
     return;
   }
-  await writeParameter(
-    "idf.adapterTargetName",
-    idfTarget,
-    vscode.ConfigurationTarget.WorkspaceFolder,
-    workspacePath
-  );
   if (statusItem) {
     statusItem.text = "$(chip) " + idfTarget;
   }
+  return idfTarget;
 }

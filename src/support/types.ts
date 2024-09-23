@@ -29,6 +29,7 @@ export class ConfigurationAccess {
   cmakeInEnv: boolean;
   ninjaInEnv: boolean;
   toolsPath: boolean;
+  sysPythonBinPath: boolean;
 }
 export class Configuration {
   systemEnvPath: string;
@@ -38,11 +39,13 @@ export class Configuration {
   espMatterPath: string;
   espHomeKitPath: string;
   customExtraPaths: string;
-  customExtraVars: { [key: string]: string };
+  idfExtraVars: { [key: string]: string };
+  userExtraVars: { [key: string]: string };
   notificationMode: string;
   pythonBinPath: string;
   pythonPackages: pyPkgVersion[];
   serialPort: string;
+  sysPythonBinPath: string;
   openOcdConfigs: string[];
   toolsPath: string;
   gitPath: string;
@@ -59,6 +62,7 @@ export class ConfigurationSpacesValidation {
   espHomeKitPath: boolean;
   customExtraPaths: { [key: string]: boolean };
   pythonBinPath: boolean;
+  sysPythonBinPath: boolean;
   toolsPath: boolean;
   gitPath: boolean;
 }

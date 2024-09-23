@@ -36,6 +36,7 @@ import { NotificationMode, readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function validateReqs(
   buildDirPath: string,
@@ -152,17 +153,17 @@ export async function getMergeExecution(
   model: FlashModel,
   wsFolder: Uri
 ) {
-  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
   const mergeArgs = getMergeArgs(esptoolPath, model);
   const options: ProcessExecutionOptions = {
     cwd: buildDir,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(
-      `idf.pythonBinPath doesn't exist. Configure the extension first.`
+      `Virtual environment Python path doesn't exist. Configure the extension first.`
     );
   }
   return new ProcessExecution(pythonBinPath, mergeArgs, options);

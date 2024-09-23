@@ -29,6 +29,7 @@ import { jtagFlashCommand } from "../../flash/jtagCmd";
 import { flashCommand } from "../../flash/uartFlash";
 import { OutputChannel } from "../../logger/outputChannel";
 import { Logger } from "../../logger/logger";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function configurePyTestUnitApp(
   workspaceFolder: Uri,
@@ -91,7 +92,7 @@ export async function updateTestComponents(
 
 export async function checkPytestRequirements(workspaceFolder: Uri) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     idfPath,
     "tools",
@@ -126,7 +127,7 @@ export async function installPyTestPackages(
   cancelToken?: CancellationToken
 ) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const pythonBinPath = readParameter("idf.pythonBinPath", workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     idfPath,
     "tools",

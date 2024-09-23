@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Monday, 31st May 2021 7:18:37 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@
 import { createHash } from "crypto";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { join } from "path";
-import { isBinInPath } from "../utils";
+import { getEspIdfFromCMake, isBinInPath } from "../utils";
 
 export interface EspIdfJson {
   $schema: string;
@@ -77,17 +77,18 @@ export async function loadEspIdfJson(toolsPath: string) {
 export async function addIdfPath(
   idfPath: string,
   pythonPath: string,
-  version: string,
   toolsPath: string,
   gitPath: string
 ) {
+  const idfVersion = await getEspIdfFromCMake(idfPath);
   const newIdfPathObj: IdfInstalled = {
-    version,
+    version: idfVersion,
     python: pythonPath,
     path: idfPath,
   };
   const idfId = getIdfMd5sum(idfPath);
   const espIdfObj = await loadEspIdfJson(toolsPath);
+
   espIdfObj["idfInstalled"][idfId] = newIdfPathObj;
   espIdfObj["idfSelectedId"] = idfId;
   if (!espIdfObj.gitPath) {

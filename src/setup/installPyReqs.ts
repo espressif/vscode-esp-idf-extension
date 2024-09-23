@@ -86,10 +86,6 @@ export async function installPyReqs(
       const msg = "Python requirements has been installed";
       OutputChannel.appendLine(msg);
       Logger.info(msg);
-      SetupPanel.postMessage({
-        command: "load_python_bin_path",
-        pythonBinPath: virtualEnvPyBin,
-      });
       return virtualEnvPyBin;
     }
   }

@@ -19,9 +19,8 @@ If ESP-IDF and corresponding ESP-IDF Tools are found, these paths will be saved 
 These settings, as described in [ESP-IDF Specific Settings](./SETTINGS.md#ESP-IDF-Specific-Settings), are:
 
 - `idf.espIdfPath` for IDF_PATH,
-- `idf.customExtraPaths` for ESP-IDF Tools paths to be appended to environment variable PATH,
-- `idf.pythonBinPath` for absolute virtual environment python path and
-- `idf.customExtraVars` for additional environment variables from ESP-IDF Tools such as OPENOCD_SCRIPTS.
+- `idf.toolsPath` for IDF_TOOLS_PATH
+- `idf.customExtraVars` for additional user defined environment variables.
 
 > **NOTE**: Visual Studio Code has many places where to set configuration settings. This extension uses the `idf.saveScope` configuration setting to determine where to save settings, Global (User Settings), Workspace and WorkspaceFolder. Please review the [Visual Studio Code Settings Precedence](https://code.visualstudio.com/docs/getstarted/settings#_settings-precedence).
 
@@ -36,28 +35,28 @@ Setup wizard provides 3 choices:
 - **Express Install**: Fastest option.
   1.  Choose to either download selected ESP-IDF version or find ESP-IDF in your system.
   2.  Choose directory, Download and install ESP-IDF Tools. This step will use the existing value in `idf.toolsPath` or `idf.toolsPathWin` as ESP-IDF Tools directory.
-  3.  Create python virtual environment with required packages on existing ESP-IDF Tools directory.
+  3.  Create Python virtual environment with required packages on existing ESP-IDF Tools directory.
 - **Advanced Install**: Configurable option.
   1.  Choose to either download selected ESP-IDF version or find ESP-IDF in your system.
   2.  Download or use existing ESP-IDF Tools:
       - Choose directory for ESP-IDF Tools and install ESP-IDF Tools. This step will update the existing value in `idf.toolsPath` or `idf.toolsPathWin`.
       - Specify directory than contains executable for each required ESP-IDF tool with matching version.
-  3.  Create python virtual environment with required packages in chosen ESP-IDF Tools directory.
+  3.  Create Python virtual environment with required packages in chosen ESP-IDF Tools directory.
 - **Use Existing Setup**: This option will show previous setup used in the extension and existing setup if:
   1. `esp-idf.json` is found in the current `idf.toolsPath` (MacOS/Linux users) or `idf.toolsPathWin` (Windows users). This file is generated when you install ESP-IDF with the [IDF Windows Installer](https://github.com/espressif/idf-installer) or using [IDF-ENV](https://github.com/espressif/idf-env) or this extension.
 
-> **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) python packages where `EXTENSION_PATH` is located in:
+> **NOTE:** When running any of these choices, the setup wizard will install ESP-IDF Python packages and ESP-IDF debug adapter (`EXTENSION_PATH`/esp_debug_adapter/requirements.txt) Python packages where `EXTENSION_PATH` is located in:
 
 - Windows: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION`
 - MacOS/Linux: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION`
 
-so make sure that if using an existing python virtual environment that installing these packages doesn't affect your virtual environment.
+so make sure that if using an existing Python virtual environment that installing these packages doesn't affect your virtual environment.
 
-> **NOTE:** Currently the python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in `idf.pythonBinPath` you use contains these libraries. This will be dropped in later versions of ESP-IDF.
+> **NOTE:** Currently the Python package `pygdbmi` used by the debug adapter still depends on some Python 2.7 libraries (libpython2.7.so.1.0) so make sure that the Python executable in ESP-IDF Virtual environment Python path you use contains these libraries. This will be dropped in later versions of ESP-IDF.
 
 > **NOTE**: If you want to use an ESP-IDF version < 5.0, make sure that IDF_PATH and IDF_TOOLS_PATH don't have any spaces since they were no suported in previous versions.
 
-After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
+After choosing any of the previous options, a status page is displayed showing ESP-IDF, tools and Python environment setup progress status. When the setup is finished, a message is shown that "All settings have been configured. You can close this window."
 
 > **NOTE:** Check the [Troubleshooting](../README.md#Troubleshooting) section if you have any issue.
 
@@ -74,11 +73,7 @@ MacOS/Linux
 ```json
 {
   "idf.espIdfPath": "path/to/esp-idf",
-  "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
-  },
-  "idf.pythonBinPath": "PYTHON_INTERPRETER",
+  "idf.toolsPath": "path/to/.espressif",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "board/esp32-wrover.cfg"
@@ -92,11 +87,7 @@ Windows
 ```json
 {
   "idf.espIdfPathWin": "path/to/esp-idf",
-  "idf.customExtraPaths": "UPDATED_PATH",
-  "idf.customExtraVars": {
-    "OPENOCD_SCRIPTS": "OPENOCD_FOLDER/share/openocd/scripts"
-  },
-  "idf.pythonBinPathWin": "PYTHON_INTERPRETER",
+  "idf.toolsPath": "path/to/.espressif",
   "idf.openOcdConfigs": [
     "interface/ftdi/esp32_devkitj_v1.cfg",
     "board/esp32-wrover.cfg"
@@ -132,34 +123,9 @@ This method also need to install extension and debug adapter requirements.txt as
 
 # Example Configuration Setting Values
 
-An example ESP-IDF path is to set `idf.espIdfPath` to `/home/myUser/to/esp-idf` (MacOS/Linux) or set `idf.espIdfPathWin` to `C:\Users\myUser\esp\esp-idf` (Windows)
+An example ESP-IDF path is to set `idf.espIdfPath` to `/home/myUser/esp/esp-idf` (MacOS/Linux) or set `idf.espIdfPathWin` to `C:\Users\myUser\esp\esp-idf` (Windows)
 
-An example python path for `idf.pythonBinPath` (MacOS/Linux) is
-
-- `/home/myUser/.espressif/python_env/idf4.0_py3.5_env/bin/python`
-
-An example python path for `idf.pythonBinPathWin` (Windows) is
-
-- `C:\Users\myUser\.espressif\python_env\idf4.0_py3.5_env\Scripts\python.exe`
-
-For example if required ESP-IDF Tools are:
-
-- OpenOCD executable path is `/home/myUser/.espressif/tools/openocd-esp32/version/openocd-esp32/bin/openocd` or `C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin\openocd` (Windows)
-- XtensaEsp32 executable path is `/home/myUser/.espressif/tools/xtensa-esp32/version/xtensa-esp32/bin/xtensa-esp32-gcc` or `C:\Users\myUser\.espressif\tools\xtensa\version\xtensa-esp32\bin\xtensa-esp32-gcc` (Windows)
-
-you need to set in `idf.customExtraPaths`:
-
-- MacOS/Linux
-
-```
-/home/myUser/.espressif/tools/openocd/version/openocd-esp32/bin:/home/myUser/.espressif/tools/xtensa-esp32/version/xtensa-esp32/bin
-```
-
-- Windows
-
-```
-C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin;C:\Users\myUser\.espressif\tools\xtensa-esp32\version\xtensa-esp32\bin
-```
+ESP-IDF Tools path is to set `idf.toolsPath` to `/home/myUser/.espressif` (MacOS/Linux) or set `idf.toolsPathWin` to `C:\Users\myUser\.espressif` (Windows)
 
 `idf.customExtraVars` is an JSON object saved in Visual Studio Code's settings.json (**Make sure to replace \${TOOL_PATH} with the existing tool directory path**):
 
@@ -169,8 +135,6 @@ C:\Users\myUser\.espressif\tools\openocd-esp32\version\openocd-esp32\bin;C:\User
   }
 ```
 
-The list of required ESP-IDF Tools (`idf.customExtraPaths`) and environment variables (`idf.customExtraVars`) can be found in `$IDF_PATH/tools/tools.json`
-
-> **NOTE:** Make sure to replace \${TOOL_PATH} of `$IDF_PATH/tools/tools.json` in`idf.customExtraPaths` and `idf.customExtraVars` with existing ESP-IDF tool directory path.
+The list of required ESP-IDF Tools and environment variables can be found in `$IDF_PATH/tools/tools.json`.
 
 `idf.openOcdConfigs` use OpenOCD Configuration files depending on your board and chip target. More information [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/tips-and-quirks.html#jtag-debugging-tip-openocd-configure-target).

@@ -212,7 +212,6 @@ describe("Configure extension", () => {
     const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
       Object.assign({}, process.env)
     );
-    modifiedEnv.PATH = `${settingsJsonObj["idf.customExtraPaths"]}${delimiter}${modifiedEnv.PATH}`;
     // openOCD-esp32
     const openOCDPath = await isBinInPath("openocd", __dirname, modifiedEnv);
     const openOcdTool = await view.findWebElement(By.id("openocd-esp32"));

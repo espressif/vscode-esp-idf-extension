@@ -25,6 +25,7 @@ import { exec } from "child_process";
 import { appendIdfAndToolsToPath } from "../utils";
 import { IGcovOutput } from "./gcovData";
 import { Logger } from "../logger/logger";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -52,7 +53,7 @@ export async function getGcdaPaths(workspaceFolder: Uri) {
 
 export async function getGcovData(workspaceFolder: Uri) {
   const idfTarget =
-    readParameter("idf.adapterTargetName", workspaceFolder) || "esp32";
+    (await getIdfTargetFromSdkconfig(workspaceFolder)) || "esp32";
   const gcovExecutable = getGcovExecutable(idfTarget);
 
   const gcdaPaths = await getGcdaPaths(workspaceFolder);
@@ -62,8 +63,8 @@ export async function getGcovData(workspaceFolder: Uri) {
     command += ` "${path}"`;
   }
 
-  return new Promise<IGcovOutput[]>((resolve, reject) => {
-    const modifiedEnv = appendIdfAndToolsToPath(workspaceFolder);
+  return new Promise<IGcovOutput[]>(async (resolve, reject) => {
+    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
     exec(
       command,
       {

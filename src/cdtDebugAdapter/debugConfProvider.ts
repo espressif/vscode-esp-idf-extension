@@ -23,7 +23,7 @@ import {
   WorkspaceFolder,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getProjectName } from "../workspaceConfig";
+import { getIdfTargetFromSdkconfig, getProjectName } from "../workspaceConfig";
 import { join } from "path";
 import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
@@ -73,10 +73,7 @@ export class CDTDebugConfigurationProvider
       }
 
       if (config.initCommands && Array.isArray(config.initCommands)) {
-        let idfTarget = readParameter("idf.adapterTargetName", folder);
-        if (idfTarget === "custom") {
-          idfTarget = readParameter("idf.customAdapterTargetName", folder);
-        }
+        let idfTarget = await getIdfTargetFromSdkconfig(folder.uri);
         type IdfTarget =
           | "esp32"
           | "esp32s2"

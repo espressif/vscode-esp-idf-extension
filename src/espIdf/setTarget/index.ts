@@ -62,41 +62,7 @@ export async function setIdfTarget(placeHolderMsg: string, workspaceFolder: Work
         if (!selectedTarget) {
           return;
         }
-        if (selectedTarget.target === "custom") {
-          const currentValue = readParameter(
-            "idf.customAdapterTargetName",
-            workspaceFolder.uri
-          ) as string;
-          const customIdfTarget = await window.showInputBox({
-            placeHolder: placeHolderMsg,
-            value: currentValue,
-          });
-          if (!customIdfTarget) {
-            return;
-          }
-          await writeParameter(
-            "idf.adapterTargetName",
-            selectedTarget.target,
-            configurationTarget,
-            workspaceFolder.uri
-          );
-          await writeParameter(
-            "idf.customAdapterTargetName",
-            customIdfTarget,
-            configurationTarget,
-            workspaceFolder.uri
-          );
-          return Logger.infoNotify(
-            `IDF_TARGET has been set to custom. Remember to set the configuration files for OpenOCD`
-          );
-        }
-        await writeParameter(
-          "idf.adapterTargetName",
-          selectedTarget.target,
-          configurationTarget,
-          workspaceFolder.uri
-        );
-        const openOcdScriptsPath = getOpenOcdScripts(workspaceFolder.uri);
+        const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder.uri);
         const boards = await getBoards(
           openOcdScriptsPath,
           selectedTarget.target

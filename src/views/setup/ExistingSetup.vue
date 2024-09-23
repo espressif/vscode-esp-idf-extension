@@ -50,7 +50,6 @@ function goTo(route: string, setupMode: SetupMode) {
           {{ prevSetup.idfPath }}</label
         >
         <p>IDF Version: {{ prevSetup.version }}</p>
-        <p>Python path: {{ prevSetup.python }}</p>
         <p>IDF Tools path: {{ prevSetup.toolsPath }}</p>
         <p>Git path: {{ prevSetup.gitPath }}</p>
       </div>

@@ -17,7 +17,7 @@ This extension provides many features to ease development of ESP-IDF Projects.
 - [System View Tracing Viewer](./SYS_VIEW_TRACING_VIEWER.md)
 - Localization (English, Chinese, Spanish) of commands which you can also [add a language contribution](./LANG_CONTRIBUTE.md).
 - [Code Coverage](./COVERAGE.md) for editor source highlighting and generate HTML reports.
-- Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in Documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and `idf.adapterTargetName`.
+- Search text editor's selected text in ESP-IDF documentation with **ESP-IDF: Search in Documentation...** right click command or with its [keyboard shortcut](#Available-commands). Results will be shown in ESP-IDF Explorer Tab if found on ESP-IDF Documentation based on your current vscode language, ESP-IDF version in `idf.espIdfPath` (latest otherwise) and current `IDF_TARGET` in sdkconfig.
 - [ESP Rainmaker Support](./ESP_RAINMAKER.md)
 - [Core Dump and GdbStub](./POSTMORTEM.md) postmortem mode.
 - [CMake Editor](#CMake-Editor)
@@ -442,7 +442,7 @@ The **Add Arduino-ESP32 as ESP-IDF Component** command will add [Arduino-ESP32](
 
 Click <kbd>F5</kbd> to start debugging. To configure the debug behaviour, please review [DEBUGGING](./DEBUGGING.md).
 
-> **NOTE** For correct debug experience, first define the correct `idf.customExtraPaths` paths and `idf.customExtraVars` using [SETUP](./SETUP.md), `build` your project, choose the right serial port, `flash` the program to your device.
+> **NOTE** For correct debug experience, first define the correct settings configuration using [SETUP](./SETUP.md), `build` your project, choose the right serial port, `flash` the program to your device.
 
 ## CMakeLists.txt Editor
 

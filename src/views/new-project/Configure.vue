@@ -14,8 +14,6 @@ const {
   selectedBoard,
   selectedPort,
   serialPortList,
-  target,
-  targetList,
 } = storeToRefs(store);
 
 function setContainerDirectory(newPath: string) {
@@ -65,19 +63,6 @@ onMounted(() => {
             <select name="idf-board" id="idf-board" v-model="selectedBoard">
               <option v-for="b of boards" :key="b.name" :value="b">{{
                 b.name
-              }}</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="field" v-if="showCustomBoardInput">
-        <label for="idf-target" class="label">Choose ESP-IDF Target</label>
-        <div class="control">
-          <div class="select">
-            <select name="idf-target" id="idf-target" v-model="target">
-              <option v-for="t of targetList" :key="t.name" :value="t">{{
-                t.name
               }}</option>
             </select>
           </div>

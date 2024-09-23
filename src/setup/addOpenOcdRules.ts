@@ -26,7 +26,7 @@ export async function getOpenOcdRules(workspace: Uri) {
   if (process.platform !== "linux") {
     return;
   }
-  const modifiedEnv = appendIdfAndToolsToPath(workspace);
+  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
   if (!modifiedEnv.OPENOCD_SCRIPTS) {
     throw new Error("OPENOCD_SCRIPTS environment variables is not defined");
   }

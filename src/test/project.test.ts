@@ -51,7 +51,6 @@ suite("Project tests", () => {
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultFiles.includes("launch.json"), true);
     assert.equal(resultFiles.includes("settings.json"), true);
-    assert.equal(resultFiles.includes("tasks.json"), true);
   });
 
   test("Launch.json content", async () => {
@@ -107,7 +106,6 @@ suite("Project tests", () => {
     assert.equal(resultVscodeFiles.includes("c_cpp_properties.json"), true);
     assert.equal(resultVscodeFiles.includes("launch.json"), true);
     assert.equal(resultVscodeFiles.includes("settings.json"), true);
-    assert.equal(resultVscodeFiles.includes("tasks.json"), true);
   });
 
   test("Update project name", async () => {
@@ -151,7 +149,6 @@ suite("Project tests", () => {
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
-      "esp32",
       "no port",
       openOcdConfigs,
       Uri.file(projectPath)
@@ -160,13 +157,7 @@ suite("Project tests", () => {
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
     assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
-    assert.ok(newSettingsJson["idf.pythonBinPath"].indexOf("python") !== -1);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
-    assert.equal(newSettingsJson["idf.customExtraPaths"], process.env.PATH);
-    assert.equal(
-      newSettingsJson["idf.customExtraVars"]["OPENOCD_SCRIPTS"],
-      "${env:OPENOCD_SCRIPTS}"
-    );
   });
 
   suiteTeardown(async () => {

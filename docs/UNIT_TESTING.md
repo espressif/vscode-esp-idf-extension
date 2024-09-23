@@ -43,7 +43,7 @@ When you click on the Testing Tab in the Activity bar, the extension will try to
 
 > **NOTE:** You can also install the PyTest requirements with the `ESP-IDF Unit Test: Install ESP-IDF PyTest requirements` extension command.
 
-2. Install ESP-IDF PyTest requirements if they are not found in the python current virtual environment specified in `idf.pythonBinPath` configuration setting in settings.json.
+2. Install ESP-IDF PyTest requirements if they are not found in the python current virtual environment specified by extension configuration settings in settings.json.
 
 3. Copy the unity-app from the extension template and add the test components to the main CMakeLists.txt `TEST_COMPONENTS` cmake variable. The extension unity-app is a basic ESP-IDF application with a unity menu that will be built and flashed on the current `idf.port` with all test cases that were found during exploration step.
 

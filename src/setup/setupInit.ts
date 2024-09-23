@@ -22,7 +22,7 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
+import { addIdfPath, getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 import {
   createIdfSetup,
   getPreviousIdfSetups,
@@ -30,7 +30,7 @@ import {
 } from "./existingIdfSetups";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
-import { getCurrentIdfSetup } from "../versionSwitcher";
+import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -214,30 +214,6 @@ export async function getSetupInitialValues(
   return setupInitArgs;
 }
 
-function updateCustomExtraVars(workspaceFolder: Uri) {
-  const extraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  );
-  if (typeof extraVars === "string") {
-    try {
-      const extraVarsObj = JSON.parse(extraVars);
-      const target = idfConf.readParameter("idf.saveScope");
-      idfConf.writeParameter(
-        "idf.customExtraVars",
-        extraVarsObj,
-        target,
-        workspaceFolder
-      );
-    } catch (err) {
-      const msg = err.message
-        ? err.message
-        : "Error changing idf.customExtraVars from string to object";
-      Logger.errorNotify(msg, err);
-    }
-  }
-}
-
 export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
@@ -249,18 +225,12 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
-  const extraPaths = idfConf.readParameter(
-    "idf.customExtraPaths",
-    workspaceFolder
-  ) as string;
-  const pythonBinPath = idfConf.readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  
+  // FIX use system Python path as setting instead venv
+  // REMOVE this line after next release
+  const sysPythonBinPath = await getPythonPath(workspaceFolder);
 
-  // FIX idf.customExtraVars from string to object
-  // REMOVE THIS LINE after next release
-  updateCustomExtraVars(workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
 
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
@@ -293,6 +263,10 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
       extraReqPaths.push("ninja");
     }
   }
+  const extraPaths = await idfToolsManager.exportPathsInString(
+    path.join(toolsPath, "tools"),
+    extraReqPaths
+  );
   const toolsInfo = await idfToolsManager.getRequiredToolsInfo(
     path.join(toolsPath, "tools"),
     extraPaths,
@@ -314,9 +288,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
 
 export async function saveSettings(
   espIdfPath: string,
-  pythonBinPath: string,
-  exportedPaths: string,
-  exportedVars: { [key: string]: string },
   toolsPath: string,
   gitPath: string,
   saveScope: ConfigurationTarget,
@@ -337,37 +308,17 @@ export async function saveSettings(
     workspaceFolder
   );
   await idfConf.writeParameter(
-    "idf.pythonBinPath",
-    pythonBinPath,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
     "idf.toolsPath",
     toolsPath,
     confTarget,
     workspaceFolder
   );
   await idfConf.writeParameter(
-    "idf.customExtraPaths",
-    exportedPaths,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
-    "idf.customExtraVars",
-    exportedVars,
-    confTarget,
-    workspaceFolder
-  );
-  await idfConf.writeParameter(
     "idf.gitPath",
     gitPath,
-    confTarget,
-    workspaceFolder
+    ConfigurationTarget.Global
   );
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder);
-  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfVersion.version;
-  await createIdfSetup(espIdfPath, toolsPath, pythonBinPath, gitPath);
+  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfSetup.version;
   Logger.infoNotify("ESP-IDF has been configured");
 }

@@ -29,16 +29,14 @@ import {
 } from "../utils";
 import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
+import { getVirtualEnvPythonPath } from "../pythonManager";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export class BuildTask {
   public static isBuilding: boolean;
   private buildDirPath: string;
   private currentWorkspace: vscode.Uri;
   private idfPathDir: string;
-  private adapterTargetName: string;
-  private processOptions: vscode.ProcessExecutionOptions;
-  private modifiedEnv: { [key: string]: string };
-  private pythonBinPath: string;
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
@@ -46,21 +44,8 @@ export class BuildTask {
       "idf.espIdfPath",
       workspaceUri
     ) as string;
-    this.adapterTargetName = idfConf.readParameter(
-      "idf.adapterTargetName",
-      workspaceUri
-    ) as string;
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
-      workspaceUri
-    ) as string;
-    this.modifiedEnv = appendIdfAndToolsToPath(workspaceUri);
-    this.processOptions = {
-      cwd: this.buildDirPath,
-      env: this.modifiedEnv,
-    };
-    this.pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
       workspaceUri
     ) as string;
   }
@@ -93,15 +78,20 @@ export class BuildTask {
     }
     this.building(true);
     await ensureDir(this.buildDirPath);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const processOptions = {
+      cwd: this.buildDirPath,
+      env: modifiedEnv,
+    };
     const canAccessCMake = await isBinInPath(
       "cmake",
       this.currentWorkspace.fsPath,
-      this.modifiedEnv
+      modifiedEnv
     );
     const canAccessNinja = await isBinInPath(
       "ninja",
       this.currentWorkspace.fsPath,
-      this.modifiedEnv
+      modifiedEnv
     );
 
     const cmakeCachePath = join(this.buildDirPath, "CMakeCache.txt");
@@ -203,7 +193,7 @@ export class BuildTask {
       const compileExecution = new vscode.ProcessExecution(
         canAccessCMake,
         compilerArgs,
-        this.processOptions
+        processOptions
       );
       const compilePresentationOptions = {
         reveal: showTaskOutput,
@@ -234,7 +224,7 @@ export class BuildTask {
     const buildExecution = new vscode.ProcessExecution(
       ninjaCommand,
       buildArgs,
-      this.processOptions
+      processOptions
     );
     const buildPresentationOptions = {
       reveal: showTaskOutput,
@@ -254,7 +244,6 @@ export class BuildTask {
 
   public async buildDfu() {
     this.building(true);
-    const modifiedEnv = appendIdfAndToolsToPath(this.currentWorkspace);
     await ensureDir(this.buildDirPath);
 
     const currentWorkspaceFolder = vscode.workspace.workspaceFolders.find(
@@ -265,6 +254,8 @@ export class BuildTask {
       "idf.notificationMode",
       this.currentWorkspace
     ) as string;
+
+    const adapterTargetName = await getIdfTargetFromSdkconfig(this.currentWorkspace);
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
       notificationMode === idfConf.NotificationMode.Output
@@ -279,12 +270,18 @@ export class BuildTask {
       "--json",
       join(this.buildDirPath, "flasher_args.json"),
       "--pid",
-      selectedDFUAdapterId(this.adapterTargetName),
+      selectedDFUAdapterId(adapterTargetName).toString(),
     ];
+    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
+    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const processOptions = {
+      cwd: this.buildDirPath,
+      env: modifiedEnv,
+    };
     const writeExecution = new vscode.ProcessExecution(
-      this.pythonBinPath,
+      pythonBinPath,
       args,
-      this.processOptions
+      processOptions
     );
     const buildPresentationOptions = {
       reveal: showTaskOutput,

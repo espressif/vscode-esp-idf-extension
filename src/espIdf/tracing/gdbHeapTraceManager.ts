@@ -63,7 +63,7 @@ export class GdbHeapTraceManager {
           "/"
         )}/htrace_${new Date().getTime()}.svdat`;
         await this.createGdbinitFile(fileName, workspace.fsPath);
-        const modifiedEnv = appendIdfAndToolsToPath(workspace);
+        const modifiedEnv = await appendIdfAndToolsToPath(workspace);
         const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
         const gdbTool = getToolchainToolName(idfTarget, "gdb");
         const isGdbToolInPath = await isBinInPath(

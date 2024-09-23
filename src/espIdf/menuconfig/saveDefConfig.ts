@@ -33,6 +33,7 @@ import { Logger } from "../../logger/logger";
 import { join } from "path";
 import { appendIdfAndToolsToPath } from "../../utils";
 import { pathExists } from "fs-extra";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -91,16 +92,16 @@ export async function getSaveDefConfigExecution(
   wsFolder: Uri
 ) {
   const saveDefConfArgs = [join(idfPath, "tools", "idf.py"), "save-defconfig"];
-  const modifiedEnv = appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
   const options: ProcessExecutionOptions = {
     cwd: wsFolder.fsPath,
     env: modifiedEnv,
   };
-  const pythonBinPath = readParameter("idf.pythonBinPath", wsFolder) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(
-      `idf.pythonBinPath doesn't exist. Configure the extension first.`
+      `Virtual environment Python path doesn't exist. Configure the extension first.`
     );
   }
   return new ProcessExecution(pythonBinPath, saveDefConfArgs, options);

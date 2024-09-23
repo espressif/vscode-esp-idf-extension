@@ -28,33 +28,34 @@ import {
   CancellationToken,
 } from "vscode";
 import { getDocsLocaleLang, getDocsVersion } from "../espIdf/documentation/getDocsVersion";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
-  const appTraceDestTrax = getConfigValueFromSDKConfig(
+  const appTraceDestTrax = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_DEST_TRAX",
     workspacePath
   );
-  const appTraceEnable = getConfigValueFromSDKConfig(
+  const appTraceEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ENABLE",
     workspacePath
   );
-  const appTraceLockEnable = getConfigValueFromSDKConfig(
+  const appTraceLockEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_LOCK_ENABLE",
     workspacePath
   );
-  const onPanicHostFlushTmo = getConfigValueFromSDKConfig(
+  const onPanicHostFlushTmo = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_ONPANIC_HOST_FLUSH_TMO",
     workspacePath
   );
-  const postmortemFlushThresh = getConfigValueFromSDKConfig(
+  const postmortemFlushThresh = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_POSTMORTEM_FLUSH_THRESH",
     workspacePath
   );
-  const appTracePendingDataSizeMax = getConfigValueFromSDKConfig(
+  const appTracePendingDataSizeMax = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_PENDING_DATA_SIZE_MAX",
     workspacePath
   );
-  const appTraceGcovEnable = getConfigValueFromSDKConfig(
+  const appTraceGcovEnable = await getConfigValueFromSDKConfig(
     "CONFIG_APPTRACE_GCOV_ENABLE",
     workspacePath
   );
@@ -122,10 +123,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   const idfPath =
     readParameter("idf.espIdfPath", workspacePath) || process.env.IDF_PATH;
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
-  let idfTarget = readParameter("idf.adapterTargetName", workspacePath);
-  if (idfTarget === "custom") {
-    idfTarget = readParameter("idf.customAdapterTargetName", workspacePath);
-  }
+  let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);
   let docVersion = docsVersions.find(
     (docVer) => docVer.name === idfVersion
   );

@@ -32,6 +32,7 @@ import {
 import { KconfigMenuLoader } from "./kconfigMenuLoader";
 import { Menu, menuType } from "./Menu";
 import { MenuConfigPanel } from "./MenuconfigPanel";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export class ConfserverProcess {
   public static async initWithProgress(
@@ -69,12 +70,17 @@ export class ConfserverProcess {
   }
 
   public static async init(workspaceFolder: vscode.Uri, extensionPath: string) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+      const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
       if (!ConfserverProcess.instance) {
         ConfserverProcess.instance = new ConfserverProcess(
           workspaceFolder,
-          extensionPath
+          extensionPath,
+          pythonBinPath,
+          modifiedEnv
         );
+        ConfserverProcess.instance.configFile = await getSDKConfigFilePath(workspaceFolder);
       }
       ConfserverProcess.instance.emitter.once("valuesLoaded", resolve);
     });
@@ -199,16 +205,13 @@ export class ConfserverProcess {
     progress.report({ increment: 10, message: "Deleting current values..." });
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
-    delConfigFile(currWorkspace);
+    await delConfigFile(currWorkspace);
     const guiconfigEspPath =
       idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
       process.env.IDF_PATH;
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath(currWorkspace);
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      currWorkspace
-    ) as string;
+    const modifiedEnv = await appendIdfAndToolsToPath(currWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath(currWorkspace);
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       currWorkspace
@@ -292,23 +295,20 @@ export class ConfserverProcess {
   private extensionPath: string;
   private kconfigsMenus: Menu[];
 
-  constructor(workspaceFolder: vscode.Uri, extensionPath: string) {
+  constructor(
+    workspaceFolder: vscode.Uri,
+    extensionPath: string,
+    pythonBinPath: string,
+    modifiedEnv: { [key: string]: string }
+  ) {
     this.workspaceFolder = workspaceFolder;
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
     this.espIdfPath =
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
-    const pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      workspaceFolder
-    ) as string;
-    this.configFile = getSDKConfigFilePath(workspaceFolder);
-
-    process.env.IDF_TARGET = "esp32";
-    process.env.PYTHONUNBUFFERED = "0";
+    modifiedEnv.PYTHONUNBUFFERED = "0";
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
-    const modifiedEnv = appendIdfAndToolsToPath(this.workspaceFolder);
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",
       workspaceFolder

@@ -23,9 +23,10 @@ import * as utils from "../../utils";
 import { BuildTask } from "../../build/buildTask";
 import { Logger } from "../../logger/logger";
 import { R_OK } from "constants";
-import { getProjectName } from "../../workspaceConfig";
 import { IDFMonitor, MonitorConfig } from ".";
 import { ESP } from "../../config";
+import { getIdfTargetFromSdkconfig, getProjectName } from "../../workspaceConfig";
+import { getVirtualEnvPythonPath } from "../../pythonManager";
 
 export async function createNewIdfMonitor(
   workspaceFolder: Uri,
@@ -54,19 +55,16 @@ export async function createNewIdfMonitor(
       new Error("NOT_SELECTED_PORT")
     );
   }
-  const pythonBinPath = readParameter(
-    "idf.pythonBinPath",
-    workspaceFolder
-  ) as string;
+  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
-      new Error("idf.pythonBinPath is not defined")
+      new Error("Virtual environment Python path is not defined")
     );
   }
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder) as string;
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
-  let sdkMonitorBaudRate: string = utils.getMonitorBaudRate(workspaceFolder);
+  let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(workspaceFolder);
   const idfMonitorToolPath = join(idfPath, "tools", "idf_monitor.py");
   if (!utils.canAccessFile(idfMonitorToolPath, R_OK)) {
     Logger.errorNotify(
@@ -78,10 +76,7 @@ export async function createNewIdfMonitor(
     "idf.buildPath",
     workspaceFolder
   ) as string;
-  let idfTarget = readParameter("idf.adapterTargetName", workspaceFolder);
-  if (idfTarget === "custom") {
-    idfTarget = readParameter("idf.customAdapterTargetName", workspaceFolder);
-  }
+  let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   const projectName = await getProjectName(buildDirPath);
   const elfFilePath = join(buildDirPath, `${projectName}.elf`);
   const toolchainPrefix = utils.getToolchainToolName(idfTarget, "");

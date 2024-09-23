@@ -27,13 +27,15 @@ export function initializeReportObject() {
     espMatterPath: undefined,
     espHomeKitPath: undefined,
     customExtraPaths: undefined,
-    customExtraVars: undefined,
+    idfExtraVars: undefined,
+    userExtraVars: undefined,
     customTerminalExecutable: undefined,
     customTerminalExecutableArgs: undefined,
     notificationMode: undefined,
     pythonBinPath: undefined,
     pythonPackages: undefined,
     serialPort: undefined,
+    sysPythonBinPath: undefined,
     openOcdConfigs: undefined,
     toolsPath: undefined,
     gitPath: undefined,
@@ -50,6 +52,7 @@ export function initializeReportObject() {
     cmakeInEnv: undefined,
     ninjaInEnv: undefined,
     toolsPath: undefined,
+    sysPythonBinPath: undefined,
   };
   report.configurationSpacesValidation = {
     customExtraPaths: undefined,
@@ -62,6 +65,7 @@ export function initializeReportObject() {
     pythonBinPath: undefined,
     toolsPath: undefined,
     systemEnvPath: undefined,
+    sysPythonBinPath: undefined,
   };
   report.debugAdapterRequirements = {
     output: undefined,

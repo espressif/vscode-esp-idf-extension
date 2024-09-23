@@ -120,12 +120,11 @@ export class NewProjectPanel {
             message.containerFolder &&
             message.port &&
             message.projectName &&
-            message.target &&
+            message.openOcdConfigFiles &&
             message.template
           ) {
             this.createProject(
               JSON.parse(message.components),
-              message.target,
               message.port,
               message.containerFolder,
               message.projectName,
@@ -165,22 +164,19 @@ export class NewProjectPanel {
         case "requestInitValues":
           if (
             newProjectArgs &&
-            newProjectArgs.targetList &&
-            newProjectArgs.targetList.length > 0 &&
             newProjectArgs.serialPortList &&
             newProjectArgs.serialPortList.length > 0
           ) {
             const defConfigFiles =
               newProjectArgs.boards && newProjectArgs.boards.length > 0
                 ? newProjectArgs.boards[0].configFiles.join(",")
-                : newProjectArgs.targetList[0].configFiles.join(",");
+                : ["interface/ftdi/esp32_devkitj_v1.cfg", "target/esp32.cfg"].join(",");
             this.panel.webview.postMessage({
               boards: newProjectArgs.boards,
               command: "initialLoad",
               containerDirectory: containerPath,
               projectName: "project-name",
               serialPortList: newProjectArgs.serialPortList,
-              targetList: newProjectArgs.targetList,
               openOcdConfigFiles: defConfigFiles,
               templates: newProjectArgs.templates,
             });
@@ -202,7 +198,6 @@ export class NewProjectPanel {
 
   private async createProject(
     components: IComponent[],
-    idfTarget: string,
     port: string,
     projectDirectory: string,
     projectName: string,
@@ -288,7 +283,6 @@ export class NewProjectPanel {
           );
           const settingsJson = await setCurrentSettingsInTemplate(
             settingsJsonPath,
-            idfTarget,
             port,
             openOcdConfigs,
             workspaceFolder
