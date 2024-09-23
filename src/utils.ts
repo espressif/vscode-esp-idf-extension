@@ -302,7 +302,9 @@ export async function getToolchainPath(
   try {
     return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
   } catch (error) {
-    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error,
+    Logger.errorNotify(
+      `${tool} is not found in idf.toolsPath`,
+      error,
       "utils getToolchainPath"
     );
     return;
@@ -1021,7 +1023,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid user environment variables format", error, "appendIdfAndToolsToPath idf.customExtraVars");
+      Logger.errorNotify(
+        "Invalid user environment variables format",
+        error,
+        "appendIdfAndToolsToPath idf.customExtraVars"
+      );
     }
   }
   const customVars = await idfToolsManager.exportVars(
@@ -1036,7 +1042,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid ESP-IDF environment variables format", error, "appendIdfAndToolsToPath idf tools env vars");
+      Logger.errorNotify(
+        "Invalid ESP-IDF environment variables format",
+        error,
+        "appendIdfAndToolsToPath idf tools env vars"
+      );
     }
   }
 
