@@ -46,6 +46,7 @@ export class IDFMonitor {
     IDFMonitor.config = config;
   }
 
+
   static async start() {
     const modifiedEnv = await appendIdfAndToolsToPath(this.config.workspaceFolder);
     if (!IDFMonitor.terminal) {
@@ -122,8 +123,10 @@ export class IDFMonitor {
     const quotedIdfPath = quotePath(modifiedEnv.IDF_PATH);
 
     if (shellType.includes("powershell") || shellType.includes("pwsh")) {
-      this.terminal.sendText(`& ${envSetCmd} IDF_PATH=${quotedIdfPath}`);
-      this.terminal.sendText(`& ${args.join(" ")}`);
+      this.terminal.sendText(`$env:IDF_PATH = ${quotedIdfPath};`);
+      // For pwsh users on Linux, we need to add delay between commands
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      this.terminal.sendText(` & ${args.join(" ")}\r`);
     } else if (shellType.includes("cmd")) {
       this.terminal.sendText(`${envSetCmd} IDF_PATH=${modifiedEnv.IDF_PATH}`);
       this.terminal.sendText(args.join(" "));

@@ -1286,7 +1286,7 @@ export function getUserShell() {
   const shell = vscode.env.shell;
 
   // list of shells to check
-  const shells = ["powershell", "cmd", "bash", "zsh"];
+  const shells = ["powershell", "cmd", "bash", "zsh", "pwsh"];
 
   // if user's shell is in the list, return it
   for (let i = 0; i < shells.length; i++) {
