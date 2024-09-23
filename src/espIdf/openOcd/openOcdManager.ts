@@ -31,7 +31,10 @@ import {
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
 import { statusBarItems } from "../../statusBar";
-import { CommandKeys, createCommandDictionary } from "../../cmdTreeView/cmdStore";
+import {
+  CommandKeys,
+  createCommandDictionary,
+} from "../../cmdTreeView/cmdStore";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -284,7 +287,12 @@ export class OpenOCDManager extends EventEmitter {
     const commandDictionary = createCommandDictionary();
     this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
     this.statusBar.command = CommandKeys.OpenOCD;
-    this.statusBar.show();
+    if (
+      commandDictionary[CommandKeys.OpenOCD].checkboxState ===
+      vscode.TreeItemCheckboxState.Checked
+    ) {
+      this.statusBar.show();
+    }
 
     statusBarItems["openOCD"] = this.statusBar;
   }

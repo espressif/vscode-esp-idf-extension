@@ -22,6 +22,7 @@ import {
   StatusBarAlignment,
   StatusBarItem,
   Terminal,
+  TreeItemCheckboxState,
   Uri,
   window,
   workspace,
@@ -31,7 +32,10 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
 import { statusBarItems } from "../statusBar";
-import { AdvancedCommandKeys, createAdvancedCommandDictionary } from "../cmdTreeView/cmdStore";
+import {
+  AdvancedCommandKeys,
+  createAdvancedCommandDictionary,
+} from "../cmdTreeView/cmdStore";
 
 export interface IQemuOptions {
   launchArgs: string[];
@@ -163,7 +167,9 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(this.options.workspaceFolder);
+    const modifiedEnv = await appendIdfAndToolsToPath(
+      this.options.workspaceFolder
+    );
     const isQemuBinInPath = await isBinInPath(
       this.execString,
       this.options.workspaceFolder.fsPath,
@@ -236,9 +242,15 @@ export class QemuManager extends EventEmitter {
       );
       this._statusBarItem.text = "[ESP-IDF: QEMU]";
       const advancedCommandDictionary = createAdvancedCommandDictionary();
-      this._statusBarItem.tooltip = advancedCommandDictionary[AdvancedCommandKeys.QemuServer].tooltip;
+      this._statusBarItem.tooltip =
+        advancedCommandDictionary[AdvancedCommandKeys.QemuServer].tooltip;
       this._statusBarItem.command = AdvancedCommandKeys.QemuServer;
-      this._statusBarItem.show();
+      if (
+        advancedCommandDictionary[AdvancedCommandKeys.QemuServer]
+          .checkboxState === TreeItemCheckboxState.Checked
+      ) {
+        this._statusBarItem.show();
+      }
       statusBarItems["qemu"] = this._statusBarItem;
     }
   }
