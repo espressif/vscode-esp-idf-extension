@@ -373,6 +373,17 @@ export async function activate(context: vscode.ExtensionContext) {
               `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
               idfConf.readParameter("idf.port", workspaceRoot);
           }
+          if (statusBarItems["projectConf"]) {
+            statusBarItems["projectConf"].dispose();
+            statusBarItems["projectConf"] = undefined;
+            const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+              ESP.ProjectConfiguration.SELECTED_CONFIG
+            );
+            ESP.ProjectConfiguration.store.clear(selectedConfig);
+            ESP.ProjectConfiguration.store.clear(
+              ESP.ProjectConfiguration.SELECTED_CONFIG
+            );
+          }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
           break;
@@ -907,6 +918,17 @@ export async function activate(context: vscode.ExtensionContext) {
           tooltip: option.uri.fsPath,
         };
         utils.updateStatus(statusBarItems["workspace"], workspaceFolderInfo);
+        if (statusBarItems["projectConf"]) {
+          statusBarItems["projectConf"].dispose();
+          statusBarItems["projectConf"] = undefined;
+          const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+            ESP.ProjectConfiguration.SELECTED_CONFIG
+          );
+          ESP.ProjectConfiguration.store.clear(selectedConfig);
+          ESP.ProjectConfiguration.store.clear(
+            ESP.ProjectConfiguration.SELECTED_CONFIG
+          );
+        }
         const debugAdapterConfig = {
           currentWorkspace: workspaceRoot,
         } as IDebugAdapterConfig;

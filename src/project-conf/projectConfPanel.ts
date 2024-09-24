@@ -126,15 +126,6 @@ export class projectConfigurationPanel {
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
   }
 
-  private async clearProjectConfFile() {
-    let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
-    if (projectConfKeys && projectConfKeys.length) {
-      for (const confKey of projectConfKeys) {
-        ESP.ProjectConfiguration.store.clear(confKey);
-      }
-    }
-  }
-
   private async openFolder() {
     const selectedFolder = await window.showOpenDialog({
       canSelectFolders: true,
@@ -163,7 +154,6 @@ export class projectConfigurationPanel {
   private async saveProjectConfFile(projectConfDict: {
     [key: string]: ProjectConfElement;
   }) {
-    this.clearProjectConfFile();
     const projectConfKeys = Object.keys(projectConfDict);
     this.clearSelectedProject(projectConfKeys);
     await saveProjectConfFile(this.workspaceFolder, projectConfDict);
