@@ -119,59 +119,76 @@
   "contributes": {
     "walkthroughs": [
       {
-        "id": "espIdf.walkthrough",
-        "title": "Get Started with ESP-IDF",
-        "description": "Discover the custom UI elements added by the Espressif IDF extension for VS Code",
+        "id": "espIdf.walkthrough.ui",
+        "title": "ESP-IDF Extension UI Guide",
+        "description": "Explore the custom UI elements added by the Espressif IDF extension for VS Code",
         "steps": [
           {
-            "id": "status-bar",
-            "title": "Status Bar Integration",
-            "description": "The Status Bar displays basic commands of our extension, providing quick access to important actions for your Espressif IDF development.",
+            "id": "ui-introduction",
+            "title": "UI Elements Overview",
+            "description": "This walkthrough will introduce you to the custom UI elements we've added to enhance your Espressif IDF development experience.",
             "media": {
-              "image": "media/walkthrough/status-bar.png",
-              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
-            },
-            "completionEvents": ["onView:espressif-ide.statusBar"]
+              "markdown": "walkthroughs/welcome.md"
+            }
           },
           {
             "id": "esp-idf-explorer",
-            "title": "ESP-IDF: Explorer in Activity Bar",
-            "description": "We've added a custom Explorer to the Activity Bar called 'ESP-IDF: Explorer'. This is your central hub for Espressif IDF development.",
+            "title": "ESP-IDF: Explorer",
+            "description": "The **ESP-IDF: Explorer** in the Activity Bar is your central hub for Espressif IDF development.\n\n- **Quick access** to all extension features and commands\n- **Project overview** including components and configurations\n- **Integrated terminal** for ESP-IDF specific commands\n\n[Open ESP-IDF Explorer](command:espIdf.openExplorer)\n\n💡 You can drag and drop the ESP-IDF Explorer view to rearrange it within your VS Code layout.",
             "media": {
               "image": "media/walkthrough/esp-idf-explorer.png",
               "altText": "Screenshot of ESP-IDF: Explorer in Activity Bar"
-            },
-            "completionEvents": ["onView:espressif-ide.espIdfExplorer"]
+            }
           },
           {
             "id": "commands-section",
             "title": "Commands Section",
-            "description": "The 'Commands' section in the ESP-IDF Explorer provides quick access to all extension commands. You can use these directly from here or by opening the Command Palette.",
+            "description": "The **Commands Section** in the ESP-IDF Explorer provides quick access to all extension commands.\n\n- **Build**, **Flash**, and **Monitor** your project with a single click\n- **Configure** your project settings and menuconfig\n- **Manage** ESP-IDF and tools installations\n\n[Open ESP-IDF Commands](command:workbench.action.quickOpen?%22%3EESP-IDF%3A%22)\n\n💡 You can also access these commands through the VS Code Command Palette by typing 'ESP-IDF:'.",
             "media": {
               "image": "media/walkthrough/commands-section.png",
               "altText": "Screenshot of Commands section in ESP-IDF: Explorer"
-            },
-            "completionEvents": ["onView:espressif-ide.commandsSection"]
+            }
           },
           {
             "id": "project-components",
-            "title": "Project Components in Explorer",
-            "description": "In the Explorer view, you'll find a new tree view called 'Project Components'. This allows you to navigate through the components inside the esp-idf components directory.",
+            "title": "Project Components",
+            "description": "The **Project Components** tree view in the Explorer allows you to navigate through the components inside the esp-idf components directory.\n\n- **Quickly browse** all available ESP-IDF components\n- **Easily include** components in your project\n- **Jump to source** of any component with a single click\n\n[Open Project Components](command:espIdf.openProjectComponents)\n\n💡 Right-click on a component to see additional options like 'Add to project' or 'Open documentation'.",
             "media": {
               "image": "media/walkthrough/project-components.png",
               "altText": "Screenshot of Project Components tree view in Explorer"
-            },
-            "completionEvents": ["onView:espressif-ide.projectComponents"]
+            }
           },
           {
             "id": "peripheral-viewer",
-            "title": "ESP-IDF: Peripheral Viewer in Debug Explorer",
-            "description": "The Debug Explorer now includes an 'ESP-IDF: Peripheral Viewer'. This tool allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.",
+            "title": "ESP-IDF: Peripheral Viewer",
+            "description": "The **ESP-IDF: Peripheral Viewer** in the Debug Explorer allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.\n\n- **Real-time updates** of peripheral registers\n- **Modify values** directly from the UI\n- **Custom views** for common peripherals like GPIO, UART, etc.\n\n[Open Peripheral Viewer](command:espIdf.openPeripheralViewer)\n\n💡 The Peripheral Viewer is only available during active debug sessions.",
             "media": {
               "image": "media/walkthrough/peripheral-viewer.png",
               "altText": "Screenshot of ESP-IDF: Peripheral Viewer in Debug Explorer"
-            },
-            "completionEvents": ["onView:espressif-ide.peripheralViewer"]
+            }
+          },
+          {
+            "id": "hints-viewer",
+            "title": "Hints Viewer",
+            "description": "The **Hints Viewer** is a powerful tool to help you understand and resolve build errors and warnings.\n\n- **Automatic display** of hints based on problems in the Problems tab\n- **Search functionality** to find hints for specific errors\n- **In-editor hints** displayed when hovering over errors (squiggly lines)\n\nKey features:\n- View hints for build errors without leaving VS Code\n- Search for hints by typing the error message\n- Get context-specific help right in your code editor\n\n[Open Hints Viewer](command:espIdf.openHintsViewer)\n\n💡 The Hints Viewer updates automatically as you work, providing real-time assistance for your ESP-IDF development.",
+            "media": {
+              "image": "media/walkthrough/hints-viewer.png",
+              "altText": "Screenshot of Hints Viewer panel and in-editor hints"
+            }
+          },
+          {
+            "id": "status-bar",
+            "title": "Status Bar Integration",
+            "description": "The **Status Bar** displays essential information and provides quick access to common actions for your Espressif IDF development.\n\n- **Current project** name and ESP-IDF version\n- **Quick actions** for build, flash, and monitor\n- **Port selection** for your ESP device\n\n💡 Hover over the ESP-IDF status bar items to see more options and information.",
+            "media": {
+              "image": "media/walkthrough/status-bar.png",
+              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
+            }
+          },
+          {
+            "id": "next-steps",
+            "title": "Next Steps",
+            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. To learn more about setting up your development environment and getting started with ESP-IDF projects, check out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:espIdf.startBasicSetupWalkthrough)\n\nHappy coding with ESP-IDF!"
           }
         ]
       }

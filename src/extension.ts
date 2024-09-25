@@ -3495,7 +3495,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // WALK-THROUGH
   let disposable = vscode.commands.registerCommand('espIdf.openWalkthrough', () => {
-    vscode.commands.executeCommand('workbench.action.openWalkthrough', 'espressif.esp-idf-extension#espIdf.walkthrough');
+    vscode.commands.executeCommand('workbench.action.openWalkthrough', 'espressif.esp-idf-extension#espIdf.walkthrough.ui');
   });
 
   context.subscriptions.push(disposable);
@@ -3508,7 +3508,7 @@ export async function activate(context: vscode.ExtensionContext) {
       true,
       vscode.ConfigurationTarget.Global,
     );
-    vscode.commands.executeCommand('workbench.action.openWalkthrough', 'espressif.esp-idf-extension#espIdf.walkthrough');
+    vscode.commands.executeCommand('workbench.action.openWalkthrough', 'espressif.esp-idf-extension#espIdf.walkthrough.ui');
   }
 
   // Hints Viewer
