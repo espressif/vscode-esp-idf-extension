@@ -49,6 +49,7 @@ jobs:
               return core.error(`No artifacts found`);
             }
             let body = `Download the artifacts for this pull request:\n`;
+            body += `You can test these changes by installing this VSIX by click menu `View` -> `Command Palette...`, type `Install from VSIX` and then select downloaded `esp-idf-extension.vsix` file to install the extension.`;
             for (const art of artifacts) {
               body += `\n* [${art.name}.zip](https://nightly.link/${owner}/${repo}/actions/artifacts/${art.id}.zip)`;
             }
@@ -56,7 +57,7 @@ jobs:
             core.info("Review thread message body:", body);
 
             for (const pr of pull_requests) {
-              body += `\n [Espressif docs preview](https://preview-docs.espressif.com/projects/vscode-esp-idf-extension/en/${pr.number}-merge/index.html)`;
+              body += `\n [Espressif documentation preview](https://preview-docs.espressif.com/projects/vscode-esp-idf-extension/en/${pr.number}-merge/index.html)`;
               await upsertComment(owner, repo, pr.number,
                 "nightly-link", body);
             }

@@ -5,7 +5,6 @@
 # ESP-IDF Extension for VSCode
 
 [![Tutorials](https://img.shields.io/badge/-Tutorials-red)](./docs/tutorial/toc.md)
-[![Github Documentation](https://img.shields.io/badge/Documentation-blue)](./docs/ONBOARDING.md)
 [![Espressif Documentation](https://img.shields.io/badge/Documentation-red)](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/)
 [![Troubleshooting](https://img.shields.io/badge/Troubleshooting-red)](./README.md#Troubleshooting)
 [![ESP32](https://img.shields.io/badge/Supported%20Chips-red)](./docs/HARDWARE_SUPPORT.md)
@@ -27,8 +26,8 @@ Make sure to review our [Espressif documentation](https://docs.espressif.com/pro
 
 2.  Install ESP-IDF system prerequisites for your operating system:
 
-- Requirements for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
-- Requirements for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
+- Prerequisites for [MacOS](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/macos-setup.html#install-prerequisites)
+- Prerequisites for [Linux](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites)
 - For Windows there is no additional prerequisites.
 
 3. In Visual Studio Code, Open the **Extensions** view by clicking on the Extension icon in the Activity Bar on the side of Visual Studio Code or the **View: Extensions** command (shortcut: <kbd>⇧</kbd> <kbd>⌘</kbd> <kbd>X</kbd> or <kbd>Ctrl+Shift+X</kbd>.
@@ -81,7 +80,7 @@ These icons will be used in the steps below showing common ESP-IDF use cases:
 
 1. Press <kbd>F1</kbd> and type **ESP-IDF: Show Examples Projects** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
 
-2. Once the project and you open it in VS Code, Set the serial port of your device by pressing status bar icon ![serial port](./media/readme/serialport.png) or <kbd>F1</kbd>, typing **ESP-IDF: Select Port to Use:** and choosing the serial port your device is connected.
+2. Once the project is created and opened in VS Code, Set the serial port of your device by pressing status bar icon ![serial port](./media/readme/serialport.png) or <kbd>F1</kbd>, typing **ESP-IDF: Select Port to Use:** and choosing the serial port your device is connected.
 
 3. Select an Espressif target (esp32, esp32s2, etc.) by pressing status bar icon ![IDF Target](./media/readme/target.png) or <kbd>F1</kbd> and type **ESP-IDF: Set Espressif Device Target** command.
 
@@ -89,21 +88,21 @@ These icons will be used in the steps below showing common ESP-IDF use cases:
 
 5. (OPTIONAL) Run **ESP-IDF: Run idf.py reconfigure task** to generate the compile_commands.json file so language support works. Additionally you can configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md) documentation.
 
-6. When you are ready, build your project by pressing status bar icon ![build](./media/readme/build.png) or press <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
+6. At this point you can modify the code and when the project is completed, build your project by pressing status bar icon ![build](./media/readme/build.png) or press <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
 
 7. Flash to your device by pressing status bar icon ![flash](./media/readme/flash.png) or <kbd>F1</kbd> and typing **ESP-IDF: Flash your project** to select either `UART`, `DFU` or `JTAG` depending on your serial connection, and start flashing the application to your device.
 
-8. You can change the flash method pressing status bar icon ![flash method](./media/readme/flashmethod.png) or <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method** to select either `UART`, `DFU` or `JTAG`. You can alternatively use the **ESP-IDF: Flash (UART) your Project**, **ESP-IDF: Flash (with JTag)** or **ESP-IDF: Flash (DFU) your project**.
+8. Change the flash method pressing status bar icon ![flash method](./media/readme/flashmethod.png) or <kbd>F1</kbd> and typing **ESP-IDF: Select Flash Method** to select either `UART`, `DFU` or `JTAG`. You can alternatively use the **ESP-IDF: Flash (UART) your Project**, **ESP-IDF: Flash (with JTag)** or **ESP-IDF: Flash (DFU) your project**.
 
 9. Start a monitor by pressing status bar icon ![monitor](./media/readme/monitor.png) or <kbd>F1</kbd> and typing **ESP-IDF: Monitor Device** which will log the device activity in a Visual Studio Code terminal.
 
 10. Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
-11. Before you can debug your device, select your board configuration by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration**. You can test the connection by pressing status bar icon ![openocd](./media/readme/openocd.png) or <kbd>F1</kbd> and typing **ESP-IDF: OpenOCD Manager**. The output is shown in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
+11. Before debugging your device, select the device OpenOCD board configuration files by pressing <kbd>F1</kbd> and typing **ESP-IDF: Select OpenOCD Board Configuration**. You can test the connection by pressing status bar icon ![openocd](./media/readme/openocd.png) or <kbd>F1</kbd> and typing **ESP-IDF: OpenOCD Manager**. The output is shown in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
 
     > **NOTE:** you can start or stop the OpenOCD from Visual Studio Code using the **ESP-IDF: OpenOCD Manager** command or from the `OpenOCD Server (Running | Stopped)` button in the visual studio code status bar.
 
-12. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and OpenOCD is connecting correctly so the debugger works correctly).
+12. If you want to start a debug session, just press `F5` (make sure you had at least build, flash and OpenOCD is connecting correctly so the debugger works correctly). The debug session output can be seen in the menu `View` -> `Debug Console`.
 
 Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
@@ -611,7 +610,9 @@ If something is not working please check for any error on one of these:
 
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
-If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Please consider that this extension install ESP-IDF, this extension's and ESP-IDF Debug Adapter python packages when running the **ESP-IDF: Configure ESP-IDF Extension** setup wizard.
+7. In some cases that the default shell (Powershell, zsh, sh, .etc) configured in VS Code could affect the behavior of the extension. Make sure that MSYS/MinGW is not set in the environment and the variables don't conflict with terminal behavior. The `ESP-IDF: Doctor Command` shows which shell is detected by the extension when running tasks like build flash and monitor. More information in [here](https://code.visualstudio.com/docs/terminal/profiles).
+
+If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command or running the setup again with the **ESP-IDF: Configure ESP-IDF Extension** command.
 
 > **NOTE:** When downloading ESP-IDF using git cloning in Windows if you receive errors like "unable to create symlink", enabling `Developer Mode` while cloning ESP-IDF could help resolve the issue.
 
