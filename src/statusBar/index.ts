@@ -64,6 +64,15 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   }
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
+
+  statusBarItems["workspace"] = createStatusBarItem(
+    `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
+    commandDictionary[CommandKeys.pickWorkspace].tooltip,
+    CommandKeys.pickWorkspace,
+    103,
+    commandDictionary[CommandKeys.pickWorkspace].checkboxState
+  );
+
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
@@ -111,74 +120,67 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     98,
     commandDictionary[CommandKeys.SetEspressifTarget].checkboxState
   );
-  statusBarItems["workspace"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
-    commandDictionary[CommandKeys.pickWorkspace].tooltip,
-    CommandKeys.pickWorkspace,
-    97,
-    commandDictionary[CommandKeys.pickWorkspace].checkboxState
-  );
   statusBarItems["menuconfig"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.SDKConfig].iconId})`,
     commandDictionary[CommandKeys.SDKConfig].tooltip,
     CommandKeys.SDKConfig,
-    96,
+    97,
     commandDictionary[CommandKeys.SDKConfig].checkboxState
   );
   statusBarItems["clean"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.FullClean].iconId})`,
     commandDictionary[CommandKeys.FullClean].tooltip,
     CommandKeys.FullClean,
-    95,
+    96,
     commandDictionary[CommandKeys.FullClean].checkboxState
   );
   statusBarItems["build"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.Build].iconId})`,
     commandDictionary[CommandKeys.Build].tooltip,
     CommandKeys.Build,
-    94,
+    95,
     commandDictionary[CommandKeys.Build].checkboxState
   );
   statusBarItems["flash"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.Flash].iconId})`,
     commandDictionary[CommandKeys.Flash].tooltip,
     CommandKeys.Flash,
-    93,
+    94,
     commandDictionary[CommandKeys.Flash].checkboxState
   );
   statusBarItems["monitor"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.Monitor].iconId})`,
     commandDictionary[CommandKeys.Monitor].tooltip,
     CommandKeys.Monitor,
-    92,
+    93,
     commandDictionary[CommandKeys.Monitor].checkboxState
   );
   statusBarItems["debug"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.Debug].iconId})`,
     commandDictionary[CommandKeys.Debug].tooltip,
     CommandKeys.Debug,
-    91,
+    92,
     commandDictionary[CommandKeys.Debug].checkboxState
   );
   statusBarItems["buildFlashMonitor"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.BuildFlashMonitor].iconId})`,
     commandDictionary[CommandKeys.BuildFlashMonitor].tooltip,
     CommandKeys.BuildFlashMonitor,
-    90,
+    91,
     commandDictionary[CommandKeys.BuildFlashMonitor].checkboxState
   );
   statusBarItems["terminal"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.IDFTerminal].iconId})`,
     commandDictionary[CommandKeys.IDFTerminal].tooltip,
     CommandKeys.IDFTerminal,
-    89,
+    90,
     commandDictionary[CommandKeys.IDFTerminal].checkboxState
   );
   statusBarItems["espIdf.customTask"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.CustomTask].iconId})`,
     commandDictionary[CommandKeys.CustomTask].tooltip,
     CommandKeys.CustomTask,
-    88,
+    89,
     commandDictionary[CommandKeys.CustomTask].checkboxState
   );
   return statusBarItems;

@@ -26,23 +26,23 @@ export interface IDFCommandDescription {
 }
 
 export enum CommandKeys {
-  SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
   pickWorkspace = "espIdf.pickAWorkspaceFolder",
+  SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
+  SelectFlashType = "espIdf.selectFlashMethodAndFlash",
   SelectSerialPort = "espIdf.selectPort",
+  SelectProjectConfiguration = "espIdf.projectConf",
   SetEspressifTarget = "espIdf.setTarget",
   SDKConfig = "espIdf.menuconfig.start",
-  Build = "espIdf.buildDevice",
   FullClean = "espIdf.fullClean",
-  SelectFlashType = "espIdf.selectFlashMethodAndFlash",
+  Build = "espIdf.buildDevice",
   Flash = "espIdf.flashDevice",
   Monitor = "espIdf.monitorDevice",
-  BuildFlashMonitor = "espIdf.buildFlashMonitor",
   Debug = "espIdf.debug",
-  OpenOCD = "espIdf.openOCDCommand",
+  BuildFlashMonitor = "espIdf.buildFlashMonitor",
   IDFTerminal = "espIdf.createIdfTerminal",
   CustomTask = "espIdf.customTask",
   QemuServer = "espIdf.qemuCommand",
-  SelectProjectConfiguration = "espIdf.projectConf",
+  OpenOCD = "espIdf.openOCDCommand",
 }
 
 export enum AdvancedCommandKeys {
@@ -187,14 +187,6 @@ export function createCommandDictionary(): Record<
   IDFCommandDescription
 > {
   return {
-    [CommandKeys.SelectCurrentIdfVersion]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectCurrentIdfVersion,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "octoface",
-      tooltip: l10n.t("Select current ESP-IDF version"),
-    },
     [CommandKeys.pickWorkspace]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.pickWorkspace,
@@ -203,6 +195,22 @@ export function createCommandDictionary(): Record<
       iconId: "file-submodule",
       tooltip: l10n.t("Select Current Project workspace folder"),
     },
+    [CommandKeys.SelectCurrentIdfVersion]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.SelectCurrentIdfVersion,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "octoface",
+      tooltip: l10n.t("Select current ESP-IDF version"),
+    },
+    [CommandKeys.SelectFlashType]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.SelectFlashType,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "star-empty",
+      tooltip: l10n.t("ESP-IDF: Select Flash Method"),
+    },
     [CommandKeys.SelectSerialPort]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.SelectSerialPort,
@@ -210,6 +218,14 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "plug",
       tooltip: l10n.t("Select Port to Use (COM, tty, usbserial)"),
+    },
+    [CommandKeys.SelectProjectConfiguration]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.SelectProjectConfiguration,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "versions",
+      tooltip: l10n.t("Select Project Configuration"),
     },
     [CommandKeys.SetEspressifTarget]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -227,14 +243,6 @@ export function createCommandDictionary(): Record<
       iconId: "gear",
       tooltip: l10n.t("SDK Configuration Editor (menuconfig)"),
     },
-    [CommandKeys.Build]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Build,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "symbol-property",
-      tooltip: l10n.t("Build Project"),
-    },
     [CommandKeys.FullClean]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.FullClean,
@@ -243,13 +251,13 @@ export function createCommandDictionary(): Record<
       iconId: "trash",
       tooltip: l10n.t("Full Clean"),
     },
-    [CommandKeys.SelectFlashType]: {
+    [CommandKeys.Build]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectFlashType,
+        CommandKeys.Build,
         TreeItemCheckboxState.Checked
       ),
-      iconId: "star-empty",
-      tooltip: l10n.t("ESP-IDF: Select Flash Method"),
+      iconId: "symbol-property",
+      tooltip: l10n.t("Build Project"),
     },
     [CommandKeys.Flash]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -275,14 +283,6 @@ export function createCommandDictionary(): Record<
       iconId: "flame",
       tooltip: l10n.t("ESP-IDF: Build, Flash and Monitor"),
     },
-    [CommandKeys.Debug]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.Debug,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "debug-alt",
-      tooltip: l10n.t("Debug"),
-    },
     [CommandKeys.OpenOCD]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.OpenOCD,
@@ -290,6 +290,14 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "server-environment",
       tooltip: l10n.t("[OpenOCD Server]"),
+    },
+    [CommandKeys.Debug]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.Debug,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "debug-alt",
+      tooltip: l10n.t("Debug"),
     },
     [CommandKeys.IDFTerminal]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -306,14 +314,6 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "diff-renamed",
       tooltip: l10n.t("Execute Custom Task"),
-    },
-    [CommandKeys.SelectProjectConfiguration]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        CommandKeys.SelectProjectConfiguration,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "versions",
-      tooltip: l10n.t("Select Project Configuration"),
     },
     [CommandKeys.QemuServer]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
