@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 30th June 2021 6:53:16 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,8 +33,8 @@ import { Logger } from "../logger/logger";
 import { appendIdfAndToolsToPath, isBinInPath, PreCheck } from "../utils";
 import { statusBarItems } from "../statusBar";
 import {
-  AdvancedCommandKeys,
-  createAdvancedCommandDictionary,
+  CommandKeys,
+  createCommandDictionary,
 } from "../cmdTreeView/cmdStore";
 
 export interface IQemuOptions {
@@ -241,12 +241,12 @@ export class QemuManager extends EventEmitter {
         1005
       );
       this._statusBarItem.text = "[ESP-IDF: QEMU]";
-      const advancedCommandDictionary = createAdvancedCommandDictionary();
+      const commandDictionary = createCommandDictionary();
       this._statusBarItem.tooltip =
-        advancedCommandDictionary[AdvancedCommandKeys.QemuServer].tooltip;
-      this._statusBarItem.command = AdvancedCommandKeys.QemuServer;
+        commandDictionary[CommandKeys.QemuServer].tooltip;
+      this._statusBarItem.command = CommandKeys.QemuServer;
       if (
-        advancedCommandDictionary[AdvancedCommandKeys.QemuServer]
+        commandDictionary[CommandKeys.QemuServer]
           .checkboxState === TreeItemCheckboxState.Checked
       ) {
         this._statusBarItem.show();

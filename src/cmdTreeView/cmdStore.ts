@@ -26,37 +26,38 @@ export interface IDFCommandDescription {
 }
 
 export enum CommandKeys {
-  Setup = "espIdf.setup.start",
   SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
-  Examples = "espIdf.examples.start",
-  NewProject = "espIdf.newProject.start",
   pickWorkspace = "espIdf.pickAWorkspaceFolder",
   SelectSerialPort = "espIdf.selectPort",
   SetEspressifTarget = "espIdf.setTarget",
   SDKConfig = "espIdf.menuconfig.start",
   Build = "espIdf.buildDevice",
-  Size = "espIdf.size",
   FullClean = "espIdf.fullClean",
   SelectFlashType = "espIdf.selectFlashMethodAndFlash",
   Flash = "espIdf.flashDevice",
-  EraseFlash = "espIdf.eraseFlash",
   Monitor = "espIdf.monitorDevice",
   BuildFlashMonitor = "espIdf.buildFlashMonitor",
   Debug = "espIdf.debug",
   OpenOCD = "espIdf.openOCDCommand",
   IDFTerminal = "espIdf.createIdfTerminal",
-  DoctorCommand = "espIdf.doctorCommand",
   CustomTask = "espIdf.customTask",
+  QemuServer = "espIdf.qemuCommand",
+  SelectProjectConfiguration = "espIdf.projectConf",
 }
 
 export enum AdvancedCommandKeys {
+  Setup = "espIdf.setup.start",
+  Examples = "espIdf.examples.start",
+  NewProject = "espIdf.newProject.start",
+  Size = "espIdf.size",
+  EraseFlash = "espIdf.eraseFlash",
+  DoctorCommand = "espIdf.doctorCommand",
   CreateFromIDFTemplate = "espIdf.createFiles",
   GetADF = "espIdf.getEspAdf",
   GetMDF = "espIdf.getEspMdf",
   GetEspMatter = "espIdf.getEspMatter",
   GetRainmaker = "espIdf.getEspRainmaker",
   ProjectConfEditor = "espIdf.projectConfigurationEditor",
-  SelectProjectConfiguration = "espIdf.projectConf",
   InstallIdfPythonReqs = "espIdf.installPyReqs",
   InstallMatterPythonReqs = "espIdf.installEspMatterPyReqs",
   CreateVscodeFolder = "espIdf.createVsCodeFolder",
@@ -66,7 +67,6 @@ export enum AdvancedCommandKeys {
   UartFlash = "espIdf.flashUart",
   DfuFlash = "espIdf.flashDFU",
   WebsocketMonitor = "espIdf.launchWSServerAndMonitor",
-  QemuServer = "espIdf.qemuCommand",
 }
 
 export function createAdvancedCommandDictionary(): Record<
@@ -74,6 +74,36 @@ export function createAdvancedCommandDictionary(): Record<
   IDFCommandDescription
 > {
   return {
+    [AdvancedCommandKeys.Setup]: {
+      checkboxState: undefined,
+      iconId: "extensions",
+      tooltip: l10n.t("Configure ESP-IDF Extension"),
+    },
+    [AdvancedCommandKeys.Examples]: {
+      checkboxState: undefined,
+      iconId: "book",
+      tooltip: l10n.t("Show Examples"),
+    },
+    [AdvancedCommandKeys.NewProject]: {
+      checkboxState: undefined,
+      iconId: "add",
+      tooltip: l10n.t("New Project Wizard"),
+    },
+    [AdvancedCommandKeys.DoctorCommand]: {
+      checkboxState: undefined,
+      iconId: "bug",
+      tooltip: l10n.t("Doctor Command"),
+    },
+    [AdvancedCommandKeys.Size]: {
+      checkboxState: undefined,
+      iconId: "info",
+      tooltip: l10n.t("ESP-IDF Size"),
+    },
+    [AdvancedCommandKeys.EraseFlash]: {
+      checkboxState: undefined,
+      iconId: "close-all",
+      tooltip: l10n.t("Erase Flash"),
+    },
     [AdvancedCommandKeys.CreateFromIDFTemplate]: {
       checkboxState: undefined,
       iconId: "add",
@@ -103,14 +133,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "project",
       tooltip: l10n.t("Project Configuration editor"),
-    },
-    [AdvancedCommandKeys.SelectProjectConfiguration]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        AdvancedCommandKeys.SelectProjectConfiguration,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "versions",
-      tooltip: l10n.t("Select Project Configuration"),
     },
     [AdvancedCommandKeys.InstallIdfPythonReqs]: {
       checkboxState: undefined,
@@ -157,14 +179,6 @@ export function createAdvancedCommandDictionary(): Record<
       iconId: "device-desktop",
       tooltip: l10n.t("Launch Websocket server and IDF Monitor"),
     },
-    [AdvancedCommandKeys.QemuServer]: {
-      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
-        AdvancedCommandKeys.QemuServer,
-        TreeItemCheckboxState.Checked
-      ),
-      iconId: "server-environment",
-      tooltip: l10n.t("Start/Stop QEMU Server"),
-    },
   };
 }
 
@@ -173,11 +187,6 @@ export function createCommandDictionary(): Record<
   IDFCommandDescription
 > {
   return {
-    [CommandKeys.Setup]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Configure ESP-IDF Extension"),
-    },
     [CommandKeys.SelectCurrentIdfVersion]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.SelectCurrentIdfVersion,
@@ -185,16 +194,6 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "octoface",
       tooltip: l10n.t("Select current ESP-IDF version"),
-    },
-    [CommandKeys.Examples]: {
-      checkboxState: undefined,
-      iconId: "book",
-      tooltip: l10n.t("Show Examples"),
-    },
-    [CommandKeys.NewProject]: {
-      checkboxState: undefined,
-      iconId: "add",
-      tooltip: l10n.t("New Project Wizard"),
     },
     [CommandKeys.pickWorkspace]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -236,11 +235,6 @@ export function createCommandDictionary(): Record<
       iconId: "symbol-property",
       tooltip: l10n.t("Build Project"),
     },
-    [CommandKeys.Size]: {
-      checkboxState: undefined,
-      iconId: "info",
-      tooltip: l10n.t("ESP-IDF Size"),
-    },
     [CommandKeys.FullClean]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.FullClean,
@@ -264,11 +258,6 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "zap",
       tooltip: l10n.t("Flash Device"),
-    },
-    [CommandKeys.EraseFlash]: {
-      checkboxState: undefined,
-      iconId: "close-all",
-      tooltip: l10n.t("Erase Flash"),
     },
     [CommandKeys.Monitor]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
@@ -310,11 +299,6 @@ export function createCommandDictionary(): Record<
       iconId: "terminal",
       tooltip: l10n.t("Open ESP-IDF Terminal"),
     },
-    [CommandKeys.DoctorCommand]: {
-      checkboxState: undefined,
-      iconId: "bug",
-      tooltip: l10n.t("Doctor Command"),
-    },
     [CommandKeys.CustomTask]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
         CommandKeys.CustomTask,
@@ -322,6 +306,22 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "diff-renamed",
       tooltip: l10n.t("Execute Custom Task"),
+    },
+    [CommandKeys.SelectProjectConfiguration]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.SelectProjectConfiguration,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "versions",
+      tooltip: l10n.t("Select Project Configuration"),
+    },
+    [CommandKeys.QemuServer]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.QemuServer,
+        TreeItemCheckboxState.Checked
+      ),
+      iconId: "server-environment",
+      tooltip: l10n.t("Start/Stop QEMU Server"),
     },
   };
 }

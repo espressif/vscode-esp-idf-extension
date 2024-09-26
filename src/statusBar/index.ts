@@ -28,12 +28,7 @@ import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
-import {
-  AdvancedCommandKeys,
-  CommandKeys,
-  createAdvancedCommandDictionary,
-  createCommandDictionary,
-} from "../cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -53,7 +48,6 @@ export function updateStatusBarItemVisibility(cmdItem: CommandItem) {
 }
 
 export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
-  const advancedCommandDictionary = createAdvancedCommandDictionary();
   const commandDictionary = createCommandDictionary();
   const enableStatusBar = readParameter("idf.enableStatusBar") as boolean;
   if (!enableStatusBar) {
@@ -99,15 +93,12 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
       `$(${
-        advancedCommandDictionary[
-          AdvancedCommandKeys.SelectProjectConfiguration
-        ].iconId
+        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
       }) ${projectConf}`,
-      advancedCommandDictionary[AdvancedCommandKeys.SelectProjectConfiguration]
-        .tooltip,
-      AdvancedCommandKeys.SelectProjectConfiguration,
+      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+      CommandKeys.SelectProjectConfiguration,
       99,
-      advancedCommandDictionary[AdvancedCommandKeys.SelectProjectConfiguration].checkboxState
+      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
     );
   }
 

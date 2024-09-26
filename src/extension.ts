@@ -52,10 +52,7 @@ import {
 import { SystemViewResultParser } from "./espIdf/tracing/system-view";
 import { Telemetry } from "./telemetry";
 import { ESPRainMakerTreeDataProvider } from "./rainmaker";
-import {
-  CommandItem,
-  CommandsProvider,
-} from "./cmdTreeView/cmdTreeDataProvider";
+import { CommandsProvider } from "./cmdTreeView/cmdTreeDataProvider";
 import { RainmakerAPIClient } from "./rainmaker/client";
 import { ESP } from "./config";
 import { PromptUserToLogin } from "./rainmaker/view/login";
@@ -101,7 +98,6 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
@@ -160,12 +156,7 @@ import {
   createStatusBarItem,
   statusBarItems,
 } from "./statusBar";
-import {
-  AdvancedCommandKeys,
-  CommandKeys,
-  createAdvancedCommandDictionary,
-  createCommandDictionary,
-} from "./cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -279,8 +270,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   openOCDManager = OpenOCDManager.init();
   qemuManager = QemuManager.init();
-
-  const advancedCommandDictionary = createAdvancedCommandDictionary();
   const commandDictionary = createCommandDictionary();
 
   // Register Tree Provider for IDF Explorer
@@ -1093,18 +1082,12 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       statusBarItems["projectConf"] = createStatusBarItem(
         `$(${
-          advancedCommandDictionary[
-            AdvancedCommandKeys.SelectProjectConfiguration
-          ].iconId
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
         }) ${option.target}`,
-        advancedCommandDictionary[
-          AdvancedCommandKeys.SelectProjectConfiguration
-        ].tooltip,
-        AdvancedCommandKeys.SelectProjectConfiguration,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+        CommandKeys.SelectProjectConfiguration,
         99,
-        advancedCommandDictionary[
-          AdvancedCommandKeys.SelectProjectConfiguration
-        ].checkboxState
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
