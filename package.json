@@ -134,7 +134,7 @@
           {
             "id": "esp-idf-explorer",
             "title": "ESP-IDF: Explorer",
-            "description": "The **ESP-IDF: Explorer** in the Activity Bar is your central hub for Espressif IDF development.\n\n- **Quick access** to all extension features and commands\n- **Project overview** including components and configurations\n- **Integrated terminal** for ESP-IDF specific commands\n\n[Open ESP-IDF Explorer](command:espIdf.openExplorer)\n\n💡 You can drag and drop the ESP-IDF Explorer view to rearrange it within your VS Code layout.",
+            "description": "The **ESP-IDF: Explorer** in the Activity Bar is your central hub for Espressif IDF development.\n\n- **Quick access** to all extension features and commands\n- **Project overview** including components and configurations\n- **Integrated terminal** for ESP-IDF specific commands\n\n[Open ESP-IDF Explorer](command:workbench.view.extension.idfViewController)\n\n💡 You can drag and drop the ESP-IDF Explorer view to rearrange it within your VS Code layout.",
             "media": {
               "image": "media/walkthrough/esp-idf-explorer.png",
               "altText": "Screenshot of ESP-IDF: Explorer in Activity Bar"
@@ -152,7 +152,7 @@
           {
             "id": "project-components",
             "title": "Project Components",
-            "description": "The **Project Components** tree view in the Explorer allows you to navigate through the components inside the esp-idf components directory.\n\n- **Quickly browse** all available ESP-IDF components\n- **Easily include** components in your project\n- **Jump to source** of any component with a single click\n\n[Open Project Components](command:espIdf.openProjectComponents)\n\n💡 Right-click on a component to see additional options like 'Add to project' or 'Open documentation'.",
+            "description": "The **Project Components** tree view in the Explorer allows you to navigate through the components inside the esp-idf components directory.\n\n- **Quickly browse** all available ESP-IDF components\n- **Easily include** components in your project\n- **Jump to source** of any component with a single click\n\n[Open Project Components](command:idfComponents.focus)\n\n💡 Right-click on a component to see additional options like 'Add to project' or 'Open documentation'.",
             "media": {
               "image": "media/walkthrough/project-components.png",
               "altText": "Screenshot of Project Components tree view in Explorer"
@@ -161,7 +161,7 @@
           {
             "id": "peripheral-viewer",
             "title": "ESP-IDF: Peripheral Viewer",
-            "description": "The **ESP-IDF: Peripheral Viewer** in the Debug Explorer allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.\n\n- **Real-time updates** of peripheral registers\n- **Modify values** directly from the UI\n- **Custom views** for common peripherals like GPIO, UART, etc.\n\n[Open Peripheral Viewer](command:espIdf.openPeripheralViewer)\n\n💡 The Peripheral Viewer is only available during active debug sessions.",
+            "description": "The **ESP-IDF: Peripheral Viewer** in the Debug Explorer allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.\n\n- **Real-time updates** of peripheral registers\n- **Modify values** directly from the UI\n- **Custom views** for common peripherals like GPIO, UART, etc.\n\n[Open Peripheral Viewer](command:espIdf.peripheralView.focus)\n\n💡 The Peripheral Viewer is only available during active debug sessions.",
             "media": {
               "image": "media/walkthrough/peripheral-viewer.png",
               "altText": "Screenshot of ESP-IDF: Peripheral Viewer in Debug Explorer"
@@ -170,7 +170,7 @@
           {
             "id": "hints-viewer",
             "title": "Hints Viewer",
-            "description": "The **Hints Viewer** is a powerful tool to help you understand and resolve build errors and warnings.\n\n- **Automatic display** of hints based on problems in the Problems tab\n- **Search functionality** to find hints for specific errors\n- **In-editor hints** displayed when hovering over errors (squiggly lines)\n\nKey features:\n- View hints for build errors without leaving VS Code\n- Search for hints by typing the error message\n- Get context-specific help right in your code editor\n\n[Open Hints Viewer](command:espIdf.openHintsViewer)\n\n💡 The Hints Viewer updates automatically as you work, providing real-time assistance for your ESP-IDF development.",
+            "description": "The **Hints Viewer** is a powerful tool to help you understand and resolve build errors and warnings.\n\n- **Automatic display** of hints based on problems in the Problems tab\n- **Search functionality** to find hints for specific errors\n- **In-editor hints** displayed when hovering over errors (squiggly lines)\n\nKey features:\n- View hints for build errors without leaving VS Code\n- Search for hints by typing the error message\n- Get context-specific help right in your code editor\n\n[Open Hints Viewer](command:workbench.view.extension.espIdfHints)\n\n💡 The Hints Viewer updates automatically as you work, providing real-time assistance for your ESP-IDF development.",
             "media": {
               "image": "media/walkthrough/hints-viewer.png",
               "altText": "Screenshot of Hints Viewer panel and in-editor hints"
@@ -188,6 +188,10 @@
           {
             "id": "next-steps",
             "title": "Next Steps",
+            "media": {
+              "image": "media/walkthrough/status-bar.png",
+              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
+            },
             "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. To learn more about setting up your development environment and getting started with ESP-IDF projects, check out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:espIdf.startBasicSetupWalkthrough)\n\nHappy coding with ESP-IDF!"
           }
         ]
