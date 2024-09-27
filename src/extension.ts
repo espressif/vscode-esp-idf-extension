@@ -98,7 +98,6 @@ import {
 import { generateConfigurationReport } from "./support";
 import { initializeReportObject } from "./support/initReportObj";
 import { writeTextReport } from "./support/writeReport";
-import { kill } from "process";
 import { getNewProjectArgs } from "./newProject/newProjectInit";
 import { NewProjectPanel } from "./newProject/newProjectPanel";
 import { buildCommand } from "./build/buildCmd";
@@ -144,7 +143,7 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
-import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
+import { selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
@@ -152,6 +151,12 @@ import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
 import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
+import {
+  createCmdsStatusBarItems,
+  createStatusBarItem,
+  statusBarItems,
+} from "./statusBar";
+import { CommandKeys, createCommandDictionary } from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -159,15 +164,14 @@ const DEBUG_DEFAULT_PORT = 43474;
 let covRenderer: CoverageRenderer;
 
 // OpenOCD  and Debug Adapter Manager
-let statusBarItems: { [key: string]: vscode.StatusBarItem };
 
-const openOCDManager = OpenOCDManager.init();
+let openOCDManager: OpenOCDManager;
 let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
 let debugAdapterManager: DebugAdapterManager;
 
 // QEMU
-const qemuManager = QemuManager.init();
+let qemuManager: QemuManager;
 
 // ESP-IDF Docs search results Tree view
 let espIdfDocsResultTreeDataProvider: DocSearchResultTreeDataProvider;
@@ -261,13 +265,12 @@ export async function activate(context: vscode.ExtensionContext) {
   ESP.GlobalConfiguration.store = ExtensionConfigStore.init(context);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(context);
 
-  // Create a status bar item with current workspace
-
-  // Status Bar Item with common commands
-  statusBarItems = await createCmdsStatusBarItems();
-
   // Create Kconfig Language Server Client
   KconfigLangClient.startKconfigLangServer(context);
+
+  openOCDManager = OpenOCDManager.init();
+  qemuManager = QemuManager.init();
+  const commandDictionary = createCommandDictionary();
 
   // Register Tree Provider for IDF Explorer
   registerTreeProvidersForIDFExplorer(context);
@@ -303,11 +306,13 @@ export async function activate(context: vscode.ExtensionContext) {
   registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
+    await createCmdsStatusBarItems(vscode.workspace.workspaceFolders[0].uri);
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     if (statusBarItems && statusBarItems["port"]) {
       statusBarItems["port"].text =
-        "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+        `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
+        idfConf.readParameter("idf.port", workspaceRoot);
     }
     const coverageOptions = getCoverageOptions(workspaceRoot);
     covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -365,7 +370,8 @@ export async function activate(context: vscode.ExtensionContext) {
           );
           if (statusBarItems && statusBarItems["port"]) {
             statusBarItems["port"].text =
-              "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+              `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
+              idfConf.readParameter("idf.port", workspaceRoot);
           }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -891,7 +897,8 @@ export async function activate(context: vscode.ExtensionContext) {
         );
         if (statusBarItems && statusBarItems["port"]) {
           statusBarItems["port"].text =
-            "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+            `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
+            idfConf.readParameter("idf.port", workspaceRoot);
         }
         updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
@@ -1074,10 +1081,13 @@ export async function activate(context: vscode.ExtensionContext) {
         statusBarItems["projectConf"].dispose();
       }
       statusBarItems["projectConf"] = createStatusBarItem(
-        "$(gear)" + option.target,
-        vscode.l10n.t("ESP-IDF: Select Project Configuration"),
-        "espIdf.projectConf",
-        100
+        `$(${
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        }) ${option.target}`,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+        CommandKeys.SelectProjectConfiguration,
+        99,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
@@ -1091,7 +1101,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as boolean;
       if (enableStatusBar) {
-        statusBarItems = await createCmdsStatusBarItems();
+        await createCmdsStatusBarItems(workspaceRoot);
       } else if (!enableStatusBar) {
         for (let statusItem in statusBarItems) {
           statusBarItems[statusItem].dispose();
@@ -1107,7 +1117,8 @@ export async function activate(context: vscode.ExtensionContext) {
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
         statusBarItems["port"].text =
-          "$(plug) " + idfConf.readParameter("idf.port", workspaceRoot);
+          `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
+          idfConf.readParameter("idf.port", workspaceRoot);
       }
     } else if (e.affectsConfiguration("idf.flashType")) {
       let flashType = idfConf.readParameter(
@@ -1115,7 +1126,9 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       ) as string;
       if (statusBarItems && statusBarItems["flashType"]) {
-        statusBarItems["flashType"].text = `$(star-empty) ${flashType}`;
+        statusBarItems["flashType"].text = `$(${
+          commandDictionary[CommandKeys.SelectFlashType].iconId
+        }) ${flashType}`;
       }
     } else if (e.affectsConfiguration("idf.buildPath")) {
       updateIdfComponentsTree(workspaceRoot);
@@ -3650,145 +3663,6 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
     partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
   );
-}
-
-async function createCmdsStatusBarItems() {
-  const enableStatusBar = idfConf.readParameter(
-    "idf.enableStatusBar"
-  ) as boolean;
-  if (!enableStatusBar) {
-    return {};
-  }
-  if (!workspaceRoot) {
-    workspaceRoot =
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length
-        ? vscode.workspace.workspaceFolders[0].uri
-        : undefined;
-  }
-  const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
-  let idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
-  let flashType = idfConf.readParameter(
-    "idf.flashType",
-    workspaceRoot
-  ) as string;
-  let projectConf = ESP.ProjectConfiguration.store.get<string>(
-    ESP.ProjectConfiguration.SELECTED_CONFIG
-  );
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceRoot, false);
-  const statusBarItems: { [key: string]: vscode.StatusBarItem } = {};
-
-  statusBarItems["currentIdfVersion"] = createStatusBarItem(
-    "$(octoface) ESP-IDF v" + currentIdfVersion.version,
-    "ESP-IDF: Select current ESP-IDF version",
-    "espIdf.selectCurrentIdfVersion",
-    102
-  );
-
-  statusBarItems["port"] = createStatusBarItem(
-    "$(plug)" + port,
-    vscode.l10n.t("ESP-IDF: Select Port to Use (COM, tty, usbserial)"),
-    "espIdf.selectPort",
-    101
-  );
-
-  if (projectConf) {
-    statusBarItems["projectConf"] = createStatusBarItem(
-      "$(gear)" + projectConf,
-      vscode.l10n.t("ESP-IDF: Select Project Configuration"),
-      "espIdf.projectConf",
-      100
-    );
-  }
-
-  statusBarItems["target"] = createStatusBarItem(
-    "$(chip) " + idfTarget,
-    vscode.l10n.t("ESP-IDF: Set Espressif Device Target"),
-    "espIdf.setTarget",
-    99
-  );
-  statusBarItems["workspace"] = createStatusBarItem(
-    "$(file-submodule)",
-    vscode.l10n.t("ESP-IDF: Current Project"),
-    "espIdf.pickAWorkspaceFolder",
-    98
-  );
-  statusBarItems["menuconfig"] = createStatusBarItem(
-    "$(gear)",
-    vscode.l10n.t("ESP-IDF: SDK Configuration Editor (menuconfig)"),
-    "espIdf.menuconfig.start",
-    97
-  );
-  statusBarItems["clean"] = createStatusBarItem(
-    "$(trash)",
-    vscode.l10n.t("ESP-IDF: Full Clean"),
-    "espIdf.fullClean",
-    96
-  );
-  statusBarItems["build"] = createStatusBarItem(
-    "$(symbol-property)",
-    vscode.l10n.t("ESP-IDF: Build Project"),
-    "espIdf.buildDevice",
-    95
-  );
-  statusBarItems["flashType"] = createStatusBarItem(
-    `$(star-empty) ${flashType}`,
-    vscode.l10n.t("ESP-IDF: Select Flash Method"),
-    "espIdf.selectFlashMethodAndFlash",
-    94
-  );
-  statusBarItems["flash"] = createStatusBarItem(
-    `$(zap)`,
-    vscode.l10n.t("ESP-IDF: Flash Device"),
-    "espIdf.flashDevice",
-    93
-  );
-  statusBarItems["monitor"] = createStatusBarItem(
-    "$(device-desktop)",
-    vscode.l10n.t("ESP-IDF: Monitor Device"),
-    "espIdf.monitorDevice",
-    92
-  );
-  statusBarItems["debug"] = createStatusBarItem(
-    "$(debug-alt)",
-    vscode.l10n.t("ESP-IDF: Debug"),
-    "espIdf.debug",
-    91
-  );
-  statusBarItems["buildFlashMonitor"] = createStatusBarItem(
-    "$(flame)",
-    vscode.l10n.t("ESP-IDF: Build, Flash and Monitor"),
-    "espIdf.buildFlashMonitor",
-    90
-  );
-  statusBarItems["terminal"] = createStatusBarItem(
-    "$(terminal)",
-    vscode.l10n.t("ESP-IDF: Open ESP-IDF Terminal"),
-    "espIdf.createIdfTerminal",
-    89
-  );
-  statusBarItems["espIdf.customTask"] = createStatusBarItem(
-    "$(diff-renamed)",
-    vscode.l10n.t("ESP-IDF: Execute Custom Task"),
-    "espIdf.customTask",
-    88
-  );
-  return statusBarItems;
-}
-
-function createStatusBarItem(
-  icon: string,
-  tooltip: string,
-  cmd: string,
-  priority: number
-) {
-  const alignment: vscode.StatusBarAlignment = vscode.StatusBarAlignment.Left;
-  const statusBarItem = vscode.window.createStatusBarItem(alignment, priority);
-  statusBarItem.text = icon;
-  statusBarItem.tooltip = tooltip;
-  statusBarItem.command = cmd;
-  statusBarItem.show();
-  return statusBarItem;
 }
 
 const build = (flashType?: ESP.FlashType) => {

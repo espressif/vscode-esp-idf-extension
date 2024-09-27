@@ -22,7 +22,11 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { addIdfPath, getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
+import {
+  addIdfPath,
+  getPropertyFromJson,
+  getSelectedIdfInstalled,
+} from "./espIdfJson";
 import {
   createIdfSetup,
   getPreviousIdfSetups,
@@ -31,6 +35,8 @@ import {
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
+import { getCurrentIdfSetup } from "../versionSwitcher";
+import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -225,7 +231,7 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
-  
+
   // FIX use system Python path as setting instead venv
   // REMOVE this line after next release
   const sysPythonBinPath = await getPythonPath(workspaceFolder);
@@ -319,6 +325,12 @@ export async function saveSettings(
     ConfigurationTarget.Global
   );
   let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
-  espIdfStatusBar.text = "$(octoface) ESP-IDF v" + currentIdfSetup.version;
+  if (espIdfStatusBar) {
+    const commandDictionary = createCommandDictionary();
+    espIdfStatusBar.text =
+      `$(${
+        commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+      }) ESP-IDF v` + currentIdfSetup.version;
+  }
   Logger.infoNotify("ESP-IDF has been configured");
 }

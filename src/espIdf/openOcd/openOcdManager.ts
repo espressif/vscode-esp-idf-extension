@@ -30,6 +30,11 @@ import {
 } from "../../utils";
 import { TCLClient, TCLConnection } from "./tcl/tclClient";
 import { ESP } from "../../config";
+import { statusBarItems } from "../../statusBar";
+import {
+  CommandKeys,
+  createCommandDictionary,
+} from "../../cmdTreeView/cmdStore";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -279,8 +284,17 @@ export class OpenOCDManager extends EventEmitter {
       1000
     );
     this.statusBar.text = "[ESP-IDF: OpenOCD Server]";
-    this.statusBar.command = "espIdf.openOCDCommand";
-    this.statusBar.show();
+    const commandDictionary = createCommandDictionary();
+    this.statusBar.tooltip = commandDictionary[CommandKeys.OpenOCD].tooltip;
+    this.statusBar.command = CommandKeys.OpenOCD;
+    if (
+      commandDictionary[CommandKeys.OpenOCD].checkboxState ===
+      vscode.TreeItemCheckboxState.Checked
+    ) {
+      this.statusBar.show();
+    }
+
+    statusBarItems["openOCD"] = this.statusBar;
   }
 
   private configureServerWithDefaultParam() {
