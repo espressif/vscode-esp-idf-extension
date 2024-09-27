@@ -156,7 +156,7 @@ import {
   createStatusBarItem,
   statusBarItems,
 } from "./statusBar";
-import { CommandKeys, createCommandDictionary } from "./cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary, IDFWebCommandKeys } from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3713,7 +3713,7 @@ const flash = (
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
     if (vscode.env.uiKind === vscode.UIKind.Web) {
-      vscode.commands.executeCommand("esp-idf-web.flash");
+      vscode.commands.executeCommand(IDFWebCommandKeys.Flash);
       return;
     }
     const notificationMode = idfConf.readParameter(
@@ -3936,7 +3936,7 @@ function createMonitor() {
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
     if (vscode.env.uiKind === vscode.UIKind.Web) {
-      vscode.commands.executeCommand("esp-idf-web.monitor");
+      vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
       return;
     }
     const noReset = idfConf.readParameter(
