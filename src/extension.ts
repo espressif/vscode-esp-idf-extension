@@ -1626,15 +1626,6 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.getBuildPath", () => {
-    return PreCheck.perform([openFolderCheck, webIdeCheck], async () => {
-      return {
-        uri: workspaceRoot,
-        buildPath: idfConf.readParameter("idf.buildPath"),
-      };
-    });
-  });
-
   registerIDFCommand("espIdf.createVsCodeFolder", () => {
     PreCheck.perform([openFolderCheck], async () => {
       try {
@@ -2566,7 +2557,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.debug", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         workspaceRoot
       );
