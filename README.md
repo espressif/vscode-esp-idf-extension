@@ -132,14 +132,7 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
     </thead>
     <tbody>
         <tr>
-            <td rowspan=7 align="center">Configuration</td>
-            <td>Add OpenOCD rules file (For Linux users)</td>
-            <td>Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Add Docker Container Configuration</td>
+            <td rowspan=6 align="center">Add Docker Container Configuration</td>
             <td>Add the <strong>.devcontainer</strong> files to the currently opened project directory, necessary to use a ESP-IDF project in a Docker container with Visual Studio Code
             <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Remote - Containers</a> extension</td>
             <td></td>

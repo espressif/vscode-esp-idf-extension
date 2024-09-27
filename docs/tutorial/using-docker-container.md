@@ -253,7 +253,7 @@ the interface is the same as [Internal USB-serial](#internal-usb-serial), that i
 
 ### Additional steps for debugging
 
-Make sure to run `ESP-IDF: Add OpenOCD rules file (For Linux users)` command to add OpenOCD rules in the docker container before running OpenOCD and starting a debug session.
+Make sure to copy the [OpenOCD udev rules files](https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules) into the `/etc/udev/rules.d` directory before running OpenOCD and starting a debug session.
 
 ## Debugging
 

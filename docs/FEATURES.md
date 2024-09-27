@@ -61,12 +61,6 @@ Here's the complete HTML table that combines the given information:
             <td></td>
         </tr>
         <tr>
-            <td>Add OpenOCD rules file (For Linux users)</td>
-            <td>Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
             <td>Add vscode configuration folder</td>
             <td>Add <strong>.vscode</strong> files to the currently opened project directory. These include launch.json (for debugging), settings.json and c_cpp_properties.json for syntax highlight.</td>
             <td></td>

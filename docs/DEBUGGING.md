@@ -2,6 +2,8 @@
 
 > **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
+> **NOTE:** For Linux users, make sure to copy the [udev rules files](https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules) into the `/etc/udev/rules.d` directory.
+
 > **NOTE:** Please take a look first at [ESP-IDF JTAG Debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works).
 > OpenOCD typically uses port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
 

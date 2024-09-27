@@ -9,6 +9,8 @@ This tutorial shows you how to debug ESP-IDF projects using the Visual Studio Co
 
 > **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
 
+> **NOTE:** For Linux users, make sure to copy the [udev rules files](https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules) into the `/etc/udev/rules.d` directory.
+
 3. With the blink example folder open in your visual studio code window, press F5.
 
 Several steps will be automatically done for you but explained for clarity. You can skip to step 6 to continue the debug tutorial part.
