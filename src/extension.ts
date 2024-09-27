@@ -156,7 +156,11 @@ import {
   createStatusBarItem,
   statusBarItems,
 } from "./statusBar";
-import { CommandKeys, createCommandDictionary, IDFWebCommandKeys } from "./cmdTreeView/cmdStore";
+import {
+  CommandKeys,
+  createCommandDictionary,
+  IDFWebCommandKeys,
+} from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
