@@ -69,7 +69,6 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
       },
       env: projectConfJson[elem].env,
       flashBaudRate: projectConfJson[elem].flashBaudRate,
-      idfTarget: projectConfJson[elem].idfTarget,
       monitorBaudRate: projectConfJson[elem].monitorBaudRate,
       openOCD: {
         debugLevel: projectConfJson[elem].openOCD?.debugLevel,

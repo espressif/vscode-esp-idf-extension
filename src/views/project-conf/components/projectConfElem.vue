@@ -107,13 +107,6 @@ function removeValueFromArray(sections: string[], index: number) {
       :sections="['flashBaudRate']"
       :updateMethod="updateElement"
     />
-    <SelectElement
-      :selectValue="el.idfTarget ? el.idfTarget : ''"
-      title="IDF Target"
-      :options="idfTargets"
-      :sections="['idfTarget']"
-      :updateMethod="updateElement"
-    />
     <StringElement
       title="Monitor baud rate"
       :value="el.monitorBaudRate ? el.monitorBaudRate : ''"
