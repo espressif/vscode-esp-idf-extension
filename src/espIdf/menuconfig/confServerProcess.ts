@@ -74,13 +74,14 @@ export class ConfserverProcess {
       const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
       const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
       if (!ConfserverProcess.instance) {
+        const configFile = await getSDKConfigFilePath(workspaceFolder);
         ConfserverProcess.instance = new ConfserverProcess(
           workspaceFolder,
           extensionPath,
           pythonBinPath,
+          configFile,
           modifiedEnv
         );
-        ConfserverProcess.instance.configFile = await getSDKConfigFilePath(workspaceFolder);
       }
       ConfserverProcess.instance.emitter.once("valuesLoaded", resolve);
     });
@@ -220,7 +221,24 @@ export class ConfserverProcess {
     if (enableCCache) {
       reconfigureArgs.push("--ccache");
     }
-    reconfigureArgs.push("-C", currWorkspace.fsPath, "reconfigure");
+    reconfigureArgs.push("-C", currWorkspace.fsPath);
+    const sdkconfigDefaults =
+      (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
+
+    if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
+      reconfigureArgs.push(`-DSDKCONFIG=${ConfserverProcess.instance.configFile}`)
+    }
+
+    if (
+      reconfigureArgs.indexOf("SDKCONFIG_DEFAULTS") === -1 &&
+      sdkconfigDefaults &&
+      sdkconfigDefaults.length
+    ) {
+      reconfigureArgs.push(
+        `-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`
+      );
+    }
+    reconfigureArgs.push("reconfigure");
     const getSdkconfigProcess = spawn(pythonBinPath, reconfigureArgs, {
       env: modifiedEnv,
     });
@@ -299,6 +317,7 @@ export class ConfserverProcess {
     workspaceFolder: vscode.Uri,
     extensionPath: string,
     pythonBinPath: string,
+    configFile: string,
     modifiedEnv: { [key: string]: string }
   ) {
     this.workspaceFolder = workspaceFolder;
@@ -308,6 +327,7 @@ export class ConfserverProcess {
       idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
       process.env.IDF_PATH;
     modifiedEnv.PYTHONUNBUFFERED = "0";
+    this.configFile = configFile;
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
     const enableCCache = idfConf.readParameter(
       "idf.enableCCache",

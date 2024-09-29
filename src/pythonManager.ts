@@ -269,6 +269,12 @@ export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
   let pythonPath = readParameter("idf.pythonInstallPath") as string;
   let espIdfDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
   let idfToolsDir = readParameter("idf.toolsPath", workspaceFolder) as string;
+  const idfPathExists = await pathExists(espIdfDir);
+  const idfToolsPathExists = await pathExists(idfToolsDir);
+  const pythonPathExists = await pathExists(pythonPath);
+  if (!idfPathExists || !idfToolsPathExists || !pythonPathExists) {
+    return;
+  }
   const virtualEnvPython = await getPythonEnvPath(
     espIdfDir,
     idfToolsDir,

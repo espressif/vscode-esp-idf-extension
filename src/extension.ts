@@ -143,7 +143,7 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
-import { selectIdfSetup } from "./versionSwitcher";
+import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
@@ -383,6 +383,19 @@ export async function activate(context: vscode.ExtensionContext) {
             ESP.ProjectConfiguration.store.clear(
               ESP.ProjectConfiguration.SELECTED_CONFIG
             );
+          }
+          const currentIdfSetup = await getCurrentIdfSetup(
+            workspaceRoot,
+            false
+          );
+          if (statusBarItems["currentIdfVersion"]) {
+            statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+              ? `$(${
+                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                }) ESP-IDF v${currentIdfSetup.version}`
+              : `$(${
+                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                }) ESP-IDF InvalidSetup`;
           }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -928,6 +941,16 @@ export async function activate(context: vscode.ExtensionContext) {
           ESP.ProjectConfiguration.store.clear(
             ESP.ProjectConfiguration.SELECTED_CONFIG
           );
+        }
+        const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot, false);
+        if (statusBarItems["currentIdfVersion"]) {
+          statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+            ? `$(${
+                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+              }) ESP-IDF v${currentIdfSetup.version}`
+            : `$(${
+                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+              }) ESP-IDF InvalidSetup`;
         }
         const debugAdapterConfig = {
           currentWorkspace: workspaceRoot,
@@ -1817,6 +1840,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       );
       await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });
 
