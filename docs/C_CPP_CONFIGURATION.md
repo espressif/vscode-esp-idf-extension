@@ -1,3 +1,7 @@
+For code navigation the [Microsoft C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) or [Clangd extension](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) can be used for C/C++ language support. By default, projects created with **ESP-IDF: Create Project from Extension Template** or **ESP-IDF: Show Examples Projects** include a template for Microsoft C/C++ extension `c_cpp_properties.json` configuration file and doesn't need to be configured.
+
+Run **ESP-IDF: Run idf.py reconfigure task** to generate the **compile_commands.json** file so language support works.
+
 # Configuration of c_cpp_properties.json File
 
 The [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) can be used to provide C and C++ syntax highlight, code navigation and Go to declaration/definition within C and C++ files.

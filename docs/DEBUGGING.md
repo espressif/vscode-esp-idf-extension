@@ -2,6 +2,8 @@
 
 > **NOTE:** Make sure to configure your drivers as mentioned in ESP-IDF [Configure JTAG Interface](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/configure-ft2232h-jtag.html) documentation.
 
+> **NOTE:** For Linux users, make sure to copy the [udev rules files](https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules) into the `/etc/udev/rules.d` directory.
+
 > **NOTE:** Please take a look first at [ESP-IDF JTAG Debugging](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works).
 > OpenOCD typically uses port 4444 for Telnet communication, port 6666 for TCL communication and port 3333 for gdb.
 
@@ -12,6 +14,31 @@ We recommend using our `Eclipse CDT GDB Adapter` configuration to debug your ESP
 Our extension implements a `ESP-IDF: Peripheral View` tree view in the `Run and Debug` view which will use the SVD file defined in the `IDF SVD File Path (idf.svdFilePath)` configuration setting to be defined in the [settings.json](../SETTINGS.md) to populate a set of peripherals registers values for the active debug session target. You could find Espressif SVD files from [Espressif SVD](https://github.com/espressif/svd).
 
 If `initCommands`, `gdbinitFile` or `initGdbCommands` are defined in launch.json, make sure to include the following commands for debug session to properly work as shown in [JTAG Debugging with command line](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/using-debugger.html#command-line).
+
+# Setting a custom application image offset
+
+If you modify the application image offset you need to modify openOCD launch arguments to update the application image offset. This can happens if OpenOCD output (Menu View -> Output -> `ESP-IDF`) shows an error like this:
+
+```
+ Failed to get flash maps (-6)!\n❌ Error: Failed to get flash maps (-6)!\nWarn : Application image is invalid! Check configured binary flash offset 'appimage_offset'.
+```
+
+To update openOCD launch arguments, open the project's `settings.json` and add or modify:
+
+```json
+{
+  "idf.openOcdLaunchArgs": [
+    "-c",
+    "init",
+    "-c",
+    "reset halt",
+    "-c",
+    "esp appimage_offset 0x20000"
+  ]
+}
+```
+
+where `0x20000` is your application image offset used in the partition table.
 
 ## Using the Eclipse CDT GDB Debug Adapter
 

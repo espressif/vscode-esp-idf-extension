@@ -285,7 +285,7 @@ USB-JTAG for Docker container
 Debugging in Docker Container 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Make sure to run **ESP-IDF: Add OpenOCD rules file (For Linux users)** command to add OpenOCD rules in the docker container before running OpenOCD and starting a debug session.
+- Make sure to copy the `OpenOCD udev rules files <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ into the ``/etc/udev/rules.d`` directory before running OpenOCD and starting a debug session.
 
 - After following `USB-JTAG for Docker container`_, press ``F5`` to start to debug:
 

@@ -1,14 +1,5 @@
 # Current Chips Supported in this Extension
 
-[ESP32](https://www.espressif.com/en/products/socs/esp32)
-[ESP32-C2](https://www.espressif.com/en/products/socs/esp32-c2)
-[ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3)
-[ESP32-C6](https://www.espressif.com/en/products/socs/esp32-c6)
-[ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2)
-[ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3)
-[ESP32-H2](https://www.espressif.com/en/products/socs/esp32-h2)
-[ESP32-P4](https://www.espressif.com/en/products/socs/esp32-p4)
-
 The chips supported in the extension are directly dependent on the ESP-IDF and OpenOCD version you are using:
 
 - The list of OpenOCD configuration boards is obtained from `$OPENOCD_SCRIPTS/esp-config.json` where `$OPENOCD_SCRIPTS` is your OpenOCD Scripts path.

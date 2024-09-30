@@ -13,9 +13,7 @@ All commands start with ``ESP-IDF:``.
    * - Add Docker Container Configuration
      - Add the **.devcontainer** files to the currently opened project directory, necessary to use a ESP-IDF project in a Docker container with Visual Studio Code `Remote - Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ extension
    * - Add Editor coverage
-     - Parse your project `GCOV Code coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ files to add color lines representing code coverage on currently opened source code file
-   * - Add OpenOCD rules file (For Linux users)
-     - Add OpenOCD permissions to /etc/udev/rules.d to allow OpenOCD execution.
+     - Parse your project `GCOV Code coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ files to add color lines representing code coverage on currently opened source code file.
    * - Add vscode configuration folder
      - Add **.vscode** files to the currently opened project directory. These include launch.json (for debugging), settings.json and c_cpp_properties.json for syntax highlight.
    * - Build, Flash and start a monitor on your device

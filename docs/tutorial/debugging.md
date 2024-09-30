@@ -9,6 +9,8 @@ This tutorial shows you how to debug ESP-IDF projects using the Visual Studio Co
 
 > **NOTE:** Please take a look at [Configuring of OpenOCD for specific target](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/jtag-debugging/tips-and-quirks.html#configuration-of-openocd-for-specific-target) for more information about these configuration files.
 
+> **NOTE:** For Linux users, make sure to copy the [udev rules files](https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules) into the `/etc/udev/rules.d` directory.
+
 3. With the blink example folder open in your visual studio code window, press F5.
 
 Several steps will be automatically done for you but explained for clarity. You can skip to step 6 to continue the debug tutorial part.
@@ -26,6 +28,31 @@ Several steps will be automatically done for you but explained for clarity. You 
 <p>
   <img src="../../media/tutorials/debug/init_halted.png" alt="Initial halted" height="500">
 </p>
+
+# Setting a custom application image offset
+
+If you modify the application image offset you need to modify openOCD launch arguments to update the application image offset. This can happens if OpenOCD output (Menu View -> Output -> `ESP-IDF`) shows an error like this:
+
+```
+ Failed to get flash maps (-6)!\n❌ Error: Failed to get flash maps (-6)!\nWarn : Application image is invalid! Check configured binary flash offset 'appimage_offset'.
+```
+
+To update openOCD launch arguments, open the project's `settings.json` and add or modify:
+
+```json
+{
+  "idf.openOcdLaunchArgs": [
+    "-c",
+    "init",
+    "-c",
+    "reset halt",
+    "-c",
+    "esp appimage_offset 0x20000"
+  ]
+}
+```
+
+where `0x20000` is your application image offset used in the partition table.
 
 # Navigating Through the Code, Call Stack and Threads
 
