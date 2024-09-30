@@ -109,14 +109,14 @@ export class GdbHeapTraceManager {
         });
 
         this.childProcess.on("error", (err) => {
-          Logger.errorNotify(err.message, err);
+          Logger.errorNotify(err.message, err, "GdbHeapTraceManager start error");
           this.stop();
         });
 
         this.childProcess.on("exit", (code, signal) => {
           if (code && code !== 0) {
             const errMsg = `Heap tracing process exited with code ${code} and signal ${signal}`;
-            Logger.errorNotify(errMsg, new Error(errMsg));
+            Logger.errorNotify(errMsg, new Error(errMsg), "GdbHeapTraceManager start exit");
           }
         });
       }
@@ -124,7 +124,7 @@ export class GdbHeapTraceManager {
       const msg = error.message
         ? error.message
         : "Error starting GDB Heap Tracing";
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, "GdbHeapTraceManager start");
       OutputChannel.appendLine(msg, "GDB Heap Trace");
       this.stop();
     }
@@ -143,7 +143,7 @@ export class GdbHeapTraceManager {
       const msg = error.message
         ? error.message
         : "Error stoping GDB Heap Tracing";
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, "GdbHeapTraceManager stop");
     }
   }
 

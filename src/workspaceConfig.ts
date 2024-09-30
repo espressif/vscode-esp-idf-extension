@@ -54,7 +54,11 @@ export function getProjectName(buildDir: string): Promise<string> {
       }
       fs.readFile(projDescJsonPath, (err, data) => {
         if (err) {
-          Logger.error(err.message, err);
+          Logger.error(
+            err.message,
+            err,
+            "workspaceConfig getProjectName readFile"
+          );
           return reject(err);
         }
         const projDescJson = JSON.parse(data.toString());
@@ -72,7 +76,7 @@ export function getProjectName(buildDir: string): Promise<string> {
       });
     } catch (error) {
       const errMsg = error && error.message ? error.message : error;
-      Logger.error(errMsg, error);
+      Logger.error(errMsg, error, "workspaceConfig getProjectName");
       return reject(error);
     }
   });

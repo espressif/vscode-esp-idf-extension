@@ -391,7 +391,11 @@ export async function checkPythonExists(pythonBin: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Python is not found in current environment");
-    Logger.errorNotify(newErr.message, newErr);
+    Logger.errorNotify(
+      newErr.message,
+      newErr,
+      "pythonManager checkPythonExists"
+    );
   }
   return false;
 }
@@ -411,7 +415,7 @@ export async function checkPipExists(pyBinPath: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Pip is not found in current environment");
-    Logger.error(newErr.message, newErr);
+    Logger.error(newErr.message, newErr, "pythonManager checkPipExists");
   }
   return false;
 }
@@ -429,7 +433,7 @@ export async function checkVenvExists(pyBinPath: string, workingDir: string) {
       error && error.message
         ? error
         : new Error("Venv is not found in current environment");
-    Logger.error(newErr.message, newErr);
+    Logger.error(newErr.message, newErr, "pythonManager checkVenvExists");
   }
   return false;
 }
@@ -481,7 +485,11 @@ export async function getUnixPythonList(workingDir: string) {
 
     return uniquePathsArray;
   } catch (error) {
-    Logger.errorNotify("Error looking for python in system", error);
+    Logger.errorNotify(
+      "Error looking for python in system",
+      error,
+      "pythonManager getUnixPythonList"
+    );
     return ["Not found"];
   }
 }
@@ -498,7 +506,11 @@ export async function checkIfNotVirtualEnv(
     );
     return isVirtualEnv.trim() === "True";
   } catch (error) {
-    Logger.errorNotify("Error checking Python is virtualenv", error);
+    Logger.errorNotify(
+      "Error checking Python is virtualenv",
+      error,
+      "pythonManager checkIfNotVirtualEnv"
+    );
     return false;
   }
 }

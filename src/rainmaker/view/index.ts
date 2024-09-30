@@ -87,7 +87,7 @@ export class ESPRainMakerTreeDataProvider
         const resp = await RainmakerAPIClient.getNodeParams(nodeId);
         value = resp[device.name];
       } catch (error) {
-        Logger.errorNotify("Failed to get params for device", error);
+        Logger.errorNotify("Failed to get params for device", error, "ESPRainMakerTreeDataProvider getChildren");
       }
       return device.params.map((param) =>
         DeviceParamItem(parent.id, param, value ? value[param.name] : "")

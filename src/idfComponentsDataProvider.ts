@@ -120,7 +120,8 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
     } else {
       Logger.errorNotify(
         vscode.l10n.t("File project_description.json cannot be found."),
-        new Error("File-Not-Found")
+        new Error("File-Not-Found"),
+        "IDFTreeDataProvider getComponentsInProject"
       );
       return null;
     }

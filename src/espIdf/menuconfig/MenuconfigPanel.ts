@@ -175,7 +175,7 @@ export class MenuConfigPanel {
                     progress
                   );
                 } catch (error) {
-                  Logger.errorNotify(error.message, error);
+                  Logger.errorNotify(error.message, error, "MenuConfigPanel setDefaultValues");
                 }
               }
             );
@@ -205,7 +205,7 @@ export class MenuConfigPanel {
           const err = new Error(
             `Menuconfig: Unrecognized command received, file: ${__filename}`
           );
-          Logger.error(err.message, err);
+          Logger.error(err.message, err, "MenuconfigPanel Unrecognized command");
           break;
       }
     });
@@ -226,7 +226,7 @@ export class MenuConfigPanel {
 
     if (jsonValues.error) {
       const err = new Error(`Invalid data error: ${jsonValues.error}`);
-      Logger.error(err.message, err);
+      Logger.error(err.message, err, "MenuconfigPanel updateConfigValues");
       return;
     }
     const updatedMenus = ConfserverProcess.updateValues(values);

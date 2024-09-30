@@ -101,7 +101,7 @@ export class QemuManager extends EventEmitter {
       }
     } catch (error) {
       const msg = error.message ? error.message : "";
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, "QemuManager commandHandler");
     }
   }
 

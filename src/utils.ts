@@ -68,7 +68,11 @@ export class PreCheck {
     preCheckFunctions.forEach((preCheck: PreCheckInput) => {
       if (!preCheck[0]()) {
         isPassedAll = false;
-        Logger.errorNotify(preCheck[1], new Error("PRECHECK_FAILED"));
+        Logger.errorNotify(
+          preCheck[1],
+          new Error("PRECHECK_FAILED"),
+          "utils precheck failed"
+        );
       }
     });
     if (isPassedAll) {
@@ -106,7 +110,8 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `openOCDVersionValidator failed unexpectedly - min:${minVersion}, curr:${currentVersion}`,
-        error
+        error,
+        "src utils openOCDVersionValidator"
       );
       return false;
     }
@@ -120,7 +125,8 @@ export class PreCheck {
     } catch (error) {
       Logger.error(
         `ESP-IDF version validator failed - min: ${minVersion}, current: ${currentVersion}`,
-        error
+        error,
+        "src utils espIdfVersionValidator"
       );
       return false;
     }
@@ -176,7 +182,7 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err);
+        Logger.error(err.message, err, "src utils spawn");
         reject(err);
       }
     });
@@ -190,7 +196,13 @@ export function canAccessFile(filePath: string, mode?: number): boolean {
     fs.accessSync(filePath, mode);
     return true;
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${filePath}`, error);
+    Logger.error(
+      `Cannot access filePath: ${filePath}`,
+      error,
+      "src utils canAccessFile",
+      undefined,
+      false
+    );
     return false;
   }
 }
@@ -290,7 +302,11 @@ export async function getToolchainPath(
   try {
     return await isBinInPath(gccTool, workspaceUri.fsPath, modifiedEnv);
   } catch (error) {
-    Logger.errorNotify(`${tool} is not found in idf.toolsPath`, error);
+    Logger.errorNotify(
+      `${tool} is not found in idf.toolsPath`,
+      error,
+      "utils getToolchainPath"
+    );
     return;
   }
 }
@@ -440,7 +456,7 @@ export async function getMonitorBaudRate(workspacePath: vscode.Uri) {
     const errMsg = error.message
       ? error.message
       : "ERROR reading CONFIG_ESP_CONSOLE_UART_BAUDRATE from sdkconfig";
-    Logger.error(errMsg, error);
+    Logger.error(errMsg, error, "src utils getMonitorBaudRate");
   }
   return sdkMonitorBaudRate;
 }
@@ -561,12 +577,18 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error);
+            Logger.error(error.message, error, "utils execChildProcess");
           }
           return reject(error);
         }
         if (stderr && stderr.length > 2) {
-          Logger.error(stderr, new Error(stderr));
+          if (!stderr.startsWith("Open On-Chip Debugger v")) {
+            Logger.error(
+              stderr,
+              new Error(stderr),
+              "utils execChildProcess stderr"
+            );
+          }
           if (
             !stderr.toLowerCase().startsWith("warning") &&
             stderr.includes("Error")
@@ -688,7 +710,8 @@ export async function getElfFilePath(
   } catch (error) {
     Logger.errorNotify(
       "Failed to read project name while fetching elf file",
-      error
+      error,
+      "utils getElfFilePath"
     );
     return;
   }
@@ -804,7 +827,11 @@ export async function checkGitExists(workingDir: string, gitPath: string) {
       return "Not found";
     }
   } catch (error) {
-    Logger.errorNotify("Git is not found in current environment", error);
+    Logger.errorNotify(
+      "Git is not found in current environment",
+      error,
+      "utils checkGitExists"
+    );
     return "Not found";
   }
 }
@@ -831,7 +858,7 @@ export async function cleanDirtyGitRepository(
     Logger.info(resetResult + EOL);
   } catch (error) {
     const errMsg = error.message ? error.message : "Error resetting repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, "utils cleanDirtyGitRepository");
   }
 }
 
@@ -877,7 +904,7 @@ export async function fixFileModeGitRepository(
     const errMsg = error.message
       ? error.message
       : "Error fixing FileMode in repository";
-    Logger.errorNotify(errMsg, error);
+    Logger.errorNotify(errMsg, error, "utils fixFileModeGitRepository");
   }
 }
 
@@ -996,7 +1023,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid user environment variables format", error);
+      Logger.errorNotify(
+        "Invalid user environment variables format",
+        error,
+        "appendIdfAndToolsToPath idf.customExtraVars"
+      );
     }
   }
   const customVars = await idfToolsManager.exportVars(
@@ -1011,7 +1042,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
         }
       }
     } catch (error) {
-      Logger.errorNotify("Invalid ESP-IDF environment variables format", error);
+      Logger.errorNotify(
+        "Invalid ESP-IDF environment variables format",
+        error,
+        "appendIdfAndToolsToPath idf tools env vars"
+      );
     }
   }
 
@@ -1137,7 +1172,16 @@ export async function isBinInPath(
         : selectedResult;
     }
   } catch (error) {
-    Logger.error(`Cannot access filePath: ${binaryName}`, error);
+    let pathNameInEnv: string = Object.keys(process.env).find(
+      (k) => k.toUpperCase() == "PATH"
+    );
+    Logger.error(
+      `Cannot access binary filePath: ${binaryName}`,
+      error,
+      "src utils isBinInPath",
+      { envPath: pathNameInEnv ? env[pathNameInEnv] : undefined },
+      false
+    );
   }
   return "";
 }

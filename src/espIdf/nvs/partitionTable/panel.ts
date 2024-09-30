@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 15th December 2020 4:48:44 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -119,8 +119,16 @@ export class NVSPartitionTable {
       });
     } catch (error) {
       error.message
-        ? Logger.errorNotify(error.message, error)
-        : Logger.errorNotify(`Failed to read CSV from ${filePath}`, error);
+        ? Logger.errorNotify(
+            error.message,
+            error,
+            "NVSPartitionTable getCSVFromFile"
+          )
+        : Logger.errorNotify(
+            `Failed to read CSV from ${filePath}`,
+            error,
+            "NVSPartitionTable getCSVFromFile"
+          );
     }
   }
 
@@ -149,7 +157,8 @@ export class NVSPartitionTable {
       if (!canAccessFile(pythonBinPath, constants.R_OK)) {
         Logger.errorNotify(
           "Python binary path is not defined",
-          new Error("Virtual environment Python path is not defined")
+          new Error("Virtual environment Python path is not defined"),
+          "NVSPartitionTable generateNvsPartition pythonBinPath"
         );
       }
       if (!canAccessFile(this.filePath, constants.R_OK)) {
@@ -162,7 +171,8 @@ export class NVSPartitionTable {
           "nvs_partition_gen.py is not defined",
           new Error(
             "nvs_partition_gen.py is not defined, Make sure idf.espIdfPath is correct."
-          )
+          ),
+          "NVSPartitionTable generateNvsPartition, toolsPath"
         );
       }
       const genEncryptPart = encrypt ? "encrypt" : "generate";
@@ -196,7 +206,7 @@ export class NVSPartitionTable {
         ? error.message
         : "Error generating NVS partition";
       OutputChannel.appendLine(msg);
-      Logger.errorNotify(msg, error);
+      Logger.errorNotify(msg, error, "NVSPartitionTable generateNvsPartition");
     }
   }
 
@@ -257,7 +267,7 @@ export class NVSPartitionTable {
         break;
       case "showErrorMessage":
         if (message.error) {
-          Logger.errorNotify(message.error, new Error(message.error));
+          Logger.errorNotify(message.error, new Error(message.error), "NVSPartitionTable showErrorMessage");
         }
       case "saveDataRequest":
         if (message.csv) {
@@ -293,7 +303,8 @@ export class NVSPartitionTable {
     } catch (err) {
       return Logger.errorNotify(
         `Failed to save the partition data to the file ${this.filePath} due to some error. Error: ${err.message}`,
-        err
+        err,
+        "NVSPartitionTable writeCSVDataToFile"
       );
     }
   }

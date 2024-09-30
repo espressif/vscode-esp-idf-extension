@@ -26,7 +26,7 @@ import {
   sendDownloadedZip,
   sendExtractedZip,
 } from "./webviewMsgMethods";
-import { ensureDir, move } from "fs-extra";
+import { ensureDir, move, pathExists } from "fs-extra";
 import { AbstractCloning } from "../common/abstractCloning";
 import { CancellationToken, Disposable, Progress } from "vscode";
 import { delimiter, dirname, join } from "path";
@@ -132,6 +132,10 @@ export async function downloadInstallIdfVersion(
       pkgProgress,
       cancelToken
     );
+    const doesZipfileExist = await pathExists(downloadedZipPath);
+    if (!doesZipfileExist) {
+      throw new Error(`${downloadedZipPath} was not downloaded.`);
+    }
     const downloadedMsg = `Downloaded ${idfVersion.name}. Extracting...\n`;
     OutputChannel.appendLine(downloadedMsg);
     Logger.info(downloadedMsg);

@@ -180,7 +180,7 @@ export class DownloadManager {
         const errMsg = error.message
           ? error.message
           : `Error downloading ${urlToUse}`;
-        Logger.error(errMsg, error);
+        Logger.error(errMsg, error, "downloadManager downloadWithRetries");
         retryCount += 1;
         if (cancelToken && cancelToken.isCancellationRequested) {
           throw error;

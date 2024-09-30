@@ -208,7 +208,7 @@ export class AbstractCloning {
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, "AbstractCloning getRepository");
         }
       }
     );
@@ -377,7 +377,7 @@ export class AbstractCloning {
         if (!signal && code !== 0) {
           const msg = `Submodules clone has exit with ${code}`;
           OutputChannel.appendLine(msg);
-          Logger.errorNotify("Submodules cloning error", new Error(msg));
+          Logger.errorNotify("Submodules cloning error", new Error(msg), "AbstractCloning spawnWithProgress");
           return reject(new Error(msg));
         }
         return resolve();
@@ -414,7 +414,7 @@ export class AbstractCloning {
           Logger.infoNotify(`${repoName} submodules checked out successfully`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error);
+          Logger.errorNotify(error.message, error, "AbstractCloning getSubmodules");
         }
       }
     );

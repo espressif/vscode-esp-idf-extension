@@ -75,7 +75,7 @@ export async function getGcovData(workspaceFolder: Uri) {
       (err, stdout, stderr) => {
         if (err) {
           const msg = err && err.message ? err.message : err;
-          Logger.error(`exec error: ${msg}`, err);
+          Logger.error(`exec error: ${msg}`, err, "gcdaPaths getGcovData");
           return reject(err);
         }
         const output = [];

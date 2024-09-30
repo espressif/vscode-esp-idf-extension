@@ -40,7 +40,7 @@ export async function getPreviousIdfSetups(logToChannel: boolean = true) {
         const msg = err.message
           ? err.message
           : "Error checkIdfSetup in getPreviousIdfSetups";
-        Logger.error(msg, err);
+        Logger.error(msg, err, "getPreviousIdfSetups");
         ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id);
       }
     }
@@ -108,7 +108,7 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         const msg = err.message
           ? err.message
           : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
-        Logger.error(msg, err);
+        Logger.error(msg, err, "loadIdfSetupsFromEspIdfJson");
         setupConf.isValid = false;
       }
       idfSetups.push(setupConf);

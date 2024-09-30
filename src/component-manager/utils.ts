@@ -62,7 +62,7 @@ export async function addDependency(
         { dependency, component }
       )
     );
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "Component manager addDependency");
     throw throwableError;
   }
 }
@@ -109,7 +109,7 @@ export async function createProject(
         { example }
       )}. Original error: ${error.message}`
     );
-    Logger.error(error.message, error);
+    Logger.error(error.message, error, "Component manager createProject");
     throw throwableError;
   }
 }

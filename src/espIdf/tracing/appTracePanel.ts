@@ -114,10 +114,15 @@ export class AppTracePanel {
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
-                  ? Logger.errorNotify(error.message, error)
+                  ? Logger.errorNotify(
+                      error.message,
+                      error,
+                      "AppTracePanel parseTraceLogData"
+                    )
                   : Logger.errorNotify(
                       `Failed to process the trace data`,
-                      error
+                      error,
+                      "AppTracePanel parseTraceLogData"
                     );
               });
             break;
@@ -131,15 +136,20 @@ export class AppTracePanel {
               .catch((error) => {
                 this.sendCommandToWebview("calculateFailed", { error });
                 error.message
-                  ? Logger.errorNotify(error.message, error)
+                  ? Logger.errorNotify(
+                      error.message,
+                      error,
+                      "AppTracePanel parseHeapTraceData"
+                    )
                   : Logger.errorNotify(
                       `Failed to process the heap trace data`,
-                      error
+                      error,
+                      "AppTracePanel parseHeapTraceData"
                     );
               });
             break;
           case "resolveAddresses":
-            this.resolveAddresses({addresses: JSON.parse(msg.addresses)});
+            this.resolveAddresses({ addresses: JSON.parse(msg.addresses) });
             break;
           case "openFileAtLine":
             this.openFileAtLineNumber(msg.filePath, msg.lineNumber);
@@ -148,7 +158,11 @@ export class AppTracePanel {
             const err = new Error(
               `Unrecognized command received from webview (idf-trace) file: ${__filename}`
             );
-            Logger.error(err.message, err);
+            Logger.error(
+              err.message,
+              err,
+              "AppTracePanel unrecognized command"
+            );
             break;
         }
       },
@@ -170,7 +184,11 @@ export class AppTracePanel {
       });
       // editor.revealRange(selectionRange, vscode.TextEditorRevealType.InCenter);
     } catch (error) {
-      Logger.errorNotify(error.message, error);
+      Logger.errorNotify(
+        error.message,
+        error,
+        "AppTracePanel openFileAtLineNumber"
+      );
     }
   }
   private async readElf(): Promise<string[][]> {

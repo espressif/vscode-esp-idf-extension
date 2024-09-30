@@ -153,7 +153,8 @@ export async function generateCoverageForEditors(
       "Error generate editor coverage.\n" +
         "Check the ESP-IDF output for more details." +
         msg,
-      error
+      error,
+      "coverageService generateCoverageForEditors"
     );
     OutputChannel.appendLine(
       msg +
@@ -190,7 +191,8 @@ export async function previewReport(dirPath: vscode.Uri) {
     Logger.errorNotify(
       "Error building gcov html.\n" +
         "Check the ESP-IDF output for more details.",
-      e
+      e,
+      "coverageService previewReport"
     );
     OutputChannel.appendLine(
       msg +
