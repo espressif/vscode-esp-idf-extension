@@ -119,6 +119,17 @@ export class projectConfigurationPanel {
             });
           }
           break;
+        case "openFilePath":
+          let selectedFile = await this.openFile();
+          if (selectedFile) {
+            this.panel.webview.postMessage({
+              command: "setFilePath",
+              confKey: message.confKey,
+              newPath: selectedFile,
+              sectionsKeys: message.sectionsKeys,
+            });
+          }
+          break;
         default:
           break;
       }
@@ -134,6 +145,17 @@ export class projectConfigurationPanel {
     });
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
+    }
+  }
+
+  private async openFile() {
+    const selectedFile = await window.showOpenDialog({
+      canSelectFolders: false,
+      canSelectFiles: true,
+      canSelectMany: false,
+    });
+    if (selectedFile && selectedFile.length > 0) {
+      return selectedFile[0].fsPath;
     }
   }
 

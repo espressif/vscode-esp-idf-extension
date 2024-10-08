@@ -86,6 +86,14 @@ export const useProjectConfStore = defineStore("project-config", () => {
     });
   }
 
+  function openFilePath(payload: { confKey: string; sections: string[] }) {
+    vscode.postMessage({
+      command: "openFilePath",
+      sectionsKeys: payload.sections,
+      confKey: payload.confKey,
+    });
+  }
+
   function addNewConfigToList(confKey: string) {
     let newConf = {
       build: {
@@ -174,6 +182,7 @@ export const useProjectConfStore = defineStore("project-config", () => {
     addNewConfigToList,
     addValueToConfigElement,
     openBuildPath,
+    openFilePath,
     updateConfigElement,
     removeValueFromConfigElement,
     requestInitValues,
