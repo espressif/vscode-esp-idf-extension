@@ -4,7 +4,7 @@
   " has been updated": " foi atualizado",
   "File project_description.json cannot be found.": "O arquivo project_description.json não pode ser encontrado.",
   "Open a folder first.": "Abra uma pasta primeiro.",
-  "Selected command is not available in WebIDE": "O comando selecionado não está disponível no WebIDE",
+  "Selected command is not available in Web": "O comando selecionado não está disponível no Web",
   "Use current folder: {workspace}": "Use a pasta atual: {workspace}",
   "Choose a container directory...": "Escolha um diretório de contêiner...",
   "Select a directory to use": "Selecione um diretório para usar",
