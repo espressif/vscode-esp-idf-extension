@@ -133,6 +133,21 @@
           "severity": 4,
           "message": 5
         }
+      },
+      {
+        "name": "espIdfLd",
+        "owner": "cpp",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "severity": "error",
+        "pattern": {
+            "regexp": "^.+\\/bin\\/ld[^:]+:\\s*(.+):(\\d+):(.+)$",
+            "file": 1,
+            "line": 2,
+            "message": 3
+          }
       }
     ],
     "viewsContainers": {

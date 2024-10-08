@@ -210,7 +210,7 @@ export class BuildTask {
         currentWorkspaceFolder || vscode.TaskScope.Workspace,
         "ESP-IDF Compile",
         compileExecution,
-        ["espIdf"],
+        ["espIdf", "espIdfLd"],
         compilePresentationOptions
       );
       compilerArgs = [];
@@ -237,7 +237,7 @@ export class BuildTask {
       currentWorkspaceFolder || vscode.TaskScope.Workspace,
       "ESP-IDF Build",
       buildExecution,
-      ["espIdf"],
+      ["espIdf", "espIdfLd"],
       buildPresentationOptions
     );
   }

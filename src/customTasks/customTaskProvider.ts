@@ -130,7 +130,7 @@ export class CustomTask {
       currentWorkspaceFolder || TaskScope.Workspace,
       `ESP-IDF ${taskName}`,
       customExecution,
-      ["espIdf"],
+      ["espIdf", "espIdfLd"],
       customTaskPresentationOptions
     );
   }
