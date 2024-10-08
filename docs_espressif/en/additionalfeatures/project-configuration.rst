@@ -22,8 +22,6 @@ To allow you to have multiple configurations for the same project, you can defin
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.customExtraVars**           | Variables to be added to system environment variables                                     |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.adapterTargetName**         | ESP-IDF Target Chip (Example: esp32)                                                      |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.flashBaudRate**             | Flash Baud rate                                                                           |
 +-----------------------------------+-------------------------------------------------------------------------------------------+
 | **idf.monitorBaudRate**           | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)    |

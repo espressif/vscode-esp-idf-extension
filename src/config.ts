@@ -29,7 +29,6 @@ export namespace ESP {
 
   export namespace ProjectConfiguration {
     export let store: ProjectConfigStore;
-    export const CONFIGURATION_LIST_KEY = "PROJECT_CONFIGURATION_KEYS";
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
     export const PROJECT_CONFIGURATION_FILENAME =
       "esp_idf_project_configuration.json";

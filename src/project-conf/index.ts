@@ -43,13 +43,6 @@ export class ProjectConfigStore {
   public clear(key: string) {
     return this.set(key, undefined);
   }
-
-  public getKeys() {
-    return this.ctx.workspaceState.get<string[]>(
-      ESP.ProjectConfiguration.CONFIGURATION_LIST_KEY,
-      undefined
-    );
-  }
 }
 
 export async function getProjectConfigurationElements(workspaceFolder: Uri) {
@@ -76,7 +69,6 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
       },
       env: projectConfJson[elem].env,
       flashBaudRate: projectConfJson[elem].flashBaudRate,
-      idfTarget: projectConfJson[elem].idfTarget,
       monitorBaudRate: projectConfJson[elem].monitorBaudRate,
       openOCD: {
         debugLevel: projectConfJson[elem].openOCD?.debugLevel,

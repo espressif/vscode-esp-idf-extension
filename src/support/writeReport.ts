@@ -154,7 +154,6 @@ export async function writeTextReport(
         }
       }
       output += `Flash baud rate: ${reportedResult.projectConfigurations[key].flashBaudRate}${EOL}`;
-      output += `IDF Target: ${reportedResult.projectConfigurations[key].idfTarget}${EOL}`;
       output += `Monitor baud rate: ${reportedResult.projectConfigurations[key].monitorBaudRate}${EOL}`;
 
       if (reportedResult.projectConfigurations[key].openOCD) {

@@ -253,15 +253,6 @@ export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
 export async function setCCppPropertiesJsonCompilerPath(
   curWorkspaceFsPath: vscode.Uri
 ) {
-  const cCppPropertiesJsonPath = path.join(
-    curWorkspaceFsPath.fsPath,
-    ".vscode",
-    "c_cpp_properties.json"
-  );
-  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
-  if (!doesPathExists) {
-    return;
-  }
   const modifiedEnv = await appendIdfAndToolsToPath(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
@@ -270,22 +261,65 @@ export async function setCCppPropertiesJsonCompilerPath(
     curWorkspaceFsPath.fsPath,
     modifiedEnv
   );
+  if (!compilerAbsolutePath) {
+    return;
+  }
+  let compilerRelativePath = compilerAbsolutePath.split(
+    modifiedEnv.IDF_TOOLS_PATH
+  )[1];
+  const settingToUse =
+    process.platform === "win32"
+      ? "${config:idf.toolsPathWin}"
+      : "${config:idf.toolsPath}";
 
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compilerPath",
+    settingToUse + compilerRelativePath
+  );
+}
+
+export async function setCCppPropertiesJsonCompileCommands(
+  curWorkspaceFsPath: vscode.Uri
+) {
+  const buildDirPath = idfConf.readParameter(
+    "idf.buildPath",
+    curWorkspaceFsPath
+  ) as string;
+  const compileCommandsPath = path.join(buildDirPath, "compile_commands.json");
+
+  await updateCCppPropertiesJson(
+    curWorkspaceFsPath,
+    "compileCommands",
+    compileCommandsPath
+  );
+}
+
+export async function updateCCppPropertiesJson(
+  workspaceUri: vscode.Uri,
+  fieldToUpdate: string,
+  newFieldValue: string
+) {
+  const cCppPropertiesJsonPath = path.join(
+    workspaceUri.fsPath,
+    ".vscode",
+    "c_cpp_properties.json"
+  );
+  const doesPathExists = await pathExists(cCppPropertiesJsonPath);
+  if (!doesPathExists) {
+    return;
+  }
   const cCppPropertiesJson = await readJSON(cCppPropertiesJsonPath);
   if (
     cCppPropertiesJson &&
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
-    let compilerRelativePath = compilerAbsolutePath.split(
-      modifiedEnv.IDF_TOOLS_PATH
-    )[1];
-    const settingToUse =
-      process.platform === "win32"
-        ? "${config:idf.toolsPathWin}"
-        : "${config:idf.toolsPath}";
-    cCppPropertiesJson.configurations[0].compilerPath =
-      settingToUse + compilerRelativePath;
+    const buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      workspaceUri
+    ) as string;
+    cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
@@ -1144,7 +1178,8 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   }
 
   let sdkconfigFilePath = idfConf.readParameter(
-    "idf.sdkconfigFilePath"
+    "idf.sdkconfigFilePath",
+    curWorkspace
   ) as string;
   if (sdkconfigFilePath) {
     modifiedEnv.SDKCONFIG = sdkconfigFilePath;

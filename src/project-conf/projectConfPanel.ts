@@ -119,20 +119,22 @@ export class projectConfigurationPanel {
             });
           }
           break;
+        case "openFilePath":
+          let selectedFile = await this.openFile();
+          if (selectedFile) {
+            this.panel.webview.postMessage({
+              command: "setFilePath",
+              confKey: message.confKey,
+              newPath: selectedFile,
+              sectionsKeys: message.sectionsKeys,
+            });
+          }
+          break;
         default:
           break;
       }
     });
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
-  }
-
-  private async clearProjectConfFile() {
-    let projectConfKeys = ESP.ProjectConfiguration.store.getKeys();
-    if (projectConfKeys && projectConfKeys.length) {
-      for (const confKey of projectConfKeys) {
-        ESP.ProjectConfiguration.store.clear(confKey);
-      }
-    }
   }
 
   private async openFolder() {
@@ -143,6 +145,17 @@ export class projectConfigurationPanel {
     });
     if (selectedFolder && selectedFolder.length > 0) {
       return selectedFolder[0].fsPath;
+    }
+  }
+
+  private async openFile() {
+    const selectedFile = await window.showOpenDialog({
+      canSelectFolders: false,
+      canSelectFiles: true,
+      canSelectMany: false,
+    });
+    if (selectedFile && selectedFile.length > 0) {
+      return selectedFile[0].fsPath;
     }
   }
 
@@ -163,7 +176,6 @@ export class projectConfigurationPanel {
   private async saveProjectConfFile(projectConfDict: {
     [key: string]: ProjectConfElement;
   }) {
-    this.clearProjectConfFile();
     const projectConfKeys = Object.keys(projectConfDict);
     this.clearSelectedProject(projectConfKeys);
     await saveProjectConfFile(this.workspaceFolder, projectConfDict);
