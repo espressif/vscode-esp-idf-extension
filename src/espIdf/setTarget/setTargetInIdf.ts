@@ -59,6 +59,16 @@ export async function setTargetInIDF(
   } else {
     modifiedEnv.IDF_CCACHE_ENABLE = undefined;
   }
+  if (modifiedEnv.SDKCONFIG) {
+    setTargetArgs.push(`-DSDKCONFIG='${modifiedEnv.SDKCONFIG}'`);
+  }
+  const sdkconfigDefaults =
+    (readParameter("idf.sdkconfigDefaults") as string[]) || [];
+
+  if (sdkconfigDefaults && sdkconfigDefaults.length) {
+    setTargetArgs.push(`-DSDKCONFIG_DEFAULTS='${sdkconfigDefaults.join(";")}'`);
+  }
+
   setTargetArgs.push("set-target", selectedTarget.target);
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder.uri);
   const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {

@@ -110,7 +110,7 @@ This is how the extension uses them:
 6. **idf.openOcdLaunchArgs**: Launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
 
 .. note::
-  * When you use the command **ESP-IDF: Set Espressif Device Target** it will override **idf.adapterTargetName** with selected chip and **idf.openOcdConfigs** with its default OpenOCD Configuration Files.
+  * When you use the command **ESP-IDF: Set Espressif Device Target** it will override the current sdkconfig IDF_TARGET with selected Espressif chip and **idf.openOcdConfigs** with its default OpenOCD Configuration Files.
   * If you want to customize the **idf.openOcdConfigs** alone, you can use the **ESP-IDF: Select OpenOCD Board Configuration** or modify your settings.json directly.
 
 Code Coverage Specific Settings

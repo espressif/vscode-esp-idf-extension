@@ -71,7 +71,7 @@ import { ArduinoComponentInstaller } from "./espIdf/arduino/addArduinoComponent"
 import { PartitionTableEditorPanel } from "./espIdf/partition-table";
 import { ESPEFuseTreeDataProvider } from "./efuse/view";
 import { ESPEFuseManager } from "./efuse";
-import { constants, createFileSync, pathExists, readJson } from "fs-extra";
+import { constants, createFileSync, pathExists } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
 import { SetupPanel } from "./setup/SetupPanel";
@@ -143,7 +143,7 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
-import { selectIdfSetup } from "./versionSwitcher";
+import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
 import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
@@ -372,6 +372,30 @@ export async function activate(context: vscode.ExtensionContext) {
             statusBarItems["port"].text =
               `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
               idfConf.readParameter("idf.port", workspaceRoot);
+          }
+          if (statusBarItems["projectConf"]) {
+            statusBarItems["projectConf"].dispose();
+            statusBarItems["projectConf"] = undefined;
+            const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+              ESP.ProjectConfiguration.SELECTED_CONFIG
+            );
+            ESP.ProjectConfiguration.store.clear(selectedConfig);
+            ESP.ProjectConfiguration.store.clear(
+              ESP.ProjectConfiguration.SELECTED_CONFIG
+            );
+          }
+          const currentIdfSetup = await getCurrentIdfSetup(
+            workspaceRoot,
+            false
+          );
+          if (statusBarItems["currentIdfVersion"]) {
+            statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+              ? `$(${
+                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                }) ESP-IDF v${currentIdfSetup.version}`
+              : `$(${
+                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                }) ESP-IDF InvalidSetup`;
           }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -911,6 +935,27 @@ export async function activate(context: vscode.ExtensionContext) {
           tooltip: option.uri.fsPath,
         };
         utils.updateStatus(statusBarItems["workspace"], workspaceFolderInfo);
+        if (statusBarItems["projectConf"]) {
+          statusBarItems["projectConf"].dispose();
+          statusBarItems["projectConf"] = undefined;
+          const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+            ESP.ProjectConfiguration.SELECTED_CONFIG
+          );
+          ESP.ProjectConfiguration.store.clear(selectedConfig);
+          ESP.ProjectConfiguration.store.clear(
+            ESP.ProjectConfiguration.SELECTED_CONFIG
+          );
+        }
+        const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot, false);
+        if (statusBarItems["currentIdfVersion"]) {
+          statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+            ? `$(${
+                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+              }) ESP-IDF v${currentIdfSetup.version}`
+            : `$(${
+                commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+              }) ESP-IDF InvalidSetup`;
+        }
         const debugAdapterConfig = {
           currentWorkspace: workspaceRoot,
         } as IDebugAdapterConfig;
@@ -1106,6 +1151,8 @@ export async function activate(context: vscode.ExtensionContext) {
         commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
       );
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
+      ConfserverProcess.dispose();
     });
   });
 
@@ -1830,6 +1877,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceRoot
       );
       await setIdfTarget(enterDeviceTargetMsg, workspaceFolder);
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     });
   });
 

@@ -86,21 +86,23 @@ export async function getIdfTargetFromSdkconfig(
   workspacePath: vscode.Uri,
   statusItem?: vscode.StatusBarItem
 ) {
-  let sdkConfigPath = await getSDKConfigFilePath(workspacePath);
-  const doesSdkconfigExists = await pathExists(sdkConfigPath);
-  if (!doesSdkconfigExists) {
-    return;
+  try {
+    const configIdfTarget = await utils.getConfigValueFromSDKConfig(
+      "CONFIG_IDF_TARGET",
+      workspacePath
+    );
+    let idfTarget = configIdfTarget.replace(/\"/g, "");
+    if (!idfTarget) {
+      idfTarget = "esp32";
+    }
+    if (statusItem) {
+      statusItem.text = "$(chip) " + idfTarget;
+    }
+    return idfTarget;
+  } catch (error) {
+    if (statusItem) {
+      statusItem.text = "$(chip) esp32";
+    }
+    return "esp32";
   }
-  const configIdfTarget = await utils.getConfigValueFromSDKConfig(
-    "CONFIG_IDF_TARGET",
-    workspacePath
-  );
-  const idfTarget = configIdfTarget.replace(/\"/g, "");
-  if (!idfTarget) {
-    return;
-  }
-  if (statusItem) {
-    statusItem.text = "$(chip) " + idfTarget;
-  }
-  return idfTarget;
 }
