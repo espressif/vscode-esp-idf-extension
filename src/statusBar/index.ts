@@ -29,6 +29,7 @@ import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -54,14 +55,11 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     return {};
   }
   const port = readParameter("idf.port", workspaceFolder) as string;
-  let idfTarget = readParameter("idf.adapterTargetName", workspaceFolder);
+  let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   let flashType = readParameter("idf.flashType", workspaceFolder) as string;
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  if (idfTarget === "custom") {
-    idfTarget = readParameter("idf.customAdapterTargetName", workspaceFolder);
-  }
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
 
