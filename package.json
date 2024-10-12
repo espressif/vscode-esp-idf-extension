@@ -195,6 +195,65 @@
             "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. To learn more about setting up your development environment and getting started with ESP-IDF projects, check out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:espIdf.startBasicSetupWalkthrough)\n\nHappy coding with ESP-IDF!"
           }
         ]
+      },
+      {
+        "id": "espIdf.walkthrough.basic-usage",
+        "title": "ESP-IDF Extension Basic Usage Guide",
+        "description": "Learn how to configure the ESP-IDF extension and use its basic features in VS Code",
+        "steps": [
+          {
+            "id": "introduction",
+            "title": "Introduction to ESP-IDF in VS Code",
+            "description": "This walkthrough will guide you through configuring the ESP-IDF extension and demonstrate its basic usage in Visual Studio Code.",
+            "media": {
+              "markdown": "walkthroughs/basic-usage-intro.md"
+            }
+          },
+          {
+            "id": "extension-configuration",
+            "title": "Configuring the ESP-IDF Extension",
+            "description": "Let's start by configuring the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.configureExtension)\n\nAlternatively, you can access this command through the Command Palette (Ctrl+Shift+P) by typing 'ESP-IDF: Configure ESP-IDF extension'.",
+            "media": {
+              "image": "media/walkthrough/configure-extension.png",
+              "altText": "Screenshot of ESP-IDF extension configuration wizard"
+            }
+          },
+          {
+            "id": "create-example-project",
+            "title": "Creating an Example Project",
+            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.showExampleProject)\n\nAlternatively, you can open the Command Palette and type 'ESP-IDF: Show Examples Projects'.\n\n💡 Explore different examples to find one that suits your needs.",
+            "media": {
+              "image": "media/walkthrough/create-example.png",
+              "altText": "Screenshot of creating an example project"
+            }
+          },
+          {
+            "id": "build-flash-monitor",
+            "title": "Building, Flashing, and Monitoring Your Project",
+            "description": "Before proceeding, make sure to:\n\n1. Open your ESP-IDF project in VS Code\n2. Select the appropriate serial port and device\n\nThen, use the 'Build, Flash, and Monitor' button in the ESP-IDF Explorer view to compile your code, flash it to your device, and start monitoring the output.\n\n[Build, Flash, and Monitor](command:espIdf.buildFlashMonitor)",
+            "media": {
+              "image": "media/walkthrough/build-flash-monitor.gif",
+              "altText": "GIF showing the process of building, flashing, and monitoring an ESP-IDF project"
+            }
+          },
+          {
+            "id": "debug-project",
+            "title": "Debugging Your Project",
+            "description": "To debug your project, you'll need a board with JTAG capabilities or external tools such as a prog board. Ensure your hardware supports debugging before proceeding.\n\nThe ESP-IDF extension provides powerful debugging features, including:\n- Step through code line by line\n- Inspect variables and memory\n- Set conditional breakpoints\n- View call stack and threads\n- Live variable watching\n- Core dump analysis\n\nRefer to your board's documentation for specific debugging setup instructions.",
+            "media": {
+              "image": "media/walkthrough/debug-project.gif",
+              "altText": "GIF demonstrating debugging an ESP-IDF project"
+            }
+          },
+          {
+            "id": "additional-resources-and-ui",
+            "title": "Additional Resources and UI Exploration",
+            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:espIdf.startUIWalkthrough)",
+            "media": {
+              "markdown": "walkthroughs/additional-resources.md"
+            }
+          }
+        ]
       }
     ],
     "problemMatchers": [
