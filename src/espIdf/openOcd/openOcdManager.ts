@@ -280,6 +280,7 @@ export class OpenOCDManager extends EventEmitter {
 
   private registerOpenOCDStatusBarItem() {
     this.statusBar = vscode.window.createStatusBarItem(
+      CommandKeys.OpenOCD,
       vscode.StatusBarAlignment.Right,
       1000
     );
@@ -303,7 +304,9 @@ export class OpenOCDManager extends EventEmitter {
     }
     this.chan = Buffer.alloc(0);
     OutputChannel.init();
-    this.registerOpenOCDStatusBarItem();
+    if (vscode.env.uiKind !== vscode.UIKind.Web) {
+      this.registerOpenOCDStatusBarItem();
+    }
   }
 
   private sendToOutputChannel(data: Buffer) {

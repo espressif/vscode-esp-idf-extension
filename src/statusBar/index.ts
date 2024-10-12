@@ -17,10 +17,11 @@
  */
 
 import {
-  l10n,
+  env,
   StatusBarAlignment,
   StatusBarItem,
   TreeItemCheckboxState,
+  UIKind,
   Uri,
   window,
 } from "vscode";
@@ -62,7 +63,6 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   );
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
-
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
     commandDictionary[CommandKeys.pickWorkspace].tooltip,
@@ -81,21 +81,25 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].checkboxState
   );
 
-  statusBarItems["flashType"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.SelectFlashType].iconId}) ${flashType}`,
-    commandDictionary[CommandKeys.SelectFlashType].tooltip,
-    CommandKeys.SelectFlashType,
-    101,
-    commandDictionary[CommandKeys.SelectFlashType].checkboxState
-  );
+  if (env.uiKind !== UIKind.Web) {
+    statusBarItems["flashType"] = createStatusBarItem(
+      `$(${
+        commandDictionary[CommandKeys.SelectFlashType].iconId
+      }) ${flashType}`,
+      commandDictionary[CommandKeys.SelectFlashType].tooltip,
+      CommandKeys.SelectFlashType,
+      101,
+      commandDictionary[CommandKeys.SelectFlashType].checkboxState
+    );
 
-  statusBarItems["port"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ${port}`,
-    commandDictionary[CommandKeys.SelectSerialPort].tooltip,
-    CommandKeys.SelectSerialPort,
-    100,
-    commandDictionary[CommandKeys.SelectSerialPort].checkboxState
-  );
+    statusBarItems["port"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ${port}`,
+      commandDictionary[CommandKeys.SelectSerialPort].tooltip,
+      CommandKeys.SelectSerialPort,
+      100,
+      commandDictionary[CommandKeys.SelectSerialPort].checkboxState
+    );
+  }
 
   if (projectConf) {
     statusBarItems["projectConf"] = createStatusBarItem(
@@ -139,34 +143,36 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     95,
     commandDictionary[CommandKeys.Build].checkboxState
   );
-  statusBarItems["flash"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.Flash].iconId})`,
-    commandDictionary[CommandKeys.Flash].tooltip,
-    CommandKeys.Flash,
-    94,
-    commandDictionary[CommandKeys.Flash].checkboxState
-  );
-  statusBarItems["monitor"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.Monitor].iconId})`,
-    commandDictionary[CommandKeys.Monitor].tooltip,
-    CommandKeys.Monitor,
-    93,
-    commandDictionary[CommandKeys.Monitor].checkboxState
-  );
-  statusBarItems["debug"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.Debug].iconId})`,
-    commandDictionary[CommandKeys.Debug].tooltip,
-    CommandKeys.Debug,
-    92,
-    commandDictionary[CommandKeys.Debug].checkboxState
-  );
-  statusBarItems["buildFlashMonitor"] = createStatusBarItem(
-    `$(${commandDictionary[CommandKeys.BuildFlashMonitor].iconId})`,
-    commandDictionary[CommandKeys.BuildFlashMonitor].tooltip,
-    CommandKeys.BuildFlashMonitor,
-    91,
-    commandDictionary[CommandKeys.BuildFlashMonitor].checkboxState
-  );
+  if (env.uiKind !== UIKind.Web) {
+    statusBarItems["flash"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.Flash].iconId})`,
+      commandDictionary[CommandKeys.Flash].tooltip,
+      CommandKeys.Flash,
+      94,
+      commandDictionary[CommandKeys.Flash].checkboxState
+    );
+    statusBarItems["monitor"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.Monitor].iconId})`,
+      commandDictionary[CommandKeys.Monitor].tooltip,
+      CommandKeys.Monitor,
+      93,
+      commandDictionary[CommandKeys.Monitor].checkboxState
+    );
+    statusBarItems["debug"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.Debug].iconId})`,
+      commandDictionary[CommandKeys.Debug].tooltip,
+      CommandKeys.Debug,
+      92,
+      commandDictionary[CommandKeys.Debug].checkboxState
+    );
+    statusBarItems["buildFlashMonitor"] = createStatusBarItem(
+      `$(${commandDictionary[CommandKeys.BuildFlashMonitor].iconId})`,
+      commandDictionary[CommandKeys.BuildFlashMonitor].tooltip,
+      CommandKeys.BuildFlashMonitor,
+      91,
+      commandDictionary[CommandKeys.BuildFlashMonitor].checkboxState
+    );
+  }
   statusBarItems["terminal"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.IDFTerminal].iconId})`,
     commandDictionary[CommandKeys.IDFTerminal].tooltip,
@@ -192,7 +198,7 @@ export function createStatusBarItem(
   showItem: TreeItemCheckboxState
 ) {
   const alignment: StatusBarAlignment = StatusBarAlignment.Left;
-  const statusBarItem = window.createStatusBarItem(alignment, priority);
+  const statusBarItem = window.createStatusBarItem(cmd, alignment, priority);
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;

@@ -156,7 +156,11 @@ import {
   createStatusBarItem,
   statusBarItems,
 } from "./statusBar";
-import { CommandKeys, createCommandDictionary } from "./cmdTreeView/cmdStore";
+import {
+  CommandKeys,
+  createCommandDictionary,
+  IDFWebCommandKeys,
+} from "./cmdTreeView/cmdStore";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -208,7 +212,7 @@ let wsServer: WSServer;
 
 const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
 const cmdNotForWebIdeMsg = vscode.l10n.t(
-  "Selected command is not available in WebIDE"
+  "Selected command is not available in Web"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
@@ -845,7 +849,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.selectCurrentIdfVersion", () => {
-    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+    PreCheck.perform([openFolderCheck], async () => {
       const currentIdfSetup = await selectIdfSetup(
         workspaceRoot,
         statusBarItems["currentIdfVersion"]
@@ -2651,7 +2655,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.debug", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         workspaceRoot
       );
@@ -3823,7 +3827,12 @@ const flash = (
   encryptPartition: boolean = false,
   flashType?: ESP.FlashType
 ) => {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  PreCheck.perform([openFolderCheck], async () => {
+    // Re route to ESP-IDF Web extension if using Codespaces or Browser
+    if (vscode.env.uiKind === vscode.UIKind.Web) {
+      vscode.commands.executeCommand(IDFWebCommandKeys.Flash);
+      return;
+    }
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
       workspaceRoot
@@ -4026,7 +4035,7 @@ async function startFlashing(
 }
 
 function createIdfTerminal() {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  PreCheck.perform([openFolderCheck], async () => {
     const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
@@ -4041,7 +4050,12 @@ function createIdfTerminal() {
 }
 
 function createMonitor() {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  PreCheck.perform([openFolderCheck], async () => {
+    // Re route to ESP-IDF Web extension if using Codespaces or Browser
+    if (vscode.env.uiKind === vscode.UIKind.Web) {
+      vscode.commands.executeCommand(IDFWebCommandKeys.Monitor);
+      return;
+    }
     const noReset = idfConf.readParameter(
       "idf.monitorNoReset",
       workspaceRoot

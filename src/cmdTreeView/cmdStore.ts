@@ -25,6 +25,11 @@ export interface IDFCommandDescription {
   tooltip: string;
 }
 
+export enum IDFWebCommandKeys {
+  Flash = "espIdfWeb.flash",
+  Monitor = "espIdfWeb.monitor"
+}
+
 export enum CommandKeys {
   pickWorkspace = "espIdf.pickAWorkspaceFolder",
   SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
