@@ -200,7 +200,7 @@ export function createStatusBarItem(
   showItem: TreeItemCheckboxState
 ) {
   const alignment: StatusBarAlignment = StatusBarAlignment.Left;
-  const statusBarItem = window.createStatusBarItem(alignment, priority);
+  const statusBarItem = window.createStatusBarItem(cmd, alignment, priority);
   statusBarItem.text = icon;
   statusBarItem.tooltip = tooltip;
   statusBarItem.command = cmd;
