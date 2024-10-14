@@ -248,7 +248,7 @@
           {
             "id": "additional-resources-and-ui",
             "title": "Additional Resources and UI Exploration",
-            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:espIdf.walkthrough.ui)",
+            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.ui%22)",
             "media": {
               "markdown": "walkthroughs/additional-resources.md"
             }
