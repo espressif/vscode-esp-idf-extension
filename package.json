@@ -192,7 +192,7 @@
               "image": "media/walkthrough/status-bar.png",
               "altText": "Screenshot of Espressif IDF extension items in Status Bar"
             },
-            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. To learn more about setting up your development environment and getting started with ESP-IDF projects, check out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:espIdf.startBasicSetupWalkthrough)\n\nHappy coding with ESP-IDF!"
+            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. If you haven't already,learn more about setting up your development environment and getting started with ESP-IDF projects, by checking out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.basic-usage%22)\n\nHappy coding!"
           }
         ]
       },
@@ -248,7 +248,7 @@
           {
             "id": "additional-resources-and-ui",
             "title": "Additional Resources and UI Exploration",
-            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:espIdf.startUIWalkthrough)",
+            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:espIdf.walkthrough.ui)",
             "media": {
               "markdown": "walkthroughs/additional-resources.md"
             }
