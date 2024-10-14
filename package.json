@@ -192,7 +192,7 @@
               "image": "media/walkthrough/status-bar.png",
               "altText": "Screenshot of Espressif IDF extension items in Status Bar"
             },
-            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. If you haven't already,learn more about setting up your development environment and getting started with ESP-IDF projects, by checking out our Basic Setup Walkthrough.\n\n[Start Basic Setup Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.basic-usage%22)\n\nHappy coding!"
+            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. \n\nIf you haven't already, learn more about setting up your development environment and getting started with ESP-IDF projects, by checking out our Basic Usage Guide Walkthrough.\n\n[Start Basic Usage Guide Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.basic-usage%22)\n\nHappy coding!"
           }
         ]
       },
@@ -212,25 +212,25 @@
           {
             "id": "extension-configuration",
             "title": "Configuring the ESP-IDF Extension",
-            "description": "Let's start by configuring the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.configureExtension)\n\nAlternatively, you can access this command through the Command Palette (Ctrl+Shift+P) by typing 'ESP-IDF: Configure ESP-IDF extension'.",
+            "description": "Let's start by configuring the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.setup.start)\n\nAlternatively, you can access this command through the Command Palette (Ctrl+Shift+P) by typing 'ESP-IDF: Configure ESP-IDF extension'.",
             "media": {
               "image": "media/walkthrough/configure-extension.png",
-              "altText": "Screenshot of ESP-IDF extension configuration wizard"
+              "altText": "GIF of ESP-IDF extension configuration wizard"
             }
           },
           {
             "id": "create-example-project",
             "title": "Creating an Example Project",
-            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.showExampleProject)\n\nAlternatively, you can open the Command Palette and type 'ESP-IDF: Show Examples Projects'.\n\n💡 Explore different examples to find one that suits your needs.",
+            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.examples.start)\n\nAlternatively, you can open the Command Palette and type 'ESP-IDF: Show Examples Projects'.\n\n💡 Explore different examples to find one that suits your needs.",
             "media": {
               "image": "media/walkthrough/create-example.png",
-              "altText": "Screenshot of creating an example project"
+              "altText": "GIF of creating an example project"
             }
           },
           {
             "id": "build-flash-monitor",
             "title": "Building, Flashing, and Monitoring Your Project",
-            "description": "Before proceeding, make sure to:\n\n1. Open your ESP-IDF project in VS Code\n2. Select the appropriate serial port and device\n\nThen, use the 'Build, Flash, and Monitor' button in the ESP-IDF Explorer view to compile your code, flash it to your device, and start monitoring the output.\n\n[Build, Flash, and Monitor](command:espIdf.buildFlashMonitor)",
+            "description": "Before proceeding, make sure to:\n\n1. Open your ESP-IDF project in VS Code\n2. Select the appropriate serial port and device\n\nThen, use the 'Build, Flash, and Monitor' button in the ESP-IDF Explorer view to compile your code, flash it to your device, and start monitoring the output.",
             "media": {
               "image": "media/walkthrough/build-flash-monitor.gif",
               "altText": "GIF showing the process of building, flashing, and monitoring an ESP-IDF project"

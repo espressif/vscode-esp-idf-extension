@@ -7,6 +7,6 @@ You'll learn about:
 - Hints viewer for error resolution
 - Status bar integration
 
-> 💡**Note:** If you're new to ESP-IDF or need help with initial setup, we recommend our **[Start Basic Setup Walkthrough](command:espIdf.startBasicSetupWalkthrough)** first.
+> 💡**Note:** If you're new to ESP-IDF or need help with initial setup, we recommend our **[Start Basic Setup Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.basic-usage%22)** first.
 
 Let's begin exploring the UI elements!
