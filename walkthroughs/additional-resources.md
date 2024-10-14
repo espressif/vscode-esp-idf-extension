@@ -23,7 +23,7 @@ To get a comprehensive overview of all the ESP-IDF extension's features and capa
 
 To start the UI Walkthrough, click the button below:
 
-[Start UI Walkthrough](command:espIdf.startUIWalkthrough)
+[Start UI Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.ui%22)
 
 By exploring these resources and familiarizing yourself with the extension's UI, you'll be well-equipped to tackle more advanced ESP-IDF projects and make the most of your development environment.
 
