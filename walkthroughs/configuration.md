@@ -1,21 +1,36 @@
 # Configure the ESP-IDF VS Code Extension
 
-Before you can use the features of the ESP-IDF VS Code extension, some configuration is required. This guide will walk you through the necessary steps.
+## 1. Install Prerequisites (macOS and Linux only)
+Follow the steps in our [ESP-IDF installation documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites) for a quick and simple process.
 
-## Prerequisites For Linux and macOS Users
+## 2. Select Setup Mode
+Choose the Express setup mode (recommended).
+![Express Setup Mode selection](../media/walkthrough/express-setup.png)
 
-Linux and macOS users need to install some prerequisites before using the extension. Our [guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites) makes this process straightforward.
+## 3. Choose ESP-IDF Version
+Expend dropdown menu and select an ESP-IDF version.
 
-## Prerequisites For Windows Users
+![ESP-IDF Version selection](../media/walkthrough/idf-version.png)
 
-Windows users don't need to install additional prerequisites as the ESP-IDF toolchain includes all necessary tools.
+## 4. Set Python Path (macOS and Linux only)
+Choose the appropriate Python path from the dropdown.
 
-## Installation Steps
+![Python Path selection](../media/walkthrough/python-selection.png)
 
+## 5. Install
+Click the Install button to begin the installation process.
+
+![Start Installation](../media/walkthrough/install-btn.png)
+
+## 6. Post-Installation Step (Linux only)
+After installation, run the following command in your preferred terminal:
+```
+sudo cp --update=none /home/hmp/.espressif/tools/openocd-esp32/v0.12.0-esp32-20240318/openocd-esp32/share/openocd/contrib/60-openocd.rules /etc/udev/rules.d
+```
 
 ## Next Steps
 
-After configuring the extension, you're ready to start developing with ESP-IDF in VS Code. You can now:
+Once configuration is complete, you're ready to start developing with ESP-IDF in VS Code. You can now:
 - Create a new project
 - Open an existing ESP-IDF project
 - Build, flash, and monitor your ESP device directly from VS Code
