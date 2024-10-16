@@ -222,7 +222,7 @@
             "title": "Creating an Example Project",
             "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.examples.start)\n\nAlternatively, you can open the Command Palette and type 'ESP-IDF: Show Examples Projects'.\n\n💡 Explore different examples to find one that suits your needs.",
             "media": {
-              "markdown": "walkthroughs/create-example.md"
+              "markdown": "walkthroughs/create-project.md"
             }
           },
           {
