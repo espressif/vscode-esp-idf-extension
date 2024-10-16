@@ -129,7 +129,13 @@ export async function flashCommand(
     }
     const errStr = `Failed to flash because of some unusual error. Check Terminal for more details`;
     OutputChannel.appendLine(errStr, "Flash");
-    Logger.errorNotify(errStr, error, "flashCommand unknown error");
+    Logger.errorNotify(
+      errStr,
+      error,
+      "flashCommand unknown error",
+      undefined,
+      false
+    );
     continueFlag = false;
   }
   FlashTask.isFlashing = false;

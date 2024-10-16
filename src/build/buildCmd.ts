@@ -103,7 +103,9 @@ export async function buildCommand(
     Logger.errorNotify(
       "Something went wrong while trying to build the project",
       error,
-      "buildCommand"
+      "buildCommand",
+      undefined,
+      false
     );
     continueFlag = false;
   }

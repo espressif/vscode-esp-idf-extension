@@ -49,7 +49,7 @@ jobs:
               return core.error(`No artifacts found`);
             }
             let body = `Download the artifacts for this pull request:\n`;
-            body += `You can test these changes by installing this VSIX by click menu `View` -> `Command Palette...`, type `Install from VSIX` and then select downloaded `esp-idf-extension.vsix` file to install the extension.`;
+            body += `You can test these changes by installing this VSIX by click menu **View** -> **Command Palette...**, type **Install from VSIX** and then select downloaded **esp-idf-extension.vsix** file to install the extension.`;
             for (const art of artifacts) {
               body += `\n* [${art.name}.zip](https://nightly.link/${owner}/${repo}/actions/artifacts/${art.id}.zip)`;
             }
