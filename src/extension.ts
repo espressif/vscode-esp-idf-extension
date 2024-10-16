@@ -3560,6 +3560,35 @@ export async function activate(context: vscode.ExtensionContext) {
     statusBarItems["currentIdfVersion"]
   );
 
+  // WALK-THROUGH
+  let disposable = vscode.commands.registerCommand(
+    "espIdf.openWalkthrough",
+    () => {
+      vscode.commands.executeCommand(
+        "workbench.action.openWalkthrough",
+        "espressif.esp-idf-extension#espIdf.walkthrough.ui"
+      );
+    }
+  );
+
+  context.subscriptions.push(disposable);
+
+  const hasWalkthroughBeenShown = await idfConf.readParameter(
+    "idf.hasWalkthroughBeenShown"
+  );
+
+  if (!hasWalkthroughBeenShown) {
+    await idfConf.writeParameter(
+      "idf.hasWalkthroughBeenShown",
+      true,
+      vscode.ConfigurationTarget.Global
+    );
+    vscode.commands.executeCommand(
+      "workbench.action.openWalkthrough",
+      "espressif.esp-idf-extension#espIdf.walkthrough.ui"
+    );
+  }
+
   // Hints Viewer
 
   const treeDataProvider = new ErrorHintProvider(context);

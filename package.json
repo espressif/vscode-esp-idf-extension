@@ -117,6 +117,143 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "walkthroughs": [
+      {
+        "id": "espIdf.walkthrough.ui",
+        "title": "ESP-IDF Extension UI Guide",
+        "description": "Explore the custom UI elements added by the Espressif IDF extension for VS Code",
+        "steps": [
+          {
+            "id": "ui-introduction",
+            "title": "UI Elements Overview",
+            "description": "This walkthrough will introduce you to the custom UI elements we've added to enhance your Espressif IDF development experience.",
+            "media": {
+              "markdown": "walkthroughs/welcome.md"
+            }
+          },
+          {
+            "id": "esp-idf-explorer",
+            "title": "ESP-IDF: Explorer",
+            "description": "The **ESP-IDF: Explorer** in the Activity Bar is your central hub for Espressif IDF development.\n\n- **Quick access** to all extension features and commands\n- **Project overview** including components and configurations\n- **Integrated terminal** for ESP-IDF specific commands\n\n[Open ESP-IDF Explorer](command:workbench.view.extension.idfViewController)\n\n💡 You can drag and drop the ESP-IDF Explorer view to rearrange it within your VS Code layout.",
+            "media": {
+              "image": "media/walkthrough/esp-idf-explorer.png",
+              "altText": "Screenshot of ESP-IDF: Explorer in Activity Bar"
+            }
+          },
+          {
+            "id": "commands-section",
+            "title": "Commands Section",
+            "description": "The **Commands Section** in the ESP-IDF Explorer provides quick access to all extension commands.\n\n- **Build**, **Flash**, and **Monitor** your project with a single click\n- **Configure** your project settings and menuconfig\n- **Manage** ESP-IDF and tools installations\n\n[Open ESP-IDF Commands](command:workbench.action.quickOpen?%22%3EESP-IDF%3A%22)\n\n💡 You can also access these commands through the VS Code Command Palette by typing 'ESP-IDF:'.",
+            "media": {
+              "image": "media/walkthrough/commands-section.png",
+              "altText": "Screenshot of Commands section in ESP-IDF: Explorer"
+            }
+          },
+          {
+            "id": "project-components",
+            "title": "Project Components",
+            "description": "The **Project Components** tree view in the Explorer allows you to navigate through the components inside the esp-idf components directory.\n\n- **Quickly browse** all available ESP-IDF components\n- **Easily include** components in your project\n- **Jump to source** of any component with a single click\n\n[Open Project Components](command:idfComponents.focus)\n\n💡 Right-click on a component to see additional options like 'Add to project' or 'Open documentation'.",
+            "media": {
+              "image": "media/walkthrough/project-components.png",
+              "altText": "Screenshot of Project Components tree view in Explorer"
+            }
+          },
+          {
+            "id": "peripheral-viewer",
+            "title": "ESP-IDF: Peripheral Viewer",
+            "description": "The **ESP-IDF: Peripheral Viewer** in the Debug Explorer allows you to inspect and interact with the peripherals of your ESP device during debugging sessions.\n\n- **Real-time updates** of peripheral registers\n- **Modify values** directly from the UI\n- **Custom views** for common peripherals like GPIO, UART, etc.\n\n[Open Peripheral Viewer](command:espIdf.peripheralView.focus)\n\n💡 The Peripheral Viewer is only available during active debug sessions.",
+            "media": {
+              "image": "media/walkthrough/peripheral-viewer.png",
+              "altText": "Screenshot of ESP-IDF: Peripheral Viewer in Debug Explorer"
+            }
+          },
+          {
+            "id": "hints-viewer",
+            "title": "Hints Viewer",
+            "description": "The **Hints Viewer** is a powerful tool to help you understand and resolve build errors and warnings.\n\n- **Automatic display** of hints based on problems in the Problems tab\n- **Search functionality** to find hints for specific errors\n- **In-editor hints** displayed when hovering over errors (squiggly lines)\n\nKey features:\n- View hints for build errors without leaving VS Code\n- Search for hints by typing the error message\n- Get context-specific help right in your code editor\n\n[Open Hints Viewer](command:workbench.view.extension.espIdfHints)\n\n💡 The Hints Viewer updates automatically as you work, providing real-time assistance for your ESP-IDF development.",
+            "media": {
+              "image": "media/walkthrough/hints-viewer.png",
+              "altText": "Screenshot of Hints Viewer panel and in-editor hints"
+            }
+          },
+          {
+            "id": "status-bar",
+            "title": "Status Bar Integration",
+            "description": "The **Status Bar** displays essential information and provides quick access to common actions for your Espressif IDF development.\n\n- **Current project** name and ESP-IDF version\n- **Quick actions** for build, flash, and monitor\n- **Port selection** for your ESP device\n\n💡 Hover over the ESP-IDF status bar items to see more options and information.",
+            "media": {
+              "image": "media/walkthrough/status-bar.png",
+              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
+            }
+          },
+          {
+            "id": "next-steps",
+            "title": "Next Steps",
+            "media": {
+              "image": "media/walkthrough/status-bar.png",
+              "altText": "Screenshot of Espressif IDF extension items in Status Bar"
+            },
+            "description": "Congratulations! You've completed the overview of the ESP-IDF extension's custom UI elements. \n\nIf you haven't already, learn more about setting up your development environment and getting started with ESP-IDF projects, by checking out our Basic Usage Guide Walkthrough.\n\n[Start Basic Usage Guide Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.basic-usage%22)\n\nHappy coding!"
+          }
+        ]
+      },
+      {
+        "id": "espIdf.walkthrough.basic-usage",
+        "title": "ESP-IDF Extension Basic Usage Guide",
+        "description": "Learn how to configure the ESP-IDF extension and use its basic features in VS Code",
+        "steps": [
+          {
+            "id": "introduction",
+            "title": "Introduction to ESP-IDF in VS Code",
+            "description": "This walkthrough will guide you through configuring the ESP-IDF extension and demonstrate its basic usage in Visual Studio Code.",
+            "media": {
+              "markdown": "walkthroughs/basic-usage-intro.md"
+            }
+          },
+          {
+            "id": "extension-configuration",
+            "title": "Configuring the ESP-IDF Extension",
+            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's configure the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.setup.start)\n\nAlternatively, access this command via the Command Palette (Ctrl+Shift+P) by typing 'ESP-IDF: Configure ESP-IDF extension'",
+            "media": {
+              "markdown": "walkthroughs/configuration.md"
+            }
+          },
+          {
+            "id": "create-example-project",
+            "title": "Creating an Example Project",
+            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.examples.start)\n\nAlternatively, you can open the Command Palette and type 'ESP-IDF: Show Examples Projects'.\n\n💡 Explore different examples to find one that suits your needs.",
+            "media": {
+              "markdown": "walkthroughs/create-project.md"
+            }
+          },
+          {
+            "id": "build-flash-monitor",
+            "title": "Building, Flashing, and Monitoring Your Project",
+            "description": "Before proceeding, make sure to:\n\n1. Open your ESP-IDF project in VS Code\n2. Select the appropriate serial port and device\n\nThen, use the 'Build, Flash, and Monitor' button in the ESP-IDF Explorer view to compile your code, flash it to your device, and start monitoring the output.",
+            "media": {
+              "image": "media/walkthrough/build-flash-monitor.gif",
+              "altText": "GIF showing the process of building, flashing, and monitoring an ESP-IDF project"
+            }
+          },
+          {
+            "id": "debug-project",
+            "title": "Debugging Your Project",
+            "description": "To debug your project, you'll need a board with JTAG capabilities or external tools such as a prog board. Ensure your hardware supports debugging before proceeding.\n\nThe ESP-IDF extension provides powerful debugging features, including:\n- Step through code line by line\n- Inspect variables and memory\n- Set conditional breakpoints\n- View call stack and threads\n- Live variable watching\n- Core dump analysis\n\nRefer to your board's documentation for specific debugging setup instructions.",
+            "media": {
+              "image": "media/walkthrough/debug-project.gif",
+              "altText": "GIF demonstrating debugging an ESP-IDF project"
+            }
+          },
+          {
+            "id": "additional-resources-and-ui",
+            "title": "Additional Resources and UI Exploration",
+            "description": "As a next step, we recommend that you go through the UI Walkthrough, it will introduce you to all the UI elements added with the extension.\n\n[Start UI Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.ui%22)",
+            "media": {
+              "markdown": "walkthroughs/additional-resources.md"
+            }
+          }
+        ]
+      }
+    ],
     "problemMatchers": [
       {
         "name": "espIdf",
@@ -232,6 +369,13 @@
       }
     ],
     "menus": {
+      "extension/context": [
+        {
+          "command": "espIdf.openWalkthrough",
+          "when": "extension =~ /^espressif.esp-idf-extension$/ && extensionStatus == installed",
+          "group": "zzz"
+      }
+      ],
       "editor/title": [
         {
           "command": "espIdf.searchError",
@@ -605,6 +749,12 @@
             "default": true,
             "scope": "window",
             "description": "%param.showOnboardingOnInit%"
+          },
+          "idf.hasWalkthroughBeenShown": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "description": "%param.hasWalkthroughBeenShown%"
           },
           "trace.poll_period": {
             "type": "number",
@@ -1028,6 +1178,10 @@
       }
     ],
     "commands": [
+      {
+        "command": "espIdf.openWalkthrough",
+        "title": "ESP-IDF: Open Get Started Walkthrough"
+      },
       {
         "command": "espIdf.searchError",
         "title": "%espIdf.searchError.title%"
