@@ -18,6 +18,7 @@
 
 import { EventEmitter } from "events";
 import {
+  commands,
   env,
   StatusBarAlignment,
   StatusBarItem,
@@ -30,10 +31,7 @@ import { ESP } from "../config";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { statusBarItems } from "../statusBar";
-import {
-  CommandKeys,
-  createCommandDictionary,
-} from "../cmdTreeView/cmdStore";
+import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 
 export enum QemuLaunchMode {
@@ -69,6 +67,14 @@ export class QemuManager extends EventEmitter {
   public async commandHandler() {
     const pickItems = [
       {
+        label: "QEMU Monitor",
+        description: "",
+      },
+      {
+        label: "QEMU Debug",
+        description: "",
+      },
+      {
         label: "Stop QEMU",
         description: "",
       },
@@ -81,6 +87,12 @@ export class QemuManager extends EventEmitter {
       switch (selectedOption.label) {
         case "Stop QEMU":
           QemuManager.instance.stop();
+          break;
+        case "QEMU Monitor":
+          commands.executeCommand("espIdf.monitorQemu");
+          break;
+        case "QEMU Debug":
+          commands.executeCommand("espIdf.qemuDebug");
           break;
         default:
           break;
@@ -96,10 +108,7 @@ export class QemuManager extends EventEmitter {
     idfTarget: string,
     workspaceFolder: Uri
   ) {
-    const buildPath = readParameter(
-      "idf.buildPath",
-      workspaceFolder
-    ) as string;
+    const buildPath = readParameter("idf.buildPath", workspaceFolder) as string;
     const qemuFile = Uri.joinPath(Uri.file(buildPath), "merged_qemu.bin");
     const qemuTcpPort = readParameter(
       "idf.qemuTcpPort",
@@ -137,9 +146,7 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(
-      workspaceFolder
-    );
+    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
     const qemuExecutable =
       modifiedEnv.IDF_TARGET === "esp32"
         ? "qemu-system-xtensa"
@@ -148,7 +155,7 @@ export class QemuManager extends EventEmitter {
         : "";
     if (!qemuExecutable) {
       throw new Error(
-        `Current IDF_TARGET ${modifiedEnv.IDF_TARGET} is not supported in Espressif QEMU. Only esp32 or esp32c3`
+        `${modifiedEnv.IDF_TARGET} is not supported by Espressif QEMU. Only esp32 or esp32c3 targets are supported.`
       );
     }
     const isQemuBinInPath = await isBinInPath(
@@ -162,11 +169,12 @@ export class QemuManager extends EventEmitter {
       );
     }
 
-    const qemuArgs: string[] = this.getLaunchArguments(mode, modifiedEnv.IDF_TARGET, workspaceFolder);
-    if (
-      typeof qemuArgs === "undefined" ||
-      qemuArgs.length < 1
-    ) {
+    const qemuArgs: string[] = this.getLaunchArguments(
+      mode,
+      modifiedEnv.IDF_TARGET,
+      workspaceFolder
+    );
+    if (typeof qemuArgs === "undefined" || qemuArgs.length < 1) {
       throw new Error("No QEMU launch arguments found.");
     }
 
@@ -174,10 +182,7 @@ export class QemuManager extends EventEmitter {
       this.qemuTerminal = window.createTerminal({
         name: "ESP-IDF QEMU",
         env: modifiedEnv,
-        cwd:
-          workspaceFolder.fsPath ||
-          modifiedEnv.IDF_PATH ||
-          process.cwd(),
+        cwd: workspaceFolder.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
         shellArgs: [],
         shellPath: env.shell,
         strictEnv: true,
@@ -220,8 +225,8 @@ export class QemuManager extends EventEmitter {
         commandDictionary[CommandKeys.QemuServer].tooltip;
       this._statusBarItem.command = CommandKeys.QemuServer;
       if (
-        commandDictionary[CommandKeys.QemuServer]
-          .checkboxState === TreeItemCheckboxState.Checked
+        commandDictionary[CommandKeys.QemuServer].checkboxState ===
+        TreeItemCheckboxState.Checked
       ) {
         this._statusBarItem.show();
       }
