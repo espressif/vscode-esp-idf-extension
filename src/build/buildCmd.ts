@@ -86,6 +86,15 @@ export async function buildCommand(
         await TaskManager.runTasks();
       }
     }
+    const buildDirPath = readParameter(
+      "idf.buildPath",
+      workspace
+    ) as string;
+    const qemuBinPath = join(buildDirPath, "merged_qemu.bin");
+    const qemuBinExists = await pathExists(qemuBinPath);
+    if (qemuBinExists) {
+      await vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
+    }
     if (!cancelToken.isCancellationRequested) {
       updateIdfComponentsTree(workspace);
       Logger.infoNotify("Build Successfully");
