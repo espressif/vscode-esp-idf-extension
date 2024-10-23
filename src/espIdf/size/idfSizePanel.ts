@@ -2,20 +2,19 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 20th June 2019 10:39:58 am
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../../logger/logger";
@@ -76,14 +75,19 @@ export class IDFSizePanel {
     this._panel = panel;
     this._extensionPath = extensionPath;
     this._webviewData = webviewData;
-    this.initWebview();
+    const isNewIdfSize: boolean =
+      webviewData["overview"] && webviewData["overview"].version;
+    this.initWebview(isNewIdfSize);
   }
   private disposeWebview() {
     IDFSizePanel.currentPanel = undefined;
   }
-  private initWebview() {
+  private initWebview(isNewIdfSize: boolean) {
     this._panel.iconPath = getWebViewFavicon(this._extensionPath);
-    this._panel.webview.html = this.getHtmlContent(this._panel.webview);
+    this._panel.webview.html = this.getHtmlContent(
+      this._panel.webview,
+      isNewIdfSize
+    );
     this._panel.onDidDispose(this.disposeWebview, null, this._disposables);
     this._panel.webview.onDidReceiveMessage(
       (msg) => {
@@ -94,7 +98,7 @@ export class IDFSizePanel {
           case "requestInitialValues":
             this._panel.webview.postMessage({
               command: "initialLoad",
-              ...this._webviewData
+              ...this._webviewData,
             });
             break;
           default:
@@ -110,10 +114,18 @@ export class IDFSizePanel {
     );
   }
 
-  private getHtmlContent(webview: vscode.Webview): string {
+  private getHtmlContent(
+    webview: vscode.Webview,
+    isNewIdfSize: boolean
+  ): string {
     const scriptPath = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this._extensionPath, "dist", "views", "size-bundle.js")
+        path.join(
+          this._extensionPath,
+          "dist",
+          "views",
+          isNewIdfSize ? "newSize-bundle.js" : "size-bundle.js"
+        )
       )
     );
     return `<!DOCTYPE html>
