@@ -25,8 +25,8 @@ export interface FlashCheckResult {
   resultType?: FlashCheckResultType;
 }
 
-export function isFlashEncryptionEnabled(workspaceRoot: vscode.Uri) {
-  const flashEncryption = utils.getConfigValueFromSDKConfig(
+export async function isFlashEncryptionEnabled(workspaceRoot: vscode.Uri) {
+  const flashEncryption = await utils.getConfigValueFromSDKConfig(
     "CONFIG_FLASH_ENCRYPTION_ENABLED",
     workspaceRoot
   );
@@ -74,7 +74,12 @@ export async function checkFlashEncryption(
       ];
 
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
-      Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
+      Logger.errorNotify(
+        errorMessage,
+        error,
+        "verifyFlashEncryption !ESP.FlashType.UART",
+        { tag: "Flash Encryption" }
+      );
       await showQuickPickWithCustomActions(
         "Pick one of the following actions to continue",
         customButtons
@@ -94,7 +99,12 @@ export async function checkFlashEncryption(
         "Flash encryption is enabled in the SDK configuration, but the project has not been rebuilt with these settings. Please rebuild the project to apply the encryption settings before attempting to flash the device.";
       const error = new Error(errorMessage);
       OutputChannel.appendLineAndShow(errorMessage, "Flash Encryption");
-      Logger.errorNotify(errorMessage, error, { tag: "Flash Encryption" });
+      Logger.errorNotify(
+        errorMessage,
+        error,
+        "verifyFlashEncryption !valueEncryptionEnabled",
+        { tag: "Flash Encryption" }
+      );
 
       return {
         success: false,
@@ -150,7 +160,12 @@ export async function checkFlashEncryption(
     }
   } catch (error) {
     OutputChannel.appendLineAndShow(error.message);
-    Logger.errorNotify(error.message, error, { tag: "Flash Encryption" });
+    Logger.errorNotify(
+      error.message,
+      error,
+      "verifyFlashEncryption checkFlashEncryption",
+      { tag: "Flash Encryption" }
+    );
     return { success: false, resultType: FlashCheckResultType.GenericError };
   }
 }

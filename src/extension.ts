@@ -1766,13 +1766,15 @@ export async function activate(context: vscode.ExtensionContext) {
     flash(false, ESP.FlashType.JTAG)
   );
   registerIDFCommand("espIdf.flashDFU", () => flash(false, ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashUart", () =>
-    flash(isFlashEncryptionEnabled(workspaceRoot), ESP.FlashType.UART)
-  );
+  registerIDFCommand("espIdf.flashUart", async () => {
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+    return flash(isEncrypted, ESP.FlashType.UART);
+  });
   registerIDFCommand("espIdf.buildDFU", () => build(ESP.FlashType.DFU));
-  registerIDFCommand("espIdf.flashDevice", () =>
-    flash(isFlashEncryptionEnabled(workspaceRoot))
-  );
+  registerIDFCommand("espIdf.flashDevice", async () => {
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+    return flash(isEncrypted);
+  });
   registerIDFCommand("espIdf.flashAndEncryptDevice", () => flash(true));
   registerIDFCommand("espIdf.buildDevice", build);
   registerIDFCommand("espIdf.monitorDevice", createMonitor);
@@ -3948,7 +3950,7 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           increment: 60,
         });
 
-        let encryptPartitions = isFlashEncryptionEnabled(workspaceRoot);
+        let encryptPartitions = await isFlashEncryptionEnabled(workspaceRoot);
         canContinue = await startFlashing(
           cancelToken,
           flashType,
@@ -4048,7 +4050,8 @@ async function startFlashing(
     if (jtagStatus.disabled) {
       Logger.errorNotify(
         vscode.l10n.t("Cannot flash via JTAG method: {0}", jtagStatus.message),
-        new Error("JTAG Disabled")
+        new Error("JTAG Disabled"),
+        "extension startFlashing"
       );
       return;
     } else if (jtagStatus.requiresVerification) {

@@ -55,10 +55,30 @@ export class ESPEFuseManager {
   }
 
   async summary(): Promise<ESPEFuseSummary> {
+    const eFuseFields = await this.readSummary();
+
+    const resp = {};
+    for (const name in eFuseFields) {
+      const fields = eFuseFields[name];
+      if (!fields.category) {
+        const error = new Error(
+          l10n.t("IDF Version >= 4.3.x required to have e-fuse view")
+        );
+        error.name = "IDF_VERSION_MIN_REQUIREMENT_ERROR";
+        throw error;
+      }
+      if (!resp[fields.category]) {
+        resp[fields.category] = [];
+      }
+      resp[fields.category].push(fields);
+    }
+    return resp;
+  }
+
+  async readSummary() {
     const tempFile = join(tmpdir(), "espefusejsondump.tmp");
     const pythonPath = await getVirtualEnvPythonPath(this.workspace);
 
-    // Execute espefuse.py
     await spawn(
       pythonPath,
       [
@@ -74,35 +94,22 @@ export class ESPEFuseManager {
       {}
     );
 
-    // Read and parse the JSON
     const eFuseFields = await readJson(tempFile);
 
-    // Clean up temp file
     unlink(tempFile, (err) => {
       if (err) {
         Logger.error(
-          "Failed to delete the tmp espfuse json file",
+          "Failed to delete the tmp espefuse json file",
           err,
-          "ESPEFuseManager summary"
+          "readSummary",
+          {
+            tag: "ESPeFuse",
+          }
         );
       }
     });
 
-    // Process the fields
-    const resp = {};
-    for (const name in eFuseFields) {
-      const fields = eFuseFields[name];
-      if (!fields.category) {
-        const error = new Error(l10n.t("IDF Version >= 4.3.x required to have e-fuse view"));
-        error.name = "IDF_VERSION_MIN_REQUIREMENT_ERROR";
-        throw error;
-      }
-      if (!resp[fields.category]) {
-        resp[fields.category] = [];
-      }
-      resp[fields.category].push(fields);
-    }
-    return resp;
+    return eFuseFields;
   }
 
   private get toolPath(): string {
