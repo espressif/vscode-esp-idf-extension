@@ -148,7 +148,7 @@ export class IDFMonitor {
     } catch (error) {}
   }
 
-  private isDebugSessionActive(): boolean {
+  private static isDebugSessionActive(): boolean {
     return debug.activeDebugSession !== undefined;
   }
 }
