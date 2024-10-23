@@ -182,5 +182,7 @@
   "Open ESP-IDF Terminal": "Abrir terminal ESP-IDF",
   "Doctor Command": "Comando médico",
   "Execute Custom Task": "Ejecutar tarea personalizada",
-  "Wait for ESP-IDF build or flash to finish": "Espere a que finalice la compilación o la actualización de ESP-IDF"
+  "Wait for ESP-IDF build or flash to finish": "Espere a que finalice la compilación o la actualización de ESP-IDF",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "Falta compile_commands.json. Esto puede causar errores con las extensiones de análisis de código.",
+  "Generate compile_commands.json": "Generar compile_commands.json"
 }
