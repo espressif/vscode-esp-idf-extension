@@ -195,5 +195,6 @@
   "USB-to-JTAG functionality is disabled ({0} is set).": "La funcionalidad USB a JTAG está deshabilitada (se ha establecido {0}).",
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG está deshabilitado por software ({0} se ha establecido con un valor impar: {1}).",
   "JTAG selection may be affected by strapping configuration ({0} is set).": "La selección de JTAG puede verse afectada por la configuración de strapping (se ha establecido {0}).",
-  "JTAG is not disabled.": "JTAG no está deshabilitado."
+  "JTAG is not disabled.": "JTAG no está deshabilitado.",
+  "IDF Version >= 4.3.x required to have e-fuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse"
 }

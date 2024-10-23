@@ -195,5 +195,6 @@
   "USB-to-JTAG functionality is disabled ({0} is set).": "USB-to-JTAG功能已禁用（已设置{0}）。",
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG已软禁用（{0}设置为奇数值：{1}）。",
   "JTAG selection may be affected by strapping configuration ({0} is set).": "JTAG选择可能受到硬件配置的影响（已设置{0}）。",
-  "JTAG is not disabled.": "JTAG未被禁用。"
+  "JTAG is not disabled.": "JTAG未被禁用。",
+  "IDF Version >= 4.3.x required to have e-fuse view": "需要 IDF 版本 >= 4.3.x 才能查看 e-fuse"
 }
