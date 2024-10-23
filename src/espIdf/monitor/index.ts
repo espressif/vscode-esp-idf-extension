@@ -18,7 +18,7 @@
 
 import { ESP } from "../../config";
 import { appendIdfAndToolsToPath, getUserShell } from "../../utils";
-import { window, Terminal, Uri, env } from "vscode";
+import { window, Terminal, Uri, env, debug } from "vscode";
 
 export interface MonitorConfig {
   baudRate: string;
@@ -97,7 +97,10 @@ export class IDFMonitor {
       "--toolchain-prefix",
       this.config.toolchainPrefix,
     ];
-    if (this.config.noReset && this.config.idfVersion >= "5.0") {
+    if (
+      this.isDebugSessionActive() ||
+      (this.config.noReset && this.config.idfVersion >= "5.0")
+    ) {
       args.splice(2, 0, "--no-reset");
     }
     if (this.config.enableTimestamps && this.config.idfVersion >= "4.4") {
@@ -143,5 +146,9 @@ export class IDFMonitor {
       this.terminal.sendText(ESP.CTRL_RBRACKET);
       this.terminal.sendText(`exit`);
     } catch (error) {}
+  }
+
+  private static isDebugSessionActive(): boolean {
+    return debug.activeDebugSession !== undefined;
   }
 }
