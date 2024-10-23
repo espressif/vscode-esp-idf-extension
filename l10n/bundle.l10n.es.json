@@ -182,5 +182,7 @@
   "Open ESP-IDF Terminal": "Abrir terminal ESP-IDF",
   "Doctor Command": "Comando médico",
   "Execute Custom Task": "Ejecutar tarea personalizada",
-  "Wait for ESP-IDF build or flash to finish": "Espere a que finalice la compilación o la actualización de ESP-IDF"
+  "Wait for ESP-IDF build or flash to finish": "Espere a que finalice la compilación o la actualización de ESP-IDF",
+  "Target {0} Set Successfully.": "Objetivo {0} configurado con éxito.",
+  "Unknown error occurred while setting IDF target.": "Ocurrió un error desconocido al configurar el objetivo IDF."
 }
