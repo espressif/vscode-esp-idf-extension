@@ -237,6 +237,7 @@ export class QemuManager extends EventEmitter {
   private registerQemuStatusBarItem() {
     if (!this._statusBarItem) {
       this._statusBarItem = window.createStatusBarItem(
+        CommandKeys.QemuServer,
         StatusBarAlignment.Right,
         1005
       );

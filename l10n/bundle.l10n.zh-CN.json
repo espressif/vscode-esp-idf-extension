@@ -4,7 +4,7 @@
   " has been updated": " 已经升级",
   "File project_description.json cannot be found.": "找不到文件project_description.json。",
   "Open a folder first.": "先打开一个文件夹。",
-  "Selected command is not available in WebIDE": "所选命令在 WebIDE 中不可用",
+  "Selected command is not available in Web": "所选命令在 Web 中不可用",
   "Use current folder: {workspace}": "使用当前文件夹：{workspace}",
   "Choose a container directory...": "选择容器目录...",
   "Select a directory to use": "选择要使用的目录",

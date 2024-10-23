@@ -86,6 +86,9 @@ export class PreCheck {
     );
   }
   public static notUsingWebIde(): boolean {
+    if (vscode.env.uiKind === vscode.UIKind.Web) {
+      return false;
+    }
     return process.env.WEB_IDE ? false : true;
   }
   public static openOCDVersionValidator(
