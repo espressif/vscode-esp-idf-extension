@@ -1390,3 +1390,27 @@ export function getUserShell() {
   // if no match, return null
   return null;
 }
+
+export async function getConfigValueFromBuild(
+  configKey: string,
+  workspacePath: vscode.Uri
+): Promise<string> {
+  const buildPath = idfConf.readParameter(
+    "idf.buildPath",
+    workspacePath
+  ) as string;
+  const jsonFilePath = path.join(buildPath, "config", "sdkconfig.json");
+  try {
+    const data = await readFile(jsonFilePath, "utf-8");
+    const config = JSON.parse(data);
+    if (config[configKey] !== undefined) {
+      // Key found, return the value assigned to it
+      return config[configKey];
+    } else {
+      // Key not found, throw an error
+      throw new Error(`The key ${configKey} was not found in ${jsonFilePath}.`);
+    }
+  } catch (error) {
+    throw new Error(`Failed to read or parse the JSON file: ${error.message}`);
+  }
+}
