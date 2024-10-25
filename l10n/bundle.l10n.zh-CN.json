@@ -62,6 +62,8 @@
   "{destFolder} already exists.": "{destFolder} 已存在。",
   "ESP-IDF Project has been imported": "ESP-IDF 项目已导入",
   "Merging binaries for flashing": "合并二进制文件以进行闪烁",
+  "ESP-IDF: Starting ESP-IDF QEMU Debug": "ESP-IDF：启动 ESP-IDF QEMU 调试",
+  "Error launching QEMU debugging": "启动 QEMU 调试时出错",
   "Select a partition to use": "选择要使用的分区",
   "Enter custom partition table offset": "输入自定义分区表偏移量",
   "Flash binary to this partition": "将二进制文件烧录到该分区",

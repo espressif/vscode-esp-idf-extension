@@ -2468,7 +2468,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           cancellable: true,
           location: ProgressLocation,
-          title: "ESP-IDF: Starting ESP-IDF QEMU Debug",
+          title: vscode.l10n.t("ESP-IDF: Starting ESP-IDF QEMU Debug"),
         },
         async (
           progress: vscode.Progress<{ message: string; increment: number }>,
@@ -2523,7 +2523,7 @@ export async function activate(context: vscode.ExtensionContext) {
           } catch (error) {
             const msg = error.message
               ? error.message
-              : "Error launching QEMU debugging";
+              : vscode.l10n.t("Error launching QEMU debugging");
             Logger.errorNotify(msg, error, "extension qemu debug");
           }
         }

@@ -62,6 +62,8 @@
   "{destFolder} already exists.": "{destFolder} ya existe.",
   "ESP-IDF Project has been imported": "El proyecto ESP-IDF ha sido importado.",
   "Merging binaries for flashing": "Fusionar binarios para flashear",
+  "ESP-IDF: Starting ESP-IDF QEMU Debug": "ESP-IDF: Iniciando la depuración QEMU de ESP-IDF",
+  "Error launching QEMU debugging": "Error al iniciar la depuración de QEMU",
   "Select a partition to use": "Seleccione una partición para usar",
   "Enter custom partition table offset": "Ingrese el desplazamiento de la tabla de particiones personalizada",
   "Flash binary to this partition": "Flash binario a esta partición",
