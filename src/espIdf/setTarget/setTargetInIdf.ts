@@ -29,6 +29,7 @@ import {
 import { ConfserverProcess } from "../menuconfig/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import * as vscode from "vscode";
 
 export async function setTargetInIDF(
   workspaceFolder: WorkspaceFolder,
@@ -71,11 +72,22 @@ export async function setTargetInIDF(
 
   setTargetArgs.push("set-target", selectedTarget.target);
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder.uri);
-  const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
-    cwd: workspaceFolder.uri.fsPath,
-    env: modifiedEnv,
-  });
-  Logger.info(setTargetResult.toString());
-  OutputChannel.append(setTargetResult.toString());
-  setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
+  try {
+    const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
+      cwd: workspaceFolder.uri.fsPath,
+      env: modifiedEnv,
+    });
+    Logger.info(setTargetResult.toString());
+    const msg = vscode.l10n.t(
+      "Target {0} Set Successfully.",
+      selectedTarget.target.toLocaleUpperCase()
+    );
+    OutputChannel.appendLineAndShow(msg, "Set Target");
+    Logger.infoNotify(msg);
+    setCCppPropertiesJsonCompilerPath(workspaceFolder.uri);
+  } catch (error) {
+    throw new Error(
+      `Failed to set target ${selectedTarget.target}: ${error.message}.`
+    );
+  }
 }
