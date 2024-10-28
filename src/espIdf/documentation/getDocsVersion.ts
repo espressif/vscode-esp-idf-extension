@@ -22,6 +22,7 @@ import { Logger } from "../../logger/logger";
 import { extensionContext, getEspIdfFromCMake } from "../../utils";
 import * as vscode from "vscode";
 import * as idfConf from "../../idfConfiguration";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -68,7 +69,11 @@ export function getDocsLocaleLang() {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
     localeLang = localeConf.locale === "zh-CN" ? "zh_CN" : "en";
   } catch (error) {
-    Logger.error("Error getting current vscode language", error, "getDocsVersion getDocsLocaleLang");
+    Logger.error(
+      "Error getting current vscode language",
+      error,
+      "getDocsVersion getDocsLocaleLang"
+    );
   }
   return localeLang;
 }
@@ -130,9 +135,7 @@ export async function getDocsUrl(
     workspace
   ) as string;
 
-  const adapterTargetName =
-    (idfConf.readParameter("idf.adapterTargetName", workspace) as string) ||
-    "esp32";
+  const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
   const idfVersion = await getEspIdfFromCMake(espIdfPath);
   const docVersions = await getDocsVersion();
   let docVersion = docVersions.find((docVer) => docVer.name === idfVersion);

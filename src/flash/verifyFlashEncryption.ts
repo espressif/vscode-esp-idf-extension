@@ -11,6 +11,7 @@ import { ESPEFuseManager } from "../efuse";
 import { getDocsUrl } from "../espIdf/documentation/getDocsVersion";
 import * as utils from "../utils";
 import * as vscode from "vscode";
+import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
 
 export enum FlashCheckResultType {
   Success,
@@ -112,10 +113,7 @@ export async function checkFlashEncryption(
       };
     }
 
-    const idfTarget = idfConf.readParameter(
-      "idf.adapterTargetName",
-      workspaceRoot
-    );
+    const idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
     const eFuse = new ESPEFuseManager(workspaceRoot);
     const data = await eFuse.readSummary();
 
