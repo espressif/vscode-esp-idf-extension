@@ -62,6 +62,8 @@
   "{destFolder} already exists.": "{destFolder} уже существует.",
   "ESP-IDF Project has been imported": "Проект ESP-IDF импортирован.",
   "Merging binaries for flashing": "Объединение бинарников для перепрошивки",
+  "ESP-IDF: Starting ESP-IDF QEMU Debug": "ESP-IDF: запуск отладки ESP-IDF QEMU",
+  "Error launching QEMU debugging": "Ошибка запуска отладки QEMU",
   "Select a partition to use": "Выберите раздел для использования",
   "Enter custom partition table offset": "Введите пользовательское смещение таблицы разделов",
   "Flash binary to this partition": "Записать двоичный файл в этот раздел",

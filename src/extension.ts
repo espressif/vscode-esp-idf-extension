@@ -110,7 +110,7 @@ import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
-import { IQemuOptions, QemuManager } from "./qemu/qemuManager";
+import { QemuLaunchMode, QemuManager } from "./qemu/qemuManager";
 import {
   PartitionItem,
   PartitionTreeDataProvider,
@@ -360,8 +360,37 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
     }
+    await binTimestampEventFunc(e);
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
+
+  const buildWatcher = vscode.workspace.createFileSystemWatcher(
+    "**/.bin_timestamp",
+    false,
+    false,
+    true
+  );
+
+  const binTimestampEventFunc = async (e: vscode.Uri) => {
+    const buildDirPath = idfConf.readParameter(
+      "idf.buildPath",
+      workspaceRoot
+    ) as string;
+    const qemuBinPath = path.join(buildDirPath, "merged_qemu.bin");
+    const qemuBinExists = await pathExists(qemuBinPath);
+    if (qemuBinExists) {
+      await vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
+    }
+  };
+
+  const buildWatcherDisposable = buildWatcher.onDidChange(
+    binTimestampEventFunc
+  );
+  context.subscriptions.push(buildWatcherDisposable);
+  const buildWatcherCreateDisposable = buildWatcher.onDidCreate(
+    binTimestampEventFunc
+  );
+  context.subscriptions.push(buildWatcherCreateDisposable);
 
   vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
     if (PreCheck.isWorkspaceFolderOpen()) {
@@ -430,9 +459,6 @@ export async function activate(context: vscode.ExtensionContext) {
         workspace: workspaceRoot,
       } as IOpenOCDConfig;
       openOCDManager.configureServer(openOCDConfig);
-      qemuManager.configure({
-        workspaceFolder: workspaceRoot,
-      } as IQemuOptions);
     }
     ConfserverProcess.dispose();
   });
@@ -968,9 +994,6 @@ export async function activate(context: vscode.ExtensionContext) {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
         openOCDManager.configureServer(openOCDConfig);
-        qemuManager.configure({
-          workspaceFolder: workspaceRoot,
-        } as IQemuOptions);
         ConfserverProcess.dispose();
         const coverageOptions = getCoverageOptions(workspaceRoot);
         covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
@@ -1177,10 +1200,6 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
       ESP.URL.Docs.IDF_INDEX = undefined;
-    } else if (e.affectsConfiguration("idf.qemuTcpPort")) {
-      qemuManager.configure({
-        tcpPort: idfConf.readParameter("idf.qemuTcpPort", workspaceRoot),
-      } as IQemuOptions);
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
         statusBarItems["port"].text =
@@ -2440,52 +2459,79 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.qemuDebug", () => {
     PreCheck.perform([openFolderCheck], async () => {
-      if (IDFMonitor.terminal) {
-        IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-      }
-      const buildDirPath = idfConf.readParameter(
-        "idf.buildPath",
+      const notificationMode = idfConf.readParameter(
+        "idf.notificationMode",
         workspaceRoot
       ) as string;
-      const qemuBinExists = await pathExists(
-        path.join(buildDirPath, "merged_qemu.bin")
-      );
-      if (!qemuBinExists) {
-        await mergeFlashBinaries(workspaceRoot);
-      }
-      if (qemuManager.isRunning()) {
-        qemuManager.stop();
-        await utils.sleep(1000);
-      }
-      qemuManager.configureWithDefValues();
-      qemuManager.start();
-      const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-        workspaceRoot
-      );
-      await vscode.debug.startDebugging(workspaceFolder, {
-        name: "GDB QEMU",
-        type: "gdbtarget",
-        request: "attach",
-        sessionID: "qemu.debug.session",
-        gdb: gdbPath,
-        initCommands: [
-          "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-          "mon reset halt",
-          "maintenance flush register-cache",
-          "thb app_main",
-        ],
-        target: {
-          type: "remote",
-          host: "localhost",
-          port: "1234",
+      const ProgressLocation =
+        notificationMode === idfConf.NotificationMode.All ||
+        notificationMode === idfConf.NotificationMode.Notifications
+          ? vscode.ProgressLocation.Notification
+          : vscode.ProgressLocation.Window;
+      await vscode.window.withProgress(
+        {
+          cancellable: true,
+          location: ProgressLocation,
+          title: vscode.l10n.t("ESP-IDF: Starting ESP-IDF QEMU Debug"),
         },
-      });
-      vscode.debug.onDidTerminateDebugSession(async (session) => {
-        if (session.configuration.sessionID === "qemu.debug.session") {
-          qemuManager.stop();
+        async (
+          progress: vscode.Progress<{ message: string; increment: number }>,
+          cancelToken: vscode.CancellationToken
+        ) => {
+          try {
+            if (IDFMonitor.terminal) {
+              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
+            }
+            const buildDirPath = idfConf.readParameter(
+              "idf.buildPath",
+              workspaceRoot
+            ) as string;
+            const qemuBinExists = await pathExists(
+              path.join(buildDirPath, "merged_qemu.bin")
+            );
+            if (!qemuBinExists) {
+              await mergeFlashBinaries(workspaceRoot);
+            }
+            if (qemuManager.isRunning()) {
+              qemuManager.stop();
+              await utils.sleep(1000);
+            }
+            await qemuManager.start(QemuLaunchMode.Debug, workspaceRoot);
+            const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+              workspaceRoot
+            );
+            await vscode.debug.startDebugging(workspaceFolder, {
+              name: "GDB QEMU",
+              type: "gdbtarget",
+              request: "attach",
+              sessionID: "qemu.debug.session",
+              gdb: gdbPath,
+              initCommands: [
+                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+                "mon reset halt",
+                "maintenance flush register-cache",
+                "thb app_main",
+              ],
+              target: {
+                type: "remote",
+                host: "localhost",
+                port: "1234",
+              },
+            });
+            vscode.debug.onDidTerminateDebugSession(async (session) => {
+              if (session.configuration.sessionID === "qemu.debug.session") {
+                qemuManager.stop();
+              }
+            });
+          } catch (error) {
+            const msg = error.message
+              ? error.message
+              : vscode.l10n.t("Error launching QEMU debugging");
+            Logger.errorNotify(msg, error, "extension qemu debug");
+          }
         }
-      });
+      );
     });
   });
 
@@ -3870,35 +3916,62 @@ const flash = (
 
 function createQemuMonitor() {
   PreCheck.perform([openFolderCheck], async () => {
-    const isQemuLaunched = qemuManager.isRunning();
-    if (isQemuLaunched) {
-      qemuManager.stop();
-    }
-    const qemuTcpPort = idfConf.readParameter(
-      "idf.qemuTcpPort",
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
       workspaceRoot
-    ) as number;
-    qemuManager.configure({
-      launchArgs: [
-        "-nographic",
-        "-machine",
-        "esp32",
-        "-drive",
-        "file=build/merged_qemu.bin,if=mtd,format=raw",
-        "-monitor stdio",
-        `-serial tcp::${qemuTcpPort},server,nowait`,
-      ],
-    } as IQemuOptions);
-    await qemuManager.start();
-    if (IDFMonitor.terminal) {
-      await utils.sleep(1000);
-    }
-    const serialPort = `socket://localhost:${qemuTcpPort}`;
-    const noReset = idfConf.readParameter(
-      "idf.monitorNoReset",
-      workspaceRoot
-    ) as boolean;
-    await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: ProgressLocation,
+        title: "ESP-IDF: Starting ESP-IDF QEMU Monitor",
+      },
+      async (
+        progress: vscode.Progress<{ message: string; increment: number }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        try {
+          const isQemuLaunched = qemuManager.isRunning();
+          if (isQemuLaunched) {
+            qemuManager.stop();
+          }
+          const buildDirPath = idfConf.readParameter(
+            "idf.buildPath",
+            workspaceRoot
+          ) as string;
+          const qemuBinExists = await pathExists(
+            path.join(buildDirPath, "merged_qemu.bin")
+          );
+          if (!qemuBinExists) {
+            await mergeFlashBinaries(workspaceRoot);
+          }
+          const qemuTcpPort = idfConf.readParameter(
+            "idf.qemuTcpPort",
+            workspaceRoot
+          ) as string;
+          await qemuManager.start(QemuLaunchMode.Monitor, workspaceRoot);
+          if (IDFMonitor.terminal) {
+            await utils.sleep(1000);
+          }
+          const serialPort = `socket://localhost:${qemuTcpPort}`;
+          const noReset = idfConf.readParameter(
+            "idf.monitorNoReset",
+            workspaceRoot
+          ) as boolean;
+          await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
+        } catch (error) {
+          const msg = error.message
+            ? error.message
+            : "Error launching QEMU monitor";
+          Logger.errorNotify(msg, error, "extension qemu monitor");
+        }
+      }
+    );
   });
 }
 
