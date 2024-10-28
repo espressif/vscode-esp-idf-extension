@@ -60,9 +60,9 @@ export const useNewSizeStore = defineStore("newSize", () => {
 
   function setFiles(files) {
     Object.keys(files).forEach((file) => {
-      const archiveFileName = file.split(":");
-      const archiveName = archiveFileName[0];
-      const fileName = archiveFileName[1];
+      const lastColonIndex = file.lastIndexOf(":");
+      const archiveName = file.substring(0, lastColonIndex);
+      const fileName = file.substring(lastColonIndex + 1);
       if (archives.value[archiveName] && !archives.value[archiveName].files) {
         archives.value[archiveName].files = {};
       }

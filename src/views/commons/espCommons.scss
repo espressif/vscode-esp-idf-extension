@@ -54,6 +54,10 @@ body.vscode-dark table.is-hoverable tbody tr:not(.is-selected):hover {
   background-color: var(--vscode-sideBar-dropBackground);
 }
 
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+  background-color: var(--vscode-badge-background);
+}
+
 .button {
   background-color: var(--vscode-button-background);
   border-color: var(--vscode-button-background);

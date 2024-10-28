@@ -62,7 +62,7 @@ onMounted(() => {
 
 <template>
   <table
-    class="table is-fullwidth is-hoverable is-size-7-mobile is-size-7-tablet is-size-6-desktop"
+    class="table is-striped is-fullwidth is-hoverable is-size-7-mobile is-size-7-tablet is-size-6-desktop"
   >
     <thead>
       <tr class="is-uppercase">
