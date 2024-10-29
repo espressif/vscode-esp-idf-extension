@@ -1,3 +1,5 @@
+.. _flash_encryption:
+
 Flash Encryption
 ========================
 
@@ -5,7 +7,7 @@ Flash Encryption secures the device's flash memory contents. Once enabled, the f
 
 Let's open an ESP-IDF project. For this tutorial, we will use the ``security/flash_encryption`` example.
 
-1. Navigate to **View** > **Command Palette** and search for the **ESP-IDF: Show Example Projects** command, then choose ``Use Current ESP-IDF (/path/to/esp-idf)``. If you don't see this option, please review the setup in the :doc:`Installation tutorial <./install>`.
+1. Navigate to **View** > **Command Palette** and search for the **ESP-IDF: Show Example Projects** command, then choose ``Use Current ESP-IDF (/path/to/esp-idf)``. If you don't see this option, please review the setup in the :ref:`Install ESP-IDF and Tools <installation>`.
 
 2. A window will open with a list of projects. Search for ``flash_encryption``. You will see a **Create project using example flash_encryption** button at the top and a description of the project below. Click the button, and the project will open in a new window.
 
@@ -19,7 +21,7 @@ Let's open an ESP-IDF project. For this tutorial, we will use the ``security/fla
    - Set the Flashing Method to UART
 
 .. note::
-   In case this step is not clear, take a look at the :doc:`Basic Use Tutorial <./basic_use>`.
+   In case this step is not clear, take a look at the :ref:`Build the project <build the project>`.
 
 4. Use the Command Palette with ``ESP-IDF: SDK Configuration editor (Menuconfig)`` to open the SDK Config Menu. Search for **flash encryption** and enable the following option:
 

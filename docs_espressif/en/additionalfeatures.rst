@@ -13,6 +13,7 @@ Additional IDE Features
     Docker container <additionalfeatures/docker-container>
     ESP-IDF Terminal<additionalfeatures/esp-terminal>
     EFuse Explorer<additionalfeatures/efuse>
+    Flash Encryption<additionalfeatures/flash-encryption>
     Heap Tracing<additionalfeatures/heap-tracing>
     Hints viewer<additionalfeatures/hints-viewer>
     Install ESP-IDF Components<additionalfeatures/install-esp-components>
