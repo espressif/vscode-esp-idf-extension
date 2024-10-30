@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { Progress, Uri } from "vscode";
+import { l10n, Progress, window, Uri } from "vscode";
 import { getExamplesList, IExampleCategory } from "../examples/Example";
 import { IComponent } from "../espIdf/idfComponent/IdfComponent";
 import * as idfConf from "../idfConfiguration";
@@ -23,9 +23,12 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
+import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
+import { IdfSetup } from "../views/setup/types";
 
 export interface INewProjectArgs {
   espIdfPath: string;
+  espIdfToolsPath: string;
   espAdfPath: string;
   espMdfPath: string;
   espMatterPath: string;
@@ -63,11 +66,33 @@ export async function getNewProjectArgs(
   progress.report({ increment: 10, message: "Loading ESP-IDF Boards list..." });
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
-  progress.report({ increment: 10, message: "Loading ESP-IDF Target list..." });
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspace
-  ) as string;
+  progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
+  const idfSetups = await getPreviousIdfSetups(true);
+  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const pickItems: {description: string, label: string, target: IdfSetup}[] = [];
+  for (const idfSetup of onlyValidIdfSetups) {
+    pickItems.push({
+      description: `ESP-IDF v${idfSetup.version}`,
+      label: l10n.t(`Use ESP-IDF {espIdfPath}`, {
+        espIdfPath: idfSetup.idfPath,
+      }),
+      target: idfSetup,
+    });
+  }
+  progress.report({ increment: 10, message: "Select ESP-IDF to use..." });
+  const espIdfPathToUse = await window.showQuickPick(
+    pickItems,
+    {
+      placeHolder: l10n.t("Select framework to use"),
+    }
+  );
+  if (!espIdfPathToUse) {
+    Logger.infoNotify(
+      l10n.t("No framework selected to load examples.")
+    );
+    return;
+  }
+  const idfSetup = espIdfPathToUse.target;
   const espAdfPath = idfConf.readParameter(
     "idf.espAdfPath",
     workspace
@@ -90,9 +115,9 @@ export async function getNewProjectArgs(
   ) as string;
   let templates: { [key: string]: IExampleCategory } = {};
   templates["Extension"] = getExamplesList(extensionPath, "templates");
-  const idfExists = await dirExistPromise(espIdfPath);
+  const idfExists = await dirExistPromise(idfSetup.idfPath);
   if (idfExists) {
-    const idfTemplates = getExamplesList(espIdfPath);
+    const idfTemplates = getExamplesList(idfSetup.idfPath);
     templates["ESP-IDF"] = idfTemplates;
   }
   const adfExists = await dirExistPromise(espAdfPath);
@@ -124,8 +149,9 @@ export async function getNewProjectArgs(
   return {
     boards: espBoards,
     components,
+    espIdfToolsPath: idfSetup.toolsPath,
     espAdfPath: adfExists ? espAdfPath : undefined,
-    espIdfPath: idfExists ? espIdfPath : undefined,
+    espIdfPath: idfExists ? idfSetup.idfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
     espMatterPath: matterExists ? espMatterPath : undefined,
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,

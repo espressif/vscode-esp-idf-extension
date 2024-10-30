@@ -403,9 +403,9 @@ export async function copyFromSrcProject(
   srcDirPath: string,
   destinationDir: vscode.Uri
 ) {
+  await copy(srcDirPath, destinationDir.fsPath);
   await createVscodeFolder(destinationDir);
   await createDevContainer(destinationDir.fsPath);
-  await copy(srcDirPath, destinationDir.fsPath);
 }
 
 export function getVariableFromCMakeLists(workspacePath: string, key: string) {
