@@ -226,12 +226,19 @@
             }
           },
           {
-            "id": "build-flash-monitor",
-            "title": "Building, Flashing, and Monitoring Your Project",
-            "description": "Before proceeding, make sure to:\n\n1. Open your ESP-IDF project in VS Code\n2. Select the appropriate serial port and device\n\nThen, use the 'Build, Flash, and Monitor' button in the ESP-IDF Explorer view to compile your code, flash it to your device, and start monitoring the output.",
+            "id": "setup-project",
+            "title": "Setting Up Your Project",
+            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[Select Flash Method](command:espIdf.selectFlashMethodAndFlash)" ,
             "media": {
-              "image": "media/walkthrough/build-flash-monitor.gif",
-              "altText": "GIF showing the process of building, flashing, and monitoring an ESP-IDF project"
+              "markdown": "walkthroughs/setup-project.md"
+            }
+          },
+          {
+            "id": "build-flash-monitor",
+            "title": "Building, Flashing, and Monitoring",
+            "description": "Now that your project is configured, let's build the code, flash it to your device, and monitor the output.\n\nYou can perform these operations individually or all at once using the 'Build, Flash and Monitor' command.\n\n[Build, Flash and Monitor](command:espIdf.buildFlashMonitor)\n\nAlternatively, access individual commands through the ESP-IDF Explorer view or Command Palette.",
+            "media": {
+              "markdown": "walkthroughs/build-flash-monitor.md"
             }
           },
           {
@@ -239,8 +246,15 @@
             "title": "Debugging Your Project",
             "description": "To debug your project, you'll need a board with JTAG capabilities or external tools such as a prog board. Ensure your hardware supports debugging before proceeding.\n\nThe ESP-IDF extension provides powerful debugging features, including:\n- Step through code line by line\n- Inspect variables and memory\n- Set conditional breakpoints\n- View call stack and threads\n- Live variable watching\n- Core dump analysis\n\nRefer to your board's documentation for specific debugging setup instructions.",
             "media": {
-              "image": "media/walkthrough/debug-project.gif",
-              "altText": "GIF demonstrating debugging an ESP-IDF project"
+              "markdown": "walkthroughs/debug-project.md"
+            }
+          },
+          {
+            "id": "troubleshooting",
+            "title": "Troubleshooting Guide",
+            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[Run Doctor Command](command:espIdf.doctorCommand)",
+            "media": {
+              "markdown": "walkthroughs/troubleshooting.md"
             }
           },
           {

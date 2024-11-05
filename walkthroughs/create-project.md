@@ -14,8 +14,8 @@ After clicking the button, you'll be prompted to choose a location where the pro
 
 ## Next Steps
 
+For more information, you can check our [Start a ESP-IDF Project](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html) documentation.
+
 Once you've created your project:
 - Explore the project structure in VS Code
 - Review the example code to understand its functionality
-- Build and flash the project to your ESP device
-- Modify the code to experiment and learn

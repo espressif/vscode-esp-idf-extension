@@ -30,6 +30,8 @@ sudo cp --update=none /home/hmp/.espressif/tools/openocd-esp32/v0.12.0-esp32-202
 
 ## Next Steps
 
+In case you get stuck, you can always follow the in depth [Installation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html) documentation.
+
 Once configuration is complete, you're ready to start developing with ESP-IDF in VS Code. You can now:
 - Create a new project
 - Open an existing ESP-IDF project

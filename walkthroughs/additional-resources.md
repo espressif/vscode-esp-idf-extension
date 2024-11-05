@@ -21,7 +21,7 @@ Congratulations on completing the ESP-IDF Basic Usage Walkthrough! To further en
 
 To get a comprehensive overview of all the ESP-IDF extension's features and capabilities, we recommend taking our UI Walkthrough. This interactive guide will introduce you to all the UI elements added with the extension.
 
-To start the UI Walkthrough, click the button below:
+To start the UI Walkthrough, click the link below:
 
 [Start UI Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.ui%22)
 
