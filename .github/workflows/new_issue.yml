@@ -6,7 +6,8 @@ on: issues
 jobs:
   sync_issues_to_jira:
     name: Sync issues to Jira
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+             macos
     steps:
       - uses: actions/checkout@master
       - name: Sync GitHub issues to Jira project
