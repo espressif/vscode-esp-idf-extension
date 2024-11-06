@@ -115,7 +115,61 @@ export async function checkFlashEncryption(
 
     const idfTarget = await getIdfTargetFromSdkconfig(workspaceRoot);
     const eFuse = new ESPEFuseManager(workspaceRoot);
-    const data = await eFuse.readSummary();
+
+    const notificationMode = idfConf.readParameter(
+      "idf.notificationMode",
+      workspaceRoot
+    ) as string;
+    const ProgressLocation =
+      notificationMode === idfConf.NotificationMode.All ||
+      notificationMode === idfConf.NotificationMode.Notifications
+        ? vscode.ProgressLocation.Notification
+        : vscode.ProgressLocation.Window;
+    const data = await vscode.window.withProgress(
+      {
+        cancellable: true,
+        location: ProgressLocation,
+        title: "ESP-IDF: Checking encryption eFuse...",
+      },
+      async (
+        progress: vscode.Progress<{
+          message?: string;
+          increment?: number;
+        }>,
+        cancelToken: vscode.CancellationToken
+      ) => {
+        return new Promise(async (resolve, reject) => {
+          // Register cancellation handler
+          cancelToken.onCancellationRequested(() => {
+            Logger.info("eFuse check cancelled by user", {
+              tag: "Flash Encryption",
+            });
+            reject(new Error("Operation cancelled by user"));
+          });
+
+          try {
+            // Start the eFuse reading operation
+            progress.report({ message: "Reading eFuse data..." });
+            const summary = await eFuse.readSummary();
+
+            if (cancelToken.isCancellationRequested) {
+              reject(new Error("Operation cancelled by user"));
+              return;
+            }
+
+            resolve(summary);
+          } catch (error) {
+            Logger.errorNotify(
+              "Failed to read eFuse summary",
+              error,
+              "verifyFlashEncryption readSummary",
+              { tag: "Flash Encryption" }
+            );
+            reject(error);
+          }
+        });
+      }
+    );
 
     // ESP32 boards have property FLASH_CRYPT_CNT
     // All other boards have property SPI_BOOT_CRYPT_CNT
@@ -157,6 +211,17 @@ export async function checkFlashEncryption(
       };
     }
   } catch (error) {
+    if (error.message === "Operation cancelled by user") {
+      OutputChannel.appendLineAndShow(
+        "eFuse check cancelled by user",
+        "Flash Encryption"
+      );
+      return {
+        success: false,
+        resultType: FlashCheckResultType.GenericError,
+      };
+    }
+
     OutputChannel.appendLineAndShow(error.message);
     Logger.errorNotify(
       error.message,
