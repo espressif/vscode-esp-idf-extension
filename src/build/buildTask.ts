@@ -23,7 +23,6 @@ import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import {
   appendIdfAndToolsToPath,
-  compareVersion,
   getEspIdfFromCMake,
   getSDKConfigFilePath,
   isBinInPath,
@@ -119,17 +118,10 @@ export class BuildTask {
     if (!cmakeCacheExists) {
       const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
       let defaultCompilerArgs;
-      const useEqualSign = compareVersion(espIdfVersion, "4.4") >= 0;
       if (espIdfVersion === "x.x") {
         Logger.warn(
           "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
         );
-        defaultCompilerArgs = [
-          "-G=Ninja",
-          "-DPYTHON_DEPS_CHECKED=1",
-          "-DESP_PLATFORM=1",
-        ];
-      } else if (useEqualSign) {
         defaultCompilerArgs = [
           "-G=Ninja",
           "-DPYTHON_DEPS_CHECKED=1",
@@ -153,19 +145,11 @@ export class BuildTask {
       }
       let buildPathArgsIndex = compilerArgs.indexOf("-B");
       if (buildPathArgsIndex !== -1) {
-        compilerArgs.splice(buildPathArgsIndex, useEqualSign ? 1 : 2);
+        compilerArgs.splice(buildPathArgsIndex, 2);
       }
-      if (useEqualSign) {
-        compilerArgs.push(`-B=${this.buildDirPath}`);
-      } else {
-        compilerArgs.push("-B", this.buildDirPath);
-      }
+      compilerArgs.push("-B", this.buildDirPath);
       if (compilerArgs.indexOf("-S") === -1) {
-        if (useEqualSign) {
-          compilerArgs.push(`-S=${this.currentWorkspace.fsPath}`);
-        } else {
-          compilerArgs.push("-S", this.currentWorkspace.fsPath);
-        }
+        compilerArgs.push("-S", this.currentWorkspace.fsPath);
       }
 
       const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);
@@ -261,7 +245,9 @@ export class BuildTask {
       this.currentWorkspace
     ) as string;
 
-    const adapterTargetName = await getIdfTargetFromSdkconfig(this.currentWorkspace);
+    const adapterTargetName = await getIdfTargetFromSdkconfig(
+      this.currentWorkspace
+    );
     const showTaskOutput =
       notificationMode === idfConf.NotificationMode.All ||
       notificationMode === idfConf.NotificationMode.Output
