@@ -123,12 +123,6 @@ export class BuildTask {
           "Could not determine ESP-IDF version. Using default compiler arguments for the latest known version."
         );
         defaultCompilerArgs = [
-          "-G=Ninja",
-          "-DPYTHON_DEPS_CHECKED=1",
-          "-DESP_PLATFORM=1",
-        ];
-      } else {
-        defaultCompilerArgs = [
           "-G",
           "Ninja",
           "-DPYTHON_DEPS_CHECKED=1",
