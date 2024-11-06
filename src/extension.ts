@@ -3678,9 +3678,12 @@ function checkAndNotifyMissingCompileCommands() {
       try {
         const isIdfProject = utils.checkIsProjectCmakeLists(folder.uri.fsPath);
         if (isIdfProject) {
+          const buildDirPath = idfConf.readParameter(
+            "idf.buildPath",
+            workspaceRoot
+          ) as string;
           const compileCommandsPath = path.join(
-            folder.uri.fsPath,
-            "build",
+            buildDirPath,
             "compile_commands.json"
           );
           const compileCommandsExists = await pathExists(compileCommandsPath);
