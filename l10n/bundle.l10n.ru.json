@@ -186,5 +186,7 @@
   "Execute Custom Task": "Выполнить пользовательскую задачу",
   "Wait for ESP-IDF build or flash to finish": "Подождите завершения сборки или прошивки ESP-IDF.",
   "Target {0} Set Successfully.": "Цель {0} успешно установлена.",
-  "Unknown error occurred while setting IDF target.": "Произошла неизвестная ошибка при установке цели IDF."
+  "Unknown error occurred while setting IDF target.": "Произошла неизвестная ошибка при установке цели IDF.",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "Отсутствует файл compile_commands.json. Это может вызвать ошибки в работе расширений для анализа кода.",
+  "Generate compile_commands.json": "Создать compile_commands.json"
 }

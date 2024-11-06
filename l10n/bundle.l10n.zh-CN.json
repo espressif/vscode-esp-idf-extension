@@ -186,5 +186,7 @@
   "Execute Custom Task": "执行自定义任务",
   "Wait for ESP-IDF build or flash to finish": "等待 ESP-IDF 构建或刷新完成",
   "Target {0} Set Successfully.": "目标 {0} 设置成功",
-  "Unknown error occurred while setting IDF target.": "设置 IDF 目标时发生未知错误"
+  "Unknown error occurred while setting IDF target.": "设置 IDF 目标时发生未知错误",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "缺少 compile_commands.json 文件。这可能会导致代码分析扩展出错。",
+  "Generate compile_commands.json": "生成 compile_commands.json"
 }
