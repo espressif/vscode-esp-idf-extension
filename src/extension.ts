@@ -404,8 +404,9 @@ export async function activate(context: vscode.ExtensionContext) {
             );
             if (statusBarItems && statusBarItems["port"]) {
               statusBarItems["port"].text =
-                `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
-                idfConf.readParameter("idf.port", workspaceRoot);
+                `$(${
+                  commandDictionary[CommandKeys.SelectSerialPort].iconId
+                }) ` + idfConf.readParameter("idf.port", workspaceRoot);
             }
             if (statusBarItems["projectConf"]) {
               statusBarItems["projectConf"].dispose();
@@ -425,10 +426,12 @@ export async function activate(context: vscode.ExtensionContext) {
             if (statusBarItems["currentIdfVersion"]) {
               statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
                 ? `$(${
-                    commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
+                      .iconId
                   }) ESP-IDF v${currentIdfSetup.version}`
                 : `$(${
-                    commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
+                      .iconId
                   }) ESP-IDF InvalidSetup`;
             }
             const coverageOptions = getCoverageOptions(workspaceRoot);
@@ -463,7 +466,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       ConfserverProcess.dispose();
     })
-  )
+  );
 
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
@@ -3702,7 +3705,11 @@ function checkAndNotifyMissingCompileCommands() {
         const msg = error.message
           ? error.message
           : "Error checking for compile_commands.json file.";
-        Logger.error(msg, error, "extension checkAndNotifyMissingCompileCommands");
+        Logger.error(
+          msg,
+          error,
+          "extension checkAndNotifyMissingCompileCommands"
+        );
       }
     });
   }
