@@ -107,7 +107,7 @@
   "ESP-IDF: Please wait mapping your rainmaker cloud account with the VS Code Extension, this could take a little while": "ESP-IDF: подождите, сопоставьте свою облачную учетную запись Rainmaker с расширением VS Code Extension, это может занять некоторое время.",
   "Rainmaker Cloud is connected successfully (via OAuth)!": "Rainmaker Cloud успешно подключен (через OAuth)!",
   "Failed to sign-in with Rainmaker (via OAuth)": "Не удалось войти в систему с помощью Rainmaker (через OAuth).",
-  "Use current ESP-IDF {espIdfPath}": "Использовать текущий ESP-IDF {espIdfPath}",
+  "Use current ESP-IDF {espIdfPath}": "Используйте ESP-IDF {espIdfPath}",
   "Use current ESP-ADF {espAdfPath}": "Использовать текущий ESP-ADF {espAdfPath}",
   "Use current ESP-MDF {espMdfPath}": "Использовать текущий ESP-MDF {espMdfPath}",
   "Use current ESP-Matter {matterPathDir}": "Использовать текущий ESP-Matter {matterPathDir}",
