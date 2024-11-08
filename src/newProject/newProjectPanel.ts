@@ -124,6 +124,8 @@ export class NewProjectPanel {
             message.template
           ) {
             this.createProject(
+              newProjectArgs.espIdfPath,
+              newProjectArgs.espIdfToolsPath,
               JSON.parse(message.components),
               message.port,
               message.containerFolder,
@@ -197,6 +199,8 @@ export class NewProjectPanel {
   }
 
   private async createProject(
+    idfPath: string,
+    idfToolsPath: string,
     components: IComponent[],
     port: string,
     projectDirectory: string,
@@ -283,6 +287,8 @@ export class NewProjectPanel {
           );
           const settingsJson = await setCurrentSettingsInTemplate(
             settingsJsonPath,
+            idfPath,
+            idfToolsPath,
             port,
             openOcdConfigs,
             workspaceFolder

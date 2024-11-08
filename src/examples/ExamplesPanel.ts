@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ensureDir, readFile } from "fs-extra";
+import { ensureDir, readFile, readJSON, writeJSON } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Logger } from "../logger/logger";
@@ -22,6 +22,7 @@ import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
+import { IdfSetup } from "../views/setup/types";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -29,7 +30,8 @@ export class ExamplesPlanel {
   public static createOrShow(
     extensionPath: string,
     targetFrameworkFolder: string,
-    targetDesc: string
+    targetDesc: string,
+    idfSetup: IdfSetup
   ) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -41,7 +43,8 @@ export class ExamplesPlanel {
         extensionPath,
         column,
         targetFrameworkFolder,
-        targetDesc
+        targetDesc,
+        idfSetup
       );
     }
   }
@@ -54,7 +57,8 @@ export class ExamplesPlanel {
     extensionPath: string,
     column: vscode.ViewColumn,
     targetFrameworkFolder: string,
-    targetDesc: string
+    targetDesc: string,
+    idfSetup: IdfSetup
   ) {
     const panelTitle = vscode.l10n.t("{targetDesc} Examples", { targetDesc });
     this.panel = vscode.window.createWebviewPanel(
@@ -111,6 +115,16 @@ export class ExamplesPlanel {
                 vscode.Uri.file(resultFolder)
               );
               const projectPath = vscode.Uri.file(resultFolder);
+              const settingsJsonPath = path.join(
+                resultFolder,
+                ".vscode",
+                "settings.json"
+              );
+              await this.setCurrentSettingsInTemplate(
+                settingsJsonPath,
+                idfSetup.idfPath,
+                idfSetup.toolsPath
+              );
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
               const msg = `Error copying ESP-IDF example.`;
@@ -165,7 +179,11 @@ export class ExamplesPlanel {
             ComponentManagerUIPanel.show(extensionPath, emptyURI);
           } catch (error) {
             OutputChannel.appendLine(error.message);
-            Logger.errorNotify(error.message, error, "ExamplesPanel show registry");
+            Logger.errorNotify(
+              error.message,
+              error,
+              "ExamplesPanel show registry"
+            );
           }
         default:
           return;
@@ -196,6 +214,20 @@ export class ExamplesPlanel {
     this.panel.webview.postMessage({
       command: "set_initial_example",
       selected_example: selectedExample,
+    });
+  }
+
+  private async setCurrentSettingsInTemplate(
+    settingsJsonPath: string,
+    idfPathDir: string,
+    toolsPath: string
+  ) {
+    const settingsJson = await readJSON(settingsJsonPath);
+    const isWin = process.platform === "win32" ? "Win" : "";
+    settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
+    settingsJson["idf.toolsPath" + isWin] = toolsPath;
+    await writeJSON(settingsJsonPath, settingsJson, {
+      spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
   }
 }

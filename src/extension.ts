@@ -130,7 +130,10 @@ import {
   getProjectConfigurationElements,
   ProjectConfigStore,
 } from "./project-conf";
-import { clearPreviousIdfSetups } from "./setup/existingIdfSetups";
+import {
+  clearPreviousIdfSetups,
+  getPreviousIdfSetups,
+} from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
@@ -161,6 +164,7 @@ import {
   createCommandDictionary,
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
+import { IdfSetup } from "./views/setup/types";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1955,19 +1959,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.examples.start", async () => {
-    const pickItems = await getFrameworksPickItems();
-    if (!pickItems || pickItems.length == 0) {
-      return Logger.infoNotify(vscode.l10n.t("No ESP-IDF frameworks found"));
-    }
-    const examplesFolder = await vscode.window.showQuickPick(pickItems, {
-      placeHolder: vscode.l10n.t("Select framework to use"),
-    });
-    if (!examplesFolder) {
-      Logger.infoNotify(
-        vscode.l10n.t("No framework selected to load examples.")
-      );
-      return;
-    }
     try {
       const notificationMode = idfConf.readParameter(
         "idf.notificationMode",
@@ -1988,6 +1979,24 @@ export async function activate(context: vscode.ExtensionContext) {
           progress: vscode.Progress<{ message: string; increment: number }>
         ) => {
           try {
+            const pickItems = await getFrameworksPickItems();
+            if (!pickItems || pickItems.length == 0) {
+              return Logger.infoNotify(
+                vscode.l10n.t("No ESP-IDF frameworks found")
+              );
+            }
+            const examplesFolder = await vscode.window.showQuickPick(
+              pickItems,
+              {
+                placeHolder: vscode.l10n.t("Select framework to use"),
+              }
+            );
+            if (!examplesFolder) {
+              Logger.infoNotify(
+                vscode.l10n.t("No framework selected to load examples.")
+              );
+              return;
+            }
             const doesFolderExist = await utils.dirExistPromise(
               examplesFolder.target
             );
@@ -1998,7 +2007,8 @@ export async function activate(context: vscode.ExtensionContext) {
             ExamplesPlanel.createOrShow(
               context.extensionPath,
               examplesFolder.target,
-              examplesFolder.description
+              examplesFolder.description,
+              examplesFolder.idfSetup
             );
           } catch (error) {
             Logger.errorNotify(
@@ -3669,10 +3679,6 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function getFrameworksPickItems() {
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspaceRoot
-  ) as string;
   const espAdfPath = idfConf.readParameter(
     "idf.espAdfPath",
     workspaceRoot
@@ -3695,16 +3701,24 @@ async function getFrameworksPickItems() {
     workspaceRoot
   ) as string;
 
-  const pickItems = [];
+  const pickItems: {
+    description: string;
+    label: string;
+    target: string;
+    idfSetup: IdfSetup;
+  }[] = [];
   try {
-    const doesIdfPathExists = await utils.dirExistPromise(espIdfPath);
-    if (doesIdfPathExists) {
+    const idfSetups = await getPreviousIdfSetups(true);
+    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+    for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({
-        description: "ESP-IDF",
-        label: vscode.l10n.t(`Use current ESP-IDF {espIdfPath}`, {
-          espIdfPath,
+        description: `ESP-IDF v${idfSetup.version}`,
+        label: vscode.l10n.t(`Use ESP-IDF {espIdfPath}`, {
+          espIdfPath: idfSetup.idfPath,
         }),
-        target: espIdfPath,
+        target: idfSetup.idfPath,
+        idfSetup,
       });
     }
     const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);
@@ -3715,6 +3729,7 @@ async function getFrameworksPickItems() {
           espAdfPath,
         }),
         target: espAdfPath,
+        idfSetup: currentIdfSetup,
       });
     }
     const doesMdfPathExists = await utils.dirExistPromise(espMdfPath);
@@ -3725,6 +3740,7 @@ async function getFrameworksPickItems() {
           espMdfPath,
         }),
         target: espMdfPath,
+        idfSetup: currentIdfSetup,
       });
     }
     const doesMatterPathExists = await utils.dirExistPromise(matterPathDir);
@@ -3735,6 +3751,7 @@ async function getFrameworksPickItems() {
           matterPathDir,
         }),
         target: matterPathDir,
+        idfSetup: currentIdfSetup,
       });
     }
     const doesEspRainmakerPathExists = await utils.dirExistPromise(
@@ -3747,6 +3764,7 @@ async function getFrameworksPickItems() {
           rainmakerPathDir,
         }),
         target: rainmakerPathDir,
+        idfSetup: currentIdfSetup,
       });
     }
     const doesEspHomeKitSdkPathExists = await utils.dirExistPromise(
@@ -3760,6 +3778,7 @@ async function getFrameworksPickItems() {
           { espHomeKitPathDir }
         ),
         target: espHomeKitPathDir,
+        idfSetup: currentIdfSetup,
       });
     }
   } catch (error) {
