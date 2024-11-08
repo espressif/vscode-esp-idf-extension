@@ -32,7 +32,6 @@ import {
   workspace,
 } from "vscode";
 import { EspIdfTestItem, idfTestData } from "./types";
-import { readParameter } from "../../idfConfiguration";
 import { runPyTestWithTestCase } from "./testExecution";
 import { configurePyTestUnitApp } from "./configure";
 import { getFileList, getTestComponents } from "./utils";
@@ -56,18 +55,6 @@ export class UnitTest {
     ) => {
       const fileList = await getFileList();
       this.testComponents = await getTestComponents(fileList);
-      const workspaceFolder = workspace.workspaceFolders
-        ? workspace.workspaceFolders[0]
-        : undefined;
-
-      if (!workspaceFolder) {
-        return;
-      }
-      this.unitTestAppUri = await configurePyTestUnitApp(
-        workspaceFolder.uri,
-        this.testComponents,
-        cancelToken
-      );
       await this.loadTests(fileList);
     };
 
@@ -173,13 +160,10 @@ export class UnitTest {
     context.subscriptions.push(this.unitTestController);
   }
 
-  async getOrCreateFile(file: Uri) {
+  async createFileTestCaseItems(file: Uri) {
     const existing = this.unitTestController.items.get(file.toString());
     if (existing) {
-      return {
-        testItem: existing,
-        espIdfTestItem: idfTestData.get(existing) as EspIdfTestItem,
-      };
+      this.unitTestController.items.delete(existing.id);
     }
     const testItem = this.unitTestController.createTestItem(
       file.toString(),
@@ -244,7 +228,7 @@ export class UnitTest {
     } as EspIdfTestItem;
 
     for (const file of files) {
-      const currentTestSuiteInfo = await this.getOrCreateFile(file);
+      const currentTestSuiteInfo = await this.createFileTestCaseItems(file);
       localTestSuiteInfo.children.push(currentTestSuiteInfo.espIdfTestItem);
     }
 
