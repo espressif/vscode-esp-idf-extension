@@ -6,8 +6,8 @@ body:
     attributes:
       value: |
         * Before reporting a new issue please check and search in [List of existing issues](https://github.com/espressif/vscode-esp-idf-extension/issues?q=is%3Aissue) 
-        * Please check [Online Documentation](https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/ONBOARDING.md)
-        * Take a look on [Troubleshooting guide](https://github.com/espressif/vscode-esp-idf-extension#troubleshooting)
+        * Please check [Online Documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html)
+        * Take a look on [Troubleshooting guide](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html)
         * If still experiencing the issue, please provide as many details as possible below about your hardware, computer setup and code.
   - type: dropdown
     id: os
@@ -80,7 +80,6 @@ body:
       label: Debug Message
       description: Please provide a debug message or error message. If you have a Guru Meditation Error or Backtrace, please decode it with [ExceptionDecoder](https://github.com/me-no-dev/EspExceptionDecoder)
       placeholder: Set logLevel > 3 in launch.json for Debug errors and idf.openOcdDebugLevel > 3 for OpenOCD output
-      render: plain
     validations:
       required: true
   - type: textarea

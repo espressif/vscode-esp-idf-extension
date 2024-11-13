@@ -28,7 +28,6 @@ jobs:
     - name: Deploy Documentation
       env:
         # Deploy to production server
-        # DOCS_BUILD_DIR: "./docs/_build/"
         DOCS_DEPLOY_PRIVATEKEY: ${{ secrets.DOCS_PROD_PRIVATEKEY }}
         DOCS_DEPLOY_PATH: ${{ secrets.DOCS_PROD_PATH }}
         DOCS_DEPLOY_SERVER: ${{ secrets.DOCS_PROD_SERVER }}
@@ -43,7 +42,7 @@ jobs:
         echo "PIP install requirements..."
         pip3 install --user -r ./docs_espressif/requirements.txt
         echo "Building the Docs..."
-        cd ./docs_espressif && build-docs -l en
+        cd ./docs_espressif && build-docs
         echo "Deploy the Docs..."
         export DOCS_BUILD_DIR=$GITHUB_WORKSPACE/docs_espressif/
         cd $GITHUB_WORKSPACE/docs_espressif

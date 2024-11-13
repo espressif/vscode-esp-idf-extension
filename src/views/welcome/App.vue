@@ -24,7 +24,6 @@ const whatsNewLink = computed(() => {
 onMounted(() => {
   store.requestInitValues();
 });
-
 </script>
 
 <template>
@@ -44,7 +43,11 @@ onMounted(() => {
             <a :href="whatsNewLink">See what's new</a>
           </div>
           <label class="checkbox is-small">
-            <input type="checkbox" v-model="store.showOnInit" @change="store.updateShowOnboardingOnInit" />
+            <input
+              type="checkbox"
+              v-model="store.showOnInit"
+              @change="store.updateShowOnboardingOnInit"
+            />
             Show Welcome on extension startup
           </label>
         </div>
@@ -128,7 +131,7 @@ onMounted(() => {
           <div class="field">
             <div class="control">
               <button @click="store.exploreComponents" class="button">
-                <IconTypeHierarchy class="icon-margin"/>
+                <IconTypeHierarchy class="icon-margin" />
                 Components manager
               </button>
             </div>
@@ -146,27 +149,27 @@ onMounted(() => {
         <div class="level m-4">
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/install.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/installation.html"
               >Install and configure</a
             >
           </div>
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/basic_use.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html"
             >
-              Basic use
+              Start a ESP-IDF project
             </a>
           </div>
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/debugging.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html"
             >
               Debugging
             </a>
           </div>
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/toc.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
             >
               Others...
             </a>
@@ -179,14 +182,14 @@ onMounted(() => {
         <div class="level m-4">
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/SETTINGS.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/settings.html"
             >
               Settings
             </a>
           </div>
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/FEATURES.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html"
             >
               Features
             </a>
@@ -202,9 +205,9 @@ onMounted(() => {
 
           <div class="level-item mx-1 link">
             <a
-              href="https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/ONBOARDING.md"
+              href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html"
             >
-              Others...
+              Additional features...
             </a>
           </div>
         </div>
