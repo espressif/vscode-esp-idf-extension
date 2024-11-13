@@ -1,0 +1,1 @@
+.. include:: ../en/buildproject.rst
