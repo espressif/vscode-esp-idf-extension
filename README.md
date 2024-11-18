@@ -151,14 +151,14 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td>Select where to save configuration settings</td>
             <td>In Visual Studio Code settings can be saved in 3 places: User Settings (global settings), workspace ( .code-workspace file) or workspace folder (.vscode/settings.json).
-            More information in <a href="./MULTI_PROJECTS.md">working with multiple projects</a>.</td>
+            More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">working with multiple projects</a>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Pick a workspace folder</td>
             <td>when using a Visual Studio Code workspace with multiple workspace folders, this command allow you to select which workspace folder to use for this extension commands.
-            More information in <a href="./MULTI_PROJECTS.md">working with multiple projects</a>.</td>
+            More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">working with multiple projects</a>.</td>
             <td></td>
             <td></td>
         </tr>
@@ -398,19 +398,19 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=3 align="center">QEMU</td>
             <td>Launch QEMU Server</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Launch QEMU Debug Session</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a debug session to ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a debug session to ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Monitor QEMU Device</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
@@ -430,7 +430,7 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Monitor QEMU Device</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
@@ -456,13 +456,13 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=2 align="center">Unit Testing</td>
             <td>Unit Test: Build and flash unit test app for testing</td>
-            <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="./UNIT_TESTING.md">Unit testing documentation</a></td>
+            <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a></td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Unit Test: Install ESP-IDF PyTest requirements</td>
-            <td>Install the ESP-IDF Pytest requirements packages to be able to execute ESP-IDF Unit tests. More information in <a href="./UNIT_TESTING.md"</a></td>
+            <td>Install the ESP-IDF Pytest requirements packages to be able to execute ESP-IDF Unit tests. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html"</a></td>
             <td></td>
             <td></td>
         </tr>
