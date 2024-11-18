@@ -17,7 +17,10 @@
  */
 import { join } from "path";
 import { IdfToolsManager } from "../idfToolsManager";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import {
+  getEnvVarsFromIdfTools,
+  getVirtualEnvPythonPath,
+} from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
 
@@ -27,7 +30,9 @@ export async function getConfigurationSettings(
 ) {
   const winFlag = process.platform === "win32" ? "Win" : "";
   const conf = workspace.getConfiguration("", scope);
-  reportedResult.workspaceFolder = scope ? scope.fsPath: "No workspace folder is open";
+  reportedResult.workspaceFolder = scope
+    ? scope.fsPath
+    : "No workspace folder is open";
   const pythonVenvPath = await getVirtualEnvPythonPath(scope);
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     conf.get("idf.espIdfPath" + winFlag)
@@ -39,6 +44,21 @@ export async function getConfigurationSettings(
   const customVars = await idfToolsManager.exportVars(
     join(conf.get("idf.toolsPath" + winFlag), "tools")
   );
+
+  const idfToolsExportVars = await getEnvVarsFromIdfTools(
+    conf.get("idf.espIdfPath" + winFlag),
+    conf.get("idf.toolsPath" + winFlag),
+    pythonVenvPath
+  );
+
+  if (idfToolsExportVars) {
+    for (const envVar in idfToolsExportVars) {
+      if (envVar) {
+        customVars[envVar] = idfToolsExportVars[envVar];
+      }
+    }
+  }
+
   reportedResult.configurationSettings = {
     espAdfPath: conf.get("idf.espAdfPath" + winFlag),
     espIdfPath: conf.get("idf.espIdfPath" + winFlag),
@@ -54,13 +74,11 @@ export async function getConfigurationSettings(
     pythonBinPath: pythonVenvPath,
     pythonPackages: [],
     serialPort: conf.get("idf.port" + winFlag),
-    openOcdConfigs:
-      conf.get("idf.openOcdConfigs") ||
-      [],
+    openOcdConfigs: conf.get("idf.openOcdConfigs") || [],
     toolsPath: conf.get("idf.toolsPath" + winFlag),
     systemEnvPath:
       process.platform === "win32" ? process.env.Path : process.env.PATH,
     sysPythonBinPath: conf.get("idf.pythonInstallPath"),
-    gitPath: conf.get("idf.gitPath" + winFlag)
+    gitPath: conf.get("idf.gitPath" + winFlag),
   };
 }
