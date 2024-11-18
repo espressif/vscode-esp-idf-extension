@@ -12,5 +12,5 @@
   "window.dialogStyle": "custom",
   "idf.notificationMode": "Output",
   "idf.showOnboardingOnInit": false,
-  "idf.pythonInstallPath": "python"
+  "idf.pythonInstallPath": "/usr/bin/python"
 }
