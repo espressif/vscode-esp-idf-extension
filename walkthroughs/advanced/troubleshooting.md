@@ -72,8 +72,6 @@ Learn how to diagnose and resolve common issues with ESP-IDF development in VS C
 - Open [new issue](https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose)
 - Include Doctor Command output
 
-## Next steps
+## Related Resources
 
-For more information:
-
-- Explore our [Troubleshooting](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html) documentation
+- [Troubleshooting documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/troubleshooting.html)

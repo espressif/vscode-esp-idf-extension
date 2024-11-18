@@ -3642,7 +3642,7 @@ export async function activate(context: vscode.ExtensionContext) {
     () => {
       vscode.commands.executeCommand(
         "workbench.action.openWalkthrough",
-        "espressif.esp-idf-extension#espIdf.walkthrough.ui"
+        "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
       );
     }
   );
@@ -3661,7 +3661,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
     vscode.commands.executeCommand(
       "workbench.action.openWalkthrough",
-      "espressif.esp-idf-extension#espIdf.walkthrough.ui"
+      "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
     );
   }
 

@@ -7,7 +7,7 @@ Learn how to compile your code, flash it to your device, and monitor the output.
 1. **Build Options:**
    - Click the "Build Project" icon from the status bar
 
-        !["Build Project"](../media/walkthrough/icons/build.png)
+        !["Build Project"](../../media/walkthrough/icons/build.png)
 
    - Use Command Palette: "ESP-IDF: Build your Project"
    - Use keyboard shortcut (if configured)
@@ -25,7 +25,7 @@ Learn how to compile your code, flash it to your device, and monitor the output.
 2. **Flash Options:**
    - Click "Flash Device" icon from the status bar
 
-        !["Flash Device"](../media/walkthrough/icons/flash.png)
+        !["Flash Device"](../../media/walkthrough/icons/flash.png)
 
    - Use Command Palette: "ESP-IDF: Flash (UART) your Project"
 
@@ -34,7 +34,7 @@ Learn how to compile your code, flash it to your device, and monitor the output.
 1. **Monitor Options:**
    - Click "Monitor Device" icon from the status bar
 
-        !["Monitor Device"](../media/walkthrough/icons/monitor.png)
+        !["Monitor Device"](../../media/walkthrough/icons/monitor.png)
 
    - Use Command Palette: "ESP-IDF: Monitor Device"
 
@@ -47,7 +47,7 @@ Learn how to compile your code, flash it to your device, and monitor the output.
 The most convenient way is using "Build, Flash and Monitor":
 1. Click the "Build, Flash and Monitor" icon from the status bar
 
-    !["Build, Flash and Monitor"](../media/walkthrough/icons/build-flash-monitor.png)
+    !["Build, Flash and Monitor"](../../media/walkthrough/icons/build-flash-monitor.png)
 
 2. Or use Command Palette: "ESP-IDF: Build, Flash and Start a Monitor on your Device"
 3. The extension will:
