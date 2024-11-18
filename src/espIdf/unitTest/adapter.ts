@@ -53,6 +53,7 @@ export class UnitTest {
     this.unitTestController.refreshHandler = async (
       cancelToken?: CancellationToken
     ) => {
+      this.clearExistingTestCaseItems();
       const fileList = await getFileList();
       this.testComponents = await getTestComponents(fileList);
       await this.loadTests(fileList);
@@ -160,6 +161,12 @@ export class UnitTest {
     context.subscriptions.push(this.unitTestController);
   }
 
+  clearExistingTestCaseItems() {
+    this.unitTestController.items.forEach((item) =>
+      this.unitTestController.items.delete(item.id)
+    );
+  }
+
   async createFileTestCaseItems(file: Uri) {
     const existing = this.unitTestController.items.get(file.toString());
     if (existing) {
@@ -195,7 +202,7 @@ export class UnitTest {
       children: [],
       testName: "TEST_ALL",
     };
-    const testRegex = new RegExp("TEST_CASE\\(\"(.*)\",\\s*\"(.*)\"\\)", "gm");
+    const testRegex = new RegExp('TEST_CASE\\("(.*)",\\s*"(.*)"\\)', "gm");
     const fileText = await readFile(file.fsPath, "utf8");
     let match = testRegex.exec(fileText);
     while (match != null) {
