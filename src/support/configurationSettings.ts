@@ -17,10 +17,7 @@
  */
 import { join } from "path";
 import { IdfToolsManager } from "../idfToolsManager";
-import {
-  getEnvVarsFromIdfTools,
-  getVirtualEnvPythonPath,
-} from "../pythonManager";
+import { getEnvVarsFromIdfTools, getPythonEnvPath } from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
 
@@ -33,7 +30,11 @@ export async function getConfigurationSettings(
   reportedResult.workspaceFolder = scope
     ? scope.fsPath
     : "No workspace folder is open";
-  const pythonVenvPath = await getVirtualEnvPythonPath(scope);
+  const pythonVenvPath = await getPythonEnvPath(
+    conf.get("idf.espIdfPath" + winFlag),
+    conf.get("idf.toolsPath" + winFlag),
+    conf.get("idf.pythonInstallPath")
+  );
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     conf.get("idf.espIdfPath" + winFlag)
   );
