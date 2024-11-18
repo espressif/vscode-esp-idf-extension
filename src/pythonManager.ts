@@ -26,6 +26,7 @@ import { delimiter, dirname, join, sep } from "path";
 import { OutputChannel } from "./logger/outputChannel";
 import { readParameter, writeParameter } from "./idfConfiguration";
 import { ESP } from "./config";
+import { EOL } from "os";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
@@ -60,6 +61,43 @@ export async function installEspIdfToolFromIdf(
       return reject(error);
     }
   });
+}
+
+export async function getEnvVarsFromIdfTools(
+  espIdfPath: string,
+  idfToolsPath: string,
+  pythonBinPath: string,
+  cancelToken?: CancellationToken
+) {
+  const idfToolsPyPath = join(espIdfPath, "tools", "idf_tools.py");
+  const args = [idfToolsPyPath, "export", "--format", "key-value"];
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
+  );
+  modifiedEnv.IDF_TOOLS_PATH = idfToolsPath;
+  modifiedEnv.IDF_PATH = espIdfPath;
+  const processResult = await utils.execChildProcess(
+    pythonBinPath,
+    args,
+    idfToolsPath,
+    OutputChannel.init(),
+    { cwd: idfToolsPath, env: modifiedEnv },
+    cancelToken
+  );
+
+  let idfToolsDict: { [key: string]: string } = {};
+  const lines = processResult.trim().split(EOL);
+  for (const l of lines) {
+    let keyIndex = l.indexOf("=");
+    if (keyIndex === -1) {
+      continue;
+    }
+    let key = l.slice(0, keyIndex);
+    let val = l.slice(keyIndex + 1);
+    idfToolsDict[key] = val;
+  }
+
+  return idfToolsDict;
 }
 
 export async function installPythonEnvFromIdfTools(
