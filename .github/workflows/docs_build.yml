@@ -38,12 +38,12 @@ jobs:
         # Update the path to include them and run.
         cd ./docs_espressif
         PATH=/home/runner/.local/bin:$PATH pip3 install -r requirements.txt --prefer-binary
-        PATH=/home/runner/.local/bin:$PATH SPHINXOPTS="-W" build-docs -l en
+        PATH=/home/runner/.local/bin:$PATH SPHINXOPTS="-W" build-docs
     - name: Archive Docs
       uses: actions/upload-artifact@v4
       with:
         name: docs
-        path: docs
+        path: docs_espressif
     - name: Deploy Documentation to preview server
       env:
         # Deploy to production server
@@ -62,7 +62,7 @@ jobs:
         echo "PIP install requirements..."
         pip3 install --user -r ./docs_espressif/requirements.txt
         echo "Building the Docs..."
-        cd ./docs_espressif && build-docs -l en
+        cd ./docs_espressif && build-docs
         echo "Deploy the Docs..."
         export DOCS_BUILD_DIR=$GITHUB_WORKSPACE/docs_espressif/
         cd $GITHUB_WORKSPACE/docs_espressif

@@ -159,7 +159,7 @@ export async function generateCoverageForEditors(
     OutputChannel.appendLine(
       msg +
         "\nError generating editor coverage.\n" +
-        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
         "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
     );
   }
@@ -197,7 +197,7 @@ export async function previewReport(dirPath: vscode.Uri) {
     OutputChannel.appendLine(
       msg +
         "\nError building gcov html.\n" +
-        "Review the code coverage tutorial https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/code_coverage.md \n" +
+        "Review the code coverage tutorial https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/coverage.html \n" +
         "or ESP-IDF documentation: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage \n"
     );
   }

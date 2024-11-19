@@ -4,19 +4,17 @@
 
 # ESP-IDF Extension for VSCode
 
-[![Tutorials](https://img.shields.io/badge/-Tutorials-red)](./docs/tutorial/toc.md)
 [![Espressif Documentation](https://img.shields.io/badge/Documentation-red)](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/)
 [![Troubleshooting](https://img.shields.io/badge/Troubleshooting-red)](./README.md#Troubleshooting)
-[![ESP32](https://img.shields.io/badge/Supported%20Chips-red)](./docs/HARDWARE_SUPPORT.md)
 ![Version](https://img.shields.io/github/package-json/v/espressif/vscode-esp-idf-extension)
 [![Releases](https://img.shields.io/badge/Github-Releases-blue)](https://github.com/espressif/vscode-esp-idf-extension/releases)
 [![Forum](https://img.shields.io/badge/Forum-esp32.com-blue)](https://esp32.com/viewforum.php?f=40)
 
-Develop, build, flash, monitor, debug and [more](./docs/FEATURES.md) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf).
+Develop, build, flash, monitor, debug and [more](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/index.html) with Espressif chips using Espressif IoT Development Framework [(ESP-IDF)](https://github.com/espressif/esp-idf).
 
 **Latest master installer** for <a href="https://nightly.link/espressif/vscode-esp-idf-extension/workflows/ci/master/esp-idf-extension.vsix.zip">Visual Studio Code</a>. You can use this VSIX to test the current github master of the extension by pressing <kbd>F1</kbd> or click menu `View` -> `Command Palette...`, type `Install from VSIX` and then select the previously downloaded `.vsix` file to install the extension.
 
-Make sure to review our [Espressif documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/) or [Github documentation](./docs/ONBOARDING.md) first to properly use the extension.
+Make sure to review our [Espressif documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/) first to properly use the extension.
 
 # How to use
 
@@ -86,7 +84,7 @@ These icons will be used in the steps below showing common ESP-IDF use cases:
 
 4. Next configure your ESP-IDF project by pressing status bar icon ![sdkconfig editor](./media/readme/sdkconfig.png) or press <kbd>F1</kbd> and typing **ESP-IDF: SDK Configuration Editor** command (<kbd>CTRL</kbd> <kbd>E</kbd> <kbd>G</kbd> keyboard shortcut ) where you can modify the ESP-IDF project settings. After all changes are made, click save and close this window. You can see the output in the menu `View` -> `Output` and choose `ESP-IDF` from the dropdown list.
 
-5. (OPTIONAL) Run **ESP-IDF: Run idf.py reconfigure task** to generate the compile_commands.json file so language support works. Additionally you can configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](./docs/C_CPP_CONFIGURATION.md) documentation.
+5. (OPTIONAL) Run **ESP-IDF: Run idf.py reconfigure task** to generate the compile_commands.json file so language support works. Additionally you can configure the `.vscode/c_cpp_properties.json` as explained in [C/C++ Configuration](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/configureproject.html#c-and-c-code-navigation-and-syntax-highlight) documentation.
 
 6. At this point you can modify the code and when the project is completed, build your project by pressing status bar icon ![build](./media/readme/build.png) or press <kbd>F1</kbd> and typing **ESP-IDF: Build your Project**.
 
@@ -108,13 +106,7 @@ Check the [Troubleshooting](#Troubleshooting) section if you have any issues.
 
 # Further reading
 
-You can find a list of tutorials, commands and documentation about all features in depth below.
-
-- Check the extension [Espressif documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/).
-
-- Check all the extension [tutorials](./docs/tutorial/toc.md).
-
-- Check all the extension [github documentation](./docs/ONBOARDING.md).
+Check the [Espressif ESP-IDF extension for VSCode documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/) for tutorials, commands and features provided.
 
 ## All Available commands
 
@@ -159,14 +151,14 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td>Select where to save configuration settings</td>
             <td>In Visual Studio Code settings can be saved in 3 places: User Settings (global settings), workspace ( .code-workspace file) or workspace folder (.vscode/settings.json).
-            More information in <a href="./MULTI_PROJECTS.md">working with multiple projects</a>.</td>
+            More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">working with multiple projects</a>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Pick a workspace folder</td>
             <td>when using a Visual Studio Code workspace with multiple workspace folders, this command allow you to select which workspace folder to use for this extension commands.
-            More information in <a href="./MULTI_PROJECTS.md">working with multiple projects</a>.</td>
+            More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/multiple-projects.html">working with multiple projects</a>.</td>
             <td></td>
             <td></td>
         </tr>
@@ -406,19 +398,19 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=3 align="center">QEMU</td>
             <td>Launch QEMU Server</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Launch QEMU Debug Session</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a debug session to ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a debug session to ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Monitor QEMU Device</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
@@ -438,7 +430,7 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Monitor QEMU Device</td>
-            <td>As described in <a href="./QEMU.md">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
+            <td>As described in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/qemu.html">QEMU documentation</a> this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.</td>
             <td></td>
             <td></td>
         </tr>
@@ -464,13 +456,13 @@ Click <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=2 align="center">Unit Testing</td>
             <td>Unit Test: Build and flash unit test app for testing</td>
-            <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="./UNIT_TESTING.md">Unit testing documentation</a></td>
+            <td>Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a></td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Unit Test: Install ESP-IDF PyTest requirements</td>
-            <td>Install the ESP-IDF Pytest requirements packages to be able to execute ESP-IDF Unit tests. More information in <a href="./UNIT_TESTING.md"</a></td>
+            <td>Install the ESP-IDF Pytest requirements packages to be able to execute ESP-IDF Unit tests. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html"</a></td>
             <td></td>
             <td></td>
         </tr>
@@ -565,7 +557,7 @@ We have implemented some utilities commands that can be used in tasks.json and l
 - `espIdf.getToolchainGcc`: Return the absolute path of the toolchain gcc for the ESP-IDF target given by current IDF_TARGET in sdkconfig.
 - `espIdf.getToolchainGdb`: Return the absolute path of the toolchain gdb for the ESP-IDF target given by current IDF_TARGET in sdkconfig.
 
-See an example in the [debugging](./docs/DEBUGGING.md) documentation.
+See an example in the [debugging](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html) documentation.
 
 ## Available Tasks in tasks.json
 
@@ -599,7 +591,7 @@ If something is not working please check for any error on one of these:
 
 4. In Visual Studio Code, select menu **Help** > `Toggle Developer Tools` and copy any error in the Console tab related to this extension.
 
-5. Make sure that your extension is properly configured as described in [JSON Manual Configuration](./docs/SETUP.md#JSON-Manual-Configuration). Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
+5. Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project has the right settings. The `ESP-IDF: Doctor command` result might give the values from user settings instead of the workspace folder settings.
 
 6. Review the [OpenOCD troubleshooting FAQ](https://github.com/espressif/OpenOCD-esp32/wiki/Troubleshooting-FAQ) related to the `OpenOCD` output, for application tracing, debug or any OpenOCD related issues.
 
