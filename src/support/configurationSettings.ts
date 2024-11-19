@@ -17,10 +17,7 @@
  */
 import { join } from "path";
 import { IdfToolsManager } from "../idfToolsManager";
-import {
-  getEnvVarsFromIdfTools,
-  getVirtualEnvPythonPath,
-} from "../pythonManager";
+import { getEnvVarsFromIdfTools, getPythonEnvPath } from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
 
@@ -33,7 +30,7 @@ export async function getConfigurationSettings(
   reportedResult.workspaceFolder = scope
     ? scope.fsPath
     : "No workspace folder is open";
-  const pythonVenvPath = await getVirtualEnvPythonPath(scope);
+  // const pythonVenvPath = await getVirtualEnvPythonPath(scope);
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     conf.get("idf.espIdfPath" + winFlag)
   );
@@ -43,6 +40,16 @@ export async function getConfigurationSettings(
   );
   const customVars = await idfToolsManager.exportVars(
     join(conf.get("idf.toolsPath" + winFlag), "tools")
+  );
+
+  const pythonVenvPath = await getPythonEnvPath(
+    conf
+      .get<string>("idf.espIdfPath" + winFlag)
+      .replace("${env:IDF_PATH}", process.env.IDF_PATH),
+    conf
+      .get<string>("idf.toolsPath" + winFlag)
+      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
+    conf.get<string>("idf.pythonInstallPath")
   );
 
   console.log(
