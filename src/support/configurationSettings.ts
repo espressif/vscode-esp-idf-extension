@@ -30,7 +30,6 @@ export async function getConfigurationSettings(
   reportedResult.workspaceFolder = scope
     ? scope.fsPath
     : "No workspace folder is open";
-  // const pythonVenvPath = await getVirtualEnvPythonPath(scope);
   const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
     conf.get("idf.espIdfPath" + winFlag)
   );
@@ -51,18 +50,6 @@ export async function getConfigurationSettings(
       .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH),
     conf.get<string>("idf.pythonInstallPath")
   );
-
-  console.log(
-    `IDF_PATH is ${conf
-      .get<string>("idf.espIdfPath" + winFlag)
-      .replace("${env:IDF_PATH}", process.env.IDF_PATH)}`
-  );
-  console.log(
-    `IDF_TOOLS_PATH is ${conf
-      .get<string>("idf.toolsPath" + winFlag)
-      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH)}`
-  );
-  console.log(`Python path is ${pythonVenvPath}`);
 
   const idfToolsExportVars = await getEnvVarsFromIdfTools(
     conf
