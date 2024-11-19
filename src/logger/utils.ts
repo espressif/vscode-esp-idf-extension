@@ -39,7 +39,7 @@ export async function showInfoNotificationWithLink(
     infoMessage,
     buttonLabel
   );
-  
+
   if (selectedOption === buttonLabel) {
     vscode.env.openExternal(vscode.Uri.parse(linkUrl));
   }
