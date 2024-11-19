@@ -45,6 +45,18 @@ export async function getConfigurationSettings(
     join(conf.get("idf.toolsPath" + winFlag), "tools")
   );
 
+  console.log(
+    `IDF_PATH is ${conf
+      .get<string>("idf.espIdfPath" + winFlag)
+      .replace("${env:IDF_PATH}", process.env.IDF_PATH)}`
+  );
+  console.log(
+    `IDF_TOOLS_PATH is ${conf
+      .get<string>("idf.toolsPath" + winFlag)
+      .replace("${env:IDF_TOOLS_PATH}", process.env.IDF_TOOLS_PATH)}`
+  );
+  console.log(`Python path is ${pythonVenvPath}`);
+
   const idfToolsExportVars = await getEnvVarsFromIdfTools(
     conf
       .get<string>("idf.espIdfPath" + winFlag)
