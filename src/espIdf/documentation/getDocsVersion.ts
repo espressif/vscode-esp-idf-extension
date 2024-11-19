@@ -19,7 +19,10 @@ import { basename, join } from "path";
 import { DownloadManager } from "../../downloadManager";
 import jsonic from "jsonic";
 import { Logger } from "../../logger/logger";
-import { extensionContext } from "../../utils";
+import { extensionContext, getEspIdfFromCMake } from "../../utils";
+import * as vscode from "vscode";
+import * as idfConf from "../../idfConfiguration";
+import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
 
 export interface IEspIdfDocVersion {
   name: string;
@@ -66,7 +69,11 @@ export function getDocsLocaleLang() {
     const localeConf = JSON.parse(process.env.VSCODE_NLS_CONFIG);
     localeLang = localeConf.locale === "zh-CN" ? "zh_CN" : "en";
   } catch (error) {
-    Logger.error("Error getting current vscode language", error, "getDocsVersion getDocsLocaleLang");
+    Logger.error(
+      "Error getting current vscode language",
+      error,
+      "getDocsVersion getDocsLocaleLang"
+    );
   }
   return localeLang;
 }
@@ -111,4 +118,35 @@ export async function readObjectFromUrlFile(objectUrl: string) {
   if (objectMatches && objectMatches.length > 0) {
     return jsonic(objectMatches[0]);
   }
+}
+
+/**
+ * Retrieves the URL for the specified documentation part based on the ESP-IDF version and workspace.
+ * @param documentationPart - The documentation part to retrieve the URL for.
+ * @param workspace - The workspace URI.
+ * @returns The URL for the ESP-IDF specified documentation part.
+ */
+export async function getDocsUrl(
+  documentationPart: string,
+  workspace: vscode.Uri
+) {
+  const espIdfPath = idfConf.readParameter(
+    "idf.espIdfPath",
+    workspace
+  ) as string;
+
+  const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
+  const idfVersion = await getEspIdfFromCMake(espIdfPath);
+  const docVersions = await getDocsVersion();
+  let docVersion = docVersions.find((docVer) => docVer.name === idfVersion);
+  if (!docVersion) {
+    docVersion = docVersions.find((docVer) => docVer.name === "latest");
+  }
+  if (!docVersion) {
+    return;
+  }
+  const baseUrl = getDocsBaseUrl(docVersion.name, adapterTargetName);
+  const url = `${baseUrl}/${documentationPart}`;
+
+  return url;
 }

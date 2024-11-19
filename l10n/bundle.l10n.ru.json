@@ -188,5 +188,13 @@
   "Target {0} Set Successfully.": "Цель {0} успешно установлена.",
   "Unknown error occurred while setting IDF target.": "Произошла неизвестная ошибка при установке цели IDF.",
   "compile_commands.json is missing. This may cause errors with code analysis extensions.": "Отсутствует файл compile_commands.json. Это может вызвать ошибки в работе расширений для анализа кода.",
-  "Generate compile_commands.json": "Создать compile_commands.json"
+  "Generate compile_commands.json": "Создать compile_commands.json",
+  "Cannot flash via JTAG method: {0}": "Невозможно прошить методом JTAG: {0}",
+  "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.": "{0}\n\nКонфигурация JTAG может зависеть от аппаратной конфигурации. Пожалуйста, обратитесь к технической документации ESP32 для вашей конкретной модели, чтобы обеспечить правильную конфигурацию JTAG перед продолжением.",
+  "JTAG is permanently disabled in hardware ({0} is set).": "JTAG постоянно отключен на аппаратном уровне (установлен {0}).",
+  "USB-to-JTAG functionality is disabled ({0} is set).": "Функциональность USB-to-JTAG отключена (установлен {0}).",
+  "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG программно отключен ({0} установлен на нечетное значение: {1}).",
+  "JTAG selection may be affected by strapping configuration ({0} is set).": "Выбор JTAG может зависеть от конфигурации стрэппинга (установлен {0}).",
+  "JTAG is not disabled.": "JTAG не отключен.",
+  "IDF Version >= 4.3.x required to have e-fuse view": "Требуется IDF версии >= 4.3.x для просмотра e-fuse"
 }
