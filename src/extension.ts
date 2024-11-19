@@ -41,6 +41,7 @@ import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
+import { showInfoNotificationWithAction } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
@@ -395,77 +396,81 @@ export async function activate(context: vscode.ExtensionContext) {
     binTimestampEventFunc
   );
   context.subscriptions.push(buildWatcherCreateDisposable);
-
-  vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
-    if (PreCheck.isWorkspaceFolderOpen()) {
-      for (const ws of e.removed) {
-        if (workspaceRoot && ws.uri === workspaceRoot) {
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
+      if (PreCheck.isWorkspaceFolderOpen()) {
+        for (const ws of e.removed) {
+          if (workspaceRoot && ws.uri === workspaceRoot) {
+            workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+            await getIdfTargetFromSdkconfig(
+              workspaceRoot,
+              statusBarItems["target"]
+            );
+            if (statusBarItems && statusBarItems["port"]) {
+              statusBarItems["port"].text =
+                `$(${
+                  commandDictionary[CommandKeys.SelectSerialPort].iconId
+                }) ` + idfConf.readParameter("idf.port", workspaceRoot);
+            }
+            if (statusBarItems["projectConf"]) {
+              statusBarItems["projectConf"].dispose();
+              statusBarItems["projectConf"] = undefined;
+              const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
+                ESP.ProjectConfiguration.SELECTED_CONFIG
+              );
+              ESP.ProjectConfiguration.store.clear(selectedConfig);
+              ESP.ProjectConfiguration.store.clear(
+                ESP.ProjectConfiguration.SELECTED_CONFIG
+              );
+            }
+            const currentIdfSetup = await getCurrentIdfSetup(
+              workspaceRoot,
+              false
+            );
+            if (statusBarItems["currentIdfVersion"]) {
+              statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+                ? `$(${
+                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
+                      .iconId
+                  }) ESP-IDF v${currentIdfSetup.version}`
+                : `$(${
+                    commandDictionary[CommandKeys.SelectCurrentIdfVersion]
+                      .iconId
+                  }) ESP-IDF InvalidSetup`;
+            }
+            const coverageOptions = getCoverageOptions(workspaceRoot);
+            covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
+            break;
+          }
+        }
+        if (typeof workspaceRoot === undefined) {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
           await getIdfTargetFromSdkconfig(
             workspaceRoot,
             statusBarItems["target"]
           );
-          if (statusBarItems && statusBarItems["port"]) {
-            statusBarItems["port"].text =
-              `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
-              idfConf.readParameter("idf.port", workspaceRoot);
-          }
-          if (statusBarItems["projectConf"]) {
-            statusBarItems["projectConf"].dispose();
-            statusBarItems["projectConf"] = undefined;
-            const selectedConfig = ESP.ProjectConfiguration.store.get<string>(
-              ESP.ProjectConfiguration.SELECTED_CONFIG
-            );
-            ESP.ProjectConfiguration.store.clear(selectedConfig);
-            ESP.ProjectConfiguration.store.clear(
-              ESP.ProjectConfiguration.SELECTED_CONFIG
-            );
-          }
-          const currentIdfSetup = await getCurrentIdfSetup(
-            workspaceRoot,
-            false
-          );
-          if (statusBarItems["currentIdfVersion"]) {
-            statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
-              ? `$(${
-                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-                }) ESP-IDF v${currentIdfSetup.version}`
-              : `$(${
-                  commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-                }) ESP-IDF InvalidSetup`;
-          }
           const coverageOptions = getCoverageOptions(workspaceRoot);
           covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
-          break;
         }
+        const buildDirPath = idfConf.readParameter(
+          "idf.buildPath",
+          workspaceRoot
+        ) as string;
+        const projectName = await getProjectName(buildDirPath);
+        const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
+        const debugAdapterConfig = {
+          currentWorkspace: workspaceRoot,
+          elfFile: projectElfFile,
+        } as IDebugAdapterConfig;
+        debugAdapterManager.configureAdapter(debugAdapterConfig);
+        const openOCDConfig: IOpenOCDConfig = {
+          workspace: workspaceRoot,
+        } as IOpenOCDConfig;
+        openOCDManager.configureServer(openOCDConfig);
       }
-      if (typeof workspaceRoot === undefined) {
-        workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
-        await getIdfTargetFromSdkconfig(
-          workspaceRoot,
-          statusBarItems["target"]
-        );
-        const coverageOptions = getCoverageOptions(workspaceRoot);
-        covRenderer = new CoverageRenderer(workspaceRoot, coverageOptions);
-      }
-      const buildDirPath = idfConf.readParameter(
-        "idf.buildPath",
-        workspaceRoot
-      ) as string;
-      const projectName = await getProjectName(buildDirPath);
-      const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
-      const debugAdapterConfig = {
-        currentWorkspace: workspaceRoot,
-        elfFile: projectElfFile,
-      } as IDebugAdapterConfig;
-      debugAdapterManager.configureAdapter(debugAdapterConfig);
-      const openOCDConfig: IOpenOCDConfig = {
-        workspace: workspaceRoot,
-      } as IOpenOCDConfig;
-      openOCDManager.configureServer(openOCDConfig);
-    }
-    ConfserverProcess.dispose();
-  });
+      ConfserverProcess.dispose();
+    })
+  );
 
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
@@ -3676,6 +3681,48 @@ export async function activate(context: vscode.ExtensionContext) {
       new HintHoverProvider(treeDataProvider)
     )
   );
+
+  checkAndNotifyMissingCompileCommands();
+}
+
+function checkAndNotifyMissingCompileCommands() {
+  if (vscode.workspace.workspaceFolders) {
+    vscode.workspace.workspaceFolders.forEach(async (folder) => {
+      try {
+        const isIdfProject = utils.checkIsProjectCmakeLists(folder.uri.fsPath);
+        if (isIdfProject) {
+          const buildDirPath = idfConf.readParameter(
+            "idf.buildPath",
+            workspaceRoot
+          ) as string;
+          const compileCommandsPath = path.join(
+            buildDirPath,
+            "compile_commands.json"
+          );
+          const compileCommandsExists = await pathExists(compileCommandsPath);
+
+          if (!compileCommandsExists) {
+            showInfoNotificationWithAction(
+              vscode.l10n.t(
+                "compile_commands.json is missing. This may cause errors with code analysis extensions."
+              ),
+              vscode.l10n.t("Generate compile_commands.json"),
+              () => vscode.commands.executeCommand("espIdf.idfReconfigureTask")
+            );
+          }
+        }
+      } catch (error) {
+        const msg = error.message
+          ? error.message
+          : "Error checking for compile_commands.json file.";
+        Logger.error(
+          msg,
+          error,
+          "extension checkAndNotifyMissingCompileCommands"
+        );
+      }
+    });
+  }
 }
 
 async function getFrameworksPickItems() {

@@ -27,7 +27,7 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { appendIdfAndToolsToPath, compareVersion, getEspIdfFromCMake, getSDKConfigFilePath } from "../../utils";
+import { appendIdfAndToolsToPath, getSDKConfigFilePath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
@@ -65,18 +65,12 @@ export class IdfReconfigureTask {
 
     const idfPy = join(this.idfPathDir, "tools", "idf.py");
     const reconfigureArgs = [idfPy];
-    const espIdfVersion = await getEspIdfFromCMake(this.idfPathDir);
-    const useEqualSign = compareVersion(espIdfVersion, "4.4") >= 0;
 
     let buildPathArgsIndex = reconfigureArgs.indexOf("-B");
     if (buildPathArgsIndex !== -1) {
-      reconfigureArgs.splice(buildPathArgsIndex, useEqualSign ? 1 : 2);
+      reconfigureArgs.splice(buildPathArgsIndex, 2);
     }
-    if (useEqualSign) {
-      reconfigureArgs.push(`-B=${this.buildDirPath}`);
-    } else {
-      reconfigureArgs.push("-B", this.buildDirPath);
-    }
+    reconfigureArgs.push("-B", this.buildDirPath);
 
     const sdkconfigFile = await getSDKConfigFilePath(this.curWorkspace);
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {

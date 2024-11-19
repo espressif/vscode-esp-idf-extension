@@ -186,5 +186,7 @@
   "Execute Custom Task": "Executar tarefa personalizada",
   "Wait for ESP-IDF build or flash to finish": "Aguarde a conclusão da compilação ou flash do ESP-IDF",
   "Target {0} Set Successfully.": "Alvo {0} definido com sucesso.",
-  "Unknown error occurred while setting IDF target.": "Ocorreu um erro desconhecido ao definir o alvo IDF."
+  "Unknown error occurred while setting IDF target.": "Ocorreu um erro desconhecido ao definir o alvo IDF.",
+  "compile_commands.json is missing. This may cause errors with code analysis extensions.": "O arquivo compile_commands.json está faltando. Isso pode causar erros com extensões de análise de código.",
+  "Generate compile_commands.json": "Gerar compile_commands.json"
 }
