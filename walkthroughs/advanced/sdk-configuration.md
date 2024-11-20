@@ -1,7 +1,7 @@
 # Configuring Your Project with menuconfig
 
 ## Opening SDK Configuration
-![Menuconfig Interface](../media/walkthrough/menuconfig.gif)
+![Menuconfig Interface](../../media/walkthrough/gifs/menuconfig.gif)
 
 1. Click the menuconfig icon in status bar
    - Or use Command Palette: "ESP-IDF: SDK Configuration Editor"
