@@ -1,9 +1,6 @@
 # Congratulations on Completing the Advanced Guide! 🎉
 
-You've been introduced to essential advanced features that will enhance your ESP-IDF development workflow.
-
-
-### Additional Tools to Explore
+### Additional Extension Features to Explore
 
 - Application Tracing
 - CMakeLists Editor

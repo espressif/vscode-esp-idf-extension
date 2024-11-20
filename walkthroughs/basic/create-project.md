@@ -12,10 +12,6 @@ Click the "Create project using example blink" button to proceed.
 
 After clicking the button, you'll be prompted to choose a location where the project will be created.
 
-## Next Steps
+## Related Resources
 
 For more information, you can check our [Start a ESP-IDF Project](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/startproject.html) documentation.
-
-Once you've created your project:
-- Explore the project structure in VS Code
-- Review the example code to understand its functionality

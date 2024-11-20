@@ -1,7 +1,5 @@
 # Troubleshooting ESP-IDF Projects
 
-Learn how to diagnose and resolve common issues with ESP-IDF development in VS Code.
-
 ### Debug Logging Configuration
 
 1. **OpenOCD Debug Level:**
