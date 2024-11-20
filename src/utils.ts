@@ -1157,8 +1157,8 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     if (idfToolsExportVars) {
       try {
         for (const envVar in idfToolsExportVars) {
-          if (envVar === pathNameInEnv) {
-            modifiedEnv[pathNameInEnv] = idfToolsExportVars[pathNameInEnv]
+          if (envVar.toUpperCase() === pathNameInEnv.toUpperCase()) {
+            modifiedEnv[pathNameInEnv] = idfToolsExportVars[envVar]
               .replace("%PATH%", modifiedEnv[pathNameInEnv])
               .replace("$PATH", modifiedEnv[pathNameInEnv]);
           } else {
