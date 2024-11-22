@@ -40,7 +40,11 @@ import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
-import { getPythonPath, getVirtualEnvPythonPath } from "./pythonManager";
+import {
+  getEnvVarsFromIdfTools,
+  getPythonPath,
+  getVirtualEnvPythonPath,
+} from "./pythonManager";
 import { IdfToolsManager } from "./idfToolsManager";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
@@ -1140,6 +1144,37 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   let pathNameInEnv: string = Object.keys(process.env).find(
     (k) => k.toUpperCase() == "PATH"
   );
+
+  const pythonBinPathExists = await pathExists(pythonBinPath);
+
+  if (pythonBinPathExists) {
+    const idfToolsExportVars = await getEnvVarsFromIdfTools(
+      modifiedEnv.IDF_PATH,
+      modifiedEnv.IDF_TOOLS_PATH,
+      pythonBinPath
+    );
+
+    if (idfToolsExportVars) {
+      try {
+        for (const envVar in idfToolsExportVars) {
+          if (envVar.toUpperCase() === pathNameInEnv.toUpperCase()) {
+            modifiedEnv[pathNameInEnv] = idfToolsExportVars[envVar]
+              .replace("%PATH%", modifiedEnv[pathNameInEnv])
+              .replace("$PATH", modifiedEnv[pathNameInEnv]);
+          } else {
+            modifiedEnv[envVar] = idfToolsExportVars[envVar];
+          }
+        }
+      } catch (error) {
+        Logger.errorNotify(
+          "Invalid ESP-IDF idf_tools.py export environment variables format",
+          error,
+          "appendIdfAndToolsToPath idf_tools export env vars"
+        );
+      }
+    }
+  }
+
   if (pathToGitDir) {
     modifiedEnv[pathNameInEnv] =
       pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
@@ -1155,13 +1190,17 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     path.delimiter +
     modifiedEnv[pathNameInEnv];
 
-  if (
-    modifiedEnv[pathNameInEnv] &&
-    !modifiedEnv[pathNameInEnv].includes(extraPaths)
-  ) {
-    modifiedEnv[pathNameInEnv] =
-      extraPaths + path.delimiter + modifiedEnv[pathNameInEnv];
+  const extraPathsArray = extraPaths.split(path.delimiter);
+  for (let extraPath of extraPathsArray) {
+    if (
+      modifiedEnv[pathNameInEnv] &&
+      !modifiedEnv[pathNameInEnv].includes(extraPath)
+    ) {
+      modifiedEnv[pathNameInEnv] =
+        extraPath + path.delimiter + modifiedEnv[pathNameInEnv];
+    }
   }
+
   modifiedEnv[
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;

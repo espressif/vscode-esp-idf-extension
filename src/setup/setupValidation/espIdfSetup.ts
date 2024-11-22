@@ -78,7 +78,7 @@ export async function checkIdfSetup(setupConf: IdfSetup,
     let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
     const virtualEnvPython = await getPythonEnvPath(setupConf.idfPath, setupConf.toolsPath, sysPythonBinPath);
 
-    const pyEnvReqs = checkPyVenv(virtualEnvPython, setupConf.idfPath);
+    const pyEnvReqs = await checkPyVenv(virtualEnvPython, setupConf.idfPath);
     return pyEnvReqs;
   } catch (error) {
     const msg =
