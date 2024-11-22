@@ -3,8 +3,7 @@
 ## Opening SDK Configuration
 ![Menuconfig Interface](../../media/walkthrough/gifs/menuconfig.gif)
 
-1. Click the menuconfig icon in status bar
-   - Or use Command Palette: "ESP-IDF: SDK Configuration Editor"
+1. Click the "SDK Configuration editor" icon from the status bar !["SDK Configuration editor"](../../media/walkthrough/icons/sdkconfig.png) or use the "ESP-IDF: SDK Configuration Editor(Menuconfig)" command
 
 ## Troubleshooting
 

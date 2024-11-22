@@ -36,7 +36,7 @@ export async function checkExtensionSettings(
   try {
     const isExtensionConfigured = await isCurrentInstallValid(workspace);
     if (isExtensionConfigured) {
-      vscode.commands.executeCommand("espIdf.welcome.start");
+      await vscode.commands.executeCommand("espIdf.welcome.start");
       return;
     }
   } catch (error) {
