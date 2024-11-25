@@ -117,6 +117,150 @@
   "main": "./dist/extension",
   "l10n": "./l10n",
   "contributes": {
+    "walkthroughs": [
+      {
+        "id": "espIdf.walkthrough.basic-usage",
+        "title": "ESP-IDF Basic Usage Guide",
+        "description": "Learn how to configure the ESP-IDF extension and use its basic features in VS Code",
+        "steps": [
+          {
+            "id": "introduction",
+            "title": "Introduction to ESP-IDF in VS Code",
+            "description": "This walkthrough will guide you through configuring the ESP-IDF extension and demonstrate its basic usage in Visual Studio Code.",
+            "media": {
+              "markdown": "walkthroughs/basic/basic-usage-intro.md"
+            }
+          },
+          {
+            "id": "extension-configuration",
+            "title": "Configuring the ESP-IDF Extension",
+            "description": "❗**Linux and MacOS users:** Please install prerequisites first. The process is quick and simple - follow the steps in our [ESP-IDF install documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites).\n\nOnce ready, let's configure the ESP-IDF extension:\n\n[Configure ESP-IDF Extension](command:espIdf.setup.start)\n\n",
+            "media": {
+              "markdown": "walkthroughs/basic/configuration.md"
+            }
+          },
+          {
+            "id": "create-example-project",
+            "title": "Creating an Example Project",
+            "description": "Now, let's create a new project from ESP-IDF examples:\n\n[Show Example Projects](command:espIdf.examples.start)\n\n💡 Explore different examples to find one that suits your needs.",
+            "media": {
+              "markdown": "walkthroughs/basic/create-project.md"
+            }
+          },
+          {
+            "id": "setup-project",
+            "title": "Setting Up Your Project",
+            "description": "Before building your project, you'll need to configure some essential settings:\n\n1. Configure your target device\n\n[Set Espressif Device Target](command:espIdf.setTarget)\n2. Set up project-specific configurations (not needed in our example)\n3. Select serial port \n\n[Select Port to Use](command:espIdf.selectPort)\n4. Select flashing method \n\n[Select Flash Method](command:espIdf.selectFlashMethodAndFlash)",
+            "media": {
+              "markdown": "walkthroughs/basic/setup-project.md"
+            }
+          },
+          {
+            "id": "build-flash-monitor",
+            "title": "Building, Flashing, and Monitoring",
+            "description": "Now that your project is configured, let's build the code, flash it to your device, and monitor the output.\n\nYou can perform these operations individually or all at once using the 'Build, Flash and Monitor' command.\n\n[Build, Flash and Monitor](command:espIdf.buildFlashMonitor)",
+            "media": {
+              "markdown": "walkthroughs/basic/build-flash-monitor.md"
+            }
+          },
+          {
+            "id": "additional-resources-and-ui",
+            "title": "Additional Resources and UI Exploration",
+            "description": "As a next step, we recommend that you go through the Advanced Walkthrough as well.\n\n[Start Advanced Features Guide Walkthrough](command:workbench.action.openWalkthrough?%22espressif.esp-idf-extension%23espIdf.walkthrough.advanced%22)",
+            "media": {
+              "markdown": "walkthroughs/basic/additional-resources.md"
+            }
+          }
+        ]
+      },
+      {
+        "id": "espIdf.walkthrough.advanced",
+        "title": "ESP-IDF Advanced Features Guide",
+        "description": "Explore advanced features and tools for ESP-IDF development in VS Code",
+        "steps": [
+          {
+            "id": "advanced-introduction",
+            "title": "Introduction to Advanced Features",
+            "description": "Overview of advanced ESP-IDF development capabilities.\n\n**Prerequisites:**\n - Completed the Basic Usage Guide\n - Basic familiarity with ESP-IDF concepts\n - Have a working ESP-IDF setup\n - Have your development board ready\n - JTAG debugging hardware (for debugging features)",
+            "media": {
+              "markdown": "walkthroughs/advanced/advanced-intro.md"
+            }
+          },
+          {
+            "id": "troubleshooting",
+            "title": "Troubleshooting Guide",
+            "description": "Learn about common troubleshooting techniques and how to get help when you need it.\n\nKey features:\n- Debug logging configuration\n- Environment diagnostics\n- Log file locations\n- Common issues and solutions\n\n[Run Doctor Command](command:espIdf.doctorCommand)",
+            "media": {
+              "markdown": "walkthroughs/advanced/troubleshooting.md"
+            }
+          },
+          {
+            "id": "sdk-configuration",
+            "title": "SDK Configuration (menuconfig)",
+            "description": "Learn how to customize your project's configuration using menuconfig\nKey features:\n- Component configuration\n- Compiler options\n- Flash and partition settings\n- Serial port parameters\n\n💡 Tip: Use search bar to quickly find settings",
+            "media": {
+              "markdown": "walkthroughs/advanced/sdk-configuration.md"
+            }
+          },
+          {
+            "id": "debugging",
+            "title": "Debugging Your Application",
+            "description": "Learn how to debug your ESP-IDF applications using VS Code\n\nKey features:\n- Conditional breakpoints\n- Navigating through the code, call stack and threads\n- Halting the target manually\n- Watching and setting program variables\n- Disassembly view\n- Sending GDB Commands\n- Peripheral Viewer",
+            "media": {
+              "markdown": "walkthroughs/advanced/debug-project.md"
+            }
+          },
+          {
+            "id": "component-installation",
+            "title": "Installing ESP-IDF Components",
+            "description": "Learn how to enhance your project with ESP Component Registry and Arduino-ESP32 integration.\n\n- Browse and install ESP components\n- Add Arduino-ESP32 as a component\n- Create projects from component examples\n\n[Open ESP Component Registry](command:esp.component-manager.ui.show)",
+            "media": {
+              "markdown": "walkthroughs/advanced/component-installation.md"
+            }
+          },
+          {
+            "id": "app-size-analysis",
+            "title": "Application Size Analysis",
+            "description": "ESP-IDF Extension provides powerful tools to analyze your application's memory usage, helping you optimize storage allocation. \n\n[Open Size Analysis](command:espIdf.size)",
+            "media": {
+              "markdown": "walkthroughs/advanced/app-size-analysis.md"
+            }
+          },
+          {
+            "id": "partition-table",
+            "title": "Partition Table Configuration",
+            "description": "The Partition Table Editor provides a user-friendly interface to define and modify your ESP32's flash memory layout.\nKey features\n- Visual partition table editing interface\n- Automatic CSV file generation and management\n- Direct integration with ESP-IDF build systemReal-time validation of partition configurations\n\n[Open Partition Editor](command:esp.webview.open.partition-table)",
+            "media": {
+              "markdown": "walkthroughs/advanced/partition-table.md"
+            }
+          },
+          {
+            "id": "unit-testing",
+            "title": "Unit Testing",
+            "description": "Set up and run unit tests for your ESP-IDF projects.\n\n- Configure test environment\n- Write and run tests\n- Analyze test results\n\n[Open Testing View](command:testing.viewExplorer)",
+            "media": {
+              "markdown": "walkthroughs/advanced/unit-testing.md"
+            }
+          },
+          {
+            "id": "multi-project",
+            "title": "Multi-Project Management",
+            "description": "Learn to efficiently manage multiple ESP-IDF projects in a single workspace.",
+            "media": {
+              "markdown": "walkthroughs/advanced/multi-project.md"
+            }
+          },
+          {
+            "id": "conclusion",
+            "title": "Next Steps",
+            "description": "Congratulations! You've learned about essential advanced features of ESP-IDF development.\n\nNext steps:\n- Explore additional tools in ESP-IDF documentation\n- Join the ESP32 community forum\n- Check out example projects\n\n[Visit Our Documentation](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures.html)",
+            "media": {
+              "markdown": "walkthroughs/advanced/advanced-conclusion.md"
+            }
+          }
+        ]
+      }
+    ],
     "problemMatchers": [
       {
         "name": "espIdf",
@@ -232,6 +376,13 @@
       }
     ],
     "menus": {
+      "extension/context": [
+        {
+          "command": "espIdf.openWalkthrough",
+          "when": "extension =~ /^espressif.esp-idf-extension$/ && extensionStatus == installed",
+          "group": "zzz"
+        }
+      ],
       "editor/title": [
         {
           "command": "espIdf.searchError",
@@ -610,6 +761,12 @@
             "default": true,
             "scope": "window",
             "description": "%param.showOnboardingOnInit%"
+          },
+          "idf.hasWalkthroughBeenShown": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "description": "%param.hasWalkthroughBeenShown%"
           },
           "trace.poll_period": {
             "type": "number",
@@ -1033,6 +1190,10 @@
       }
     ],
     "commands": [
+      {
+        "command": "espIdf.openWalkthrough",
+        "title": "ESP-IDF: Open Get Started Walkthrough"
+      },
       {
         "command": "espIdf.searchError",
         "title": "%espIdf.searchError.title%"

@@ -34,5 +34,6 @@
     }
   ],
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "workbench.editor.enablePreview": true
+  "workbench.editor.enablePreview": true,
+  "iis.configDir": ""
 }

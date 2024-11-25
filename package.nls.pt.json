@@ -164,6 +164,7 @@
 	"param.usbSerialPortFilters.title": "Lista de productID e vendorID da porta serial USB para filtrar",
   "param.usbSerialPortFilters.vendorId": "Número hexadecimal do USB vendorID como string.",
   "param.usbSerialPortFilters.productId": "Número hexadecimal de USB productID como string.",
+	"param.hasWalkthroughBeenShown": "Mostrar o guia de introdução na inicialização da extensão",
 	"trace.poll_period.description": "poll_period será definido para o apptrace",
 	"trace.skip_size.description": "skip_size será definido para o apptrace",
 	"trace.stop_tmo.description": "stop_tmo será definido para o apptrace",

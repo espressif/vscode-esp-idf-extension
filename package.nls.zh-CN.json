@@ -166,6 +166,7 @@
 	"param.usbSerialPortFilters.title": "USB串口productID和vendorID列表进行过滤",
 	"param.usbSerialPortFilters.vendorId": "USB VendorID 十六进制数字作为字符串。",
   "param.usbSerialPortFilters.productId": "USB ProductID 十六进制数字作为字符串。",
+	"param.hasWalkthroughBeenShown": "是否显示了 ESP-IDF 配置窗口的漫游",
 	"trace.poll_period.description": "将为 apptrace 设置 poll_period",
 	"trace.skip_size.description": "将为 apptrace 设置 skip_size",
 	"trace.stop_tmo.description": "将为 apptrace 设置 stop_tmo",
