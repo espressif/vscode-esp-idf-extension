@@ -1,0 +1,23 @@
+name: Request ESP-IDF Extension Rating
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  request-rating:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create rating request comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const extensionUrl = 'https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension&ssr=false#review-details';
+            const comment = `Thanks for using ESP-IDF! 🚀\n\nWe noticed you're using our VS Code extension - your feedback matters! Could you take a moment to rate it on the marketplace? A positive rating helps other developers discover our tools and motivates us to keep improving.\n\n⭐ Rate ESP-IDF Extension: ${extensionUrl}\n\nYour support means a lot to our development team!`;
+            
+            github.rest.issues.createComment({
+              owner: 'espressif',
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
