@@ -13,7 +13,7 @@ jobs:
         with:
           script: |
             const extensionUrl = 'https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension&ssr=false#review-details';
-            const comment = `Thanks for using ESP-IDF! 🚀\n\nWe noticed you're using our VS Code extension - your feedback matters! Could you take a moment to rate it on the marketplace? A positive rating helps other developers discover our tools and motivates us to keep improving.\n\n⭐ Rate ESP-IDF Extension: ${extensionUrl}\n\nYour support means a lot to our development team!`;
+            const comment = `Thanks for using our extension! 🚀\n\nYour feedback matters! Could you take a moment to rate it on the marketplace? A positive rating helps other developers discover our tools and motivates us to keep improving.\n\n⭐ Rate ESP-IDF Extension: ${extensionUrl}\n\nYour support means a lot to our development team!`;
             
             github.rest.issues.createComment({
               owner: 'espressif',
