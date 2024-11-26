@@ -4082,7 +4082,7 @@ function createQemuMonitor() {
 }
 
 const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
-  PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
+  PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
       workspaceRoot
@@ -4111,6 +4111,11 @@ const buildFlashAndMonitor = async (runMonitor: boolean = true) => {
           flashType
         );
         if (!canContinue) {
+          return;
+        }
+        // Re route to ESP-IDF Web extension if using Codespaces or Browser
+        if (vscode.env.uiKind === vscode.UIKind.Web) {
+          vscode.commands.executeCommand(IDFWebCommandKeys.FlashAndMonitor);
           return;
         }
         progress.report({
