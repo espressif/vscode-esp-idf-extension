@@ -1146,8 +1146,10 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   );
 
   const pythonBinPathExists = await pathExists(pythonBinPath);
+  const idfPathExists = await pathExists(modifiedEnv.IDF_PATH);
+  const idfToolsPathExists = await pathExists(modifiedEnv.IDF_TOOLS_PATH);
 
-  if (pythonBinPathExists) {
+  if (pythonBinPathExists && idfPathExists && idfToolsPathExists) {
     const idfToolsExportVars = await getEnvVarsFromIdfTools(
       modifiedEnv.IDF_PATH,
       modifiedEnv.IDF_TOOLS_PATH,
