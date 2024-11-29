@@ -98,6 +98,7 @@
   "idf.wssPort.description": "WebSocket server port for Core Dump or GDB Stub",
   "openocd.tcl.host.description": "Host for OpenOCD TCL Connection",
   "openocd.tcl.port.description": "Port for OpenOCD TCL Connection",
+  "espIdf.removeEspIdfSettings.title": "Remove ESP-IDF Settings",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
   "param.buildPath": "Name of CMake build directory",
   "param.cmakeCompilerArgs": "Arguments for CMake compilation task",

@@ -59,3 +59,26 @@ After installing Visual Studio Code you need to install the ESP-IDF extension fo
 
 .. warning::
   Check the :ref:`Troubleshooting <troubleshooting>` section if you have any issues during installation.
+
+Uninstall ESP-IDF VS Code Extension
+===========================
+
+To uninstall the ESP-IDF VS Code extension, follow these steps:
+
+1. Open Command Palette (F1) and type **ESP-IDF: Remove All ESP-IDF Settings** and select the command to remove all ESP-IDF settings.
+
+2. Navigate to **View** > **Extensions** or use the keyboard shortcut :kbd:`Ctrl+Shift+X` in Windows/Linux or :kbd:`Shift+⌘+X` in MacOS.
+
+3. Search for `ESP-IDF` and click on the **Uninstall** button.
+
+4. Ensure you remove the following folders:
+
+   - Go to your `${VSCODE_EXTENSION_DIR}` and delete the ESP-IDF plugin folder.
+   
+   - `${VSCODE_EXTENSION_DIR}` is the location of the extension:
+     - **Windows**: `%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\`
+     - **MacOS/Linux**: `$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/`
+
+.. note::
+
+  Make sure to replace `VERSION` with the actual version number of the ESP-IDF extension installed.
