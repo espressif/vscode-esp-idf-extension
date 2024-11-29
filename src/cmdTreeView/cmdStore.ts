@@ -52,6 +52,7 @@ export enum CommandKeys {
 }
 
 export enum AdvancedCommandKeys {
+  InstallManager = "espIdf.installManager",
   Setup = "espIdf.setup.start",
   Examples = "espIdf.examples.start",
   NewProject = "espIdf.newProject.start",
@@ -80,6 +81,11 @@ export function createAdvancedCommandDictionary(): Record<
   IDFCommandDescription
 > {
   return {
+    [AdvancedCommandKeys.InstallManager]: {
+      checkboxState: undefined,
+      iconId: "link-external",
+      tooltip: l10n.t("Open ESP-IDF installation manager"),
+    },
     [AdvancedCommandKeys.Setup]: {
       checkboxState: undefined,
       iconId: "extensions",
