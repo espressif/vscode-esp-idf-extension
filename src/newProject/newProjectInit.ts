@@ -28,6 +28,7 @@ import {
   loadIdfSetupsFromEspIdfJson,
 } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -69,30 +70,12 @@ export async function getNewProjectArgs(
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
-  const idfSetups = await getPreviousIdfSetups(true);
-  const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
-  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env.IDF_TOOLS_PATH
-    );
-    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+  let idfSetups = await getIdfSetups(true);
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(true);
   }
-  const setupsToUse = [...idfSetups, ...existingIdfSetups];
-  if (setupsToUse.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
-    return;
-  }
-  const onlyValidIdfSetups = [
-    ...new Map(
-      setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-    ).values(),
-  ];
-  const pickItems: {
-    description: string;
-    label: string;
-    target: IdfSetup;
-  }[] = [];
+  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const pickItems: {description: string, label: string, target: IdfSetup}[] = [];
   for (const idfSetup of onlyValidIdfSetups) {
     pickItems.push({
       description: `ESP-IDF v${idfSetup.version}`,
