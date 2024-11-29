@@ -3744,7 +3744,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Remove ESP-IDF settings
   context.subscriptions.push(
-    vscode.commands.registerCommand('espIdf.removeEspIdfSettings', removeEspIdfSettings)
+    vscode.commands.registerCommand(
+      "espIdf.removeEspIdfSettings",
+      removeEspIdfSettings
+    )
   );
 }
 
@@ -3753,11 +3756,11 @@ async function removeEspIdfSettings() {
   const settingsToDelete: string[] = [];
 
   // Helper function to recursively find idf settings
-  function findIdfSettings(obj: any, prefix: string = '') {
-    if (typeof obj === 'object' && obj !== null) {
-      Object.keys(obj).forEach(key => {
+  function findIdfSettings(obj: any, prefix: string = "") {
+    if (typeof obj === "object" && obj !== null) {
+      Object.keys(obj).forEach((key) => {
         const fullPath = prefix ? `${prefix}.${key}` : key;
-        if (fullPath.startsWith('idf.') || fullPath.startsWith('esp.')) {
+        if (fullPath.startsWith("idf.") || fullPath.startsWith("esp.")) {
           settingsToDelete.push(fullPath);
         }
         findIdfSettings(obj[key], fullPath);
@@ -3766,7 +3769,7 @@ async function removeEspIdfSettings() {
   }
 
   // Get all settings directly from configuration
-  const allSettings = config.inspect('');
+  const allSettings = config.inspect("");
   // Check values saved in each scope
   if (allSettings?.globalValue) {
     findIdfSettings(allSettings.globalValue);
@@ -3779,32 +3782,39 @@ async function removeEspIdfSettings() {
     findIdfSettings(allSettings.workspaceFolderValue);
   }
 
-  if(settingsToDelete.length === 0) {
-    vscode.window.showInformationMessage("No ESP-IDF settings found to remove.");
-    return ;
+  if (settingsToDelete.length === 0) {
+    vscode.window.showInformationMessage(
+      vscode.l10n.t("No ESP-IDF settings found to remove.")
+    );
+    return;
   }
 
   // Filter out any duplicate paths
   const uniqueSettingsToDelete = [...new Set(settingsToDelete)];
 
   // Ask user for confirmation
-  const message = 'Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.';
+  const message = vscode.l10n.t(
+    "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations."
+  );
   const result = await vscode.window.showWarningMessage(
     message,
     {
       modal: true,
-      detail: `${uniqueSettingsToDelete.length} settings will be removed.`
+      detail: vscode.l10n.t(
+        "{0} settings will be removed.",
+        uniqueSettingsToDelete.length
+      ),
     },
-    'Yes',
-    'No'
+    vscode.l10n.t("Yes"),
+    vscode.l10n.t("No")
   );
 
-  if (result !== 'Yes') {
+  if (result !== vscode.l10n.t("Yes")) {
     return;
   }
 
   try {
-    const message = 'Starting ESP-IDF settings cleanup...';
+    const message = vscode.l10n.t("Starting ESP-IDF settings cleanup...");
     OutputChannel.appendLineAndShow(message);
     Logger.info(message);
 
@@ -3816,8 +3826,14 @@ async function removeEspIdfSettings() {
         try {
           const inspection = config.inspect(setting);
           if (inspection?.globalValue !== undefined) {
-            await config.update(setting, undefined, vscode.ConfigurationTarget.Global);
-            OutputChannel.appendLine(`Removed global setting: ${setting}`);
+            await config.update(
+              setting,
+              undefined,
+              vscode.ConfigurationTarget.Global
+            );
+            OutputChannel.appendLine(
+              vscode.l10n.t("Removed global setting: {0}", setting)
+            );
           }
         } catch (e) {
           // Silently continue if we can't modify global settings
@@ -3827,8 +3843,14 @@ async function removeEspIdfSettings() {
         try {
           const inspection = config.inspect(setting);
           if (inspection?.workspaceValue !== undefined) {
-            await config.update(setting, undefined, vscode.ConfigurationTarget.Workspace);
-            OutputChannel.appendLine(`Removed workspace setting: ${setting}`);
+            await config.update(
+              setting,
+              undefined,
+              vscode.ConfigurationTarget.Workspace
+            );
+            OutputChannel.appendLine(
+              vscode.l10n.t("Removed workspace setting: {0}", setting)
+            );
           }
         } catch (e) {
           // Silently continue if we can't modify workspace settings
@@ -3838,23 +3860,40 @@ async function removeEspIdfSettings() {
         try {
           const inspection = config.inspect(setting);
           if (inspection?.workspaceFolderValue !== undefined) {
-            await config.update(setting, undefined, vscode.ConfigurationTarget.WorkspaceFolder);
-            OutputChannel.appendLine(`Removed workspace folder setting: ${setting}`);
+            await config.update(
+              setting,
+              undefined,
+              vscode.ConfigurationTarget.WorkspaceFolder
+            );
+            OutputChannel.appendLine(
+              vscode.l10n.t("Removed workspace folder setting: {0}", setting)
+            );
           }
         } catch (e) {
           // Silently continue if we can't modify workspace folder settings
         }
       } catch (settingError) {
-        OutputChannel.appendLine(`Warning: Could not fully remove setting ${setting}: ${settingError.message}`);
+        OutputChannel.appendLine(
+          vscode.l10n.t(
+            "Warning: Could not fully remove setting {0}: {1}",
+            setting,
+            settingError.message
+          )
+        );
       }
     }
 
-    OutputChannel.appendLineAndShow('ESP-IDF settings removed successfully.');
+    OutputChannel.appendLineAndShow(
+      vscode.l10n.t("ESP-IDF settings removed successfully.")
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    vscode.window.showErrorMessage(`Failed to remove settings: ${errorMessage}`);
-    OutputChannel.appendLineAndShow(`Error: ${errorMessage}`);
-    Logger.error(errorMessage, error, 'extension removeEspIdfSettings');
+    vscode.window.showErrorMessage(
+      vscode.l10n.t("Failed to remove settings: {0}"),
+      errorMessage
+    );
+    OutputChannel.appendLineAndShow(vscode.l10n.t("Error: {0}"), errorMessage);
+    Logger.error(errorMessage, error, "extension removeEspIdfSettings");
   }
 }
 
