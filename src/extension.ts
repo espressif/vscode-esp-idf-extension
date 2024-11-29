@@ -1945,6 +1945,10 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  registerIDFCommand("espIdf.installManager", () => {
+    vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
+  });
+
   registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
     PreCheck.perform([webIdeCheck], async () => {
       try {
