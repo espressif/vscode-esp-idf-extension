@@ -151,6 +151,7 @@
   "Install ESP-MDF": "Установка ESP-MDF",
   "Install ESP-Matter": "Установка ESP-Matter",
   "Install ESP-Rainmaker": "Установка ESP-Rainmaker",
+  "Open ESP-IDF installation manager": "Откройте диспетчер установки ESP-IDF.",
   "Project Configuration editor": "Редактор конфигурации проекта",
   "Select Project Configuration": "Выбор конфигурации проекта",
   "Install Extension Python Requirements": "Установка требований Python расширения",

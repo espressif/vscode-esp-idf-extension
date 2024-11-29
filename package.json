@@ -606,6 +606,12 @@
       {
         "title": "%configuration.title%",
         "properties": {
+          "idf.espIdeJsonPath": {
+            "type": "string",
+            "default": "",
+            "description": "%param.espIdeJsonPath%",
+            "scope": "application"
+          },
           "idf.espIdfPath": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -1307,6 +1313,11 @@
       {
         "command": "espIdf.setup.start",
         "title": "%espIdf.setup.title%",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.installManager",
+        "title": "%espIdf.installManager.title%",
         "category": "ESP-IDF"
       },
       {
