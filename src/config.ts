@@ -115,6 +115,10 @@ export namespace ESP {
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
       export const FLASH_ENCRYPTION = "/security/flash-encryption.html";
     }
+
+    export namespace InstallManager {
+      export const Releases = "https://github.com/espressif/idf-im-ui/releases";
+    }
   }
 
   export namespace Webview {

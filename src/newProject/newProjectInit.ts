@@ -25,6 +25,7 @@ import {
 } from "../espIdf/openOcd/boardConfiguration";
 import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface INewProjectArgs {
   espIdfPath: string;
@@ -67,7 +68,10 @@ export async function getNewProjectArgs(
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
-  const idfSetups = await getPreviousIdfSetups(true);
+  let idfSetups = await getIdfSetups(true);
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(true);
+  }
   const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
   const pickItems: {description: string, label: string, target: IdfSetup}[] = [];
   for (const idfSetup of onlyValidIdfSetups) {

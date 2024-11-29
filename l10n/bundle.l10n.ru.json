@@ -146,6 +146,7 @@
   "Discarded changes in SDK Configuration editor": "Отменены изменения в редакторе конфигурации SDK.",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Произошла ошибка при добавлении зависимости {dependent} к компоненту \"{comment}\".",
   "Error encountered while creating project from example \"{example}\"": "Ошибка при создании проекта из примера \"{example}\".",
+  "Open ESP-IDF installation manager": "Откройте диспетчер установки ESP-IDF.",
   "Create ESP-IDF From Extension Templates": "Создание ESP-IDF из шаблонов расширений",
   "Install ESP-ADF": "Установите ESP-ADF",
   "Install ESP-MDF": "Установить ЭСП-МДФ",

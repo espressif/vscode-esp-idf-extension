@@ -27,12 +27,16 @@ import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 import { getPythonPath } from "../pythonManager";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const idfSetups = await getPreviousIdfSetups(true);
+  let idfSetups = await getIdfSetups();
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(true);
+  }
   if (idfSetups.length === 0) {
     await window.showInformationMessage("No ESP-IDF Setups found");
     return;

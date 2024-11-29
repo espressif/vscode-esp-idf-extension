@@ -37,6 +37,7 @@ import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 import { getCurrentIdfSetup } from "../versionSwitcher";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -138,7 +139,10 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  const idfSetups = await getPreviousIdfSetups(false);
+  let idfSetups = await getIdfSetups(false);
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(false);
+  }
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const initialDownloadMirror =
