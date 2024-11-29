@@ -93,6 +93,8 @@
 	"esp_idf.initGdbCommands.description": "Um ou mais comandos GDB a serem executados para configurar o depurador subjacente. ",
 	"esp_idf.tmoScaleFactor.description": "Fator de escala para tempo limite do gdb [padrão: 1]",
 	"esp_idf.verifyAppBinBeforeDebug.description": "Verifique os binários do aplicativo antes da depuração",
+	"espIdf.searchError.title": "ESP-IDF: Buscar Dica de Erro",
+	"espIdf.removeEspIdfSettings.title": "Remover Configurações ESP-IDF",
 	"idf.flashType.description": "Método flash do dispositivo, UART ou JTag",
 	"idf.wssPort.description": "Porta do servidor Web Socket para Core Dump ou GDB Stub",
 	"openocd.tcl.host.description": "Host para conexão OpenOCD tcl",
