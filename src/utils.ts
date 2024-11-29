@@ -1120,9 +1120,11 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     `${process.env.PYTHON}` ||
     `${path.join(process.env.IDF_PYTHON_ENV_PATH, "bin", "python")}`;
 
-  modifiedEnv.IDF_PYTHON_ENV_PATH =
-    path.dirname(path.dirname(pythonBinPath)) ||
-    process.env.IDF_PYTHON_ENV_PATH;
+  const pythonBinPathExists = await pathExists(pythonBinPath);
+
+  modifiedEnv.IDF_PYTHON_ENV_PATH = pythonBinPathExists
+    ? path.dirname(path.dirname(pythonBinPath))
+    : process.env.IDF_PYTHON_ENV_PATH;
 
   const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
   let pathToGitDir;
@@ -1145,7 +1147,6 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     (k) => k.toUpperCase() == "PATH"
   );
 
-  const pythonBinPathExists = await pathExists(pythonBinPath);
   const idfPathExists = await pathExists(modifiedEnv.IDF_PATH);
   const idfToolsPathExists = await pathExists(modifiedEnv.IDF_TOOLS_PATH);
 
