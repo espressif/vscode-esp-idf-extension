@@ -327,31 +327,38 @@
       "idfViewController": [
         {
           "id": "idfCommands",
-          "name": "%view.idf.idfCommands%"
+          "name": "%view.idf.idfCommands%",
+          "visibility": "visible"
         },
         {
           "id": "idfSearchResults",
-          "name": "%view.idf.idfSearchResults%"
+          "name": "%view.idf.idfSearchResults%",
+          "visibility": "collapsed"
         },
         {
           "id": "idfPartitionExplorer",
-          "name": "%view.idf.idfPartitionExplorer%"
+          "name": "%view.idf.idfPartitionExplorer%",
+          "visibility": "collapsed"
         },
         {
           "id": "idfAppTracer",
-          "name": "%view.idf.idfAppTracer%"
+          "name": "%view.idf.idfAppTracer%",
+          "visibility": "collapsed"
         },
         {
           "id": "idfAppTraceArchive",
-          "name": "%view.idf.idfAppTraceArchive%"
+          "name": "%view.idf.idfAppTraceArchive%",
+          "visibility": "collapsed"
         },
         {
           "id": "espRainmaker",
-          "name": "%view.idf.espRainmaker%"
+          "name": "%view.idf.espRainmaker%",
+          "visibility": "collapsed"
         },
         {
           "id": "espEFuseExplorer",
-          "name": "%view.idf.espEFuseExplorer%"
+          "name": "%view.idf.espEFuseExplorer%",
+          "visibility": "collapsed"
         }
       ],
       "explorer": [
