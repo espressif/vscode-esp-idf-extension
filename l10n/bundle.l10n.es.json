@@ -147,6 +147,7 @@
   "Discarded changes in SDK Configuration editor": "Cambios descartados en el editor de configuración del SDK",
   "Error encountered while adding dependency {dependency} to the component \"{component}\"": "Se encontró un error al agregar la dependencia {dependency} al componente \"{component}\"",
   "Error encountered while creating project from example \"{example}\"": "Se encontró un error al crear un proyecto a partir del ejemplo \"{example}\"",
+  "Open ESP-IDF installation manager": "Abra el administrador de instalación ESP-IDF",
   "Install ESP-ADF": "Instalar ESP-ADF",
   "Install ESP-MDF": "Instalar ESP-MDF",
   "Install ESP-Matter": "Instalar ESP-Materia",
