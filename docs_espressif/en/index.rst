@@ -1,5 +1,6 @@
 ESP-IDF Extension for VSCode
 =============================
+
 :link_to_translation:`zh_CN:[中文]`
 
 The ESP-IDF Extension for VSCode Code empowers developers to efficiently develop, build, flash, monitor, debug, and manage projects targeting Espressif chips using the Espressif IoT Development Framework (ESP-IDF). This extension integrates seamlessly with Visual Studio Code, providing a familiar environment for streamlined development workflows. Whether you are a beginner or an experienced developer, this documentation will guide you through the process of setting up, configuring, and utilizing the ESP-IDF Extension to leverage the full potential of Espressif chips in your IoT applications.

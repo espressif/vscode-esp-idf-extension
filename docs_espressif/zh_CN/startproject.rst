@@ -1,0 +1,1 @@
+.. include:: ../en/startproject.rst
