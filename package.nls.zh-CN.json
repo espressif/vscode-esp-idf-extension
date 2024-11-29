@@ -100,6 +100,7 @@
 	"openocd.tcl.port.description": "用于 OpenOCD TCL 连接的端口",
 	"openocd.jtag.command.force_unix_path_separator.description": "强制在 Windows 操作系统中使用 \"/\" 作为路径分隔符，而不是 \"\\\\\"",
 	"param.adapterTargetName": "为 ESP-IDF 调试适配器指定目标",
+	"espIdf.removeEspIdfSettings.title": "删除 ESP-IDF 设置",
 	"param.buildPath": "CMake 构建目录的名称",
 	"param.cmakeCompilerArgs": "用于 CMake 编译任务的参数",
 	"param.coveredDarkTheme": "深色主题下 ESP-IDF 覆盖率报告中覆盖行的背景颜色",
