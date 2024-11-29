@@ -1200,7 +1200,7 @@
     "commands": [
       {
         "command": "espIdf.removeEspIdfSettings",
-        "title": "espIdf.removeEspIdfSettings.title",
+        "title": "%espIdf.removeEspIdfSettings.title%",
         "category": "ESP-IDF"
       },
       {
