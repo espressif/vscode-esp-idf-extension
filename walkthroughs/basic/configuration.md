@@ -20,10 +20,8 @@ Click the Install button to begin the installation process.
 ![Start Installation](../../media/walkthrough/install-btn.png)
 
 ### 5. Post-Installation Step (Linux only)
-After installation, run the following command in your preferred terminal:
-```
-sudo cp --update=none /home/hmp/.espressif/tools/openocd-esp32/v0.12.0-esp32-20240318/openocd-esp32/share/openocd/contrib/60-openocd.rules /etc/udev/rules.d
-```
+For Linux users, a message is shown to add OpenOCD rules in `/etc/udev/rules.d` which you need to run with sudo privileges.
+
 
 ## Related Resources
 
