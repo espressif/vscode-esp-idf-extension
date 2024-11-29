@@ -30,6 +30,7 @@ import {
 import { IdfSetup } from "../views/setup/types";
 import { getTargetsFromEspIdf, IdfTarget } from "../espIdf/setTarget/getTargets";
 import { getCurrentIdfSetup } from "../versionSwitcher";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -72,17 +73,12 @@ export async function getNewProjectArgs(
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
-  const idfSetups = await getPreviousIdfSetups(true);
-  const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
-  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env.IDF_TOOLS_PATH
-    );
-    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+  let idfSetups = await getIdfSetups(true);
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(true);
   }
   const currentIdfSetup = await getCurrentIdfSetup(workspace);
-  let setupsToUse = [...idfSetups, ...existingIdfSetups, currentIdfSetup];
+  let setupsToUse = [...idfSetups, currentIdfSetup];
   setupsToUse = setupsToUse.filter(
     (setup, index, self) =>
       index ===

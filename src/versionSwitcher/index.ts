@@ -30,22 +30,18 @@ import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const globalStateSetups = await getPreviousIdfSetups(true);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
-    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-      process.env.IDF_TOOLS_PATH
-    );
-    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+  let idfSetups = await getIdfSetups();
+  if (idfSetups.length === 0) {
+    idfSetups = await getPreviousIdfSetups(true);
   }
   const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
-  let idfSetups = [...globalStateSetups, ...existingIdfSetups, currentIdfSetup];
+  idfSetups.push(currentIdfSetup);
   idfSetups = idfSetups.filter(
     (setup, index, self) =>
       index ===
