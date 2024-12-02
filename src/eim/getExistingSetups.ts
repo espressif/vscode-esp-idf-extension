@@ -44,6 +44,34 @@ export interface IdfInstalled {
   python: string;
 }
 
+export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
+  const espIdfJson = await getEspIdeJson();
+  if (
+    espIdfJson &&
+    espIdfJson.idfSelectedId &&
+    espIdfJson.idfInstalled[espIdfJson.idfSelectedId]
+  ) {
+    const idfSetup: IdfSetup = {
+      id: espIdfJson.idfSelectedId,
+      idfPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].path,
+      gitPath: espIdfJson.gitPath,
+      version: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].name,
+      toolsPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].idfToolsPath,
+      isValid: false,
+    } as IdfSetup;
+    try {
+      const isValid = await checkIdfSetup(idfSetup, logToChannel);
+      idfSetup.isValid = isValid;
+    } catch (err) {
+      const msg = err.message
+        ? err.message
+        : "Error checkIdfSetup in getSelectedEspIdfSetup";
+      Logger.error(msg, err, "getSelectedEspIdfSetup");
+    }
+    return idfSetup;
+  }
+}
+
 export async function getIdfSetups(logToChannel: boolean = true) {
   const setupKeys = await loadIdfSetupsFromEspIdfJson();
   const idfSetups: IdfSetup[] = [];
@@ -65,13 +93,13 @@ export async function getIdfSetups(logToChannel: boolean = true) {
 }
 
 export async function loadIdfSetupsFromEspIdfJson() {
+  let idfSetups: IdfSetup[] = [];
   const espIdfJson = await getEspIdeJson();
   if (
     espIdfJson &&
     espIdfJson.idfInstalled &&
     Object.keys(espIdfJson.idfInstalled).length
   ) {
-    let idfSetups: IdfSetup[] = [];
     for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
       let setupConf: IdfSetup = {
         id: idfInstalledKey,
@@ -92,8 +120,8 @@ export async function loadIdfSetupsFromEspIdfJson() {
       }
       idfSetups.push(setupConf);
     }
-    return idfSetups;
   }
+  return idfSetups;
 }
 
 export async function getEspIdeJson() {
@@ -116,9 +144,11 @@ export async function getEspIdeJson() {
     }
     espIdfJson = await readJson(espIdeJsonPath);
   } catch (error) {
-    const msg = error && error.message ? error.message : `Error reading ${espIdeJsonPath}.`;
+    const msg =
+      error && error.message
+        ? error.message
+        : `Error reading ${espIdeJsonPath}.`;
     Logger.error(msg, error, "getEspIdfSetupsFromJson");
-    return;
   }
   return espIdfJson;
 }
