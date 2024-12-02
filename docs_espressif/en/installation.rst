@@ -61,7 +61,7 @@ After installing Visual Studio Code you need to install the ESP-IDF extension fo
   Check the :ref:`Troubleshooting <troubleshooting>` section if you have any issues during installation.
 
 Uninstall ESP-IDF VS Code Extension
---------------------------------
+-------------------------------------
 
 To uninstall the ESP-IDF VS Code extension, follow these steps:
 
