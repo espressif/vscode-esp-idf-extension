@@ -18,14 +18,16 @@
 import * as vscode from "vscode";
 import { isCurrentInstallValid } from "./setup/setupInit";
 import { Logger } from "./logger/logger";
-import { readParameter } from "./idfConfiguration";
 import {
   checkIdfSetup,
-  useIdfSetupSettings,
 } from "./setup/setupValidation/espIdfSetup";
 import { getIdfMd5sum } from "./setup/espIdfJson";
 import { getEspIdfFromCMake } from "./utils";
 import { IdfSetup } from "./views/setup/types";
+import { NotificationMode, readParameter } from "./idfConfiguration";
+import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
+import { getIdfSetups, getSelectedEspIdfSetup } from "./eim/getExistingSetups";
+import { getPreviousIdfSetups } from "./setup/existingIdfSetups";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
@@ -41,20 +43,25 @@ export async function checkExtensionSettings(
       vscode.commands.executeCommand("espIdf.welcome.start");
       return;
     }
+    const espIdeJsonSelected = await getSelectedEspIdfSetup();
+    if (espIdeJsonSelected && espIdeJsonSelected.isValid) {
+      await useIdfSetupSettings(
+        espIdeJsonSelected,
+        vscode.ConfigurationTarget.WorkspaceFolder,
+        workspace,
+        espIdfStatusBar
+      );
+      return;
+    }
   } catch (error) {
     const msg = error.message
       ? error.message
-      : "Checking if current install is valid throws an error.";
+      : vscode.l10n.t("Checking if current install is valid throws an error.");
     Logger.error(msg, error, "checkExtensionSettings");
   }
-
-  if (!showWelcomePage) {
-    return;
-  }
-
   const actionItems = [
-    "Open Setup wizard",
-    "Choose from existing ESP-IDF setups.",
+    vscode.l10n.t("Open Install manager"),
+    vscode.l10n.t("Choose from existing setups."),
   ];
 
   if (vscode.env.remoteName === "dev-container") {
@@ -62,14 +69,22 @@ export async function checkExtensionSettings(
   }
 
   const action = await vscode.window.showInformationMessage(
-    "The extension configuration is not valid. Choose an action:",
+    vscode.l10n.t(
+      "The extension configuration is not valid. Choose an action: "
+    ),
     ...actionItems
   );
   if (!action) {
     return;
   }
 
-  if (action === "Use docker container configuration") {
+  if (action === actionItems[0]) {
+    vscode.commands.executeCommand("espIdf.installManager");
+    return;
+  } else if (action === actionItems[1]) {
+    await showExistingEspIDfSetups(workspace, espIdfStatusBar);
+    return;
+  } else if (action === "Use docker container configuration") {
     const idfPath = "/opt/esp/idf";
     const idfToolsPath = "/opt/esp";
     const gitPath = "/usr/bin/git";
@@ -101,12 +116,60 @@ export async function checkExtensionSettings(
     );
     return;
   }
+}
 
-  if (action === "Open Setup wizard") {
-    vscode.commands.executeCommand("espIdf.setup.start");
-    return;
-  } else if (action === "Choose from existing ESP-IDF setups.") {
-    vscode.commands.executeCommand("espIdf.selectCurrentIdfVersion");
-    return;
-  }
+export async function showExistingEspIDfSetups(
+  workspace: vscode.Uri,
+  espIdfStatusBar: vscode.StatusBarItem
+) {
+  const notificationMode = readParameter(
+    "idf.notificationMode",
+    workspace
+  ) as string;
+  const ProgressLocation =
+    notificationMode === NotificationMode.All ||
+    notificationMode === NotificationMode.Notifications
+      ? vscode.ProgressLocation.Notification
+      : vscode.ProgressLocation.Window;
+  await vscode.window.withProgress(
+    {
+      cancellable: false,
+      location: ProgressLocation,
+      title: "ESP-IDF: Loading existing ESP-IDF setups...",
+    },
+    async (
+      progress: vscode.Progress<{ message: string; increment: number }>,
+      cancelToken: vscode.CancellationToken
+    ) => {
+      try {
+        let idfSetups = await getIdfSetups(false);
+        if (idfSetups.length === 0) {
+          idfSetups = await getPreviousIdfSetups(false);
+        }
+        const options = idfSetups.map((existingSetup) => {
+          return {
+            label: `ESP-IDF ${existingSetup.version} in ${existingSetup.idfPath}`,
+            target: existingSetup,
+          };
+        });
+        const selectedSetup = await vscode.window.showQuickPick(options, {
+          placeHolder: "Select a ESP-IDF setup to use",
+        });
+        if (!selectedSetup) {
+          return;
+        }
+        await useIdfSetupSettings(
+          selectedSetup.target,
+          vscode.ConfigurationTarget.WorkspaceFolder,
+          workspace,
+          espIdfStatusBar
+        );
+      } catch (error) {
+        const msg = error.message
+          ? error.message
+          : "Error loading initial configuration.";
+        Logger.errorNotify(msg, error, "checkExtensionSettings");
+      }
+    }
+  );
 }
