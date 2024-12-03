@@ -21,7 +21,6 @@
   "espIdf.buildDevice.title": "构建项目",
   "espIdf.buildFlashMonitor.title": "构建、烧录项目并监视设备",
   "espIdf.clearDocsSearchResult.title": "清除 ESP-IDF 搜索结果",
-  "espIdf.clearSavedIdfSetups.title": "清除已保存的 ESP-IDF 设置",
   "espIdf.cmakeListsEditor.start.title": "CMakeLists.txt 编辑器",
   "espIdf.createDevContainer.title": "添加 Docker 容器配置",
   "espIdf.createFiles.title": "基于模板创建新项目",

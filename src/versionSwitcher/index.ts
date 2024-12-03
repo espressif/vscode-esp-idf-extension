@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
+import { commands, ConfigurationTarget, l10n, StatusBarItem, Uri, window } from "vscode";
 import {
   checkIdfSetup,
   useIdfSetupSettings,
@@ -35,10 +34,6 @@ export async function selectIdfSetup(
 ) {
   let idfSetups = await getIdfSetups();
   if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(true);
-  }
-  if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
   const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
