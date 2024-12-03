@@ -3630,11 +3630,7 @@ export async function activate(context: vscode.ExtensionContext) {
       Logger.warn(`Failed to handle URI Open, ${uri.toString()}`);
     },
   });
-  await checkExtensionSettings(
-    context.extensionPath,
-    workspaceRoot,
-    statusBarItems["currentIdfVersion"]
-  );
+  checkExtensionSettings(workspaceRoot, statusBarItems["currentIdfVersion"]);
 
   // WALK-THROUGH
   let disposable = vscode.commands.registerCommand(

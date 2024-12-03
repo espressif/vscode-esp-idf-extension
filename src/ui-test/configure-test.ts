@@ -31,7 +31,7 @@ describe("Configure extension", () => {
 
   before(async function () {
     this.timeout(100000);
-    await new Promise((res) => setTimeout(res, 2000));
+    await new Promise((res) => setTimeout(res, 10000));
     const notifications = await new Workbench().getNotifications();
     for (let n of notifications) {
       await n.dismiss();
