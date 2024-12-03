@@ -50,11 +50,9 @@ import {
   checkSpacesInPath,
   getEspIdfFromCMake,
   canAccessFile,
-  execChildProcess,
   compareVersion,
 } from "../utils";
 import { useIdfSetupSettings } from "./setupValidation/espIdfSetup";
-import { clearPreviousIdfSetups } from "./existingIdfSetups";
 
 export class SetupPanel {
   public static currentPanel: SetupPanel | undefined;
@@ -310,9 +308,6 @@ export class SetupPanel {
             });
             await this.getOpenOcdRulesPath();
           }
-          break;
-        case "cleanIdfSetups":
-          await clearPreviousIdfSetups();
           break;
         case "newProject":
           await commands.executeCommand("espIdf.newProject.start");

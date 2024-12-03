@@ -18,10 +18,6 @@
 
 import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import {
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "../setup/existingIdfSetups";
-import {
   checkIdfSetup,
   useIdfSetupSettings,
 } from "../setup/setupValidation/espIdfSetup";
@@ -37,11 +33,11 @@ export async function selectIdfSetup(
   espIdfStatusBar: StatusBarItem
 ) {
   let idfSetups = await getIdfSetups();
-  if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(true);
-  }
   const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
   idfSetups.push(currentIdfSetup);
+  if (idfSetups.length === 0) {
+    return;
+  }
   idfSetups = idfSetups.filter(
     (setup, index, self) =>
       index ===
@@ -49,10 +45,6 @@ export async function selectIdfSetup(
         (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
       )
   );
-  if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
-    return;
-  }
   const onlyValidIdfSetups = [
     ...new Map(
       idfSetups.filter((i) => i.isValid).map((item) => [item.idfPath, item])
