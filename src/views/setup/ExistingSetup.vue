@@ -18,17 +18,6 @@ function goTo(route: string, setupMode: SetupMode) {
 
 <template>
   <div class="notification">
-    <div class="field install-btn">
-      <div class="control">
-        <button
-          @click="store.cleanIdfSetups"
-          class="button"
-          data-config-id="start-install-btn"
-        >
-          Clean IDF Setups
-        </button>
-      </div>
-    </div>
     <div
       class="notification install-choice"
       @click="goTo('/autoinstall', setupMode.express)"
