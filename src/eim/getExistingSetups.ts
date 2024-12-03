@@ -23,6 +23,7 @@ import { Logger } from "../logger/logger";
 import { IdfSetup } from "../views/setup/types";
 import { checkIdfSetup } from "../setup/setupValidation/espIdfSetup";
 import { getEspIdfFromCMake } from "../utils";
+import { commands, l10n, window } from "vscode";
 
 export interface EspIdfJson {
   $schema: string;
@@ -72,8 +73,11 @@ export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
   }
 }
 
-export async function getIdfSetups(logToChannel: boolean = true) {
-  const setupKeys = await loadIdfSetupsFromEspIdfJson();
+export async function getIdfSetups(
+  logToChannel: boolean = true,
+  showNoSetupsFound = true
+) {
+  const setupKeys = await loadIdfSetupsFromEspIdeJson();
   const idfSetups: IdfSetup[] = [];
   for (let idfSetup of setupKeys) {
     if (idfSetup && idfSetup.idfPath) {
@@ -89,10 +93,19 @@ export async function getIdfSetups(logToChannel: boolean = true) {
       }
     }
   }
+  if (showNoSetupsFound && idfSetups && idfSetups.length === 0) {
+    const action = await window.showInformationMessage(
+      l10n.t("No ESP-IDF Setups found"),
+      l10n.t("Open ESP-IDF Installation Manager")
+    );
+    if (action && action === l10n.t("Open ESP-IDF Installation Manager")) {
+      commands.executeCommand("espIdf.installManager");
+    }
+  }
   return idfSetups;
 }
 
-export async function loadIdfSetupsFromEspIdfJson() {
+export async function loadIdfSetupsFromEspIdeJson() {
   let idfSetups: IdfSetup[] = [];
   const espIdfJson = await getEspIdeJson();
   if (
@@ -114,8 +127,8 @@ export async function loadIdfSetupsFromEspIdfJson() {
       } catch (err) {
         const msg = err.message
           ? err.message
-          : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
-        Logger.error(msg, err, "loadIdfSetupsFromEspIdfJson");
+          : "Error checkIdfSetup in loadIdfSetupsFromEspIdeJson";
+        Logger.error(msg, err, "loadIdfSetupsFromEspIdeJson");
         setupConf.isValid = false;
       }
       idfSetups.push(setupConf);
@@ -148,7 +161,7 @@ export async function getEspIdeJson() {
       error && error.message
         ? error.message
         : `Error reading ${espIdeJsonPath}.`;
-    Logger.error(msg, error, "getEspIdfSetupsFromJson");
+    Logger.error(msg, error, "getEspIdeJson");
   }
   return espIdfJson;
 }

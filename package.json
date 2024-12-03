@@ -1713,11 +1713,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.clearSavedIdfSetups",
-        "title": "%espIdf.clearSavedIdfSetups.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "espIdf.selectNotificationMode",
         "title": "%espIdf.selectNotificationMode.title%",
         "category": "ESP-IDF"
