@@ -84,7 +84,7 @@ export function createAdvancedCommandDictionary(): Record<
     [AdvancedCommandKeys.InstallManager]: {
       checkboxState: undefined,
       iconId: "link-external",
-      tooltip: l10n.t("Open ESP-IDF installation manager"),
+      tooltip: l10n.t("Open ESP-IDF Installation Manager"),
     },
     [AdvancedCommandKeys.Setup]: {
       checkboxState: undefined,

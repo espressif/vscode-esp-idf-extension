@@ -52,8 +52,7 @@ export async function useIdfSetupSettings(
     sysPythonBinPath,
     saveScope,
     workspaceFolderUri,
-    espIdfStatusBar,
-    false
+    espIdfStatusBar
   );
 }
 

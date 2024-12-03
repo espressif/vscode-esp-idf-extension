@@ -24,7 +24,6 @@
   "espIdf.buildFlashMonitor.title": "Build, Flash and Start a Monitor on Your Device",
   "espIdf.buildPartitionTable.title": "Build Partition Table",
   "espIdf.clearDocsSearchResult.title": "Clear ESP-IDF Search Results",
-  "espIdf.clearSavedIdfSetups.title": "Clear Saved ESP-IDF Setups",
   "espIdf.cmakeListsEditor.start.title": "CMakeLists.txt Editor",
   "espIdf.createDevContainer.title": "Add Docker Container Configuration",
   "espIdf.createIdfTerminal.title": "Open ESP-IDF Terminal",

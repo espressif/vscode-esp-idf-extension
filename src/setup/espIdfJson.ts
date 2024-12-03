@@ -20,6 +20,9 @@ import { createHash } from "crypto";
 import { pathExists, readJson, writeJson } from "fs-extra";
 import { join } from "path";
 import { getEspIdfFromCMake, isBinInPath } from "../utils";
+import { IdfSetup } from "../views/setup/types";
+import { checkIdfSetup } from "./setupValidation/espIdfSetup";
+import { Logger } from "../logger/logger";
 
 export interface EspIdfJson {
   $schema: string;
@@ -57,6 +60,38 @@ export function getIdfMd5sum(idfPath: string) {
     .update(idfPath.replace(/\\/g, "/"))
     .digest("hex");
   return `esp-idf-${md5Value}`;
+}
+
+export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
+  const espIdfJson = await loadEspIdfJson(toolsPath);
+  if (
+    espIdfJson &&
+    espIdfJson.idfInstalled &&
+    Object.keys(espIdfJson.idfInstalled).length
+  ) {
+    let idfSetups: IdfSetup[] = [];
+    for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
+      let setupConf: IdfSetup = {
+        id: idfInstalledKey,
+        idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
+        gitPath: espIdfJson.gitPath,
+        version: espIdfJson.idfInstalled[idfInstalledKey].version,
+        toolsPath: toolsPath,
+        isValid: false,
+      } as IdfSetup;
+      try {
+        setupConf.isValid = await checkIdfSetup(setupConf, false);
+      } catch (err) {
+        const msg = err.message
+          ? err.message
+          : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
+        Logger.error(msg, err, "loadIdfSetupsFromEspIdfJson");
+        setupConf.isValid = false;
+      }
+      idfSetups.push(setupConf);
+    }
+    return idfSetups;
+  }
 }
 
 export async function loadEspIdfJson(toolsPath: string) {

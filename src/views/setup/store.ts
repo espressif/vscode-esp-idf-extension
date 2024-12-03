@@ -271,13 +271,6 @@ export const useSetupStore = defineStore("setup", () => {
     });
   }
 
-  function cleanIdfSetups() {
-    idfSetups.value = [];
-    vscode.postMessage({
-      command: "cleanIdfSetups",
-    });
-  }
-
   function exploreComponents() {
     vscode.postMessage({
       command: "exploreComponents",
@@ -476,7 +469,6 @@ export const useSetupStore = defineStore("setup", () => {
     saveCustomSettings,
     useDefaultSettings,
     useIdfSetup,
-    cleanIdfSetups,
     setEspIdfVersionList,
     setPyVersionsList,
     setSelectedEspIdfVersion,

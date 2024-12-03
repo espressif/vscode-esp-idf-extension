@@ -24,7 +24,6 @@
 	"espIdf.buildFlashMonitor.title": "Собрать, прошить устойство и запустить монитор",
 	"espIdf.buildPartitionTable.title": "Построить таблицу перегородков",
 	"espIdf.clearDocsSearchResult.title": "Очистить результаты поиска ESP-IDF",
-	"espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки ESP-IDF",
 	"espIdf.cmakeListsEditor.start.title": "Редактор CMakeLists.txt",
 	"espIdf.createDevContainer.title": "Добавить конфигурацию Docker-контейнера",
 	"espIdf.createIdfTerminal.title": "Открыть терминал ESP-IDF",
