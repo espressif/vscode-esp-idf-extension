@@ -23,19 +23,13 @@ import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
 import {
-  addIdfPath,
   getPropertyFromJson,
   getSelectedIdfInstalled,
-} from "./espIdfJson";
-import {
-  createIdfSetup,
-  getPreviousIdfSetups,
   loadIdfSetupsFromEspIdfJson,
-} from "./existingIdfSetups";
+} from "./espIdfJson";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfSetups } from "../eim/getExistingSetups";
 
@@ -139,10 +133,7 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  let idfSetups = await getIdfSetups(false);
-  if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(false);
-  }
+  let idfSetups = await getIdfSetups(false, false);
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const initialDownloadMirror =
@@ -328,13 +319,13 @@ export async function saveSettings(
     gitPath,
     ConfigurationTarget.Global
   );
-  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  const idfVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF v` + currentIdfSetup.version;
+      }) ESP-IDF v` + idfVersion;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }

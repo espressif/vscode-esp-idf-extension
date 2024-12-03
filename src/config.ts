@@ -47,7 +47,6 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const IDF_SETUPS = "IDF_SETUPS";
   }
 
   export const platformDepConfigurations: string[] = [

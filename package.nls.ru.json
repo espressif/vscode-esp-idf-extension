@@ -21,7 +21,6 @@
 	"espIdf.buildDevice.title": "Создайте свой проект",
 	"espIdf.buildFlashMonitor.title": "Создайте, прошивайте и запустите монитор на своем устройстве",
 	"espIdf.clearDocsSearchResult.title": "Очистить результаты поиска ESP-IDF",
-	"espIdf.clearSavedIdfSetups.title": "Очистить сохраненные настройки ESP-IDF",
 	"espIdf.cmakeListsEditor.start.title": "Редактор CMakeLists.txt",
 	"espIdf.createDevContainer.title": "Добавить конфигурацию Docker-контейнера",
 	"espIdf.createFiles.title": "Создать проект из шаблона расширения",

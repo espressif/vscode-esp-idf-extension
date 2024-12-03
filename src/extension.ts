@@ -137,10 +137,6 @@ import {
   getProjectConfigurationElements,
   ProjectConfigStore,
 } from "./project-conf";
-import {
-  clearPreviousIdfSetups,
-  getPreviousIdfSetups,
-} from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
@@ -173,6 +169,7 @@ import {
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
+import { getIdfSetups } from "./eim/getExistingSetups";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1077,10 +1074,6 @@ export async function activate(context: vscode.ExtensionContext) {
         mode: notificationTarget.label,
       })
     );
-  });
-
-  registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
-    await clearPreviousIdfSetups();
   });
 
   registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
@@ -2105,7 +2098,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.newProject.start", () => {
+  registerIDFCommand("espIdf.newProject.start", async () => {
     if (NewProjectPanel.isCreatedAndHidden()) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
@@ -2119,6 +2112,11 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+    let idfSetups = await getIdfSetups(true);
+    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+    if (onlyValidIdfSetups.length === 0) {
+      return;
+    }
     vscode.window.withProgress(
       {
         cancellable: false,
@@ -2133,7 +2131,8 @@ export async function activate(context: vscode.ExtensionContext) {
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
             progress,
-            workspaceRoot
+            workspaceRoot,
+            idfSetups
           );
           if (!newProjectArgs || !newProjectArgs.boards) {
             throw new Error("Could not get ESP-IDF: New project arguments");
@@ -3797,7 +3796,7 @@ async function getFrameworksPickItems() {
     idfSetup: IdfSetup;
   }[] = [];
   try {
-    const idfSetups = await getPreviousIdfSetups(true);
+    const idfSetups = await getIdfSetups(true);
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
     for (const idfSetup of onlyValidIdfSetups) {
