@@ -22,12 +22,11 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 import {
-  createIdfSetup,
-  getPreviousIdfSetups,
+  getPropertyFromJson,
+  getSelectedIdfInstalled,
   loadIdfSetupsFromEspIdfJson,
-} from "./existingIdfSetups";
+} from "./espIdfJson";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
@@ -136,10 +135,7 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  let idfSetups = await getIdfSetups(false);
-  if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(false);
-  }
+  let idfSetups = await getIdfSetups(false, false);
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const initialDownloadMirror =
@@ -305,8 +301,7 @@ export async function saveSettings(
   sysPythonBinPath: string,
   saveScope: ConfigurationTarget,
   workspaceFolderUri: Uri,
-  espIdfStatusBar: StatusBarItem,
-  saveGlobalState: boolean = true
+  espIdfStatusBar: StatusBarItem
 ) {
   const confTarget =
     saveScope ||
@@ -339,9 +334,6 @@ export async function saveSettings(
     workspaceFolder
   );
   const idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
-  if (saveGlobalState) {
-    await createIdfSetup(espIdfPath, toolsPath, sysPythonBinPath, gitPath);
-  }
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =

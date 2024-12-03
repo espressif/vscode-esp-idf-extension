@@ -131,11 +131,6 @@ import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
 import { ProjectConfigStore } from "./project-conf";
-import {
-  clearPreviousIdfSetups,
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
@@ -175,6 +170,7 @@ import {
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
 import { configureClangSettings } from "./clang";
+import { getIdfSetups } from "./eim/getExistingSetups";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1073,10 +1069,6 @@ export async function activate(context: vscode.ExtensionContext) {
         mode: notificationTarget.label,
       })
     );
-  });
-
-  registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
-    await clearPreviousIdfSetups();
   });
 
   registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
@@ -2139,7 +2131,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.newProject.start", () => {
+  registerIDFCommand("espIdf.newProject.start", async () => {
     if (NewProjectPanel.isCreatedAndHidden()) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
@@ -2153,6 +2145,16 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+    let idfSetups = await getIdfSetups(true);
+    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+    let setupsToUse = [...idfSetups, currentIdfSetup];
+    setupsToUse = setupsToUse.filter(
+      (setup, index, self) =>
+        index ===
+        self.findIndex(
+          (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
+        )
+    );
     vscode.window.withProgress(
       {
         cancellable: false,
@@ -2167,7 +2169,8 @@ export async function activate(context: vscode.ExtensionContext) {
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
             progress,
-            workspaceRoot
+            workspaceRoot,
+            setupsToUse
           );
           if (newProjectArgs) {
             NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);

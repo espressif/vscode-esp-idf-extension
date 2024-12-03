@@ -23,18 +23,12 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
-import {
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
 import {
   getTargetsFromEspIdf,
   IdfTarget,
 } from "../espIdf/setTarget/getTargets";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { join } from "path";
-import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;
@@ -54,7 +48,8 @@ export interface INewProjectArgs {
 export async function getNewProjectArgs(
   extensionPath: string,
   progress: Progress<{ message: string; increment: number }>,
-  workspace: Uri
+  workspace: Uri,
+  idfSetups: IdfSetup[]
 ) {
   progress.report({ increment: 10, message: "Loading ESP-IDF components..." });
   const components = [];
@@ -77,34 +72,13 @@ export async function getNewProjectArgs(
   const openOcdScriptsPath = await getOpenOcdScripts(workspace);
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
-  let idfSetups = await getIdfSetups(true);
-  if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(true);
-  }
-  const currentIdfSetup = await getCurrentIdfSetup(workspace);
-  let setupsToUse = [...idfSetups, currentIdfSetup];
-  setupsToUse = setupsToUse.filter(
-    (setup, index, self) =>
-      index ===
-      self.findIndex(
-        (s) => s.idfPath === setup.idfPath && s.toolsPath === setup.toolsPath
-      )
-  );
-  if (setupsToUse.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
-    return;
-  }
-  const onlyValidIdfSetups = [
-    ...new Map(
-      setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-    ).values(),
-  ];
+
   const pickItems: {
     description: string;
     label: string;
     target: IdfSetup;
   }[] = [];
-  for (const idfSetup of onlyValidIdfSetups) {
+  for (const idfSetup of idfSetups) {
     pickItems.push({
       description: `ESP-IDF v${idfSetup.version}`,
       label: l10n.t(`Use ESP-IDF {espIdfPath}`, {
