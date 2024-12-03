@@ -135,11 +135,6 @@ import {
   getProjectConfigurationElements,
   ProjectConfigStore,
 } from "./project-conf";
-import {
-  clearPreviousIdfSetups,
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
@@ -174,6 +169,7 @@ import {
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
+import { getIdfSetups } from "./eim/getExistingSetups";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1107,10 +1103,6 @@ export async function activate(context: vscode.ExtensionContext) {
         mode: notificationTarget.label,
       })
     );
-  });
-
-  registerIDFCommand("espIdf.clearSavedIdfSetups", async () => {
-    await clearPreviousIdfSetups();
   });
 
   registerIDFCommand("espIdf.rmProjectConfStatusBar", async () => {
@@ -2096,7 +2088,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.newProject.start", () => {
+  registerIDFCommand("espIdf.newProject.start", async () => {
     if (NewProjectPanel.isCreatedAndHidden()) {
       NewProjectPanel.createOrShow(context.extensionPath);
       return;
@@ -2110,6 +2102,11 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+    let idfSetups = await getIdfSetups(true);
+    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+    if (onlyValidIdfSetups.length === 0) {
+      return;
+    }
     vscode.window.withProgress(
       {
         cancellable: false,
@@ -2124,7 +2121,8 @@ export async function activate(context: vscode.ExtensionContext) {
           const newProjectArgs = await getNewProjectArgs(
             context.extensionPath,
             progress,
-            workspaceRoot
+            workspaceRoot,
+            idfSetups
           );
           if (newProjectArgs) {
             NewProjectPanel.createOrShow(context.extensionPath, newProjectArgs);
@@ -3802,34 +3800,9 @@ async function getFrameworksPickItems() {
     idfSetup: IdfSetup;
   }[] = [];
   try {
-    const idfSetups = await getPreviousIdfSetups(true);
-
-    const toolsPath = idfConf.readParameter(
-      "idf.toolsPath",
-      workspaceRoot
-    ) as string;
-    let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
-    if (
-      process.env.IDF_TOOLS_PATH &&
-      toolsPath !== process.env.IDF_TOOLS_PATH
-    ) {
-      const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
-        process.env.IDF_TOOLS_PATH
-      );
-      existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
-    }
-    const setupsToUse = [...idfSetups, ...existingIdfSetups];
-    if (!setupsToUse || setupsToUse.length === 0) {
-      await vscode.window.showInformationMessage("No ESP-IDF Setups found");
-      return;
-    }
-    const onlyValidIdfSetups = [
-      ...new Map(
-        setupsToUse.filter((i) => i.isValid).map((item) => [item.idfPath, item])
-      ).values(),
-    ];
+    const idfSetups = await getIdfSetups(true);
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
-    for (const idfSetup of onlyValidIdfSetups) {
+    for (const idfSetup of idfSetups) {
       pickItems.push({
         description: `ESP-IDF v${idfSetup.version}`,
         label: vscode.l10n.t(`Use ESP-IDF {espIdfPath}`, {

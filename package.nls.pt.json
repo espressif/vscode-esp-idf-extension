@@ -21,7 +21,6 @@
 	"espIdf.buildDevice.title": "Construa seu projeto",
 	"espIdf.buildFlashMonitor.title": "Crie, atualize e inicie um monitor no seu dispositivo",
 	"espIdf.clearDocsSearchResult.title": "Limpar resultados da pesquisa ESP-IDF",
-	"espIdf.clearSavedIdfSetups.title": "Limpar configurações ESP-IDF salvas",
 	"espIdf.cmakeListsEditor.start.title": "Editor CMakeLists.txt",
 	"espIdf.createDevContainer.title": "Adicionar configuração de contêiner Docker",
 	"espIdf.createFiles.title": "Criar projeto a partir do modelo de extensão",

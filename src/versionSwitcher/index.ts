@@ -18,10 +18,6 @@
 
 import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import {
-  getPreviousIdfSetups,
-  loadIdfSetupsFromEspIdfJson,
-} from "../setup/existingIdfSetups";
-import {
   checkIdfSetup,
   useIdfSetupSettings,
 } from "../setup/setupValidation/espIdfSetup";
@@ -38,10 +34,6 @@ export async function selectIdfSetup(
 ) {
   let idfSetups = await getIdfSetups();
   if (idfSetups.length === 0) {
-    idfSetups = await getPreviousIdfSetups(true);
-  }
-  if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
   const onlyValidIdfSetups = [
