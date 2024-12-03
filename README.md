@@ -77,7 +77,7 @@ This extension provides a list of icons in the status bar (blue bar in the botto
 
 These icons will be used in the steps below showing common ESP-IDF use cases:
 
-1. Press <kbd>F1</kbd> and type **ESP-IDF: Show Examples Projects** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
+1. Press <kbd>F1</kbd> and type **ESP-IDF: Show Example Projects** to create a new project from ESP-IDF examples. Select ESP-IDF and choose an example to create a new project from.
 
 2. Once the project is created and opened in VS Code, set the serial port of your device by clicking status bar icon ![serial port](./media/readme/serialport.png). Alternatively, press <kbd>F1</kbd>, type **ESP-IDF: Select Port to Use**, and choose the serial port to which your device is connected.
 
@@ -166,7 +166,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td rowspan=11 align="center">Basic</td>
-            <td>Show Examples Projects</td>
+            <td>Show Example Projects</td>
             <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension, so to view ESP-Rainmaker examples, you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath), and then execute this command to see the examples.</td>
             <td></td>
             <td></td>
@@ -234,7 +234,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td rowspan=5 align="center">Project creation</td>
-            <td>Show Examples Projects</td>
+            <td>Show Example Projects</td>
             <td>Launch UI to show examples from selected framework and allow you to create a project from them. This command will show frameworks already configured in the extension, so to view ESP-Rainmaker examples, you need to run the <strong>Install ESP-Rainmaker</strong> first (or set the equivalent setting idf.espRainmakerPath), and then execute this command to see the examples.</td>
             <td></td>
             <td></td>
@@ -266,7 +266,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=7 align="center">Flashing</td>
             <td>Select Flash Method</td>
-            <td>Select which flash method to use for <strong>Flash your project</strong> command. It can be DFU, JTAG or UART.</td>
+            <td>Select which flash method to use for <strong>Flash Your Project</strong> command. It can be DFU, JTAG or UART.</td>
             <td></td>
             <td></td>
         </tr>
@@ -328,7 +328,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Remove Editor Coverage</td>
-            <td>Remove editor colored lines from <strong>Add Editor coverage</strong> command </td>
+            <td>Remove editor colored lines from <strong>Add Editor Coverage</strong> command </td>
             <td></td>
             <td></td>
         </tr>
@@ -462,7 +462,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Unit Test: Install ESP-IDF PyTest Requirements</td>
-            <td>Install the ESP-IDF Pytest requirements packages to be able to execute ESP-IDF Unit tests. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit testing documentation</a>.</td>
+            <td>Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information in <a href="https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/unit-testing.html">Unit Testing documentation</a>.</td>
             <td></td>
             <td></td>
         </tr>
