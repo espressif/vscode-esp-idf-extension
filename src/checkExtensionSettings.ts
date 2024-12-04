@@ -56,6 +56,9 @@ export async function checkExtensionSettings(
       : "Checking if current install is valid throws an error.";
     Logger.error(msg, error, "checkExtensionSettings");
   }
+  if (!showWelcomePage) {
+    return;
+  }
   const openESPIDfManager = vscode.l10n.t(
     "Open ESP-IDF Installation Manager"
   ) as string;
