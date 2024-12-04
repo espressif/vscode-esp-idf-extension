@@ -22,9 +22,9 @@ import { checkIdfSetup } from "./setup/setupValidation/espIdfSetup";
 import { getIdfMd5sum } from "./setup/espIdfJson";
 import { getEspIdfFromCMake } from "./utils";
 import { IdfSetup } from "./views/setup/types";
-import { NotificationMode, readParameter } from "./idfConfiguration";
+import { readParameter } from "./idfConfiguration";
 import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
-import { getIdfSetups, getSelectedEspIdfSetup } from "./eim/getExistingSetups";
+import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
