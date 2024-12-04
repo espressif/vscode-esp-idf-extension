@@ -85,7 +85,7 @@ export async function checkExtensionSettings(
     vscode.commands.executeCommand("espIdf.installManager");
     return;
   } else if (action === chooseExisting) {
-    await showExistingEspIDfSetups(workspace, espIdfStatusBar);
+    vscode.commands.executeCommand("espIdf.selectCurrentIdfVersion");
     return;
   } else if (action === useDockerConfig) {
     const idfPath = "/opt/esp/idf";
@@ -119,60 +119,4 @@ export async function checkExtensionSettings(
     );
     return;
   }
-}
-
-export async function showExistingEspIDfSetups(
-  workspace: vscode.Uri,
-  espIdfStatusBar: vscode.StatusBarItem
-) {
-  const notificationMode = readParameter(
-    "idf.notificationMode",
-    workspace
-  ) as string;
-  const ProgressLocation =
-    notificationMode === NotificationMode.All ||
-    notificationMode === NotificationMode.Notifications
-      ? vscode.ProgressLocation.Notification
-      : vscode.ProgressLocation.Window;
-  await vscode.window.withProgress(
-    {
-      cancellable: false,
-      location: ProgressLocation,
-      title: "ESP-IDF: Loading existing ESP-IDF setups...",
-    },
-    async (
-      progress: vscode.Progress<{ message: string; increment: number }>,
-      cancelToken: vscode.CancellationToken
-    ) => {
-      try {
-        let idfSetups = await getIdfSetups(false);
-        if (idfSetups.length === 0) {
-          return;
-        }
-        const options = idfSetups.map((existingSetup) => {
-          return {
-            label: `ESP-IDF ${existingSetup.version} in ${existingSetup.idfPath}`,
-            target: existingSetup,
-          };
-        });
-        const selectedSetup = await vscode.window.showQuickPick(options, {
-          placeHolder: "Select a ESP-IDF setup to use",
-        });
-        if (!selectedSetup) {
-          return;
-        }
-        await useIdfSetupSettings(
-          selectedSetup.target,
-          vscode.ConfigurationTarget.WorkspaceFolder,
-          workspace,
-          espIdfStatusBar
-        );
-      } catch (error) {
-        const msg = error.message
-          ? error.message
-          : "Error loading initial configuration.";
-        Logger.errorNotify(msg, error, "checkExtensionSettings");
-      }
-    }
-  );
 }
