@@ -24,7 +24,6 @@ import {
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
 import { IdfSetup } from "../views/setup/types";
-import { getIdfSetups } from "../eim/getExistingSetups";
 
 export interface INewProjectArgs {
   espIdfPath: string;

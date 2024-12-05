@@ -2112,8 +2112,18 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-    let idfSetups = await getIdfSetups(true);
+    let idfSetups = await getIdfSetups(true, false);
+    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+    const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+      return (
+        idfSetup.idfPath === currentIdfSetup.idfPath &&
+        idfSetup.toolsPath === currentIdfSetup.toolsPath
+      );
+    });
+    if (currentIdfSetup.isValid && isCurrentSetupInList === -1) {
+      onlyValidIdfSetups.push(currentIdfSetup);
+    }
     if (onlyValidIdfSetups.length === 0) {
       return;
     }
@@ -2132,7 +2142,7 @@ export async function activate(context: vscode.ExtensionContext) {
             context.extensionPath,
             progress,
             workspaceRoot,
-            idfSetups
+            onlyValidIdfSetups
           );
           if (!newProjectArgs || !newProjectArgs.boards) {
             throw new Error("Could not get ESP-IDF: New project arguments");
@@ -3796,7 +3806,7 @@ async function getFrameworksPickItems() {
     idfSetup: IdfSetup;
   }[] = [];
   try {
-    const idfSetups = await getIdfSetups(true);
+    const idfSetups = await getIdfSetups(true, false);
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
     for (const idfSetup of onlyValidIdfSetups) {
@@ -3807,6 +3817,22 @@ async function getFrameworksPickItems() {
         }),
         target: idfSetup.idfPath,
         idfSetup,
+      });
+    }
+    const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+      return (
+        idfSetup.idfPath === currentIdfSetup.idfPath &&
+        idfSetup.toolsPath === currentIdfSetup.toolsPath
+      );
+    });
+    if (currentIdfSetup.isValid && isCurrentSetupInList === -1) {
+      pickItems.push({
+        description: `ESP-IDF v${currentIdfSetup.version}`,
+        label: vscode.l10n.t(`Use ESP-IDF {espIdfPath}`, {
+          espIdfPath: currentIdfSetup.idfPath,
+        }),
+        target: currentIdfSetup.idfPath,
+        idfSetup: currentIdfSetup,
       });
     }
     const doesAdfPathExists = await utils.dirExistPromise(espAdfPath);

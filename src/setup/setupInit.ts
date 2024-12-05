@@ -32,6 +32,7 @@ import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfSetups } from "../eim/getExistingSetups";
+import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -134,6 +135,17 @@ export async function getSetupInitialValues(
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
   let idfSetups = await getIdfSetups(false, false);
+  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
+  const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+    return (
+      idfSetup.idfPath === currentIdfSetup.idfPath &&
+      idfSetup.toolsPath === currentIdfSetup.toolsPath
+    );
+  });
+  if (currentIdfSetup.isValid && isCurrentSetupInList === -1) {
+    onlyValidIdfSetups.push(currentIdfSetup);
+  }
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const initialDownloadMirror =
@@ -146,7 +158,7 @@ export async function getSetupInitialValues(
     espIdfVersionsList,
     espIdfTagsList,
     extensionVersion,
-    existingIdfSetups: idfSetups,
+    existingIdfSetups: onlyValidIdfSetups,
     pythonVersions,
     saveScope,
     workspaceFolder,
@@ -200,10 +212,10 @@ export async function getSetupInitialValues(
       setupInitArgs.gitVersion = prevInstall.gitVersion;
       if (prevInstall.existingIdfSetups) {
         for (let espIdfJsonSetup of prevInstall.existingIdfSetups) {
-          const alreadyInExtensionSetup = idfSetups.find((s) => {
+          const alreadyInExtensionSetup = onlyValidIdfSetups.find((s) => {
             return s.idfPath === espIdfJsonSetup.idfPath;
           });
-          if (typeof alreadyInExtensionSetup === "undefined") {
+          if (typeof alreadyInExtensionSetup === "undefined" && espIdfJsonSetup.isValid) {
             setupInitArgs.existingIdfSetups.push(espIdfJsonSetup);
           }
         }
