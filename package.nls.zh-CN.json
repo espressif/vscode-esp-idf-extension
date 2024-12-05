@@ -94,6 +94,7 @@
 	"esp_idf.tmoScaleFactor.description": "GDB 超时的缩放因子 [默认值：1]",
 	"esp_idf.verifyAppBinBeforeDebug.description": "在调试前验证应用程序二进制文件",
 	"espIdf.searchError.title": "ESP-IDF： 搜索错误提示",
+	"espIdf.removeEspIdfSettings.title": "删除 ESP-IDF 设置",
 	"idf.flashType.description": "设备烧录方法，UART 或 JTag",
 	"idf.wssPort.description": "用于 Core Dump 或 GDB Stub 的 Web Socket 服务器端口",
 	"openocd.tcl.host.description": "用于 OpenOCD tcl 连接的主机",

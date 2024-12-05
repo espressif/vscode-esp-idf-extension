@@ -196,5 +196,18 @@
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG está deshabilitado por software ({0} se ha establecido con un valor impar: {1}).",
   "JTAG selection may be affected by strapping configuration ({0} is set).": "La selección de JTAG puede verse afectada por la configuración de strapping (se ha establecido {0}).",
   "JTAG is not disabled.": "JTAG no está deshabilitado.",
-  "IDF Version >= 4.3.x required to have e-fuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse"
+  "IDF Version >= 4.3.x required to have e-fuse view": "Se requiere IDF Versión >= 4.3.x para tener vista de e-fuse",
+  "No ESP-IDF settings found to remove.": "No se encontró ninguna configuración de ESP-IDF para eliminar.",
+  "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "¿Está seguro de que desea eliminar todas las configuraciones de ESP-IDF? Esto eliminará todas las configuraciones idf.*.",
+  "{0} settings will be removed.": "{0} configuraciones serán eliminadas.",
+  "Yes": "Sí",
+  "No": "No",
+  "Starting ESP-IDF settings cleanup...": "Iniciando limpieza de configuraciones ESP-IDF...",
+  "Removed global setting: {0}": "Configuración global eliminada: {0}",
+  "Removed workspace setting: {0}": "Configuración del espacio de trabajo eliminada: {0}",
+  "Removed workspace folder setting: {0}": "Configuración de la carpeta del espacio de trabajo eliminada: {0}",
+  "Warning: Could not fully remove setting {0}: {1}": "Advertencia: No se pudo eliminar completamente la configuración {0}: {1}",
+  "ESP-IDF settings removed successfully.": "Configuraciones de ESP-IDF eliminadas exitosamente.",
+  "Failed to remove settings: {0}": "Error al eliminar las configuraciones: {0}",
+  "Error: {0}": "Error: {0}"
 }

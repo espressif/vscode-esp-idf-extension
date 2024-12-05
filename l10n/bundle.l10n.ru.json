@@ -196,5 +196,18 @@
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG программно отключен ({0} установлен на нечетное значение: {1}).",
   "JTAG selection may be affected by strapping configuration ({0} is set).": "Выбор JTAG может зависеть от конфигурации стрэппинга (установлен {0}).",
   "JTAG is not disabled.": "JTAG не отключен.",
-  "IDF Version >= 4.3.x required to have e-fuse view": "Требуется IDF версии >= 4.3.x для просмотра e-fuse"
+  "IDF Version >= 4.3.x required to have e-fuse view": "Требуется IDF версии >= 4.3.x для просмотра e-fuse",
+  "No ESP-IDF settings found to remove.": "Настройки ESP-IDF для удаления не найдены.",
+  "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "Вы уверены, что хотите удалить все настройки ESP-IDF? Это удалит все конфигурации idf.*.",
+  "{0} settings will be removed.": "{0} настроек будет удалено.",
+  "Yes": "Да",
+  "No": "Нет",
+  "Starting ESP-IDF settings cleanup...": "Начинается очистка настроек ESP-IDF...",
+  "Removed global setting: {0}": "Удалена глобальная настройка: {0}",
+  "Removed workspace setting: {0}": "Удалена настройка рабочего пространства: {0}",
+  "Removed workspace folder setting: {0}": "Удалена настройка папки рабочего пространства: {0}",
+  "Warning: Could not fully remove setting {0}: {1}": "Предупреждение: Не удалось полностью удалить настройку {0}: {1}",
+  "ESP-IDF settings removed successfully.": "Настройки ESP-IDF успешно удалены.",
+  "Failed to remove settings: {0}": "Не удалось удалить настройки: {0}",
+  "Error: {0}": "Ошибка: {0}"
 }
