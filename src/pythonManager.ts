@@ -182,7 +182,12 @@ export async function installExtensionPyReqs(
     OutputChannel.appendLine(debugAdapterRequirements + reqDoesNotExists);
     return;
   }
-  const espIdfVersion = await utils.getEspIdfFromCMake(espDir);
+  const fullEspIdfVersion = await utils.getEspIdfFromCMake(espDir);
+  const majorMinorMatches = fullEspIdfVersion.match(/([0-9]+\.[0-9]+).*/);
+  const espIdfVersion =
+    majorMinorMatches && majorMinorMatches.length > 0
+      ? majorMinorMatches[1]
+      : "x.x";
   const constrainsFile = join(
     idfToolsDir,
     `espidf.constraints.v${espIdfVersion}.txt`
