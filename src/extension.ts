@@ -1789,7 +1789,9 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.createIdfTerminal", createIdfTerminal);
+  registerIDFCommand("espIdf.createIdfTerminal", () =>
+    createIdfTerminal(context.extensionPath)
+  );
   registerIDFCommand("espIdf.jtag_flash", () =>
     flash(false, ESP.FlashType.JTAG)
   );
@@ -4261,7 +4263,7 @@ async function startFlashing(
   }
 }
 
-function createIdfTerminal() {
+function createIdfTerminal(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {
     const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
     const espIdfTerminal = vscode.window.createTerminal({
@@ -4272,6 +4274,16 @@ function createIdfTerminal() {
       shellArgs: [],
       shellPath: vscode.env.shell,
     });
+    if (process.platform === "win32") {
+      if (vscode.env.shell.indexOf("cmd.exe") !== -1) {
+        espIdfTerminal.sendText(path.join(extensionPath, "export.bat"));
+      } else if (
+        vscode.env.shell.indexOf("powershell") !== -1 ||
+        vscode.env.shell.indexOf("pwsh") !== -1
+      ) {
+        espIdfTerminal.sendText(path.join(extensionPath, "export.ps1"));
+      }
+    }
     espIdfTerminal.show();
   });
 }
