@@ -27,6 +27,8 @@ All notable changes to the "Espressif IDF" extension will be documented in this 
 - [Add IDF_PATH and IDF_TOOLS_PATH to newly created project settings](https://github.com/espressif/vscode-esp-idf-extension/pull/1332)
 - [Fix unit tests not being refreshed](https://github.com/espressif/vscode-esp-idf-extension/pull/1338)
 - [Remove old documentation and update links](https://github.com/espressif/vscode-esp-idf-extension/pull/1342)
+- [walkthrough bugfixes](https://github.com/espressif/vscode-esp-idf-extension/pull/1354)
+- [Use only major minor version in espidf constraint file](https://github.com/espressif/vscode-esp-idf-extension/pull/1360)
 
 ### Features and enhancements
 
