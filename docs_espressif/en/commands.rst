@@ -1,4 +1,4 @@
-List of available commands
+List of Available Commands
 ==========================
 
 :link_to_translation:`zh_CN:[中文]`
@@ -11,9 +11,9 @@ All commands start with ``ESP-IDF:``.
    * - Command
      - Description
    * - Add Arduino ESP32 as ESP-IDF Component
-     - Add `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ as a ESP-IDF component in your current directory (**${CURRENT_DIRECTORY}/components/arduino**).
+     - Add `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ as an ESP-IDF component in your current directory (**${CURRENT_DIRECTORY}/components/arduino**).
    * - Add Docker Container Configuration
-     - Add the **.devcontainer** files to the currently opened project directory, necessary to use a ESP-IDF project in a Docker container with Visual Studio Code `Remote - Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ extension.
+     - Add the **.devcontainer** files to the currently opened project directory. It is necessary to use an ESP-IDF project in a Docker container with Visual Studio Code `Dev Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ extension.
    * - Add Editor Coverage
      - Parse your project `GCOV Code coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ files to add color lines representing code coverage on currently opened source code file.
    * - Add VS Code Configuration Folder
@@ -21,7 +21,7 @@ All commands start with ``ESP-IDF:``.
    * - Build, Flash and Start a Monitor on Your Device
      - Build the project, write binaries program to device and start a monitor terminal with a single command. Similar to ``idf.py build flash monitor``.
    * - Build Your Project
-     - Build your project using ``CMake`` and ``Ninja-build`` as explained in `ESP-IDF Build System Using Cmake Directly <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#using-cmake-directly>`_. You could modify the behavior of the build task with **idf.cmakeCompilerArgs** for Cmake configure step and **idf.ninjaArgs** for Ninja step. For example, using **[-j N]** where N is the number of jobs run in parallel.
+     - Build your project using ``CMake`` and ``Ninja-build`` as explained in `ESP-IDF Build System Using Cmake Directly <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#using-cmake-directly>`_. You can modify the behavior of the build task with **idf.cmakeCompilerArgs** for Cmake configuration step and **idf.ninjaArgs** for Ninja step. For example, using **[-j N]** where N is the number of jobs running in parallel.
    * - Clear eFuse Summary
      - Clear the eFuse Summary tree from ESP Explorer EFUSEEXPLORER.
    * - Clear ESP-IDF Search Results
@@ -39,15 +39,15 @@ All commands start with ``ESP-IDF:``.
    * - Dispose of Current SDK Configuration Editor Server Process
      - If you already executed the SDK Configuration editor, a cache process will remain in the background for faster reopening. This command will dispose of such cache process.
    * - Doctor Command
-     - Run a diagnostic of the extension setup settings and extension logs to provide a troubleshooting report.
+     - Run a diagnostic on the extension setup settings and logs to generate a troubleshooting report.
    * - Troubleshoot Form
-     - Launch UI for user to send a troubleshoot report with steps to reproduce. Run a diagnostic of the extension setup settings and extension logs to send to telemetry backend.
+     - Launch UI for the user to submit a troubleshooting report with steps to reproduce the issue. Run a diagnostic on the extension setup settings and logs, and send the information to the telemetry backend.
    * - Encrypt and Flash Your Project
      - Execute flashing the project program to device while adding **--encrypt** for partitions to be encrypted.
    * - Erase Flash Memory from Device
-     - Execute **esptool.py erase_flash** command to erase flash chip (set to 0xFF bytes)
+     - Execute **esptool.py erase_flash** command to erase flash chip (set to 0xFF bytes).
    * - Execute Custom Task
-     - User can define a command line command or script in **idf.customTask**, which can be executed with this command.
+     - User can define a command-line command or script in **idf.customTask**, which can be executed with this command.
    * - Flash Your Project
      - Write binary data to the ESP's flash chip from your current ESP-IDF project. This command will use either UART, DFU or JTAG based on **idf.flashType**.
    * - Flash (DFU) your project
@@ -61,7 +61,7 @@ All commands start with ``ESP-IDF:``.
    * - Get eFuse Summary
      - Retrieve a list of eFuses and their corresponding values from the chip currently connected to the serial port.
    * - Get HTML Coverage Report for Project
-     - Parse your project `GCOV Code coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ files to generate a HTML coverage report.
+     - Parse your project `GCOV Code coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ files to generate an HTML coverage report.
    * - Import ESP-IDF Project
      - Import an existing ESP-IDF project, add .vscode and .devcontainer files to a new location, and optionally rename the project.
    * - Install ESP-ADF
@@ -71,13 +71,13 @@ All commands start with ``ESP-IDF:``.
    * - Install ESP-MDF
      - Clone ESP-MDF inside the selected directory and set **idf.espMdfPath** (**idf.espMdfPathWin** in Windows) configuration setting.
    * - Install ESP-Matter
-     - Clone ESP-Matter and set **idf.espMatterPath**. ESP-Matter is not supported in Windows.
+     - Clone ESP-Matter and set **idf.espMatterPath**. ESP-Matter is not supported on Windows.
    * - Install ESP-Rainmaker
      - Clone ESP-Rainmaker and set **idf.espRainmakerPath** (**idf.espRainmakerPathWin** in Windows) configuration setting.
    * - Install ESP-HomeKit-SDK
      - Clone ESP-HomeKit-SDK inside the selected directory and set **idf.espHomeKitSdkPath** (**idf.espHomeKitSdkPathWin** in Windows) configuration setting.
    * - Launch IDF Monitor for Core Dump Mode/GDB Stub Mode
-     - Launch ESP-IDF Monitor with WebSocket capabilities. If you has configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
+     - Launch ESP-IDF Monitor with WebSocket capabilities. If you have configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
    * - Launch QEMU Server
      - As described in :ref:`QEMU documentation <qemu>`, this command will execute ESP32 QEMU from the project Dockerfile with the current project binaries.
    * - Launch QEMU Debug Session
@@ -87,17 +87,17 @@ All commands start with ``ESP-IDF:``.
    * - Monitor QEMU Device
      - As described in :ref:`QEMU documentation <qemu>`, this command will start a terminal to monitor the ESP32 QEMU from the project Dockerfile with the current project binaries.
    * - New Project
-     - Launch UI with a ESP-IDF project creation wizard using examples templates from ESP-IDF and ESP-ADF.
+     - Launch UI with an ESP-IDF project creation wizard using examples templates from ESP-IDF and ESP-ADF.
    * - NVS Partition Editor
-     - Launch UI to create a CSV file for `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_
+     - Launch UI to create a CSV file for `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_.
    * - Open ESP-IDF Terminal
      - Open a terminal with IDF_PATH and Python virtual environment activated.
    * - Partition Table Editor
-     - Launch UI to manage custom partition table as described in `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_
+     - Launch UI to manage custom partition table as described in `ESP-IDF Partition Tables <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html>`_.
    * - Pick a Workspace Folder
-     - When using a Visual Studio Code workspace with multiple workspace folders, this command allows you to choose which workspace folder to apply this extension’s commands to. More information in :ref:`working with multiple projects <multiple projects>`.
+     - When using a Visual Studio Code workspace with multiple workspace folders, this command allows you to choose which workspace folder to apply this extension’s commands to. More information can be found in :ref:`working with multiple projects <multiple projects>`.
    * - Remove Editor Coverage
-     - Remove editor colored lines from **Add Editor Coverage** command
+     - Remove editor colored lines from **Add Editor Coverage** command.
    * - Run idf.py reconfigure Task
      - This command will execute **idf.py reconfigure** (CMake configure task), which is useful for generating compile_commands.json for the C/C++ language support.
    * - Run ESP-IDF-SBOM Vulnerability Check
@@ -105,7 +105,7 @@ All commands start with ``ESP-IDF:``.
    * - Save Default SDKCONFIG File (save-defconfig)
      - Generate sdkconfig.defaults files using the project current sdkconfig file.
    * - SDK Configuration Editor
-     - Launch a UI to configure your ESP-IDF project settings. This is equivalent to **idf.py menuconfig**.
+     - Launch UI to configure your ESP-IDF project settings. This is equivalent to **idf.py menuconfig**.
    * - Search in documentation...
      - Select some text from your source code file and search in ESP-IDF documentation with results right in the VS Code ESP-IDF Explorer tab.
    * - Search Error Hint
@@ -131,6 +131,6 @@ All commands start with ``ESP-IDF:``.
    * - Size Analysis of the Binaries
      - Launch UI with the ESP-IDF project binaries size information.
    * - Unit Test: Build and Flash Unit Test App for Testing
-     - Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information in :ref:`Unit Testing Documentation <unit testing>`.
+     - Copy the unit test app in the current project, build the current project and flash the unit test application to the connected device. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.
    * - Unit Test: Install ESP-IDF Pytest Requirements
-     - Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information in :ref:`Unit Testing Documentation <unit testing>`.
+     - Install the ESP-IDF Pytest requirement packages to be able to execute ESP-IDF unit tests. More information can be found in :ref:`Unit Testing Documentation <unit testing>`.

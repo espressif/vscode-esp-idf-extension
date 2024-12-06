@@ -13,7 +13,7 @@
    * - 添加 Arduino ESP32 为 ESP-IDF 组件
      - 将 `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ 添加为当前目录中的 ESP-IDF 组件 (**${CURRENT_DIRECTORY}/components/arduino**)。
    * - 添加 Docker 容器配置
-     - 将 **.devcontainer** 文件添加到当前打开的项目目录中，从而借助 `Dev Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ 扩展在 Docker 容器中使用 ESP-IDF 项目。
+     - 将 **.devcontainer** 文件添加到当前打开的项目目录中。借助 `Dev Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ 扩展在 Docker 容器中使用 ESP-IDF 项目。
    * - 添加编辑器覆盖率
      - 解析项目的 `GCOV 代码覆盖率 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/app_trace.html#gcov>`_ 文件，并在源代码文件中用彩色高亮代码覆盖行。
    * - 添加 VS Code 配置文件夹
