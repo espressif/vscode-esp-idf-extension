@@ -147,7 +147,7 @@ export async function getEspIdeJson() {
     espIdeJsonPath =
       process.platform === "win32"
         ? join(process.env.SystemDrive, "Espressif", "tools", "esp_ide.json")
-        : join(process.env.HOME, ".espressif", "esp_ide.json");
+        : join(process.env.HOME, ".espressif", "tools", "esp_ide.json");
   }
   const espIdfJsonExists = await pathExists(espIdeJsonPath);
   let espIdfJson: EspIdfJson;
