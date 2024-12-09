@@ -4266,12 +4266,21 @@ async function startFlashing(
 function createIdfTerminal(extensionPath: string) {
   PreCheck.perform([openFolderCheck], async () => {
     const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
+    let shellArgs = [];
+    if (process.platform === "win32") {
+      if (
+        vscode.env.shell.indexOf("powershell") !== -1 ||
+        vscode.env.shell.indexOf("pwsh") !== -1
+      ) {
+        shellArgs = ["-ExecutionPolicy", "Bypass", "-NoProfile"];
+      }
+    }
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
       strictEnv: true,
-      shellArgs: [],
+      shellArgs,
       shellPath: vscode.env.shell,
     });
     if (process.platform === "win32") {
