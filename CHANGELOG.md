@@ -8,6 +8,44 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.9.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.9.0)
+
+### Bug Fixes
+
+- [Update to latest Espressif icon](https://github.com/espressif/vscode-esp-idf-extension/pull/1294)
+- [Use static monitor terminal instance](https://github.com/espressif/vscode-esp-idf-extension/pull/1289)
+- [Update create from project examples UI UX](https://github.com/espressif/vscode-esp-idf-extension/pull/1278)
+- [Fix display of monitor the device when flash fails](https://github.com/espressif/vscode-esp-idf-extension/pull/1286)
+- [Update recommended cp command](https://github.com/espressif/vscode-esp-idf-extension/pull/1269)
+- [Enhance telemetry reporting](https://github.com/espressif/vscode-esp-idf-extension/pull/1272)
+- [Make readme easy to follow](https://github.com/espressif/vscode-esp-idf-extension/pull/1295)
+- [Fix for pwsh users](https://github.com/espressif/vscode-esp-idf-extension/pull/1279)
+- [Fix PR comment remove build flash telemetry](https://github.com/espressif/vscode-esp-idf-extension/pull/1328)
+- [Fix duplicate output; Add notification for success](https://github.com/espressif/vscode-esp-idf-extension/pull/1290)
+- [Add validation for debug session status for monitor start with no reset flag](https://github.com/espressif/vscode-esp-idf-extension/pull/1270)
+- [Update dockerfile, add qemu executable options](https://github.com/espressif/vscode-esp-idf-extension/pull/1282)
+- [Add IDF_PATH and IDF_TOOLS_PATH to newly created project settings](https://github.com/espressif/vscode-esp-idf-extension/pull/1332)
+- [Fix unit tests not being refreshed](https://github.com/espressif/vscode-esp-idf-extension/pull/1338)
+- [Remove old documentation and update links](https://github.com/espressif/vscode-esp-idf-extension/pull/1342)
+- [walkthrough bugfixes](https://github.com/espressif/vscode-esp-idf-extension/pull/1354)
+- [Use only major minor version in espidf constraint file](https://github.com/espressif/vscode-esp-idf-extension/pull/1360)
+
+### Features and enhancements
+
+- [Add Espressif documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1291)
+- [Filter serial devices by default and allow user to disable chip id in serial port list](https://github.com/espressif/vscode-esp-idf-extension/pull/1276)
+- [Compute Python path from IDF_TOOLS_PATH and IDF_PATH](https://github.com/espressif/vscode-esp-idf-extension/pull/1263)
+- [Enable/Disable status bar icons in Commands Tree view](https://github.com/espressif/vscode-esp-idf-extension/pull/1314)
+- [Hoist linker (ld) errors to VS Code 'Problems' window](https://github.com/espressif/vscode-esp-idf-extension/pull/1317) Thanks @GillesZunino !
+- [Support for multiple sdkconfig file in Project configuration editor](https://github.com/espressif/vscode-esp-idf-extension/pull/1252)
+- [Disable cmds for Codespaces and redirect Flash monitor to Web extension](https://github.com/espressif/vscode-esp-idf-extension/pull/1297)
+- [Support new IDF Size json format](https://github.com/espressif/vscode-esp-idf-extension/pull/1330)
+- [Add check for missing compile_commands json](https://github.com/espressif/vscode-esp-idf-extension/pull/1271)
+- [Enhance flash encryption with eFuse validation and more user information](https://github.com/espressif/vscode-esp-idf-extension/pull/1247)
+- [Use idf_tools py export to get env variables](https://github.com/espressif/vscode-esp-idf-extension/pull/1343)
+- [Add chinese translation for readme](https://github.com/espressif/vscode-esp-idf-extension/pull/1335)
+- [Add extension walkthrough](https://github.com/espressif/vscode-esp-idf-extension/pull/1298)
+
 ## [1.8.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.8.1)
 
 ### Bug Fixes
