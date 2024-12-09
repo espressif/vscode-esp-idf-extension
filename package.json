@@ -583,6 +583,12 @@
       {
         "title": "%configuration.title%",
         "properties": {
+          "idf.espIdeJsonPath": {
+            "type": "string",
+            "default": "",
+            "description": "%param.espIdeJsonPath%",
+            "scope": "application"
+          },
           "idf.espIdfPath": {
             "type": "string",
             "default": "${env:IDF_PATH}",
@@ -1246,6 +1252,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.installManager",
+        "title": "%espIdf.installManager.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.examples.start",
         "title": "%espIdf.examples.title%",
         "category": "ESP-IDF"
@@ -1594,11 +1605,6 @@
       {
         "command": "espIdf.projectConf",
         "title": "%espIdf.projectConf.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.clearSavedIdfSetups",
-        "title": "%espIdf.clearSavedIdfSetups.title%",
         "category": "ESP-IDF"
       },
       {

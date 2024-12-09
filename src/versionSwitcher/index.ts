@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
+import { commands, ConfigurationTarget, l10n, StatusBarItem, Uri, window } from "vscode";
 import {
   checkIdfSetup,
   useIdfSetupSettings,
@@ -27,14 +26,14 @@ import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
 import { getPythonPath } from "../pythonManager";
+import { getIdfSetups } from "../eim/getExistingSetups";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const idfSetups = await getPreviousIdfSetups(true);
+  let idfSetups = await getIdfSetups();
   if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
   const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
@@ -61,8 +60,10 @@ export async function selectIdfSetup(
   return selectedIdfSetupOption.target;
 }
 
-export async function getCurrentIdfSetup(workspaceFolder: Uri,
-  logToChannel: boolean = true) {
+export async function getCurrentIdfSetup(
+  workspaceFolder: Uri,
+  logToChannel: boolean = true
+) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
