@@ -27,7 +27,8 @@ export interface IDFCommandDescription {
 
 export enum IDFWebCommandKeys {
   Flash = "espIdfWeb.flash",
-  Monitor = "espIdfWeb.monitor"
+  Monitor = "espIdfWeb.monitor",
+  FlashAndMonitor = "espIdfWeb.flashAndMonitor"
 }
 
 export enum CommandKeys {

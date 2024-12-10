@@ -13,7 +13,8 @@ espressif_icon.png
 get_serial_list.py
 .yarnrc
 *.vsix
-
+export.ps1
+export.bat
 
 #dirs
 .vscode
