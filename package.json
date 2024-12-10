@@ -2,7 +2,7 @@
   "name": "esp-idf-extension",
   "displayName": "ESP-IDF",
   "description": "Develop and debug applications for Espressif chips with ESP-IDF",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "license": "Apache-2.0",
   "publisher": "espressif",
   "icon": "media/espressif_icon.png",
@@ -287,11 +287,11 @@
         ],
         "severity": "error",
         "pattern": {
-            "regexp": "^.+\\/bin\\/ld[^:]+:\\s*(.+):(\\d+):(.+)$",
-            "file": 1,
-            "line": 2,
-            "message": 3
-          }
+          "regexp": "^.+\\/bin\\/ld[^:]+:\\s*(.+):(\\d+):(.+)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
       }
     ],
     "viewsContainers": {
