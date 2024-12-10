@@ -94,6 +94,7 @@
 	"esp_idf.tmoScaleFactor.description": "Масштабный коэффициент для тайм-аута GDB [по умолчанию: 1]",
 	"esp_idf.verifyAppBinBeforeDebug.description": "Проверьте двоичные файлы приложения перед отладкой",
 	"espIdf.searchError.title": "ESP-IDF: Подсказка об ошибке поиска",
+	"espIdf.removeEspIdfSettings.title": "Удалить настройки ESP-IDF",
 	"idf.flashType.description": "Метод прошивки устройства, UART или JTag",
 	"idf.wssPort.description": "Порт веб-сокет-сервера для дампа ядра или заглушки GDB",
 	"openocd.tcl.host.description": "Хост для подключения openocd tcl",

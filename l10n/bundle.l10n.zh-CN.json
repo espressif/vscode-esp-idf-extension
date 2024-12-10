@@ -196,5 +196,18 @@
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG已软禁用（{0}设置为奇数值：{1}）。",
   "JTAG selection may be affected by strapping configuration ({0} is set).": "JTAG选择可能受到硬件配置的影响（已设置{0}）。",
   "JTAG is not disabled.": "JTAG未被禁用。",
-  "IDF Version >= 4.3.x required to have e-fuse view": "需要 IDF 版本 >= 4.3.x 才能查看 e-fuse"
+  "IDF Version >= 4.3.x required to have e-fuse view": "需要 IDF 版本 >= 4.3.x 才能查看 e-fuse",
+  "No ESP-IDF settings found to remove.": "未找到要删除的ESP-IDF设置。",
+  "Are you sure you want to remove all ESP-IDF settings? This will delete all idf.* configurations.": "您确定要删除所有ESP-IDF设置吗？这将删除所有idf.*配置。",
+  "{0} settings will be removed.": "{0}个设置将被删除。",
+  "Yes": "是",
+  "No": "否",
+  "Starting ESP-IDF settings cleanup...": "正在开始清理ESP-IDF设置...",
+  "Removed global setting: {0}": "已删除全局设置：{0}",
+  "Removed workspace setting: {0}": "已删除工作区设置：{0}",
+  "Removed workspace folder setting: {0}": "已删除工作区文件夹设置：{0}",
+  "Warning: Could not fully remove setting {0}: {1}": "警告：无法完全删除设置 {0}：{1}",
+  "ESP-IDF settings removed successfully.": "ESP-IDF设置已成功删除。",
+  "Failed to remove settings: {0}": "删除设置失败：{0}",
+  "Error: {0}": "错误：{0}"
 }
