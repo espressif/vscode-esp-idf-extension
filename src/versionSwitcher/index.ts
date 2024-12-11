@@ -17,16 +17,13 @@
  */
 
 import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import {
-  checkIdfSetup,
-  useIdfSetupSettings,
-} from "../setup/setupValidation/espIdfSetup";
 import { readParameter } from "../idfConfiguration";
 import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
-import { IdfSetup } from "../views/setup/types";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfSetups } from "../eim/getExistingSetups";
+import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
+import { IdfSetup } from "../eim/types";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -64,7 +61,7 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await useIdfSetupSettings(
+  await saveSettings(
     selectedIdfSetupOption.target,
     ConfigurationTarget.WorkspaceFolder,
     workspaceFolder,
@@ -106,6 +103,7 @@ export async function getCurrentIdfSetup(
     python: pythonBinPath,
     version: idfVersion,
     isValid: false,
+    activationScript: "",
   };
   currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
   return currentIdfSetup;

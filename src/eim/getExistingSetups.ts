@@ -20,30 +20,9 @@ import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
-import { IdfSetup } from "../views/setup/types";
-import { checkIdfSetup } from "../setup/setupValidation/espIdfSetup";
-import { getEspIdfFromCMake } from "../utils";
 import { commands, l10n, window } from "vscode";
-
-export interface EspIdfJson {
-  $schema: string;
-  $id: string;
-  _comment: string;
-  _warning: string;
-  gitPath: string;
-  idfToolsPath: string;
-  idfSelectedId: string;
-  idfInstalled: { [key: string]: IdfInstalled };
-}
-
-export interface IdfInstalled {
-  activationScript: string;
-  id: string;
-  idfToolsPath: string;
-  name: string;
-  path: string;
-  python: string;
-}
+import { EspIdfJson, IdfSetup } from "./types";
+import { checkIdfSetup } from "./verifySetup";
 
 export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
   const espIdfJson = await getEspIdeJson();
@@ -53,12 +32,14 @@ export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
     espIdfJson.idfInstalled[espIdfJson.idfSelectedId]
   ) {
     const idfSetup: IdfSetup = {
+      activationScript: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].activationScript,
       id: espIdfJson.idfSelectedId,
       idfPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].path,
+      isValid: false,
       gitPath: espIdfJson.gitPath,
       version: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].name,
       toolsPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].idfToolsPath,
-      isValid: false,
+      venvPython: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].python
     } as IdfSetup;
     try {
       const isValid = await checkIdfSetup(idfSetup, logToChannel);
@@ -83,7 +64,6 @@ export async function getIdfSetups(
     if (idfSetup && idfSetup.idfPath) {
       try {
         idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
-        idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
         idfSetups.push(idfSetup);
       } catch (err) {
         const msg = err.message
@@ -115,12 +95,14 @@ export async function loadIdfSetupsFromEspIdeJson() {
   ) {
     for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
       let setupConf: IdfSetup = {
+        activationScript: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].activationScript,
         id: idfInstalledKey,
         idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
+        isValid: false,
         gitPath: espIdfJson.gitPath,
         version: espIdfJson.idfInstalled[idfInstalledKey].name,
         toolsPath: espIdfJson.idfInstalled[idfInstalledKey].idfToolsPath,
-        isValid: false,
+        venvPython: espIdfJson.idfInstalled[idfInstalledKey].python
       } as IdfSetup;
       try {
         setupConf.isValid = await checkIdfSetup(setupConf, false);

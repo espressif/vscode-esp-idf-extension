@@ -165,6 +165,12 @@ export async function getSetupInitialValues(
     saveScope,
     workspaceFolder,
     onReqPkgs: ["esp-clang"],
+    espIdfPath: undefined,
+    espToolsPath: undefined,
+    gitPath: undefined,
+    gitVersion: undefined,
+    espIdfStatusBar: undefined,
+    hasPrerequisites: undefined
   } as ISetupInitArgs;
 
   try {
