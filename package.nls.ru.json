@@ -167,7 +167,7 @@
   "param.usbSerialPortFilters.vendorId": "Шестнадцатеричный номер USB VendorID в виде строки. ",
   "param.usbSerialPortFilters.productId": "Шестнадцатеричный номер USB ProductID в виде строки. ",
 	"param.hasWalkthroughBeenShown": "Показывать ли руководство по настройке ESP-IDF при первом запуске.",
-  "param.espIdeJsonPath": "Пользовательский путь для esp_ide.json для поиска установок ESP-IDF.",
+  "param.eimIdfJsonPath": "Пользовательский путь для eim_idf.json для поиска установок ESP-IDF.",
 	"trace.poll_period.description": "poll_ period будет установлен для apptrace",
 	"trace.skip_size.description": "Skip_size будет установлен для трассировки приложения.",
 	"trace.stop_tmo.description": "stop_tmo будет установлен для apptrace",

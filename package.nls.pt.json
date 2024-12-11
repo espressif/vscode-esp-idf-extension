@@ -165,7 +165,7 @@
   "param.usbSerialPortFilters.vendorId": "Número hexadecimal do USB vendorID como string.",
   "param.usbSerialPortFilters.productId": "Número hexadecimal do USB productID como string.",
 	"param.hasWalkthroughBeenShown": "Mostrar o guia de introdução na inicialização da extensão",
-  "param.espIdeJsonPath": "Caminho personalizado do esp_ide.json para encontrar instalações do ESP-IDF",
+  "param.eimIdfJsonPath": "Caminho personalizado do eim_idf.json para encontrar instalações do ESP-IDF",
 	"trace.poll_period.description": "poll_period será definido para o apptrace",
 	"trace.skip_size.description": "skip_size será definido para o apptrace",
 	"trace.stop_tmo.description": "stop_tmo será definido para o apptrace",
