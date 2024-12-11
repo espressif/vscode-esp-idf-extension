@@ -118,7 +118,7 @@
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth 服务器 URL",
   "param.espAdfPath": "指定 ESP-ADF 框架的路径 (ADF_PATH)",
   "param.espHomeKitSdkPath": "指定 ESP-HomeKit-SDK 框架的路径 (HOMEKIT_PATH)",
-  "param.espIdeJsonPath": "用于查找 ESP-IDF 安装的 esp_ide.json 的自定义路径",
+  "param.eimIdfJsonPath": "用于查找 ESP-IDF 安装的 eim_idf.json 的自定义路径",
   "param.espIdfPath": "指定 ESP-IDF 框架的路径 (IDF_PATH)",
   "param.espMatterPath": "指定 ESP-Matter 框架的路径 (ESP_MATTER_PATH)",
   "param.espMdfPath": "指定 ESP-MDF 框架的路径 (MDF_PATH)",
