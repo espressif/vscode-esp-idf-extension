@@ -171,6 +171,7 @@ import {
 } from "./cdtDebugAdapter/hexViewProvider";
 import { configureClangSettings } from "./clang";
 import { getIdfSetups } from "./eim/getExistingSetups";
+import { getEnvVariables } from "./eim/verifySetup";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2018,7 +2019,11 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.installManager", () => {
+  registerIDFCommand("espIdf.installManager", async () => {
+    const output = await getEnvVariables(
+      "/Users/brainignacio/.espressif/activate_idf_v5.3.2.sh",
+      true
+    );
     vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
   });
 
