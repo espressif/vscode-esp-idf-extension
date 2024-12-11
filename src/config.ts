@@ -116,7 +116,7 @@ export namespace ESP {
     }
 
     export namespace InstallManager {
-      export const Releases = "https://github.com/espressif/idf-im-ui/releases";
+      export const Releases = "https://dl.espressif.com/dl/eim/index.html";
     }
   }
 
