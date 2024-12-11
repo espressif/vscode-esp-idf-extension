@@ -162,6 +162,12 @@ export async function getSetupInitialValues(
     pythonVersions,
     saveScope,
     workspaceFolder,
+    espIdfPath: undefined,
+    espToolsPath: undefined,
+    gitPath: undefined,
+    gitVersion: undefined,
+    espIdfStatusBar: undefined,
+    hasPrerequisites: undefined
   } as ISetupInitArgs;
 
   try {

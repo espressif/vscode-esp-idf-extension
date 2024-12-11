@@ -16,17 +16,10 @@
  * limitations under the License.
  */
 
-import { commands, ConfigurationTarget, l10n, StatusBarItem, Uri, window } from "vscode";
-import {
-  checkIdfSetup,
-  useIdfSetupSettings,
-} from "../setup/setupValidation/espIdfSetup";
+import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfMd5sum } from "../setup/espIdfJson";
-import { getEspIdfFromCMake } from "../utils";
-import { IdfSetup } from "../views/setup/types";
-import { getPythonPath } from "../pythonManager";
 import { getIdfSetups } from "../eim/getExistingSetups";
+import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -51,7 +44,7 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await useIdfSetupSettings(
+  await saveSettings(
     selectedIdfSetupOption.target,
     ConfigurationTarget.WorkspaceFolder,
     workspaceFolder,
@@ -66,22 +59,13 @@ export async function getCurrentIdfSetup(
 ) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  const gitPath = readParameter("idf.gitPath", workspaceFolder);
-
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after neext release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-
-  const idfSetupId = getIdfMd5sum(idfPath);
-  const idfVersion = await getEspIdfFromCMake(idfPath);
-  const currentIdfSetup: IdfSetup = {
-    id: idfSetupId,
-    idfPath,
-    gitPath,
-    toolsPath,
-    version: idfVersion,
-    isValid: false,
-  };
+  const idfSetups = await getIdfSetups();
+  const currentIdfSetup = idfSetups.find((idfSetup) => {
+    idfSetup.idfPath === idfPath && idfSetup.toolsPath === toolsPath
+  });
+  if (!currentIdfSetup) {
+    return;
+  }
   currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
   return currentIdfSetup;
 }
