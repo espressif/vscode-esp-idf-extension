@@ -196,7 +196,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>S</kbd></td>
         </tr>
         <tr>
-            <td>选择任务串口</td>
+            <td>选择要使用的端口</td>
             <td>选择用于 ESP-IDF 任务（如烧录或监视设备）的串口。</td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>P</kbd></td>
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>P</kbd></td>
@@ -258,7 +258,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
             <td></td>
         </tr>
         <tr>
-            <td>新项目</td>
+            <td>新建项目</td>
             <td>启动 UI，通过 ESP-IDF 项目创建向导，使用 ESP-IDF 中的示例模板和扩展中配置的其他框架。</td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>N</kbd></td>
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>N</kbd></td>
@@ -290,7 +290,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>通过 JTAG 接口烧录项目</td>
-            <td>使通过 OpenOCD JTAG，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。</td>
+            <td>通过 OpenOCD JTAG，将当前 ESP-IDF 项目的二进制文件写入 flash 芯片。</td>
             <td></td>
             <td></td>
         </tr>
@@ -348,7 +348,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>安装 ESP-IDF Python 包（已弃用）</td>
-            <td>请安装扩展 Python 包。本命令已弃用，即将被移除。</td>
+            <td>安装扩展 Python 包。本命令已弃用，即将被移除。</td>
             <td></td>
             <td></td>
         </tr>
@@ -391,7 +391,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>清除 eFuse 摘要</td>
-            <td>从 ESP Explorer 的 EFUSEEXPLORER 中清除 eFuse 摘要集。</td>
+            <td>从 ESP-IDF 资源管理器的 EFUSEEXPLORER 中清除 eFuse 摘要集。</td>
             <td></td>
             <td></td>
         </tr>
@@ -481,7 +481,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>清理当前 SDK 配置编辑器服务器进程</td>
-            <td>若先前执行过<strong>SDK 配置编辑器</strong>命令，则后台将保留缓存进程，以便下次更快打开编辑器。此命令将清理此类缓存进程。</td>
+            <td>若先前执行过 <strong>SDK 配置编辑器</strong>命令，则后台将保留缓存进程，以便下次更快打开编辑器。此命令将清理此类缓存进程。</td>
             <td></td>
             <td></td>
         </tr>
@@ -517,7 +517,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         </tr>
         <tr>
             <td>在文档中搜索…</td>
-            <td>从源代码文件中选择文本，并在 ESP-IDF 文档中进行搜索，搜索结果将显示在 VS Code ESP-IDF Explorer 选项卡中。</td>
+            <td>从源代码文件中选择文本，并在 ESP-IDF 文档中进行搜索，搜索结果将显示在 VS Code ESP-IDF 资源管理器选项卡中。</td>
             <td><kbd>⌘</kbd> <kbd>I</kbd> <kbd>Q</kbd></td>
             <td><kbd>Ctrl</kbd> <kbd>E</kbd> <kbd>Q</kbd></td>
         </tr>
@@ -530,7 +530,7 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
         <tr>
             <td rowspan=2 align="center"> 清理</td>
             <td>清除 ESP-IDF 搜索结果</td>
-            <td>清除 Explorer 中 Documentation Search Results 选项卡中的所有搜索结果。</td>
+            <td>清除资源管理器<strong>文档搜索结果</strong>选项卡中的所有搜索结果。</td>
             <td></td>
             <td></td>
         </tr>
