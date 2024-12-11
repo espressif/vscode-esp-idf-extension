@@ -167,7 +167,7 @@
   "param.usbSerialPortFilters.vendorId": "Número hexadecimal del USB vendorID como texto.",
   "param.usbSerialPortFilters.productId": "Número hexadecimal del USB productID como texto.",
 	"param.hasWalkthroughBeenShown": "Indica si se ha mostrado el recorrido de bienvenida",
-  "param.espIdeJsonPath": "Ruta personalizada de esp_ide.json para encontrar instalaciones de ESP-IDF",
+  "param.eimIdfJsonPath": "Ruta personalizada de eim_idf.json para encontrar instalaciones de ESP-IDF",
 	"trace.poll_period.description": "poll_period se establecerá para el rastreo de la aplicación",
 	"trace.skip_size.description": "skip_size se establecerá para el rastreo de la aplicación",
 	"trace.stop_tmo.description": "stop_tmo se establecerá para el rastreo de la aplicación",
