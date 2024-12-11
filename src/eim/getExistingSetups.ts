@@ -25,7 +25,7 @@ import { EspIdfJson, IdfSetup } from "./types";
 import { checkIdfSetup } from "./verifySetup";
 
 export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
-  const espIdfJson = await getEspIdeJson();
+  const espIdfJson = await getEimIdfJson();
   if (
     espIdfJson &&
     espIdfJson.idfSelectedId &&
@@ -68,7 +68,7 @@ export async function getIdfSetups(
       } catch (err) {
         const msg = err.message
           ? err.message
-          : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
+          : "Error checkIdfSetup in getIdfSetups";
         Logger.error(msg, err, "getIdfSetups");
       }
     }
@@ -87,7 +87,7 @@ export async function getIdfSetups(
 
 export async function loadIdfSetupsFromEspIdeJson() {
   let idfSetups: IdfSetup[] = [];
-  const espIdfJson = await getEspIdeJson();
+  const espIdfJson = await getEimIdfJson();
   if (
     espIdfJson &&
     espIdfJson.idfInstalled &&
@@ -119,31 +119,31 @@ export async function loadIdfSetupsFromEspIdeJson() {
   return idfSetups;
 }
 
-export async function getEspIdeJson() {
-  const espIdeJsonCustomPath = readParameter("idf.espIdeJsonPath");
+export async function getEimIdfJson() {
+  const espIdeJsonCustomPath = readParameter("idf.eimIdfJsonPath");
   const espIdePathExists = await pathExists(espIdeJsonCustomPath);
-  let espIdeJsonPath = "";
+  let eimIdfJsonPath = "";
   if (espIdePathExists) {
-    espIdeJsonPath = espIdeJsonCustomPath;
+    eimIdfJsonPath = espIdeJsonCustomPath;
   } else {
-    espIdeJsonPath =
+    eimIdfJsonPath =
       process.platform === "win32"
-        ? join(process.env.SystemDrive, "Espressif", "tools", "esp_ide.json")
-        : join(process.env.HOME, ".espressif", "tools", "esp_ide.json");
+        ? join(process.env.SystemDrive, "Espressif", "tools", "eim_idf.json")
+        : join(process.env.HOME, ".espressif", "tools", "eim_idf.json");
   }
-  const espIdfJsonExists = await pathExists(espIdeJsonPath);
+  const espIdfJsonExists = await pathExists(eimIdfJsonPath);
   let espIdfJson: EspIdfJson;
   try {
     if (!espIdfJsonExists) {
-      throw new Error(`${espIdeJsonPath} doesn't exists.`);
+      throw new Error(`${eimIdfJsonPath} doesn't exists.`);
     }
-    espIdfJson = await readJson(espIdeJsonPath);
+    espIdfJson = await readJson(eimIdfJsonPath);
   } catch (error) {
     const msg =
       error && error.message
         ? error.message
-        : `Error reading ${espIdeJsonPath}.`;
-    Logger.error(msg, error, "getEspIdeJson");
+        : `Error reading ${eimIdfJsonPath}.`;
+    Logger.error(msg, error, "getEimIdfJson");
   }
   return espIdfJson;
 }

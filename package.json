@@ -606,10 +606,10 @@
       {
         "title": "%configuration.title%",
         "properties": {
-          "idf.espIdeJsonPath": {
+          "idf.eimIdfJsonPath": {
             "type": "string",
             "default": "",
-            "description": "%param.espIdeJsonPath%",
+            "description": "%param.eimIdfJsonPath%",
             "scope": "application"
           },
           "idf.espIdfPath": {
