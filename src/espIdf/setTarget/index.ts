@@ -88,7 +88,7 @@ export async function setIdfTarget(
         } else if (selectedBoard && selectedBoard.target) {
           if (selectedBoard.label.indexOf("Custom board") !== -1) {
             const inputBoard = await window.showInputBox({
-              placeHolder: "Enter comma separated configuration files",
+              placeHolder: "Enter comma-separated configuration files",
               value: selectedBoard.target.join(","),
             });
             if (inputBoard) {

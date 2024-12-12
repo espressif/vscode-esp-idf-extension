@@ -1509,7 +1509,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
-                `Installing ESP-IDF extension Python Requirements...`
+                `Installing ESP-IDF extension Python requirements...`
               ),
             });
             await installExtensionPyReqs(
@@ -2193,7 +2193,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (selectedBoard.target.name.indexOf("Custom board") !== -1) {
         const inputBoard = await vscode.window.showInputBox({
           placeHolder: vscode.l10n.t(
-            "Enter comma separated configuration files"
+            "Enter comma-separated configuration files"
           ),
           value: selectedBoard.target.configFiles.join(","),
         });
@@ -2376,7 +2376,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await utils.copyFromSrcProject(srcFolder[0].fsPath, destFolder);
     await utils.updateProjectNameInCMakeLists(destFolder.fsPath, projectName);
     const opt = await vscode.window.showInformationMessage(
-      vscode.l10n.t("ESP-IDF Project has been imported"),
+      vscode.l10n.t("ESP-IDF project has been imported"),
       "Open"
     );
     if (opt === "Open") {
