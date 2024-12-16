@@ -84,27 +84,32 @@ export async function getEnvVariables(
   }
 }
 
-export async function checkIdfSetup(setupConf: IdfSetup, logToChannel = true) {
+export async function checkIdfSetup(activationScript: string, logToChannel = true) {
   try {
-    if (!setupConf.idfPath) {
+    // TODO Get PATH from activation script
+    let envVars = await getEnvVariables(
+      activationScript,
+      logToChannel
+    );
+    const pyDir = process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python"];
+    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+
+    if (!envVars["IDF_PATH"]) {
       return false;
     }
-    const doesIdfPathExists = await pathExists(setupConf.idfPath);
+    const doesIdfPathExists = await pathExists(envVars["IDF_PATH"]);
     if (!doesIdfPathExists) {
       return false;
     }
-
-    // TODO Get PATH from activation script
-    let envVars = await getEnvVariables(
-      setupConf.activationScript,
-      logToChannel
-    );
+    
     const pathNameInEnv: string = Object.keys(envVars).find(
       (k) => k.toUpperCase() == "PATH"
     );
 
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-      setupConf.idfPath
+      envVars["IDF_PATH"]
     );
 
     const toolsInfo = await idfToolsManager.getEIMToolsInfo(
@@ -121,13 +126,16 @@ export async function checkIdfSetup(setupConf: IdfSetup, logToChannel = true) {
     if (failedToolsResult.length) {
       return false;
     }
-    const pyEnvReqs = await checkPyVenv(setupConf.venvPython, setupConf.idfPath);
+    const pyEnvReqs = await checkPyVenv(
+      venvPythonPath,
+      envVars["IDF_PATH"]
+    );
     return pyEnvReqs;
   } catch (error) {
     const msg =
       error && error.message
         ? error.message
-        : `Error checking EIM Idf Setup ${setupConf.idfPath}`;
+        : `Error checking EIM Idf Setup for script ${activationScript}`;
     Logger.error(msg, error, "verifySetup checkIdfSetup");
     return false;
   }
@@ -171,12 +179,27 @@ export async function saveSettings(
   espIdfStatusBar: StatusBarItem
 ) {
   const confTarget =
-    saveScope ||
-    (readParameter("idf.saveScope") as ConfigurationTarget);
+    saveScope || (readParameter("idf.saveScope") as ConfigurationTarget);
   let workspaceFolder: Uri;
   if (confTarget === ConfigurationTarget.WorkspaceFolder) {
     workspaceFolder = workspaceFolderUri;
   }
+
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+
+  const idfEnvVars = await getEnvVariables(setupConf.activationScript, true);
+  for (const envVar in idfEnvVars) {
+    customExtraVars[envVar] = idfEnvVars[envVar];
+  }
+  await writeParameter(
+    "idf.customExtraVars",
+    customExtraVars,
+    confTarget,
+    workspaceFolder
+  );
   await writeParameter(
     "idf.espIdfPath",
     setupConf.idfPath,
@@ -199,7 +222,7 @@ export async function saveSettings(
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF v` + setupConf.version;
+      }) ESP-IDF ${setupConf.version}` + setupConf.version;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }
