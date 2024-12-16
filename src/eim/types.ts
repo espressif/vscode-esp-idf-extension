@@ -35,7 +35,7 @@ export interface EspIdfJson {
   gitPath: string;
   idfToolsPath: string;
   idfSelectedId: string;
-  idfInstalled: { [key: string]: IdfInstalled };
+  idfInstalled: IdfInstalled[];
 }
 
 export interface IdfInstalled {

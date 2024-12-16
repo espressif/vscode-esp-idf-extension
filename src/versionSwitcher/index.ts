@@ -20,6 +20,8 @@ import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
+import { getEspIdfFromCMake } from "../utils";
+import { getIdfMd5sum } from "../setup/espIdfJson";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -57,15 +59,39 @@ export async function getCurrentIdfSetup(
   workspaceFolder: Uri,
   logToChannel: boolean = true
 ) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
   const idfSetups = await getIdfSetups();
-  const currentIdfSetup = idfSetups.find((idfSetup) => {
-    idfSetup.idfPath === idfPath && idfSetup.toolsPath === toolsPath
+  let currentIdfSetup = idfSetups.find((idfSetup) => {
+    idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
+      idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
   });
   if (!currentIdfSetup) {
-    return;
+    // Using implementation before EIM
+
+    // TODO: How to implement migration to EIM and remove the old ways
+    const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+    const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
+    const gitPath = readParameter("idf.gitPath", workspaceFolder);
+    const idfSetupId = getIdfMd5sum(idfPath);
+    const idfVersion = await getEspIdfFromCMake(idfPath);
+    currentIdfSetup = {
+      activationScript: "",
+      id: idfSetupId,
+      idfPath: idfPath,
+      isValid: false,
+      gitPath: gitPath,
+      version: idfVersion,
+      toolsPath: toolsPath,
+      venvPython: ""
+    };
+    return currentIdfSetup;
   }
-  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
+  currentIdfSetup.isValid = await checkIdfSetup(
+    currentIdfSetup.activationScript,
+    logToChannel
+  );
   return currentIdfSetup;
 }

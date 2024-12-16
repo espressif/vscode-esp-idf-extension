@@ -26,23 +26,35 @@ import { checkIdfSetup } from "./verifySetup";
 
 export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
   const espIdfJson = await getEimIdfJson();
-  if (
-    espIdfJson &&
-    espIdfJson.idfSelectedId &&
-    espIdfJson.idfInstalled[espIdfJson.idfSelectedId]
-  ) {
+
+  if (espIdfJson && espIdfJson.idfSelectedId && espIdfJson.idfInstalled) {
+    const selectIDF = espIdfJson.idfInstalled.find((idfSetup) => {
+      return idfSetup.id === espIdfJson.idfSelectedId;
+    });
+
+    if (!selectIDF) {
+      const selectIdfNotFound = new Error(
+        "idfSelectedId doesn't exist in idfInstalled"
+      );
+      Logger.error(
+        selectIdfNotFound.message,
+        selectIdfNotFound,
+        "getSelectedEspIdfSetup"
+      );
+    }
+
     const idfSetup: IdfSetup = {
-      activationScript: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].activationScript,
-      id: espIdfJson.idfSelectedId,
-      idfPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].path,
+      activationScript: selectIDF.activationScript,
+      id: selectIDF.id,
+      idfPath: selectIDF.path,
       isValid: false,
       gitPath: espIdfJson.gitPath,
-      version: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].name,
-      toolsPath: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].idfToolsPath,
-      venvPython: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].python
+      version: selectIDF.name,
+      toolsPath: selectIDF.idfToolsPath,
+      venvPython: selectIDF.python,
     } as IdfSetup;
     try {
-      const isValid = await checkIdfSetup(idfSetup, logToChannel);
+      const isValid = await checkIdfSetup(idfSetup.activationScript, logToChannel);
       idfSetup.isValid = isValid;
     } catch (err) {
       const msg = err.message
@@ -63,7 +75,7 @@ export async function getIdfSetups(
   for (let idfSetup of setupKeys) {
     if (idfSetup && idfSetup.idfPath) {
       try {
-        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
+        idfSetup.isValid = await checkIdfSetup(idfSetup.activationScript, logToChannel);
         idfSetups.push(idfSetup);
       } catch (err) {
         const msg = err.message
@@ -93,19 +105,19 @@ export async function loadIdfSetupsFromEspIdeJson() {
     espIdfJson.idfInstalled &&
     Object.keys(espIdfJson.idfInstalled).length
   ) {
-    for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
+    for (let idfInstalled of espIdfJson.idfInstalled) {
       let setupConf: IdfSetup = {
-        activationScript: espIdfJson.idfInstalled[espIdfJson.idfSelectedId].activationScript,
-        id: idfInstalledKey,
-        idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
+        activationScript: idfInstalled.activationScript,
+        id: idfInstalled.id,
+        idfPath: idfInstalled.path,
         isValid: false,
         gitPath: espIdfJson.gitPath,
-        version: espIdfJson.idfInstalled[idfInstalledKey].name,
-        toolsPath: espIdfJson.idfInstalled[idfInstalledKey].idfToolsPath,
-        venvPython: espIdfJson.idfInstalled[idfInstalledKey].python
+        version: idfInstalled.name,
+        toolsPath: idfInstalled.idfToolsPath,
+        venvPython: idfInstalled.python,
       } as IdfSetup;
       try {
-        setupConf.isValid = await checkIdfSetup(setupConf, false);
+        setupConf.isValid = await checkIdfSetup(setupConf.activationScript, false);
       } catch (err) {
         const msg = err.message
           ? err.message
