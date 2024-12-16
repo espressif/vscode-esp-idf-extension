@@ -18,12 +18,11 @@
 
 import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import { readParameter } from "../idfConfiguration";
-import { getIdfMd5sum } from "../setup/espIdfJson";
-import { getEspIdfFromCMake } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
-import { IdfSetup } from "../eim/types";
+import { getEspIdfFromCMake } from "../utils";
+import { getIdfMd5sum } from "../setup/espIdfJson";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -74,37 +73,47 @@ export async function getCurrentIdfSetup(
   workspaceFolder: Uri,
   logToChannel: boolean = true
 ) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  const gitPath = readParameter("idf.gitPath", workspaceFolder);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfSetups = await getIdfSetups();
+  let currentIdfSetup = idfSetups.find((idfSetup) => {
+    idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
+      idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
+  });
+  if (!currentIdfSetup) {
+    // Using implementation before EIM
 
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after neext release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-  let pythonBinPath = "";
-  if (sysPythonBinPath) {
-    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    // TODO: How to implement migration to EIM and remove the old ways
+    const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+    const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
+    const gitPath = readParameter("idf.gitPath", workspaceFolder);
+    const idfSetupId = getIdfMd5sum(idfPath);
+    const idfVersion = await getEspIdfFromCMake(idfPath);
+    // FIX use system Python path as setting instead venv
+    // REMOVE this line after neext release
+    const sysPythonBinPath = await getPythonPath(workspaceFolder);
+    let pythonBinPath = "";
+    if (sysPythonBinPath) {
+      pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    }
+    currentIdfSetup = {
+      activationScript: "",
+      id: idfSetupId,
+      idfPath: idfPath,
+      isValid: false,
+      gitPath: gitPath,
+      version: idfVersion,
+      toolsPath: toolsPath,
+      sysPythonPath: sysPythonBinPath,
+      python: pythonBinPath,
+    };
+    return currentIdfSetup;
   }
-  if (!pythonBinPath) {
-    pythonBinPath = readParameter(
-      "idf.pythonBinPath",
-      workspaceFolder
-    ) as string;
-  }
-
-  const idfSetupId = getIdfMd5sum(idfPath);
-  const idfVersion = await getEspIdfFromCMake(idfPath);
-  const currentIdfSetup: IdfSetup = {
-    id: idfSetupId,
-    idfPath,
-    gitPath,
-    toolsPath,
-    sysPythonPath: sysPythonBinPath,
-    python: pythonBinPath,
-    version: idfVersion,
-    isValid: false,
-    activationScript: "",
-  };
-  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
+  currentIdfSetup.isValid = await checkIdfSetup(
+    currentIdfSetup.activationScript,
+    logToChannel
+  );
   return currentIdfSetup;
 }
