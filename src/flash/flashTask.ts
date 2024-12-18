@@ -210,22 +210,44 @@ export class FlashTask {
         this.model.flashSections &&
         this.model.flashSections.length === encryptedFlashSections.length
       ) {
+        // If all files need encryption, then use --encrypt flag
         flasherArgs.push("--encrypt");
+        // Add all files
+        for (const flashFile of this.model.flashSections) {
+          let binPath = replacePathSep
+            ? flashFile.binFilePath.replace(/\//g, "\\")
+            : flashFile.binFilePath;
+          flasherArgs.push(flashFile.address, binPath);
+        }
       } else {
+        // If only some files need encryption, then use --encrypt-files flag
         flasherArgs.push("--encrypt-files");
+        // First add encrypted files
         for (const flashFile of encryptedFlashSections) {
           let binPath = replacePathSep
             ? flashFile.binFilePath.replace(/\//g, "\\")
             : flashFile.binFilePath;
           flasherArgs.push(flashFile.address, binPath);
         }
+        // Then add unencrypted files
+
+        const unencryptedSections = this.model.flashSections.filter(
+          (section) => !section.encrypted
+        );
+        for (const flashFile of unencryptedSections) {
+          let binPath = replacePathSep
+            ? flashFile.binFilePath.replace(/\//g, "\\")
+            : flashFile.binFilePath;
+          flasherArgs.push(flashFile.address, binPath);
+        }
       }
-    }
-    for (const flashFile of this.model.flashSections) {
-      let binPath = replacePathSep
-        ? flashFile.binFilePath.replace(/\//g, "\\")
-        : flashFile.binFilePath;
-      flasherArgs.push(flashFile.address, binPath);
+    } else {
+      for (const flashFile of this.model.flashSections) {
+        let binPath = replacePathSep
+          ? flashFile.binFilePath.replace(/\//g, "\\")
+          : flashFile.binFilePath;
+        flasherArgs.push(flashFile.address, binPath);
+      }
     }
 
     return flasherArgs;
