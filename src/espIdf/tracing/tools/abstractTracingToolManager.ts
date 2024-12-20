@@ -48,7 +48,11 @@ export abstract class AbstractTracingToolManager {
   }
 
   protected appTraceToolsPath(): string {
-    const idfPathDir = idfConf.readParameter("idf.espIdfPath", this.workspaceRoot);
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      this.workspaceRoot
+    ) as { [key: string]: string };
+    const idfPathDir = customExtraVars["IDF_PATH"];
     return join(idfPathDir, "tools", "esp_app_trace");
   }
 
