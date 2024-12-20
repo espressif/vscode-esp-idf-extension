@@ -29,7 +29,7 @@ import {
 } from "./espIdfJson";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
-import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { getCurrentIdfSetup } from "../versionSwitcher";
@@ -68,14 +68,12 @@ export async function checkPreviousInstall(
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
 
-  const confEspIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspaceFolder
-  ) as string;
-  const confToolsPath = idfConf.readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  ) as string;
+  ) as { [key: string]: string };
+  const confEspIdfPath = customExtraVars["IDF_PATH"];
+  const confToolsPath = customExtraVars["IDF_TOOLS_PATH"];
 
   const toolsPath =
     confToolsPath ||
@@ -167,7 +165,7 @@ export async function getSetupInitialValues(
     gitPath: undefined,
     gitVersion: undefined,
     espIdfStatusBar: undefined,
-    hasPrerequisites: undefined
+    hasPrerequisites: undefined,
   } as ISetupInitArgs;
 
   try {
@@ -221,7 +219,10 @@ export async function getSetupInitialValues(
           const alreadyInExtensionSetup = onlyValidIdfSetups.find((s) => {
             return s.idfPath === espIdfJsonSetup.idfPath;
           });
-          if (typeof alreadyInExtensionSetup === "undefined" && espIdfJsonSetup.isValid) {
+          if (
+            typeof alreadyInExtensionSetup === "undefined" &&
+            espIdfJsonSetup.isValid
+          ) {
             setupInitArgs.existingIdfSetups.push(espIdfJsonSetup);
           }
         }
@@ -236,22 +237,20 @@ export async function getSetupInitialValues(
 export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = idfConf.readParameter(
-    "idf.toolsPath",
+  
+
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspaceFolder
-  ) as string;
+  ) as { [key: string]: string };
+  let espIdfPath = customExtraVars["IDF_PATH"];
+  const confToolsPath = customExtraVars["IDF_TOOLS_PATH"];
   const toolsPath =
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
 
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after next release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-
-  let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");

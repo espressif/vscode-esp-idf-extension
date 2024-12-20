@@ -52,10 +52,11 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   }
 
   async searchError(errorMsg: string, workspace): Promise<boolean> {
-    const espIdfPath = idfConf.readParameter(
-      "idf.espIdfPath",
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
       workspace
-    ) as string;
+    ) as { [key: string]: string };
+    const espIdfPath = customExtraVars["IDF_PATH"];
     const version = await utils.getEspIdfFromCMake(espIdfPath);
 
     if (utils.compareVersion(version.trim(), "5.0") === -1) {

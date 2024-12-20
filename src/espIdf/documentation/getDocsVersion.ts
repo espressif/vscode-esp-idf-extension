@@ -130,10 +130,11 @@ export async function getDocsUrl(
   documentationPart: string,
   workspace: vscode.Uri
 ) {
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
-    workspace
-  ) as string;
+  const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspace
+    ) as { [key: string]: string };
+  const espIdfPath = customExtraVars["IDF_PATH"];
 
   const adapterTargetName = await getIdfTargetFromSdkconfig(workspace);
   const idfVersion = await getEspIdfFromCMake(espIdfPath);

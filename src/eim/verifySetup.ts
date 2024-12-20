@@ -23,7 +23,7 @@ import { execChildProcess, startPythonReqsProcess } from "../utils";
 import { OutputChannel } from "../logger/outputChannel";
 import { EOL } from "os";
 import { IdfToolsManager } from "../idfToolsManager";
-import { join } from "path";
+import { join, delimiter } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 import { readParameter, writeParameter } from "../idfConfiguration";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
@@ -68,6 +68,17 @@ export async function getEnvVariables(
       let varValue = envVar.slice(keyIndex + 1);
       envDict[varKey] = varValue;
     }
+
+    let pathNameInEnv: string = Object.keys(process.env).find(
+      (k) => k.toUpperCase() == "PATH"
+    );
+
+    if (envDict[pathNameInEnv]) {
+      envDict[pathNameInEnv] = envDict[pathNameInEnv]
+        .replace(process.env[pathNameInEnv], "")
+        .replace(new RegExp(`(^${delimiter}|${delimiter}$)`, "g"), "");
+    }
+
     return envDict;
   } catch (error) {
     const errMsg =
@@ -84,16 +95,20 @@ export async function getEnvVariables(
   }
 }
 
-export async function checkIdfSetup(activationScript: string, logToChannel = true) {
+export async function checkIdfSetup(
+  activationScript: string,
+  logToChannel = true
+) {
   try {
-    // TODO Get PATH from activation script
-    let envVars = await getEnvVariables(
-      activationScript,
-      logToChannel
-    );
-    const pyDir = process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
+    const activationScriptPathExists = await pathExists(activationScript);
+    if (!activationScriptPathExists) {
+      return false;
+    }
+    let envVars = await getEnvVariables(activationScript, logToChannel);
+    const pyDir =
+      process.platform === "win32"
+        ? ["Scripts", "python.exe"]
+        : ["bin", "python3"];
     const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
 
     if (!envVars["IDF_PATH"]) {
@@ -103,7 +118,7 @@ export async function checkIdfSetup(activationScript: string, logToChannel = tru
     if (!doesIdfPathExists) {
       return false;
     }
-    
+
     const pathNameInEnv: string = Object.keys(envVars).find(
       (k) => k.toUpperCase() == "PATH"
     );
@@ -126,10 +141,7 @@ export async function checkIdfSetup(activationScript: string, logToChannel = tru
     if (failedToolsResult.length) {
       return false;
     }
-    const pyEnvReqs = await checkPyVenv(
-      venvPythonPath,
-      envVars["IDF_PATH"]
-    );
+    const pyEnvReqs = await checkPyVenv(venvPythonPath, envVars["IDF_PATH"]);
     return pyEnvReqs;
   } catch (error) {
     const msg =
@@ -201,30 +213,15 @@ export async function saveSettings(
     workspaceFolder
   );
   await writeParameter(
-    "idf.espIdfPath",
-    setupConf.idfPath,
-    confTarget,
-    workspaceFolder
-  );
-  await writeParameter(
-    "idf.toolsPath",
-    setupConf.toolsPath,
-    confTarget,
-    workspaceFolder
-  );
-  await writeParameter(
     "idf.gitPath",
     setupConf.gitPath,
     ConfigurationTarget.Global
   );
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
-    espIdfStatusBar.text =
-      `$(${
-        commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF ${setupConf.version}` + setupConf.version;
+    espIdfStatusBar.text = `$(${
+      commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+    }) ESP-IDF ${setupConf.version}`;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }
-
-export async function loadEnvSetup() {}

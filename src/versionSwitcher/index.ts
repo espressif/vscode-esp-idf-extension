@@ -22,6 +22,7 @@ import { getIdfSetups } from "../eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
 import { getEspIdfFromCMake } from "../utils";
 import { getIdfMd5sum } from "../setup/espIdfJson";
+import { useExistingSettingsToMakeNewConfig } from "../eim/migrationTool";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -70,23 +71,7 @@ export async function getCurrentIdfSetup(
   });
   if (!currentIdfSetup) {
     // Using implementation before EIM
-
-    // TODO: How to implement migration to EIM and remove the old ways
-    const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-    const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-    const gitPath = readParameter("idf.gitPath", workspaceFolder);
-    const idfSetupId = getIdfMd5sum(idfPath);
-    const idfVersion = await getEspIdfFromCMake(idfPath);
-    currentIdfSetup = {
-      activationScript: "",
-      id: idfSetupId,
-      idfPath: idfPath,
-      isValid: false,
-      gitPath: gitPath,
-      version: idfVersion,
-      toolsPath: toolsPath,
-      venvPython: ""
-    };
+    let currentIdfSetup = await useExistingSettingsToMakeNewConfig(workspaceFolder);
     return currentIdfSetup;
   }
   currentIdfSetup.isValid = await checkIdfSetup(

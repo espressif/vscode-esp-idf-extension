@@ -50,26 +50,15 @@ These are the configuration settings that ESP-IDF extension contributes to your 
       - Enable CCache in build task (make sure CCache is in PATH)
     * - idf.enableIdfComponentManager
       - Enable IDF Component manager in build command
-    * - idf.espIdfPath
-      - Path to locate ESP-IDF framework (IDF_PATH)
-    * - idf.espIdfPathWin
-      - Path to locate ESP-IDF framework in Windows (IDF_PATH)
     * - idf.ninjaArgs
       - Arguments for Ninja build task
     * - idf.pythonInstallPath
       - System Python absolute path used to compute ESP-IDF Python virtual environment
-    * - idf.toolsPath
-      - Path to locate ESP-IDF Tools (IDF_TOOLS_PATH)
-    * - idf.toolsPathWin
-      - Path to locate ESP-IDF Tools in Windows (IDF_TOOLS_PATH)
 
 This is how the extension uses them:
 
 1. **idf.customExtraVars** stores any custom environment variable such as OPENOCD_SCRIPTS, which is the openOCD scripts directory used in OpenOCD server startup. These variables are loaded to this extension command's process environment variables, choosing the extension variable if available, else extension commands will try to use what is already in your system PATH. **This doesn't modify your system environment outside Visual Studio Code.**
-2. **idf.espIdfPath** (or **idf.espIdfPathWin** in Windows) is used to store ESP-IDF directory path within our extension. We override Visual Studio Code process IDF_PATH if this value is available. **This doesn't modify your system environment outside Visual Studio Code.**. It is also used to compute the list of ESP-IDF tools to add to environment variable PATH and the Python virtual environment path together from **idf.toolsPath** and **idf.pythonInstallPath**.
-3. **idf.pythonInstallPath** is the system Python absolute path used to compute ESP-IDF Python virtual environment from **idf.toolsPath** and **idf.espIdfPath** where ESP-IDF Python packages will be installed and used.
-4. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
-5. **idf.toolsPath** (or **idf.toolsPathWin** in Windows) is used to compute the list of ESP-IDF tools to add to environment variable PATH and the Python virtual environment path together from **idf.pythonInstallPath** and **idf.espIdfPath**.
+2. **idf.gitPath** (or **idf.gitPathWin** in Windows) is used in the extension to clone ESP-IDF master version or the additional supported frameworks such as ESP-ADF, ESP-MDF and Arduino-ESP32.
 
 .. note::
 
@@ -286,4 +275,4 @@ Use of Environment Variables in ESP-IDF ``settings.json`` and ``tasks.json``
 
 Environment (env) variables and other ESP-IDF settings (config) can be referenced in ESP-IDF settings using the syntax ``${env:VARNAME}`` and ``${config:ESPIDFSETTING}``, respectively.
 
-For example, to use ``"~/esp/esp-idf"``, set the value of **idf.espIdfPath** to ``"${env:HOME}/esp/esp-idf"``.
+For example, to use ``"~/workspace/blink"``, set the value to ``"${env:HOME}/workspace/blink"``.

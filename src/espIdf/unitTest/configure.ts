@@ -91,7 +91,11 @@ export async function updateTestComponents(
 }
 
 export async function checkPytestRequirements(workspaceFolder: Uri) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfPath = customExtraVars["IDF_PATH"];
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     idfPath,
@@ -126,7 +130,11 @@ export async function installPyTestPackages(
   workspaceFolder: Uri,
   cancelToken?: CancellationToken
 ) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfPath = customExtraVars["IDF_PATH"];
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   let requirementsPath = join(
     idfPath,
@@ -155,11 +163,18 @@ export async function buildFlashTestApp(
   unitTestAppDirPath: Uri,
   cancelToken: CancellationToken
 ) {
-  let flashType = readParameter("idf.flashType", unitTestAppDirPath) as ESP.FlashType;
+  let flashType = readParameter(
+    "idf.flashType",
+    unitTestAppDirPath
+  ) as ESP.FlashType;
   if (!flashType) {
     flashType = ESP.FlashType.UART;
   }
-  let canContinue = await buildCommand(unitTestAppDirPath, cancelToken, flashType);
+  let canContinue = await buildCommand(
+    unitTestAppDirPath,
+    cancelToken,
+    flashType
+  );
   if (!canContinue) {
     return;
   }
@@ -169,8 +184,16 @@ export async function buildFlashTestApp(
     return;
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const idfPathDir = readParameter("idf.espIdfPath", unitTestAppDirPath) as string;
-  const canFlash = await verifyCanFlash(flashBaudRate, port, unitTestAppDirPath);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    unitTestAppDirPath
+  ) as { [key: string]: string };
+  const idfPathDir = customExtraVars["IDF_PATH"];
+  const canFlash = await verifyCanFlash(
+    flashBaudRate,
+    port,
+    unitTestAppDirPath
+  );
   if (!canFlash) {
     return;
   }

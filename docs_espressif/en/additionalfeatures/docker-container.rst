@@ -204,8 +204,6 @@ For more information about ``devcontainer.json``, please refer to the comments.
     */
     "settings": {
       "terminal.integrated.defaultProfile.linux": "bash",
-      "idf.espIdfPath": "/opt/esp/idf",
-      "idf.toolsPath": "/opt/esp",
       "idf.gitPath": "/usr/bin/git"
     },
     /* An array of extensions that should be installed into the container. */

@@ -79,10 +79,11 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
         utils.readFileSync(this.projectDescriptionJsonPath)
       );
 
-      const defaultComponentsDir = idfConf.readParameter(
-        "idf.espIdfPath",
+      const customExtraVars = idfConf.readParameter(
+        "idf.customExtraVars",
         this.workspaceFolder
-      );
+      ) as { [key: string]: string };
+      let defaultComponentsDir = customExtraVars["IDF_PATH"];
 
       if (
         Object.prototype.hasOwnProperty.call(

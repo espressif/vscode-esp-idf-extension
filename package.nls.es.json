@@ -53,7 +53,6 @@
 	"espIdf.importProject.title": "Importar proyecto ESP-IDF",
 	"espIdf.installEspMatterPyReqs.title": "Instalar paquetes Python de ESP-Matter",
   "espIdf.installManager.title": "Abrir el administrador de instalación ESP-IDF",
-	"espIdf.installPyReqs.title": "Instalar paquetes Python de la extensión ESP-IDF",
 	"espIdf.jtag_flash.title": "Flashear (con JTag)",
 	"espIdf.launchQemu.title": "Iniciar servidor QEMU",
 	"espIdf.launchWSServerAndMonitor.title": "Lanzar monitor IDF para CoreDump / GDB-Stub Mode",
@@ -116,7 +115,6 @@
 	"param.esp.rainmaker.oauth.url": "URL del servidor OAuth de ESP-Rainmaker",
 	"param.espAdfPath": "Ruta para localizar el framework ESP-ADF (ADF_PATH)",
 	"param.espHomeKitSdkPath": "Ruta para localizar el framework ESP-HomeKit-SDK (HOMEKIT_PATH)",
-	"param.espIdfPath": "Ruta para localizar el framework ESP-IDF (IDF_PATH)",
 	"param.espMatterPath": "Ruta para localizar el framework ESP-Matter (ESP_MATTER_PATH)",
 	"param.espMdfPath": "Ruta para localizar el framework ESP-MDF (MDF_PATH)",
 	"param.espRainmakerPath": "Ruta para localizar el framework ESP-Rainmaker (RMAKER_PATH)",
@@ -145,7 +143,6 @@
 	"param.postFlashTask": "Tarea personalizada posterior al flasheo",
 	"param.preBuildTask": "Tarea personalizada previa a la construcción",
 	"param.preFlashTask": "Tarea personalizada previa al flasheo",
-	"param.pythonBinPath": "Ruta absoluta del binario Python utilizado para ejecutar Scripts de Python de ESP-IDF",
 	"param.qemuTcpPort": "Puerto tcp de QEMU para comunicación serial",
 	"param.rainmaker.api.server_url": "URL del servidor en la nube de ESP-Rainmaker",
 	"param.saveBeforeBuildDescription": "Guardar todos los archivos editados en el espacio de trabajo antes de proceder con la construcción, aunque si no se pueden guardar los archivos, se construirá de todos modos",
@@ -184,6 +181,6 @@
 	"view.idf.idfSearchResults": "Resultados de búsqueda de documentación",
 	"viewContainer.title": "ESP-IDF: Explorador",
 	"viewWelcome.idfPartitionExplorer": "Muestra la lista de particiones de su dispositivo con la opción de flashear binarios (.bin) en la partición seleccionada.\n\nSeleccione el puerto serial de su dispositivo y haga clic en Actualizar tabla de particiones.",
-	"viewWelcome.idfSearchResults": "En cualquier editor de archivos abierto, seleccione un texto y haga clic con el botón derecho y seleccione ESP-IDF: Buscar en la documentación para obtener resultados coincidentes aquí.\n\nLos resultados se basan en su idioma actual de VS Code, versión de idf.espIdfPath (si no, la última)",
+	"viewWelcome.idfSearchResults": "En cualquier editor de archivos abierto, seleccione un texto y haga clic con el botón derecho y seleccione ESP-IDF: Buscar en la documentación para obtener resultados coincidentes aquí.\n\nLos resultados se basan en su idioma actual de VS Code, versión de IDF_PATH (si no, la última)",
 	"viewWelcome.peripheralView": "Muestra los registros periféricos del archivo SVD definido en la configuración idf.svdFilePath durante la sesión de depuración activa"
 }

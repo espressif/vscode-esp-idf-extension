@@ -51,15 +51,12 @@ export namespace ESP {
 
   export const platformDepConfigurations: string[] = [
     "idf.buildPath",
-    "idf.espIdfPath",
     "idf.espAdfPath",
     "idf.espMdfPath",
     "idf.espRainmakerPath",
     "idf.espHomeKitSdkPath",
     "idf.gitPath",
-    "idf.pythonBinPath",
     "idf.port",
-    "idf.toolsPath",
   ];
 
   export namespace Rainmaker {

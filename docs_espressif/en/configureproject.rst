@@ -39,14 +39,12 @@ The file looks like this:
         "compilerPath": "/path/to/toolchain-gcc",
         "compileCommands": "${workspaceFolder}/build/compile_commands.json",
         "includePath": [
-          "${config:idf.espIdfPath}/components/**",
-          "${config:idf.espIdfPathWin}/components/**",
+          "/path/to/esp-idf/components/**",
           "${workspaceFolder}/**"
         ],
         "browse": {
           "path": [
-            "${config:idf.espIdfPath}/components",
-            "${config:idf.espIdfPathWin}/components",
+            "/path/to/esp-idf/components",
             "${workspaceFolder}"
           ]
         }
