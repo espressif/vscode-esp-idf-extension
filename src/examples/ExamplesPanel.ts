@@ -22,8 +22,8 @@ import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
-import { IdfSetup } from "../views/setup/types";
-import { getSystemPythonFromSettings } from "../pythonManager";
+import { IdfSetup } from "../eim/types";
+import { getEnvVariables } from "../eim/loadSettings";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -123,7 +123,7 @@ export class ExamplesPlanel {
               );
               await this.setCurrentSettingsInTemplate(
                 settingsJsonPath,
-                idfSetup
+                idfSetup,
               );
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
@@ -222,18 +222,8 @@ export class ExamplesPlanel {
     idfSetup: IdfSetup
   ) {
     const settingsJson = await readJSON(settingsJsonPath);
-    const isWin = process.platform === "win32" ? "Win" : "";
-    settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
-    settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
-    if (idfSetup.python) {
-      settingsJson["idf.pythonInstallPath"] = await getSystemPythonFromSettings(
-        idfSetup.python,
-        idfSetup.idfPath,
-        idfSetup.toolsPath
-      );
-    } else {
-      settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
-    }
+    const customExtraVars = await getEnvVariables(idfSetup);
+    settingsJson["idf.customExtraVars"] = customExtraVars;
     await writeJSON(settingsJsonPath, settingsJson, {
       spaces: 2,
     });

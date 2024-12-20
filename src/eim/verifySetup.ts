@@ -19,82 +19,33 @@
 import { pathExists } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { IdfSetup } from "./types";
-import { execChildProcess, startPythonReqsProcess } from "../utils";
-import { OutputChannel } from "../logger/outputChannel";
-import { EOL } from "os";
-import { IdfToolsManager } from "../idfToolsManager";
+import { startPythonReqsProcess } from "../utils";
+import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 import { readParameter, writeParameter } from "../idfConfiguration";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { getEnvVariables } from "./loadSettings";
 
-export async function getEnvVariables(
-  activationScriptPath: string,
-  logToChannel = false
-) {
+export async function checkIdfSetup(idfSetup: IdfSetup, logToChannel = true) {
   try {
-    const args =
-      process.platform === "win32"
-        ? [
-            "-ExecutionPolicy",
-            "Bypass",
-            "-NoProfile",
-            activationScriptPath,
-            "-e",
-          ]
-        : [activationScriptPath, "-e"];
-    const shellPath =
-      process.platform === "win32"
-        ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
-        : "/bin/sh";
-    const envVarsOutput = await execChildProcess(
-      shellPath,
-      args,
-      process.cwd(),
-      logToChannel ? OutputChannel.init() : undefined,
-      {
-        maxBuffer: 500 * 1024,
-        cwd: process.cwd(),
-      }
+    const activationScriptPathExists = await pathExists(
+      idfSetup.activationScript
     );
-    const envVars = envVarsOutput.split(EOL);
-    let envDict: { [key: string]: string } = {};
-    for (const envVar of envVars) {
-      let keyIndex = envVar.indexOf("=");
-      if (keyIndex === -1) {
-        continue;
-      }
-      let varKey = envVar.slice(0, keyIndex);
-      let varValue = envVar.slice(keyIndex + 1);
-      envDict[varKey] = varValue;
-    }
-    return envDict;
-  } catch (error) {
-    const errMsg =
-      error && error.message
-        ? error.message
-        : "Error getting Env variables from EIM activation script";
-    Logger.error(
-      errMsg,
-      error,
-      "verifySetup getEnvVariables",
-      undefined,
-      false
-    );
-  }
-}
-
-export async function checkIdfSetup(activationScript: string, logToChannel = true) {
-  try {
-    // TODO Get PATH from activation script
-    let envVars = await getEnvVariables(
-      activationScript,
+    let envVars: { [key: string]: string } = await getEnvVariables(
+      idfSetup,
       logToChannel
     );
-    const pyDir = process.platform === "win32"
-      ? ["Scripts", "python.exe"]
-      : ["bin", "python"];
-    const venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    let venvPythonPath: string = "";
+    if (idfSetup.python) {
+      venvPythonPath = idfSetup.python;
+    } else {
+      const pyDir =
+        process.platform === "win32"
+          ? ["Scripts", "python.exe"]
+          : ["bin", "python3"];
+      venvPythonPath = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    }
 
     if (!envVars["IDF_PATH"]) {
       return false;
@@ -103,7 +54,7 @@ export async function checkIdfSetup(activationScript: string, logToChannel = tru
     if (!doesIdfPathExists) {
       return false;
     }
-    
+
     const pathNameInEnv: string = Object.keys(envVars).find(
       (k) => k.toUpperCase() == "PATH"
     );
@@ -111,12 +62,25 @@ export async function checkIdfSetup(activationScript: string, logToChannel = tru
     const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
       envVars["IDF_PATH"]
     );
-
-    const toolsInfo = await idfToolsManager.getEIMToolsInfo(
-      envVars[pathNameInEnv],
-      ["cmake", "ninja"],
-      logToChannel
-    );
+    let toolsInfo: IEspIdfTool[] = [];
+    if (!activationScriptPathExists) {
+      const exportedToolsPaths = await idfToolsManager.exportPathsInString(
+        join(idfSetup.toolsPath, "tools"),
+        ["cmake", "ninja"]
+      );
+      toolsInfo = await idfToolsManager.getRequiredToolsInfo(
+        join(idfSetup.toolsPath, "tools"),
+        exportedToolsPaths,
+        ["cmake", "ninja"],
+        logToChannel
+      );
+    } else {
+      toolsInfo = await idfToolsManager.getEIMToolsInfo(
+        envVars[pathNameInEnv],
+        ["cmake", "ninja"],
+        logToChannel
+      );
+    }
 
     const failedToolsResult = toolsInfo.filter(
       (tInfo) =>
@@ -126,16 +90,13 @@ export async function checkIdfSetup(activationScript: string, logToChannel = tru
     if (failedToolsResult.length) {
       return false;
     }
-    const pyEnvReqs = await checkPyVenv(
-      venvPythonPath,
-      envVars["IDF_PATH"]
-    );
+    const pyEnvReqs = await checkPyVenv(venvPythonPath, envVars["IDF_PATH"]);
     return pyEnvReqs;
   } catch (error) {
     const msg =
       error && error.message
         ? error.message
-        : `Error checking EIM Idf Setup for script ${activationScript}`;
+        : `Error checking EIM Idf Setup for script ${idfSetup.activationScript}`;
     Logger.error(msg, error, "verifySetup checkIdfSetup");
     return false;
   }
@@ -190,7 +151,7 @@ export async function saveSettings(
     workspaceFolder
   ) as { [key: string]: string };
 
-  const idfEnvVars = await getEnvVariables(setupConf.activationScript, true);
+  const idfEnvVars = await getEnvVariables(setupConf, true);
   for (const envVar in idfEnvVars) {
     customExtraVars[envVar] = idfEnvVars[envVar];
   }
@@ -201,30 +162,15 @@ export async function saveSettings(
     workspaceFolder
   );
   await writeParameter(
-    "idf.espIdfPath",
-    setupConf.idfPath,
-    confTarget,
-    workspaceFolder
-  );
-  await writeParameter(
-    "idf.toolsPath",
-    setupConf.toolsPath,
-    confTarget,
-    workspaceFolder
-  );
-  await writeParameter(
     "idf.gitPath",
     setupConf.gitPath,
     ConfigurationTarget.Global
   );
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
-    espIdfStatusBar.text =
-      `$(${
-        commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF ${setupConf.version}` + setupConf.version;
+    espIdfStatusBar.text = `$(${
+      commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
+    }) ESP-IDF ${setupConf.version}`;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }
-
-export async function loadEnvSetup() {}
