@@ -207,9 +207,11 @@ export class ConfserverProcess {
     ConfserverProcess.instance.areValuesSaved = true;
     const currWorkspace = ConfserverProcess.instance.workspaceFolder;
     await delConfigFile(currWorkspace);
-    const guiconfigEspPath =
-      idfConf.readParameter("idf.espIdfPath", currWorkspace) ||
-      process.env.IDF_PATH;
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      currWorkspace
+    ) as { [key: string]: string };
+    const guiconfigEspPath = customExtraVars["IDF_PATH"];
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = await appendIdfAndToolsToPath(currWorkspace);
     const pythonBinPath = await getVirtualEnvPythonPath(currWorkspace);
@@ -226,7 +228,9 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(`-DSDKCONFIG=${ConfserverProcess.instance.configFile}`)
+      reconfigureArgs.push(
+        `-DSDKCONFIG=${ConfserverProcess.instance.configFile}`
+      );
     }
 
     if (
@@ -261,7 +265,11 @@ export class ConfserverProcess {
         if (code !== 0) {
           const errorMsg = `When loading default values received exit signal: ${signal}, code : ${code}`;
           OutputChannel.appendLine(errorMsg, "SDK Configuration Editor");
-          Logger.error(errorMsg, new Error(errorMsg), "ConfserverProcess setDefaultValues");
+          Logger.error(
+            errorMsg,
+            new Error(errorMsg),
+            "ConfserverProcess setDefaultValues"
+          );
         }
         ConfserverProcess.init(currWorkspace, extensionPath);
         progress.report({ increment: 70, message: "The end" });
@@ -323,9 +331,11 @@ export class ConfserverProcess {
     this.workspaceFolder = workspaceFolder;
     this.extensionPath = extensionPath;
     this.emitter = new EventEmitter();
-    this.espIdfPath =
-      idfConf.readParameter("idf.espIdfPath", workspaceFolder).toString() ||
-      process.env.IDF_PATH;
+    const customExtraVars = idfConf.readParameter(
+          "idf.customExtraVars",
+          workspaceFolder
+        ) as { [key: string]: string };
+    this.espIdfPath = customExtraVars["IDF_PATH"];
     modifiedEnv.PYTHONUNBUFFERED = "0";
     this.configFile = configFile;
     const idfPath = path.join(this.espIdfPath, "tools", "idf.py");
@@ -346,7 +356,7 @@ export class ConfserverProcess {
       (idfConf.readParameter("idf.sdkconfigDefaults") as string[]) || [];
 
     if (confServerArgs.indexOf("SDKCONFIG") === -1) {
-      confServerArgs.push(`-DSDKCONFIG=${this.configFile}`)
+      confServerArgs.push(`-DSDKCONFIG=${this.configFile}`);
     }
 
     if (
@@ -466,6 +476,10 @@ export class ConfserverProcess {
     OutputChannel.appendLine(
       "-----------------------END OF ERROR-----------------------"
     );
-    Logger.error(data.toString(), new Error(data.toString()), "ConfserverProcess printError");
+    Logger.error(
+      data.toString(),
+      new Error(data.toString()),
+      "ConfserverProcess printError"
+    );
   }
 }

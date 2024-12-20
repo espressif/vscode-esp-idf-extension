@@ -28,16 +28,19 @@ export interface IWelcomeArgs {
 
 export async function getWelcomePageInitialValues(
   progress: Progress<{ message: string; increment: number }>,
-  workspace?: Uri,
+  workspace?: Uri
 ) {
   progress.report({ increment: 20, message: "Getting extension version..." });
   const extensionVersion = packageJson.version as string;
-  const confEspIdfPath = readParameter("idf.espIdfPath", workspace) as string;
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspace
+  ) as { [key: string]: string };
   const confShowOnboardingOnInit = readParameter(
     "idf.showOnboardingOnInit"
   ) as boolean;
   const welcomePageArgs = {
-    espIdf: confEspIdfPath,
+    espIdf: customExtraVars["IDF_PATH"],
     extensionVersion,
     showOnInit: confShowOnboardingOnInit,
   };

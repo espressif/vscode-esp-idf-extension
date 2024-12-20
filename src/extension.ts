@@ -16,10 +16,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { srcOp, UpdateCmakeLists } from "./cmake/srcsWatcher";
-import {
-  DebugAdapterManager,
-  IDebugAdapterConfig,
-} from "./espIdf/debugAdapter/debugAdapterManager";
 import { ConfserverProcess } from "./espIdf/menuconfig/confServerProcess";
 import {
   IOpenOCDConfig,
@@ -81,7 +77,6 @@ import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
   getVirtualEnvPythonPath,
   installEspMatterPyReqs,
-  installExtensionPyReqs,
 } from "./pythonManager";
 import { checkExtensionSettings } from "./checkExtensionSettings";
 import { CmakeListsEditorPanel } from "./cmake/cmakeEditorPanel";
@@ -114,7 +109,6 @@ import { createNewIdfMonitor } from "./espIdf/monitor/command";
 import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
-import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
 import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
 import { QemuLaunchMode, QemuManager } from "./qemu/qemuManager";
 import {
@@ -137,7 +131,6 @@ import {
   ProjectConfigStore,
 } from "./project-conf";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
-import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
@@ -150,7 +143,6 @@ import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
 import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
-import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
@@ -167,10 +159,9 @@ import {
   createCommandDictionary,
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
-import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { getIdfSetups } from "./eim/getExistingSetups";
-import { getEnvVariables } from "./eim/verifySetup";
+import { IdfSetup } from "./eim/types";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -182,7 +173,6 @@ let covRenderer: CoverageRenderer;
 let openOCDManager: OpenOCDManager;
 let isOpenOCDLaunchedByDebug: boolean = false;
 let isDebugRestarted: boolean = false;
-let debugAdapterManager: DebugAdapterManager;
 
 // QEMU
 let qemuManager: QemuManager;
@@ -237,12 +227,12 @@ const minIdfVersionCheck = async function (
   minVersion: string,
   workspace: vscode.Uri
 ) {
-  const espIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspace
-  ) as string;
-  const gitPath = idfConf.readParameter("idf.gitPath", workspace) || "git";
-  const currentVersion = await utils.getEspIdfFromCMake(espIdfPath);
+  ) as { [key: string]: string };
+  let currentVersion = "";
+  currentVersion = await utils.getEspIdfFromCMake(customExtraVars["IDF_PATH"]);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
@@ -255,7 +245,6 @@ export async function activate(context: vscode.ExtensionContext) {
   Telemetry.init(idfConf.readParameter("idf.telemetry") || false);
   utils.setExtensionContext(context);
   ChangelogViewer.showChangeLogAndUpdateVersion(context);
-  debugAdapterManager = DebugAdapterManager.init(context);
   OutputChannel.init();
   const registerIDFCommand = (
     name: string,
@@ -475,11 +464,6 @@ export async function activate(context: vscode.ExtensionContext) {
         ) as string;
         const projectName = await getProjectName(buildDirPath);
         const projectElfFile = `${path.join(buildDirPath, projectName)}.elf`;
-        const debugAdapterConfig = {
-          currentWorkspace: workspaceRoot,
-          elfFile: projectElfFile,
-        } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
         const openOCDConfig: IOpenOCDConfig = {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
@@ -494,7 +478,6 @@ export async function activate(context: vscode.ExtensionContext) {
       isOpenOCDLaunchedByDebug = false;
       openOCDManager.stop();
     }
-    debugAdapterManager.stop();
   });
 
   const sdkconfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -606,10 +589,11 @@ export async function activate(context: vscode.ExtensionContext) {
                   "idf.gitPath",
                   workspaceRoot
                 )) as string) || "git";
-              const idfPath = idfConf.readParameter(
-                "idf.espIdfPath",
+              const customExtraVars = idfConf.readParameter(
+                "idf.customExtraVars",
                 workspaceRoot
-              ) as string;
+              ) as { [key: string]: string };
+              let idfPath = customExtraVars["IDF_PATH"];
               const arduinoComponentManager = new ArduinoComponentInstaller(
                 idfPath,
                 resultFolder,
@@ -709,10 +693,11 @@ export async function activate(context: vscode.ExtensionContext) {
         IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
       }
       const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
-      const idfPathDir = idfConf.readParameter(
-        "idf.espIdfPath",
+      const customExtraVars = idfConf.readParameter(
+        "idf.customExtraVars",
         workspaceRoot
-      ) as string;
+      ) as { [key: string]: string };
+      let idfPathDir = customExtraVars["IDF_PATH"];
       const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
       const flashScriptPath = path.join(
         idfPathDir,
@@ -795,10 +780,11 @@ export async function activate(context: vscode.ExtensionContext) {
             const gitPath =
               (await idfConf.readParameter("idf.gitPath", workspaceRoot)) ||
               "git";
-            const idfPath = idfConf.readParameter(
-              "idf.espIdfPath",
+            const customExtraVars = idfConf.readParameter(
+              "idf.customExtraVars",
               workspaceRoot
-            ) as string;
+            ) as { [key: string]: string };
+            let idfPath = customExtraVars["IDF_PATH"];
             const arduinoComponentManager = new ArduinoComponentInstaller(
               idfPath,
               workspaceRoot.fsPath,
@@ -1017,10 +1003,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
               }) ESP-IDF InvalidSetup`;
         }
-        const debugAdapterConfig = {
-          currentWorkspace: workspaceRoot,
-        } as IDebugAdapterConfig;
-        debugAdapterManager.configureAdapter(debugAdapterConfig);
         const openOCDConfig: IOpenOCDConfig = {
           workspace: workspaceRoot,
         } as IOpenOCDConfig;
@@ -1225,7 +1207,7 @@ export async function activate(context: vscode.ExtensionContext) {
           statusBarItems[statusItem] = undefined;
         }
       }
-    } else if (e.affectsConfiguration("idf.espIdfPath" + winFlag)) {
+    } else if (e.affectsConfiguration("idf.customExtraVars")) {
       ESP.URL.Docs.IDF_INDEX = undefined;
     } else if (e.affectsConfiguration("idf.port" + winFlag)) {
       if (statusBarItems && statusBarItems["port"]) {
@@ -1250,11 +1232,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const debugProvider = new IdfDebugConfigurationProvider();
-  context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider("espidf", debugProvider)
-  );
-
   const cdtDebugProvider = new CDTDebugConfigurationProvider();
   context.subscriptions.push(
     vscode.debug.registerDebugConfigurationProvider(
@@ -1269,73 +1246,6 @@ export async function activate(context: vscode.ExtensionContext) {
       new CDTDebugAdapterDescriptorFactory()
     )
   );
-
-  vscode.debug.registerDebugAdapterDescriptorFactory("espidf", {
-    async createDebugAdapterDescriptor(session: vscode.DebugSession) {
-      try {
-        const portToUse = session.configuration.debugPort || DEBUG_DEFAULT_PORT;
-        const launchMode = session.configuration.mode || "auto";
-        const useMonitorWithDebug = idfConf.readParameter(
-          "idf.launchMonitorOnDebugSession",
-          workspaceRoot
-        );
-        if (
-          session.configuration.sessionID !== "core-dump.debug.session.ws" &&
-          useMonitorWithDebug
-        ) {
-          await createNewIdfMonitor(workspaceRoot, true);
-        }
-        if (
-          launchMode === "auto" &&
-          !openOCDManager.isRunning() &&
-          session.configuration.sessionID !== "core-dump.debug.session.ws"
-        ) {
-          isOpenOCDLaunchedByDebug = true;
-          await openOCDManager.start();
-        }
-        if (session.configuration.sessionID === "qemu.debug.session") {
-          const debugAdapterConfig = {
-            appOffset: session.configuration.appOffset,
-            elfFile: session.configuration.elfFilePath,
-            debugAdapterPort: portToUse,
-            tmoScaleFactor: session.configuration.tmoScaleFactor,
-          } as IDebugAdapterConfig;
-          debugAdapterManager.configureAdapter(debugAdapterConfig);
-          await debugAdapterManager.start();
-        }
-        if (session.configuration.sessionID === "core-dump.debug.session.ws") {
-          await debugAdapterManager.start();
-        }
-        if (launchMode === "auto" && !debugAdapterManager.isRunning()) {
-          const debugAdapterConfig = {
-            appOffset: session.configuration.appOffset,
-            debugAdapterPort: portToUse,
-            elfFile: session.configuration.elfFilePath,
-            env: session.configuration.env,
-            gdbinitFilePath: session.configuration.gdbinitFile,
-            initGdbCommands: session.configuration.initGdbCommands || [],
-            tmoScaleFactor: session.configuration.tmoScaleFactor,
-            isPostMortemDebugMode: false,
-            isOocdDisabled: false,
-            logLevel: session.configuration.logLevel,
-          } as IDebugAdapterConfig;
-          debugAdapterManager.configureAdapter(debugAdapterConfig);
-          await debugAdapterManager.start();
-        }
-        return new vscode.DebugAdapterServer(portToUse);
-      } catch (error) {
-        const errMsg =
-          error && error.message
-            ? error.message
-            : "Error starting ESP-IDF Debug Adapter";
-        return Logger.errorNotify(
-          errMsg,
-          error,
-          "extension createDebugAdapterDescriptor espidf"
-        );
-      }
-    },
-  });
 
   vscode.debug.onDidStartDebugSession(async (session) => {
     const svdFile = idfConf.readParameter(
@@ -1481,72 +1391,6 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   });
 
-  registerIDFCommand("espIdf.installPyReqs", () => {
-    return PreCheck.perform([openFolderCheck], async () => {
-      const notificationMode = idfConf.readParameter(
-        "idf.notificationMode",
-        workspaceRoot
-      ) as string;
-      const ProgressLocation =
-        notificationMode === idfConf.NotificationMode.All ||
-        notificationMode === idfConf.NotificationMode.Notifications
-          ? vscode.ProgressLocation.Notification
-          : vscode.ProgressLocation.Window;
-      vscode.window.withProgress(
-        {
-          cancellable: true,
-          location: ProgressLocation,
-          title: "ESP-IDF: Installing Python requirements",
-        },
-        async (
-          progress: vscode.Progress<{ message: string; increment?: number }>,
-          cancelToken: vscode.CancellationToken
-        ) => {
-          try {
-            const espIdfPath = idfConf.readParameter(
-              "idf.espIdfPath",
-              workspaceRoot
-            ) as string;
-            const containerPath =
-              process.platform === "win32"
-                ? process.env.USERPROFILE
-                : process.env.HOME;
-            const confToolsPath = idfConf.readParameter(
-              "idf.toolsPath",
-              workspaceRoot
-            ) as string;
-            const toolsPath =
-              confToolsPath ||
-              process.env.IDF_TOOLS_PATH ||
-              path.join(containerPath, ".espressif");
-            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
-            progress.report({
-              message: vscode.l10n.t(
-                `Installing ESP-IDF extension Python requirements...`
-              ),
-            });
-            await installExtensionPyReqs(
-              pyPath,
-              espIdfPath,
-              toolsPath,
-              undefined
-            );
-            vscode.window.showInformationMessage(
-              vscode.l10n.t("ESP-IDF Python Requirements has been installed")
-            );
-          } catch (error) {
-            const msg = error.message
-              ? error.message
-              : typeof error === "string"
-              ? error
-              : "Error installing Python requirements";
-            Logger.errorNotify(msg, error, "extension installPyReqs");
-          }
-        }
-      );
-    });
-  });
-
   registerIDFCommand("espIdf.installEspMatterPyReqs", () => {
     if (process.platform === "win32") {
       return vscode.window.showInformationMessage(
@@ -1574,37 +1418,18 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const espIdfPath = idfConf.readParameter(
-              "idf.espIdfPath",
-              workspaceRoot
-            ) as string;
-            const containerPath =
-              process.platform === "win32"
-                ? process.env.USERPROFILE
-                : process.env.HOME;
-            const confToolsPath = idfConf.readParameter(
-              "idf.toolsPath",
-              workspaceRoot
-            ) as string;
-            const toolsPath =
-              confToolsPath ||
-              process.env.IDF_TOOLS_PATH ||
-              path.join(containerPath, ".espressif");
             const espMatterPath = idfConf.readParameter(
               "idf.espMatterPath",
               workspaceRoot
             ) as string;
-            const pyPath = await getVirtualEnvPythonPath(workspaceRoot);
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-Matter Python Requirements...`
               ),
             });
             await installEspMatterPyReqs(
-              espIdfPath,
-              toolsPath,
+              workspaceRoot,
               espMatterPath,
-              pyPath,
               undefined,
               cancelToken
             );
@@ -1940,10 +1765,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerIDFCommand("espIdf.installManager", async () => {
-    const output = await getEnvVariables(
-      "/Users/brainignacio/.espressif/activate_idf_v5.3.2.sh",
-      true
-    );
     vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
   });
 
@@ -2864,13 +2685,18 @@ export async function activate(context: vscode.ExtensionContext) {
             );
           }
         }
+        const customExtraVars = idfConf.readParameter(
+          "idf.customExtraVars",
+          workspaceRoot
+        ) as { [key: string]: string };
+        let espIdfPath = customExtraVars["IDF_PATH"];
         AppTracePanel.createOrShow(context, {
           trace: {
             fileName: trace.fileName,
             filePath: trace.filePath,
             type: trace.type,
             workspacePath: workspaceRoot.fsPath,
-            idfPath: idfConf.readParameter("idf.espIdfPath", workspaceRoot),
+            idfPath: espIdfPath,
           },
         });
       });
@@ -3136,10 +2962,11 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension launchWSServerAndMonitor python path not set"
           );
         }
-        const idfPath = idfConf.readParameter(
-          "idf.espIdfPath",
+        const customExtraVars = idfConf.readParameter(
+          "idf.customExtraVars",
           workspaceRoot
-        ) as string;
+        ) as { [key: string]: string };
+        let idfPath = customExtraVars["IDF_PATH"];
         const idfMonitorToolPath = path.join(
           idfPath,
           "tools",
@@ -4290,10 +4117,11 @@ async function startFlashing(
     }
     return await jtagFlashCommand(workspaceRoot);
   } else {
-    const idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
       workspaceRoot
-    ) as string;
+    ) as { [key: string]: string };
+    let idfPathDir = customExtraVars["IDF_PATH"];
     return await flashCommand(
       cancelToken,
       flashBaudRate,
@@ -4395,70 +4223,4 @@ export function deactivate() {
     covRenderer.dispose();
   }
   KconfigLangClient.stopKconfigLangServer();
-}
-
-class IdfDebugConfigurationProvider
-  implements vscode.DebugConfigurationProvider {
-  public async resolveDebugConfiguration(
-    folder: vscode.WorkspaceFolder | undefined,
-    config: vscode.DebugConfiguration,
-    token?: vscode.CancellationToken
-  ): Promise<vscode.DebugConfiguration> {
-    try {
-      const buildDirPath = idfConf.readParameter(
-        "idf.buildPath",
-        workspaceRoot
-      ) as string;
-      const projectName = await getProjectName(buildDirPath);
-      const elfFilePath = path.join(buildDirPath, `${projectName}.elf`);
-      const elfFileExists = await pathExists(elfFilePath);
-      if (!elfFileExists) {
-        throw new Error(
-          `${elfFilePath} doesn't exist. Build this project first.`
-        );
-      }
-      if (config.verifyAppBinBeforeDebug) {
-        const isSameAppBinary = await verifyAppBinary(workspaceRoot);
-        if (!isSameAppBinary) {
-          throw new Error(
-            vscode.l10n.t(
-              `Current app binary is different from your project. Flash first.`
-            )
-          );
-        }
-      }
-      config.elfFilePath = elfFilePath;
-      const debugAdapterPackagesExist = await checkDebugAdapterRequirements(
-        workspaceRoot
-      );
-      if (!debugAdapterPackagesExist) {
-        const installDAPyPkgs = await vscode.window.showInformationMessage(
-          "ESP-IDF Debug Adapter Python packages are not installed",
-          "Install"
-        );
-        if (installDAPyPkgs && installDAPyPkgs === "Install") {
-          await vscode.commands.executeCommand("espIdf.installPyReqs");
-        }
-        return;
-      }
-    } catch (error) {
-      const msg = error.message
-        ? error.message
-        : "Some build files doesn't exist. Build this project first.";
-      Logger.error(
-        error.message,
-        error,
-        "extension IdfDebugConfigurationProvider"
-      );
-      const startBuild = await vscode.window.showInformationMessage(
-        msg,
-        "Build"
-      );
-      if (startBuild === "Build") {
-        await buildFlashAndMonitor(false);
-        return;
-      }
-    }
-    return config;
-  }
 }

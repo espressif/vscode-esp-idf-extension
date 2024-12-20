@@ -32,9 +32,6 @@ import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
 import {
-  checkDebugAdapterRequirements
-} from "../support/checkExtensionRequirements";
-import {
   checkCCppPropertiesJson,
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
@@ -103,12 +100,6 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.pipVersion.result, "Not found");
   });
 
-  test("Wrong debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.debugAdapterRequirements.result, "Error");
-  });
-
   test("Wrong esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await checkEspIdfRequirements(reportObj, mockUpContext);
@@ -152,10 +143,6 @@ suite("Doctor Command tests", () => {
       settingsJsonObj["idf.espAdfPath"]
     );
     assert.equal(
-      reportObj.configurationSettings.espIdfPath,
-      settingsJsonObj["idf.espIdfPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.espMdfPath,
       settingsJsonObj["idf.espMdfPath"]
     );
@@ -168,25 +155,8 @@ suite("Doctor Command tests", () => {
       settingsJsonObj["idf.openOcdConfigs"]
     );
     assert.equal(
-      reportObj.configurationSettings.toolsPath,
-      settingsJsonObj["idf.toolsPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.notificationMode,
       settingsJsonObj["idf.notificationMode"]
-    );
-  });
-
-  test("Good debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(
-      reportObj.debugAdapterRequirements.result,
-      `Python requirements from ${join(
-        __dirname,
-        "../../esp_debug_adapter/requirements.txt"
-      )} are satisfied.`
     );
   });
 
@@ -298,9 +268,6 @@ suite("Doctor Command tests", () => {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `System python Path (idf.pythonInstallPath) ${
-      reportObj.configurationSettings.sysPythonBinPath
-    }${os.EOL}`;
     expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;
