@@ -22,7 +22,7 @@ import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
-import { IdfSetup } from "../views/setup/types";
+import { IdfSetup } from "../eim/types";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -293,8 +293,7 @@ export class NewProjectPanel {
             settingsJsonPath,
             idfSetup,
             port,
-            openOcdConfigs,
-            workspaceFolder
+            openOcdConfigs
           );
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces: 2,

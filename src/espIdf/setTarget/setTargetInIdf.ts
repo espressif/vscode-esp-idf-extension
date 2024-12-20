@@ -38,13 +38,12 @@ export async function setTargetInIDF(
   if (ConfserverProcess.exists()) {
     ConfserverProcess.dispose();
   }
-  const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder.uri);
   const buildDirPath = readParameter(
     "idf.buildPath",
     workspaceFolder.uri
   ) as string;
-  const idfPy = join(idfPathDir, "tools", "idf.py");
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder.uri);
+  const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
   modifiedEnv.IDF_TARGET = undefined;
   const enableCCache = readParameter(
     "idf.enableCCache",

@@ -54,16 +54,13 @@ export class IDFSize {
       const mapFilePath = await this.mapFilePath();
 
       let locMsg = vscode.l10n.t("Gathering Overview");
-      const espIdfPath = idfConf.readParameter(
-        "idf.espIdfPath",
-        this.workspaceFolderUri
-      ) as string;
+      const espIdfPath = this.idfPath();
       const version = await utils.getEspIdfFromCMake(espIdfPath);
       const formatArgs =
         utils.compareVersion(version, "5.3.0") >= 0
           ? ["--format", "json2"]
           : utils.compareVersion(version, "5.1.0") >= 0
-          ? ["--format", "json"] 
+          ? ["--format", "json"]
           : ["--json"];
       const overview = await this.idfCommandInvoker([
         "idf_size.py",
@@ -106,10 +103,11 @@ export class IDFSize {
   }
 
   private idfPath(): string {
-    const idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
       this.workspaceFolderUri
-    );
+    ) as { [key: string]: string };
+    const idfPathDir = customExtraVars["IDF_PATH"];
     return path.join(idfPathDir, "tools");
   }
 

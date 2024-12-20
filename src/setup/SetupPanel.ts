@@ -683,11 +683,6 @@ export class SetupPanel {
       status: StatusType.installed,
     });
     await idfConf.writeParameter(
-      "idf.pythonInstallPath",
-      idfPythonPath,
-      ConfigurationTarget.Global
-    );
-    await idfConf.writeParameter(
       "idf.gitPath",
       idfGitPath,
       ConfigurationTarget.Global

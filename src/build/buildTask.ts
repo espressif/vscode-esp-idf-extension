@@ -40,10 +40,11 @@ export class BuildTask {
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
       workspaceUri
-    ) as string;
+    ) as { [key: string]: string };
+    this.idfPathDir = customExtraVars["IDF_PATH"];
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       workspaceUri
