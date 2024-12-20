@@ -83,7 +83,7 @@ export class PartitionTreeDataProvider
     try {
       const modifiedEnv = await appendIdfAndToolsToPath(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
-      const idfPath = readParameter("idf.espIdfPath", workspace);
+      const idfPath = modifiedEnv["IDF_PATH"];
       const pythonBinPath = await getVirtualEnvPythonPath(workspace);
       const partitionTableOffsetOption = await window.showQuickPick(
         [
