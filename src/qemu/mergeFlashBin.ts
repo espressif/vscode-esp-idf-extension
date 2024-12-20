@@ -76,7 +76,10 @@ export async function mergeFlashBinaries(
       TaskManager.disposeListeners();
     });
   }
-  const idfPath = readParameter("idf.espIdfPath", wsFolder);
+  const customExtraVars = readParameter("idf.customExtraVars", wsFolder) as {
+    [key: string]: string;
+  };
+  const idfPath = customExtraVars["IDF_PATH"];
   const port = readParameter("idf.port", wsFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
   const buildDirPath = readParameter("idf.buildPath", wsFolder) as string;

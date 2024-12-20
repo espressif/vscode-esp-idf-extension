@@ -64,7 +64,6 @@ export async function writeTextReport(
       output += `    ${key}: ${reportedResult.configurationSettings.userExtraVars[key]}${EOL}`;
     }
   }
-  output += `System python Path (idf.pythonInstallPath) ${reportedResult.configurationSettings.sysPythonBinPath}${EOL}`;
   output += `Virtual environment Python path (computed) ${reportedResult.configurationSettings.pythonBinPath}${EOL}`;
   output += `Serial port (idf.port) ${reportedResult.configurationSettings.serialPort}${EOL}`;
   output += `OpenOCD Configs (idf.openOcdConfigs) ${reportedResult.configurationSettings.openOcdConfigs}${EOL}`;
@@ -90,7 +89,6 @@ export async function writeTextReport(
   for (let key in reportedResult.configurationAccess.espIdfToolsPaths) {
     output += `Access to ${key}: ${reportedResult.configurationAccess.espIdfToolsPaths[key]}${EOL}`;
   }
-  output += `Access to System python Path (idf.pythonInstallPath) ${reportedResult.configurationAccess.sysPythonBinPath}${EOL}`;
   output += `Access to Virtual environment Python path (computed) ${reportedResult.configurationAccess.pythonBinPath}${EOL}`;
   output += `Access to CMake in environment PATH ${reportedResult.configurationAccess.cmakeInEnv}${EOL}`;
   output += `Access to Ninja in environment PATH ${reportedResult.configurationAccess.ninjaInEnv}${EOL}`;
@@ -107,7 +105,6 @@ export async function writeTextReport(
     .customExtraPaths) {
     output += `Spaces in ${key}: ${reportedResult.configurationSpacesValidation.customExtraPaths[key]}${EOL}`;
   }
-  output += `Spaces in System python Path (idf.pythonInstallPath) ${reportedResult.configurationSpacesValidation.sysPythonBinPath}${EOL}`;
   output += `Spaces in Virtual environment Python path (computed) ${reportedResult.configurationSpacesValidation.pythonBinPath}${EOL}`;
   output += `Spaces in ESP-IDF Tools Path (idf.toolsPath) ${reportedResult.configurationSpacesValidation.toolsPath}${EOL}`;
   output += `----------------------------------------------------------- Executables Versions -----------------------------------------------------------${EOL}`;

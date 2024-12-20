@@ -29,9 +29,8 @@ export interface IdfTarget {
 }
 
 export async function getTargetsFromEspIdf(workspaceFolder: Uri) {
-  const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder);
-  const idfPyPath = join(idfPathDir, "tools", "idf.py");
   const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+  const idfPyPath = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
   const resultTargetArray: IdfTarget[] = [];
 
