@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Wednesday, 21st July 2021 12:43:10 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,7 @@ import {
   setExtensionContext,
   updateProjectNameInCMakeLists,
 } from "../utils";
-import { IdfSetup } from "../views/setup/types";
+import { IdfSetup } from "../eim/types";
 
 suite("Project tests", () => {
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
@@ -144,27 +144,24 @@ suite("Project tests", () => {
     const projectPath = join(wsFolder, "new-project");
     const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
-    assert.equal(settingsJson["idf.espIdfPath"], undefined);
     const openOcdConfigs =
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
 
     const idfSetup = {
       idfPath: process.env.IDF_PATH,
       toolsPath: process.env.IDF_TOOLS_PATH,
-      sysPythonPath: "python"
+      sysPythonPath: "python",
     } as IdfSetup;
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
       idfSetup,
       "no port",
       "esp32",
-      openOcdConfigs,
-      Uri.file(projectPath)
+      Uri.file(wsFolder),
+      openOcdConfigs
     );
-    assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
-    assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
   });
 

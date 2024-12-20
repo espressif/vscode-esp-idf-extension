@@ -612,12 +612,6 @@
             "description": "%param.eimIdfJsonPath%",
             "scope": "application"
           },
-          "idf.espIdfPath": {
-            "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
-          },
           "idf.espAdfPath": {
             "type": "string",
             "default": "${env:ADF_PATH}",
@@ -642,22 +636,10 @@
             "description": "%param.espHomeKitSdkPath%",
             "scope": "resource"
           },
-          "idf.toolsPath": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
           "idf.espRainmakerPath": {
             "type": "string",
             "default": "${env:RMAKER_PATH}",
             "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espIdfPathWin": {
-            "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
             "scope": "resource"
           },
           "idf.espAdfPathWin": {
@@ -670,12 +652,6 @@
             "type": "string",
             "default": "${env:MDF_PATH}",
             "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.toolsPathWin": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
             "scope": "resource"
           },
           "idf.espRainmakerPathWin": {
@@ -706,12 +682,6 @@
             "type": "string",
             "default": "",
             "description": "%param.port%",
-            "scope": "resource"
-          },
-          "idf.pythonInstallPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
             "scope": "resource"
           },
           "idf.flashBaudRate": {
@@ -1571,11 +1541,6 @@
       {
         "command": "espIdf.installEspMatterPyReqs",
         "title": "%espIdf.installEspMatterPyReqs.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.installPyReqs",
-        "title": "%espIdf.installPyReqs.title%",
         "category": "ESP-IDF"
       },
       {

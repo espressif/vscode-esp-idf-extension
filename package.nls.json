@@ -58,7 +58,6 @@
   "espIdf.importProject.title": "Import ESP-IDF Project",
   "espIdf.installEspMatterPyReqs.title": "Install ESP-Matter Python Packages",
   "espIdf.installManager.title": "Open ESP-IDF Install manager",
-  "espIdf.installPyReqs.title": "Install ESP-IDF Extension Python Packages",
   "espIdf.jtag_flash.title": "Flash (with JTag)",
   "espIdf.launchQemu.title": "Launch QEMU Server",
   "espIdf.launchWSServerAndMonitor.title": "Launch IDF Monitor for Core Dump Mode/GDB Stub Mode",
@@ -128,7 +127,6 @@
   "param.esp.rainmaker.oauth.url": "ESP-Rainmaker OAuth server URL",
   "param.espAdfPath": "Path to locate ESP-ADF framework (ADF_PATH)",
   "param.espHomeKitSdkPath": "Path to locate ESP-HomeKit-SDK framework (HOMEKIT_PATH)",
-  "param.espIdfPath": "Path to locate ESP-IDF framework (IDF_PATH)",
   "param.espMatterPath": "Path to locate ESP-Matter framework (ESP_MATTER_PATH)",
   "param.espMdfPath": "Path to locate ESP-MDF framework (MDF_PATH)",
   "param.espRainmakerPath": "Path to locate ESP-Rainmaker framework (RMAKER_PATH)",
@@ -159,7 +157,6 @@
   "param.postFlashTask": "Post flash custom task",
   "param.preBuildTask": "Pre build custom task",
   "param.preFlashTask": "Pre flash custom task",
-  "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python scripts",
   "param.qemuDebugMonitor": "Enable QEMU Monitor on debug session",
 	"param.qemuExtraArgs": "QEMU extra arguments",
   "param.rainmaker.api.server_url": "ESP-Rainmaker cloud server URL",
@@ -200,6 +197,6 @@
   "view.idf.idfSearchResults": "Documentation Search Results",
   "viewContainer.title": "ESP-IDF: Explorer",
   "viewWelcome.idfPartitionExplorer": "Show the partition list from your device with the option to flash binaries (.bin) to the selected partition.\n\nSelect your device serial port and click Refresh Partition Table.",
-  "viewWelcome.idfSearchResults": "On any opened file editor, select some text, right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language and idf.espIdfPath version (latest otherwise).",
+  "viewWelcome.idfSearchResults": "On any opened file editor, select some text, right click and select ESP-IDF: Search in Documentation to get matching results here.\n\nResults are based on your current VS Code language and IDF_PATH version (latest otherwise).",
   "viewWelcome.peripheralView": "Show peripheral registers from SVD files defined in ESP-IDF SVD file path (idf.svdFilePath) configuration setting during active debug session."
 }
