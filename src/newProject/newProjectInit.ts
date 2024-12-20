@@ -23,11 +23,11 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
-import { IdfSetup } from "../views/setup/types";
 import {
   getTargetsFromEspIdf,
   IdfTarget,
 } from "../espIdf/setTarget/getTargets";
+import { IdfSetup } from "../eim/types";
 
 export interface INewProjectArgs {
   espIdfSetup: IdfSetup;

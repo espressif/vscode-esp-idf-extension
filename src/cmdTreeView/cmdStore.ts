@@ -66,7 +66,6 @@ export enum AdvancedCommandKeys {
   GetEspMatter = "espIdf.getEspMatter",
   GetRainmaker = "espIdf.getEspRainmaker",
   ProjectConfEditor = "espIdf.projectConfigurationEditor",
-  InstallIdfPythonReqs = "espIdf.installPyReqs",
   InstallMatterPythonReqs = "espIdf.installEspMatterPyReqs",
   CreateVscodeFolder = "espIdf.createVsCodeFolder",
   CreateDevContainerFolder = "espIdf.createDevContainer",
@@ -146,11 +145,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "project",
       tooltip: l10n.t("Project Configuration editor"),
-    },
-    [AdvancedCommandKeys.InstallIdfPythonReqs]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install Extension Python Requirements"),
     },
     [AdvancedCommandKeys.InstallMatterPythonReqs]: {
       checkboxState: undefined,

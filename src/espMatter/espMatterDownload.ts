@@ -38,7 +38,10 @@ import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { OutputChannel } from "../logger/outputChannel";
 import { PackageProgress } from "../PackageProgress";
-import { getVirtualEnvPythonPath, installEspMatterPyReqs } from "../pythonManager";
+import {
+  getVirtualEnvPythonPath,
+  installEspMatterPyReqs,
+} from "../pythonManager";
 import { platform } from "os";
 
 export class EspMatterCloning extends AbstractCloning {
@@ -182,7 +185,11 @@ export class EspMatterCloning extends AbstractCloning {
           );
         } catch (error) {
           OutputChannel.appendLine(error.message);
-          Logger.errorNotify(error.message, error, "EspMatterCloning initEsp32PlatformSubmodules");
+          Logger.errorNotify(
+            error.message,
+            error,
+            "EspMatterCloning initEsp32PlatformSubmodules"
+          );
         }
       }
     );
@@ -259,15 +266,6 @@ export async function installPythonReqs(
   espMatterPath: string,
   workspace?: Uri
 ) {
-  const espIdfPath = readParameter("idf.espIdfPath", workspace);
-  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const containerPath =
-    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = readParameter("idf.toolsPath", workspace);
-  const toolsPath =
-    confToolsPath ||
-    process.env.IDF_TOOLS_PATH ||
-    join(containerPath, ".espressif");
   const notificationMode = readParameter(
     "idf.notificationMode",
     workspace
@@ -291,10 +289,8 @@ export async function installPythonReqs(
         message: `Installing Python Requirements...`,
       });
       await installEspMatterPyReqs(
-        espIdfPath,
-        toolsPath,
+        workspace,
         espMatterPath,
-        pythonBinPath,
         undefined,
         cancelToken
       );
