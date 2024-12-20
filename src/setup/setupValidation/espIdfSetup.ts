@@ -18,6 +18,7 @@
 
 import { join } from "path";
 import { IdfSetup } from "../../views/setup/types";
+import { IdfSetup as eimSetup } from "../../eim/types";
 import { IdfToolsManager } from "../../idfToolsManager";
 import { saveSettings } from "../setupInit";
 import { pathExists } from "fs-extra";
@@ -26,8 +27,8 @@ import { checkPyVenv } from "./pythonEnv";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 import {
   getPythonEnvPath,
-  getSystemPythonFromSettings,
 } from "../../pythonManager";
+import { getSystemPythonFromIdfSetup } from "../../eim/migrationTool";
 
 export async function useIdfSetupSettings(
   setupConf: IdfSetup,
@@ -35,16 +36,7 @@ export async function useIdfSetupSettings(
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  let sysPythonBinPath = "";
-  if (setupConf.python) {
-    sysPythonBinPath = await getSystemPythonFromSettings(
-      setupConf.python,
-      setupConf.idfPath,
-      setupConf.toolsPath
-    );
-  } else {
-    sysPythonBinPath = setupConf.sysPythonPath;
-  }
+  let sysPythonBinPath = await getSystemPythonFromIdfSetup(setupConf as eimSetup);
   await saveSettings(
     setupConf.idfPath,
     setupConf.toolsPath,

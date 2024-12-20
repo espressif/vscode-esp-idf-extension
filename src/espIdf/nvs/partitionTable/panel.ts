@@ -142,9 +142,11 @@ export class NVSPartitionTable {
     partitionSize: string
   ) {
     try {
-      const idfPathDir =
-        idfConf.readParameter("idf.espIdfPath", this.workspaceFolder) ||
-        process.env.IDF_PATH;
+      const customExtraVars = idfConf.readParameter(
+        "idf.customExtraVars",
+        this.workspaceFolder
+      ) as { [key: string]: string };
+      const idfPathDir = customExtraVars["IDF_PATH"];
 
       const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceFolder);
       const dirPath = dirname(this.filePath);

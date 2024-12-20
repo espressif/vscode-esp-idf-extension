@@ -45,7 +45,11 @@ export async function saveDefSdkconfig(
       TaskManager.disposeListeners();
     });
   }
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfPath = customExtraVars["IDF_PATH"];
   const notificationMode = readParameter(
     "idf.notificationMode",
     workspaceFolder

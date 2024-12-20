@@ -55,7 +55,7 @@ export async function getSelectedEspIdfSetup(logToChannel: boolean = true) {
       sysPythonPath: ""
     } as IdfSetup;
     try {
-      const isValid = await checkIdfSetup(idfSetup.activationScript, logToChannel);
+      const isValid = await checkIdfSetup(idfSetup, logToChannel);
       idfSetup.isValid = isValid;
     } catch (err) {
       const msg = err.message
@@ -76,7 +76,7 @@ export async function getIdfSetups(
   for (let idfSetup of setupKeys) {
     if (idfSetup && idfSetup.idfPath) {
       try {
-        idfSetup.isValid = await checkIdfSetup(idfSetup.activationScript, logToChannel);
+        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
         idfSetups.push(idfSetup);
       } catch (err) {
         const msg = err.message
@@ -119,7 +119,7 @@ export async function loadIdfSetupsFromEspIdeJson() {
         sysPythonPath: "",
       } as IdfSetup;
       try {
-        setupConf.isValid = await checkIdfSetup(setupConf.activationScript, false);
+        setupConf.isValid = await checkIdfSetup(setupConf, false);
       } catch (err) {
         const msg = err.message
           ? err.message

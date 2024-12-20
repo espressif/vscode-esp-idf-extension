@@ -35,11 +35,9 @@ import { getVirtualEnvPythonPath } from "../../pythonManager";
 export class IdfReconfigureTask {
   private buildDirPath: string;
   private curWorkspace: Uri;
-  private idfPathDir: string;
 
   constructor(workspace: Uri) {
     this.curWorkspace = workspace;
-    this.idfPathDir = readParameter("idf.espIdfPath", workspace) as string;
     this.buildDirPath = readParameter("idf.buildPath", workspace) as string;
   }
 
@@ -63,7 +61,7 @@ export class IdfReconfigureTask {
         ? TaskRevealKind.Always
         : TaskRevealKind.Silent;
 
-    const idfPy = join(this.idfPathDir, "tools", "idf.py");
+    const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
     const reconfigureArgs = [idfPy];
 
     let buildPathArgsIndex = reconfigureArgs.indexOf("-B");

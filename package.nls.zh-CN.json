@@ -58,7 +58,6 @@
 	"espIdf.importProject.title": "导入 ESP-IDF 项目",
 	"espIdf.installEspMatterPyReqs.title": "安装 ESP-Matter Python 包",
   "espIdf.installManager.title": "打开 ESP-IDF 安装管理器",
-	"espIdf.installPyReqs.title": "安装 ESP-IDF 扩展 Python 包",
 	"espIdf.jtag_flash.title": "通过 JTAG 接口烧录项目",
 	"espIdf.launchQemu.title": "启动 QEMU 服务器",
 	"espIdf.launchWSServerAndMonitor.title": "启动 IDF 监视器以支持核心转储模式/GDB 存根模式",
@@ -152,7 +151,6 @@
 	"param.postFlashTask": "烧录后的自定义任务",
 	"param.preBuildTask": "构建前的自定义任务",
 	"param.preFlashTask": "烧录前的自定义任务",
-	"param.pythonBinPath": "用于执行 ESP-IDF Python 脚本的 Python 绝对路径",
 	"param.qemuDebugMonitor": "在调试会话中启用 QEMU 显示器",
 	"param.qemuExtraArgs": "QEMU 额外的论点",
 	"param.rainmaker.api.server_url": "ESP-Rainmaker 云服务器 URL",
@@ -192,7 +190,7 @@
 	"view.idf.idfPartitionExplorer": "设备分区资源管理器",
 	"view.idf.idfSearchResults": "文档搜索结果",
 	"viewContainer.title": "ESP-IDF：资源管理器",
-	"viewWelcome.idfPartitionExplorer": "显示设备的分区列表，选择烧录二进制文件 (.bin) 的分区。\n\n选择设备串口，单击"刷新分区表"。",
-	"viewWelcome.idfSearchResults": "在任一打开的文件编辑器中选定文本，右键单击并选择"ESP-IDF：在文档中搜索"，搜索匹配的结果。\n\n搜索结果基于当前的 VS Code 语言以及 idf.espIdfPath 版本 (若未指定版本，则默认使用最新版 ESP-IDF)。",
+	"viewWelcome.idfPartitionExplorer": "显示设备的分区列表，选择烧录二进制文件 (.bin) 的分区。\n\n选择设备串口，单击“刷新分区表”。",
+	"viewWelcome.idfSearchResults": "在任一打开的文件编辑器中选定文本，右键单击并选择“ESP-IDF：在文档中搜索”，搜索匹配的结果。\n\n搜索结果基于当前的 VS Code 语言以及 IDF_PATH 版本 (若未指定版本，则默认使用最新版 ESP-IDF)。",
 	"viewWelcome.peripheralView": "在活动调试会话中，显示 ESP-IDF SVD 文件 (路径为 idf.svdFilePath) 中包含的外设寄存器信息。"
 }

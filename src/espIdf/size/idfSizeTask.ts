@@ -26,7 +26,7 @@ import {
   TaskScope,
   Uri,
   workspace,
-  ProcessExecution
+  ProcessExecution,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { TaskManager } from "../../taskManager";
@@ -41,8 +41,12 @@ export class IdfSizeTask {
 
   constructor(workspaceUri: Uri) {
     this.currentWorkspace = workspaceUri;
-    const idfPathDir = readParameter("idf.espIdfPath", workspaceUri) as string;
-    this.idfSizePath = join(idfPathDir, "tools", "idf_size.py");
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspaceUri
+    ) as { [key: string]: string };
+    const idfPath = customExtraVars["IDF_PATH"];
+    this.idfSizePath = join(idfPath, "tools", "idf_size.py");
     this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;
   }
 
@@ -53,7 +57,7 @@ export class IdfSizeTask {
 
   public async getSizeInfo() {
     await ensureDir(this.buildDirPath);
-    const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);;
+    const pythonCommand = await getVirtualEnvPythonPath(this.currentWorkspace);
     const mapFilePath = await this.mapFilePath();
     const args = [this.idfSizePath, mapFilePath];
 
@@ -63,7 +67,11 @@ export class IdfSizeTask {
       env: modifiedEnv,
     };
 
-    const sizeExecution = new ProcessExecution(pythonCommand, args, processOptions);
+    const sizeExecution = new ProcessExecution(
+      pythonCommand,
+      args,
+      processOptions
+    );
     const notificationMode = readParameter(
       "idf.notificationMode",
       this.currentWorkspace

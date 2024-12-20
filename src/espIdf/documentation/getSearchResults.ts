@@ -44,9 +44,11 @@ export async function seachInEspDocs(
   workspaceFolder: Uri
 ) {
   const docsVersions = await getDocsVersion();
-  const idfPath =
-    idfConf.readParameter("idf.espIdfPath", workspaceFolder) ||
-    process.env.IDF_PATH;
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfPath = customExtraVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);

@@ -47,7 +47,7 @@ export async function flashBinaryToPartition(
       try {
         const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
         const serialPort = readParameter("idf.port", workspaceFolder);
-        const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
+        const idfPath = modifiedEnv["IDF_PATH"];
         const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
         const esptoolPath = join(
           idfPath,

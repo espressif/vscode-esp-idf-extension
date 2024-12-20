@@ -50,10 +50,6 @@ export async function getConfigurationAccess(
     reportedResult.configurationSettings.espHomeKitPath,
     constants.R_OK
   );
-  reportedResult.configurationAccess.sysPythonBinPath = canAccessFile(
-    reportedResult.configurationSettings.sysPythonBinPath,
-    constants.X_OK
-  );
   reportedResult.configurationAccess.pythonBinPath = canAccessFile(
     reportedResult.configurationSettings.pythonBinPath,
     constants.X_OK

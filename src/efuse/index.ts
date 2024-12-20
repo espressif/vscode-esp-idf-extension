@@ -50,8 +50,10 @@ export class ESPEFuseManager {
   private idfPath: string;
 
   constructor(private workspace: Uri) {
-    this.idfPath =
-      readParameter("idf.espIdfPath", workspace) || process.env.IDF_PATH;
+    const customExtraVars = readParameter("idf.customExtraVars", workspace) as {
+      [key: string]: string;
+    };
+    this.idfPath = customExtraVars["IDF_PATH"] || process.env.IDF_PATH;
   }
 
   async summary(): Promise<ESPEFuseSummary> {

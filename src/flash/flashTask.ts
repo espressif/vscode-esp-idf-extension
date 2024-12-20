@@ -58,10 +58,11 @@ export class FlashTask {
       workspaceUri
     ) as string;
     this.encryptPartitions = encryptPartitions;
-    this.idfPathDir = idfConf.readParameter(
-      "idf.espIdfPath",
-      this.currentWorkspace
-    ) as string;
+    const customExtraVars = idfConf.readParameter(
+      "idf.customExtraVars",
+      workspaceUri
+    ) as { [key: string]: string };
+    this.idfPathDir = customExtraVars["IDF_PATH"];
   }
 
   public flashing(flag: boolean) {

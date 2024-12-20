@@ -158,7 +158,6 @@
   "Install ESP-Rainmaker": "Instalar ESP-Rainmaker",
   "Project Configuration editor": "Editor de configuración del proyecto",
   "Select Project Configuration": "Seleccione Configuración del proyecto",
-  "Install Extension Python Requirements": "Instalar la extensión Requisitos de Python",
   "Install ESP-Matter Python Requirements": "Instalar los requisitos de ESP-Matter Python",
   "Add .vscode subdirectory files": "Agregar archivos de subdirectorio .vscode",
   "Add .devcontainer subdirectory files": "Agregar archivos de subdirectorio .devcontainer",

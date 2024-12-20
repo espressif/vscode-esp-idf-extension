@@ -23,8 +23,8 @@ import { getIdfMd5sum } from "./setup/espIdfJson";
 import { getEspIdfFromCMake } from "./utils";
 import { IdfSetup } from "./views/setup/types";
 import { readParameter } from "./idfConfiguration";
-import { useIdfSetupSettings } from "./setup/setupValidation/espIdfSetup";
 import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
+import { saveSettings } from "./eim/verifySetup";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
@@ -42,7 +42,7 @@ export async function checkExtensionSettings(
     }
     const espIdeJsonSelected = await getSelectedEspIdfSetup();
     if (espIdeJsonSelected && espIdeJsonSelected.isValid) {
-      await useIdfSetupSettings(
+      await saveSettings(
         espIdeJsonSelected,
         vscode.ConfigurationTarget.WorkspaceFolder,
         workspace,

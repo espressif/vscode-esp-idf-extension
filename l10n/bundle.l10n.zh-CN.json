@@ -158,7 +158,6 @@
   "Install ESP-Rainmaker": "安装 ESP-Rainmaker",
   "Project Configuration editor": "项目配置编辑器",
   "Select Project Configuration": "选择项目配置",
-  "Install Extension Python Requirements": "为扩展安装 Python 依赖包",
   "Install ESP-Matter Python Requirements": "为 ESP-Matter 安装 Python 依赖包",
   "Add .vscode subdirectory files": "添加 .vscode 子目录文件",
   "Add .devcontainer subdirectory files": "添加 .devcontainer 子目录文件",
