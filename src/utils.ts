@@ -1052,25 +1052,6 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     path.join(modifiedEnv.IDF_TOOLS_PATH, "tools"),
     ["cmake", "ninja"]
   );
-  const customExtraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    curWorkspace
-  ) as { [key: string]: string };
-  if (customExtraVars) {
-    try {
-      for (const envVar in customExtraVars) {
-        if (envVar) {
-          modifiedEnv[envVar] = customExtraVars[envVar];
-        }
-      }
-    } catch (error) {
-      Logger.errorNotify(
-        "Invalid user environment variables format",
-        error,
-        "appendIdfAndToolsToPath idf.customExtraVars"
-      );
-    }
-  }
   const customVars = await idfToolsManager.exportVars(
     path.join(modifiedEnv.IDF_TOOLS_PATH, "tools")
   );
@@ -1178,6 +1159,26 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     }
   }
 
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
+    curWorkspace
+  ) as { [key: string]: string };
+  if (customExtraVars) {
+    try {
+      for (const envVar in customExtraVars) {
+        if (envVar) {
+          modifiedEnv[envVar] = customExtraVars[envVar];
+        }
+      }
+    } catch (error) {
+      Logger.errorNotify(
+        "Invalid user environment variables format",
+        error,
+        "appendIdfAndToolsToPath idf.customExtraVars"
+      );
+    }
+  }
+
   if (pathToGitDir) {
     modifiedEnv[pathNameInEnv] =
       pathToGitDir + path.delimiter + modifiedEnv[pathNameInEnv];
@@ -1186,12 +1187,28 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     modifiedEnv[pathNameInEnv] =
       pathToPigweed + path.delimiter + modifiedEnv[pathNameInEnv];
   }
-  modifiedEnv[pathNameInEnv] =
-    path.dirname(modifiedEnv.PYTHON) +
-    path.delimiter +
-    path.join(modifiedEnv.IDF_PATH, "tools") +
-    path.delimiter +
-    modifiedEnv[pathNameInEnv];
+
+  if (
+    modifiedEnv[pathNameInEnv] &&
+    !modifiedEnv[pathNameInEnv].includes(path.dirname(modifiedEnv.PYTHON))
+  ) {
+    modifiedEnv[pathNameInEnv] =
+      path.dirname(modifiedEnv.PYTHON) +
+      path.delimiter +
+      modifiedEnv[pathNameInEnv];
+  }
+
+  if (
+    modifiedEnv[pathNameInEnv] &&
+    !modifiedEnv[pathNameInEnv].includes(
+      path.join(modifiedEnv.IDF_PATH, "tools")
+    )
+  ) {
+    modifiedEnv[pathNameInEnv] =
+      path.join(modifiedEnv.IDF_PATH, "tools") +
+      path.delimiter +
+      modifiedEnv[pathNameInEnv];
+  }
 
   const extraPathsArray = extraPaths.split(path.delimiter);
   for (let extraPath of extraPathsArray) {
@@ -1210,7 +1227,8 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
 
   let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
   if (idfTarget) {
-    modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;
+    modifiedEnv.IDF_TARGET =
+      modifiedEnv.IDF_TARGET || idfTarget || process.env.IDF_TARGET;
   }
 
   let enableComponentManager = idfConf.readParameter(
