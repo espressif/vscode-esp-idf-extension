@@ -66,6 +66,17 @@ export async function setIdfTarget(
         if (!selectedTarget) {
           return;
         }
+        const customExtraVars = readParameter(
+          "idf.customExtraVars",
+          workspaceFolder
+        ) as { [key: string]: string };
+        customExtraVars["IDF_TARGET"] = selectedTarget.target;
+        await writeParameter(
+          "idf.customExtraVars",
+          customExtraVars,
+          configurationTarget,
+          workspaceFolder.uri
+        );
         const openOcdScriptsPath = await getOpenOcdScripts(workspaceFolder.uri);
         const boards = await getBoards(
           openOcdScriptsPath,
