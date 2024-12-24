@@ -1047,7 +1047,7 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
   modifiedEnv.RMAKER_PATH = rainmakerPathDir || modifiedEnv.RMAKER_PATH;
 
   const defaultToolsPath = path.join(containerPath, ".espressif");
-  modifiedEnv.IDF_TOOLS_PATH = modifiedEnv.IDF_PATH || defaultToolsPath;
+  modifiedEnv.IDF_TOOLS_PATH = modifiedEnv.IDF_TOOLS_PATH || defaultToolsPath;
   const matterPathDir = idfConf.readParameter(
     "idf.espMatterPath",
     curWorkspace
