@@ -24,7 +24,7 @@ import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { checkPyVenv } from "./pythonEnv";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { getPythonEnvPath, getVirtualEnvPythonPath } from "../../pythonManager";
+import { getPythonEnvPath } from "../../pythonManager";
 import { readParameter } from "../../idfConfiguration";
 
 export async function useIdfSetupSettings(
@@ -37,14 +37,17 @@ export async function useIdfSetupSettings(
     setupConf.idfPath,
     setupConf.toolsPath,
     setupConf.gitPath,
+    setupConf.sysPythonPath,
     saveScope,
     workspaceFolderUri,
     espIdfStatusBar
   );
 }
 
-export async function checkIdfSetup(setupConf: IdfSetup,
-  logToChannel: boolean = true) {
+export async function checkIdfSetup(
+  setupConf: IdfSetup,
+  logToChannel: boolean = true
+) {
   try {
     if (!setupConf.idfPath) {
       return false;
@@ -75,8 +78,11 @@ export async function checkIdfSetup(setupConf: IdfSetup,
     if (failedToolsResult.length) {
       return false;
     }
-    let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
-    const virtualEnvPython = await getPythonEnvPath(setupConf.idfPath, setupConf.toolsPath, sysPythonBinPath);
+    const virtualEnvPython = await getPythonEnvPath(
+      setupConf.idfPath,
+      setupConf.toolsPath,
+      setupConf.sysPythonPath
+    );
 
     const pyEnvReqs = await checkPyVenv(virtualEnvPython, setupConf.idfPath);
     return pyEnvReqs;

@@ -55,6 +55,7 @@ export async function createPyReqs(
     idfPath,
     toolsPath,
     gitPath,
+    pyPath,
     saveScope,
     workspaceFolderUri,
     espIdfStatusBar
