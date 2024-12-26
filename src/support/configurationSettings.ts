@@ -41,7 +41,9 @@ export async function getConfigurationSettings(
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
-  const venvPythonPath = join(customExtraVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+  const idfPythonEnvPath =
+      customExtraVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
+  const venvPythonPath = join(idfPythonEnvPath, ...pyDir);
 
   const idfToolsExportVars = await getEnvVarsFromIdfTools(
     idfPathDir,
