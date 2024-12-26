@@ -508,6 +508,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(sdkWatchDisposable);
   const sdkDeleteWatchDisposable = sdkconfigWatcher.onDidDelete(async () => {
     ConfserverProcess.dispose();
+    await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
@@ -1234,6 +1235,8 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     } else if (e.affectsConfiguration("idf.buildPath")) {
       updateIdfComponentsTree(workspaceRoot);
+    } else if (e.affectsConfiguration("idf.customExtraVars")) {
+      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     }
   });
 

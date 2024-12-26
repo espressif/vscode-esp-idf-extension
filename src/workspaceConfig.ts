@@ -13,13 +13,12 @@
 // limitations under the License.
 
 import * as fs from "fs";
-import { pathExists } from "fs-extra";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IdfTreeDataProvider } from "./idfComponentsDataProvider";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
-import { getSDKConfigFilePath } from "./utils";
+import { readParameter } from "./idfConfiguration";
 
 export function initSelectedWorkspace(status?: vscode.StatusBarItem) {
   const workspaceRoot = vscode.workspace.workspaceFolders[0].uri;
@@ -93,6 +92,13 @@ export async function getIdfTargetFromSdkconfig(
     );
     let idfTarget = configIdfTarget.replace(/\"/g, "");
     if (!idfTarget) {
+      const customExtraVars = readParameter(
+        "idf.customExtraVars",
+        workspacePath
+      ) as { [key: string]: string };
+      idfTarget = customExtraVars["IDF_TARGET"];
+    }
+    if (!idfTarget) {
       idfTarget = "esp32";
     }
     if (statusItem) {
@@ -100,9 +106,14 @@ export async function getIdfTargetFromSdkconfig(
     }
     return idfTarget;
   } catch (error) {
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspacePath
+    ) as { [key: string]: string };
+    let idfTarget = customExtraVars["IDF_TARGET"] || "esp32";
     if (statusItem) {
-      statusItem.text = "$(chip) esp32";
+      statusItem.text = `$(chip) ${idfTarget}`;
     }
-    return "esp32";
+    return idfTarget;
   }
 }
