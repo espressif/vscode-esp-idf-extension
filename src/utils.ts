@@ -1134,14 +1134,21 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
       modifiedEnv[pathNameInEnv];
   }
 
-  const extraPathsArray = customExtraVars[pathNameInEnv].split(path.delimiter);
-  for (let extraPath of extraPathsArray) {
-    if (
-      modifiedEnv[pathNameInEnv] &&
-      !modifiedEnv[pathNameInEnv].includes(extraPath)
-    ) {
-      modifiedEnv[pathNameInEnv] =
-        extraPath + path.delimiter + modifiedEnv[pathNameInEnv];
+  if (
+    customExtraVars[pathNameInEnv] &&
+    customExtraVars[pathNameInEnv].length > 0
+  ) {
+    const extraPathsArray = customExtraVars[pathNameInEnv].split(
+      path.delimiter
+    );
+    for (let extraPath of extraPathsArray) {
+      if (
+        modifiedEnv[pathNameInEnv] &&
+        !modifiedEnv[pathNameInEnv].includes(extraPath)
+      ) {
+        modifiedEnv[pathNameInEnv] =
+          extraPath + path.delimiter + modifiedEnv[pathNameInEnv];
+      }
     }
   }
 
