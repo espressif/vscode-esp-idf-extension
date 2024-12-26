@@ -3,7 +3,7 @@
   "idf.espMdfPath": "/test/esp-mdf",
   "idf.port": "/serialport",
   "idf.openOcdConfigs": [
-      "board/esp32-wrover-kit-3.3v.cfg"
+    "board/esp32-wrover-kit-3.3v.cfg"
   ],
   "idf.gitPath": "/usr/bin/git",
   "files.simpleDialog.enable": true,
