@@ -21,10 +21,11 @@ import { Logger } from "./logger/logger";
 import { checkIdfSetup } from "./setup/setupValidation/espIdfSetup";
 import { getIdfMd5sum } from "./setup/espIdfJson";
 import { getEspIdfFromCMake } from "./utils";
-import { IdfSetup } from "./views/setup/types";
 import { readParameter } from "./idfConfiguration";
 import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
 import { saveSettings } from "./eim/verifySetup";
+import { IdfSetup } from "./eim/types";
+import { join } from "path";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
@@ -93,13 +94,20 @@ export async function checkExtensionSettings(
     const gitPath = "/usr/bin/git";
     const idfSetupId = getIdfMd5sum(idfPath);
     const idfVersion = await getEspIdfFromCMake(idfPath);
+    const venvPythonPath = join(
+      process.env["IDF_PYTHON_ENV_PATH"],
+      "bin",
+      "python"
+    );
     const containerIdfSetup: IdfSetup = {
       id: idfSetupId,
+      activationScript: "",
       idfPath,
       gitPath,
       toolsPath: idfToolsPath,
       sysPythonPath: "/usr/bin/python3",
       version: idfVersion,
+      venvPython: venvPythonPath,
       isValid: false,
     };
     containerIdfSetup.isValid = await checkIdfSetup(containerIdfSetup);
@@ -111,7 +119,7 @@ export async function checkExtensionSettings(
       return;
     }
 
-    await useIdfSetupSettings(
+    await saveSettings(
       containerIdfSetup,
       vscode.ConfigurationTarget.WorkspaceFolder,
       workspace,
