@@ -20,8 +20,6 @@ import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
-import { getEspIdfFromCMake } from "../utils";
-import { getIdfMd5sum } from "../setup/espIdfJson";
 import { useExistingSettingsToMakeNewConfig } from "../eim/migrationTool";
 
 export async function selectIdfSetup(
