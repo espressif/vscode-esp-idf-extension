@@ -17,7 +17,7 @@ To view the serial monitor output from your device, please follow the instructio
 
 .. image:: ../../media/tutorials/basic_use/monitor.png
 
-Next step is to :ref:`Debug Your Project <debug your project>`.
+Next step is to :doc:`debug your project <debugproject>`.
 
 .. note::
   * The monitor baud rate is defined with ``CONFIG_ESPTOOLPY_MONITOR_BAUD`` from project's SDK Configuration Editor. You can override it by setting a value in **idf.monitorBaudRate**.
