@@ -157,7 +157,8 @@ suite("Project tests", () => {
       settingsJsonPath,
       idfSetup,
       "no port",
-      openOcdConfigs
+      openOcdConfigs,
+      Uri.file(projectPath)
     );
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
