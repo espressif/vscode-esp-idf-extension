@@ -288,7 +288,8 @@ export class NewProjectPanel {
             settingsJsonPath,
             idfSetup,
             port,
-            openOcdConfigs
+            openOcdConfigs,
+            workspaceFolder
           );
           await writeJSON(settingsJsonPath, settingsJson, {
             spaces:
