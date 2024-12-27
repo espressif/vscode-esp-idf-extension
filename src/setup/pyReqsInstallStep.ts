@@ -46,11 +46,6 @@ export async function createPyReqs(
     progress,
     cancelToken
   );
-  await writeParameter(
-    "idf.pythonInstallPath",
-    pyPath,
-    vscode.ConfigurationTarget.Global
-  );
   await saveSettings(
     idfPath,
     toolsPath,

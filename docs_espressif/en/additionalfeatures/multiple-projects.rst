@@ -34,7 +34,6 @@ Projects folders (Known in vscode as workspace folders) and workspace level sett
     ],
     "settings": {
       "idf.port": "/dev/ttyUSB1",
-      "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
     }
   }
 
@@ -75,7 +74,6 @@ and ``my-ws.code-workspace``:
     ],
     "settings": {
       "idf.port": "/dev/ttyUSB1",
-      "idf.espIdfPath": "${env:HOME}/esp/esp-idf"
     }
   }
 

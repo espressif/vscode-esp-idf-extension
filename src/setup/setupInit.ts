@@ -23,20 +23,16 @@ import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
 import {
-  addIdfPath,
   getPropertyFromJson,
   getSelectedIdfInstalled,
-} from "./espIdfJson";
-import {
-  createIdfSetup,
-  getPreviousIdfSetups,
   loadIdfSetupsFromEspIdfJson,
-} from "./existingIdfSetups";
+} from "./espIdfJson";
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
-import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
-import { getCurrentIdfSetup } from "../versionSwitcher";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
+import { getIdfSetups } from "../eim/getExistingSetups";
+import { getCurrentIdfSetup } from "../versionSwitcher";
 
 export interface ISetupInitArgs {
   downloadMirror: IdfMirror;
@@ -72,14 +68,12 @@ export async function checkPreviousInstall(
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
 
-  const confEspIdfPath = idfConf.readParameter(
-    "idf.espIdfPath",
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspaceFolder
-  ) as string;
-  const confToolsPath = idfConf.readParameter(
-    "idf.toolsPath",
-    workspaceFolder
-  ) as string;
+  ) as { [key: string]: string };
+  const confEspIdfPath = customExtraVars["IDF_PATH"];
+  const confToolsPath = customExtraVars["IDF_TOOLS_PATH"];
 
   const toolsPath =
     confToolsPath ||
@@ -138,7 +132,18 @@ export async function getSetupInitialValues(
   const espIdfTagsList = await getEspIdfTags();
   progress.report({ increment: 10, message: "Getting Python versions..." });
   const pythonVersions = await getPythonList(extensionPath);
-  const idfSetups = await getPreviousIdfSetups(false);
+  let idfSetups = await getIdfSetups(false, false);
+  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
+  const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
+  const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
+    return (
+      idfSetup.idfPath === currentIdfSetup.idfPath &&
+      idfSetup.toolsPath === currentIdfSetup.toolsPath
+    );
+  });
+  if (currentIdfSetup.isValid && isCurrentSetupInList === -1) {
+    onlyValidIdfSetups.push(currentIdfSetup);
+  }
   const extensionVersion = packageJson.version as string;
   const saveScope = idfConf.readParameter("idf.saveScope") as number;
   const initialDownloadMirror =
@@ -151,10 +156,16 @@ export async function getSetupInitialValues(
     espIdfVersionsList,
     espIdfTagsList,
     extensionVersion,
-    existingIdfSetups: idfSetups,
+    existingIdfSetups: onlyValidIdfSetups,
     pythonVersions,
     saveScope,
     workspaceFolder,
+    espIdfPath: undefined,
+    espToolsPath: undefined,
+    gitPath: undefined,
+    gitVersion: undefined,
+    espIdfStatusBar: undefined,
+    hasPrerequisites: undefined,
   } as ISetupInitArgs;
 
   try {
@@ -205,10 +216,13 @@ export async function getSetupInitialValues(
       setupInitArgs.gitVersion = prevInstall.gitVersion;
       if (prevInstall.existingIdfSetups) {
         for (let espIdfJsonSetup of prevInstall.existingIdfSetups) {
-          const alreadyInExtensionSetup = idfSetups.find((s) => {
+          const alreadyInExtensionSetup = onlyValidIdfSetups.find((s) => {
             return s.idfPath === espIdfJsonSetup.idfPath;
           });
-          if (typeof alreadyInExtensionSetup === "undefined") {
+          if (
+            typeof alreadyInExtensionSetup === "undefined" &&
+            espIdfJsonSetup.isValid
+          ) {
             setupInitArgs.existingIdfSetups.push(espIdfJsonSetup);
           }
         }
@@ -223,22 +237,20 @@ export async function getSetupInitialValues(
 export async function isCurrentInstallValid(workspaceFolder: Uri) {
   const containerPath =
     process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-  const confToolsPath = idfConf.readParameter(
-    "idf.toolsPath",
+  
+
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspaceFolder
-  ) as string;
+  ) as { [key: string]: string };
+  let espIdfPath = customExtraVars["IDF_PATH"];
+  const confToolsPath = customExtraVars["IDF_TOOLS_PATH"];
   const toolsPath =
     confToolsPath ||
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
 
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after next release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-
   const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-
-  let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
     espIdfPath = path.join(process.env.USERPROFILE, "Desktop", "esp-idf");
@@ -324,13 +336,13 @@ export async function saveSettings(
     gitPath,
     ConfigurationTarget.Global
   );
-  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  const idfVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF v` + currentIdfSetup.version;
+      }) ESP-IDF v` + idfVersion;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }

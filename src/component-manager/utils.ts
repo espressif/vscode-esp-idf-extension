@@ -29,7 +29,11 @@ export async function addDependency(
   cancelToken: CancellationToken
 ) {
   try {
-    const idfPathDir = readParameter("idf.espIdfPath", workspace);
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspace
+    ) as { [key: string]: string };
+    const idfPathDir = customExtraVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await appendIdfAndToolsToPath(workspace);
     const pythonBinPath = await getVirtualEnvPythonPath(workspace);
@@ -72,7 +76,11 @@ export async function createProject(
   example: string
 ): Promise<void> {
   try {
-    const idfPathDir = readParameter("idf.espIdfPath");
+    const customExtraVars = readParameter(
+      "idf.customExtraVars",
+      workspace
+    ) as { [key: string]: string };
+    const idfPathDir = customExtraVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await appendIdfAndToolsToPath(workspace);
     const pythonBinPath = await getVirtualEnvPythonPath(workspace);

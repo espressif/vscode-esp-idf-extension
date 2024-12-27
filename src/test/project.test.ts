@@ -144,7 +144,6 @@ suite("Project tests", () => {
     const projectPath = join(wsFolder, "new-project");
     const settingsJsonPath = join(projectPath, ".vscode", "settings.json");
     const settingsJson = await readJson(settingsJsonPath);
-    assert.equal(settingsJson["idf.espIdfPath"], undefined);
     const openOcdConfigs =
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
     const newSettingsJson = await setCurrentSettingsInTemplate(
@@ -155,10 +154,8 @@ suite("Project tests", () => {
       openOcdConfigs,
       Uri.file(projectPath)
     );
-    assert.equal(newSettingsJson["idf.espIdfPath"], process.env.IDF_PATH);
     assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
     assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
-    assert.equal(newSettingsJson["idf.toolsPath"], process.env.IDF_TOOLS_PATH);
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
   });
 

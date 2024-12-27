@@ -52,6 +52,7 @@ export enum CommandKeys {
 }
 
 export enum AdvancedCommandKeys {
+  InstallManager = "espIdf.installManager",
   Setup = "espIdf.setup.start",
   Examples = "espIdf.examples.start",
   NewProject = "espIdf.newProject.start",
@@ -64,7 +65,6 @@ export enum AdvancedCommandKeys {
   GetEspMatter = "espIdf.getEspMatter",
   GetRainmaker = "espIdf.getEspRainmaker",
   ProjectConfEditor = "espIdf.projectConfigurationEditor",
-  InstallIdfPythonReqs = "espIdf.installPyReqs",
   InstallMatterPythonReqs = "espIdf.installEspMatterPyReqs",
   CreateVscodeFolder = "espIdf.createVsCodeFolder",
   CreateDevContainerFolder = "espIdf.createDevContainer",
@@ -80,6 +80,11 @@ export function createAdvancedCommandDictionary(): Record<
   IDFCommandDescription
 > {
   return {
+    [AdvancedCommandKeys.InstallManager]: {
+      checkboxState: undefined,
+      iconId: "link-external",
+      tooltip: l10n.t("Open ESP-IDF Installation Manager"),
+    },
     [AdvancedCommandKeys.Setup]: {
       checkboxState: undefined,
       iconId: "extensions",
@@ -139,11 +144,6 @@ export function createAdvancedCommandDictionary(): Record<
       checkboxState: undefined,
       iconId: "project",
       tooltip: l10n.t("Project Configuration editor"),
-    },
-    [AdvancedCommandKeys.InstallIdfPythonReqs]: {
-      checkboxState: undefined,
-      iconId: "extensions",
-      tooltip: l10n.t("Install Extension Python Requirements"),
     },
     [AdvancedCommandKeys.InstallMatterPythonReqs]: {
       checkboxState: undefined,

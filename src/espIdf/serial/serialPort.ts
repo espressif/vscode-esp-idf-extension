@@ -104,10 +104,11 @@ export class SerialPort {
         });
 
         const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-        const idfPath = idfConf.readParameter(
-          "idf.espIdfPath",
+        const customExtraVars = idfConf.readParameter(
+          "idf.customExtraVars",
           workspaceFolder
-        );
+        ) as { [key: string]: string };
+        const idfPath = customExtraVars["IDF_PATH"];
         const enableSerialPortChipIdRequest = idfConf.readParameter(
           "idf.enableSerialPortChipIdRequest",
           workspaceFolder

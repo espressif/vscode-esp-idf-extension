@@ -22,7 +22,8 @@ import { ESP } from "../config";
 import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
-import { IdfSetup } from "../views/setup/types";
+import { getEnvVariables } from "../eim/verifySetup";
+import { IdfSetup } from "../eim/types";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -122,8 +123,7 @@ export class ExamplesPlanel {
               );
               await this.setCurrentSettingsInTemplate(
                 settingsJsonPath,
-                idfSetup.idfPath,
-                idfSetup.toolsPath
+                idfSetup,
               );
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
@@ -219,13 +219,11 @@ export class ExamplesPlanel {
 
   private async setCurrentSettingsInTemplate(
     settingsJsonPath: string,
-    idfPathDir: string,
-    toolsPath: string
+    idfSetup: IdfSetup
   ) {
     const settingsJson = await readJSON(settingsJsonPath);
-    const isWin = process.platform === "win32" ? "Win" : "";
-    settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
-    settingsJson["idf.toolsPath" + isWin] = toolsPath;
+    const customExtraVars = await getEnvVariables(idfSetup.activationScript);  
+    settingsJson["idf.customExtraVars"] = customExtraVars;
     await writeJSON(settingsJsonPath, settingsJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });

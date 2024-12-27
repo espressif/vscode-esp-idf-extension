@@ -583,11 +583,11 @@
       {
         "title": "%configuration.title%",
         "properties": {
-          "idf.espIdfPath": {
+          "idf.eimIdfJsonPath": {
             "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
-            "scope": "resource"
+            "default": "",
+            "description": "%param.eimIdfJsonPath%",
+            "scope": "application"
           },
           "idf.espAdfPath": {
             "type": "string",
@@ -613,22 +613,10 @@
             "description": "%param.espHomeKitSdkPath%",
             "scope": "resource"
           },
-          "idf.toolsPath": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
-            "scope": "resource"
-          },
           "idf.espRainmakerPath": {
             "type": "string",
             "default": "${env:RMAKER_PATH}",
             "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espIdfPathWin": {
-            "type": "string",
-            "default": "${env:IDF_PATH}",
-            "description": "%param.espIdfPath%",
             "scope": "resource"
           },
           "idf.espAdfPathWin": {
@@ -641,12 +629,6 @@
             "type": "string",
             "default": "${env:MDF_PATH}",
             "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.toolsPathWin": {
-            "type": "string",
-            "default": "${env:IDF_TOOLS_PATH}",
-            "description": "%param.toolsPath%",
             "scope": "resource"
           },
           "idf.espRainmakerPathWin": {
@@ -672,12 +654,6 @@
             "default": "COM1",
             "description": "%param.port%",
             "scope": "resource"
-          },
-          "idf.pythonInstallPath": {
-            "type": "string",
-            "default": "python",
-            "description": "%param.pythonBinPath%",
-            "scope": "application"
           },
           "idf.flashBaudRate": {
             "type": "string",
@@ -1246,6 +1222,11 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.installManager",
+        "title": "%espIdf.installManager.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.examples.start",
         "title": "%espIdf.examples.title%",
         "category": "ESP-IDF"
@@ -1468,11 +1449,6 @@
         "category": "ESP-IDF"
       },
       {
-        "command": "espIdf.installPyReqs",
-        "title": "%espIdf.installPyReqs.title%",
-        "category": "ESP-IDF"
-      },
-      {
         "command": "esp.webview.open.partition-table",
         "title": "%esp.webview.open.partition-table.title%"
       },
@@ -1594,11 +1570,6 @@
       {
         "command": "espIdf.projectConf",
         "title": "%espIdf.projectConf.title%",
-        "category": "ESP-IDF"
-      },
-      {
-        "command": "espIdf.clearSavedIdfSetups",
-        "title": "%espIdf.clearSavedIdfSetups.title%",
         "category": "ESP-IDF"
       },
       {

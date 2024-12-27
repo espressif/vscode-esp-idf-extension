@@ -47,20 +47,16 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
-    export const IDF_SETUPS = "IDF_SETUPS";
   }
 
   export const platformDepConfigurations: string[] = [
     "idf.buildPath",
-    "idf.espIdfPath",
     "idf.espAdfPath",
     "idf.espMdfPath",
     "idf.espRainmakerPath",
     "idf.espHomeKitSdkPath",
     "idf.gitPath",
-    "idf.pythonBinPath",
     "idf.port",
-    "idf.toolsPath",
   ];
 
   export namespace Rainmaker {
@@ -114,6 +110,10 @@ export namespace ESP {
         "https://dl.espressif.com/dl/esp-idf/idf_versions.js";
       export const README = ESP.URL.GithubRepository + "/blob/master/README.md";
       export const FLASH_ENCRYPTION = "/security/flash-encryption.html";
+    }
+
+    export namespace InstallManager {
+      export const Releases = "https://dl.espressif.com/dl/eim/index.html";
     }
   }
 
