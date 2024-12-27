@@ -79,6 +79,7 @@
     "onCommand:espIdf.apptrace.archive.showReport",
     "onCommand:espIdf.apptrace.customize",
     "onCommand:espIdf.getExtensionPath",
+    "onCommand:espIdf.getIDFTarget",
     "onCommand:espIdf.getOpenOcdConfigs",
     "onCommand:espIdf.genCoverage",
     "onCommand:espIdf.partition.table.refresh",

@@ -2155,6 +2155,10 @@ export async function activate(context: vscode.ExtensionContext) {
     return context.extensionPath;
   });
 
+  registerIDFCommand("espIdf.getIDFTarget", async () => {
+    return await getIdfTargetFromSdkconfig(workspaceRoot);
+  });
+
   registerIDFCommand("espIdf.getOpenOcdConfigs", () => {
     const openOcfConfigs = idfConf.readParameter(
       "idf.openOcdConfigs",

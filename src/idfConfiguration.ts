@@ -259,6 +259,10 @@ export function resolveVariables(
     }
     if (match.indexOf("env:") > 0) {
       const envVariable = name.substring(name.indexOf("env:") + "env:".length);
+      const customExtraVars = readParameter("idf.customExtraVars", scope);
+      if (Object.keys(customExtraVars).indexOf(envVariable) !== -1) {
+        return customExtraVars[envVariable];
+      }
       if (Object.keys(process.env).indexOf(envVariable) === -1) {
         return "";
       }
