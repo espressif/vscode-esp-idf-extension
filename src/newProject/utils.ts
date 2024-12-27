@@ -30,13 +30,19 @@ export async function setCurrentSettingsInTemplate(
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
   const isWin = process.platform === "win32" ? "Win" : "";
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspace
-  ) as { [key: string]: string };
+  const customExtraVars = readParameter("idf.customExtraVars", workspace) as {
+    [key: string]: string;
+  };
   customExtraVars["IDF_PATH"] = idfPathDir;
   customExtraVars["IDF_TOOLS_PATH"] = toolsPath;
-
+  const adfPathDir = readParameter("idf.espAdfPath", workspace);
+  const mdfPathDir = readParameter("idf.espMdfPath", workspace);
+  if (adfPathDir) {
+    settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
+  }
+  if (mdfPathDir) {
+    settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
+  }
   settingsJson["idf.customExtraVars"] = customExtraVars;
   if (openOcdConfigs) {
     settingsJson["idf.openOcdConfigs"] =
