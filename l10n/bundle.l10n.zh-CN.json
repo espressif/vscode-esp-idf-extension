@@ -189,8 +189,6 @@
   "Unknown error occurred while setting IDF target.": "设置 IDF 目标时发生未知错误",
   "compile_commands.json is missing. This may cause errors with code analysis extensions.": "缺少 compile_commands.json 文件，代码分析扩展可能会出错。",
   "Generate compile_commands.json": "生成 compile_commands.json",
-  "Cannot flash via JTAG method: {0}": "无法通过 JTAG 接口烧录：{0}",
-  "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.": "{0}\n\nJTAG 配置可能依赖于硬件 strapping 配置。请查阅相应型号的 ESP32 技术文档，确保 JTAG 配置正确。",
   "JTAG is permanently disabled in hardware ({0} is set).": "JTAG 调试功能已通过硬件永久禁用（已设置 {0}）。",
   "USB-to-JTAG functionality is disabled ({0} is set).": "USB 转 JTAG 接口功能已被禁用（已设置 {0}）。",
   "JTAG is soft-disabled ({0} is set to an odd value: {1}).": "JTAG 调试功能已被软禁用（{0} 设置为奇数值：{1}）。",
