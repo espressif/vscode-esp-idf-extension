@@ -9,11 +9,11 @@ The ESP-IDF extension for VSCode Code empowers developers to efficiently develop
     :maxdepth: 1
 
     Prerequisites <prerequisites>
-    Installation <installation>
+    Install ESP-IDF and Tools <installation>
     Start a Project <startproject>
     Connect Your Device <connectdevice>
     Configure Your Project <configureproject>
-    Build the Project <buildproject>
+    Build Your Project <buildproject>
     Flash onto the Device <flashdevice>
     Monitor the Output <monitoroutput>
     Debug Your Project <debugproject>
