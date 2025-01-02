@@ -296,6 +296,7 @@ export async function saveSettings(
   espIdfPath: string,
   toolsPath: string,
   gitPath: string,
+  sysPythonBinPath: string,
   saveScope: ConfigurationTarget,
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
@@ -324,7 +325,12 @@ export async function saveSettings(
     gitPath,
     ConfigurationTarget.Global
   );
-  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  let currentIdfSetup = await createIdfSetup(
+    espIdfPath,
+    toolsPath,
+    sysPythonBinPath,
+    gitPath
+  );
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =

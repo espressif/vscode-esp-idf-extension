@@ -59,6 +59,7 @@ export async function clearPreviousIdfSetups() {
 export async function createIdfSetup(
   idfPath: string,
   toolsPath: string,
+  sysPythonBinPath: string,
   gitPath: string
 ) {
   const idfSetupId = getIdfMd5sum(idfPath);
@@ -68,6 +69,7 @@ export async function createIdfSetup(
     idfPath,
     gitPath,
     toolsPath,
+    sysPythonPath: sysPythonBinPath,
     version: idfVersion,
     isValid: false,
   };

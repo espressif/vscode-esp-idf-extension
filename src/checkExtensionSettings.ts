@@ -80,6 +80,7 @@ export async function checkExtensionSettings(
       idfPath,
       gitPath,
       toolsPath: idfToolsPath,
+      sysPythonPath: "python",
       version: idfVersion,
       isValid: false,
     };

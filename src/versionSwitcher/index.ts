@@ -78,6 +78,7 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
     idfPath,
     gitPath,
     toolsPath,
+    sysPythonPath: sysPythonBinPath,
     version: idfVersion,
     isValid: false,
   };
