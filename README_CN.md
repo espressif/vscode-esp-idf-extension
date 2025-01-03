@@ -555,8 +555,9 @@ ESP-IDF 扩展在 VS Code 底部蓝色窗口的状态栏中提供了一系列命
 - `espIdf.getOpenOcdScriptValue`：返回从 ESP-IDF 工具路径、`idf.customExtraVars` 或系统 OPENOCD_SCRIPTS 环境变量中计算出的 OPENOCD_SCRIPTS 的值。
 - `espIdf.getOpenOcdConfig`：以字符串形式返回 openOCD 配置文件。例如 `-f interface/ftdi/esp32_devkitj_v1.cfg -f board/esp32-wrover.cfg`。
 - `espIdf.getProjectName`：从当前工作区文件夹的 `build/project_description.json` 文件中提取项目名称。
-- `espIdf.getToolchainGcc`：根据 sdkconfig 文件中指定的 IDF_TARGET，该命令将返回相应 GCC 工具链的绝对路径。
-- `espIdf.getToolchainGdb`：根据 sdkconfig 文件中指定的 IDF_TARGET，该命令将返回相应 GDB 工具链的绝对路径。
+- `espIdf.getToolchainGcc`：根据 sdkconfig 或 `idf.customExtraVars`[“IDF_TARGET”] 文件中指定的 IDF_TARGET，该命令将返回相应 GCC 工具链的绝对路径。
+- `espIdf.getToolchainGdb`：根据 sdkconfig 或 `idf.customExtraVars`[“IDF_TARGET”] 文件中指定的 IDF_TARGET，该命令将返回相应 GDB 工具链的绝对路径。
+- `espIdf.getIDFTarget`: 根据 sdkconfig 或 `idf.customExtraVars`[“IDF_TARGET”] 该命令将返回相应 IDF_TARGET。
 
 在[调试](https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/debugproject.html)文档中查看示例。
 
