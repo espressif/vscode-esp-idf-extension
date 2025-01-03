@@ -1,27 +1,30 @@
 .. _additional features:
 
 Additional IDE Features
-===============================
+=======================
+
+:link_to_translation:`zh_CN:[中文]`
+
 .. toctree::
     :maxdepth: 1
 
     Application Size Analysis<additionalfeatures/application-size-analysis>
     Application Tracing<additionalfeatures/app-tracing>
-    CMakeLists Editor<additionalfeatures/cmakelists-editor>
-    Code coverage<additionalfeatures/coverage>
-    DFU<additionalfeatures/dfu>
-    Docker container <additionalfeatures/docker-container>
+    CMakeLists.txt Editor<additionalfeatures/cmakelists-editor>
+    Code Coverage<additionalfeatures/coverage>
+    Device Firmware Upgrade (DFU) via USB<additionalfeatures/dfu>
+    Docker Container<additionalfeatures/docker-container>
     ESP-IDF Terminal<additionalfeatures/esp-terminal>
-    EFuse Explorer<additionalfeatures/efuse>
+    eFuse Explorer<additionalfeatures/efuse>
     Flash Encryption<additionalfeatures/flash-encryption>
     Heap Tracing<additionalfeatures/heap-tracing>
-    Hints viewer<additionalfeatures/hints-viewer>
+    Hints Viewer<additionalfeatures/hints-viewer>
     Install ESP-IDF Components<additionalfeatures/install-esp-components>
     NVS Partition Table Editor<additionalfeatures/nvs-partition-editor>
     Partition Table Editor<additionalfeatures/partition-table-editor>
-    Project Configuration<additionalfeatures/project-configuration>
+    Project Configuration Editor<additionalfeatures/project-configuration>
     QEMU<additionalfeatures/qemu>
-    Rainmaker<additionalfeatures/rainmaker>
+    ESP RainMaker<additionalfeatures/rainmaker>
     Unit Testing<additionalfeatures/unit-testing>
-    Working with multiple ESP-IDF projects in the same window<additionalfeatures/multiple-projects>
-    WSL<additionalfeatures/wsl>
+    Working with Multiple Projects<additionalfeatures/multiple-projects>
+    Using WSL in Windows<additionalfeatures/wsl>
