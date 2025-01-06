@@ -4,7 +4,7 @@ Debug Your Project
 :link_to_translation:`zh_CN:[中文]`
 
 Table of Contents
-==================
+-----------------
 
 .. contents::
    :depth: 2
@@ -18,15 +18,15 @@ Before debugging the project, you need to specify the serial port of the device:
 
 1. Select the serial port
 
-- Navigate to ``View`` > ``Command Palette``.
+- Go to ``View`` > ``Command Palette``
 
-- Type **ESP-IDF: Select Port to Use** and select the command to specify the serial port of your device.
+- Enter ``ESP-IDF: Select Port to Use`` and choose the command to specify the serial port of your device
 
 2. Make sure that OpenOCD configuration files are correct
 
-- Navigate to ``View`` > ``Command Palette``.
+- Go to ``View`` > ``Command Palette``
 
-- Type **ESP-IDF: Select OpenOCD Board Configuration** and select the command to choose the OpenOCD configuration files for the extension OpenOCD server.
+- Enter ``ESP-IDF: Select OpenOCD Board Configuration`` and choose the command to specify the OpenOCD configuration files for the extension OpenOCD server
 
 .. note::
 
@@ -211,5 +211,5 @@ Post-mortem Debugging Use Cases
 
 You can start a monitor session to capture fatal error events with **ESP-IDF: Launch IDF Monitor for Core Dump Mode/GDB Stub Modec** command. If configured in your project's sdkconfig, it can trigger the start of a debug session for GDB remote protocol server (GDBStub) or `ESP-IDF Core Dump <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/core_dump.html#core-dump>`_ when an error occurrs. For more information, see `Panic Handler <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/fatal-errors.html#panic-handler>`_.
 
-- **Core Dump** is configured when **Core Dump's Data Destination** is set to either ``UART`` or ``FLASH`` using the **ESP-IDF: SDK Configuration Editor** extension command or ``idf.py menuconfig`` in a terminal.
-- **GDB Stub** is configured when ``Panic Handler Behaviour`` is set to ``Invoke GDBStub`` using the **ESP-IDF: SDK Configuration Editor** extension command or ``idf.py menuconfig`` in a terminal.
+- **Core Dump** is configured when **Core Dump's Data Destination** is set to either ``UART`` or ``FLASH`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
+- **GDB Stub** is configured when **Panic Handler Behaviour** is set to ``Invoke GDBStub`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.

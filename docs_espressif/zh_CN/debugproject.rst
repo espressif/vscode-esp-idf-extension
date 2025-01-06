@@ -4,7 +4,7 @@
 :link_to_translation:`en:[English]`
 
 目录
-====
+----
 
 .. contents::
    :depth: 2
@@ -18,15 +18,15 @@
 
 1. 选择串口：
 
-- 点击 ``查看`` > ``命令面板``。
+- 点击 ``查看`` > ``命令面板``
 
-- 输入 **ESP-IDF：选择要使用的端口**，指定设备的串口。
+- 输入 ``ESP-IDF：选择要使用的端口``，指定设备的串口
 
 2. 确保 OpenOCD 配置文件正确
 
-- 点击 ``查看`` > ``命令面板``。
+- 点击 ``查看`` > ``命令面板``
 
-- 输入 **ESP-IDF：选择 OpenOCD 开发板配置**，选择扩展中 OpenOCD 服务器的配置文件。
+- 输入 ``ESP-IDF：选择 OpenOCD 开发板配置``，选择扩展中 OpenOCD 服务器的配置文件
 
 .. note::
 
@@ -211,5 +211,5 @@ ESP-IDF 扩展在 ``运行和调试`` 视图中提供了 ``ESP-IDF：外设视�
 
 启动监视会话，通过 **ESP-IDF：启动 IDF 监视器以支持核心转储模式/GDB 存根模式** 命令找到致命错误事件。若提前在项目的 sdkconfig 文件中启用了特定选项，那么上述命令发现错误时就会触发 GDB 远程协议服务器 (GDBStub) 或 `ESP-IDF 核心转储 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/core_dump.html#id1>`_。详情请参阅 `紧急处理程序 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/fatal-errors.html#id3>`_。
 
-- 配置 **核心转储**：在扩展中使用命令 **ESP-IDF：SDK 配置编辑器** 或在终端中使用 ``idf.py menuconfig``，将 **核心转储的数据目标** 设置为 ``UART`` 或 ``FLASH``。
-- 配置 **GDB Stub**：在扩展中使用命令 **ESP-IDF：SDK 配置编辑器** 或在终端中使用 ``idf.py menuconfig``，将 **紧急处理程序行为** 设置为 ``Invoke GDBStub``。
+- 配置 **核心转储**：在扩展中使用命令 ``ESP-IDF：SDK 配置编辑器`` 或在终端中使用 ``idf.py menuconfig``，将 **核心转储的数据目标** 设置为 ``UART`` 或 ``FLASH``。
+- 配置 **GDB Stub**：在扩展中使用命令 ``ESP-IDF：SDK 配置编辑器`` 或在终端中使用 ``idf.py menuconfig``，将 **紧急处理程序行为** 设置为 ``Invoke GDBStub``。

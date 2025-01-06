@@ -1,25 +1,26 @@
-Build the Project
-===============================
+.. _build the project:
 
-1. Build the project:
+Build Your Project
+==================
 
-- Navigate to **View** > **Command Palette**.
+:link_to_translation:`zh_CN:[中文]`
 
-- Type **ESP-IDF: Build your Project** and select the command to build the project.
+1.  Build your project: Go to ``View`` > ``Command Palette``, enter ``ESP-IDF: Build your Project`` and choose the command to build the project.
 
-2. A new terminal being launched with the build output and a notification bar with Building Project message until it is done then a Build done message when finished. 
+2.  A new terminal will open with the build output. A notification bar will display the "Building project" message, followed by a "Building done" message when the process is complete.
 
-.. image:: ../../media/tutorials/basic_use/build.png
+    .. image:: ../../media/tutorials/basic_use/build.png
 
-.. note::
-  There is a **idf.notificationMode** configuration setting if you do not want to see the output automatically. Please review `ESP-IDF Settings <settings>` to see how to modify this configuration setting.
+    .. note::
 
-You could modify the behavior of the build task with **idf.cmakeCompilerArgs** for Cmake configure step and **idf.ninjaArgs** for Ninja step. For example, using ``idf.ninjaArgs: [-j N]`` where N is the number of jobs run in parallel.
+        There is an ``idf.notificationMode`` configuration setting if you prefer not to see the output automatically. Please refer to :ref:`ESP-IDF Settings <settings>` to learn how to modify this configuration.
 
-3. After building the application, the size analysis task will be executed in a terminal, showing the binaries size analysis results. You can enable or disable this task being executed with **idf.enableSizeTaskAfterBuildTask** in your settings.json.
+    You can adjust the behavior of the build task with ``idf.cmakeCompilerArgs`` for the Cmake configure step and ``idf.ninjaArgs`` for the Ninja step. For example, use ``idf.ninjaArgs: [-j N]`` where **N** is the number of jobs to run in parallel.
 
-.. image:: ../../media/tutorials/basic_use/size_terminal.png
+3.  After building the application, the size analysis task will run in a terminal, showing the binary size analysis results. You can enable or disable this task with ``idf.enableSizeTaskAfterBuildTask`` in the ``settings.json``.
 
-ESP-IDF build output will try to suggest hints to solve errors that can be shown using the :ref:`Hints viewer <hints viewer>`.
+    .. image:: ../../media/tutorials/basic_use/size_terminal.png
 
-Next step is to :ref:`Flash onto the device <flash the device>`.
+The ESP-IDF build output will provide hints to resolve errors, which can be viewed using the :ref:`Hints Viewer <hints viewer>`.
+
+Next, proceed to :ref:`Flash onto the Device <flash the device>`.
