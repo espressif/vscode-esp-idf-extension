@@ -21,6 +21,7 @@ import {
   DebugConfiguration,
   DebugConfigurationProvider,
   WorkspaceFolder,
+  window
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { getIdfTargetFromSdkconfig, getProjectName } from "../workspaceConfig";
@@ -40,6 +41,14 @@ export class CDTDebugConfigurationProvider
     token?: CancellationToken
   ): Promise<DebugConfiguration> {
     try {
+      if (!folder) {
+        folder = await window.showWorkspaceFolderPick({
+          placeHolder: "Pick a workspace folder to start a debug session.",
+        });
+        if (!folder) {
+          throw new Error("No folder was selected to start debug session");
+        }
+      }
       if (!config.program) {
         const buildDirPath = readParameter("idf.buildPath", folder) as string;
         const projectName = await getProjectName(buildDirPath);
