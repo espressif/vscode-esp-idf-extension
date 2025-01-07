@@ -8,8 +8,8 @@
 .. toctree::
     :maxdepth: 1
 
-    安装包 <prerequisites>
-    安装 <installation>
+    准备工作 <prerequisites>
+    安装 ESP-IDF 和工具 <installation>
     启动项目 <startproject>
     连接设备 <connectdevice>
     配置项目 <configureproject>
@@ -21,7 +21,7 @@
     故障排除 <troubleshooting>
     设置 <settings>
     可用命令列表 <commands>
-    FAQs <faqs>
+    常见问题 <faqs>
 
 功能
 ----
