@@ -92,8 +92,12 @@ export class PlatformInformation {
   }
 
   private static GetWindowsArchitecture(): Promise<string> {
-    const command = "wmic";
-    const args = ["os", "get", "osarchitecture"];
+    const command = "powershell";
+    const args = [
+      "-executionPolicy",
+      "bypass",
+      "(Get-WmiObject Win32_OperatingSystem).OSArchitecture",
+    ];
     return utils
       .execChildProcess(command, args, utils.extensionContext.extensionPath)
       .then((architecture) => {
