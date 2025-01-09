@@ -27,8 +27,7 @@ import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
 
 export interface INewProjectArgs {
-  espIdfPath: string;
-  espIdfToolsPath: string;
+  espIdfSetup: IdfSetup;
   espAdfPath: string;
   espMdfPath: string;
   espMatterPath: string;
@@ -149,9 +148,8 @@ export async function getNewProjectArgs(
   return {
     boards: espBoards,
     components,
-    espIdfToolsPath: idfSetup.toolsPath,
+    espIdfSetup: idfSetup,
     espAdfPath: adfExists ? espAdfPath : undefined,
-    espIdfPath: idfExists ? idfSetup.idfPath : undefined,
     espMdfPath: mdfExists ? espMdfPath : undefined,
     espMatterPath: matterExists ? espMatterPath : undefined,
     espHomeKitSdkPath: homekitSdkExists ? espHomeKitSdkPath : undefined,

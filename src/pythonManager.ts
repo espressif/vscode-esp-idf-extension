@@ -141,12 +141,6 @@ export async function installPythonEnvFromIdfTools(
     });
   }
 
-  await writeParameter(
-    "idf.pythonInstallPath",
-    pythonBinPath,
-    ConfigurationTarget.Global
-  );
-
   await execProcessWithLog(
     pythonBinPath,
     [idfToolsPyPath, "install-python-env"],
@@ -309,7 +303,10 @@ export async function execProcessWithLog(
 }
 
 export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
-  let pythonPath = readParameter("idf.pythonInstallPath") as string;
+  let pythonPath = readParameter(
+    "idf.pythonInstallPath",
+    workspaceFolder
+  ) as string;
   let espIdfDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
   let idfToolsDir = readParameter("idf.toolsPath", workspaceFolder) as string;
   const idfPathExists = await pathExists(espIdfDir);
@@ -327,7 +324,10 @@ export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
 }
 
 export async function getPythonPath(workspaceFolder: Uri) {
-  let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
+  let sysPythonBinPath = readParameter(
+    "idf.pythonInstallPath",
+    workspaceFolder
+  ) as string;
   const doesSysPythonBinPathExist = await pathExists(sysPythonBinPath);
   if (!doesSysPythonBinPathExist) {
     sysPythonBinPath = await getSystemPython(workspaceFolder);
@@ -335,7 +335,8 @@ export async function getPythonPath(workspaceFolder: Uri) {
       await writeParameter(
         "idf.pythonInstallPath",
         sysPythonBinPath,
-        ConfigurationTarget.Global
+        ConfigurationTarget.WorkspaceFolder,
+        workspaceFolder
       );
     }
   }

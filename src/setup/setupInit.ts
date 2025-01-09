@@ -22,11 +22,7 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import {
-  addIdfPath,
-  getPropertyFromJson,
-  getSelectedIdfInstalled,
-} from "./espIdfJson";
+import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 import {
   createIdfSetup,
   getPreviousIdfSetups,
@@ -35,7 +31,6 @@ import {
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export interface ISetupInitArgs {
@@ -324,6 +319,12 @@ export async function saveSettings(
     "idf.gitPath",
     gitPath,
     ConfigurationTarget.Global
+  );
+  await idfConf.writeParameter(
+    "idf.pythonInstallPath",
+    sysPythonBinPath,
+    confTarget,
+    workspaceFolder
   );
   let currentIdfSetup = await createIdfSetup(
     espIdfPath,

@@ -677,7 +677,7 @@
             "type": "string",
             "default": "python",
             "description": "%param.pythonBinPath%",
-            "scope": "application"
+            "scope": "resource"
           },
           "idf.flashBaudRate": {
             "type": "string",

@@ -122,8 +122,7 @@ export class ExamplesPlanel {
               );
               await this.setCurrentSettingsInTemplate(
                 settingsJsonPath,
-                idfSetup.idfPath,
-                idfSetup.toolsPath
+                idfSetup
               );
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
@@ -219,13 +218,13 @@ export class ExamplesPlanel {
 
   private async setCurrentSettingsInTemplate(
     settingsJsonPath: string,
-    idfPathDir: string,
-    toolsPath: string
+    idfSetup: IdfSetup
   ) {
     const settingsJson = await readJSON(settingsJsonPath);
     const isWin = process.platform === "win32" ? "Win" : "";
-    settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
-    settingsJson["idf.toolsPath" + isWin] = toolsPath;
+    settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
+    settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
+    settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
     await writeJSON(settingsJsonPath, settingsJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });

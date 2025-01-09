@@ -19,11 +19,11 @@
 import { readParameter } from "../idfConfiguration";
 import { readJSON } from "fs-extra";
 import { Uri } from "vscode";
+import { IdfSetup } from "../views/setup/types";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
-  idfPathDir: string,
-  toolsPath: string,
+  idfSetup: IdfSetup,
   port: string,
   openOcdConfigs?: string,
   workspace?: Uri
@@ -32,8 +32,11 @@ export async function setCurrentSettingsInTemplate(
   const adfPathDir = readParameter("idf.espAdfPath", workspace);
   const mdfPathDir = readParameter("idf.espMdfPath", workspace);
   const isWin = process.platform === "win32" ? "Win" : "";
-  if (idfPathDir) {
-    settingsJson["idf.espIdfPath" + isWin] = idfPathDir;
+  if (idfSetup.idfPath) {
+    settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
+  }
+  if (idfSetup.sysPythonPath) {
+    settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
   }
   if (adfPathDir) {
     settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
@@ -50,8 +53,8 @@ export async function setCurrentSettingsInTemplate(
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
   }
-  if (toolsPath) {
-    settingsJson["idf.toolsPath" + isWin] = toolsPath;
+  if (idfSetup.toolsPath) {
+    settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
   }
   return settingsJson;
 }
