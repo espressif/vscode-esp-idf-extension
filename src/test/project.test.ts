@@ -29,6 +29,7 @@ import {
   setExtensionContext,
   updateProjectNameInCMakeLists,
 } from "../utils";
+import { IdfSetup } from "../views/setup/types";
 
 suite("Project tests", () => {
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
@@ -147,10 +148,15 @@ suite("Project tests", () => {
     assert.equal(settingsJson["idf.espIdfPath"], undefined);
     const openOcdConfigs =
       "interface/ftdi/esp32_devkitj_v1.cfg,target/esp32.cfg";
+
+    const idfSetup = {
+      idfPath: process.env.IDF_PATH,
+      toolsPath: process.env.IDF_TOOLS_PATH,
+      sysPythonPath: "python"
+    } as IdfSetup;
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
-      process.env.IDF_PATH,
-      process.env.IDF_TOOLS_PATH,
+      idfSetup,
       "no port",
       openOcdConfigs,
       Uri.file(projectPath)
