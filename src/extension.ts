@@ -4279,7 +4279,7 @@ function createIdfTerminal(extensionPath: string) {
         vscode.env.shell.indexOf("powershell") !== -1 ||
         vscode.env.shell.indexOf("pwsh") !== -1
       ) {
-        shellArgs = ["-ExecutionPolicy", "Bypass", "-NoProfile"];
+        shellArgs = ["-ExecutionPolicy", "Bypass"];
       }
     }
     const espIdfTerminal = vscode.window.createTerminal({
