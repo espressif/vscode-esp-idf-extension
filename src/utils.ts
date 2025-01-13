@@ -254,6 +254,7 @@ export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
       await copy(fSrcPath, fPath);
     }
   }
+  console.log(`BLaBLABLA createVscodeFolder ${curWorkspaceFsPath.fsPath}`);
   await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
 }
 
@@ -279,6 +280,8 @@ export async function setCCppPropertiesJsonCompilerPath(
       ? "${config:idf.toolsPathWin}"
       : "${config:idf.toolsPath}";
 
+  
+  console.log(`BLaBLABLA setCCppPropertiesJsonCompilerPath ${curWorkspaceFsPath.fsPath}`);
   await updateCCppPropertiesJson(
     curWorkspaceFsPath,
     "compilerPath",
@@ -323,7 +326,6 @@ export async function updateCCppPropertiesJson(
     cCppPropertiesJson.configurations.length
   ) {
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
-    console.log(`BLaBLABLA ${cCppPropertiesJson}`);
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
