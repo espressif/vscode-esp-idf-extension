@@ -280,8 +280,9 @@ export async function setCCppPropertiesJsonCompilerPath(
       ? "${config:idf.toolsPathWin}"
       : "${config:idf.toolsPath}";
 
-  
-  console.log(`BLaBLABLA setCCppPropertiesJsonCompilerPath ${curWorkspaceFsPath.fsPath}`);
+  console.log(
+    `BLaBLABLA setCCppPropertiesJsonCompilerPath ${curWorkspaceFsPath.fsPath}`
+  );
   await updateCCppPropertiesJson(
     curWorkspaceFsPath,
     "compilerPath",
