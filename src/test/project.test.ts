@@ -47,7 +47,6 @@ suite("Project tests", () => {
   });
 
   test("vscode folder creation", async () => {
-    console.log(`BLaBLABLA ${targetFolder}`);
     await createVscodeFolder(Uri.file(targetFolder));
     const resultFiles = await readdir(join(targetFolder, ".vscode"));
     assert.equal(resultFiles.includes("c_cpp_properties.json"), true);

@@ -254,7 +254,6 @@ export async function createVscodeFolder(curWorkspaceFsPath: vscode.Uri) {
       await copy(fSrcPath, fPath);
     }
   }
-  console.log(`BLaBLABLA createVscodeFolder ${curWorkspaceFsPath.fsPath}`);
   await setCCppPropertiesJsonCompilerPath(curWorkspaceFsPath);
 }
 
