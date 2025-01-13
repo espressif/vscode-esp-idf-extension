@@ -322,11 +322,8 @@ export async function updateCCppPropertiesJson(
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceUri
-    ) as string;
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
+    console.log(`BLaBLABLA ${cCppPropertiesJson}`);
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
