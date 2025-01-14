@@ -231,7 +231,15 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   // REMOVE this line after next release
   const sysPythonBinPath = await getPythonPath(workspaceFolder);
 
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  let pythonBinPath: string = "";
+  if (sysPythonBinPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  } else {
+    pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
+  }
 
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
@@ -294,7 +302,8 @@ export async function saveSettings(
   sysPythonBinPath: string,
   saveScope: ConfigurationTarget,
   workspaceFolderUri: Uri,
-  espIdfStatusBar: StatusBarItem
+  espIdfStatusBar: StatusBarItem,
+  saveGlobalState: boolean = true
 ) {
   const confTarget =
     saveScope ||
@@ -326,18 +335,16 @@ export async function saveSettings(
     confTarget,
     workspaceFolder
   );
-  let currentIdfSetup = await createIdfSetup(
-    espIdfPath,
-    toolsPath,
-    sysPythonBinPath,
-    gitPath
-  );
+  const idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
+  if (saveGlobalState) {
+    await createIdfSetup(espIdfPath, toolsPath, sysPythonBinPath, gitPath);
+  }
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF v` + currentIdfSetup.version;
+      }) ESP-IDF v` + idfPathVersion;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }

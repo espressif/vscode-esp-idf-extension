@@ -278,10 +278,6 @@ export async function setCCppPropertiesJsonCompilerPath(
     process.platform === "win32"
       ? "${config:idf.toolsPathWin}"
       : "${config:idf.toolsPath}";
-
-  console.log(
-    `BLaBLABLA setCCppPropertiesJsonCompilerPath ${curWorkspaceFsPath.fsPath}`
-  );
   await updateCCppPropertiesJson(
     curWorkspaceFsPath,
     "compilerPath",
@@ -1275,9 +1271,10 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  const modifiedEnv = await appendIdfAndToolsToPath(
-    extensionContext.extensionUri
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
   );
+  modifiedEnv.IDF_PATH = espIdfPath;
   return execChildProcess(
     pythonBinPath,
     [reqFilePath, "-r", requirementsPath],

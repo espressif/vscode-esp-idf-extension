@@ -25,7 +25,6 @@ import { Logger } from "../../logger/logger";
 import { checkPyVenv } from "./pythonEnv";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
 import { getPythonEnvPath } from "../../pythonManager";
-import { readParameter } from "../../idfConfiguration";
 
 export async function useIdfSetupSettings(
   setupConf: IdfSetup,
@@ -40,7 +39,8 @@ export async function useIdfSetupSettings(
     setupConf.sysPythonPath,
     saveScope,
     workspaceFolderUri,
-    espIdfStatusBar
+    espIdfStatusBar,
+    false
   );
 }
 
@@ -78,11 +78,16 @@ export async function checkIdfSetup(
     if (failedToolsResult.length) {
       return false;
     }
-    const virtualEnvPython = await getPythonEnvPath(
-      setupConf.idfPath,
-      setupConf.toolsPath,
-      setupConf.sysPythonPath
-    );
+    let virtualEnvPython = "";
+    if (setupConf.python) {
+      virtualEnvPython = setupConf.python;
+    } else {
+      virtualEnvPython = await getPythonEnvPath(
+        setupConf.idfPath,
+        setupConf.toolsPath,
+        setupConf.sysPythonPath
+      );
+    }
 
     const pyEnvReqs = await checkPyVenv(virtualEnvPython, setupConf.idfPath);
     return pyEnvReqs;
