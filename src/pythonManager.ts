@@ -335,7 +335,9 @@ export async function getPythonPath(workspaceFolder: Uri) {
       await writeParameter(
         "idf.pythonInstallPath",
         sysPythonBinPath,
-        ConfigurationTarget.WorkspaceFolder,
+        workspaceFolder
+          ? ConfigurationTarget.WorkspaceFolder
+          : ConfigurationTarget.Global,
         workspaceFolder
       );
     }

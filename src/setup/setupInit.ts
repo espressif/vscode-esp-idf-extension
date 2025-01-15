@@ -59,8 +59,6 @@ export interface IPreviousInstallResult {
   existingIdfSetups: IdfSetup[];
 }
 
-export interface IExistingSetup {}
-
 export async function checkPreviousInstall(
   workspaceFolder: Uri
 ): Promise<IPreviousInstallResult> {
@@ -284,7 +282,8 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   let pythonBinPath: string = "";
   if (sysPythonBinPath) {
     pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  } else {
+  }
+  if (!pythonBinPath) {
     pythonBinPath = idfConf.readParameter(
       "idf.pythonBinPath",
       workspaceFolder
