@@ -386,7 +386,8 @@ export async function getSystemPython(workspaceFolder: Uri) {
       pythonVersionToUse,
       "python.exe"
     );
-    return idfPyDestPath;
+    const idfPyDestExists = await pathExists(idfPyDestPath);
+    return idfPyDestExists ? idfPyDestPath : "";
   }
 }
 

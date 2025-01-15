@@ -227,20 +227,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
 
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after next release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-
-  let pythonBinPath: string = "";
-  if (sysPythonBinPath) {
-    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  } else {
-    pythonBinPath = idfConf.readParameter(
-      "idf.pythonBinPath",
-      workspaceFolder
-    ) as string;
-  }
-
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
@@ -290,6 +276,19 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
 
   if (failedToolsResult.length !== 0) {
     return false;
+  }
+  // FIX use system Python path as setting instead venv
+  // REMOVE this line after next release
+  const sysPythonBinPath = await getPythonPath(workspaceFolder);
+
+  let pythonBinPath: string = "";
+  if (sysPythonBinPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  } else {
+    pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
   }
   const isPyEnvValid = await checkPyVenv(pythonBinPath, espIdfPath);
   return isPyEnvValid;
