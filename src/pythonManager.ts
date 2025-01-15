@@ -416,8 +416,8 @@ export async function getPythonEnvPath(
       ? ["Scripts", "python.exe"]
       : ["bin", "python"];
   const fullIdfPyEnvPath = join(idfPyEnvPath, ...pyDir);
-
-  return fullIdfPyEnvPath;
+  const pyEnvPathExists = await pathExists(fullIdfPyEnvPath);
+  return pyEnvPathExists ? fullIdfPyEnvPath: "";
 }
 
 export async function checkPythonExists(pythonBin: string, workingDir: string) {

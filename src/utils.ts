@@ -1109,7 +1109,16 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     );
   }
   const sysPythonPath = await getPythonPath(curWorkspace);
-  const pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
+  let pythonBinPath = "";
+  if (sysPythonPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
+  }
+  if (!pythonBinPath) {
+    pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      curWorkspace
+    ) as string;
+  }
   modifiedEnv.PYTHON =
     pythonBinPath ||
     `${process.env.PYTHON}` ||
