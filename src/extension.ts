@@ -3770,16 +3770,18 @@ async function removeEspIdfSettings() {
 
   // Get all settings directly from configuration
   const allSettings = config.inspect("");
-  // Check values saved in each scope
-  if (allSettings?.globalValue) {
-    findIdfSettings(allSettings.globalValue);
-  }
-  if (allSettings?.workspaceValue) {
-    findIdfSettings(allSettings.workspaceValue);
-  }
 
-  if (allSettings?.workspaceFolderValue) {
-    findIdfSettings(allSettings.workspaceFolderValue);
+  // Check values saved in each scope using a simple loop
+  const scopeValues = [
+    allSettings?.globalValue,
+    allSettings?.workspaceValue,
+    allSettings?.workspaceFolderValue,
+  ];
+
+  for (const value of scopeValues) {
+    if (value) {
+      findIdfSettings(value);
+    }
   }
 
   if (settingsToDelete.length === 0) {
@@ -3813,64 +3815,61 @@ async function removeEspIdfSettings() {
     return;
   }
 
+  // Helper function to remove setting from a specific scope
+  async function removeSettingFromScope(
+    setting: string,
+    target: vscode.ConfigurationTarget,
+    inspectionValue: any,
+    scopeDescription: string
+  ) {
+    try {
+      if (inspectionValue !== undefined) {
+        await config.update(setting, undefined, target);
+        OutputChannel.appendLine(
+          vscode.l10n.t(`Removed ${scopeDescription} setting: {0}`, setting)
+        );
+      }
+    } catch (e) {
+      // Silently continue if we can't modify settings for this scope
+    }
+  }
+
   try {
     const message = vscode.l10n.t("Starting ESP-IDF settings cleanup...");
     OutputChannel.appendLineAndShow(message);
     Logger.info(message);
 
+    const scopeConfigs = [
+      {
+        target: vscode.ConfigurationTarget.Global,
+        property: "globalValue",
+        description: "global",
+      },
+      {
+        target: vscode.ConfigurationTarget.Workspace,
+        property: "workspaceValue",
+        description: "workspace",
+      },
+      {
+        target: vscode.ConfigurationTarget.WorkspaceFolder,
+        property: "workspaceFolderValue",
+        description: "workspace folder",
+      },
+    ];
+
     // Delete each setting
     for (const setting of uniqueSettingsToDelete) {
       try {
-        // Try to remove from each scope, but handle errors silently
-        // Global settings
-        try {
-          const inspection = config.inspect(setting);
-          if (inspection?.globalValue !== undefined) {
-            await config.update(
-              setting,
-              undefined,
-              vscode.ConfigurationTarget.Global
-            );
-            OutputChannel.appendLine(
-              vscode.l10n.t("Removed global setting: {0}", setting)
-            );
-          }
-        } catch (e) {
-          // Silently continue if we can't modify global settings
-        }
+        const inspection = config.inspect(setting);
 
-        // Workspace settings
-        try {
-          const inspection = config.inspect(setting);
-          if (inspection?.workspaceValue !== undefined) {
-            await config.update(
-              setting,
-              undefined,
-              vscode.ConfigurationTarget.Workspace
-            );
-            OutputChannel.appendLine(
-              vscode.l10n.t("Removed workspace setting: {0}", setting)
-            );
-          }
-        } catch (e) {
-          // Silently continue if we can't modify workspace settings
-        }
-
-        // WorkspaceFolder settings
-        try {
-          const inspection = config.inspect(setting);
-          if (inspection?.workspaceFolderValue !== undefined) {
-            await config.update(
-              setting,
-              undefined,
-              vscode.ConfigurationTarget.WorkspaceFolder
-            );
-            OutputChannel.appendLine(
-              vscode.l10n.t("Removed workspace folder setting: {0}", setting)
-            );
-          }
-        } catch (e) {
-          // Silently continue if we can't modify workspace folder settings
+        // Try to remove from each scope
+        for (const { target, property, description } of scopeConfigs) {
+          await removeSettingFromScope(
+            setting,
+            target,
+            inspection?.[property],
+            description
+          );
         }
       } catch (settingError) {
         OutputChannel.appendLine(
