@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
 
-export async function removeEspIdfSettings() {
+export async function asyncRemoveEspIdfSettings() {
   const config = vscode.workspace.getConfiguration();
   const settingsToDelete: string[] = [];
 

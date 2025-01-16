@@ -172,7 +172,7 @@ import {
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
-import { removeEspIdfSettings } from "./uninstall";
+import { asyncRemoveEspIdfSettings } from "./uninstall";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -3744,12 +3744,7 @@ export async function activate(context: vscode.ExtensionContext) {
   checkAndNotifyMissingCompileCommands();
 
   // Remove ESP-IDF settings
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "espIdf.removeEspIdfSettings",
-      removeEspIdfSettings
-    )
-  );
+  registerIDFCommand("espIdf.removeEspIdfSettings", asyncRemoveEspIdfSettings);
 }
 
 function checkAndNotifyMissingCompileCommands() {
