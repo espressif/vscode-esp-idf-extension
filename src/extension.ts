@@ -324,6 +324,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (PreCheck.isWorkspaceFolderOpen()) {
     await createCmdsStatusBarItems(vscode.workspace.workspaceFolders[0].uri);
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+    ESP.GlobalConfiguration.store.set(
+      ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
+      workspaceRoot
+    );
     await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
     if (statusBarItems && statusBarItems["port"]) {
       statusBarItems["port"].text =
@@ -409,6 +413,10 @@ export async function activate(context: vscode.ExtensionContext) {
         for (const ws of e.removed) {
           if (workspaceRoot && ws.uri === workspaceRoot) {
             workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+            ESP.GlobalConfiguration.store.set(
+              ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
+              workspaceRoot
+            );
             await getIdfTargetFromSdkconfig(
               workspaceRoot,
               statusBarItems["target"]
@@ -452,6 +460,10 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         if (typeof workspaceRoot === undefined) {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+          ESP.GlobalConfiguration.store.set(
+            ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
+            workspaceRoot
+          );
           await getIdfTargetFromSdkconfig(
             workspaceRoot,
             statusBarItems["target"]
@@ -966,6 +978,10 @@ export async function activate(context: vscode.ExtensionContext) {
           return;
         }
         workspaceRoot = option.uri;
+        ESP.GlobalConfiguration.store.set(
+          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
+          workspaceRoot
+        );
         await getIdfTargetFromSdkconfig(
           workspaceRoot,
           statusBarItems["target"]

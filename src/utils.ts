@@ -1208,15 +1208,6 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     pathNameInEnv
   ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
 
-  extensionContext.environmentVariableCollection.replace(
-    pathNameInEnv,
-    modifiedEnv[pathNameInEnv],
-    {
-      applyAtShellIntegration: true,
-      applyAtProcessCreation: true,
-    }
-  );
-
   let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
   if (idfTarget) {
     modifiedEnv.IDF_TARGET = idfTarget || process.env.IDF_TARGET;

@@ -20,8 +20,10 @@ import {
   CancellationToken,
   DebugConfiguration,
   DebugConfigurationProvider,
+  Uri,
   WorkspaceFolder,
-  window
+  window,
+  workspace,
 } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { getIdfTargetFromSdkconfig, getProjectName } from "../workspaceConfig";
@@ -32,6 +34,7 @@ import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
 import { getToolchainPath } from "../utils";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
+import { ESP } from "../config";
 
 export class CDTDebugConfigurationProvider
   implements DebugConfigurationProvider {
@@ -42,11 +45,17 @@ export class CDTDebugConfigurationProvider
   ): Promise<DebugConfiguration> {
     try {
       if (!folder) {
-        folder = await window.showWorkspaceFolderPick({
-          placeHolder: "Pick a workspace folder to start a debug session.",
-        });
+        const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+          ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+        );
+        folder = workspace.getWorkspaceFolder(workspaceFolderUri);
         if (!folder) {
-          throw new Error("No folder was selected to start debug session");
+          folder = await window.showWorkspaceFolderPick({
+            placeHolder: "Pick a workspace folder to start a debug session.",
+          });
+          if (!folder) {
+            throw new Error("No folder was selected to start debug session");
+          }
         }
       }
       if (!config.program) {
