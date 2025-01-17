@@ -24,7 +24,10 @@ import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { checkPyVenv } from "./pythonEnv";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { getPythonEnvPath } from "../../pythonManager";
+import {
+  getPythonEnvPath,
+  getSystemPythonFromSettings,
+} from "../../pythonManager";
 
 export async function useIdfSetupSettings(
   setupConf: IdfSetup,
@@ -32,11 +35,21 @@ export async function useIdfSetupSettings(
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
+  let sysPythonBinPath = "";
+  if (setupConf.python) {
+    sysPythonBinPath = await getSystemPythonFromSettings(
+      setupConf.python,
+      setupConf.idfPath,
+      setupConf.toolsPath
+    );
+  } else {
+    sysPythonBinPath = setupConf.sysPythonPath;
+  }
   await saveSettings(
     setupConf.idfPath,
     setupConf.toolsPath,
     setupConf.gitPath,
-    setupConf.sysPythonPath,
+    sysPythonBinPath,
     saveScope,
     workspaceFolderUri,
     espIdfStatusBar,
