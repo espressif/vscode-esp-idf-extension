@@ -23,6 +23,7 @@ import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
 import { IdfSetup } from "../views/setup/types";
+import { getSystemPythonFromSettings } from "../pythonManager";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
@@ -224,7 +225,15 @@ export class ExamplesPlanel {
     const isWin = process.platform === "win32" ? "Win" : "";
     settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
     settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
-    settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
+    if (idfSetup.python) {
+      settingsJson["idf.pythonInstallPath"] = await getSystemPythonFromSettings(
+        idfSetup.python,
+        idfSetup.idfPath,
+        idfSetup.toolsPath
+      );
+    } else {
+      settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
+    }
     await writeJSON(settingsJsonPath, settingsJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });

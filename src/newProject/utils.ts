@@ -20,6 +20,7 @@ import { readParameter } from "../idfConfiguration";
 import { readJSON } from "fs-extra";
 import { Uri } from "vscode";
 import { IdfSetup } from "../views/setup/types";
+import { getSystemPythonFromSettings } from "../pythonManager";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -35,7 +36,13 @@ export async function setCurrentSettingsInTemplate(
   if (idfSetup.idfPath) {
     settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
   }
-  if (idfSetup.sysPythonPath) {
+  if (idfSetup.python) {
+    settingsJson["idf.pythonInstallPath"] = await getSystemPythonFromSettings(
+      idfSetup.python,
+      idfSetup.idfPath,
+      idfSetup.toolsPath
+    );
+  } else {
     settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
   }
   if (adfPathDir) {
