@@ -33,6 +33,7 @@ import { Logger } from "../logger/logger";
 import { statusBarItems } from "../statusBar";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { IdfToolsManager } from "../idfToolsManager";
 
 export enum QemuLaunchMode {
   Debug,
@@ -142,20 +143,44 @@ export class QemuManager extends EventEmitter {
     return !!this.qemuTerminal;
   }
 
+  public async getQemuExecutable(idfPath: string) {
+    const idfToolsManagerInstance = await IdfToolsManager.createIdfToolsManager(
+      idfPath
+    );
+    const packages = await idfToolsManagerInstance.getPackageList(["qemu-xtensa", "qemu-riscv32"]);
+    const xtensaPackage = packages.find((pkg) => {
+      return pkg.name === "qemu-xtensa";
+    });
+    const risvPackage = packages.find((pkg) => {
+      return pkg.name === "qemu-riscv32";
+    });
+    const qemuDictionary: { [key: string]: string } = {};
+    for (const supportedTarget of xtensaPackage.supported_targets) {
+      qemuDictionary[supportedTarget] = xtensaPackage.version_cmd[0];
+    }
+    for (const supportedTarget of risvPackage.supported_targets) {
+      qemuDictionary[supportedTarget] = risvPackage.version_cmd[0];
+    }
+    // fallback for older versions
+    if (Object.keys(qemuDictionary).length === 0) {
+      qemuDictionary["esp32"] = "qemu-system-xtensa";
+      qemuDictionary["esp32c3"] = "qemu-system-riscv32";
+    }
+    return qemuDictionary;
+  }
+
   public async start(mode: QemuLaunchMode, workspaceFolder: Uri) {
     if (this.isRunning()) {
       return;
     }
     const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
-    const qemuExecutable =
-      modifiedEnv.IDF_TARGET === "esp32"
-        ? "qemu-system-xtensa"
-        : modifiedEnv.IDF_TARGET === "esp32c3"
-        ? "qemu-system-riscv32"
-        : "";
+    const qemuExecutableDict = await this.getQemuExecutable(
+      modifiedEnv.IDF_PATH
+    );
+    const qemuExecutable = qemuExecutableDict[modifiedEnv.IDF_TARGET] || "";
     if (!qemuExecutable) {
       throw new Error(
-        `${modifiedEnv.IDF_TARGET} is not supported by Espressif QEMU. Only esp32 or esp32c3 targets are supported.`
+        `${modifiedEnv.IDF_TARGET} is not supported by Espressif QEMU. Check ESP-IDF and QEMU version installed.`
       );
     }
     const isQemuBinInPath = await isBinInPath(
