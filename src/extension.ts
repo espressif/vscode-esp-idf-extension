@@ -107,7 +107,6 @@ import {
   isFlashEncryptionEnabled,
   FlashCheckResultType,
   checkFlashEncryption,
-  isJtagDisabled,
 } from "./flash/verifyFlashEncryption";
 import { flashCommand } from "./flash/uartFlash";
 import { jtagFlashCommand } from "./flash/jtagCmd";
@@ -4221,26 +4220,6 @@ async function startFlashing(
   }
 
   if (flashType === ESP.FlashType.JTAG) {
-    // Check if JTAG is disabled on the hardware
-    const eFuse = new ESPEFuseManager(workspaceRoot);
-    const eFuseSummary = await eFuse.readSummary();
-    const jtagStatus = isJtagDisabled(eFuseSummary);
-    if (jtagStatus.disabled) {
-      Logger.errorNotify(
-        vscode.l10n.t("Cannot flash via JTAG method: {0}", jtagStatus.message),
-        new Error("JTAG Disabled"),
-        "extension startFlashing"
-      );
-      return;
-    } else if (jtagStatus.requiresVerification) {
-      const message = vscode.l10n.t(
-        "{0}\n\nThe JTAG configuration may depend on hardware strapping. Please consult the ESP32 technical documentation for your specific model to ensure proper JTAG configuration before proceeding.",
-        jtagStatus.message
-      );
-      Logger.warnNotify(message);
-      return;
-    }
-
     const currOpenOcdVersion = await openOCDManager.version();
     const openOCDVersionIsValid = PreCheck.openOCDVersionValidator(
       "v0.10.0-esp32-20201125",
