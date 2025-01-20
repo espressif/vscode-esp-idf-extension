@@ -22,11 +22,7 @@ import { pathExists } from "fs-extra";
 import path from "path";
 import { Logger } from "../logger/logger";
 import * as idfConf from "../idfConfiguration";
-import {
-  addIdfPath,
-  getPropertyFromJson,
-  getSelectedIdfInstalled,
-} from "./espIdfJson";
+import { getPropertyFromJson, getSelectedIdfInstalled } from "./espIdfJson";
 import {
   createIdfSetup,
   getPreviousIdfSetups,
@@ -35,7 +31,6 @@ import {
 import { checkPyVenv } from "./setupValidation/pythonEnv";
 import { packageJson } from "../utils";
 import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 
 export interface ISetupInitArgs {
@@ -63,8 +58,6 @@ export interface IPreviousInstallResult {
   gitVersion: string;
   existingIdfSetups: IdfSetup[];
 }
-
-export interface IExistingSetup {}
 
 export async function checkPreviousInstall(
   workspaceFolder: Uri
@@ -232,12 +225,6 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
     process.env.IDF_TOOLS_PATH ||
     path.join(containerPath, ".espressif");
 
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after next release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-
   let espIdfPath = idfConf.readParameter("idf.espIdfPath", workspaceFolder);
   let idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
   if (idfPathVersion === "x.x" && process.platform === "win32") {
@@ -288,6 +275,20 @@ export async function isCurrentInstallValid(workspaceFolder: Uri) {
   if (failedToolsResult.length !== 0) {
     return false;
   }
+  // FIX use system Python path as setting instead venv
+  // REMOVE this line after next release
+  const sysPythonBinPath = await getPythonPath(workspaceFolder);
+
+  let pythonBinPath: string = "";
+  if (sysPythonBinPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  }
+  if (!pythonBinPath) {
+    pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
+  }
   const isPyEnvValid = await checkPyVenv(pythonBinPath, espIdfPath);
   return isPyEnvValid;
 }
@@ -296,9 +297,11 @@ export async function saveSettings(
   espIdfPath: string,
   toolsPath: string,
   gitPath: string,
+  sysPythonBinPath: string,
   saveScope: ConfigurationTarget,
   workspaceFolderUri: Uri,
-  espIdfStatusBar: StatusBarItem
+  espIdfStatusBar: StatusBarItem,
+  saveGlobalState: boolean = true
 ) {
   const confTarget =
     saveScope ||
@@ -324,13 +327,22 @@ export async function saveSettings(
     gitPath,
     ConfigurationTarget.Global
   );
-  let currentIdfSetup = await createIdfSetup(espIdfPath, toolsPath, gitPath);
+  await idfConf.writeParameter(
+    "idf.pythonInstallPath",
+    sysPythonBinPath,
+    confTarget,
+    workspaceFolder
+  );
+  const idfPathVersion = await utils.getEspIdfFromCMake(espIdfPath);
+  if (saveGlobalState) {
+    await createIdfSetup(espIdfPath, toolsPath, sysPythonBinPath, gitPath);
+  }
   if (espIdfStatusBar) {
     const commandDictionary = createCommandDictionary();
     espIdfStatusBar.text =
       `$(${
         commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-      }) ESP-IDF v` + currentIdfSetup.version;
+      }) ESP-IDF v` + idfPathVersion;
   }
   Logger.infoNotify("ESP-IDF has been configured");
 }

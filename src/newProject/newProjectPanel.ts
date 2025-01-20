@@ -22,6 +22,7 @@ import * as utils from "../utils";
 import { IExample } from "../examples/Example";
 import { setCurrentSettingsInTemplate } from "./utils";
 import { NotificationMode, readParameter } from "../idfConfiguration";
+import { IdfSetup } from "../views/setup/types";
 
 export class NewProjectPanel {
   public static currentPanel: NewProjectPanel | undefined;
@@ -70,8 +71,8 @@ export class NewProjectPanel {
     if (newProjectArgs.espAdfPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espAdfPath));
     }
-    if (newProjectArgs.espIdfPath) {
-      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espIdfPath));
+    if (newProjectArgs.espIdfSetup.idfPath) {
+      localResourceRoots.push(vscode.Uri.file(newProjectArgs.espIdfSetup.idfPath));
     }
     if (newProjectArgs.espMdfPath) {
       localResourceRoots.push(vscode.Uri.file(newProjectArgs.espMdfPath));
@@ -124,8 +125,7 @@ export class NewProjectPanel {
             message.template
           ) {
             this.createProject(
-              newProjectArgs.espIdfPath,
-              newProjectArgs.espIdfToolsPath,
+              newProjectArgs.espIdfSetup,
               JSON.parse(message.components),
               message.port,
               message.containerFolder,
@@ -199,8 +199,7 @@ export class NewProjectPanel {
   }
 
   private async createProject(
-    idfPath: string,
-    idfToolsPath: string,
+    idfSetup: IdfSetup,
     components: IComponent[],
     port: string,
     projectDirectory: string,
@@ -287,8 +286,7 @@ export class NewProjectPanel {
           );
           const settingsJson = await setCurrentSettingsInTemplate(
             settingsJsonPath,
-            idfPath,
-            idfToolsPath,
+            idfSetup,
             port,
             openOcdConfigs,
             workspaceFolder

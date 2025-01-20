@@ -19,7 +19,6 @@ import { SetupPanel } from "./SetupPanel";
 import { saveSettings } from "./setupInit";
 import { getOpenOcdRules } from "./addOpenOcdRules";
 import { addIdfPath } from "./espIdfJson";
-import { writeParameter } from "../idfConfiguration";
 
 export async function createPyReqs(
   idfPath: string,
@@ -46,15 +45,11 @@ export async function createPyReqs(
     progress,
     cancelToken
   );
-  await writeParameter(
-    "idf.pythonInstallPath",
-    pyPath,
-    vscode.ConfigurationTarget.Global
-  );
   await saveSettings(
     idfPath,
     toolsPath,
     gitPath,
+    pyPath,
     saveScope,
     workspaceFolderUri,
     espIdfStatusBar

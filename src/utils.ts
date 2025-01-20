@@ -278,7 +278,6 @@ export async function setCCppPropertiesJsonCompilerPath(
     process.platform === "win32"
       ? "${config:idf.toolsPathWin}"
       : "${config:idf.toolsPath}";
-
   await updateCCppPropertiesJson(
     curWorkspaceFsPath,
     "compilerPath",
@@ -322,10 +321,6 @@ export async function updateCCppPropertiesJson(
     cCppPropertiesJson.configurations &&
     cCppPropertiesJson.configurations.length
   ) {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceUri
-    ) as string;
     cCppPropertiesJson.configurations[0][fieldToUpdate] = newFieldValue;
     await writeJSON(cCppPropertiesJsonPath, cCppPropertiesJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
@@ -1095,7 +1090,16 @@ export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
     );
   }
   const sysPythonPath = await getPythonPath(curWorkspace);
-  const pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
+  let pythonBinPath = "";
+  if (sysPythonPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(curWorkspace);
+  }
+  if (!pythonBinPath) {
+    pythonBinPath = idfConf.readParameter(
+      "idf.pythonBinPath",
+      curWorkspace
+    ) as string;
+  }
   modifiedEnv.PYTHON =
     pythonBinPath ||
     `${process.env.PYTHON}` ||
@@ -1294,9 +1298,10 @@ export async function startPythonReqsProcess(
     "tools",
     "check_python_dependencies.py"
   );
-  const modifiedEnv = await appendIdfAndToolsToPath(
-    extensionContext.extensionUri
+  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
+    Object.assign({}, process.env)
   );
+  modifiedEnv.IDF_PATH = espIdfPath;
   return execChildProcess(
     pythonBinPath,
     [reqFilePath, "-r", requirementsPath],

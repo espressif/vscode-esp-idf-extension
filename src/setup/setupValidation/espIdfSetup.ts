@@ -24,8 +24,10 @@ import { pathExists } from "fs-extra";
 import { Logger } from "../../logger/logger";
 import { checkPyVenv } from "./pythonEnv";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { getPythonEnvPath, getVirtualEnvPythonPath } from "../../pythonManager";
-import { readParameter } from "../../idfConfiguration";
+import {
+  getPythonEnvPath,
+  getSystemPythonFromSettings,
+} from "../../pythonManager";
 
 export async function useIdfSetupSettings(
   setupConf: IdfSetup,
@@ -33,18 +35,32 @@ export async function useIdfSetupSettings(
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
+  let sysPythonBinPath = "";
+  if (setupConf.python) {
+    sysPythonBinPath = await getSystemPythonFromSettings(
+      setupConf.python,
+      setupConf.idfPath,
+      setupConf.toolsPath
+    );
+  } else {
+    sysPythonBinPath = setupConf.sysPythonPath;
+  }
   await saveSettings(
     setupConf.idfPath,
     setupConf.toolsPath,
     setupConf.gitPath,
+    sysPythonBinPath,
     saveScope,
     workspaceFolderUri,
-    espIdfStatusBar
+    espIdfStatusBar,
+    false
   );
 }
 
-export async function checkIdfSetup(setupConf: IdfSetup,
-  logToChannel: boolean = true) {
+export async function checkIdfSetup(
+  setupConf: IdfSetup,
+  logToChannel: boolean = true
+) {
   try {
     if (!setupConf.idfPath) {
       return false;
@@ -75,8 +91,16 @@ export async function checkIdfSetup(setupConf: IdfSetup,
     if (failedToolsResult.length) {
       return false;
     }
-    let sysPythonBinPath = readParameter("idf.pythonInstallPath") as string;
-    const virtualEnvPython = await getPythonEnvPath(setupConf.idfPath, setupConf.toolsPath, sysPythonBinPath);
+    let virtualEnvPython = "";
+    if (setupConf.python) {
+      virtualEnvPython = setupConf.python;
+    } else {
+      virtualEnvPython = await getPythonEnvPath(
+        setupConf.idfPath,
+        setupConf.toolsPath,
+        setupConf.sysPythonPath
+      );
+    }
 
     const pyEnvReqs = await checkPyVenv(virtualEnvPython, setupConf.idfPath);
     return pyEnvReqs;

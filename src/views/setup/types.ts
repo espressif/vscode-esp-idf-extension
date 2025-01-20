@@ -29,6 +29,8 @@ export interface IdfSetup {
   toolsPath: string;
   idfPath: string;
   gitPath: string;
+  python?: string;
+  sysPythonPath?: string;
   isValid: boolean;
 }
 

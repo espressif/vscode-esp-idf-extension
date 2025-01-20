@@ -26,7 +26,7 @@ import { readParameter } from "../idfConfiguration";
 import { getIdfMd5sum } from "../setup/espIdfJson";
 import { getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "../views/setup/types";
-import { getPythonPath } from "../pythonManager";
+import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -61,8 +61,10 @@ export async function selectIdfSetup(
   return selectedIdfSetupOption.target;
 }
 
-export async function getCurrentIdfSetup(workspaceFolder: Uri,
-  logToChannel: boolean = true) {
+export async function getCurrentIdfSetup(
+  workspaceFolder: Uri,
+  logToChannel: boolean = true
+) {
   const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
   const gitPath = readParameter("idf.gitPath", workspaceFolder);
@@ -70,6 +72,16 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
   // FIX use system Python path as setting instead venv
   // REMOVE this line after neext release
   const sysPythonBinPath = await getPythonPath(workspaceFolder);
+  let pythonBinPath = "";
+  if (sysPythonBinPath) {
+    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  }
+  if (!pythonBinPath) {
+    pythonBinPath = readParameter(
+      "idf.pythonBinPath",
+      workspaceFolder
+    ) as string;
+  }
 
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
@@ -78,6 +90,8 @@ export async function getCurrentIdfSetup(workspaceFolder: Uri,
     idfPath,
     gitPath,
     toolsPath,
+    sysPythonPath: sysPythonBinPath,
+    python: pythonBinPath,
     version: idfVersion,
     isValid: false,
   };
