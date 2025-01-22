@@ -2748,8 +2748,7 @@ export async function activate(context: vscode.ExtensionContext) {
       if (!launchJsonPathExist) {
         await vscode.window.showInformationMessage(
           vscode.l10n.t(
-            `No launch.json found.
-             Use the ESP-IDF: Add vscode Configuration Folder command.`
+            `No launch.json found.\nUse the 'ESP-IDF: Add vscode Configuration Folder' command.`
           )
         );
         return;
@@ -2770,8 +2769,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
       await vscode.window.showInformationMessage(
         vscode.l10n.t(
-          `No gdbtarget configuration found in launch.json.
-           Delete launch.json and use the ESP-IDF: Add vscode Configuration Folder' command.`
+          `No gdbtarget configuration found in launch.json.\nDelete launch.json and use the 'ESP-IDF: Add vscode Configuration Folder' command.`
         )
       );
       return;
