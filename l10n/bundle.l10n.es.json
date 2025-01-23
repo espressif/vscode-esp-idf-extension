@@ -169,7 +169,7 @@
   "New Project Wizard": "Asistente para nuevos proyectos",
   "Select Current Project workspace folder": "Seleccione la carpeta del espacio de trabajo del proyecto actual",
   "Select Port to Use (COM, tty, usbserial)": "Seleccione el puerto a utilizar (COM, tty, usbserial)",
-  "Set Espressif Device Target (IDF_TARGET": "Establecer destino del dispositivo Espressif (IDF_TARGET",
+  "Set Espressif Device Target (IDF_TARGET)": "Establecer destino del dispositivo Espressif (IDF_TARGET)",
   "SDK Configuration Editor (menuconfig)": "Editor de configuración del SDK (menuconfig)",
   "Build Project": "Proyecto de construcción",
   "ESP-IDF Size": "Tamaño ESP-IDF",
