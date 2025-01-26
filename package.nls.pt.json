@@ -97,6 +97,7 @@
 	"idf.wssPort.description": "Porta do servidor Web Socket para Core Dump ou GDB Stub",
 	"openocd.tcl.host.description": "Host para conexão OpenOCD tcl",
 	"openocd.tcl.port.description": "Porta para conexão OpenOCD tcl",
+	"openocd.jtag.command.force_unix_path_separator.description": "Forced to use \"/\" instead of \"\\\\\" as path separator for Win32 based OS",
 	"param.adapterTargetName": "Nome de destino para adaptador de depuração ESP-IDF",
 	"param.buildPath": "Nome do diretório de compilação do CMake",
 	"param.cmakeCompilerArgs": "Argumentos para tarefa de compilação do CMake",
