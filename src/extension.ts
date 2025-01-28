@@ -4214,7 +4214,12 @@ async function startFlashing(
   if (IDFMonitor.terminal) {
     IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
   }
-  const canFlash = await verifyCanFlash(flashBaudRate, port, workspaceRoot);
+  const canFlash = await verifyCanFlash(
+    flashBaudRate,
+    port,
+    flashType,
+    workspaceRoot
+  );
   if (!canFlash) {
     return;
   }
