@@ -18,7 +18,7 @@
 
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../config";
-import { pathExists, readJson, writeJson } from "fs-extra";
+import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
 
 export class ProjectConfigStore {
@@ -58,32 +58,47 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
 
   const projectConfElements: { [key: string]: ProjectConfElement } = {};
 
-  Object.keys(projectConfJson).forEach((elem) => {
-    projectConfElements[elem] = {
-      build: {
-        compileArgs: projectConfJson[elem].build?.compileArgs,
-        ninjaArgs: projectConfJson[elem].build?.ninjaArgs,
-        buildDirectoryPath: projectConfJson[elem].build?.buildDirectoryPath,
-        sdkconfigDefaults: projectConfJson[elem].build?.sdkconfigDefaults,
-        sdkconfigFilePath: projectConfJson[elem].build?.sdkconfigFilePath
-      },
-      env: projectConfJson[elem].env,
-      flashBaudRate: projectConfJson[elem].flashBaudRate,
-      monitorBaudRate: projectConfJson[elem].monitorBaudRate,
-      openOCD: {
-        debugLevel: projectConfJson[elem].openOCD?.debugLevel,
-        configs: projectConfJson[elem].openOCD?.configs,
-        args: projectConfJson[elem].openOCD?.args,
-      },
-      tasks: {
-        preBuild: projectConfJson[elem].tasks?.preBuild,
-        preFlash: projectConfJson[elem].tasks?.preFlash,
-        postBuild: projectConfJson[elem].tasks?.postBuild,
-        postFlash: projectConfJson[elem].tasks?.postFlash,
-      },
-    } as ProjectConfElement;
-  });
+  await Promise.all(
+    Object.keys(projectConfJson).map(async (elem) => {
+      const buildConfig = projectConfJson[elem].build;
+      const buildDirPath = buildConfig?.buildDirectoryPath
+        ? Uri.joinPath(workspaceFolder, buildConfig.buildDirectoryPath).fsPath
+        : buildConfig?.buildDirectoryPath;
 
+      if (buildDirPath) {
+        await ensureDir(buildDirPath);
+      }
+
+      projectConfElements[elem] = {
+        build: {
+          compileArgs: buildConfig?.compileArgs,
+          ninjaArgs: buildConfig?.ninjaArgs,
+          buildDirectoryPath: buildDirPath,
+          sdkconfigDefaults: buildConfig?.sdkconfigDefaults?.map(
+            (path) => Uri.joinPath(workspaceFolder, path).fsPath
+          ),
+          sdkconfigFilePath: buildConfig?.sdkconfigFilePath
+            ? Uri.joinPath(workspaceFolder, buildConfig.sdkconfigFilePath)
+                .fsPath
+            : buildConfig?.sdkconfigFilePath,
+        },
+        env: projectConfJson[elem].env,
+        flashBaudRate: projectConfJson[elem].flashBaudRate,
+        monitorBaudRate: projectConfJson[elem].monitorBaudRate,
+        openOCD: {
+          debugLevel: projectConfJson[elem].openOCD?.debugLevel,
+          configs: projectConfJson[elem].openOCD?.configs,
+          args: projectConfJson[elem].openOCD?.args,
+        },
+        tasks: {
+          preBuild: projectConfJson[elem].tasks?.preBuild,
+          preFlash: projectConfJson[elem].tasks?.preFlash,
+          postBuild: projectConfJson[elem].tasks?.postBuild,
+          postFlash: projectConfJson[elem].tasks?.postFlash,
+        },
+      } as ProjectConfElement;
+    })
+  );
   return projectConfElements;
 }
 
