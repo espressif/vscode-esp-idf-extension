@@ -64,4 +64,6 @@ export interface IPackage {
   versions: IVersion[];
 
   strip_container_dirs: number;
+
+  supported_targets: string[];
 }
