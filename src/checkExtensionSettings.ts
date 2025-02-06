@@ -23,7 +23,10 @@ import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "./eim/verifySetup";
 import { IdfSetup } from "./eim/types";
 import { join } from "path";
-import { getIdfMd5sum, isCurrentInstallValid } from "./eim/checkCurrentSettings";
+import {
+  getIdfMd5sum,
+  isCurrentInstallValid,
+} from "./eim/checkCurrentSettings";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
