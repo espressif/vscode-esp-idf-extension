@@ -150,7 +150,7 @@ suite("Project tests", () => {
     const idfSetup = {
       idfPath: process.env.IDF_PATH,
       toolsPath: process.env.IDF_TOOLS_PATH,
-      sysPythonPath: "python",
+      python: `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`
     } as IdfSetup;
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,
