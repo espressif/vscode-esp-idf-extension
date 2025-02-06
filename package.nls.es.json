@@ -94,6 +94,7 @@
 	"esp_idf.tmoScaleFactor.description": "Factor de escala para el tiempo de espera de gdb [predeterminado:1]",
 	"esp_idf.verifyAppBinBeforeDebug.description": "Verificar binarios de la aplicación antes de depurar",
 	"espIdf.searchError.title": "ESP-IDF: Sugerencia de error de búsqueda",
+	"espIdf.removeEspIdfSettings.title": "Eliminar configuración de ESP-IDF",
 	"idf.flashType.description": "Método de flasheo del dispositivo, UART o JTag",
 	"idf.wssPort.description": "Puerto del servidor de socket web para Core Dump o GDB Stub",
 	"openocd.tcl.host.description": "Host para conexión tcl de Openocd",
