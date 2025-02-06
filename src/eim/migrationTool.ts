@@ -23,9 +23,9 @@ import { dirname, join } from "path";
 import { getUnixPythonList, getVirtualEnvPythonPath } from "../pythonManager";
 import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "./types";
-import { getIdfMd5sum } from "../setup/espIdfJson";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
+import { getIdfMd5sum } from "./checkCurrentSettings";
 
 export async function useExistingSettingsToMakeNewConfig(workspaceFolder: Uri) {
   const espIdfPath = readParameter("idf.espIdfPath", workspaceFolder);
