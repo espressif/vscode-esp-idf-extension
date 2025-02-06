@@ -16,16 +16,14 @@
  * limitations under the License.
  */
 import * as vscode from "vscode";
-import { isCurrentInstallValid } from "./setup/setupInit";
 import { Logger } from "./logger/logger";
-import { checkIdfSetup } from "./setup/setupValidation/espIdfSetup";
-import { getIdfMd5sum } from "./setup/espIdfJson";
 import { getEspIdfFromCMake } from "./utils";
 import { readParameter } from "./idfConfiguration";
 import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
-import { saveSettings } from "./eim/verifySetup";
+import { checkIdfSetup, saveSettings } from "./eim/verifySetup";
 import { IdfSetup } from "./eim/types";
 import { join } from "path";
+import { getIdfMd5sum, isCurrentInstallValid } from "./eim/checkCurrentSettings";
 
 export async function checkExtensionSettings(
   workspace: vscode.Uri,
@@ -107,7 +105,7 @@ export async function checkExtensionSettings(
       toolsPath: idfToolsPath,
       sysPythonPath: "/usr/bin/python3",
       version: idfVersion,
-      venvPython: venvPythonPath,
+      python: venvPythonPath,
       isValid: false,
     };
     containerIdfSetup.isValid = await checkIdfSetup(containerIdfSetup);

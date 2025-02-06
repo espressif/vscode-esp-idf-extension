@@ -70,9 +70,7 @@ import { ESPEFuseManager } from "./efuse";
 import { constants, createFileSync, pathExists, readFile } from "fs-extra";
 import { getEspAdf } from "./espAdf/espAdfDownload";
 import { getEspMdf } from "./espMdf/espMdfDownload";
-import { SetupPanel } from "./setup/SetupPanel";
 import { ChangelogViewer } from "./changelog-viewer";
-import { getSetupInitialValues, ISetupInitArgs } from "./setup/setupInit";
 import {
   getVirtualEnvPythonPath,
   installEspMatterPyReqs,
@@ -1845,56 +1843,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.installManager", async () => {
     vscode.env.openExternal(vscode.Uri.parse(ESP.URL.InstallManager.Releases));
-  });
-
-  registerIDFCommand("espIdf.setup.start", (setupArgs?: ISetupInitArgs) => {
-    PreCheck.perform([webIdeCheck, isNotDockerContainerCheck], async () => {
-      try {
-        if (SetupPanel.isCreatedAndHidden()) {
-          SetupPanel.createOrShow(context);
-          return;
-        }
-        const notificationMode = idfConf.readParameter(
-          "idf.notificationMode",
-          workspaceRoot
-        ) as string;
-        const ProgressLocation =
-          notificationMode === idfConf.NotificationMode.All ||
-          notificationMode === idfConf.NotificationMode.Notifications
-            ? vscode.ProgressLocation.Notification
-            : vscode.ProgressLocation.Window;
-        await vscode.window.withProgress(
-          {
-            cancellable: false,
-            location: ProgressLocation,
-            title: vscode.l10n.t("ESP-IDF: Configure ESP-IDF extension"),
-          },
-          async (
-            progress: vscode.Progress<{ message: string; increment: number }>
-          ) => {
-            try {
-              setupArgs = setupArgs
-                ? setupArgs
-                : await getSetupInitialValues(
-                    context.extensionPath,
-                    progress,
-                    workspaceRoot
-                  );
-              setupArgs.espIdfStatusBar = statusBarItems["currentIdfVersion"];
-              SetupPanel.createOrShow(context, setupArgs);
-            } catch (error) {
-              Logger.errorNotify(
-                error.message,
-                error,
-                "extension setup getSetupInitialValues"
-              );
-            }
-          }
-        );
-      } catch (error) {
-        Logger.errorNotify(error.message, error, "extension setup");
-      }
-    });
   });
 
   registerIDFCommand(
