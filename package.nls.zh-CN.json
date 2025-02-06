@@ -80,7 +80,6 @@
   "espIdf.setGcovConfig.title": "配置 SDKConfig 文件以启用代码覆盖率",
   "espIdf.setMatterDevicePath.title": "设置 ESP-MATTER 设备路径 (ESP_MATTER_DEVICE_PATH)",
   "espIdf.setTarget.title": "设置乐鑫设备目标",
-  "espIdf.setup.title": "配置 ESP-IDF 扩展",
   "espIdf.size.title": "二进制文件大小分析",
   "espIdf.unitTest.buildFlashUnitTestApp.title": "单元测试：构建并烧录单元测试应用程序",
   "espIdf.unitTest.installPyTest.title": "单元测试：安装 ESP-IDF PyTest 依赖项",
