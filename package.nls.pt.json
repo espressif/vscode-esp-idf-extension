@@ -87,7 +87,6 @@
 	"espIdf.setGcovConfig.title": "Configurar o projeto SDKConfig para cobertura",
 	"espIdf.setMatterDevicePath.title": "Definir caminho do dispositivo ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
 	"espIdf.setTarget.title": "Definir destino do dispositivo Espressif",
-	"espIdf.setup.title": "Configurar extensão ESP-IDF",
 	"espIdf.size.title": "Análise de tamanho dos binários",
 	"espIdf.unitTest.buildFlashUnitTestApp.title": "Teste de unidade: crie e atualize o aplicativo de teste de unidade para teste",
 	"espIdf.unitTest.installPyTest.title": "Teste de unidade: instale os requisitos do ESP-IDF PyTest",
