@@ -80,7 +80,6 @@
 	"espIdf.setGcovConfig.title": "Настройка Project SDKConfig для покрытия",
 	"espIdf.setMatterDevicePath.title": "Установите путь к устройству ESP-MATTER (ESP_MATTER_DEVICE_PATH)",
 	"espIdf.setTarget.title": "Установите целевое устройство Espressif",
-	"espIdf.setup.title": "Настройка расширения ESP-IDF",
 	"espIdf.size.title": "Анализ размера двоичных файлов",
 	"espIdf.unitTest.buildFlashUnitTestApp.title": "Модульное тестирование: сборка и установка приложения модульного тестирования для тестирования.",
 	"espIdf.unitTest.installPyTest.title": "Модульное тестирование: установите требования ESP-IDF PyTest.",
