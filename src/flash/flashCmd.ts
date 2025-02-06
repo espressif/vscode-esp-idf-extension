@@ -31,6 +31,7 @@ import { OutputChannel } from "../logger/outputChannel";
 export async function verifyCanFlash(
   flashBaudRate: string,
   port: string,
+  flashType: ESP.FlashType,
   workspace: vscode.Uri
 ) {
   let continueFlag = true;
@@ -69,20 +70,22 @@ export async function verifyCanFlash(
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
-  if (!port) {
-    try {
-      await vscode.commands.executeCommand("espIdf.selectPort");
-    } catch (error) {
-      const errStr = "Unable to execute the command: espIdf.selectPort";
+  if(flashType !== "JTAG") {
+    if (!port) {
+      try {
+        await vscode.commands.executeCommand("espIdf.selectPort");
+      } catch (error) {
+        const errStr = "Unable to execute the command: espIdf.selectPort";
+        OutputChannel.show();
+        OutputChannel.appendLineAndShow(errStr, "Flash");
+        Logger.error(errStr, error, "verifyCanFlash selectPort");
+      }
+      const errStr = "Select a port before flashing";
       OutputChannel.show();
       OutputChannel.appendLineAndShow(errStr, "Flash");
-      Logger.error(errStr, error, "verifyCanFlash selectPort");
+      return Logger.errorNotify(errStr, new Error("NOT_SELECTED_PORT"),
+      "flashCmd verifyCanFlash select port");
     }
-    const errStr = "Select a port before flashing";
-    OutputChannel.show();
-    OutputChannel.appendLineAndShow(errStr, "Flash");
-    return Logger.errorNotify(errStr, new Error("NOT_SELECTED_PORT"),
-    "flashCmd verifyCanFlash select port");
   }
   if (!flashBaudRate) {
     const errStr = "Select a baud rate before flashing";

@@ -62,6 +62,24 @@ export class TCLClient extends EventEmitter {
     });
   }
 
+  // Verify if OpenOCD is ready to receive commands
+  public async verifyOpenOCDReady(): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      const timeout = setTimeout(() => {
+        this.removeAllListeners("response");
+        resolve(false);
+      }, 5000);
+
+      this.once("response", (data) => {
+        clearTimeout(timeout);
+        this.removeAllListeners("response");
+        resolve(true);
+      });
+
+      this.sendCommand("echo ready");
+    });
+  }
+
   public sendCommandWithCapture(command: string) {
     setTimeout(() => {
       return this.sendCommand(`capture "${command}"`);
