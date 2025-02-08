@@ -27,6 +27,29 @@ import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 import { getIdfMd5sum } from "./checkCurrentSettings";
 
+export async function useCustomExtraVarsAsIdfSetup(customExtraVars: { [key: string]: string }, workspaceFolder) {
+  if (customExtraVars["IDF_PATH"] && customExtraVars["IDF_TOOLS_PATH"] && customExtraVars["IDF_PYTHON_ENV_PATH"]) {
+    const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    const idfPathVersion = await getEspIdfFromCMake(customExtraVars["IDF_PATH"]);
+    const gitPath = readParameter("idf.gitPath", workspaceFolder);
+    const idfSetupId = getIdfMd5sum(customExtraVars["IDF_PATH"]);
+    const currentIdfSetup: IdfSetup = {
+      activationScript: "",
+      id: idfSetupId,
+      idfPath: customExtraVars["IDF_PATH"],
+      isValid: false,
+      gitPath: gitPath,
+      version: idfPathVersion,
+      toolsPath: customExtraVars["IDF_TOOLS_PATH"],
+      sysPythonPath: "",
+      python: pythonBinPath,
+    };
+    return currentIdfSetup;
+  } else {
+    return;
+  }
+}
+
 export async function useExistingSettingsToMakeNewConfig(workspaceFolder: Uri) {
   const espIdfPath = readParameter("idf.espIdfPath", workspaceFolder);
   const idfPathVersion = await getEspIdfFromCMake(espIdfPath);
