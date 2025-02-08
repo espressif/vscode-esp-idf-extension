@@ -25,6 +25,7 @@ jobs:
           wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/${ESP_IDF_VERSION}/esp-idf-${ESP_IDF_VERSION}.zip -O esp-idf.zip
           unzip esp-idf.zip -d ~/
           rm esp-idf.zip
+          mv ~/esp-idf-v${ESP_IDF_VERSION} ~/esp-idf
           ~/esp-idf/install.sh
 
       - name: Setup Node.js
