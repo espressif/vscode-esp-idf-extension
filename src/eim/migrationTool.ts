@@ -35,8 +35,12 @@ export async function useCustomExtraVarsAsIdfSetup(
     customExtraVars["IDF_PATH"] = process.env["IDF_PATH"];
   }
 
-  if (!customExtraVars["IDF_TOOLS_PATH"] && process.env["IDF_TOOLS_PATH"]) {
-    customExtraVars["IDF_TOOLS_PATH"] = process.env["IDF_TOOLS_PATH"];
+  if (!customExtraVars["IDF_TOOLS_PATH"]) {
+    const containerPath =
+      process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+    const defaultToolsPath = join(containerPath, ".espressif");
+    customExtraVars["IDF_TOOLS_PATH"] =
+      process.env["IDF_TOOLS_PATH"] || defaultToolsPath;
   }
 
   if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
