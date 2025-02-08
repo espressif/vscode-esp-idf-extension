@@ -31,20 +31,35 @@ export async function useCustomExtraVarsAsIdfSetup(
   customExtraVars: { [key: string]: string },
   workspaceFolder
 ) {
-  if (!customExtraVars["IDF_PATH"] && process.env["IDF_PATH"]) {
-    customExtraVars["IDF_PATH"] = process.env["IDF_PATH"];
-  }
+  if (
+    !customExtraVars["IDF_PATH"] &&
+    !customExtraVars["IDF_TOOLS_PATH"] &&
+    !customExtraVars["IDF_PYTHON_ENV_PATH"]
+  ) {
+    if (!customExtraVars["IDF_PATH"] && process.env["IDF_PATH"]) {
+      customExtraVars["IDF_PATH"] = process.env["IDF_PATH"];
+    }
 
-  if (!customExtraVars["IDF_TOOLS_PATH"]) {
-    const containerPath =
-      process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
-    const defaultToolsPath = join(containerPath, ".espressif");
-    customExtraVars["IDF_TOOLS_PATH"] =
-      process.env["IDF_TOOLS_PATH"] || defaultToolsPath;
-  }
+    if (!customExtraVars["IDF_TOOLS_PATH"]) {
+      const containerPath =
+        process.platform === "win32"
+          ? process.env.USERPROFILE
+          : process.env.HOME;
+      const defaultToolsPath = join(containerPath, ".espressif");
+      customExtraVars["IDF_TOOLS_PATH"] =
+        process.env["IDF_TOOLS_PATH"] || defaultToolsPath;
+    }
 
-  if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
-    customExtraVars["IDF_PYTHON_ENV_PATH"] = process.env["IDF_PYTHON_ENV_PATH"];
+    if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
+      customExtraVars["IDF_PYTHON_ENV_PATH"] =
+        process.env["IDF_PYTHON_ENV_PATH"];
+    }
+    await writeParameter(
+      "idf.customExtraVars",
+      customExtraVars,
+      ConfigurationTarget.WorkspaceFolder,
+      workspaceFolder.uri
+    );
   }
   if (
     customExtraVars["IDF_PATH"] &&
