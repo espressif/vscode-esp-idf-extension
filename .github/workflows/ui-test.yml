@@ -40,8 +40,7 @@ jobs:
 
       - name: Run Yarn script with xvfb
         run: |
-          source ~/esp-idf/export.sh
-          xvfb-run --auto-servernum yarn ci-test
+          source ~/esp-idf/export.sh && xvfb-run --auto-servernum yarn ci-test
 
       - name: See if screenshots are generated
         if: failure()
