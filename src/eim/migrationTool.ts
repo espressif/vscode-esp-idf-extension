@@ -29,7 +29,7 @@ import { getIdfMd5sum } from "./checkCurrentSettings";
 
 export async function useCustomExtraVarsAsIdfSetup(
   customExtraVars: { [key: string]: string },
-  workspaceFolder
+  workspaceFolder: Uri
 ) {
   if (
     !customExtraVars["IDF_PATH"] &&
@@ -58,7 +58,7 @@ export async function useCustomExtraVarsAsIdfSetup(
       "idf.customExtraVars",
       customExtraVars,
       ConfigurationTarget.WorkspaceFolder,
-      workspaceFolder.uri
+      workspaceFolder
     );
   }
   if (
