@@ -40,8 +40,6 @@ describe("Build testing", async () => {
    }).timeout(999999);
 
   it("Build bin is generated", async () => {
-    await new Workbench().executeCommand("ESP-IDF: Doctor Command");
-    await new Promise((res) => setTimeout(res, 10000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
