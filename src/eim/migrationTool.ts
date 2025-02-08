@@ -27,10 +27,30 @@ import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 import { getIdfMd5sum } from "./checkCurrentSettings";
 
-export async function useCustomExtraVarsAsIdfSetup(customExtraVars: { [key: string]: string }, workspaceFolder) {
-  if (customExtraVars["IDF_PATH"] && customExtraVars["IDF_TOOLS_PATH"] && customExtraVars["IDF_PYTHON_ENV_PATH"]) {
+export async function useCustomExtraVarsAsIdfSetup(
+  customExtraVars: { [key: string]: string },
+  workspaceFolder
+) {
+  if (!customExtraVars["IDF_PATH"] && process.env["IDF_PATH"]) {
+    customExtraVars["IDF_PATH"] = process.env["IDF_PATH"];
+  }
+
+  if (!customExtraVars["IDF_TOOLS_PATH"] && process.env["IDF_TOOLS_PATH"]) {
+    customExtraVars["IDF_TOOLS_PATH"] = process.env["IDF_TOOLS_PATH"];
+  }
+
+  if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
+    customExtraVars["IDF_PYTHON_ENV_PATH"] = process.env["IDF_PYTHON_ENV_PATH"];
+  }
+  if (
+    customExtraVars["IDF_PATH"] &&
+    customExtraVars["IDF_TOOLS_PATH"] &&
+    customExtraVars["IDF_PYTHON_ENV_PATH"]
+  ) {
     const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-    const idfPathVersion = await getEspIdfFromCMake(customExtraVars["IDF_PATH"]);
+    const idfPathVersion = await getEspIdfFromCMake(
+      customExtraVars["IDF_PATH"]
+    );
     const gitPath = readParameter("idf.gitPath", workspaceFolder);
     const idfSetupId = getIdfMd5sum(customExtraVars["IDF_PATH"]);
     const currentIdfSetup: IdfSetup = {
