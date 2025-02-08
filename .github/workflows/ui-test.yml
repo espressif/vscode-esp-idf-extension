@@ -22,9 +22,10 @@ jobs:
           ESP_IDF_VERSION="v5.0"
           sudo apt update
           sudo apt install -y python3-pip git wget flex bison gperf python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util
-          git clone --branch $ESP_IDF_VERSION --recursive https://github.com/espressif/esp-idf.git ~/esp-idf
+          wget https://dl.espressif.com/github_assets/espressif/esp-idf/releases/download/v${ESP_IDF_VERSION}/esp-idf-v${ESP_IDF_VERSION}.zip -O esp-idf.zip
+          unzip esp-idf.zip -d ~/
+          rm esp-idf.zip
           ~/esp-idf/install.sh
-          echo "source ~/esp-idf/export.sh" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,13 +38,9 @@ jobs:
           yarn install
 
       - name: Run Yarn script with xvfb
-        run: xvfb-run --auto-servernum yarn ci-test
-
-      - name: Run ui test
-        uses: ./.github/actions/idf
-        id: idfuitest
-        with:
-          run: /ui-entrypoint.sh
+        run: |
+          source ~/esp-idf/export.sh
+          xvfb-run --auto-servernum yarn ci-test
 
       - name: See if screenshots are generated
         if: failure()
