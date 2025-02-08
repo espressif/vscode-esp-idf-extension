@@ -20,7 +20,10 @@ import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
-import { useExistingSettingsToMakeNewConfig } from "../eim/migrationTool";
+import {
+  useCustomExtraVarsAsIdfSetup,
+  useExistingSettingsToMakeNewConfig,
+} from "../eim/migrationTool";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
@@ -75,11 +78,17 @@ export async function getCurrentIdfSetup(
     "idf.customExtraVars",
     workspaceFolder
   ) as { [key: string]: string };
-  const idfSetups = await getIdfSetups();
+  const idfSetups = await getIdfSetups(logToChannel, false);
   let currentIdfSetup = idfSetups.find((idfSetup) => {
     idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
       idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
   });
+  if (!currentIdfSetup) {
+    currentIdfSetup = await useCustomExtraVarsAsIdfSetup(
+      customExtraVars,
+      workspaceFolder
+    );
+  }
   if (!currentIdfSetup) {
     // Using implementation before EIM
     let currentIdfSetup = await useExistingSettingsToMakeNewConfig(
@@ -87,9 +96,6 @@ export async function getCurrentIdfSetup(
     );
     return currentIdfSetup;
   }
-  currentIdfSetup.isValid = await checkIdfSetup(
-    currentIdfSetup,
-    logToChannel
-  );
+  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
   return currentIdfSetup;
 }
