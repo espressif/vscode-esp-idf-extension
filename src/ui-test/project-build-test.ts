@@ -33,6 +33,8 @@ describe("Build testing", async () => {
     console.log(process.env.IDF_PATH);
     console.log(process.env.IDF_TOOLS_PATH);
     console.log(process.env.IDF_PYTHON_ENV_PATH);
+    await new Workbench().executeCommand("ESP-IDF: Doctor Command");
+    await new Promise((res) => setTimeout(res, 10000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
