@@ -45,11 +45,11 @@ jobs:
 
       - name: See if screenshots are generated
         if: failure()
-        run: ls /github/workspace/test-resources/screenshots
+        run: ls /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with: 
           name: screenshots
-          path: /github/workspace/test-resources/screenshots
+          path: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
