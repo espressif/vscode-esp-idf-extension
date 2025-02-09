@@ -941,6 +941,7 @@
           },
           "openocd.jtag.command.force_unix_path_separator": {
             "type": "boolean",
+            "description": "%openocd.jtag.command.force_unix_path_separator.description%",
             "default": true
           },
           "idf.launchMonitorOnDebugSession": {
