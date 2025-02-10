@@ -155,6 +155,9 @@ export async function saveSettings(
   for (const envVar in idfEnvVars) {
     customExtraVars[envVar] = idfEnvVars[envVar];
   }
+  if (setupConf.python) {
+    customExtraVars["PYTHON"] = setupConf.python;
+  }
   await writeParameter(
     "idf.customExtraVars",
     customExtraVars,
