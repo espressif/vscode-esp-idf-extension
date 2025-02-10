@@ -50,11 +50,18 @@ export async function useCustomExtraVarsAsIdfSetup(
         process.env["IDF_TOOLS_PATH"] || defaultToolsPath;
     }
 
-    if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
+    if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PYTHON_ENV_PATH"]) {
       customExtraVars["IDF_PYTHON_ENV_PATH"] =
         process.env["IDF_PYTHON_ENV_PATH"];
-      const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-      customExtraVars["PYTHON"] = pythonBinPath;
+      const pyDir =
+        process.platform === "win32"
+          ? ["Scripts", "python.exe"]
+          : ["bin", "python3"];
+      const venvPythonPath = join(
+        customExtraVars["IDF_PYTHON_ENV_PATH"],
+        ...pyDir
+      );
+      customExtraVars["PYTHON"] = venvPythonPath;
     }
     await writeParameter(
       "idf.customExtraVars",
