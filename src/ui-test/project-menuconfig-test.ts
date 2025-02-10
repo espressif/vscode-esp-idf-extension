@@ -44,10 +44,10 @@ describe("SDKConfig Editor", () => {
 
   it("find element label text", async () => {
     const element = await view.findWebElement(
-      By.xpath(`.//label[@data-config-id='BOOTLOADER_LOG_LEVEL']`)
+      By.xpath(`.//label[@data-config-id='PTHREAD_TASK_NAME_DEFAULT']`)
     );
     expect(await element.getText()).has.string(
-      "Bootloader log verbosity"
+      "Default name of pthreads"
     );
   });
 
