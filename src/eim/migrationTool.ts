@@ -53,6 +53,8 @@ export async function useCustomExtraVarsAsIdfSetup(
     if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PATH"]) {
       customExtraVars["IDF_PYTHON_ENV_PATH"] =
         process.env["IDF_PYTHON_ENV_PATH"];
+      const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+      customExtraVars["PYTHON"] = pythonBinPath;
     }
     await writeParameter(
       "idf.customExtraVars",
@@ -67,6 +69,7 @@ export async function useCustomExtraVarsAsIdfSetup(
     customExtraVars["IDF_PYTHON_ENV_PATH"]
   ) {
     const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+
     const idfPathVersion = await getEspIdfFromCMake(
       customExtraVars["IDF_PATH"]
     );
