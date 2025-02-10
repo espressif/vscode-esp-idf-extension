@@ -17,24 +17,20 @@
  */
 
 import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
-import {
-  checkIdfSetup,
-  useIdfSetupSettings,
-} from "../setup/setupValidation/espIdfSetup";
 import { readParameter } from "../idfConfiguration";
-import { getIdfMd5sum } from "../setup/espIdfJson";
-import { getEspIdfFromCMake } from "../utils";
-import { IdfSetup } from "../views/setup/types";
-import { getPythonPath, getVirtualEnvPythonPath } from "../pythonManager";
+import { getIdfSetups } from "../eim/getExistingSetups";
+import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
+import {
+  useCustomExtraVarsAsIdfSetup,
+  useExistingSettingsToMakeNewConfig,
+} from "../eim/migrationTool";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const idfSetups = await getPreviousIdfSetups(true);
+  let idfSetups = await getIdfSetups();
   if (idfSetups.length === 0) {
-    await window.showInformationMessage("No ESP-IDF Setups found");
     return;
   }
   const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
@@ -52,7 +48,7 @@ export async function selectIdfSetup(
   if (!selectedIdfSetupOption) {
     return;
   }
-  await useIdfSetupSettings(
+  await saveSettings(
     selectedIdfSetupOption.target,
     ConfigurationTarget.WorkspaceFolder,
     workspaceFolder,
@@ -65,36 +61,28 @@ export async function getCurrentIdfSetup(
   workspaceFolder: Uri,
   logToChannel: boolean = true
 ) {
-  const idfPath = readParameter("idf.espIdfPath", workspaceFolder);
-  const toolsPath = readParameter("idf.toolsPath", workspaceFolder) as string;
-  const gitPath = readParameter("idf.gitPath", workspaceFolder);
-
-  // FIX use system Python path as setting instead venv
-  // REMOVE this line after neext release
-  const sysPythonBinPath = await getPythonPath(workspaceFolder);
-  let pythonBinPath = "";
-  if (sysPythonBinPath) {
-    pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
-  }
-  if (!pythonBinPath) {
-    pythonBinPath = readParameter(
-      "idf.pythonBinPath",
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspaceFolder
+  ) as { [key: string]: string };
+  const idfSetups = await getIdfSetups(logToChannel, false);
+  let currentIdfSetup = idfSetups.find((idfSetup) => {
+    idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
+      idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
+  });
+  if (!currentIdfSetup) {
+    currentIdfSetup = await useCustomExtraVarsAsIdfSetup(
+      customExtraVars,
       workspaceFolder
-    ) as string;
+    );
   }
-
-  const idfSetupId = getIdfMd5sum(idfPath);
-  const idfVersion = await getEspIdfFromCMake(idfPath);
-  const currentIdfSetup: IdfSetup = {
-    id: idfSetupId,
-    idfPath,
-    gitPath,
-    toolsPath,
-    sysPythonPath: sysPythonBinPath,
-    python: pythonBinPath,
-    version: idfVersion,
-    isValid: false,
-  };
+  if (!currentIdfSetup) {
+    // Using implementation before EIM
+    let currentIdfSetup = await useExistingSettingsToMakeNewConfig(
+      workspaceFolder
+    );
+    return currentIdfSetup;
+  }
   currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
   return currentIdfSetup;
 }

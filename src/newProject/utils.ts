@@ -15,12 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { readParameter } from "../idfConfiguration";
 import { readJSON } from "fs-extra";
+import { IdfSetup } from "../eim/types";
+import { getEnvVariables } from "../eim/loadSettings";
+import { readParameter } from "../idfConfiguration";
 import { Uri } from "vscode";
-import { IdfSetup } from "../views/setup/types";
-import { getSystemPythonFromSettings } from "../pythonManager";
 
 export async function setCurrentSettingsInTemplate(
   settingsJsonPath: string,
@@ -30,21 +29,11 @@ export async function setCurrentSettingsInTemplate(
   workspace?: Uri
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
+  const isWin = process.platform === "win32" ? "Win" : "";
+  const customExtraVars = await getEnvVariables(idfSetup);
+  settingsJson["idf.customExtraVars"] = customExtraVars;
   const adfPathDir = readParameter("idf.espAdfPath", workspace);
   const mdfPathDir = readParameter("idf.espMdfPath", workspace);
-  const isWin = process.platform === "win32" ? "Win" : "";
-  if (idfSetup.idfPath) {
-    settingsJson["idf.espIdfPath" + isWin] = idfSetup.idfPath;
-  }
-  if (idfSetup.python) {
-    settingsJson["idf.pythonInstallPath"] = await getSystemPythonFromSettings(
-      idfSetup.python,
-      idfSetup.idfPath,
-      idfSetup.toolsPath
-    );
-  } else {
-    settingsJson["idf.pythonInstallPath"] = idfSetup.sysPythonPath;
-  }
   if (adfPathDir) {
     settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
   }
@@ -59,9 +48,6 @@ export async function setCurrentSettingsInTemplate(
   }
   if (port.indexOf("no port") === -1) {
     settingsJson["idf.port" + isWin] = port;
-  }
-  if (idfSetup.toolsPath) {
-    settingsJson["idf.toolsPath" + isWin] = idfSetup.toolsPath;
   }
   return settingsJson;
 }
