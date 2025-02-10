@@ -50,7 +50,3 @@ jobs:
         with: 
           name: screenshots
           path: /home/runner/work/vscode-esp-idf-extension/vscode-esp-idf-extension/test-resources/screenshots
-      
-      - name: Load debug vscode
-        uses: fawazahmed0/action-debug-vscode@main
-        if: failure()
