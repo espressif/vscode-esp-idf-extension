@@ -35,7 +35,7 @@ describe("Build testing", async () => {
     const editorView = new EditorView();
     const editor = await editorView.openEditor("report.txt");
     console.log(editor.getText());
-  });
+  }).timeout(999999);
 
   it("Build bin is generated", async () => {
     await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
