@@ -30,16 +30,16 @@ describe("Build testing", async () => {
   });
 
   it("Log Doctor command configuration", async () => {
-     await new Promise((res) => setTimeout(res, 3000));
-     await new Workbench().executeCommand("ESP-IDF: Doctor Command");
-     await new Promise((res) => setTimeout(res, 10000));
-     const editorView = new EditorView();
-     const editor = await editorView.openEditor("report.txt");
-     const docCmdText = await editor.getText();
-     console.log(docCmdText);
-   }).timeout(999999);
+    await new Workbench().executeCommand("ESP-IDF: Doctor Command");
+    await new Promise((res) => setTimeout(res, 5000));
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("report.txt");
+    console.log(editor.getText());
+  });
 
   it("Build bin is generated", async () => {
+    await new Workbench().executeCommand("ESP-IDF: Full Clean Project");
+    await new Promise((res) => setTimeout(res, 5000));
     await new Workbench().executeCommand("ESP-IDF: Build your Project");
     await new Promise((res) => setTimeout(res, 5000));
     // get names of all available terminals
