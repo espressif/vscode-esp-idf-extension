@@ -53,6 +53,7 @@ export namespace ESP {
 
   export namespace GlobalConfiguration {
     export let store: ExtensionConfigStore;
+    export const IDF_SETUPS = "IDF_SETUPS";
     export const SELECTED_WORKSPACE_FOLDER = "SELECTED_WORKSPACE_FOLDER";
   }
 

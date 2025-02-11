@@ -42,7 +42,7 @@ export async function checkExtensionSettings(
       vscode.commands.executeCommand("espIdf.welcome.start");
       return;
     }
-    const espIdeJsonSelected = await getSelectedEspIdfSetup();
+    const espIdeJsonSelected = await getSelectedEspIdfSetup(workspace);
     if (espIdeJsonSelected && espIdeJsonSelected.isValid) {
       await saveSettings(
         espIdeJsonSelected,

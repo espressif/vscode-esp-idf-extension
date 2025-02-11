@@ -26,6 +26,8 @@ import { IdfSetup } from "./types";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 import { getIdfMd5sum } from "./checkCurrentSettings";
+import { checkIdfSetup } from "./verifySetup";
+import { Logger } from "../logger/logger";
 
 export async function useCustomExtraVarsAsIdfSetup(
   customExtraVars: { [key: string]: string },
@@ -50,7 +52,10 @@ export async function useCustomExtraVarsAsIdfSetup(
         process.env["IDF_TOOLS_PATH"] || defaultToolsPath;
     }
 
-    if (!customExtraVars["IDF_PYTHON_ENV_PATH"] && process.env["IDF_PYTHON_ENV_PATH"]) {
+    if (
+      !customExtraVars["IDF_PYTHON_ENV_PATH"] &&
+      process.env["IDF_PYTHON_ENV_PATH"]
+    ) {
       customExtraVars["IDF_PYTHON_ENV_PATH"] =
         process.env["IDF_PYTHON_ENV_PATH"];
       const pyDir =
@@ -76,6 +81,7 @@ export async function useCustomExtraVarsAsIdfSetup(
     customExtraVars["IDF_PYTHON_ENV_PATH"]
   ) {
     const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    const sysPythonPath = await getSystemPython(workspaceFolder);
 
     const idfPathVersion = await getEspIdfFromCMake(
       customExtraVars["IDF_PATH"]
@@ -90,13 +96,40 @@ export async function useCustomExtraVarsAsIdfSetup(
       gitPath: gitPath,
       version: idfPathVersion,
       toolsPath: customExtraVars["IDF_TOOLS_PATH"],
-      sysPythonPath: "",
+      sysPythonPath: sysPythonPath,
       python: pythonBinPath,
     };
     return currentIdfSetup;
   } else {
     return;
   }
+}
+
+export async function getExtensionGlobalIdfSetups(
+  logToChannel: boolean = true
+) {
+  const setupKeys = ESP.GlobalConfiguration.store.getIdfSetupKeys();
+  const idfSetups: IdfSetup[] = [];
+  for (let idfSetupKey of setupKeys) {
+    let idfSetup = ESP.GlobalConfiguration.store.get<IdfSetup>(
+      idfSetupKey,
+      undefined
+    );
+    if (idfSetup && idfSetup.idfPath) {
+      try {
+        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
+        idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
+        idfSetups.push(idfSetup);
+      } catch (err) {
+        const msg = err.message
+          ? err.message
+          : "Error checkIdfSetup in getExtensionGlobalIdfSetups";
+        Logger.error(msg, err, "getExtensionGlobalIdfSetups");
+        ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id);
+      }
+    }
+  }
+  return idfSetups;
 }
 
 export async function useExistingSettingsToMakeNewConfig(workspaceFolder: Uri) {
