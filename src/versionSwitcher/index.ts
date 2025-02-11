@@ -29,7 +29,7 @@ export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  let idfSetups = await getIdfSetups();
+  let idfSetups = await getIdfSetups(workspaceFolder);
   if (idfSetups.length === 0) {
     return;
   }
@@ -69,7 +69,7 @@ export async function getCurrentIdfSetup(
     "idf.customExtraVars",
     workspaceFolder
   ) as { [key: string]: string };
-  const idfSetups = await getIdfSetups(logToChannel, false);
+  const idfSetups = await getIdfSetups(workspaceFolder, logToChannel, false);
   let currentIdfSetup = idfSetups.find((idfSetup) => {
     idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
       idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
