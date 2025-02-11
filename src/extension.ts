@@ -2043,7 +2043,7 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-    let idfSetups = await getIdfSetups(true, false);
+    let idfSetups = await getIdfSetups(workspaceRoot, true, false);
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
     const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
@@ -3711,7 +3711,7 @@ async function getFrameworksPickItems() {
     idfSetup: IdfSetup;
   }[] = [];
   try {
-    const idfSetups = await getIdfSetups(true, false);
+    const idfSetups = await getIdfSetups(workspaceRoot, true, false);
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
     let setupsToUse = [...idfSetups, currentIdfSetup];
     setupsToUse = setupsToUse.filter(
