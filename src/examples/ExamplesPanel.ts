@@ -123,7 +123,7 @@ export class ExamplesPlanel {
               );
               await this.setCurrentSettingsInTemplate(
                 settingsJsonPath,
-                idfSetup,
+                idfSetup
               );
               vscode.commands.executeCommand("vscode.openFolder", projectPath);
             } catch (error) {
