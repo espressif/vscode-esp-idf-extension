@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import * as path from "path";
 import {
   env,
   StatusBarAlignment,
@@ -31,6 +32,7 @@ import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { pathExists } from "fs-extra";
 
 export const statusBarItems: { [key: string]: StatusBarItem } = {};
 
@@ -65,6 +67,12 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
+  let projectConfPath = path.join(
+    workspaceFolder.fsPath,
+    ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
+  );
+  let projectConfExists = await pathExists(projectConfPath);
+
   let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
 
   statusBarItems["workspace"] = createStatusBarItem(
@@ -119,16 +127,31 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }
   }
 
-  if (projectConf) {
-    statusBarItems["projectConf"] = createStatusBarItem(
-      `$(${
-        commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-      }) ${projectConf}`,
-      commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-      CommandKeys.SelectProjectConfiguration,
-      99,
-      commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-    );
+  if (projectConfExists) {
+    if (!projectConf) {
+      let statusBarItemName = "Invalid Path";
+      let statusBarItemTooltip =
+        "Invalid configuration path. Click to modify project configuration";
+      statusBarItems["projectConf"] = createStatusBarItem(
+        `$(${
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        }) ${statusBarItemName}`,
+        statusBarItemTooltip,
+        "espIdf.projectConfigurationEditor",
+        99,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
+      );
+    } else {
+      statusBarItems["projectConf"] = createStatusBarItem(
+        `$(${
+          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
+        }) ${projectConf}`,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
+        CommandKeys.SelectProjectConfiguration,
+        99,
+        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
+      );
+    }
   }
 
   statusBarItems["target"] = createStatusBarItem(
