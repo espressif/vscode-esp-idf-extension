@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import * as path from "path";
 import { ExtensionContext, Uri } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
@@ -61,10 +62,20 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
   await Promise.all(
     Object.keys(projectConfJson).map(async (elem) => {
       const buildConfig = projectConfJson[elem].build;
-      const buildDirPath = buildConfig?.buildDirectoryPath
-        ? Uri.joinPath(workspaceFolder, buildConfig.buildDirectoryPath).fsPath
-        : buildConfig?.buildDirectoryPath;
+      let buildDirPath: string;
 
+      const userBuildDir = buildConfig?.buildDirectoryPath;
+      if (userBuildDir) {
+        // Check if the path is absolute
+        if (path.isAbsolute(userBuildDir)) {
+          buildDirPath = userBuildDir;
+        } else {
+          // Resolve relative path against workspace
+          buildDirPath = Uri.joinPath(workspaceFolder, userBuildDir).fsPath;
+        }
+      }
+
+      // Ensure directory is created for the resolved path
       if (buildDirPath) {
         await ensureDir(buildDirPath);
       }
@@ -74,13 +85,14 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
           compileArgs: buildConfig?.compileArgs,
           ninjaArgs: buildConfig?.ninjaArgs,
           buildDirectoryPath: buildDirPath,
-          sdkconfigDefaults: buildConfig?.sdkconfigDefaults?.map(
-            (path) => Uri.joinPath(workspaceFolder, path).fsPath
-          ),
-          sdkconfigFilePath: buildConfig?.sdkconfigFilePath
-            ? Uri.joinPath(workspaceFolder, buildConfig.sdkconfigFilePath)
-                .fsPath
-            : buildConfig?.sdkconfigFilePath,
+          sdkconfigDefaults: (await pathExists(buildConfig?.sdkconfigDefaults))
+            ? buildConfig?.sdkconfigDefaults
+            : Uri.joinPath(workspaceFolder, buildConfig?.sdkconfigDefaults)
+                .fsPath,
+          sdkconfigFilePath: (await pathExists(buildConfig?.sdkconfigFilePath))
+            ? buildConfig?.sdkconfigFilePath
+            : Uri.joinPath(workspaceFolder, buildConfig.sdkconfigFilePath)
+                .fsPath,
         },
         env: projectConfJson[elem].env,
         flashBaudRate: projectConfJson[elem].flashBaudRate,
