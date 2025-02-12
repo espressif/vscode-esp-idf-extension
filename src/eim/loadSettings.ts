@@ -17,8 +17,7 @@
  */
 
 import { EOL } from "os";
-import { OutputChannel } from "../logger/outputChannel";
-import { execChildProcess } from "../utils";
+import { spawn } from "../utils";
 import { IdfSetup } from "./types";
 import { getEnvVarsFromIdfTools } from "../pythonManager";
 import { IdfToolsManager } from "../idfToolsManager";
@@ -53,25 +52,24 @@ export async function getEnvVariablesFromActivationScript(
             "-ExecutionPolicy",
             "Bypass",
             "-NoProfile",
-            activationScriptPath,
+            `'${activationScriptPath.replace(/'/g, "''")}'`,
             "-e",
           ]
-        : [activationScriptPath, "-e"];
+        : [`"${activationScriptPath}"`, "-e"];
     const shellPath =
       process.platform === "win32"
         ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
         : "/bin/sh";
-    const envVarsOutput = await execChildProcess(
+    const envVarsOutput = await spawn(
       shellPath,
       args,
-      process.cwd(),
-      logToChannel ? OutputChannel.init() : undefined,
       {
         maxBuffer: 500 * 1024,
         cwd: process.cwd(),
+        shell: shellPath
       }
     );
-    const envVars = envVarsOutput.split(EOL);
+    const envVars = envVarsOutput.toString().trim().split(EOL);
     let envDict: { [key: string]: string } = {};
     for (const envVar of envVars) {
       let keyIndex = envVar.indexOf("=");

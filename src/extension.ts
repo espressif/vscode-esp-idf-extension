@@ -3958,29 +3958,26 @@ async function createEspIdfTerminal(
   location?: vscode.TerminalLocation
 ): Promise<vscode.Terminal> {
   const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
+  const shellExecutableArgs = idfConf.readParameter(
+    "idf.customTerminalExecutableArgs",
+    workspaceRoot
+  ) as string[];
   let shellArgs = [];
   if (process.platform === "win32") {
-    if (
-      vscode.env.shell.indexOf("powershell") !== -1 ||
-      vscode.env.shell.indexOf("pwsh") !== -1
-    ) {
-      shellArgs = ["-ExecutionPolicy", "Bypass"];
-    }
+    shellArgs = ["-ExecutionPolicy", "Bypass"];
+  } else if (shellExecutableArgs && shellExecutableArgs.length) {
+    shellArgs = shellExecutableArgs;
   }
   let shellExecutablePath = idfConf.readParameter(
     "idf.customTerminalExecutable",
     workspaceRoot
   ) as string;
-  const shellExecutableArgs = idfConf.readParameter(
-    "idf.customTerminalExecutableArgs",
-    workspaceRoot
-  ) as string[];
-  if (!shellExecutablePath) {
-    shellExecutablePath = vscode.env.shell;
-  }
-  if (shellExecutableArgs && shellExecutableArgs.length) {
-    shellArgs = shellExecutableArgs;
-  }
+  const shellPath =
+    process.platform === "win32"
+      ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+      : shellExecutablePath
+      ? shellExecutablePath
+      : vscode.env.shell;
 
   const espIdfTerminal = vscode.window.createTerminal({
     name: terminalName,
@@ -3988,23 +3985,24 @@ async function createEspIdfTerminal(
     cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
     strictEnv: true,
     shellArgs,
-    shellPath: shellExecutablePath,
+    shellPath,
     location,
   });
 
+  const currentSetup = await getCurrentIdfSetup(workspaceRoot);
+  const activationScriptPathExists = await pathExists(
+    currentSetup.activationScript
+  );
+
   if (process.platform === "win32") {
-    if (shellExecutablePath.indexOf("cmd.exe") !== -1) {
-      espIdfTerminal.sendText(
-        `call "${path.join(extensionPath, "export.bat")}"`
-      );
-    } else if (
-      shellExecutablePath.indexOf("powershell") !== -1 ||
-      shellExecutablePath.indexOf("pwsh") !== -1
-    ) {
-      espIdfTerminal.sendText(
-        `& '${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
-      );
-    }
+    const activationScriptPath = activationScriptPathExists
+      ? currentSetup.activationScript
+      : path.join(extensionPath, "export.ps1");
+    espIdfTerminal.sendText(`& '${activationScriptPath.replace(/'/g, "''")}'`);
+  } else if (activationScriptPathExists) {
+    espIdfTerminal.sendText(
+      `. '${currentSetup.activationScript.replace(/'/g, "''")}'`
+    );
   }
 
   if (initialCommand) {
