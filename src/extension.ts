@@ -4050,25 +4050,27 @@ function createIdfTerminal(extensionPath: string) {
         shellArgs = ["-ExecutionPolicy", "Bypass"];
       }
     }
+    const shellPath =
+      process.platform === "win32"
+        ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        : vscode.env.shell;
     const espIdfTerminal = vscode.window.createTerminal({
       name: "ESP-IDF Terminal",
       env: modifiedEnv,
       cwd: workspaceRoot.fsPath || modifiedEnv.IDF_PATH || process.cwd(),
       strictEnv: true,
       shellArgs,
-      shellPath: vscode.env.shell,
+      shellPath: shellPath,
     });
+    const currentSetup = await getCurrentIdfSetup(workspaceRoot);
+    const activationScriptPathExists = await pathExists(
+      currentSetup.activationScript
+    );
+    const activationScriptPath = activationScriptPathExists
+      ? currentSetup.activationScript
+      : path.join(extensionPath, "export.ps1");
     if (process.platform === "win32") {
-      if (vscode.env.shell.indexOf("cmd.exe") !== -1) {
-        espIdfTerminal.sendText(`"${path.join(extensionPath, "export.bat")}"`);
-      } else if (
-        vscode.env.shell.indexOf("powershell") !== -1 ||
-        vscode.env.shell.indexOf("pwsh") !== -1
-      ) {
-        espIdfTerminal.sendText(
-          `'${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
-        );
-      }
+      espIdfTerminal.sendText(`'${activationScriptPath.replace(/'/g, "''")}'`);
     }
     espIdfTerminal.show();
   });
