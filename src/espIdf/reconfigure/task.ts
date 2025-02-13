@@ -74,7 +74,7 @@ export class IdfReconfigureTask {
 
     const sdkconfigFile = await getSDKConfigFilePath(this.curWorkspace);
     if (reconfigureArgs.indexOf("SDKCONFIG") === -1) {
-      reconfigureArgs.push(`-DSDKCONFIG=${sdkconfigFile}`);
+      reconfigureArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
     }
 
     const sdkconfigDefaults =

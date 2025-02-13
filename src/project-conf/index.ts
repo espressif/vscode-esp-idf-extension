@@ -17,7 +17,7 @@
  */
 
 import * as path from "path";
-import { ExtensionContext, Uri } from "vscode";
+import { ExtensionContext, Uri, StatusBarItem } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
@@ -63,36 +63,31 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
     Object.keys(projectConfJson).map(async (elem) => {
       const buildConfig = projectConfJson[elem].build;
       let buildDirPath: string;
-
       const userBuildDir = buildConfig?.buildDirectoryPath;
       if (userBuildDir) {
-        // Check if the path is absolute
-        if (path.isAbsolute(userBuildDir)) {
-          buildDirPath = userBuildDir;
-        } else {
-          // Resolve relative path against workspace
-          buildDirPath = Uri.joinPath(workspaceFolder, userBuildDir).fsPath;
-        }
+        buildDirPath = (await resolveConfigPaths(
+          workspaceFolder,
+          userBuildDir
+        )) as string;
       }
 
       // Ensure directory is created for the resolved path
       if (buildDirPath) {
         await ensureDir(buildDirPath);
       }
-
       projectConfElements[elem] = {
         build: {
           compileArgs: buildConfig?.compileArgs,
           ninjaArgs: buildConfig?.ninjaArgs,
           buildDirectoryPath: buildDirPath,
-          sdkconfigDefaults: (await pathExists(buildConfig?.sdkconfigDefaults))
-            ? buildConfig?.sdkconfigDefaults
-            : Uri.joinPath(workspaceFolder, buildConfig?.sdkconfigDefaults)
-                .fsPath,
-          sdkconfigFilePath: (await pathExists(buildConfig?.sdkconfigFilePath))
-            ? buildConfig?.sdkconfigFilePath
-            : Uri.joinPath(workspaceFolder, buildConfig.sdkconfigFilePath)
-                .fsPath,
+          sdkconfigDefaults: (await resolveConfigPaths(
+            workspaceFolder,
+            buildConfig?.sdkconfigDefaults
+          )) as string[],
+          sdkconfigFilePath: (await resolveConfigPaths(
+            workspaceFolder,
+            buildConfig?.sdkconfigFilePath
+          )) as string,
         },
         env: projectConfJson[elem].env,
         flashBaudRate: projectConfJson[elem].flashBaudRate,
@@ -125,4 +120,31 @@ export async function saveProjectConfFile(
   await writeJson(projectConfFilePath.fsPath, projectConfElements, {
     spaces: 2,
   });
+}
+
+/**
+ * Resolves config paths to absolute paths if relative, preserves if already absolute.
+ * Handles both single path string or array of paths.
+ */
+async function resolveConfigPaths(
+  workspaceFolder: Uri,
+  paths?: string | string[]
+): Promise<string | string[]> {
+  if (!paths) return undefined;
+
+  if (Array.isArray(paths)) {
+    return Promise.all(
+      paths.map(async (configPath) => {
+        if (path.isAbsolute(configPath)) {
+          return configPath;
+        }
+        return Uri.joinPath(workspaceFolder, configPath).fsPath;
+      })
+    );
+  }
+
+  if (path.isAbsolute(paths)) {
+    return paths;
+  }
+  return Uri.joinPath(workspaceFolder, paths).fsPath;
 }
