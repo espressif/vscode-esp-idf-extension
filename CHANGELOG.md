@@ -8,6 +8,25 @@
 
 All notable changes to the "Espressif IDF" extension will be documented in this file.
 
+## [1.9.1](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.9.1)
+
+### Bug Fixes
+
+- [Add missing doc links](https://github.com/espressif/vscode-esp-idf-extension/pull/1389)
+- [use IDF_TARGET in customExtraVars if no sdkconfig](https://github.com/espressif/vscode-esp-idf-extension/pull/1385)
+- [rm wmic use pwsh GetWmiObject](https://github.com/espressif/vscode-esp-idf-extension/pull/1365)
+- [rm powershell no profile arg idf terminal](https://github.com/espressif/vscode-esp-idf-extension/pull/1388)
+- [Fix # issue in windows idf terminal](https://github.com/espressif/vscode-esp-idf-extension/pull/1381)
+- [Update test case regex](https://github.com/espressif/vscode-esp-idf-extension/pull/1377)
+- [Remove efuse validation for jtag](https://github.com/espressif/vscode-esp-idf-extension/pull/1382)
+- [Fix version switch persist system python idfSetup](https://github.com/espressif/vscode-esp-idf-extension/pull/1384)
+- [Get supported QEMU targets from tools.json](https://github.com/espressif/vscode-esp-idf-extension/pull/1405)
+- [Resolve folder in code workspace file launch configuration](https://github.com/espressif/vscode-esp-idf-extension/pull/1397)
+- [Add --make arg in IDF Monitor to fix terminal cmds](https://github.com/espressif/vscode-esp-idf-extension/pull/1403)
+- [Remove port validation for JTAG flash type, fix openOCD timing bug ](https://github.com/espressif/vscode-esp-idf-extension/pull/1413)
+- [Debug Chinese documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1376), [Docker container Chinese documentation](https://github.com/espressif/vscode-esp-idf-extension/pull/1390) and other documents translations.
+
+
 ## [1.9.0](https://github.com/espressif/vscode-esp-idf-extension/releases/tag/v1.9.0)
 
 ### Bug Fixes
