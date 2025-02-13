@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 6th May 2021 2:29:08 pm
  * Copyright 2021 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,19 +35,30 @@ export async function jtagFlashCommand(workspace: Uri) {
     OutputChannel.appendLineAndShow(errStr, "Flash");
     return Logger.warnNotify(errStr);
   }
-  FlashTask.isFlashing = true;
   const host = readParameter("openocd.tcl.host", workspace);
   const port = readParameter("openocd.tcl.port", workspace);
   const client = new TCLClient({ host, port });
+
+  // Add verification step before flashing
+  let isReady = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    isReady = await client.verifyOpenOCDReady();
+    if (isReady) break;
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  if (!isReady) {
+    const errStr = "OpenOCD is not ready to accept commands. Please try again.";
+    OutputChannel.appendLineAndShow(errStr, "JTAG Flash");
+    return Logger.warnNotify(errStr);
+  }
+
+  FlashTask.isFlashing = true;
   const jtag = new JTAGFlash(client);
   const forceUNIXPathSeparator = readParameter(
     "openocd.jtag.command.force_unix_path_separator",
     workspace
   );
-  let buildPath = readParameter(
-    "idf.buildPath",
-    workspace
-  ) as string;
+  let buildPath = readParameter("idf.buildPath", workspace) as string;
   const customTask = new CustomTask(workspace);
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
@@ -70,8 +81,7 @@ export async function jtagFlashCommand(workspace: Uri) {
   } catch (msg) {
     OpenOCDManager.init().showOutputChannel(true);
     OutputChannel.appendLine(msg, "Flash");
-    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"),
-    "jtagFlashCommand");
+    Logger.errorNotify(msg, new Error("JTAG_FLASH_FAILED"), "jtagFlashCommand");
     continueFlag = false;
   }
   FlashTask.isFlashing = false;
