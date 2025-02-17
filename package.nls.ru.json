@@ -136,7 +136,7 @@
 	"param.notificationMode.notification": "Показывать уведомления, но не фокусировать вывод задач",
 	"param.notificationMode.output": "Не показывать уведомления, но сфокусировать вывод задач",
 	"param.notificationMode.silent": "Не показывать уведомления и не фокусировать вывод задач",
-	"param.openOcdConfigFilesList": "Список конфигурационных файлов внутри каталога скриптов OpenOCD",
+	"param.openOcdConfigFilesList": "Список файлов конфигурации в каталоге скриптов OpenOCD",
 	"param.openOcdDebugLevel": "Уровень отладки сервера OpenOCD",
 	"param.openOcdLaunchArgs": "Аргументы запуска openOCD из этого расширения",
 	"param.partialDarkTheme": "Цвет фона для частично покрытых линий в темной теме для покрытия ESP-IDF",
