@@ -101,8 +101,7 @@ These settings are specific to the ESP32 Chip/Board.
     * - **idf.port**
       - Path of selected device port
     * - **idf.monitorPort**
-      - | Optional Path of selected device port for monitor. No value by default.
-      - | If undefined, will use **idf.port** instead as monitor port.
+      - Optional Path of selected device port for monitor. If undefined, will use **idf.port** instead as monitor port.
     * - **idf.portWin**
       - Path of selected device port in Windows
     * - **idf.enableSerialPortChipIdRequest**
