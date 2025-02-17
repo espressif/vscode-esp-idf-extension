@@ -80,7 +80,7 @@
   "Already logged-in, please sign-out first": "Вы уже вошли в систему, пожалуйста, сначала выйдите из системы",
   "ESP-IDF: Please wait checking with Rainmaker Cloud": "ESP-IDF: Пожалуйста, подождите, идёт проверка Rainmaker Cloud",
   "Failed to login with Rainmaker Cloud, double check your id and password": "Не удалось войти в Rainmaker Cloud. Проверьте свой идентификатор и пароль",
-  "Would you like to unlink your ESP Rainmaker cloud account?": "Хотите отсоединить свою учетную запись в ESP Rainmaker Cloud?",
+  "Would you like to unlink your ESP Rainmaker cloud account?": "Хотите отсоединить свою учетную запись в ESP Rainmaker cloud?",
   "Would you like to delete this node from your ESP Rainmaker account?": "Хотите удалить этот узел из своей учетной записи ESP Rainmaker?",
   "ESP-IDF: Deleting node from your rainmaker account": "ESP-IDF: удаление узла из вашей учетной записи Rainmaker",
   "Failed to delete node, maybe the node is already marked for delete, please try again after sometime": "Не удалось удалить узел. Возможно, узел уже помечен для удаления, пожалуйста, повторите попытку через некоторое время",
