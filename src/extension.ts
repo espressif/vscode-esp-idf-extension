@@ -427,6 +427,21 @@ export async function activate(context: vscode.ExtensionContext) {
                   commandDictionary[CommandKeys.SelectSerialPort].iconId
                 }) ` + idfConf.readParameter("idf.port", workspaceRoot);
             }
+            const monitorPort = idfConf.readParameter(
+              "idf.monitorPort",
+              workspaceRoot
+            );
+            if (statusBarItems && statusBarItems["monitorPort"]) {
+              if (monitorPort === "") {
+                statusBarItems["monitorPort"].hide();
+                statusBarItems["monitorPort"].text = "";
+              } else {
+                statusBarItems["monitorPort"].show();
+                statusBarItems["monitorPort"].text = `$(${
+                  commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
+                }) ${monitorPort}`;
+              }
+            }
             if (statusBarItems["projectConf"]) {
               statusBarItems["projectConf"].dispose();
               statusBarItems["projectConf"] = undefined;
@@ -899,7 +914,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerIDFCommand("espIdf.selectPort", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
-      SerialPort.shared().promptUserToSelect(workspaceRoot)
+      SerialPort.shared().promptUserToSelect(workspaceRoot, false)
+    );
+  });
+
+  registerIDFCommand("espIdf.selectMonitorPort", () => {
+    PreCheck.perform([webIdeCheck, openFolderCheck], async () =>
+      SerialPort.shared().promptUserToSelect(workspaceRoot, true)
     );
   });
 
@@ -991,6 +1012,22 @@ export async function activate(context: vscode.ExtensionContext) {
             `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
             idfConf.readParameter("idf.port", workspaceRoot);
         }
+        const monitorPort = idfConf.readParameter(
+          "idf.monitorPort",
+          workspaceRoot
+        );
+        if (statusBarItems && statusBarItems["monitorPort"]) {
+          if (monitorPort === "") {
+            statusBarItems["monitorPort"].hide();
+            statusBarItems["monitorPort"].text = "";
+          } else {
+            statusBarItems["monitorPort"].show();
+            statusBarItems["monitorPort"].text = `$(${
+              commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
+            }) ${monitorPort}`;
+          }
+        }
+
         updateIdfComponentsTree(workspaceRoot);
         const workspaceFolderInfo = {
           clickCommand: "espIdf.pickAWorkspaceFolder",
@@ -1238,6 +1275,22 @@ export async function activate(context: vscode.ExtensionContext) {
         statusBarItems["port"].text =
           `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ` +
           idfConf.readParameter("idf.port", workspaceRoot);
+      }
+    } else if (e.affectsConfiguration("idf.monitorPort")) {
+      const monitorPort = idfConf.readParameter(
+        "idf.monitorPort",
+        workspaceRoot
+      );
+      if (statusBarItems && statusBarItems["monitorPort"]) {
+        if (monitorPort === "") {
+          statusBarItems["monitorPort"].hide();
+          statusBarItems["monitorPort"].text = "";
+        } else {
+          statusBarItems["monitorPort"].show();
+          statusBarItems["monitorPort"].text = `$(${
+            commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
+          }) ${monitorPort}`;
+        }
       }
     } else if (e.affectsConfiguration("idf.flashType")) {
       let flashType = idfConf.readParameter(
@@ -3092,7 +3145,13 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform(
       [idfVersionCheck, webIdeCheck, openFolderCheck],
       async () => {
-        const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
+        const monitorPort = idfConf.readParameter(
+          "idf.monitorPort",
+          workspaceRoot
+        ) as string;
+        const port = monitorPort
+          ? monitorPort
+          : (idfConf.readParameter("idf.port", workspaceRoot) as string);
         if (!port) {
           try {
             await vscode.commands.executeCommand("espIdf.selectPort");
