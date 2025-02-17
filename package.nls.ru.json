@@ -91,7 +91,7 @@
 	"esp_idf.debuggers.text.description": "Команда для выполнения",
 	"esp_idf.gdbinitFile.description": "Путь к файлу gdbinit для Адаптера Отладки ESP-IDF",
 	"esp_idf.initGdbCommands.description": "Одна или несколько команд GDB, которые необходимо выполнить для настройки базового отладчика.  Пример: \"initGdbCommands\": [\"target remote /dev/ttyUSB0\"]",
-	"esp_idf.tmoScaleFactor.description": "Масштабный коэффициент для тайм-аута GDB [по умолчанию:1]",
+	"esp_idf.tmoScaleFactor.description": "Коэффициент масштабирования для тайм-аута GDB [по умолчанию:1]",
 	"esp_idf.verifyAppBinBeforeDebug.description": "Проверка бинарников приложения перед отладкой",
 	"espIdf.searchError.title": "ESP-IDF: Поиск подсказок об ошибках",
 	"idf.flashType.description": "Метод прошивки устройства, UART или JTAG",
