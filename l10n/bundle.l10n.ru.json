@@ -21,7 +21,7 @@
   "ESP-Matter is not available for Windows.": "ESP-Matter недоступен для Windows.",
   "Pick Workspace Folder to which settings should be applied": "Выберите папку рабочей области, к которой следует применить настройки",
   "Enter ESP_MATTER_DEVICE_PATH path": "Введите путь ESP_MATTER_DEVICE_PATH",
-  "ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.": "ESP_MATTER_DEVICE_PATH был задан в настройках конфигурации idf.customExtraVars.",
+  "ESP_MATTER_DEVICE_PATH has been set in idf.customExtraVars configuration setting.": "ESP_MATTER_DEVICE_PATH установлен в настройках конфигурации idf.customExtraVars.",
   "Select your current folder": "Выберите текущую папку",
   "No workspace selected.": "Рабочая область не выбрана.",
   "Show no notifications and do not focus tasks output.": "Не показывать уведомления и не фокусировать вывод задач.",
