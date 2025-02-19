@@ -126,21 +126,19 @@ export async function saveProjectConfFile(
  * Resolves config paths to absolute paths if relative, preserves if already absolute.
  * Handles both single path string or array of paths.
  */
-async function resolveConfigPaths(
+function resolveConfigPaths(
   workspaceFolder: Uri,
   paths?: string | string[]
-): Promise<string | string[]> {
+): string | string[] {
   if (!paths) return undefined;
 
   if (Array.isArray(paths)) {
-    return Promise.all(
-      paths.map(async (configPath) => {
-        if (path.isAbsolute(configPath)) {
-          return configPath;
-        }
-        return Uri.joinPath(workspaceFolder, configPath).fsPath;
-      })
-    );
+    return paths.map((configPath) => {
+      if (path.isAbsolute(configPath)) {
+        return configPath;
+      }
+      return Uri.joinPath(workspaceFolder, configPath).fsPath;
+    });
   }
 
   if (path.isAbsolute(paths)) {
