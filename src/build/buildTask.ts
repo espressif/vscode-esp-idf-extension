@@ -31,6 +31,7 @@ import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { ESP } from "../config";
 
 export class BuildTask {
   public static isBuilding: boolean;
@@ -64,7 +65,7 @@ export class BuildTask {
     }
   }
 
-  public async build() {
+  public async build(buildType?: ESP.BuildType) {
     try {
       await this.saveBeforeBuild();
     } catch (error) {
@@ -204,6 +205,9 @@ export class BuildTask {
       (idfConf.readParameter("idf.ninjaArgs", this.currentWorkspace) as Array<
         string
       >) || [];
+    if (buildType && buildArgs.indexOf(buildType) === -1) {
+      buildArgs.push(buildType);
+    }
     const ninjaCommand = "ninja";
     const buildExecution = new vscode.ProcessExecution(
       ninjaCommand,

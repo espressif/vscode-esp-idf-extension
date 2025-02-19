@@ -1304,6 +1304,36 @@
         "category": "ESP-IDF"
       },
       {
+        "command": "espIdf.buildApp",
+        "title": "Build App",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashAppUart",
+        "title": "Flash App only",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.buildBootloader",
+        "title": "Build Bootloader",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashBootloaderUart",
+        "title": "Flash Bootloader Only",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.buildPartitionTable",
+        "title": "Build Partition Table",
+        "category": "ESP-IDF"
+      },
+      {
+        "command": "espIdf.flashPartitionTableUart",
+        "title": "Flash Partition Table Only",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.flashDevice",
         "title": "%espIdf.flashDevice.title%",
         "category": "ESP-IDF"

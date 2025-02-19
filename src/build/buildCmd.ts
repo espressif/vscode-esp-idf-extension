@@ -34,7 +34,8 @@ import { OutputChannel } from "../logger/outputChannel";
 export async function buildCommand(
   workspace: vscode.Uri,
   cancelToken: vscode.CancellationToken,
-  flashType: ESP.FlashType
+  flashType: ESP.FlashType,
+  buildType?: ESP.BuildType
 ) {
   let continueFlag = true;
   const buildTask = new BuildTask(workspace);
@@ -57,13 +58,13 @@ export async function buildCommand(
   });
   try {
     await customTask.addCustomTask(CustomTaskType.PreBuild);
-    await buildTask.build();
+    await buildTask.build(buildType);
     await TaskManager.runTasks();
     const enableSizeTask = (await readParameter(
       "idf.enableSizeTaskAfterBuildTask",
       workspace
     )) as boolean;
-    if (enableSizeTask) {
+    if (enableSizeTask && typeof buildType === undefined) {
       const sizeTask = new IdfSizeTask(workspace);
       await sizeTask.getSizeInfo();
     }

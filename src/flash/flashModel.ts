@@ -20,6 +20,8 @@
 export interface FlashModel {
   after: string;
   app: FlashSection;
+  bootloader: FlashSection;
+  partitionTable: FlashSection;
   baudRate: string;
   before: string;
   chip: string;
