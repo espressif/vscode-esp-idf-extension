@@ -88,11 +88,15 @@ export class PartitionTreeDataProvider
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {
-            label: `Use sdkconfig offset`,
+            label: `Use current project partition table file`,
+            target: "project",
+          },
+          {
+            label: `Read from current serial port using sdkconfig partition table offset`,
             target: "sdkconfig",
           },
           {
-            label: `Specify partition table offset`,
+            label: `Read from current serial port using custom partition table offset`,
             target: "custom",
           },
         ],
@@ -122,8 +126,8 @@ export class PartitionTreeDataProvider
         }
       }
 
-      ensureDir(join(workspace.fsPath, "partition_table"));
-      const partTableBin = join(
+      await ensureDir(join(workspace.fsPath, "partition_table"));
+      let partTableBin = join(
         workspace.fsPath,
         "partition_table",
         "partitionTable.bin"
@@ -149,37 +153,39 @@ export class PartitionTreeDataProvider
         "gen_esp32part.py"
       );
 
-      await spawn(
-        pythonBinPath,
-        [
-          esptoolPath,
-          "-p",
-          serialPort,
-          "read_flash",
-          partitionTableOffset,
-          this.PARTITION_TABLE_SIZE,
-          partTableBin,
-        ],
-        {
-          cwd: workspace.fsPath,
-          env: modifiedEnv,
-        }
-      );
+      if (partitionTableOffsetOption.target.indexOf("project") === -1) {
+        await spawn(
+          pythonBinPath,
+          [
+            esptoolPath,
+            "-p",
+            serialPort,
+            "read_flash",
+            partitionTableOffset,
+            this.PARTITION_TABLE_SIZE,
+            partTableBin,
+          ],
+          {
+            cwd: workspace.fsPath,
+            env: modifiedEnv,
+          }
+        );
+      } else {
+        const buildPath = readParameter("idf.buildPath", workspace);
+        partTableBin = join(buildPath, "partition_table", "partition-table.bin");
+      }
 
-      await spawn(
-        pythonBinPath,
-        [
-          genEsp32PartPath,
-          "-o",
-          partitionTableOffset,
-          partTableBin,
-          partTableCsv,
-        ],
-        {
-          cwd: workspace.fsPath,
-          env: modifiedEnv,
-        }
-      );
+      const genEsp32Args = [genEsp32PartPath];
+
+      if (partitionTableOffset) {
+        genEsp32Args.push("-o", partitionTableOffset);
+      }
+      genEsp32Args.push(partTableBin, partTableCsv);
+
+      await spawn(pythonBinPath, genEsp32Args, {
+        cwd: workspace.fsPath,
+        env: modifiedEnv,
+      });
       const csvData = await readFile(partTableCsv);
       let csvItems = CSV2JSON<PartitionItem>(csvData.toString());
       this.partitionItems = this.createPartitionItemNode(csvItems);

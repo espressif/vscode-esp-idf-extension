@@ -34,6 +34,12 @@ export namespace ESP {
       "esp_idf_project_configuration.json";
   }
 
+  export enum BuildType {
+    App = "app",
+    Bootloader = "bootloader",
+    PartitionTable = "partition-table",
+  }
+
   export enum FlashType {
     JTAG = "JTAG",
     UART = "UART",
