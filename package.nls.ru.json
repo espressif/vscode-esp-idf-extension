@@ -121,7 +121,7 @@
 	"param.espMatterPath": "Путь до фреймворка ESP-Matter (ESP_MATTER_PATH)",
 	"param.espMdfPath": "Путь до фреймворка ESP-MDF (MDF_PATH)",
 	"param.espRainmakerPath": "Путь до фреймворка ESP-Rainmaker (RMAKER_PATH)",
-	"param.exportVars": "Переменные, которые будут добавлены к переменным системного окружения",
+	"param.exportVars": "Переменные, добавляемые к переменным системного окружения",
 	"param.flashBaudRate": "Скорость прошивки ESP-IDF",
 	"param.gitPath.title": "Путь к исполняемому файлу Git",
 	"param.launchMonitorOnDebugSession.title": "Запуск монитора IDF вместе с сессией Адаптера Отладки ESP-IDF",
