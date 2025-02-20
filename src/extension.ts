@@ -131,17 +131,13 @@ import { PeripheralTreeView } from "./espIdf/debugAdapter/peripheralTreeView";
 import { PeripheralBaseNode } from "./espIdf/debugAdapter/nodes/base";
 import { ExtensionConfigStore } from "./common/store";
 import { projectConfigurationPanel } from "./project-conf/projectConfPanel";
-import {
-  getProjectConfigurationElements,
-  ProjectConfigStore,
-} from "./project-conf";
+import { ProjectConfigStore } from "./project-conf";
 import {
   clearPreviousIdfSetups,
   getPreviousIdfSetups,
   loadIdfSetupsFromEspIdfJson,
 } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
-import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
 import { UnitTest } from "./espIdf/unitTest/adapter";
 import {
   buildFlashTestApp,
@@ -174,6 +170,7 @@ import {
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
 import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
+import { readPartition } from "./espIdf/partition-table/partitionReader";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2623,6 +2620,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const partitionAction = await vscode.window.showQuickPick(
           [
             {
+              label: vscode.l10n.t("Read partition from device"),
+              target: "readPartition",
+            },
+            {
               label: vscode.l10n.t(`Flash binary to this partition`),
               target: "flashBinaryToPartition",
             },
@@ -2652,6 +2653,13 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             );
           }
+        } else if (partitionAction.target === "readPartition") {
+          await readPartition(
+            partitionNode.name,
+            partitionNode.offset,
+            partitionNode.size,
+            workspaceRoot
+          );
         }
       });
     }
