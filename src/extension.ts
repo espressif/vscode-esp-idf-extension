@@ -173,6 +173,7 @@ import {
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
+import { readPartition } from "./espIdf/partition-table/partitionReader";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -2672,6 +2673,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const partitionAction = await vscode.window.showQuickPick(
           [
             {
+              label: vscode.l10n.t("Read partition from device"),
+              target: "readPartition",
+            },
+            {
               label: vscode.l10n.t(`Flash binary to this partition`),
               target: "flashBinaryToPartition",
             },
@@ -2701,6 +2706,13 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             );
           }
+        } else if (partitionAction.target === "readPartition") {
+          await readPartition(
+            partitionNode.name,
+            partitionNode.offset,
+            partitionNode.size,
+            workspaceRoot
+          );
         }
       });
     }
