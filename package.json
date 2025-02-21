@@ -409,6 +409,11 @@
           "when": "view == idfPartitionExplorer"
         },
         {
+          "command": "esp.webview.open.partition-table",
+          "group": "navigation@2",
+          "when": "view == idfPartitionExplorer"
+        },
+        {
           "command": "espIdf.apptrace.customize",
           "when": "view == idfAppTracer"
         },
@@ -1541,7 +1546,8 @@
       },
       {
         "command": "esp.webview.open.partition-table",
-        "title": "%esp.webview.open.partition-table.title%"
+        "title": "%esp.webview.open.partition-table.title%",
+        "icon": "$(output)"
       },
       {
         "command": "espIdf.jtag_flash",

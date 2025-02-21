@@ -2627,19 +2627,13 @@ export async function activate(context: vscode.ExtensionContext) {
               label: vscode.l10n.t(`Flash binary to this partition`),
               target: "flashBinaryToPartition",
             },
-            {
-              label: vscode.l10n.t("Open partition table editor"),
-              target: "openPartitionTableEditor",
-            },
           ],
           { placeHolder: vscode.l10n.t("Select an action to use") }
         );
         if (!partitionAction) {
           return;
         }
-        if (partitionAction.target === "openPartitionTableEditor") {
-          vscode.commands.executeCommand("esp.webview.open.partition-table");
-        } else if (partitionAction.target === "flashBinaryToPartition") {
+        if (partitionAction.target === "flashBinaryToPartition") {
           const selectedFile = await vscode.window.showOpenDialog({
             canSelectFolders: false,
             canSelectFiles: true,
