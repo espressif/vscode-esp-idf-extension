@@ -88,34 +88,37 @@ export async function readPartition(
 
 export function parsePartitionSize(size: string): string {
   // Regular expression to match the size pattern (e.g., 24K, 1M)
-  const regex = /^(\d+)([KMGT]?B?)$/i;
+  const regex = /^(\d+)([KM]?)$/i;
   const match = size.match(regex);
 
   if (!match) {
     throw new Error('Invalid size format');
   }
-
-  // Extract the numeric value and the unit
   const value = parseInt(match[1], 10);
   const unit = match[2].toUpperCase();
 
   // Define the multiplier based on the unit
   const multipliers: { [key: string]: number } = {
     'K': 1024,
-    'KB': 1024,
     'M': 1024 ** 2,
-    'MB': 1024 ** 2,
-    'G': 1024 ** 3,
-    'GB': 1024 ** 3,
-    'T': 1024 ** 4,
-    'TB': 1024 ** 4,
     '': 1, // No unit defaults to bytes
-    'B': 1 // Byte unit
   };
 
-  // Calculate the size in bytes
   const bytes = value * (multipliers[unit] || 1);
 
   // Convert to hexadecimal string prefixed with '0x'
   return '0x' + bytes.toString(16).toUpperCase();
+}
+
+export function formatAsPartitionSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) {
+    // For megabytes, divide by (1024*1024) and remove any trailing zeros if not needed.
+    const mb = bytes / (1024 * 1024);
+    return `${Math.ceil(mb)}M`;
+  } else if (bytes >= 1024) {
+    const kb = bytes / 1024;
+    return `${Math.ceil(kb)}K`;
+  } else {
+    return bytes.toString();
+  }
 }
