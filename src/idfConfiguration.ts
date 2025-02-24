@@ -86,7 +86,7 @@ export function parameterToProjectConfigMap(param: string) {
     case "idf.postBuildTask":
       return currentProjectConf.tasks.postBuild;
     case "idf.preFlashTask":
-      return currentProjectConf.tasks.preBuild;
+      return currentProjectConf.tasks.preFlash;
     case "idf.postFlashTask":
       return currentProjectConf.tasks.postFlash;
     case "idf.sdkconfigFilePath":
