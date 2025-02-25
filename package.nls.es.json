@@ -99,6 +99,7 @@
 	"openocd.tcl.host.description": "Host para conexión tcl de Openocd",
 	"openocd.tcl.port.description": "Puerto para conexión tcl de Openocd",
 	"param.adapterTargetName": "Nombre de destino para Adaptador de Depuración ESP-IDF",
+	"openocd.jtag.command.force_unix_path_separator.description": "Forced to use \"/\" instead of \"\\\\\" as path separator for Win32 based OS",
 	"param.buildPath": "Nombre del directorio de construcción de CMake",
 	"param.cmakeCompilerArgs": "Argumentos para tarea de compilación de CMake",
 	"param.coveredDarkTheme": "Color de fondo para líneas cubiertas en tema oscuro para Cobertura de ESP-IDF.",
