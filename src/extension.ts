@@ -172,6 +172,7 @@ import {
   IDFWebCommandKeys,
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
+import { readPartition } from "./espIdf/partition-table/partitionReader";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1829,6 +1830,28 @@ export async function activate(context: vscode.ExtensionContext) {
   registerIDFCommand("espIdf.buildFlashMonitor", buildFlashAndMonitor);
   registerIDFCommand("espIdf.monitorQemu", createQemuMonitor);
 
+  registerIDFCommand("espIdf.buildApp", () =>
+    build(undefined, ESP.BuildType.App)
+  );
+  registerIDFCommand("espIdf.flashAppUart", async () => {
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.App);
+  });
+  registerIDFCommand("espIdf.buildBootloader", () =>
+    build(undefined, ESP.BuildType.Bootloader)
+  );
+  registerIDFCommand("espIdf.flashBootloaderUart", async () => {
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.Bootloader);
+  });
+  registerIDFCommand("espIdf.buildPartitionTable", () =>
+    build(undefined, ESP.BuildType.PartitionTable)
+  );
+  registerIDFCommand("espIdf.flashPartitionTableUart", async () => {
+    const isEncrypted = await isFlashEncryptionEnabled(workspaceRoot);
+    return flash(isEncrypted, ESP.FlashType.UART, ESP.BuildType.PartitionTable);
+  });
+
   registerIDFCommand("espIdf.menuconfig.start", async () => {
     PreCheck.perform([openFolderCheck], () => {
       try {
@@ -2649,12 +2672,12 @@ export async function activate(context: vscode.ExtensionContext) {
         const partitionAction = await vscode.window.showQuickPick(
           [
             {
-              label: vscode.l10n.t(`Flash binary to this partition`),
-              target: "flashBinaryToPartition",
+              label: vscode.l10n.t("Read partition from device"),
+              target: "readPartition",
             },
             {
-              label: vscode.l10n.t("Open partition table editor"),
-              target: "openPartitionTableEditor",
+              label: vscode.l10n.t(`Flash binary to this partition`),
+              target: "flashBinaryToPartition",
             },
           ],
           { placeHolder: vscode.l10n.t("Select an action to use") }
@@ -2662,9 +2685,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (!partitionAction) {
           return;
         }
-        if (partitionAction.target === "openPartitionTableEditor") {
-          vscode.commands.executeCommand("esp.webview.open.partition-table");
-        } else if (partitionAction.target === "flashBinaryToPartition") {
+        if (partitionAction.target === "flashBinaryToPartition") {
           const selectedFile = await vscode.window.showOpenDialog({
             canSelectFolders: false,
             canSelectFiles: true,
@@ -2678,6 +2699,13 @@ export async function activate(context: vscode.ExtensionContext) {
               workspaceRoot
             );
           }
+        } else if (partitionAction.target === "readPartition") {
+          await readPartition(
+            partitionNode.name,
+            partitionNode.offset,
+            partitionNode.size,
+            workspaceRoot
+          );
         }
       });
     }
@@ -3961,7 +3989,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
   );
 }
 
-const build = (flashType?: ESP.FlashType) => {
+const build = (flashType?: ESP.FlashType, buildType?: ESP.BuildType) => {
   PreCheck.perform([openFolderCheck], async () => {
     const notificationMode = idfConf.readParameter(
       "idf.notificationMode",
@@ -3988,14 +4016,15 @@ const build = (flashType?: ESP.FlashType) => {
             workspaceRoot
           ) as ESP.FlashType;
         }
-        await buildCommand(workspaceRoot, cancelToken, flashType);
+        await buildCommand(workspaceRoot, cancelToken, flashType, buildType);
       }
     );
   });
 };
 const flash = (
   encryptPartitions: boolean = false,
-  flashType?: ESP.FlashType
+  flashType?: ESP.FlashType,
+  partitionToUse?: ESP.BuildType
 ) => {
   PreCheck.perform([openFolderCheck], async () => {
     // Re route to ESP-IDF Web extension if using Codespaces or Browser
@@ -4028,7 +4057,14 @@ const flash = (
             workspaceRoot
           ) as ESP.FlashType;
         }
-        if (await startFlashing(cancelToken, flashType, encryptPartitions)) {
+        if (
+          await startFlashing(
+            cancelToken,
+            flashType,
+            encryptPartitions,
+            partitionToUse
+          )
+        ) {
           OutputChannel.appendLine(
             "Flash has finished. You can monitor your device with 'ESP-IDF: Monitor command'"
           );
@@ -4197,7 +4233,8 @@ async function selectFlashMethod() {
 async function startFlashing(
   cancelToken: vscode.CancellationToken,
   flashType: ESP.FlashType,
-  encryptPartitions: boolean
+  encryptPartitions: boolean,
+  partitionToUse?: ESP.BuildType
 ) {
   if (!flashType) {
     flashType = await selectFlashMethod();
@@ -4263,7 +4300,8 @@ async function startFlashing(
       port,
       workspaceRoot,
       flashType,
-      encryptPartitions
+      encryptPartitions,
+      partitionToUse
     );
   }
 }
