@@ -63,4 +63,12 @@ export class ExtensionConfigStore {
   public updateIdfSetupKeys(setupKeys: string[]) {
     this.ctx.globalState.update(ESP.GlobalConfiguration.IDF_SETUPS, setupKeys);
   }
+
+  public clearPreviousIdfSetups() {
+    const setupKeys = this.getIdfSetupKeys();
+    for (let idfSetupKey of setupKeys) {
+      this.clear(idfSetupKey);
+    }
+    this.clear(ESP.GlobalConfiguration.IDF_SETUPS);
+  }
 }
