@@ -317,7 +317,7 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         <tr>
             <td rowspan=8 align="center">Additional frameworks</td>
             <td>Install ESP-ADF</td>
-            <td>Clone ESP-ADF inside the selected directory and set <strong>idf.espAdfPath</strong> (<strong>idf.espAdfPathWin</strong> in Windows) configuration setting.</td>
+            <td>Clone ESP-ADF inside the selected directory and set ADF_PATH in <strong>idf.customExtraVars</strong> configuration setting.</td>
             <td></td>
             <td></td>
         </tr>
@@ -336,13 +336,13 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Install ESP-MDF</td>
-            <td>Clone ESP-MDF inside the selected directory and set <strong>idf.espMdfPath</strong> (<strong>idf.espMdfPathWin</strong> in Windows) configuration setting.</td>
+            <td>Clone ESP-MDF inside the selected directory and set MDF_PATH in <strong>idf.customExtraVars</strong> configuration setting.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Install ESP-Matter</td>
-            <td>Clone ESP-Matter and set <strong>idf.espMatterPath</strong>. ESP-Matter is not supported in Windows. Make sure to install <a href="https://github.com/espressif/connectedhomeip/blob/v1.1-branch/docs/guides/BUILDING.md#prerequisites">Matter system prerequisites</a> first.</td>
+            <td>Clone ESP-Matter and set ESP_MATTER_PATH in <strong>idf.customExtraVars</strong>. ESP-Matter is not supported in Windows. Make sure to install <a href="https://github.com/espressif/connectedhomeip/blob/v1.1-branch/docs/guides/BUILDING.md#prerequisites">Matter system prerequisites</a> first.</td>
             <td></td>
             <td></td>
         </tr>
@@ -354,13 +354,13 @@ Press <kbd>F1</kbd> or click menu `View` -> `Command Palette...` to show Visual 
         </tr>
         <tr>
             <td>Install ESP-Rainmaker</td>
-            <td>Clone ESP-Rainmaker and set <strong>idf.espRainmakerPath</strong> (<strong>idf.espRainmakerPathWin</strong> in Windows) configuration setting.</td>
+            <td>Clone ESP-Rainmaker and set RMAKER_PATH in <strong>idf.customExtraVars</strong>.</td>
             <td></td>
             <td></td>
         </tr>
         <tr>
             <td>Install ESP-HomeKit-SDK</td>
-            <td>Clone ESP-HomeKit-SDK inside the selected directory and set <strong>idf.espHomeKitSdkPath</strong> (<strong>idf.espHomeKitSdkPathWin</strong> in Windows) configuration setting.</td>
+            <td>Clone ESP-HomeKit-SDK inside the selected directory and set HOMEKIT_PATH in <strong>idf.customExtraVars</strong> configuration setting.</td>
             <td></td>
             <td></td>
         </tr>

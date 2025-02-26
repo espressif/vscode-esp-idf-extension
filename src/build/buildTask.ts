@@ -22,7 +22,6 @@ import { Logger } from "../logger/logger";
 import * as vscode from "vscode";
 import * as idfConf from "../idfConfiguration";
 import {
-  appendIdfAndToolsToPath,
   getEspIdfFromCMake,
   getSDKConfigFilePath,
   isBinInPath,
@@ -31,6 +30,7 @@ import { TaskManager } from "../taskManager";
 import { selectedDFUAdapterId } from "../flash/dfu";
 import { getVirtualEnvPythonPath } from "../pythonManager";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { configureEnvVariables } from "../common/prepareEnv";
 import { ESP } from "../config";
 
 export class BuildTask {
@@ -41,11 +41,10 @@ export class BuildTask {
 
   constructor(workspaceUri: vscode.Uri) {
     this.currentWorkspace = workspaceUri;
-    const customExtraVars = idfConf.readParameter(
-      "idf.customExtraVars",
-      workspaceUri
-    ) as { [key: string]: string };
-    this.idfPathDir = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    this.idfPathDir = currentEnvVars["IDF_PATH"];
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",
       workspaceUri
@@ -80,7 +79,7 @@ export class BuildTask {
     }
     this.building(true);
     await ensureDir(this.buildDirPath);
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,
@@ -261,8 +260,8 @@ export class BuildTask {
       "--pid",
       selectedDFUAdapterId(adapterTargetName).toString(),
     ];
-    const pythonBinPath = await getVirtualEnvPythonPath(this.currentWorkspace);
-    const modifiedEnv = await appendIdfAndToolsToPath(this.currentWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
+    const modifiedEnv = await configureEnvVariables(this.currentWorkspace);
     const processOptions = {
       cwd: this.buildDirPath,
       env: modifiedEnv,

@@ -31,9 +31,10 @@ import { TaskManager } from "../../taskManager";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { join } from "path";
-import { appendIdfAndToolsToPath } from "../../utils";
 import { pathExists } from "fs-extra";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
+import { ESP } from "../../config";
 
 export async function saveDefSdkconfig(
   workspaceFolder: Uri,
@@ -45,11 +46,10 @@ export async function saveDefSdkconfig(
       TaskManager.disposeListeners();
     });
   }
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
   const notificationMode = readParameter(
     "idf.notificationMode",
     workspaceFolder
@@ -96,12 +96,12 @@ export async function getSaveDefConfigExecution(
   wsFolder: Uri
 ) {
   const saveDefConfArgs = [join(idfPath, "tools", "idf.py"), "save-defconfig"];
-  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await configureEnvVariables(wsFolder);
   const options: ProcessExecutionOptions = {
     cwd: wsFolder.fsPath,
     env: modifiedEnv,
   };
-  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath();
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(

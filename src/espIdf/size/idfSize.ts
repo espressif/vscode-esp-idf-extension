@@ -24,6 +24,7 @@ import { fileExists, spawn } from "../../utils";
 import { getProjectName } from "../../workspaceConfig";
 import * as utils from "../../utils";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { ESP } from "../../config";
 
 export class IDFSize {
   private readonly workspaceFolderUri: vscode.Uri;
@@ -103,11 +104,10 @@ export class IDFSize {
   }
 
   private idfPath(): string {
-    const customExtraVars = idfConf.readParameter(
-      "idf.customExtraVars",
-      this.workspaceFolderUri
-    ) as { [key: string]: string };
-    const idfPathDir = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    const idfPathDir = currentEnvVars["IDF_PATH"];
     return path.join(idfPathDir, "tools");
   }
 
@@ -118,9 +118,7 @@ export class IDFSize {
   private async idfCommandInvoker(args: string[]) {
     const idfPath = this.idfPath();
     try {
-      const pythonBinPath = await getVirtualEnvPythonPath(
-        this.workspaceFolderUri
-      );
+      const pythonBinPath = await getVirtualEnvPythonPath();
       const buffOut = await spawn(pythonBinPath, args, {
         cwd: idfPath,
       });

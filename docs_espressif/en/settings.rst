@@ -273,20 +273,6 @@ These settings support additional frameworks together with ESP-IDF:
 
     * - Setting ID
       - Description
-    * - **idf.espAdfPath**
-      - Path to locate ESP-ADF framework (ADF_PATH)
-    * - **idf.espAdfPathWin**
-      - Path to locate ESP-ADF framework in Windows (ADF_PATH)
-    * - **idf.espMdfPath**
-      - Path to locate ESP-MDF framework (MDF_PATH)
-    * - **idf.espMdfPathWin**
-      - Path to locate ESP-MDF framework in Windows (MDF_PATH)
-    * - **idf.espMatterPath**
-      - Path to locate ESP-Matter framework (ESP_MATTER_PATH)
-    * - **idf.espRainmakerPath**
-      - Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH)
-    * - **idf.espRainmakerPathWin**
-      - Path to locate ESP-Rainmaker framework in Windows (RMAKER_PATH)
     * - **idf.sbomFilePath**
       - Path to create ESP-IDF SBOM report
 

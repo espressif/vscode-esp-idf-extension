@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import { join } from "path";
-import { getEnvVarsFromIdfTools } from "../pythonManager";
 import { reportObj } from "./types";
 import { Uri, workspace } from "vscode";
+import { ESP } from "../config";
 
 export async function getConfigurationSettings(
   reportedResult: reportObj,
@@ -30,39 +30,37 @@ export async function getConfigurationSettings(
     ? scope.fsPath
     : "No workspace folder is open";
 
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+
   const customExtraVars = conf.get("idf.customExtraVars") as {
     [key: string]: string;
   };
-  const idfPathDir = customExtraVars["IDF_PATH"] || process.env.IDF_PATH;
+  const idfPathDir = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
   const idfToolsPath =
-    customExtraVars["IDF_TOOLS_PATH"] || process.env.IDF_TOOLS_PATH;
+  currentEnvVars["IDF_TOOLS_PATH"] || process.env.IDF_TOOLS_PATH;
 
   const pyDir =
     process.platform === "win32"
       ? ["Scripts", "python.exe"]
       : ["bin", "python3"];
   const idfPythonEnvPath =
-      customExtraVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
+  currentEnvVars["IDF_PYTHON_ENV_PATH"] || process.env.IDF_PYTHON_ENV_PATH;
   const venvPythonPath = join(idfPythonEnvPath, ...pyDir);
 
-  const idfToolsExportVars = await getEnvVarsFromIdfTools(
-    idfPathDir,
-    idfToolsPath,
-    venvPythonPath
-  );
-
   reportedResult.configurationSettings = {
-    espAdfPath: conf.get("idf.espAdfPath" + winFlag),
+    espAdfPath: customExtraVars["ADF_PATH"],
     espIdfPath: idfPathDir,
-    espMdfPath: conf.get("idf.espMdfPath" + winFlag),
-    espMatterPath: conf.get("idf.espMatterPath"),
-    espHomeKitPath: conf.get("idf.espHomeKitSdkPath" + winFlag),
+    espMdfPath: customExtraVars["MDF_PATH"],
+    espMatterPath: customExtraVars["ESP_MATTER_PATH"],
+    espHomeKitPath: customExtraVars["HOMEKIT_PATH"],
     customTerminalExecutable: conf.get("idf.customTerminalExecutable"),
     customTerminalExecutableArgs: conf.get("idf.customTerminalExecutableArgs"),
     flashType: conf.get("idf.flashType"),
     flashPartitionToUse: conf.get("idf.flashPartitionToUse"),
-    customExtraPaths: customExtraVars["PATH"],
-    idfExtraVars: idfToolsExportVars,
+    customExtraPaths: currentEnvVars["PATH"],
+    idfExtraVars: currentEnvVars,
     userExtraVars: customExtraVars,
     notificationMode: conf.get("idf.notificationMode"),
     pythonBinPath: venvPythonPath,

@@ -17,11 +17,10 @@ import { CancellationToken, Uri } from "vscode";
 import * as utils from "./utils";
 import { constants } from "fs-extra";
 import { Logger } from "./logger/logger";
-import { delimiter, dirname, join, sep } from "path";
+import { join } from "path";
 import { OutputChannel } from "./logger/outputChannel";
-import { readParameter } from "./idfConfiguration";
 import { EOL } from "os";
-import { computeVirtualEnvPythonPath } from "./eim/migrationTool";
+import { ESP } from "./config";
 
 export async function installEspIdfToolFromIdf(
   espDir: string,
@@ -113,7 +112,7 @@ export async function installEspMatterPyReqs(
     Object.assign({}, process.env)
   );
   const opts = { env: modifiedEnv, cwd: workspaceFolder.fsPath };
-  const virtualEnvPython = await getVirtualEnvPythonPath(workspaceFolder);
+  const virtualEnvPython = await getVirtualEnvPythonPath();
 
   const reqDoesNotExists = " doesn't exist. Make sure the path is correct.";
   const matterRequirements = join(espMatterDir, "requirements.txt");
@@ -170,23 +169,21 @@ export async function execProcessWithLog(
   }
 }
 
-export async function getVirtualEnvPythonPath(workspaceFolder: Uri) {
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  if (customExtraVars["IDF_PYTHON_ENV_PATH"]) {
+export async function getVirtualEnvPythonPath() {
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
     const pyDir =
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
         : ["bin", "python3"];
     const venvPythonPath = join(
-      customExtraVars["IDF_PYTHON_ENV_PATH"],
+      currentEnvVars["IDF_PYTHON_ENV_PATH"],
       ...pyDir
     );
     return venvPythonPath;
   }
-  return computeVirtualEnvPythonPath(workspaceFolder);
 }
 
 export async function checkPythonExists(pythonBin: string, workingDir: string) {

@@ -139,14 +139,6 @@ suite("Doctor Command tests", () => {
       vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
     );
     assert.equal(
-      reportObj.configurationSettings.espAdfPath,
-      settingsJsonObj["idf.espAdfPath"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.espMdfPath,
-      settingsJsonObj["idf.espMdfPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
     );
@@ -245,17 +237,17 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
-    expectedOutput += `ESP-ADF Path (idf.espAdfPath) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
+    expectedOutput += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
-    expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
-    expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
-    expectedOutput += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
+    expectedOutput += `ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
+    expectedOutput += `ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
+    expectedOutput += `ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
     expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
     if (
       reportObj.configurationSettings.idfExtraVars &&
       Object.keys(reportObj.configurationSettings.idfExtraVars)
     ) {
-      expectedOutput += `ESP-IDF extra vars${os.EOL}`;
+      expectedOutput += `ESP-IDF Project Setup Variables${os.EOL}`;
       for (let key in reportObj.configurationSettings.idfExtraVars) {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.idfExtraVars[key]}${os.EOL}`;
       }

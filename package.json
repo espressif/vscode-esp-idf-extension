@@ -611,58 +611,10 @@
             "description": "%param.eimIdfJsonPath%",
             "scope": "application"
           },
-          "idf.espAdfPath": {
+          "idf.currentSetup": {
             "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMdfPath": {
-            "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMatterPath": {
-            "type": "string",
-            "default": "${env:ESP_MATTER_PATH}",
-            "description": "%param.espMatterPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPath": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPath": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espAdfPathWin": {
-            "type": "string",
-            "default": "${env:ADF_PATH}",
-            "description": "%param.espAdfPath%",
-            "scope": "resource"
-          },
-          "idf.espMdfPathWin": {
-            "type": "string",
-            "default": "${env:MDF_PATH}",
-            "description": "%param.espMdfPath%",
-            "scope": "resource"
-          },
-          "idf.espRainmakerPathWin": {
-            "type": "string",
-            "default": "${env:RMAKER_PATH}",
-            "description": "%param.espRainmakerPath%",
-            "scope": "resource"
-          },
-          "idf.espHomeKitSdkPathWin": {
-            "type": "string",
-            "default": "${env:HOMEKIT_PATH}",
-            "description": "%param.espHomeKitSdkPath%",
+            "default": "",
+            "description": "%param.currentSetup%",
             "scope": "resource"
           },
           "idf.port": {

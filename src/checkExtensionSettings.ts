@@ -19,7 +19,6 @@ import * as vscode from "vscode";
 import { Logger } from "./logger/logger";
 import { getEspIdfFromCMake } from "./utils";
 import { readParameter } from "./idfConfiguration";
-import { getSelectedEspIdfSetup } from "./eim/getExistingSetups";
 import { checkIdfSetup, saveSettings } from "./eim/verifySetup";
 import { IdfSetup } from "./eim/types";
 import { join } from "path";
@@ -37,19 +36,9 @@ export async function checkExtensionSettings(
     workspace
   ) as boolean;
   try {
-    const isExtensionConfigured = await isCurrentInstallValid(workspace);
+    const isExtensionConfigured = await isCurrentInstallValid();
     if (showWelcomePage && isExtensionConfigured) {
       vscode.commands.executeCommand("espIdf.welcome.start");
-      return;
-    }
-    const espIdeJsonSelected = await getSelectedEspIdfSetup(workspace);
-    if (espIdeJsonSelected && espIdeJsonSelected.isValid) {
-      await saveSettings(
-        espIdeJsonSelected,
-        vscode.ConfigurationTarget.WorkspaceFolder,
-        workspace,
-        espIdfStatusBar
-      );
       return;
     }
   } catch (error) {
@@ -120,12 +109,7 @@ export async function checkExtensionSettings(
       return;
     }
 
-    await saveSettings(
-      containerIdfSetup,
-      vscode.ConfigurationTarget.WorkspaceFolder,
-      workspace,
-      espIdfStatusBar
-    );
+    await saveSettings(containerIdfSetup, workspace, espIdfStatusBar);
     return;
   }
 }

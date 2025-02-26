@@ -23,6 +23,7 @@ import * as idfConf from "../../../idfConfiguration";
 import { canAccessFile, execChildProcess } from "../../../utils";
 import { OutputChannel } from "../../../logger/outputChannel";
 import { getVirtualEnvPythonPath } from "../../../pythonManager";
+import { ESP } from "../../../config";
 
 export class NVSPartitionTable {
   private static currentPanel: NVSPartitionTable;
@@ -142,13 +143,12 @@ export class NVSPartitionTable {
     partitionSize: string
   ) {
     try {
-      const customExtraVars = idfConf.readParameter(
-        "idf.customExtraVars",
-        this.workspaceFolder
-      ) as { [key: string]: string };
-      const idfPathDir = customExtraVars["IDF_PATH"];
+      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+        [key: string]: string;
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      const idfPathDir = currentEnvVars["IDF_PATH"];
 
-      const pythonBinPath = await getVirtualEnvPythonPath(this.workspaceFolder);
+      const pythonBinPath = await getVirtualEnvPythonPath();
       const dirPath = dirname(this.filePath);
       const fileName = basename(this.filePath);
       const resultName = fileName.replace(".csv", ".bin");

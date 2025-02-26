@@ -32,10 +32,11 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { statusBarItems } from "../statusBar";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
-import { getVirtualEnvPythonPath } from "../pythonManager";
+import { configureEnvVariables } from "../common/prepareEnv";
 import { join } from "path";
+import { getVirtualEnvPythonPath } from "../pythonManager";
 
 export enum QemuLaunchMode {
   Debug,
@@ -172,7 +173,7 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder);
     const qemuExecutableDict = await this.getQemuExecutable(
       modifiedEnv.IDF_PATH
     );
@@ -212,7 +213,7 @@ export class QemuManager extends EventEmitter {
         }
       });
     }
-    const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     this.qemuTerminal.sendText(`${pythonBinPath} ${qemuArgs.join(" ")}`);
     this.qemuTerminal.show(true);
     this.updateStatusText("❇️ ESP-IDF: QEMU Server (Running)");

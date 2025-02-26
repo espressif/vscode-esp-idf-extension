@@ -67,7 +67,7 @@ export async function createNewIdfMonitor(
       "createNewIdfMonitor select a serial port"
     );
   }
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath();
   if (!utils.canAccessFile(pythonBinPath, R_OK)) {
     Logger.errorNotify(
       "Python binary path is not defined",
@@ -75,11 +75,10 @@ export async function createNewIdfMonitor(
       "createNewIdfMonitor pythonBinPath not defined"
     );
   }
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
   let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(
     workspaceFolder

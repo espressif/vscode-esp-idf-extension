@@ -41,6 +41,7 @@ import { getIdfTargetFromSdkconfig, getProjectName } from "./workspaceConfig";
 import { OutputChannel } from "./logger/outputChannel";
 import { ESP } from "./config";
 import * as sanitizedHtml from "sanitize-html";
+import { configureEnvVariables } from "./common/prepareEnv";
 
 const currentFolderMsg = vscode.l10n.t("ESP-IDF: Current Project");
 
@@ -267,7 +268,7 @@ export async function createGitignoreFile(destinationDir: vscode.Uri) {
 export async function setCCppPropertiesJsonCompilerPath(
   curWorkspaceFsPath: vscode.Uri
 ) {
-  const modifiedEnv = await appendIdfAndToolsToPath(curWorkspaceFsPath);
+  const modifiedEnv = await configureEnvVariables(curWorkspaceFsPath);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, "gcc");
   const compilerAbsolutePath = await isBinInPath(gccTool, modifiedEnv);
@@ -335,7 +336,7 @@ export async function getToolchainPath(
   workspaceUri: vscode.Uri,
   tool: string = "gcc"
 ) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
+  const modifiedEnv = await configureEnvVariables(workspaceUri);
   const idfTarget = modifiedEnv.IDF_TARGET || "esp32";
   const gccTool = getToolchainToolName(idfTarget, tool);
   try {
@@ -892,7 +893,7 @@ export async function cleanDirtyGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await configureEnvVariables(workingDirUri);
     const resetResult = await execChildProcess(
       gitPath,
       ["reset", "--hard", "--recurse-submodule"],
@@ -918,7 +919,7 @@ export async function fixFileModeGitRepository(
       return;
     }
     const workingDirUri = vscode.Uri.file(workingDir);
-    const modifiedEnv = await appendIdfAndToolsToPath(workingDirUri);
+    const modifiedEnv = await configureEnvVariables(workingDirUri);
     const fixFileModeResult = await execChildProcess(
       gitPath,
       ["config", "--local", "core.fileMode", "false"],
@@ -1004,193 +1005,6 @@ export function validateFileSizeAndChecksum(
       }
     });
   });
-}
-
-export async function appendIdfAndToolsToPath(curWorkspace: vscode.Uri) {
-  const modifiedEnv: { [key: string]: string } = <{ [key: string]: string }>(
-    Object.assign({}, process.env)
-  );
-
-  let pathNameInEnv: string = Object.keys(process.env).find(
-    (k) => k.toUpperCase() == "PATH"
-  );
-
-  const customExtraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    curWorkspace
-  ) as { [key: string]: string };
-  if (customExtraVars) {
-    try {
-      for (const envVar in customExtraVars) {
-        if (envVar && envVar.toUpperCase() !== "PATH") {
-          modifiedEnv[envVar] = customExtraVars[envVar];
-        }
-      }
-    } catch (error) {
-      Logger.errorNotify(
-        "Invalid user environment variables format",
-        error,
-        "appendIdfAndToolsToPath idf.customExtraVars"
-      );
-    }
-  }
-
-  const containerPath =
-    process.platform === "win32" ? modifiedEnv.USERPROFILE : modifiedEnv.HOME;
-  const defaultEspIdfPath = path.join(containerPath, "esp", "esp-idf");
-
-  modifiedEnv.IDF_PATH = modifiedEnv.IDF_PATH || defaultEspIdfPath;
-
-  const adfPathDir = idfConf.readParameter("idf.espAdfPath", curWorkspace);
-  modifiedEnv.ADF_PATH = adfPathDir || modifiedEnv.ADF_PATH;
-
-  const mdfPathDir = idfConf.readParameter("idf.espMdfPath", curWorkspace);
-  modifiedEnv.MDF_PATH = mdfPathDir || modifiedEnv.MDF_PATH;
-
-  const homekitPathDir = idfConf.readParameter(
-    "idf.espHomeKitSdkPath",
-    curWorkspace
-  );
-  modifiedEnv.HOMEKIT_PATH = homekitPathDir || modifiedEnv.HOMEKIT_PATH;
-
-  const rainmakerPathDir = idfConf.readParameter(
-    "idf.espRainmakerPath",
-    curWorkspace
-  );
-  modifiedEnv.RMAKER_PATH = rainmakerPathDir || modifiedEnv.RMAKER_PATH;
-
-  const defaultToolsPath = path.join(containerPath, ".espressif");
-  modifiedEnv.IDF_TOOLS_PATH = modifiedEnv.IDF_TOOLS_PATH || defaultToolsPath;
-  const matterPathDir = idfConf.readParameter(
-    "idf.espMatterPath",
-    curWorkspace
-  ) as string;
-  modifiedEnv.ESP_MATTER_PATH = matterPathDir || modifiedEnv.ESP_MATTER_PATH;
-
-  let pathToPigweed: string;
-
-  if (modifiedEnv.ESP_MATTER_PATH) {
-    pathToPigweed = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "pigweed"
-    );
-    modifiedEnv.ZAP_INSTALL_PATH = path.join(
-      modifiedEnv.ESP_MATTER_PATH,
-      "connectedhomeip",
-      "connectedhomeip",
-      ".environment",
-      "cipd",
-      "packages",
-      "zap"
-    );
-  }
-
-  const gitPath = idfConf.readParameter("idf.gitPath", curWorkspace) as string;
-  let pathToGitDir;
-  if (gitPath && gitPath !== "git") {
-    pathToGitDir = path.dirname(gitPath);
-  }
-
-  if (
-    pathToGitDir &&
-    !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToGitDir)
-  ) {
-    modifiedEnv[pathNameInEnv] += path.delimiter + pathToGitDir;
-  }
-  if (
-    pathToPigweed &&
-    !modifiedEnv[pathNameInEnv].split(path.delimiter).includes(pathToPigweed)
-  ) {
-    modifiedEnv[pathNameInEnv] += path.delimiter + pathToPigweed;
-  }
-  if (customExtraVars["IDF_PYTHON_ENV_PATH"]) {
-    const pyDir = process.platform === "win32" ? "Scripts" : "bin";
-    const venvPyContainer = path.join(
-      customExtraVars["IDF_PYTHON_ENV_PATH"],
-      pyDir
-    );
-    if (
-      modifiedEnv[pathNameInEnv] &&
-      !modifiedEnv[pathNameInEnv].includes(venvPyContainer)
-    ) {
-      modifiedEnv[pathNameInEnv] =
-        venvPyContainer + path.delimiter + modifiedEnv[pathNameInEnv];
-    }
-  }
-  if (
-    modifiedEnv[pathNameInEnv] &&
-    !modifiedEnv[pathNameInEnv].includes(
-      path.join(modifiedEnv.IDF_PATH, "tools")
-    )
-  ) {
-    modifiedEnv[pathNameInEnv] =
-      path.join(modifiedEnv.IDF_PATH, "tools") +
-      path.delimiter +
-      modifiedEnv[pathNameInEnv];
-  }
-
-  if (
-    customExtraVars[pathNameInEnv] &&
-    customExtraVars[pathNameInEnv].length > 0
-  ) {
-    const extraPathsArray = customExtraVars[pathNameInEnv].split(
-      path.delimiter
-    );
-    for (let extraPath of extraPathsArray) {
-      if (
-        modifiedEnv[pathNameInEnv] &&
-        !modifiedEnv[pathNameInEnv].includes(extraPath)
-      ) {
-        modifiedEnv[pathNameInEnv] =
-          extraPath + path.delimiter + modifiedEnv[pathNameInEnv];
-      }
-    }
-  }
-
-  let IDF_ADD_PATHS_EXTRAS = path.join(
-    modifiedEnv.IDF_PATH,
-    "components",
-    "espcoredump"
-  );
-  IDF_ADD_PATHS_EXTRAS = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${path.join(
-    modifiedEnv.IDF_PATH,
-    "components",
-    "partition_table"
-  )}`;
-
-  modifiedEnv[
-    pathNameInEnv
-  ] = `${IDF_ADD_PATHS_EXTRAS}${path.delimiter}${modifiedEnv[pathNameInEnv]}`;
-
-  let idfTarget = await getIdfTargetFromSdkconfig(curWorkspace);
-  if (idfTarget) {
-    modifiedEnv.IDF_TARGET =
-      modifiedEnv.IDF_TARGET || idfTarget || process.env.IDF_TARGET;
-  }
-
-  let enableComponentManager = idfConf.readParameter(
-    "idf.enableIdfComponentManager",
-    curWorkspace
-  ) as boolean;
-
-  if (enableComponentManager) {
-    modifiedEnv.IDF_COMPONENT_MANAGER = "1";
-  }
-
-  let sdkconfigFilePath = idfConf.readParameter(
-    "idf.sdkconfigFilePath",
-    curWorkspace
-  ) as string;
-  if (sdkconfigFilePath) {
-    modifiedEnv.SDKCONFIG = sdkconfigFilePath;
-  }
-
-  return modifiedEnv;
 }
 
 export async function getAllBinPathInEnvPath(

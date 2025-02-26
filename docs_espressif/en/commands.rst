@@ -65,17 +65,17 @@ All commands start with ``ESP-IDF:``.
    * - Import ESP-IDF Project
      - Import an existing ESP-IDF project, add .vscode and .devcontainer files to a new location, and optionally rename the project.
    * - Install ESP-ADF
-     - Clone ESP-ADF inside the selected directory and set **idf.espAdfPath** (**idf.espAdfPathWin** in Windows) configuration setting.
+     - Clone ESP-ADF inside the selected directory and set **ADF_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-IDF Python Packages (DEPRECATION NOTICE)
      - Install extension Python packages. This command is deprecated and will be removed soon.
    * - Install ESP-MDF
-     - Clone ESP-MDF inside the selected directory and set **idf.espMdfPath** (**idf.espMdfPathWin** in Windows) configuration setting.
+     - Clone ESP-MDF inside the selected directory and set **MDF_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-Matter
-     - Clone ESP-Matter and set **idf.espMatterPath**. ESP-Matter is not supported on Windows.
+     - Clone ESP-Matter and set **ESP_MATTER_PATH** in **idf.customExtraVars**. ESP-Matter is not supported on Windows.
    * - Install ESP-Rainmaker
-     - Clone ESP-Rainmaker and set **idf.espRainmakerPath** (**idf.espRainmakerPathWin** in Windows) configuration setting.
+     - Clone ESP-Rainmaker and set **RMAKER_PATH** in **idf.customExtraVars** configuration setting.
    * - Install ESP-HomeKit-SDK
-     - Clone ESP-HomeKit-SDK inside the selected directory and set **idf.espHomeKitSdkPath** (**idf.espHomeKitSdkPathWin** in Windows) configuration setting.
+     - Clone ESP-HomeKit-SDK inside the selected directory and set **HOMEKIT_PATH** in **idf.customExtraVars** configuration setting.
    * - Launch IDF Monitor for Core Dump Mode/GDB Stub Mode
      - Launch ESP-IDF Monitor with WebSocket capabilities. If you have configured the panic handler to gdbstub or core dump, the monitor will launch a post-mortem debug session of the chip.
    * - Launch QEMU Server

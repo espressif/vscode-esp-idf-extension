@@ -23,19 +23,14 @@ import { startPythonReqsProcess } from "../utils";
 import { IdfToolsManager, IEspIdfTool } from "../idfToolsManager";
 import { join } from "path";
 import { ConfigurationTarget, StatusBarItem, Uri } from "vscode";
-import { readParameter, writeParameter } from "../idfConfiguration";
+import { writeParameter } from "../idfConfiguration";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
+import { ESP } from "../config";
 
 export async function checkIdfSetup(idfSetup: IdfSetup, logToChannel = true) {
   try {
-    const activationScriptPathExists = await pathExists(
-      idfSetup.activationScript
-    );
-    let envVars: { [key: string]: string } = await getEnvVariables(
-      idfSetup,
-      logToChannel
-    );
+    let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
     let venvPythonPath: string = "";
     if (idfSetup.python) {
       venvPythonPath = idfSetup.python;
@@ -63,6 +58,9 @@ export async function checkIdfSetup(idfSetup: IdfSetup, logToChannel = true) {
       envVars["IDF_PATH"]
     );
     let toolsInfo: IEspIdfTool[] = [];
+    const activationScriptPathExists = await pathExists(
+      idfSetup.activationScript
+    );
     if (!activationScriptPathExists) {
       const exportedToolsPaths = await idfToolsManager.exportPathsInString(
         join(idfSetup.toolsPath, "tools"),
@@ -135,34 +133,25 @@ export async function checkPyVenv(pyVenvPath: string, espIdfPath: string) {
 
 export async function saveSettings(
   setupConf: IdfSetup,
-  saveScope: ConfigurationTarget,
   workspaceFolderUri: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  const confTarget =
-    saveScope || (readParameter("idf.saveScope") as ConfigurationTarget);
-  let workspaceFolder: Uri;
-  if (confTarget === ConfigurationTarget.WorkspaceFolder) {
-    workspaceFolder = workspaceFolderUri;
-  }
-
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-
-  const idfEnvVars = await getEnvVariables(setupConf, true);
-  for (const envVar in idfEnvVars) {
-    customExtraVars[envVar] = idfEnvVars[envVar];
-  }
-  if (setupConf.python) {
-    customExtraVars["PYTHON"] = setupConf.python;
-  }
   await writeParameter(
-    "idf.customExtraVars",
-    customExtraVars,
-    confTarget,
-    workspaceFolder
+    "idf.currentSetup",
+    setupConf.idfPath,
+    ConfigurationTarget.WorkspaceFolder,
+    workspaceFolderUri
+  );
+
+  const envVars = await getEnvVariables(setupConf);
+
+  if (setupConf.python) {
+    envVars["PYTHON"] = setupConf.python;
+  }
+
+  ESP.ProjectConfiguration.store.set(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION,
+    envVars
   );
   await writeParameter(
     "idf.gitPath",

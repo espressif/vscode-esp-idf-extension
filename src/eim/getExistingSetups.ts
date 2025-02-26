@@ -20,79 +20,16 @@ import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
-import { commands, l10n, Uri, window } from "vscode";
+import { commands, l10n, window } from "vscode";
 import { EspIdfJson, IdfSetup } from "./types";
 import { checkIdfSetup } from "./verifySetup";
-import { getExtensionGlobalIdfSetups, getSystemPython } from "./migrationTool";
-
-export async function getSelectedEspIdfSetup(
-  workspaceFolder: Uri,
-  logToChannel: boolean = true
-) {
-  const espIdfJson = await getEimIdfJson();
-
-  if (espIdfJson && espIdfJson.idfSelectedId && espIdfJson.idfInstalled) {
-    const selectIDF = espIdfJson.idfInstalled.find((idfSetup) => {
-      return idfSetup.id === espIdfJson.idfSelectedId;
-    });
-
-    if (!selectIDF) {
-      const selectIdfNotFound = new Error(
-        "idfSelectedId doesn't exist in idfInstalled"
-      );
-      Logger.error(
-        selectIdfNotFound.message,
-        selectIdfNotFound,
-        "getSelectedEspIdfSetup"
-      );
-    }
-
-    const sysPythonPath = await getSystemPython(workspaceFolder);
-
-    const idfSetup: IdfSetup = {
-      activationScript: selectIDF.activationScript,
-      id: selectIDF.id,
-      idfPath: selectIDF.path,
-      isValid: false,
-      gitPath: espIdfJson.gitPath,
-      version: selectIDF.name,
-      toolsPath: selectIDF.idfToolsPath,
-      python: selectIDF.python,
-      sysPythonPath: sysPythonPath,
-    } as IdfSetup;
-    try {
-      const isValid = await checkIdfSetup(idfSetup, logToChannel);
-      idfSetup.isValid = isValid;
-    } catch (err) {
-      const msg = err.message
-        ? err.message
-        : "Error checkIdfSetup in getSelectedEspIdfSetup";
-      Logger.error(msg, err, "getSelectedEspIdfSetup");
-    }
-    return idfSetup;
-  }
-}
+import { getExtensionGlobalIdfSetups } from "./migrationTool";
 
 export async function getIdfSetups(
-  workspaceFolder: Uri,
   logToChannel: boolean = true,
   showNoSetupsFound = true
 ) {
-  const setupKeys = await loadIdfSetupsFromEspIdeJson(workspaceFolder);
-  const idfSetups: IdfSetup[] = [];
-  for (let idfSetup of setupKeys) {
-    if (idfSetup && idfSetup.idfPath) {
-      try {
-        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
-        idfSetups.push(idfSetup);
-      } catch (err) {
-        const msg = err.message
-          ? err.message
-          : "Error checkIdfSetup in getIdfSetups";
-        Logger.error(msg, err, "getIdfSetups");
-      }
-    }
-  }
+  const idfSetups = await loadIdfSetupsFromEspIdeJson();
   if (idfSetups.length === 0) {
     const extensionIdfSetups = await getExtensionGlobalIdfSetups(logToChannel);
     if (extensionIdfSetups && extensionIdfSetups.length > 0) {
@@ -111,7 +48,7 @@ export async function getIdfSetups(
   return idfSetups;
 }
 
-export async function loadIdfSetupsFromEspIdeJson(workspaceFolder: Uri) {
+export async function loadIdfSetupsFromEspIdeJson() {
   let idfSetups: IdfSetup[] = [];
   const espIdfJson = await getEimIdfJson();
   if (
@@ -119,7 +56,6 @@ export async function loadIdfSetupsFromEspIdeJson(workspaceFolder: Uri) {
     espIdfJson.idfInstalled &&
     Object.keys(espIdfJson.idfInstalled).length
   ) {
-    const sysPythonPath = await getSystemPython(workspaceFolder);
     for (let idfInstalled of espIdfJson.idfInstalled) {
       let setupConf: IdfSetup = {
         activationScript: idfInstalled.activationScript,
@@ -130,7 +66,7 @@ export async function loadIdfSetupsFromEspIdeJson(workspaceFolder: Uri) {
         version: idfInstalled.name,
         toolsPath: idfInstalled.idfToolsPath,
         python: idfInstalled.python,
-        sysPythonPath: sysPythonPath,
+        sysPythonPath: "",
       } as IdfSetup;
       try {
         setupConf.isValid = await checkIdfSetup(setupConf, false);

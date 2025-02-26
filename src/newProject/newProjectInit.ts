@@ -96,26 +96,15 @@ export async function getNewProjectArgs(
     return;
   }
   const idfSetup = espIdfPathToUse.target;
-  const espAdfPath = idfConf.readParameter(
-    "idf.espAdfPath",
+  const customExtraVars = idfConf.readParameter(
+    "idf.customExtraVars",
     workspace
-  ) as string;
-  const espMdfPath = idfConf.readParameter(
-    "idf.espMdfPath",
-    workspace
-  ) as string;
-  const espMatterPath = idfConf.readParameter(
-    "idf.espMatterPath",
-    workspace
-  ) as string;
-  const espHomeKitSdkPath = idfConf.readParameter(
-    "idf.espHomeKitSdkPath",
-    workspace
-  ) as string;
-  const espRainmakerPath = idfConf.readParameter(
-    "idf.espRainmakerPath",
-    workspace
-  ) as string;
+  ) as { [key: string]: string };
+  const espAdfPath = customExtraVars["ADF_PATH"];
+  const espMdfPath = customExtraVars["MDF_PATH"];
+  const espMatterPath = customExtraVars["ESP_MATTER_PATH"];
+  const espRainmakerPath = customExtraVars["RMAKER_PATH"];
+  const espHomeKitSdkPath = customExtraVars["HOMEKIT_PATH"];
   let templates: { [key: string]: IExampleCategory } = {};
   const idfExists = await dirExistPromise(idfSetup.idfPath);
   if (idfExists) {

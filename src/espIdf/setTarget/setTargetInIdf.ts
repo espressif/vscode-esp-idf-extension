@@ -22,7 +22,6 @@ import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import {
-  appendIdfAndToolsToPath,
   setCCppPropertiesJsonCompilerPath,
   spawn,
 } from "../../utils";
@@ -30,6 +29,7 @@ import { ConfserverProcess } from "../menuconfig/confServerProcess";
 import { IdfTarget } from "./getTargets";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
 import * as vscode from "vscode";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export async function setTargetInIDF(
   workspaceFolder: WorkspaceFolder,
@@ -43,7 +43,7 @@ export async function setTargetInIDF(
       "idf.buildPath",
       workspaceFolder.uri
     ) as string;
-    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder.uri);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder.uri);
     const idfPy = join(modifiedEnv["IDF_PATH"], "tools", "idf.py");
     modifiedEnv.IDF_TARGET = undefined;
     const enableCCache = readParameter(
@@ -73,7 +73,7 @@ export async function setTargetInIDF(
     }
 
     setTargetArgs.push("set-target", selectedTarget.target);
-    const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder.uri);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     OutputChannel.appendLine("Running IDF Set Target action", "Set Target");
     const setTargetResult = await spawn(pythonBinPath, setTargetArgs, {
       cwd: workspaceFolder.uri.fsPath,

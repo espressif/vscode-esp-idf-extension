@@ -91,12 +91,11 @@ export async function updateTestComponents(
 }
 
 export async function checkPytestRequirements(workspaceFolder: Uri) {
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
+  const pythonBinPath = await getVirtualEnvPythonPath();
   let requirementsPath = join(
     idfPath,
     "tools",
@@ -130,12 +129,11 @@ export async function installPyTestPackages(
   workspaceFolder: Uri,
   cancelToken?: CancellationToken
 ) {
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
-  const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
+  const pythonBinPath = await getVirtualEnvPythonPath();
   let requirementsPath = join(
     idfPath,
     "tools",
@@ -184,11 +182,10 @@ export async function buildFlashTestApp(
     return;
   }
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    unitTestAppDirPath
-  ) as { [key: string]: string };
-  const idfPathDir = customExtraVars["IDF_PATH"];
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPathDir = currentEnvVars["IDF_PATH"];
   const canFlash = await verifyCanFlash(
     flashBaudRate,
     port,

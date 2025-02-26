@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Thursday, 22nd August 2019 6:11:02 pm
  * Copyright 2019 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,10 @@
  */
 
 import * as vscode from "vscode";
-import * as idfConf from "../../../../idfConfiguration";
 import { Logger } from "../../../../logger/logger";
-import { appendIdfAndToolsToPath, getToolchainToolName, spawn } from "../../../../utils";
+import { getToolchainToolName, spawn } from "../../../../utils";
 import { getIdfTargetFromSdkconfig } from "../../../../workspaceConfig";
+import { configureEnvVariables } from "../../../../common/prepareEnv";
 
 export abstract class XtensaTools {
   protected readonly workspaceRoot: vscode.Uri;
@@ -30,7 +30,7 @@ export abstract class XtensaTools {
   }
   
   protected async call(args: string[]): Promise<Buffer> {
-    const env = await appendIdfAndToolsToPath(this.workspaceRoot);
+    const env = await configureEnvVariables(this.workspaceRoot);
     const toolName = await this.toolNameForTarget(this.toolName);
     try {
       return await spawn(toolName, args, { env });

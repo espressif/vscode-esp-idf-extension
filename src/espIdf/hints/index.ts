@@ -5,6 +5,7 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import * as utils from "../../utils";
 import * as vscode from "vscode";
+import { ESP } from "../../config";
 
 class ReHintPair {
   re: string;
@@ -52,11 +53,10 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   }
 
   async searchError(errorMsg: string, workspace): Promise<boolean> {
-    const customExtraVars = idfConf.readParameter(
-      "idf.customExtraVars",
-      workspace
-    ) as { [key: string]: string };
-    const espIdfPath = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    const espIdfPath = currentEnvVars["IDF_PATH"];
     const version = await utils.getEspIdfFromCMake(espIdfPath);
 
     if (utils.compareVersion(version.trim(), "5.0") === -1) {

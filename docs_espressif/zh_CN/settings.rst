@@ -272,20 +272,6 @@ QEMU 相关设置
 
     * - 设置 ID
       - 描述
-    * - **idf.espAdfPath**
-      - 定位 ESP-ADF 框架的路径 (ADF_PATH)
-    * - **idf.espAdfPathWin**
-      - 在 Windows 系统中定位 ESP-ADF 框架的路径 (ADF_PATH)
-    * - **idf.espMdfPath**
-      - 定位 ESP-MDF 框架的路径 (MDF_PATH)
-    * - **idf.espMdfPathWin**
-      - 在 Windows 系统中定位 ESP-MDF 框架的路径 (MDF_PATH)
-    * - **idf.espMatterPath**
-      - 定位 ESP-Matter 框架的路径 (ESP_MATTER_PATH)
-    * - **idf.espRainmakerPath**
-      - 定位 ESP-Rainmaker 框架的路径 (RMAKER_PATH)
-    * - **idf.espRainmakerPathWin**
-      - 在 Windows 系统中定位 ESP-Rainmaker 框架的路径 (RMAKER_PATH)
     * - **idf.sbomFilePath**
       - 创建 ESP-IDF SBOM 报告的路径
 
