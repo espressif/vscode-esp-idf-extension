@@ -19,6 +19,7 @@ import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import * as utils from "./utils";
 import { join } from "path";
+import { ESP } from "./config";
 
 export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
   private OnDidChangeTreeData: EventEmitter<
@@ -79,11 +80,10 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
         utils.readFileSync(this.projectDescriptionJsonPath)
       );
 
-      const customExtraVars = idfConf.readParameter(
-        "idf.customExtraVars",
-        this.workspaceFolder
-      ) as { [key: string]: string };
-      let defaultComponentsDir = customExtraVars["IDF_PATH"];
+      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+        [key: string]: string;
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      let defaultComponentsDir = currentEnvVars["IDF_PATH"];
 
       if (
         Object.prototype.hasOwnProperty.call(

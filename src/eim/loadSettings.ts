@@ -28,13 +28,11 @@ import { readParameter } from "../idfConfiguration";
 import { pathExists } from "fs-extra";
 
 export async function getEnvVariables(
-  idfSetup: IdfSetup,
-  logToChannel = false
+  idfSetup: IdfSetup
 ) {
   if (idfSetup.activationScript) {
     return await getEnvVariablesFromActivationScript(
-      idfSetup.activationScript,
-      logToChannel
+      idfSetup.activationScript
     );
   } else {
     return await getEnvVariablesFromIdfSetup(idfSetup);
@@ -42,8 +40,7 @@ export async function getEnvVariables(
 }
 
 export async function getEnvVariablesFromActivationScript(
-  activationScriptPath: string,
-  logToChannel = false
+  activationScriptPath: string
 ) {
   try {
     const args =
