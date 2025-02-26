@@ -16,11 +16,13 @@
 
 import { existsSync } from "fs";
 import { Logger } from "../logger/logger";
-import { spawn, appendIdfAndToolsToPath } from "../utils";
+import { spawn } from "../utils";
 import { CancellationToken, Uri, l10n } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { configureEnvVariables } from "../common/prepareEnv";
+import { ESP } from "../config";
 
 export async function addDependency(
   workspace: Uri,
@@ -29,14 +31,13 @@ export async function addDependency(
   cancelToken: CancellationToken
 ) {
   try {
-    const customExtraVars = readParameter(
-      "idf.customExtraVars",
-      workspace
-    ) as { [key: string]: string };
-    const idfPathDir = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+    const modifiedEnv = await configureEnvVariables(workspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
     const enableCCache = readParameter(
       "idf.enableCCache",
       workspace
@@ -51,10 +52,17 @@ export async function addDependency(
       dependency,
       "reconfigure"
     );
-    const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
-      cwd: workspace.fsPath,
-      env: modifiedEnv,
-    }, undefined, undefined, cancelToken);
+    const addDependencyResult = await spawn(
+      pythonBinPath,
+      addDependencyArgs,
+      {
+        cwd: workspace.fsPath,
+        env: modifiedEnv,
+      },
+      undefined,
+      undefined,
+      cancelToken
+    );
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`
     );
@@ -76,14 +84,13 @@ export async function createProject(
   example: string
 ): Promise<void> {
   try {
-    const customExtraVars = readParameter(
-      "idf.customExtraVars",
-      workspace
-    ) as { [key: string]: string };
-    const idfPathDir = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
-    const modifiedEnv = await appendIdfAndToolsToPath(workspace);
-    const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+    const modifiedEnv = await configureEnvVariables(workspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
 
     if (
       !existsSync(idfPathDir) ||

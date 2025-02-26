@@ -17,7 +17,6 @@
  */
 import { readJSON } from "fs-extra";
 import { IdfSetup } from "../eim/types";
-import { getEnvVariables } from "../eim/loadSettings";
 import { readParameter } from "../idfConfiguration";
 import { Uri } from "vscode";
 
@@ -30,15 +29,13 @@ export async function setCurrentSettingsInTemplate(
 ) {
   const settingsJson = await readJSON(settingsJsonPath);
   const isWin = process.platform === "win32" ? "Win" : "";
-  const customExtraVars = await getEnvVariables(idfSetup);
-  settingsJson["idf.customExtraVars"] = customExtraVars;
-  const adfPathDir = readParameter("idf.espAdfPath", workspace);
-  const mdfPathDir = readParameter("idf.espMdfPath", workspace);
-  if (adfPathDir) {
-    settingsJson["idf.espAdfPath" + isWin] = adfPathDir;
-  }
-  if (mdfPathDir) {
-    settingsJson["idf.espMdfPath" + isWin] = mdfPathDir;
+  settingsJson["idf.currentSetup"] = idfSetup.idfPath;
+  const customExtraVars = readParameter(
+    "idf.customExtraVars",
+    workspace
+  ) as { [key: string]: string };
+  if ( customExtraVars && Object.keys(customExtraVars).length > 0) {
+    settingsJson["idf.customExtraVars"] = customExtraVars;
   }
   if (openOcdConfigs) {
     settingsJson["idf.openOcdConfigs"] =

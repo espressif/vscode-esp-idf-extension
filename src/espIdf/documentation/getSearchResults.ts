@@ -17,6 +17,7 @@ import * as idfConf from "../../idfConfiguration";
 import { getEspIdfFromCMake } from "../../utils";
 import { getDocsBaseUrl, getDocsIndex, getDocsVersion } from "./getDocsVersion";
 import { getIdfTargetFromSdkconfig } from "../../workspaceConfig";
+import { ESP } from "../../config";
 
 export class IDocResult {
   public name: string;
@@ -44,11 +45,10 @@ export async function seachInEspDocs(
   workspaceFolder: Uri
 ) {
   const docsVersions = await getDocsVersion();
-  const customExtraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);
