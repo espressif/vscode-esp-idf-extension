@@ -25,7 +25,6 @@ import {
   Uri,
   window,
 } from "vscode";
-import { getCurrentIdfSetup } from "../versionSwitcher";
 import { readParameter } from "../idfConfiguration";
 import { ESP } from "../config";
 import { CommandItem } from "../cmdTreeView/cmdTreeDataProvider";
@@ -61,7 +60,9 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
     ESP.ProjectConfiguration.SELECTED_CONFIG
   );
-  let currentIdfVersion = await getCurrentIdfSetup(workspaceFolder, false);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{ [key: string]: string }>(
+    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
+  );
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
@@ -74,7 +75,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
   statusBarItems["currentIdfVersion"] = createStatusBarItem(
     `$(${
       commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-    }) ESP-IDF v${currentIdfVersion.version}`,
+    }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`,
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].tooltip,
     CommandKeys.SelectCurrentIdfVersion,
     102,

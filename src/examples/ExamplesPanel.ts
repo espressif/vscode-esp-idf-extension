@@ -222,8 +222,7 @@ export class ExamplesPlanel {
     idfSetup: IdfSetup
   ) {
     const settingsJson = await readJSON(settingsJsonPath);
-    const customExtraVars = await getEnvVariables(idfSetup);
-    settingsJson["idf.customExtraVars"] = customExtraVars;
+    settingsJson["idf.currentSetup"] = idfSetup.idfPath;
     await writeJSON(settingsJsonPath, settingsJson, {
       spaces: vscode.workspace.getConfiguration().get("editor.tabSize") || 2,
     });
