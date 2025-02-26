@@ -27,10 +27,11 @@ import {
   workspace,
 } from "vscode";
 import { NotificationMode, readParameter } from "../../idfConfiguration";
-import { appendIdfAndToolsToPath, getSDKConfigFilePath } from "../../utils";
+import { getSDKConfigFilePath } from "../../utils";
 import { join } from "path";
 import { TaskManager } from "../../taskManager";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class IdfReconfigureTask {
   private buildDirPath: string;
@@ -42,7 +43,7 @@ export class IdfReconfigureTask {
   }
 
   public async reconfigure() {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.curWorkspace);
+    const modifiedEnv = await configureEnvVariables(this.curWorkspace);
     const options: ProcessExecutionOptions = {
       cwd: this.curWorkspace.fsPath,
       env: modifiedEnv,
@@ -100,7 +101,7 @@ export class IdfReconfigureTask {
 
     reconfigureArgs.push("reconfigure");
 
-    const pythonBinPath = await getVirtualEnvPythonPath(this.curWorkspace);
+    const pythonBinPath = await getVirtualEnvPythonPath();
 
     const reconfigureExecution = new ProcessExecution(
       pythonBinPath,
