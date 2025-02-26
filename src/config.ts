@@ -30,6 +30,7 @@ export namespace ESP {
   export namespace ProjectConfiguration {
     export let store: ProjectConfigStore;
     export const SELECTED_CONFIG = "SELECTED_PROJECT_CONFIG";
+    export const CURRENT_IDF_CONFIGURATION = "CURRENT_IDF_CONFIGURATION";
     export const PROJECT_CONFIGURATION_FILENAME =
       "esp_idf_project_configuration.json";
   }
@@ -59,10 +60,6 @@ export namespace ESP {
 
   export const platformDepConfigurations: string[] = [
     "idf.buildPath",
-    "idf.espAdfPath",
-    "idf.espMdfPath",
-    "idf.espRainmakerPath",
-    "idf.espHomeKitSdkPath",
     "idf.gitPath",
     "idf.port",
   ];
