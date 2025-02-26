@@ -33,13 +33,12 @@ import {
 import { readParameter } from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import {
-  appendIdfAndToolsToPath,
   getConfigValueFromSDKConfig,
-  PreCheck,
   spawn,
 } from "../../utils";
 import { CSV2JSON } from "../../views/partition-table/util";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -81,10 +80,10 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const modifiedEnv = await appendIdfAndToolsToPath(workspace);
+      const modifiedEnv = await configureEnvVariables(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
       const idfPath = modifiedEnv["IDF_PATH"];
-      const pythonBinPath = await getVirtualEnvPythonPath(workspace);
+      const pythonBinPath = await getVirtualEnvPythonPath();
       const partitionTableOffsetOption = await window.showQuickPick(
         [
           {
