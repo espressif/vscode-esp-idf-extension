@@ -16,22 +16,15 @@
  * limitations under the License.
  */
 
-import { ConfigurationTarget, StatusBarItem, Uri, window } from "vscode";
-import { readParameter } from "../idfConfiguration";
+import { StatusBarItem, Uri, window } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
-import { checkIdfSetup, saveSettings } from "../eim/verifySetup";
-import {
-  useCustomExtraVarsAsIdfSetup,
-  useExistingSettingsToMakeNewConfig,
-} from "../eim/migrationTool";
+import { saveSettings } from "../eim/verifySetup";
 
 export async function selectIdfSetup(
   workspaceFolder: Uri,
   espIdfStatusBar: StatusBarItem
 ) {
-  let idfSetups = await getIdfSetups(workspaceFolder);
-  const currentIdfSetup = await getCurrentIdfSetup(workspaceFolder);
-  idfSetups.push(currentIdfSetup);
+  let idfSetups = await getIdfSetups();
   if (idfSetups.length === 0) {
     return;
   }
@@ -63,39 +56,8 @@ export async function selectIdfSetup(
   }
   await saveSettings(
     selectedIdfSetupOption.target,
-    ConfigurationTarget.WorkspaceFolder,
     workspaceFolder,
     espIdfStatusBar
   );
   return selectedIdfSetupOption.target;
-}
-
-export async function getCurrentIdfSetup(
-  workspaceFolder: Uri,
-  logToChannel: boolean = true
-) {
-  const customExtraVars = readParameter(
-    "idf.customExtraVars",
-    workspaceFolder
-  ) as { [key: string]: string };
-  const idfSetups = await getIdfSetups(workspaceFolder, logToChannel, false);
-  let currentIdfSetup = idfSetups.find((idfSetup) => {
-    idfSetup.idfPath === customExtraVars["IDF_PATH"] &&
-      idfSetup.toolsPath === customExtraVars["IDF_TOOLS_PATH"];
-  });
-  if (!currentIdfSetup) {
-    currentIdfSetup = await useCustomExtraVarsAsIdfSetup(
-      customExtraVars,
-      workspaceFolder
-    );
-  }
-  if (!currentIdfSetup) {
-    // Using implementation before EIM
-    let currentIdfSetup = await useExistingSettingsToMakeNewConfig(
-      workspaceFolder
-    );
-    return currentIdfSetup;
-  }
-  currentIdfSetup.isValid = await checkIdfSetup(currentIdfSetup, logToChannel);
-  return currentIdfSetup;
 }

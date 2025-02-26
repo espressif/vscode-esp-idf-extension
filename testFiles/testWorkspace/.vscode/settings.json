@@ -1,6 +1,4 @@
 {
-  "idf.espAdfPath": "/test/esp-adf",
-  "idf.espMdfPath": "/test/esp-mdf",
   "idf.port": "/serialport",
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"

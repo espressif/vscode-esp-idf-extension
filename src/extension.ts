@@ -135,7 +135,7 @@ import { getFileList, getTestComponents } from "./espIdf/unitTest/utils";
 import { saveDefSdkconfig } from "./espIdf/menuconfig/saveDefConfig";
 import { createSBOM, installEspSBOM } from "./espBom";
 import { getEspHomeKitSdk } from "./espHomekit/espHomekitDownload";
-import { getCurrentIdfSetup, selectIdfSetup } from "./versionSwitcher";
+import { selectIdfSetup } from "./versionSwitcher";
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
@@ -162,6 +162,8 @@ import {
 import { configureClangSettings } from "./clang";
 import { getIdfSetups } from "./eim/getExistingSetups";
 import { IdfSetup } from "./eim/types";
+import { loadIdfSetup } from "./eim/loadIdfSetup";
+import { configureEnvVariables } from "./common/prepareEnv";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -236,12 +238,11 @@ const minIdfVersionCheck = async function (
   minVersion: string,
   workspace: vscode.Uri
 ) {
-  const customExtraVars = idfConf.readParameter(
-    "idf.customExtraVars",
-    workspace
-  ) as { [key: string]: string };
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
   let currentVersion = "";
-  currentVersion = await utils.getEspIdfFromCMake(customExtraVars["IDF_PATH"]);
+  currentVersion = await utils.getEspIdfFromCMake(currentEnvVars["IDF_PATH"]);
   return [
     () => PreCheck.espIdfVersionValidator(minVersion, currentVersion),
     `Selected command needs ESP-IDF v${minVersion} or higher`,
@@ -376,6 +377,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerQemuStatusBarItem(context);
 
   if (PreCheck.isWorkspaceFolderOpen()) {
+    await loadIdfSetup(vscode.workspace.workspaceFolders[0].uri, true);
     await createCmdsStatusBarItems(vscode.workspace.workspaceFolders[0].uri);
     workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
     ESP.GlobalConfiguration.store.set(
@@ -438,6 +440,7 @@ export async function activate(context: vscode.ExtensionContext) {
         for (const ws of e.removed) {
           if (workspaceRoot && ws.uri === workspaceRoot) {
             workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+            await loadIdfSetup(workspaceRoot, true);
             ESP.GlobalConfiguration.store.set(
               ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
               workspaceRoot
@@ -478,17 +481,17 @@ export async function activate(context: vscode.ExtensionContext) {
                 ESP.ProjectConfiguration.SELECTED_CONFIG
               );
             }
-            const currentIdfSetup = await getCurrentIdfSetup(
-              workspaceRoot,
-              false
-            );
-            context.subscriptions.push(projectConfigManager);
+            const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+              [key: string]: string;
+            }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
             if (statusBarItems["currentIdfVersion"]) {
-              statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+              statusBarItems["currentIdfVersion"].text = currentEnvVars[
+                "ESP_IDF_VERSION"
+              ]
                 ? `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
-                  }) ESP-IDF v${currentIdfSetup.version}`
+                  }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`
                 : `$(${
                     commandDictionary[CommandKeys.SelectCurrentIdfVersion]
                       .iconId
@@ -501,6 +504,7 @@ export async function activate(context: vscode.ExtensionContext) {
         }
         if (typeof workspaceRoot === "undefined") {
           workspaceRoot = initSelectedWorkspace(statusBarItems["workspace"]);
+          await loadIdfSetup(workspaceRoot, true);
           ESP.GlobalConfiguration.store.set(
             ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
             workspaceRoot
@@ -645,12 +649,11 @@ export async function activate(context: vscode.ExtensionContext) {
         ) as number;
         await utils.sleep(monitorDelay);
       }
-      const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
-      const customExtraVars = idfConf.readParameter(
-        "idf.customExtraVars",
-        workspaceRoot
-      ) as { [key: string]: string };
-      let idfPathDir = customExtraVars["IDF_PATH"];
+      const pythonBinPath = await getVirtualEnvPythonPath();
+      const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+        [key: string]: string;
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      let idfPathDir = currentEnvVars["IDF_PATH"];
       const port = idfConf.readParameter("idf.port", workspaceRoot) as string;
       const flashScriptPath = path.join(
         idfPathDir,
@@ -733,11 +736,10 @@ export async function activate(context: vscode.ExtensionContext) {
             const gitPath =
               (await idfConf.readParameter("idf.gitPath", workspaceRoot)) ||
               "git";
-            const customExtraVars = idfConf.readParameter(
-              "idf.customExtraVars",
-              workspaceRoot
-            ) as { [key: string]: string };
-            let idfPath = customExtraVars["IDF_PATH"];
+            const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+              [key: string]: string;
+            }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+            let idfPath = currentEnvVars["IDF_PATH"];
             const arduinoComponentManager = new ArduinoComponentInstaller(
               idfPath,
               workspaceRoot.fsPath,
@@ -925,6 +927,7 @@ export async function activate(context: vscode.ExtensionContext) {
           ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER,
           workspaceRoot
         );
+        await loadIdfSetup(workspaceRoot, true);
         await getIdfTargetFromSdkconfig(
           workspaceRoot,
           statusBarItems["target"]
@@ -968,12 +971,16 @@ export async function activate(context: vscode.ExtensionContext) {
             ESP.ProjectConfiguration.SELECTED_CONFIG
           );
         }
-        const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot, false);
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
         if (statusBarItems["currentIdfVersion"]) {
-          statusBarItems["currentIdfVersion"].text = currentIdfSetup.isValid
+          statusBarItems["currentIdfVersion"].text = currentEnvVars[
+            "ESP_IDF_VERSION"
+          ]
             ? `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
-              }) ESP-IDF v${currentIdfSetup.version}`
+              }) ESP-IDF ${currentEnvVars["ESP_IDF_VERSION"]}`
             : `$(${
                 commandDictionary[CommandKeys.SelectCurrentIdfVersion].iconId
               }) ESP-IDF InvalidSetup`;
@@ -1469,10 +1476,11 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const espMatterPath = idfConf.readParameter(
-              "idf.espMatterPath",
+            const customExtraVars = idfConf.readParameter(
+              "idf.customExtraVars",
               workspaceRoot
-            ) as string;
+            ) as { [key: string]: string };
+            const espMatterPath = customExtraVars["ESP_MATTER_PATH"];
             progress.report({
               message: vscode.l10n.t(
                 `Installing ESP-Matter Python Requirements...`
@@ -1889,10 +1897,7 @@ export async function activate(context: vscode.ExtensionContext) {
         cancelToken: vscode.CancellationToken
       ) => {
         try {
-          const welcomeArgs = await getWelcomePageInitialValues(
-            progress,
-            workspaceRoot
-          );
+          const welcomeArgs = await getWelcomePageInitialValues(progress);
           if (!welcomeArgs) {
             throw new Error("Error getting welcome page initial values");
           }
@@ -1918,8 +1923,8 @@ export async function activate(context: vscode.ExtensionContext) {
       notificationMode === idfConf.NotificationMode.Notifications
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-    let idfSetups = await getIdfSetups(workspaceRoot, true, false);
-    const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
+    let idfSetups = await getIdfSetups(true, false);
+    const currentIdfSetup = await loadIdfSetup(workspaceRoot);
     const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
     const isCurrentSetupInList = onlyValidIdfSetups.findIndex((idfSetup) => {
       return (
@@ -2582,11 +2587,10 @@ export async function activate(context: vscode.ExtensionContext) {
             );
           }
         }
-        const customExtraVars = idfConf.readParameter(
-          "idf.customExtraVars",
-          workspaceRoot
-        ) as { [key: string]: string };
-        let espIdfPath = customExtraVars["IDF_PATH"];
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+        let espIdfPath = currentEnvVars["IDF_PATH"];
         AppTracePanel.createOrShow(context, {
           trace: {
             fileName: trace.fileName,
@@ -2857,7 +2861,7 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         }
 
-        const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
+        const pythonBinPath = await getVirtualEnvPythonPath();
         if (!utils.canAccessFile(pythonBinPath, constants.R_OK)) {
           Logger.errorNotify(
             vscode.l10n.t("Python binary path is not defined"),
@@ -2865,11 +2869,10 @@ export async function activate(context: vscode.ExtensionContext) {
             "extension launchWSServerAndMonitor python path not set"
           );
         }
-        const customExtraVars = idfConf.readParameter(
-          "idf.customExtraVars",
-          workspaceRoot
-        ) as { [key: string]: string };
-        let idfPath = customExtraVars["IDF_PATH"];
+        const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+          [key: string]: string;
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+        let idfPath = currentEnvVars["IDF_PATH"];
         const idfMonitorToolPath = path.join(
           idfPath,
           "tools",
@@ -3249,7 +3252,7 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       async () => {
         try {
-          const pythonBinPath = await getVirtualEnvPythonPath(workspaceRoot);
+          const pythonBinPath = await getVirtualEnvPythonPath();
           const ninjaSummaryScript = path.join(
             context.extensionPath,
             "external",
@@ -3933,11 +3936,10 @@ async function startFlashing(
     }
     return await jtagFlashCommand(workspaceRoot);
   } else {
-    const customExtraVars = idfConf.readParameter(
-      "idf.customExtraVars",
-      workspaceRoot
-    ) as { [key: string]: string };
-    let idfPathDir = customExtraVars["IDF_PATH"];
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    let idfPathDir = currentEnvVars["IDF_PATH"];
     return await flashCommand(
       cancelToken,
       flashBaudRate,
@@ -3957,11 +3959,11 @@ async function createEspIdfTerminal(
   initialCommand?: string,
   location?: vscode.TerminalLocation
 ): Promise<vscode.Terminal> {
-  const modifiedEnv = await utils.appendIdfAndToolsToPath(workspaceRoot);
   const shellExecutableArgs = idfConf.readParameter(
     "idf.customTerminalExecutableArgs",
     workspaceRoot
   ) as string[];
+  const modifiedEnv = await configureEnvVariables(workspaceRoot);
   let shellArgs = [];
   if (process.platform === "win32") {
     shellArgs = ["-ExecutionPolicy", "Bypass"];
@@ -3989,7 +3991,7 @@ async function createEspIdfTerminal(
     location,
   });
 
-  const currentSetup = await getCurrentIdfSetup(workspaceRoot);
+  const currentSetup = await loadIdfSetup(workspaceRoot);
   const activationScriptPathExists = await pathExists(
     currentSetup.activationScript
   );

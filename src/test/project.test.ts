@@ -160,8 +160,6 @@ suite("Project tests", () => {
       Uri.file(wsFolder),
       openOcdConfigs
     );
-    assert.equal(newSettingsJson["idf.espAdfPath"], "/test/esp-adf");
-    assert.equal(newSettingsJson["idf.espMdfPath"], "/test/esp-mdf");
     assert.equal(newSettingsJson["idf.openOcdConfigs"], openOcdConfigs);
   });
 
