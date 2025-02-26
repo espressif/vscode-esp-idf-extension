@@ -1200,6 +1200,11 @@
     ],
     "commands": [
       {
+        "command": "espIdf.removeEspIdfSettings",
+        "title": "%espIdf.removeEspIdfSettings.title%",
+        "category": "ESP-IDF"
+      },
+      {
         "command": "espIdf.openWalkthrough",
         "title": "ESP-IDF: Open Get Started Walkthrough"
       },

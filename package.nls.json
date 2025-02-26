@@ -99,6 +99,7 @@
   "openocd.tcl.host.description": "Host for OpenOCD TCL Connection",
   "openocd.tcl.port.description": "Port for OpenOCD TCL Connection",
   "openocd.jtag.command.force_unix_path_separator.description": "Forced to use \"/\" instead of \"\\\\\" as path separator for Win32 based OS",
+  "espIdf.removeEspIdfSettings.title": "Remove ESP-IDF Settings",
   "param.adapterTargetName": "Target name for ESP-IDF Debug Adapter",
   "param.buildPath": "Name of CMake build directory",
   "param.cmakeCompilerArgs": "Arguments for CMake compilation task",
