@@ -36,6 +36,7 @@ import {
   getDocsVersion,
 } from "../espIdf/documentation/getDocsVersion";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { ESP } from "../config";
 
 export async function configureProjectWithGcov(workspacePath: Uri) {
   const appTraceDestTrax = await getConfigValueFromSDKConfig(
@@ -129,11 +130,10 @@ export async function configureProjectWithGcov(workspacePath: Uri) {
 
 export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
-  const customExtraVars = readParameter(
-        "idf.customExtraVars",
-        workspacePath
-      ) as { [key: string]: string };
-  const idfPath = customExtraVars["IDF_PATH"];
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);
   let docVersion = docsVersions.find((docVer) => docVer.name === idfVersion);

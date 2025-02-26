@@ -19,7 +19,7 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { Uri } from "vscode";
 import { Logger } from "../../logger/logger";
-import { appendIdfAndToolsToPath } from "../../utils";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IdfTarget {
   label: string;
@@ -32,7 +32,7 @@ export async function getTargetsFromEspIdf(
   workspaceFolder: Uri,
   givenIdfPathDir?: string
 ) {
-  const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+  const modifiedEnv = await configureEnvVariables(workspaceFolder);
   const idfPathDir = givenIdfPathDir
     ? givenIdfPathDir
     : modifiedEnv["IDF_PATH"];

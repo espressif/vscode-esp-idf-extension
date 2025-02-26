@@ -23,7 +23,6 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import { OutputChannel } from "../../logger/outputChannel";
 import {
-  appendIdfAndToolsToPath,
   isBinInPath,
   PreCheck,
   spawn as sspawn,
@@ -35,6 +34,7 @@ import {
   CommandKeys,
   createCommandDictionary,
 } from "../../cmdTreeView/cmdStore";
+import { configureEnvVariables } from "../../common/prepareEnv";
 
 export interface IOpenOCDConfig {
   workspace: vscode.Uri;
@@ -60,7 +60,7 @@ export class OpenOCDManager extends EventEmitter {
   }
 
   public async version(): Promise<string> {
-    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
+    const modifiedEnv = await configureEnvVariables(this.workspace);
     if (!isBinInPath("openocd", modifiedEnv)) {
       return "";
     }
@@ -156,7 +156,7 @@ export class OpenOCDManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(this.workspace);
+    const modifiedEnv = await configureEnvVariables(this.workspace);
     if (!isBinInPath("openocd", modifiedEnv)) {
       throw new Error(
         "Invalid OpenOCD bin path or access is denied for the user"

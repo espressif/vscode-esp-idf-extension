@@ -91,11 +91,14 @@ export class AbstractCloning {
     workspace?: Uri,
     recursiveDownload?: boolean
   ) {
+    const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+      [key: string]: string;
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
     const customExtraVars = idfConf.readParameter(
       "idf.customExtraVars",
       workspace
     ) as { [key: string]: string };
-    const toolsDir = customExtraVars["IDF_TOOLS_PATH"];
+    const toolsDir = currentEnvVars["IDF_TOOLS_PATH"];
     const installDir = await window.showQuickPick(
       [
         {
@@ -154,7 +157,8 @@ export class AbstractCloning {
 
     if (installDir.target === "existing") {
       const target = idfConf.readParameter("idf.saveScope");
-      await idfConf.writeParameter(configurationId, installDirPath, target);
+      customExtraVars[configurationId] = installDirPath;
+      await idfConf.writeParameter("idf.customExtraVars", customExtraVars, target);
       Logger.infoNotify(`${this.name} has been installed`);
       return;
     }
@@ -208,7 +212,8 @@ export class AbstractCloning {
             await this.updateSubmodules(resultingPath, undefined, progress);
           }
           const target = idfConf.readParameter("idf.saveScope");
-          await idfConf.writeParameter(configurationId, resultingPath, target);
+          customExtraVars[configurationId] = installDirPath;
+          await idfConf.writeParameter("idf.customExtraVars", customExtraVars, target);
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
           OutputChannel.appendLine(error.message);
