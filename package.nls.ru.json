@@ -148,6 +148,7 @@
 	"param.preBuildTask": "Пользовательская задача перед сборкой",
 	"param.preFlashTask": "Пользовательская задача перед прошивкой",
 	"param.pythonBinPath": "Абсолютный путь до бинарника Python, используемый для выполнения скриптов Python ESP-IDF",
+	"param.qemuExtraArgs": "Дополнительные аргументы, передаваемые в QEMU",
 	"param.qemuTcpPort": "TCP-порт QEMU для последовательной связи",
 	"param.rainmaker.api.server_url": "URL-адрес облачного сервера ESP-Rainmaker",
 	"param.saveBeforeBuildDescription": "Сохранять все изменённые файлы в рабочей области перед сборкой. Если файлы не удастся сохранить, сборка все равно будет выполнена",
