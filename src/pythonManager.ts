@@ -172,7 +172,7 @@ export async function execProcessWithLog(
 export async function getVirtualEnvPythonPath() {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   if (currentEnvVars["IDF_PYTHON_ENV_PATH"]) {
     const pyDir =
       process.platform === "win32"
