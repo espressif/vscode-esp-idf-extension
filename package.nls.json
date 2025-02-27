@@ -148,6 +148,7 @@
   "param.preBuildTask": "Pre build custom task",
   "param.preFlashTask": "Pre flash custom task",
   "param.pythonBinPath": "Python absolute binary path used to execute ESP-IDF Python scripts",
+  "param.qemuExtraArgs": "Additional arguments passed to QEMU",
   "param.qemuTcpPort": "QEMU TCP port for serial communication",
   "param.rainmaker.api.server_url": "ESP-Rainmaker cloud server URL",
   "param.saveBeforeBuildDescription": "Save all edited files in the workspace before proceeding with the build. If saving fails, the build will proceed regardless",

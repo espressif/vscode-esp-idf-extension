@@ -980,6 +980,15 @@
             "scope": "window",
             "default": true
           },
+          "idf.qemuExtraArgs": {
+            "type": "array",
+            "default": [],
+            "description": "%param.qemuExtraArgs%",
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
+          },
           "idf.qemuTcpPort": {
             "type": "number",
             "description": "%param.qemuTcpPort%",

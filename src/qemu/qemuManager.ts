@@ -115,6 +115,11 @@ export class QemuManager extends EventEmitter {
       "idf.qemuTcpPort",
       workspaceFolder
     ) as string;
+    const rawExtraArgs = readParameter("idf.qemuExtraArgs", workspaceFolder) as string[];
+
+    let extraArgs: string[] = [];
+    
+    if (Array.isArray(rawExtraArgs)) extraArgs = rawExtraArgs;
 
     if (mode === QemuLaunchMode.Debug) {
       return [
@@ -125,6 +130,7 @@ export class QemuManager extends EventEmitter {
         idfTarget,
         "-drive",
         `file='${qemuFile.fsPath}',if=mtd,format=raw`,
+        ...extraArgs,
       ];
     } else {
       return [
@@ -135,6 +141,7 @@ export class QemuManager extends EventEmitter {
         `file='${qemuFile.fsPath}',if=mtd,format=raw`,
         "-monitor stdio",
         `-serial tcp::${qemuTcpPort},server,nowait`,
+        ...extraArgs,
       ];
     }
   }

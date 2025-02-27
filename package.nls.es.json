@@ -148,6 +148,7 @@
 	"param.preBuildTask": "Tarea personalizada previa a la construcción",
 	"param.preFlashTask": "Tarea personalizada previa al flasheo",
 	"param.pythonBinPath": "Ruta absoluta del binario Python utilizado para ejecutar Scripts de Python de ESP-IDF",
+	"param.qemuExtraArgs": "Argumentos adicionales pasados a QEMU",
 	"param.qemuTcpPort": "Puerto tcp de QEMU para comunicación serial",
 	"param.rainmaker.api.server_url": "URL del servidor en la nube de ESP-Rainmaker",
 	"param.saveBeforeBuildDescription": "Guardar todos los archivos editados en el espacio de trabajo antes de proceder con la construcción, aunque si no se pueden guardar los archivos, se construirá de todos modos",
