@@ -34,7 +34,7 @@ export async function getWelcomePageInitialValues(
   const extensionVersion = packageJson.version as string;
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const confShowOnboardingOnInit = readParameter(
     "idf.showOnboardingOnInit"
   ) as boolean;
