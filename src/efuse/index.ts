@@ -53,7 +53,7 @@ export class ESPEFuseManager {
   constructor(private workspace: Uri) {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     this.idfPath = currentEnvVars["IDF_PATH"] || process.env.IDF_PATH;
   }
 
