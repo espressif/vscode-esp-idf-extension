@@ -43,7 +43,7 @@ export class BuildTask {
     this.currentWorkspace = workspaceUri;
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     this.idfPathDir = currentEnvVars["IDF_PATH"];
     this.buildDirPath = idfConf.readParameter(
       "idf.buildPath",

@@ -32,7 +32,7 @@ export async function getConfigurationSettings(
 
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   const customExtraVars = conf.get("idf.customExtraVars") as {
     [key: string]: string;
