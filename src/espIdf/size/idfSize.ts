@@ -106,7 +106,7 @@ export class IDFSize {
   private idfPath(): string {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const idfPathDir = currentEnvVars["IDF_PATH"];
     return path.join(idfPathDir, "tools");
   }

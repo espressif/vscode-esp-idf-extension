@@ -55,7 +55,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   async searchError(errorMsg: string, workspace): Promise<boolean> {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const espIdfPath = currentEnvVars["IDF_PATH"];
     const version = await utils.getEspIdfFromCMake(espIdfPath);
 
