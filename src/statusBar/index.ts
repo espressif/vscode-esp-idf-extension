@@ -71,9 +71,9 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     ESP.ProjectConfiguration.PROJECT_CONFIGURATION_FILENAME
   );
   let projectConfExists = await pathExists(projectConfPath);
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{ [key: string]: string }>(
-    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
-  );
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   statusBarItems["workspace"] = createStatusBarItem(
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,

@@ -23,7 +23,6 @@ import { getExamplesList, IExampleCategory } from "./Example";
 import { ComponentManagerUIPanel } from "../component-manager/panel";
 import { OutputChannel } from "../logger/outputChannel";
 import { IdfSetup } from "../eim/types";
-import { getEnvVariables } from "../eim/loadSettings";
 
 export class ExamplesPlanel {
   public static currentPanel: ExamplesPlanel | undefined;
