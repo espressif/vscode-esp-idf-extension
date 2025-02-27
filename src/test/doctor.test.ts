@@ -32,15 +32,14 @@ import { readFile, readJSON } from "fs-extra";
 import { getPipVersion } from "../support/pipVersion";
 import { checkEspIdfRequirements } from "../support/checkEspIdfRequirements";
 import {
-  checkDebugAdapterRequirements
-} from "../support/checkExtensionRequirements";
-import {
   checkCCppPropertiesJson,
   checkLaunchJson,
 } from "../support/checkVscodeFiles";
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
+import { ProjectConfigStore } from "../project-conf";
+import { createMockMemento } from "./mockUtils";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
@@ -48,7 +47,10 @@ suite("Doctor Command tests", () => {
   const mockUpContext: vscode.ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento()
   } as vscode.ExtensionContext;
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
     setExtensionContext(mockUpContext);
   });
@@ -103,12 +105,6 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.pipVersion.result, "Not found");
   });
 
-  test("Wrong debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(reportObj.debugAdapterRequirements.result, "Error");
-  });
-
   test("Wrong esp-idf py requirements", async () => {
     reportObj.configurationSettings.pythonBinPath = "/my/wrong/python/path";
     await checkEspIdfRequirements(reportObj, mockUpContext);
@@ -148,18 +144,6 @@ suite("Doctor Command tests", () => {
       vscode.Uri.file(join(__dirname, "../../testFiles/testWorkspace"))
     );
     assert.equal(
-      reportObj.configurationSettings.espAdfPath,
-      settingsJsonObj["idf.espAdfPath"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.espIdfPath,
-      settingsJsonObj["idf.espIdfPath"]
-    );
-    assert.equal(
-      reportObj.configurationSettings.espMdfPath,
-      settingsJsonObj["idf.espMdfPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.serialPort,
       settingsJsonObj["idf.port"]
     );
@@ -168,25 +152,8 @@ suite("Doctor Command tests", () => {
       settingsJsonObj["idf.openOcdConfigs"]
     );
     assert.equal(
-      reportObj.configurationSettings.toolsPath,
-      settingsJsonObj["idf.toolsPath"]
-    );
-    assert.equal(
       reportObj.configurationSettings.notificationMode,
       settingsJsonObj["idf.notificationMode"]
-    );
-  });
-
-  test("Good debug adapter py requirements", async () => {
-    reportObj.configurationSettings.pythonBinPath = `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`;
-    reportObj.configurationSettings.espIdfPath = process.env.IDF_PATH;
-    await checkDebugAdapterRequirements(reportObj, mockUpContext);
-    assert.equal(
-      reportObj.debugAdapterRequirements.result,
-      `Python requirements from ${join(
-        __dirname,
-        "../../esp_debug_adapter/requirements.txt"
-      )} are satisfied.`
     );
   });
 
@@ -274,17 +241,17 @@ suite("Doctor Command tests", () => {
     expectedOutput += `ESP-IDF Extension version ${extensionObj.packageJSON.version} ${os.EOL}`;
     expectedOutput += `Workspace folder ${reportObj.workspaceFolder} ${os.EOL}`;
     expectedOutput += `---------------------------------------------------- Extension configuration settings ------------------------------------------------------${os.EOL}`;
-    expectedOutput += `ESP-ADF Path (idf.espAdfPath) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
+    expectedOutput += `ESP-ADF Path (idf.customExtraVars["ADF_PATH"]) ${reportObj.configurationSettings.espAdfPath}${os.EOL}`;
     expectedOutput += `ESP-IDF Path (idf.espIdfPath) ${process.env.IDF_PATH}${os.EOL}`;
-    expectedOutput += `ESP-MDF Path (idf.espMdfPath) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
-    expectedOutput += `ESP-Matter Path (idf.espMatterPath) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
-    expectedOutput += `ESP-HomeKit-SDK Path (idf.espHomeKitSdkPath) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
+    expectedOutput += `ESP-MDF Path (idf.customExtraVars["MDF_PATH"]) ${reportObj.configurationSettings.espMdfPath}${os.EOL}`;
+    expectedOutput += `ESP-Matter Path (idf.customExtraVars["ESP_MATTER_PATH"]) ${reportObj.configurationSettings.espMatterPath}${os.EOL}`;
+    expectedOutput += `ESP-HomeKit-SDK Path (idf.customExtraVars["HOMEKIT_PATH"]) ${reportObj.configurationSettings.espHomeKitPath}${os.EOL}`;
     expectedOutput += `Custom extra paths ${customExtraPaths}${os.EOL}`;
     if (
       reportObj.configurationSettings.idfExtraVars &&
       Object.keys(reportObj.configurationSettings.idfExtraVars)
     ) {
-      expectedOutput += `ESP-IDF extra vars${os.EOL}`;
+      expectedOutput += `ESP-IDF Project Setup Variables${os.EOL}`;
       for (let key in reportObj.configurationSettings.idfExtraVars) {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.idfExtraVars[key]}${os.EOL}`;
       }
@@ -298,9 +265,6 @@ suite("Doctor Command tests", () => {
         expectedOutput += `    ${key}: ${reportObj.configurationSettings.userExtraVars[key]}${os.EOL}`;
       }
     }
-    expectedOutput += `System python Path (idf.pythonInstallPath) ${
-      reportObj.configurationSettings.sysPythonBinPath
-    }${os.EOL}`;
     expectedOutput += `Virtual environment Python path (computed) ${
       process.env.IDF_PYTHON_ENV_PATH + "/bin/python"
     }${os.EOL}`;

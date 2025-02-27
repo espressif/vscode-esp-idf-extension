@@ -32,8 +32,9 @@ import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { statusBarItems } from "../statusBar";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
-import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
+import { isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export enum QemuLaunchMode {
   Debug,
@@ -173,7 +174,7 @@ export class QemuManager extends EventEmitter {
     if (this.isRunning()) {
       return;
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder);
     const qemuExecutableDict = await this.getQemuExecutable(
       modifiedEnv.IDF_PATH
     );
