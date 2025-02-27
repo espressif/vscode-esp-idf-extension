@@ -33,7 +33,7 @@ export async function addDependency(
   try {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(workspace);
@@ -86,7 +86,7 @@ export async function createProject(
   try {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const idfPathDir = currentEnvVars["IDF_PATH"];
     const idfPy = join(idfPathDir, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(workspace);
