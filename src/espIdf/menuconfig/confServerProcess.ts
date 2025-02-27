@@ -210,7 +210,7 @@ export class ConfserverProcess {
     await delConfigFile(currWorkspace);
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const guiconfigEspPath = currentEnvVars["IDF_PATH"];
     const idfPyPath = path.join(guiconfigEspPath, "tools", "idf.py");
     const modifiedEnv = await configureEnvVariables(currWorkspace);
@@ -331,7 +331,7 @@ export class ConfserverProcess {
     this.emitter = new EventEmitter();
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     this.espIdfPath = currentEnvVars["IDF_PATH"];
     modifiedEnv.PYTHONUNBUFFERED = "0";
     this.configFile = configFile;

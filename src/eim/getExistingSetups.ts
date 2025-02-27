@@ -20,35 +20,15 @@ import { pathExists, readJson } from "fs-extra";
 import { join } from "path";
 import { readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
-import { commands, l10n, window } from "vscode";
 import { EspIdfJson, IdfSetup } from "./types";
 import { checkIdfSetup } from "./verifySetup";
-import { getExtensionGlobalIdfSetups } from "./migrationTool";
+import { getEspIdfFromCMake } from "../utils";
 
-export async function getIdfSetups(
-  logToChannel: boolean = true,
-  showNoSetupsFound = true
-) {
-  const idfSetups = await loadIdfSetupsFromEspIdeJson();
-  if (idfSetups.length === 0) {
-    const extensionIdfSetups = await getExtensionGlobalIdfSetups(logToChannel);
-    if (extensionIdfSetups && extensionIdfSetups.length > 0) {
-      return extensionIdfSetups;
-    }
-  }
-  if (showNoSetupsFound && idfSetups && idfSetups.length === 0) {
-    const action = await window.showInformationMessage(
-      l10n.t("No ESP-IDF Setups found"),
-      l10n.t("Open ESP-IDF Installation Manager")
-    );
-    if (action && action === l10n.t("Open ESP-IDF Installation Manager")) {
-      commands.executeCommand("espIdf.installManager");
-    }
-  }
-  return idfSetups;
+export async function getIdfSetups() {
+  return await loadIdfSetupsFromEimIdfJson();
 }
 
-export async function loadIdfSetupsFromEspIdeJson() {
+export async function loadIdfSetupsFromEimIdfJson() {
   let idfSetups: IdfSetup[] = [];
   const espIdfJson = await getEimIdfJson();
   if (
@@ -57,13 +37,14 @@ export async function loadIdfSetupsFromEspIdeJson() {
     Object.keys(espIdfJson.idfInstalled).length
   ) {
     for (let idfInstalled of espIdfJson.idfInstalled) {
+      const idfVersion = await getEspIdfFromCMake(idfInstalled.path);
       let setupConf: IdfSetup = {
         activationScript: idfInstalled.activationScript,
         id: idfInstalled.id,
         idfPath: idfInstalled.path,
         isValid: false,
         gitPath: espIdfJson.gitPath,
-        version: idfInstalled.name,
+        version: idfVersion,
         toolsPath: idfInstalled.idfToolsPath,
         python: idfInstalled.python,
         sysPythonPath: "",
@@ -73,8 +54,8 @@ export async function loadIdfSetupsFromEspIdeJson() {
       } catch (err) {
         const msg = err.message
           ? err.message
-          : "Error checkIdfSetup in loadIdfSetupsFromEspIdeJson";
-        Logger.error(msg, err, "loadIdfSetupsFromEspIdeJson");
+          : "Error checkIdfSetup in loadIdfSetupsFromEimIdfJson";
+        Logger.error(msg, err, "loadIdfSetupsFromEimIdfJson");
         setupConf.isValid = false;
       }
       idfSetups.push(setupConf);
@@ -102,6 +83,7 @@ export async function getEimIdfJson() {
       throw new Error(`${eimIdfJsonPath} doesn't exists.`);
     }
     espIdfJson = await readJson(eimIdfJsonPath);
+    return espIdfJson;
   } catch (error) {
     const msg =
       error && error.message
@@ -109,5 +91,4 @@ export async function getEimIdfJson() {
         : `Error reading ${eimIdfJsonPath}.`;
     Logger.error(msg, error, "getEimIdfJson");
   }
-  return espIdfJson;
 }
