@@ -34,9 +34,9 @@ export async function configureEnvVariables(
     (k) => k.toUpperCase() == "PATH"
   );
 
-  const currentEnvVars = ESP.ProjectConfiguration.store.get<{ [key: string]: string }>(
-    ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION
-  );
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
 
   if (currentEnvVars) {
     try {
