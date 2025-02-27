@@ -82,7 +82,7 @@ export class IdfTreeDataProvider implements TreeDataProvider<IdfComponent> {
 
       const currentEnvVars = ESP.ProjectConfiguration.store.get<{
         [key: string]: string;
-      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+      }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
       let defaultComponentsDir = currentEnvVars["IDF_PATH"];
 
       if (

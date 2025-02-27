@@ -19,21 +19,13 @@
 import { EOL } from "os";
 import { spawn } from "../utils";
 import { IdfSetup } from "./types";
-import { getEnvVarsFromIdfTools } from "../pythonManager";
-import { IdfToolsManager } from "../idfToolsManager";
-import { delimiter, dirname, join } from "path";
-import { getPythonEnvPath } from "./migrationTool";
+import { delimiter } from "path";
+import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
-import { pathExists } from "fs-extra";
 
-export async function getEnvVariables(
-  idfSetup: IdfSetup
-) {
+export async function getEnvVariables(idfSetup: IdfSetup) {
   if (idfSetup.activationScript) {
-    return await getEnvVariablesFromActivationScript(
-      idfSetup.activationScript
-    );
+    return await getEnvVariablesFromActivationScript(idfSetup.activationScript);
   } else {
     return await getEnvVariablesFromIdfSetup(idfSetup);
   }
@@ -57,15 +49,11 @@ export async function getEnvVariablesFromActivationScript(
       process.platform === "win32"
         ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
         : "/bin/sh";
-    const envVarsOutput = await spawn(
-      shellPath,
-      args,
-      {
-        maxBuffer: 500 * 1024,
-        cwd: process.cwd(),
-        shell: shellPath
-      }
-    );
+    const envVarsOutput = await spawn(shellPath, args, {
+      maxBuffer: 500 * 1024,
+      cwd: process.cwd(),
+      shell: shellPath,
+    });
     const envVars = envVarsOutput.toString().trim().split(EOL);
     let envDict: { [key: string]: string } = {};
     for (const envVar of envVars) {
@@ -102,48 +90,4 @@ export async function getEnvVariablesFromActivationScript(
       false
     );
   }
-}
-
-export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
-  let envVars: { [key: string]: string } = {};
-  envVars["IDF_PATH"] = idfSetup.idfPath;
-  envVars["IDF_TOOLS_PATH"] = idfSetup.toolsPath;
-  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
-    idfSetup.idfPath
-  );
-  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
-    join(idfSetup.toolsPath, "tools"),
-    ["cmake", "ninja"]
-  );
-  envVars["PATH"] = exportedToolsPaths;
-  const idfToolsVars = await idfToolsManager.exportVars(idfSetup.toolsPath);
-
-  for (const toolVar in idfToolsVars) {
-    envVars[toolVar] = idfToolsVars[toolVar];
-  }
-
-  if (!idfSetup.python) {
-    if (!idfSetup.sysPythonPath) {
-      idfSetup.sysPythonPath = readParameter("idf.pythonInstallPath") as string;
-    }
-    idfSetup.python = await getPythonEnvPath(
-      idfSetup.idfPath,
-      idfSetup.toolsPath,
-      idfSetup.sysPythonPath
-    );
-  }
-  const pythonExists = await pathExists(idfSetup.python);
-
-  if (pythonExists) {
-    envVars["IDF_PYTHON_ENV_PATH"] = dirname(dirname(idfSetup.python));
-    const idfVars = await getEnvVarsFromIdfTools(
-      idfSetup.idfPath,
-      idfSetup.toolsPath,
-      idfSetup.python
-    );
-    for (const idfVar in idfVars) {
-      envVars[idfVar] = idfVars[idfVar];
-    }
-  }
-  return envVars;
 }

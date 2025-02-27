@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { StatusBarItem, Uri, window } from "vscode";
+import { commands, l10n, StatusBarItem, Uri, window } from "vscode";
 import { getIdfSetups } from "../eim/getExistingSetups";
 import { saveSettings } from "../eim/verifySetup";
 
@@ -25,8 +25,14 @@ export async function selectIdfSetup(
   espIdfStatusBar: StatusBarItem
 ) {
   let idfSetups = await getIdfSetups();
-  if (idfSetups.length === 0) {
-    return;
+  if (!idfSetups || (idfSetups && idfSetups.length === 0)) {
+    const action = await window.showInformationMessage(
+      l10n.t("No ESP-IDF Setups found"),
+      l10n.t("Open ESP-IDF Installation Manager")
+    );
+    if (action && action === l10n.t("Open ESP-IDF Installation Manager")) {
+      commands.executeCommand("espIdf.installManager");
+    }
   }
   idfSetups = idfSetups.filter(
     (setup, index, self) =>

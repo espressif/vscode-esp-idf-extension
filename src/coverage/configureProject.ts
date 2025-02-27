@@ -132,7 +132,7 @@ export async function openCoverageUrl(workspacePath: Uri) {
   const docsVersions = await getDocsVersion();
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPath = currentEnvVars["IDF_PATH"];
   let idfVersion = "v" + (await getEspIdfFromCMake(idfPath));
   let idfTarget = await getIdfTargetFromSdkconfig(workspacePath);

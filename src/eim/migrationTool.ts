@@ -16,13 +16,17 @@
  * limitations under the License.
  */
 
-import { join } from "path";
+import { dirname, join } from "path";
 import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "./types";
 import { pathExists } from "fs-extra";
 import { ESP } from "../config";
 import { checkIdfSetup } from "./verifySetup";
 import { Logger } from "../logger/logger";
+import { readParameter } from "../idfConfiguration";
+import { getEnvVarsFromIdfTools } from "../pythonManager";
+import { IdfToolsManager } from "../idfToolsManager";
+import { Uri } from "vscode";
 
 export async function getExtensionGlobalIdfSetups(
   logToChannel: boolean = true
@@ -88,4 +92,54 @@ export async function getPythonEnvPath(
   const fullIdfPyEnvPath = join(idfPyEnvPath, ...pyDir);
   const pyEnvPathExists = await pathExists(fullIdfPyEnvPath);
   return pyEnvPathExists ? fullIdfPyEnvPath : "";
+}
+
+export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
+  let envVars: { [key: string]: string } = {};
+  envVars["IDF_PATH"] = idfSetup.idfPath;
+  envVars["IDF_TOOLS_PATH"] = idfSetup.toolsPath;
+  const idfToolsManager = await IdfToolsManager.createIdfToolsManager(
+    idfSetup.idfPath
+  );
+  const exportedToolsPaths = await idfToolsManager.exportPathsInString(
+    join(idfSetup.toolsPath, "tools"),
+    ["cmake", "ninja"]
+  );
+  envVars["PATH"] = exportedToolsPaths;
+  const idfToolsVars = await idfToolsManager.exportVars(idfSetup.toolsPath);
+
+  for (const toolVar in idfToolsVars) {
+    envVars[toolVar] = idfToolsVars[toolVar];
+  }
+
+  if (!idfSetup.python) {
+    if (!idfSetup.sysPythonPath) {
+      const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+      );
+      idfSetup.sysPythonPath = readParameter(
+        "idf.pythonInstallPath",
+        workspaceFolderUri
+      ) as string;
+    }
+    idfSetup.python = await getPythonEnvPath(
+      idfSetup.idfPath,
+      idfSetup.toolsPath,
+      idfSetup.sysPythonPath
+    );
+  }
+  const pythonExists = await pathExists(idfSetup.python);
+
+  if (pythonExists) {
+    envVars["IDF_PYTHON_ENV_PATH"] = dirname(dirname(idfSetup.python));
+    const idfVars = await getEnvVarsFromIdfTools(
+      idfSetup.idfPath,
+      idfSetup.toolsPath,
+      idfSetup.python
+    );
+    for (const idfVar in idfVars) {
+      envVars[idfVar] = idfVars[idfVar];
+    }
+  }
+  return envVars;
 }

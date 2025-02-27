@@ -38,6 +38,8 @@ import {
 import { getPythonPackages } from "../support/pythonPackages";
 import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
+import { ProjectConfigStore } from "../project-conf";
+import { createMockMemento } from "./mockUtils";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
@@ -45,7 +47,10 @@ suite("Doctor Command tests", () => {
   const mockUpContext: vscode.ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento()
   } as vscode.ExtensionContext;
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
     setExtensionContext(mockUpContext);
   });

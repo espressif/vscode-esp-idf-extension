@@ -52,7 +52,7 @@ export abstract class AbstractTracingToolManager {
   protected appTraceToolsPath(): string {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const idfPathDir = currentEnvVars["IDF_PATH"];
     return join(idfPathDir, "tools", "esp_app_trace");
   }

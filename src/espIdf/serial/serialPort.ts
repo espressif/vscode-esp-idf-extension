@@ -122,7 +122,7 @@ export class SerialPort {
         const pythonBinPath = await getVirtualEnvPythonPath();
         const currentEnvVars = ESP.ProjectConfiguration.store.get<{
           [key: string]: string;
-        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+        }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
         const idfPath = currentEnvVars["IDF_PATH"];
         const enableSerialPortChipIdRequest = idfConf.readParameter(
           "idf.enableSerialPortChipIdRequest",

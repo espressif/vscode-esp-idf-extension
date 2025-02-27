@@ -93,7 +93,7 @@ export class AbstractCloning {
   ) {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const customExtraVars = idfConf.readParameter(
       "idf.customExtraVars",
       workspace
@@ -158,7 +158,11 @@ export class AbstractCloning {
     if (installDir.target === "existing") {
       const target = idfConf.readParameter("idf.saveScope");
       customExtraVars[configurationId] = installDirPath;
-      await idfConf.writeParameter("idf.customExtraVars", customExtraVars, target);
+      await idfConf.writeParameter(
+        "idf.customExtraVars",
+        customExtraVars,
+        target
+      );
       Logger.infoNotify(`${this.name} has been installed`);
       return;
     }
@@ -213,7 +217,11 @@ export class AbstractCloning {
           }
           const target = idfConf.readParameter("idf.saveScope");
           customExtraVars[configurationId] = installDirPath;
-          await idfConf.writeParameter("idf.customExtraVars", customExtraVars, target);
+          await idfConf.writeParameter(
+            "idf.customExtraVars",
+            customExtraVars,
+            target
+          );
           Logger.infoNotify(`${this.name} has been installed`);
         } catch (error) {
           OutputChannel.appendLine(error.message);

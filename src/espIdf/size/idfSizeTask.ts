@@ -43,7 +43,7 @@ export class IdfSizeTask {
     this.currentWorkspace = workspaceUri;
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
-    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+    }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
     const idfPath = currentEnvVars["IDF_PATH"];
     this.idfSizePath = join(idfPath, "tools", "idf_size.py");
     this.buildDirPath = readParameter("idf.buildPath", workspaceUri) as string;

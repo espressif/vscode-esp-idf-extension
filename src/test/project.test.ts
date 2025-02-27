@@ -30,13 +30,19 @@ import {
   updateProjectNameInCMakeLists,
 } from "../utils";
 import { IdfSetup } from "../eim/types";
+import { ProjectConfigStore } from "../project-conf";
+import { ESP } from "../config";
+import { createMockMemento } from "./mockUtils";
 
 suite("Project tests", () => {
   const absPath = (filename) => resolve(__dirname, "..", "..", filename);
   const mockUpContext: ExtensionContext = {
     extensionPath: resolve(__dirname, "..", ".."),
     asAbsolutePath: absPath,
+    workspaceState: createMockMemento(),
+    globalState: createMockMemento(),
   } as ExtensionContext;
+  ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   const templateFolder = join(mockUpContext.extensionPath, "templates");
   const wsFolder = process.env.GITHUB_WORKSPACE
     ? join(process.env.GITHUB_WORKSPACE, "project-test")
@@ -150,7 +156,7 @@ suite("Project tests", () => {
     const idfSetup = {
       idfPath: process.env.IDF_PATH,
       toolsPath: process.env.IDF_TOOLS_PATH,
-      python: `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`
+      python: `${process.env.IDF_PYTHON_ENV_PATH}/bin/python`,
     } as IdfSetup;
     const newSettingsJson = await setCurrentSettingsInTemplate(
       settingsJsonPath,

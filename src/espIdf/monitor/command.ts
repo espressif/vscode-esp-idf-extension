@@ -77,7 +77,7 @@ export async function createNewIdfMonitor(
   }
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPath = currentEnvVars["IDF_PATH"];
   const idfVersion = await utils.getEspIdfFromCMake(idfPath);
   let sdkMonitorBaudRate: string = await utils.getMonitorBaudRate(

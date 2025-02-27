@@ -93,7 +93,7 @@ export async function updateTestComponents(
 export async function checkPytestRequirements(workspaceFolder: Uri) {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPath = currentEnvVars["IDF_PATH"];
   const pythonBinPath = await getVirtualEnvPythonPath();
   let requirementsPath = join(
@@ -131,7 +131,7 @@ export async function installPyTestPackages(
 ) {
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPath = currentEnvVars["IDF_PATH"];
   const pythonBinPath = await getVirtualEnvPythonPath();
   let requirementsPath = join(
@@ -184,7 +184,7 @@ export async function buildFlashTestApp(
   const flashBaudRate = readParameter("idf.flashBaudRate", unitTestAppDirPath);
   const currentEnvVars = ESP.ProjectConfiguration.store.get<{
     [key: string]: string;
-  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION);
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
   const idfPathDir = currentEnvVars["IDF_PATH"];
   const canFlash = await verifyCanFlash(
     flashBaudRate,
