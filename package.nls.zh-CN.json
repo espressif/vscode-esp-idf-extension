@@ -125,6 +125,7 @@
 	"param.exportVars": "要添加到系统环境变量中的变量",
 	"param.flashBaudRate": "ESP-IDF 烧录速率",
 	"param.gitPath.title": "Git 可执行文件的路径",
+  "param.jtagFlashCommandExtraArgs.title": "openocd jtag flash额外参数",
 	"param.launchMonitorOnDebugSession.title": "在 ESP-IDF 调试适配器会话中启动 IDF 监视器",
 	"param.monitorBaudRate": "ESP-IDF 监视器的波特率值",
 	"param.monitorCustomTimestampFormat": "在 IDF 监视器中自定义时间戳格式",

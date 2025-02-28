@@ -1194,6 +1194,18 @@
                 "productId": "0x6001"
               }
             }
+          },
+          "idf.jtagFlashCommandExtraArgs": {
+            "type": "array",
+            "description": "%param.jtagFlashCommandExtraArgs.title%",
+            "scope": "resource",
+            "default": [
+              "verify",
+              "reset"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
