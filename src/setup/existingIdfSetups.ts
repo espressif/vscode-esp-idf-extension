@@ -101,6 +101,7 @@ export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
         idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
         gitPath: espIdfJson.gitPath,
         version: espIdfJson.idfInstalled[idfInstalledKey].version,
+        python: espIdfJson.idfInstalled[idfInstalledKey].python,
         toolsPath: toolsPath,
         isValid: false,
       } as IdfSetup;
