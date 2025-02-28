@@ -4298,7 +4298,7 @@ function createIdfTerminal(extensionPath: string) {
         vscode.env.shell.indexOf("pwsh") !== -1
       ) {
         espIdfTerminal.sendText(
-          `${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}`
+          `'${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
         );
       }
     }
