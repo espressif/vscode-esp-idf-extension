@@ -36,6 +36,7 @@ export enum CommandKeys {
   SelectCurrentIdfVersion = "espIdf.selectCurrentIdfVersion",
   SelectFlashType = "espIdf.selectFlashMethodAndFlash",
   SelectSerialPort = "espIdf.selectPort",
+  SelectMonitorSerialPort = "espIdf.selectMonitorPort",
   SelectProjectConfiguration = "espIdf.projectConf",
   SetEspressifTarget = "espIdf.setTarget",
   SDKConfig = "espIdf.menuconfig.start",
@@ -224,6 +225,14 @@ export function createCommandDictionary(): Record<
       ),
       iconId: "plug",
       tooltip: l10n.t("Select Port to Use (COM, tty, usbserial)"),
+    },
+    [CommandKeys.SelectMonitorSerialPort]: {
+      checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
+        CommandKeys.SelectMonitorSerialPort,
+        TreeItemCheckboxState.Unchecked
+      ),
+      iconId: "plug",
+      tooltip: l10n.t("Select Monitor Port to Use (COM, tty, usbserial)"),
     },
     [CommandKeys.SelectProjectConfiguration]: {
       checkboxState: ESP.GlobalConfiguration.store.get<TreeItemCheckboxState>(
