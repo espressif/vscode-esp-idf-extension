@@ -277,7 +277,8 @@
           "column": 3,
           "severity": 4,
           "message": 5
-        }
+        },
+        "source": "esp-idf"
       },
       {
         "name": "espIdfLd",
@@ -292,7 +293,8 @@
           "file": 1,
           "line": 2,
           "message": 3
-        }
+        },
+        "source": "esp-idf"
       }
     ],
     "viewsContainers": {
