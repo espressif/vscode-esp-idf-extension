@@ -14,7 +14,12 @@ class ReHintPair {
   match_to_output: boolean;
   ref?: string;
 
-  constructor(re: string, hint: string, match_to_output: boolean = false, ref?: string) {
+  constructor(
+    re: string,
+    hint: string,
+    match_to_output: boolean = false,
+    ref?: string
+  ) {
     this.re = re;
     this.hint = hint;
     this.match_to_output = match_to_output;
@@ -48,34 +53,19 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
   private data: ErrorHint[] = [];
 
-  public getHintForError(errorMsg: string): { hint?: string, ref?: string } | undefined {
+  public getHintForError(
+    errorMsg: string
+  ): { hint?: string; ref?: string } | undefined {
     // First try exact match
     for (const errorHint of this.data) {
       if (errorHint.label === errorMsg && errorHint.children.length > 0) {
-        return { 
+        return {
           hint: errorHint.children[0].label,
-          ref: errorHint.children[0].ref
+          ref: errorHint.children[0].ref,
         };
       }
     }
-    
-    // Then try partial match
-    for (const errorHint of this.data) {
-      // Normalize strings for comparison (trim, lowercase)
-      const normalizedLabel = errorHint.label.trim().toLowerCase();
-      const normalizedError = errorMsg.trim().toLowerCase();
-      
-      // Check if error message is contained in the label or vice versa
-      if ((normalizedLabel.includes(normalizedError) || 
-          normalizedError.includes(normalizedLabel)) && 
-          errorHint.children.length > 0) {
-        return { 
-          hint: errorHint.children[0].label,
-          ref: errorHint.children[0].ref
-        };
-      }
-    }
-    
+
     // No match found
     return undefined;
   }
@@ -112,8 +102,10 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
           const fileContents = await readFile(idfHintsPath, "utf-8");
           const hintsData = yaml.load(fileContents);
           const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
-          
-          meaningfulHintFound = await this.processHints(errorMsg, reHintsPairArray) || meaningfulHintFound;
+
+          meaningfulHintFound =
+            (await this.processHints(errorMsg, reHintsPairArray)) ||
+            meaningfulHintFound;
         } catch (error) {
           Logger.errorNotify(
             `Error processing ESP-IDF hints file (line ${error.mark?.line}): ${error.message}`,
@@ -126,13 +118,17 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
 
       // Process OpenOCD hints
-      if (openOcdHintsPath && await pathExists(openOcdHintsPath)) {
+      if (openOcdHintsPath && (await pathExists(openOcdHintsPath))) {
         try {
           const fileContents = await readFile(openOcdHintsPath, "utf-8");
           const hintsData = yaml.load(fileContents);
-          const reHintsPairArray: ReHintPair[] = this.loadOpenOcdHints(hintsData);
-          
-          meaningfulHintFound = await this.processHints(errorMsg, reHintsPairArray) || meaningfulHintFound;
+          const reHintsPairArray: ReHintPair[] = this.loadOpenOcdHints(
+            hintsData
+          );
+
+          meaningfulHintFound =
+            (await this.processHints(errorMsg, reHintsPairArray)) ||
+            meaningfulHintFound;
         } catch (error) {
           Logger.errorNotify(
             `Error processing OpenOCD hints file (line ${error.mark?.line}): ${error.message}`,
@@ -162,7 +158,10 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     }
   }
 
-  private async processHints(errorMsg: string, reHintsPairArray: ReHintPair[]): Promise<boolean> {
+  private async processHints(
+    errorMsg: string,
+    reHintsPairArray: ReHintPair[]
+  ): Promise<boolean> {
     let meaningfulHintFound = false;
     for (const hintPair of reHintsPairArray) {
       const match = new RegExp(hintPair.re, "i").exec(errorMsg);
@@ -175,11 +174,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         regexParts.some((part) => errorMsg.toLowerCase().includes(part))
       ) {
         let finalHint = hintPair.hint;
-        if (
-          match &&
-          hintPair.match_to_output &&
-          hintPair.hint.includes("{}")
-        ) {
+        if (match && hintPair.match_to_output && hintPair.hint.includes("{}")) {
           finalHint = hintPair.hint.replace("{}", match[0]);
         } else if (!match && hintPair.hint.includes("{}")) {
           const matchedSubstring = regexParts.find((part) =>
@@ -274,7 +269,9 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
           hint = this.formatEntry([], hint);
         }
 
-        reHintsPairArray.push(new ReHintPair(re, hint, entry.match_to_output, entry.ref));
+        reHintsPairArray.push(
+          new ReHintPair(re, hint, entry.match_to_output, entry.ref)
+        );
       }
     }
 
@@ -305,7 +302,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
     } else if (element.type === "hint") {
       treeItem.label = `💡 ${element.label}`;
-      
+
       // Add tooltip with reference URL if available
       if (element.ref) {
         treeItem.tooltip = `${element.label}\n\nReference: ${element.ref}`;
@@ -330,32 +327,41 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 }
 
 function getIdfHintsYmlPath(espIdfPath: string): string {
-  const sep = os.platform() === "win32" ? "\\" : "/";
-  return `${espIdfPath}${sep}tools${sep}idf_py_actions${sep}hints.yml`;
+  return path.join(espIdfPath, "tools", "idf_py_actions", "hints.yml");
 }
 
-async function getOpenOcdHintsYmlPath(workspace: vscode.Uri): Promise<string | null> {
+async function getOpenOcdHintsYmlPath(
+  workspace: vscode.Uri
+): Promise<string | null> {
   try {
-
     const espIdfPath = idfConf.readParameter(
-        "idf.espIdfPath",
-        workspace
-      ) as string;
-    
-    const openOCDManager = OpenOCDManager.init()
+      "idf.espIdfPath",
+      workspace
+    ) as string;
+
+    const openOCDManager = OpenOCDManager.init();
     const version = await openOCDManager.version();
-    
+
     if (!version) {
-      Logger.infoNotify("Could not determine OpenOCD version. Hints file won't be loaded.");
+      Logger.infoNotify(
+        "Could not determine OpenOCD version. Hints file won't be loaded."
+      );
       return null;
     }
-    
-    const sep = os.platform() === "win32" ? "\\" : "/";
+
     const hintsPath = path.join(
-      espIdfPath, 
-      `tools${sep}openocd-esp32${sep}${version}${sep}openocd-esp32${sep}share${sep}openocd${sep}espressif${sep}tools${sep}esp_problems_hints.yml`
+      espIdfPath,
+      "tools",
+      "openocd-esp32",
+      version,
+      "openocd-esp32",
+      "share",
+      "openocd",
+      "espressif",
+      "tools",
+      "esp_problems_hints.yml"
     );
-    
+
     return hintsPath;
   } catch (error) {
     Logger.errorNotify(
@@ -378,9 +384,10 @@ export class HintHoverProvider implements vscode.HoverProvider {
     // Get all diagnostics for this document
     const diagnostics = vscode.languages
       .getDiagnostics(document.uri)
-      .filter((diagnostic) => 
-        diagnostic.source === "esp-idf" && 
-        diagnostic.severity === vscode.DiagnosticSeverity.Error
+      .filter(
+        (diagnostic) =>
+          diagnostic.source === "esp-idf" &&
+          diagnostic.severity === vscode.DiagnosticSeverity.Error
       );
 
     // No ESP-IDF diagnostics found for this document
@@ -393,7 +400,7 @@ export class HintHoverProvider implements vscode.HoverProvider {
       // Check if position is within the diagnostic range
       // We'll be slightly more generous with the range to make it easier to hover
       const range = diagnostic.range;
-      
+
       // Expand the range slightly to make it easier to hover
       const lineText = document.lineAt(range.start.line).text;
       const expandedRange = new vscode.Range(
@@ -405,18 +412,16 @@ export class HintHoverProvider implements vscode.HoverProvider {
       if (expandedRange.contains(position)) {
         // Get hint object for this error message
         const hintInfo = this.hintProvider.getHintForError(diagnostic.message);
-        
+
         if (hintInfo && hintInfo.hint) {
           let hoverMessage = `**ESP-IDF Hint**: ${hintInfo.hint}`;
-          
+
           // Add reference link if available
           if (hintInfo.ref) {
             hoverMessage += `\n\n[Reference Documentation](${hintInfo.ref})`;
           }
           // We found a hint, return it with markdown formatting
-          return new vscode.Hover(
-            new vscode.MarkdownString(`${hoverMessage}`)
-          );
+          return new vscode.Hover(new vscode.MarkdownString(`${hoverMessage}`));
         }
       }
     }
