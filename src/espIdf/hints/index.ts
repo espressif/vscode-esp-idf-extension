@@ -43,11 +43,28 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   private data: ErrorHint[] = [];
 
   public getHintForError(errorMsg: string): string | undefined {
+    // First try exact match
     for (const errorHint of this.data) {
-      if (errorHint.label.includes(errorMsg) && errorHint.children.length > 0) {
+      if (errorHint.label === errorMsg && errorHint.children.length > 0) {
         return errorHint.children[0].label;
       }
     }
+    
+    // Then try partial match
+    for (const errorHint of this.data) {
+      // Normalize strings for comparison (trim, lowercase)
+      const normalizedLabel = errorHint.label.trim().toLowerCase();
+      const normalizedError = errorMsg.trim().toLowerCase();
+      
+      // Check if error message is contained in the label or vice versa
+      if ((normalizedLabel.includes(normalizedError) || 
+          normalizedError.includes(normalizedLabel)) && 
+          errorHint.children.length > 0) {
+        return errorHint.children[0].label;
+      }
+    }
+    
+    // No match found
     return undefined;
   }
 
@@ -239,27 +256,62 @@ export class HintHoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.Hover> {
+    // Get all diagnostics for this document
     const diagnostics = vscode.languages
       .getDiagnostics(document.uri)
-      .filter((diagnostic) => diagnostic.source === "esp-idf");
+      .filter((diagnostic) => 
+        diagnostic.source === "esp-idf" && 
+        diagnostic.severity === vscode.DiagnosticSeverity.Error
+      );
 
+    // No ESP-IDF diagnostics found for this document
+    if (!diagnostics.length) {
+      return null;
+    }
+
+    // Find diagnostics that contain the hover position
     for (const diagnostic of diagnostics) {
-      const start = diagnostic.range.start;
-      const end = diagnostic.range.end;
+      // Check if position is within the diagnostic range
+      // We'll be slightly more generous with the range to make it easier to hover
+      const range = diagnostic.range;
+      
+      // Expand the range slightly to make it easier to hover
+      const lineText = document.lineAt(range.start.line).text;
+      const expandedRange = new vscode.Range(
+        new vscode.Position(range.start.line, 0),
+        new vscode.Position(range.end.line, lineText.length)
+      );
 
-      // Check if the position is within or immediately adjacent to the diagnostic range
-      if (
-        diagnostic.severity === vscode.DiagnosticSeverity.Error &&
-        position.line === start.line &&
-        position.character >= start.character - 1 &&
-        position.character <= end.character + 1
-      ) {
+      // Check if position is within the expanded range
+      if (expandedRange.contains(position)) {
+        // Get hint for this error message
         const hint = this.hintProvider.getHintForError(diagnostic.message);
+        
         if (hint) {
-          return new vscode.Hover(`ESP-IDF Hint: ${hint}`);
+          // We found a hint, return it with markdown formatting
+          return new vscode.Hover(
+            new vscode.MarkdownString(`**ESP-IDF Hint**: ${hint}`)
+          );
+        } else {
+          // No hint found, search for one
+          this.hintProvider.searchError(diagnostic.message, vscode.workspace.workspaceFolders?.[0])
+            .then(found => {
+              // This will happen after the hover is displayed,
+              // but at least it will update the hint panel for next time
+              if (found) {
+                vscode.commands.executeCommand("errorHints.focus");
+              }
+            });
+          
+          // Return basic info that a hint might be available in the panel
+          return new vscode.Hover(
+            new vscode.MarkdownString(`Checking for ESP-IDF hints for this error...`)
+          );
         }
       }
     }
+
+    // No matching diagnostics found at this position
     return null;
   }
 }

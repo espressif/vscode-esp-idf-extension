@@ -3768,9 +3768,7 @@ export async function activate(context: vscode.ExtensionContext) {
       "espressif.esp-idf-extension#espIdf.walkthrough.basic-usage"
     );
   }
-
   // Hints Viewer
-
   const treeDataProvider = new ErrorHintProvider(context);
   vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
 
@@ -3784,37 +3782,40 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  // Function to process diagnostics and update error hints
-  const processDiagnostics = async (uri: vscode.Uri) => {
-    const diagnostics = vscode.languages.getDiagnostics(uri);
-
-    const errorDiagnostics = diagnostics.filter(
-      (d) => d.severity === vscode.DiagnosticSeverity.Error
-    );
-
-    if (errorDiagnostics.length > 0) {
-      const errorMsg = errorDiagnostics[0].message;
-      await treeDataProvider.searchError(errorMsg, workspaceRoot);
-    } else {
+  // Function to process all ESP-IDF diagnostics from the problems panel
+  const processEspIdfDiagnostics = async () => {
+    // Get all diagnostics from all files that have source "esp-idf"
+    const espIdfDiagnostics: Array<{ uri: vscode.Uri; diagnostic: vscode.Diagnostic }> = [];
+    
+    // Collect all diagnostics from all files that have source "esp-idf"
+    vscode.languages.getDiagnostics().forEach(([uri, diagnostics]) => {
+      diagnostics
+        .filter(d => d.source === "esp-idf" && d.severity === vscode.DiagnosticSeverity.Error)
+        .forEach(diagnostic => {
+          espIdfDiagnostics.push({ uri, diagnostic });
+        });
+    });
+    
+    // Clear existing error hints if no ESP-IDF diagnostics
+    if (espIdfDiagnostics.length === 0) {
       treeDataProvider.clearErrorHints();
+      return;
+    }
+    
+    // Process the first error if available
+    const errorMsg = espIdfDiagnostics[0].diagnostic.message;
+    const foundHint = await treeDataProvider.searchError(errorMsg, workspaceRoot);
+
+    // TODO: Create a variable in globalstate to save configuration if focus should be enabled/disabled when diagnostics update
+    if (foundHint) {
+      await vscode.commands.executeCommand("errorHints.focus");
     }
   };
 
   // Attach a listener to the diagnostics collection
   context.subscriptions.push(
-    vscode.languages.onDidChangeDiagnostics((event) => {
-      event.uris.forEach((uri) => {
-        processDiagnostics(uri);
-      });
-    })
-  );
-
-  // Listen to the active text editor change event
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      if (editor) {
-        processDiagnostics(editor.document.uri);
-      }
+    vscode.languages.onDidChangeDiagnostics((_event) => {
+      processEspIdfDiagnostics();
     })
   );
 
