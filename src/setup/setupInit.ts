@@ -107,6 +107,10 @@ export async function checkPreviousInstall(
       gitPath = gitPathFromJson;
     }
     existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
+    if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
+      const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(process.env.IDF_TOOLS_PATH);
+      existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+    }
   }
 
   const gitVersion = await utils.checkGitExists(containerPath, gitPath);
