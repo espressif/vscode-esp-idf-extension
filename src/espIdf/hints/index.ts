@@ -5,25 +5,31 @@ import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
 import * as utils from "../../utils";
 import * as vscode from "vscode";
+import * as path from "path";
+import { OpenOCDManager } from "../openOcd/openOcdManager";
 
 class ReHintPair {
   re: string;
   hint: string;
   match_to_output: boolean;
+  ref?: string;
 
-  constructor(re: string, hint: string, match_to_output: boolean = false) {
+  constructor(re: string, hint: string, match_to_output: boolean = false, ref?: string) {
     this.re = re;
     this.hint = hint;
     this.match_to_output = match_to_output;
+    this.ref = ref;
   }
 }
 
 class ErrorHint {
   public type: "error" | "hint";
   public children: ErrorHint[] = [];
+  public ref?: string;
 
-  constructor(public label: string, type: "error" | "hint") {
+  constructor(public label: string, type: "error" | "hint", ref?: string) {
     this.type = type;
+    this.ref = ref;
   }
 
   addChild(child: ErrorHint) {
@@ -42,11 +48,14 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
   private data: ErrorHint[] = [];
 
-  public getHintForError(errorMsg: string): string | undefined {
+  public getHintForError(errorMsg: string): { hint?: string, ref?: string } | undefined {
     // First try exact match
     for (const errorHint of this.data) {
       if (errorHint.label === errorMsg && errorHint.children.length > 0) {
-        return errorHint.children[0].label;
+        return { 
+          hint: errorHint.children[0].label,
+          ref: errorHint.children[0].ref
+        };
       }
     }
     
@@ -60,7 +69,10 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       if ((normalizedLabel.includes(normalizedError) || 
           normalizedError.includes(normalizedLabel)) && 
           errorHint.children.length > 0) {
-        return errorHint.children[0].label;
+        return { 
+          hint: errorHint.children[0].label,
+          ref: errorHint.children[0].ref
+        };
       }
     }
     
@@ -86,68 +98,50 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       return false;
     }
 
-    const hintsPath = getHintsYmlPath(espIdfPath);
+    // Get paths for both hint files
+    const idfHintsPath = getIdfHintsYmlPath(espIdfPath);
+    const openOcdHintsPath = await getOpenOcdHintsYmlPath(workspace);
 
     try {
-      if (!(await pathExists(hintsPath))) {
-        Logger.infoNotify(`${hintsPath} does not exist.`);
-        return false;
-      }
-
-      const fileContents = await readFile(hintsPath, "utf-8");
-      const hintsData = yaml.load(fileContents);
-
-      const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
-
       this.data = [];
       let meaningfulHintFound = false;
-      for (const hintPair of reHintsPairArray) {
-        const match = new RegExp(hintPair.re, "i").exec(errorMsg);
-        const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
-          .map((m) => m[1].split("|"))
-          .flat()
-          .map((part) => part.toLowerCase());
-        if (
-          match ||
-          regexParts.some((part) => errorMsg.toLowerCase().includes(part))
-        ) {
-          let finalHint = hintPair.hint;
-          if (
-            match &&
-            hintPair.match_to_output &&
-            hintPair.hint.includes("{}")
-          ) {
-            finalHint = hintPair.hint.replace("{}", match[0]);
-          } else if (!match && hintPair.hint.includes("{}")) {
-            const matchedSubstring = regexParts.find((part) =>
-              errorMsg.toLowerCase().includes(part.toLowerCase())
-            );
-            finalHint = hintPair.hint.replace("{}", matchedSubstring || ""); // Handle case where nothing is matched
-          }
-          const error = new ErrorHint(errorMsg, "error");
-          const hint = new ErrorHint(finalHint, "hint");
-          error.addChild(hint);
-          this.data.push(error);
 
-          if (!finalHint.startsWith("No hints found for")) {
-            meaningfulHintFound = true;
-          }
+      // Process ESP-IDF hints
+      if (await pathExists(idfHintsPath)) {
+        try {
+          const fileContents = await readFile(idfHintsPath, "utf-8");
+          const hintsData = yaml.load(fileContents);
+          const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
+          
+          meaningfulHintFound = await this.processHints(errorMsg, reHintsPairArray) || meaningfulHintFound;
+        } catch (error) {
+          Logger.errorNotify(
+            `Error processing ESP-IDF hints file (line ${error.mark?.line}): ${error.message}`,
+            error,
+            "ErrorHintProvider searchError"
+          );
         }
+      } else {
+        Logger.infoNotify(`${idfHintsPath} does not exist.`);
       }
 
-      if (this.data.length === 0) {
-        for (const hintPair of reHintsPairArray) {
-          if (hintPair.re.toLowerCase().includes(errorMsg.toLowerCase())) {
-            const error = new ErrorHint(hintPair.re, "error");
-            const hint = new ErrorHint(hintPair.hint, "hint");
-            error.addChild(hint);
-            this.data.push(error);
-
-            if (!hintPair.hint.startsWith("No hints found for")) {
-              meaningfulHintFound = true;
-            }
-          }
+      // Process OpenOCD hints
+      if (openOcdHintsPath && await pathExists(openOcdHintsPath)) {
+        try {
+          const fileContents = await readFile(openOcdHintsPath, "utf-8");
+          const hintsData = yaml.load(fileContents);
+          const reHintsPairArray: ReHintPair[] = this.loadOpenOcdHints(hintsData);
+          
+          meaningfulHintFound = await this.processHints(errorMsg, reHintsPairArray) || meaningfulHintFound;
+        } catch (error) {
+          Logger.errorNotify(
+            `Error processing OpenOCD hints file (line ${error.mark?.line}): ${error.message}`,
+            error,
+            "ErrorHintProvider searchError"
+          );
         }
+      } else if (openOcdHintsPath) {
+        Logger.infoNotify(`${openOcdHintsPath} does not exist.`);
       }
 
       if (!this.data.length) {
@@ -160,12 +154,66 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       return meaningfulHintFound;
     } catch (error) {
       Logger.errorNotify(
-        `Error processing hints file (line ${error.mark?.line}): ${error.message}`,
+        `Error processing hints file: ${error.message}`,
         error,
         "ErrorHintProvider searchError"
       );
       return false;
     }
+  }
+
+  private async processHints(errorMsg: string, reHintsPairArray: ReHintPair[]): Promise<boolean> {
+    let meaningfulHintFound = false;
+    for (const hintPair of reHintsPairArray) {
+      const match = new RegExp(hintPair.re, "i").exec(errorMsg);
+      const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
+        .map((m) => m[1].split("|"))
+        .flat()
+        .map((part) => part.toLowerCase());
+      if (
+        match ||
+        regexParts.some((part) => errorMsg.toLowerCase().includes(part))
+      ) {
+        let finalHint = hintPair.hint;
+        if (
+          match &&
+          hintPair.match_to_output &&
+          hintPair.hint.includes("{}")
+        ) {
+          finalHint = hintPair.hint.replace("{}", match[0]);
+        } else if (!match && hintPair.hint.includes("{}")) {
+          const matchedSubstring = regexParts.find((part) =>
+            errorMsg.toLowerCase().includes(part.toLowerCase())
+          );
+          finalHint = hintPair.hint.replace("{}", matchedSubstring || ""); // Handle case where nothing is matched
+        }
+        const error = new ErrorHint(errorMsg, "error");
+        const hint = new ErrorHint(finalHint, "hint", hintPair.ref);
+        error.addChild(hint);
+        this.data.push(error);
+
+        if (!finalHint.startsWith("No hints found for")) {
+          meaningfulHintFound = true;
+        }
+      }
+    }
+
+    if (this.data.length === 0) {
+      for (const hintPair of reHintsPairArray) {
+        if (hintPair.re.toLowerCase().includes(errorMsg.toLowerCase())) {
+          const error = new ErrorHint(hintPair.re, "error");
+          const hint = new ErrorHint(hintPair.hint, "hint", hintPair.ref);
+          error.addChild(hint);
+          this.data.push(error);
+
+          if (!hintPair.hint.startsWith("No hints found for")) {
+            meaningfulHintFound = true;
+          }
+        }
+      }
+    }
+
+    return meaningfulHintFound;
   }
 
   private loadHints(hintsArray: any): ReHintPair[] {
@@ -200,6 +248,39 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     return reHintsPairArray;
   }
 
+  private loadOpenOcdHints(hintsArray: any): ReHintPair[] {
+    let reHintsPairArray: ReHintPair[] = [];
+
+    for (const entry of hintsArray) {
+      // Ignore all properties that are not "re", "hint", "match_to_output", "variables" or "ref"
+      if (entry.variables && entry.variables.length) {
+        for (const variableSet of entry.variables) {
+          const reVariables = variableSet.re_variables;
+          const hintVariables = variableSet.hint_variables;
+
+          let re = this.formatEntry(reVariables, entry.re);
+          let hint = this.formatEntry(hintVariables, entry.hint);
+
+          reHintsPairArray.push(
+            new ReHintPair(re, hint, entry.match_to_output, entry.ref)
+          );
+        }
+      } else {
+        let re = String(entry.re);
+        let hint = String(entry.hint);
+
+        if (!entry.match_to_output) {
+          re = this.formatEntry([], re);
+          hint = this.formatEntry([], hint);
+        }
+
+        reHintsPairArray.push(new ReHintPair(re, hint, entry.match_to_output, entry.ref));
+      }
+    }
+
+    return reHintsPairArray;
+  }
+
   private formatEntry(vars: string[], entry: string): string {
     let i = 0;
     while (entry.includes("{}")) {
@@ -224,6 +305,11 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
     } else if (element.type === "hint") {
       treeItem.label = `💡 ${element.label}`;
+      
+      // Add tooltip with reference URL if available
+      if (element.ref) {
+        treeItem.tooltip = `${element.label}\n\nReference: ${element.ref}`;
+      }
     }
 
     return treeItem;
@@ -243,9 +329,42 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   }
 }
 
-function getHintsYmlPath(espIdfPath: string): string {
-  const separator = os.platform() === "win32" ? "\\" : "/";
-  return `${espIdfPath}${separator}tools${separator}idf_py_actions${separator}hints.yml`;
+function getIdfHintsYmlPath(espIdfPath: string): string {
+  const sep = os.platform() === "win32" ? "\\" : "/";
+  return `${espIdfPath}${sep}tools${sep}idf_py_actions${sep}hints.yml`;
+}
+
+async function getOpenOcdHintsYmlPath(workspace: vscode.Uri): Promise<string | null> {
+  try {
+
+    const espIdfPath = idfConf.readParameter(
+        "idf.espIdfPath",
+        workspace
+      ) as string;
+    
+    const openOCDManager = OpenOCDManager.init()
+    const version = await openOCDManager.version();
+    
+    if (!version) {
+      Logger.infoNotify("Could not determine OpenOCD version. Hints file won't be loaded.");
+      return null;
+    }
+    
+    const sep = os.platform() === "win32" ? "\\" : "/";
+    const hintsPath = path.join(
+      espIdfPath, 
+      `tools${sep}openocd-esp32${sep}${version}${sep}openocd-esp32${sep}share${sep}openocd${sep}espressif${sep}tools${sep}esp_problems_hints.yml`
+    );
+    
+    return hintsPath;
+  } catch (error) {
+    Logger.errorNotify(
+      `Error getting OpenOCD hints path: ${error.message}`,
+      error,
+      "getOpenOcdHintsYmlPath"
+    );
+    return null;
+  }
 }
 
 export class HintHoverProvider implements vscode.HoverProvider {
@@ -284,28 +403,19 @@ export class HintHoverProvider implements vscode.HoverProvider {
 
       // Check if position is within the expanded range
       if (expandedRange.contains(position)) {
-        // Get hint for this error message
-        const hint = this.hintProvider.getHintForError(diagnostic.message);
+        // Get hint object for this error message
+        const hintInfo = this.hintProvider.getHintForError(diagnostic.message);
         
-        if (hint) {
+        if (hintInfo && hintInfo.hint) {
+          let hoverMessage = `**ESP-IDF Hint**: ${hintInfo.hint}`;
+          
+          // Add reference link if available
+          if (hintInfo.ref) {
+            hoverMessage += `\n\n[Reference Documentation](${hintInfo.ref})`;
+          }
           // We found a hint, return it with markdown formatting
           return new vscode.Hover(
-            new vscode.MarkdownString(`**ESP-IDF Hint**: ${hint}`)
-          );
-        } else {
-          // No hint found, search for one
-          this.hintProvider.searchError(diagnostic.message, vscode.workspace.workspaceFolders?.[0])
-            .then(found => {
-              // This will happen after the hover is displayed,
-              // but at least it will update the hint panel for next time
-              if (found) {
-                vscode.commands.executeCommand("errorHints.focus");
-              }
-            });
-          
-          // Return basic info that a hint might be available in the panel
-          return new vscode.Hover(
-            new vscode.MarkdownString(`Checking for ESP-IDF hints for this error...`)
+            new vscode.MarkdownString(`${hoverMessage}`)
           );
         }
       }
