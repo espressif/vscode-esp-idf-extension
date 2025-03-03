@@ -239,7 +239,9 @@ export class HintHoverProvider implements vscode.HoverProvider {
     position: vscode.Position,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.Hover> {
-    const diagnostics = vscode.languages.getDiagnostics(document.uri);
+    const diagnostics = vscode.languages
+      .getDiagnostics(document.uri)
+      .filter((diagnostic) => diagnostic.source === "esp-idf");
 
     for (const diagnostic of diagnostics) {
       const start = diagnostic.range.start;
