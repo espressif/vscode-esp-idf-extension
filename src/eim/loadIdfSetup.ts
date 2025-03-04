@@ -105,10 +105,13 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   const gitPath = "/usr/bin/git";
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
+  const pyDir =
+    process.platform === "win32"
+      ? ["Scripts", "python.exe"]
+      : ["bin", "python3"];
   const venvPythonPath = join(
     process.env.IDF_PYTHON_ENV_PATH || customVars["IDF_PYTHON_ENV_PATH"],
-    "bin",
-    "python"
+    ...pyDir
   );
   const envDefinedIdfSetup: IdfSetup = {
     id: idfSetupId,
