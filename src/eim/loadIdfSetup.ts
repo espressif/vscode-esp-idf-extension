@@ -100,8 +100,11 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
   };
 
   const idfPath = process.env.IDF_PATH || customVars["IDF_PATH"];
+  const containerPath =
+    process.platform === "win32" ? process.env.USERPROFILE : process.env.HOME;
+  const defaultIdfToolsPath = join(containerPath, ".espressif");
   const idfToolsPath =
-    process.env.IDF_TOOLS_PATH || customVars["IDF_TOOLS_PATH"];
+    process.env.IDF_TOOLS_PATH || customVars["IDF_TOOLS_PATH"] || defaultIdfToolsPath;
   const gitPath = "/usr/bin/git";
   const idfSetupId = getIdfMd5sum(idfPath);
   const idfVersion = await getEspIdfFromCMake(idfPath);
