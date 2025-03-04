@@ -19,40 +19,36 @@
 import { dirname, join } from "path";
 import { execChildProcess, getEspIdfFromCMake } from "../utils";
 import { IdfSetup } from "./types";
-import { pathExists } from "fs-extra";
+import { pathExists, readJson } from "fs-extra";
 import { ESP } from "../config";
 import { checkIdfSetup } from "./verifySetup";
 import { Logger } from "../logger/logger";
-import { readParameter } from "../idfConfiguration";
-import { getEnvVarsFromIdfTools } from "../pythonManager";
+import { getEnvVarsFromIdfTools, getUnixPythonList } from "../pythonManager";
 import { IdfToolsManager } from "../idfToolsManager";
-import { Uri } from "vscode";
 
-export async function getExtensionGlobalIdfSetups(
-  logToChannel: boolean = true
+export async function getSystemPython(
+  espIdfPath: string,
+  espIdfToolsPath: string
 ) {
-  const setupKeys = ESP.GlobalConfiguration.store.getIdfSetupKeys();
-  const idfSetups: IdfSetup[] = [];
-  for (let idfSetupKey of setupKeys) {
-    let idfSetup = ESP.GlobalConfiguration.store.get<IdfSetup>(
-      idfSetupKey,
-      undefined
+  if (process.platform !== "win32") {
+    const sysPythonList = await getUnixPythonList(__dirname);
+    return sysPythonList && sysPythonList.length ? sysPythonList[0] : "python3";
+  } else {
+    const idfVersion = await getEspIdfFromCMake(espIdfPath);
+    const pythonVersionToUse =
+      idfVersion >= "5.0"
+        ? ESP.URL.IDF_EMBED_PYTHON.VERSION
+        : ESP.URL.OLD_IDF_EMBED_PYTHON.VERSION;
+    const idfPythonPath = join(
+      espIdfToolsPath,
+      "tools",
+      "idf-python",
+      pythonVersionToUse,
+      "python.exe"
     );
-    if (idfSetup && idfSetup.idfPath) {
-      try {
-        idfSetup.isValid = await checkIdfSetup(idfSetup, logToChannel);
-        idfSetup.version = await getEspIdfFromCMake(idfSetup.idfPath);
-        idfSetups.push(idfSetup);
-      } catch (err) {
-        const msg = err.message
-          ? err.message
-          : "Error checkIdfSetup in getExtensionGlobalIdfSetups";
-        Logger.error(msg, err, "getExtensionGlobalIdfSetups");
-        ESP.GlobalConfiguration.store.clearIdfSetup(idfSetup.id);
-      }
-    }
+    const idfPythonPathExists = await pathExists(idfPythonPath);
+    return idfPythonPathExists ? idfPythonPath : "";
   }
-  return idfSetups;
 }
 
 export async function getIdfPythonEnvPath(
@@ -114,14 +110,12 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
 
   if (!idfSetup.python) {
     if (!idfSetup.sysPythonPath) {
-      const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
-        ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+      idfSetup.sysPythonPath = await getSystemPython(
+        idfSetup.idfPath,
+        idfSetup.toolsPath
       );
-      idfSetup.sysPythonPath = readParameter(
-        "idf.pythonInstallPath",
-        workspaceFolderUri
-      ) as string;
     }
+
     idfSetup.python = await getPythonEnvPath(
       idfSetup.idfPath,
       idfSetup.toolsPath,
@@ -142,4 +136,83 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
     }
   }
   return envVars;
+}
+
+export async function loadIdfSetupsFromEspIdfJson(toolsPath: string) {
+  const espIdfJson = await loadEspIdfJson(toolsPath);
+  if (
+    espIdfJson &&
+    espIdfJson.idfInstalled &&
+    Object.keys(espIdfJson.idfInstalled).length
+  ) {
+    let idfSetups: IdfSetup[] = [];
+    for (let idfInstalledKey of Object.keys(espIdfJson.idfInstalled)) {
+      let setupConf: IdfSetup = {
+        id: idfInstalledKey,
+        idfPath: espIdfJson.idfInstalled[idfInstalledKey].path,
+        gitPath: espIdfJson.gitPath,
+        version: espIdfJson.idfInstalled[idfInstalledKey].version,
+        python: espIdfJson.idfInstalled[idfInstalledKey].python,
+        toolsPath: toolsPath,
+        isValid: false,
+      } as IdfSetup;
+      try {
+        setupConf.isValid = await checkIdfSetup(setupConf, false);
+      } catch (err) {
+        const msg = err.message
+          ? err.message
+          : "Error checkIdfSetup in loadIdfSetupsFromEspIdfJson";
+        Logger.error(msg, err, "loadIdfSetupsFromEspIdfJson");
+        setupConf.isValid = false;
+      }
+      idfSetups.push(setupConf);
+    }
+    return idfSetups;
+  }
+}
+
+export interface EspIdfJson {
+  $schema: string;
+  $id: string;
+  _comment: string;
+  _warning: string;
+  gitPath: string;
+  idfToolsPath: string;
+  idfSelectedId: string;
+  idfInstalled: { [key: string]: IdfInstalled };
+}
+
+export interface IdfInstalled {
+  version: string;
+  python: string;
+  path: string;
+}
+
+export function getEspIdfJsonTemplate(toolsPath: string) {
+  return {
+    $schema: "http://json-schema.org/schema#",
+    $id: "http://dl.espressif.com/dl/schemas/esp_idf",
+    _comment: "Configuration file for ESP-IDF IDEs.",
+    _warning:
+      "Use / or \\ when specifying path. Single backslash is not allowed by JSON format.",
+    gitPath: "",
+    idfToolsPath: toolsPath,
+    idfSelectedId: "",
+    idfInstalled: {},
+  } as EspIdfJson;
+}
+
+export async function loadEspIdfJson(toolsPath: string) {
+  const espIdfJsonPath = join(toolsPath, "esp_idf.json");
+  const espIdfJsonExists = await pathExists(espIdfJsonPath);
+  let espIdfJson: EspIdfJson;
+  try {
+    if (!espIdfJsonExists) {
+      throw new Error(`${espIdfJsonPath} doesn't exists.`);
+    }
+    espIdfJson = await readJson(espIdfJsonPath);
+  } catch (error) {
+    espIdfJson = getEspIdfJsonTemplate(toolsPath);
+  }
+  return espIdfJson;
 }

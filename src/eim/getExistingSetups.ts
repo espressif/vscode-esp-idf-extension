@@ -23,9 +23,28 @@ import { Logger } from "../logger/logger";
 import { EspIdfJson, IdfSetup } from "./types";
 import { checkIdfSetup } from "./verifySetup";
 import { getEspIdfFromCMake } from "../utils";
+import { loadIdfSetupsFromEspIdfJson } from "./migrationTool";
+import { ESP } from "../config";
+import { Uri } from "vscode";
 
 export async function getIdfSetups() {
-  return await loadIdfSetupsFromEimIdfJson();
+  const workspaceFolderUri = ESP.GlobalConfiguration.store.get<Uri>(
+    ESP.GlobalConfiguration.SELECTED_WORKSPACE_FOLDER
+  );
+  const customVars = readParameter("idf.customExtraVars", workspaceFolderUri) as {
+    [key: string]: string;
+  };
+  const eimIDFSetups = await loadIdfSetupsFromEimIdfJson();
+  let resultingIdfSetups = eimIDFSetups;
+  if (customVars["IDF_TOOLS_PATH"]) {
+    const espIdfCustomVarsJsonSetups = await loadIdfSetupsFromEspIdfJson(customVars["IDF_TOOLS_PATH"]);
+    resultingIdfSetups = resultingIdfSetups.concat(espIdfCustomVarsJsonSetups);
+  }
+  if (process.env.IDF_TOOLS_PATH) {
+    const espIdfSysJsonSetups = await loadIdfSetupsFromEspIdfJson(process.env["IDF_TOOLS_PATH"]);
+    resultingIdfSetups = resultingIdfSetups.concat(espIdfSysJsonSetups);
+  }
+  return resultingIdfSetups;
 }
 
 export async function loadIdfSetupsFromEimIdfJson() {

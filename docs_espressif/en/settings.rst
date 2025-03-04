@@ -64,8 +64,6 @@ These are the configuration settings that ESP-IDF extension contributes to your 
       - Enable IDF Component manager in build command
     * - idf.ninjaArgs
       - Arguments for Ninja build task
-    * - idf.pythonInstallPath
-      - System Python absolute path used to compute ESP-IDF Python virtual environment
 
 This is how the extension uses them:
 

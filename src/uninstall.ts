@@ -134,8 +134,6 @@ export async function asyncRemoveEspIdfSettings() {
       }
     }
 
-    ESP.GlobalConfiguration.store.clearPreviousIdfSetups();
-
     OutputChannel.appendLineAndShow(
       vscode.l10n.t("ESP-IDF settings removed successfully.")
     );
