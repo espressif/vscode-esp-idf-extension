@@ -75,21 +75,22 @@ suite("Doctor Command tests", () => {
     assert.equal(reportObj.systemInfo.vscodeVersion, vscode.version);
   });
 
-  test("Wrong access to ESP-IDF path", () => {
+  test("Wrong access to ESP-IDF path", async () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
+    await getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.espIdfPath, false);
   });
 
   test("Wrong version of ESP-IDF", async () => {
     reportObj.configurationSettings.espIdfPath = "/some/non-existing-path";
     await getEspIdfVersion(reportObj);
+    console.log(reportObj.latestError);
     assert.equal(reportObj.espIdfVersion.result, "x.x");
   });
 
-  test("Wrong access to Python path", () => {
+  test("Wrong access to Python path", async () => {
     reportObj.configurationSettings.pythonBinPath = "/some/non-existing-path";
-    getConfigurationAccess(reportObj, mockUpContext);
+    await getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, false);
   });
 
@@ -174,7 +175,7 @@ suite("Doctor Command tests", () => {
       delimiter + process.env.OLD_PATH,
       ""
     );
-    getConfigurationAccess(reportObj, mockUpContext);
+    await getConfigurationAccess(reportObj, mockUpContext);
     assert.equal(reportObj.configurationAccess.pythonBinPath, true);
     assert.equal(reportObj.configurationAccess.espIdfPath, true);
     for (let toolPath in reportObj.configurationAccess.espIdfToolsPaths) {
