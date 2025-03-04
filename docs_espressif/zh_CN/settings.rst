@@ -52,26 +52,13 @@ ESP-IDF 相关设置
       - 在构建任务中启用 CCache（确保 CCache 在 PATH 中）
     * - idf.enableIdfComponentManager
       - 在构建命令中启用 IDF 组件管理器
-    * - idf.espIdfPath
-      - ESP-IDF 框架的位置路径 (IDF_PATH)
-    * - idf.espIdfPathWin
-      - Windows 系统中 ESP-IDF 框架的位置路径 (IDF_PATH)
     * - idf.ninjaArgs
       - Ninja 构建任务的参数
-    * - idf.pythonInstallPath
-      - 用于构建 ESP-IDF Python 虚拟环境的系统 Python 绝对路径
-    * - idf.toolsPath
-      - ESP-IDF 工具的位置路径 (IDF_TOOLS_PATH)
-    * - idf.toolsPathWin
-      - Windows 系统中 ESP-IDF 工具的位置路径 (IDF_TOOLS_PATH)
 
 扩展将按照以下方式使用上述设置：
 
 1. **idf.customExtraVars** 用于存储自定义环境变量，例如 OPENOCD_SCRIPTS，用于指定启动 OpenOCD 服务器时所需脚本文件的目录路径。这些变量会加载到扩展命令的进程环境变量中，优先使用扩展变量，如果没有，则扩展命令会尝试使用系统 PATH 中已有的设置。**该配置项不会改变 VS Code 之外的系统环境。**
-2. **idf.espIdfPath**（Windows 系统中为 **idf.espIdfPathWin**）用于在扩展中存储 ESP-IDF 目录路径。如果该值已配置，则 VS Code 进程中原有的 IDF_PATH 会被覆盖。**该配置项不会改变 VS Code 之外的系统环境。** 此外，扩展使用 **idf.espIdfPath**，结合 **idf.toolsPath** 和 **idf.pythonInstallPath**，来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
-3. **idf.pythonInstallPath** 是系统 Python 的绝对路径，基于 **idf.toolsPath** 和 **idf.espIdfPath** 来生成 ESP-IDF Python 虚拟环境路径。创建虚拟环境后，ESP-IDF 的 Python 包将在该环境中安装和使用。
-4. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF、ESP-MDF 和 Arduino-ESP32。
-5. **idf.toolsPath**（Windows 系统中为 **idf.toolsPathWin**）用于结合 **idf.toolsPath** 和 **idf.pythonInstallPath** 来确定要添加到环境变量 PATH 中的 ESP-IDF 工具路径和 Python 虚拟环境路径。
+2. **idf.gitPath**（Windows 系统中为 **idf.gitPathWin**）在扩展中用于克隆 ESP-IDF master 版本及其他支持的框架，如 ESP-ADF、ESP-MDF 和 Arduino-ESP32。
 
 .. note::
 
