@@ -137,7 +137,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
           );
         }
       } else if (openOcdHintsPath) {
-        Logger.infoNotify(`${openOcdHintsPath} does not exist.`);
+        Logger.info(`${openOcdHintsPath} does not exist.`);
       }
 
       if (!this.data.length) {
