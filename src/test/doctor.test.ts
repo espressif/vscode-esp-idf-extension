@@ -40,6 +40,7 @@ import { getGitVersion } from "../support/gitVersion";
 import { writeTextReport } from "../support/writeReport";
 import { ProjectConfigStore } from "../project-conf";
 import { createMockMemento } from "./mockUtils";
+import { Logger } from "../logger/logger";
 
 suite("Doctor Command tests", () => {
   const reportObj = initializeReportObject();
@@ -50,6 +51,7 @@ suite("Doctor Command tests", () => {
     workspaceState: createMockMemento(),
     globalState: createMockMemento()
   } as vscode.ExtensionContext;
+  Logger.init(mockUpContext);
   ESP.ProjectConfiguration.store = ProjectConfigStore.init(mockUpContext);
   setup(async () => {
     setExtensionContext(mockUpContext);
