@@ -24,6 +24,7 @@ import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../logger/logger";
 
 export async function getEnvVariables(idfSetup: IdfSetup) {
+  
   if (idfSetup.activationScript) {
     return await getEnvVariablesFromActivationScript(idfSetup.activationScript);
   } else {
