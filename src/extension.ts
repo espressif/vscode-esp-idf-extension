@@ -139,6 +139,7 @@ import {
 import {
   clearPreviousIdfSetups,
   getPreviousIdfSetups,
+  loadIdfSetupsFromEspIdfJson,
 } from "./setup/existingIdfSetups";
 import { getEspRainmaker } from "./rainmaker/download/espRainmakerDownload";
 import { getDocsUrl } from "./espIdf/documentation/getDocsVersion";
@@ -3818,8 +3819,25 @@ async function getFrameworksPickItems() {
   }[] = [];
   try {
     const idfSetups = await getPreviousIdfSetups(true);
+
+    const toolsPath = idfConf.readParameter(
+      "idf.toolsPath",
+      workspaceRoot
+    ) as string;
+    let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
+    if (
+      process.env.IDF_TOOLS_PATH &&
+      toolsPath !== process.env.IDF_TOOLS_PATH
+    ) {
+      const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
+        process.env.IDF_TOOLS_PATH
+      );
+      existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+    }
+    const onlyValidIdfSetups = [...idfSetups, ...existingIdfSetups].filter(
+      (i) => i.isValid
+    );
     const currentIdfSetup = await getCurrentIdfSetup(workspaceRoot);
-    const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
     for (const idfSetup of onlyValidIdfSetups) {
       pickItems.push({
         description: `ESP-IDF v${idfSetup.version}`,
