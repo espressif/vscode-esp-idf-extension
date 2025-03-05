@@ -126,6 +126,7 @@ export async function getEnvVariablesFromIdfSetup(idfSetup: IdfSetup) {
   const pythonExists = await pathExists(idfSetup.python);
 
   if (pythonExists) {
+    envVars["PYTHON"] = idfSetup.python;
     envVars["IDF_PYTHON_ENV_PATH"] = dirname(dirname(idfSetup.python));
     const idfVars = await getEnvVarsFromIdfTools(
       idfSetup.idfPath,
