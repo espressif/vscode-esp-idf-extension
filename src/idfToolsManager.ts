@@ -29,13 +29,8 @@ export interface IEspIdfTool {
   doesToolExist: boolean;
   env: {};
   expected: string;
-  hashResult: boolean;
-  hasFailed: boolean;
-  id: string;
   name: string;
   path: string;
-  progress: string;
-  progressDetail: string;
 }
 
 export class IdfToolsManager {
@@ -379,13 +374,8 @@ export class IdfToolsManager {
         doesToolExist: isToolVersionCorrect,
         env: pkgVars,
         expected: expectedVersions.join(","),
-        hashResult: isToolVersionCorrect,
-        hasFailed: false,
-        id: pkg.name,
         name: pkg.name,
         path: pkgExportedPath,
-        progress: "0.00%",
-        progressDetail: "",
       } as IEspIdfTool;
     });
     return idfToolsList;
@@ -422,7 +412,6 @@ export class IdfToolsManager {
         description: pkg.description,
         doesToolExist: isToolVersionCorrect,
         expected: expectedVersions.join(","),
-        hashResult: isToolVersionCorrect,
         name: pkg.name,
       } as IEspIdfTool;
     });

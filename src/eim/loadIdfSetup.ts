@@ -24,7 +24,7 @@ import { getEnvVariables } from "./loadSettings";
 import { readParameter, writeParameter } from "../idfConfiguration";
 import { getEspIdfFromCMake } from "../utils";
 import { join } from "path";
-import { checkIdfSetup } from "./verifySetup";
+import { isIdfSetupValid } from "./verifySetup";
 import { Logger } from "../logger/logger";
 import { createHash } from "crypto";
 
@@ -127,7 +127,7 @@ export async function loadEnvVarsAsIdfSetup(workspaceFolder: Uri) {
     python: venvPythonPath,
     isValid: false,
   };
-  envDefinedIdfSetup.isValid = await checkIdfSetup(envDefinedIdfSetup);
+  envDefinedIdfSetup.isValid = await isIdfSetupValid(envDefinedIdfSetup);
 
   if (envDefinedIdfSetup.isValid) {
     const envVars = await getEnvVariables(envDefinedIdfSetup);

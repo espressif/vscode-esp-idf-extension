@@ -91,7 +91,7 @@ export class idfToolResult {
   actual: string;
   doesToolExist: boolean;
   expected: string;
-  id: string;
+  name: string;
 }
 
 export class execResult {
