@@ -28,7 +28,16 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { getEnvVariables } from "./loadSettings";
 import { ESP } from "../config";
 
-export async function checkIdfSetup(idfSetup: IdfSetup, logToChannel = true) {
+/**
+ * Validate that given IDF Setup is valid.
+ * @param {IdfSetup} idfSetup IDF Setup to validate.
+ * @param logToChannel If output IDF Tools validation result in output channel
+ * @returns {boolean} True if IDF Setup is valid, False otherwise
+ */
+export async function isIdfSetupValid(
+  idfSetup: IdfSetup,
+  logToChannel = true
+): Promise<boolean> {
   try {
     let envVars: { [key: string]: string } = await getEnvVariables(idfSetup);
     let venvPythonPath: string = "";
@@ -95,7 +104,7 @@ export async function checkIdfSetup(idfSetup: IdfSetup, logToChannel = true) {
       error && error.message
         ? error.message
         : `Error checking EIM Idf Setup for script ${idfSetup.activationScript}`;
-    Logger.error(msg, error, "verifySetup checkIdfSetup");
+    Logger.error(msg, error, "verifySetup isIdfSetupValid");
     return false;
   }
 }
