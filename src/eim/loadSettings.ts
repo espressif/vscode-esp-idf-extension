@@ -19,12 +19,11 @@
 import { EOL } from "os";
 import { spawn } from "../utils";
 import { IdfSetup } from "./types";
-import { delimiter } from "path";
+import { delimiter, join } from "path";
 import { getEnvVariablesFromIdfSetup } from "./migrationTool";
 import { Logger } from "../logger/logger";
 
 export async function getEnvVariables(idfSetup: IdfSetup) {
-  
   if (idfSetup.activationScript) {
     return await getEnvVariablesFromActivationScript(idfSetup.activationScript);
   } else {
@@ -76,6 +75,12 @@ export async function getEnvVariablesFromActivationScript(
         .replace(process.env[pathNameInEnv], "")
         .replace(new RegExp(`(^${delimiter}|${delimiter}$)`, "g"), "");
     }
+
+    const pyDir =
+      process.platform === "win32"
+        ? ["Scripts", "python.exe"]
+        : ["bin", "python"];
+    envVars["PYTHON"] = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
 
     return envDict;
   } catch (error) {
