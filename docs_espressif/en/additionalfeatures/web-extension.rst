@@ -82,8 +82,8 @@ Press menu **View**, select **Command Palette...** and search for these commands
 .. note:: 
   The ``ESP-IDF-Web Flash`` command depends on ``flasher_args.json`` and the ``ESP-IDF-Web Monitor`` command depends on ``project_description.json`` from ESP-IDF project build directory, where the build directory is defined using ``idf.buildPath`` from `ESP-IDF extension VS Code <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_ configuration setting or it will use the currently selected workspace folder ``build`` otherwise (``${workspaceFolder}/build``).
 
-Settings
-------------
+ESP-IDF-Web Settings
+---------------------
 
 ``idfWeb.flashBaudRate``: Allow the user to set the flash baudrate being used to flash the current workspace folder ESP-IDF project application to your device.
 

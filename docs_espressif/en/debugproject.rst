@@ -105,9 +105,9 @@ To configure the debugging session, open the project's ``.vscode/launch.json`` f
     {
         "configurations": [
             {
-            "type": "gdbtarget",
-            "request": "attach",
-            "name": "Eclipse CDT GDB Adapter"
+                "type": "gdbtarget",
+                "request": "attach",
+                "name": "Eclipse CDT GDB Adapter"
             }
         ]
     }
@@ -121,7 +121,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     {IDF_TARGET_CPU_WATCHPOINT_NUM} is resolved by the extension according to the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
+     ``{IDF_TARGET_CPU_WATCHPOINT_NUM}`` is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
 
 Some additional arguments you might use are:
 
@@ -132,6 +132,7 @@ Some additional arguments you might use are:
 - ``environment``: Environment variables to apply to the ESP-IDF Debug Adapter. It will replace global environment variables and environment variables used by the extension.
 
 .. code-block:: JSON
+
     {
         ...
         "environment": {
@@ -143,6 +144,7 @@ Some additional arguments you might use are:
 - ``imageAndSymbols`` :
 
 .. code-block:: JSON
+
     {
         ...
         "imageAndSymbols": {
@@ -157,6 +159,7 @@ Some additional arguments you might use are:
 - ``target``: Configuration for target to be attached. Specifies how to connect to the device to debug. Usually OpenOCD exposes the chip as a remote target on port 3333.
 
 .. code-block:: JSON
+
     {
         "target": {
             "type": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
@@ -170,25 +173,26 @@ Some additional arguments you might use are:
 An example of a modified launch.json file is shown below:
 
 .. code-block:: JSON
+
     {
         "configurations": [
             {
-            "type": "gdbtarget",
-            "request": "attach",
-            "name": "Eclipse CDT GDB Adapter",
-            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
-            "initCommands": [
-                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
-                "mon reset halt",
-                "maintenance flush register-cache"
-            ],
-            "gdb": "${command:espIdf.getToolchainGdb}",
-            "target": {
-                "connectCommands": [
-                "set remotetimeout 20",
-                "-target-select extended-remote localhost:3333"
-                ]
-            }
+                "type": "gdbtarget",
+                "request": "attach",
+                "name": "Eclipse CDT GDB Adapter",
+                "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                "initCommands": [
+                    "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+                    "mon reset halt",
+                    "maintenance flush register-cache"
+                ],
+                "gdb": "${command:espIdf.getToolchainGdb}",
+                "target": {
+                    "connectCommands": [
+                        "set remotetimeout 20",
+                        "-target-select extended-remote localhost:3333"
+                    ]
+                }
             }
         ]
     }
