@@ -41,11 +41,11 @@ class ReHintPair {
 }
 
 class ErrorHint {
-  public type: "error" | "hint";
+  public type: "error" | "hint" | "reference";
   public children: ErrorHint[] = [];
   public ref?: string;
 
-  constructor(public label: string, type: "error" | "hint", ref?: string) {
+  constructor(public label: string, type: "error" | "hint" | "reference", ref?: string) {
     this.type = type;
     this.ref = ref;
   }
@@ -321,8 +321,21 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
       // Add tooltip with reference URL if available
       if (element.ref) {
-        treeItem.tooltip = `${element.label}\n\nReference: ${element.ref}`;
+        treeItem.tooltip = `${element.label}`;
+        
+        // If this hint has a reference, make it expandable
+        treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
       }
+    } else if (element.type === "reference") {
+      // Special handling for reference items
+      treeItem.label = `🔗 Reference Documentation`;
+      treeItem.tooltip = `Open ${element.label}`;
+      treeItem.command = {
+        command: 'vscode.open',
+        title: 'Open Reference',
+        arguments: [vscode.Uri.parse(element.label)]
+      };
+      treeItem.iconPath = new vscode.ThemeIcon("link-external");
     }
 
     return treeItem;
@@ -365,6 +378,12 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       
       // Add hint as child of error
       error.addChild(hint);
+
+      // If there's a reference, add it as a child of the hint
+      if (reference) {
+        const refItem = new ErrorHint(reference, "reference");
+        hint.addChild(refItem);
+      }
       
       // Add to the data array
       this.openocdErrorData.push(error);
