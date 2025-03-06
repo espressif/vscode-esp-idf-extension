@@ -92,7 +92,7 @@ export async function getEimIdfJson() {
   } else {
     eimIdfJsonPath =
       process.platform === "win32"
-        ? join(process.env.SystemDrive, "Espressif", "tools", "eim_idf.json")
+        ? join("C:", "Espressif", "tools", "eim_idf.json")
         : join(process.env.HOME, ".espressif", "tools", "eim_idf.json");
   }
   const espIdfJsonExists = await pathExists(eimIdfJsonPath);
