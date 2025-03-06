@@ -189,7 +189,7 @@ export function spawn(
         resolve(buff);
       } else {
         const err = new Error("non zero exit code " + code + EOL + EOL + buff);
-        Logger.error(err.message, err, "src utils spawn");
+        Logger.error(err.message, err, "src utils spawn", { command });
         reject(err);
       }
     });
@@ -613,7 +613,9 @@ export function execChildProcess(
 
         if (error) {
           if (error.message) {
-            Logger.error(error.message, error, "utils execChildProcess");
+            Logger.error(error.message, error, "utils execChildProcess", {
+              command,
+            });
           }
           return reject(error);
         }
@@ -622,7 +624,8 @@ export function execChildProcess(
             Logger.error(
               stderr,
               new Error(stderr),
-              "utils execChildProcess stderr"
+              "utils execChildProcess stderr",
+              { command }
             );
           }
           if (

@@ -95,6 +95,13 @@ export async function checkIdfSetup(
     if (setupConf.python) {
       virtualEnvPython = setupConf.python;
     } else {
+      if (!setupConf.sysPythonPath) {
+        setupConf.sysPythonPath = await getSystemPythonFromSettings(
+          "",
+          setupConf.idfPath,
+          setupConf.toolsPath
+        );
+      }
       virtualEnvPython = await getPythonEnvPath(
         setupConf.idfPath,
         setupConf.toolsPath,

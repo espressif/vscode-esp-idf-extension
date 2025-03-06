@@ -23,7 +23,10 @@ import {
   getOpenOcdScripts,
   IdfBoard,
 } from "../espIdf/openOcd/boardConfiguration";
-import { getPreviousIdfSetups } from "../setup/existingIdfSetups";
+import {
+  getPreviousIdfSetups,
+  loadIdfSetupsFromEspIdfJson,
+} from "../setup/existingIdfSetups";
 import { IdfSetup } from "../views/setup/types";
 
 export interface INewProjectArgs {
@@ -67,8 +70,20 @@ export async function getNewProjectArgs(
   let espBoards = await getBoards(openOcdScriptsPath);
   progress.report({ increment: 10, message: "Loading ESP-IDF setups list..." });
   const idfSetups = await getPreviousIdfSetups(true);
-  const onlyValidIdfSetups = idfSetups.filter((i) => i.isValid);
-  const pickItems: {description: string, label: string, target: IdfSetup}[] = [];
+  const toolsPath = idfConf.readParameter("idf.toolsPath", workspace) as string;
+  let existingIdfSetups = await loadIdfSetupsFromEspIdfJson(toolsPath);
+  if (process.env.IDF_TOOLS_PATH && toolsPath !== process.env.IDF_TOOLS_PATH) {
+    const systemIdfSetups = await loadIdfSetupsFromEspIdfJson(
+      process.env.IDF_TOOLS_PATH
+    );
+    existingIdfSetups = [...existingIdfSetups, ...systemIdfSetups];
+  }
+  const onlyValidIdfSetups = [...idfSetups, ...existingIdfSetups].filter((i) => i.isValid);
+  const pickItems: {
+    description: string;
+    label: string;
+    target: IdfSetup;
+  }[] = [];
   for (const idfSetup of onlyValidIdfSetups) {
     pickItems.push({
       description: `ESP-IDF v${idfSetup.version}`,
@@ -79,16 +94,11 @@ export async function getNewProjectArgs(
     });
   }
   progress.report({ increment: 10, message: "Select ESP-IDF to use..." });
-  const espIdfPathToUse = await window.showQuickPick(
-    pickItems,
-    {
-      placeHolder: l10n.t("Select framework to use"),
-    }
-  );
+  const espIdfPathToUse = await window.showQuickPick(pickItems, {
+    placeHolder: l10n.t("Select framework to use"),
+  });
   if (!espIdfPathToUse) {
-    Logger.infoNotify(
-      l10n.t("No framework selected to load examples.")
-    );
+    Logger.infoNotify(l10n.t("No framework selected to load examples."));
     return;
   }
   const idfSetup = espIdfPathToUse.target;
