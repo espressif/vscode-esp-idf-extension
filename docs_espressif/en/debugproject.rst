@@ -116,12 +116,12 @@ You can modify the configuration to suit your needs. Let's describe the configur
 
 - ``type``: The type of the debug configuration. It should be set to ``gdbtarget``.
 - ``program``: ELF file of your project build directory to execute the debug session. You can use the command ``${command:espIdf.getProjectName}`` to query the extension to find the current build directory project name.
-- ``initCommands``: GDB Commands to initialize GDB and target. The default value is ``["set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}", "mon reset halt", "maintenance flush register-cache"]``.
+- ``initCommands``: GDB Commands to initialize GDB and target. The default value is ``["set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM", "mon reset halt", "maintenance flush register-cache"]``.
 - ``initialBreakpoint``: When ``initCommands`` is not defined, this command will add to default ``initCommands`` a hardward breakpoint at the given function name. For example app_main, the default value, will add ``thb app_main`` to default initCommmands. If set to "", an empty string, no initial breakpoint will be set and if let undefined it will use the default thb app_main.
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     **{IDF_TARGET_CPU_WATCHPOINT_NUM}** is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
+     **IDF_TARGET_CPU_WATCHPOINT_NUM** is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
 
 Some additional arguments you might use are:
 
@@ -178,7 +178,7 @@ An example of a modified launch.json file is shown below:
                 "name": "Eclipse CDT GDB Adapter",
                 "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
                 "initCommands": [
-                    "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+                    "set remote hardware-watchpoint-limit IDF_TARGET_CPU_WATCHPOINT_NUM",
                     "mon reset halt",
                     "maintenance flush register-cache"
                 ],
