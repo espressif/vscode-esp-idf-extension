@@ -1310,32 +1310,32 @@
       },
       {
         "command": "espIdf.buildApp",
-        "title": "Build App",
+        "title": "%espIdf.buildApp.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashAppUart",
-        "title": "Flash App only",
+        "title": "%espIdf.flashAppUart.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.buildBootloader",
-        "title": "Build Bootloader",
+        "title": "%espIdf.buildBootloader.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashBootloaderUart",
-        "title": "Flash Bootloader Only",
+        "title": "%espIdf.flashBootloaderUart.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.buildPartitionTable",
-        "title": "Build Partition Table",
+        "title": "%espIdf.buildPartitionTable.title%",
         "category": "ESP-IDF"
       },
       {
         "command": "espIdf.flashPartitionTableUart",
-        "title": "Flash Partition Table Only",
+        "title": "%espIdf.flashPartitionTableUart.title%",
         "category": "ESP-IDF"
       },
       {

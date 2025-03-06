@@ -23,6 +23,7 @@ import {
   Disposable,
   Event,
   EventEmitter,
+  l10n,
   ThemeIcon,
   TreeDataProvider,
   TreeItem,
@@ -95,7 +96,9 @@ export class PartitionTreeDataProvider
       const flasherArgsExists = await pathExists(flasherArgsPath);
       if (!flasherArgsExists) {
         window.showInformationMessage(
-          `${flasherArgsPath} doesn't exist. Build first.`
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            flasherArgsPath,
+          })
         );
         return;
       }
@@ -121,7 +124,9 @@ export class PartitionTreeDataProvider
       const bootloaderFileExists = await pathExists(bootloaderFile);
       if (!bootloaderFileExists) {
         window.showInformationMessage(
-          `${bootloaderFile} doesn't exist. Build first.`
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            bootloaderFile,
+          })
         );
         return;
       }
@@ -161,7 +166,9 @@ export class PartitionTreeDataProvider
       const partitionTableExists = await pathExists(partTableBin);
       if (!partitionTableExists) {
         window.showInformationMessage(
-          `${partTableBin} doesn't exist. Build first.`
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            partTableBin,
+          })
         );
         return;
       }

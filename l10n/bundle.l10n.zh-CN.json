@@ -135,6 +135,7 @@
   "Error encountered while calling idf_size.py": "调用 idf_size.py 时出错",
   "Select the available serial port where your device is connected.": "为设备选择可用的串口。",
   "Port has been updated to ": "端口已更新为 ",
+  "{buildFile} doesn't exist. Build first.": "{buildFile}不存在，请先进行生成。",
   "SDK Configuration editor": "SDK 配置编辑器",
   "Save": "保存",
   "Discard": "丢弃",
