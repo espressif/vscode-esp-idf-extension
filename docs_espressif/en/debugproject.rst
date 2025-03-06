@@ -55,11 +55,17 @@ Debugging Process Overview
 
 1.  First, the OpenOCD server is launched in the background and the output appears under menu ``View`` > ``Output`` by selecting ``ESP-IDF`` from the dropdown menu.
 
-    By default, the OpenOCD server is launched on localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for GDB. You can change these settings by modifying ``openocd.tcl.host`` and ``openocd.tcl.port``. You can adjust the verbosity of OpenOCD messages displayed in the ESP-IDF output by setting ``idf.openOcdDebugLevel``. The value can range from 0 to 4.
+    By default, the OpenOCD server is launched on localhost, port ``4444`` for Telnet communication, port ``6666`` for TCL communication and port ``3333`` for GDB. You can change these settings by modifying ``openocd.tcl.host`` and ``openocd.tcl.port`` in your ``<project-directory>/.vscode/settings.json``. You can also adjust the verbosity of OpenOCD messages displayed in the ESP-IDF output by setting ``idf.openOcdDebugLevel``. The value can range from 0 to 4.
 
 2.  Next, the `Eclipse CDT GDB Adapter <https://github.com/eclipse-cdt-cloud/cdt-gdb-adapter>`_ is launched in the background, with its output shown in the ``Debug Console``. This adapter initiates the GDB debug session to connect to the device.
 
     This adapter acts as an intermediary between Visual Studio Code, the configured toolchain GDB and the OpenOCD server. Learn more about `Espressif chips debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#how-it-works>`_ and how Visual Studio Code uses `debug adapters <https://microsoft.github.io/debug-adapter-protocol/overview>`_ to communicate with various debug tools.
+
+.. note::
+  * Use **idf.openOcdDebugLevel** configuration setting to 4 or more to show debug logging in OpenOCD server output.
+  * Use **verbose** in your ``<project-directory>/.vscode/launch.json`` to true to show more debug adapter output.
+
+In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension. For example, ``OpenOCD`` communication is displayed in this output.
 
 Setting a Custom Application Image Offset
 -----------------------------------------
@@ -88,6 +94,108 @@ To update OpenOCD launch arguments, open the project's ``.vscode/settings.json``
     }
 
 where ``0x20000`` is your application image offset used in the partition table.
+
+Debugging Configuration
+-----------------------
+
+To configure the debugging session, open the project's ``.vscode/launch.json`` file. This file contains the configuration for the debug session. The default configuration is as follows:
+
+.. code-block:: JSON
+
+    {
+        "configurations": [
+            {
+            "type": "gdbtarget",
+            "request": "attach",
+            "name": "Eclipse CDT GDB Adapter"
+            }
+        ]
+    }
+
+You can modify the configuration to suit your needs. Let's describe the configuration options:
+
+- ``type``: The type of the debug configuration. It should be set to ``gdbtarget``.
+- ``program``: ELF file of your project build directory to execute the debug session. You can use the command ``${command:espIdf.getProjectName}`` to query the extension to find the current build directory project name.
+- ``initCommands``: GDB Commands to initialize GDB and target. The default value is ``["set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}", "mon reset halt", "maintenance flush register-cache"]``.
+- ``initialBreakpoint``: When ``initCommands`` is not defined, this command will add to default ``initCommands`` a hardward breakpoint at the given function name. For example app_main, the default value, will add ``thb app_main`` to default initCommmands. If set to "", an empty string, no initial breakpoint will be set and if let undefined it will use the default thb app_main.
+- ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
+
+.. note::
+     {IDF_TARGET_CPU_WATCHPOINT_NUM} is resolved by the extension according to the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
+
+Some additional arguments you might use are:
+
+- ``runOpenOCD``: (Default: true). Run extension OpenOCD Server.
+- ``verifyAppBinBeforeDebug``: (Default: false) Verify that current ESP-IDF project binary is the same as binary in chip.
+- ``logFile``: Absolute path to the file to log interaction with gdb. Example: ${workspaceFolder}/gdb.log.
+- ``verbose``: Produce verbose log output.
+- ``environment``: Environment variables to apply to the ESP-IDF Debug Adapter. It will replace global environment variables and environment variables used by the extension.
+
+.. code-block:: JSON
+    {
+        ...
+        "environment": {
+            "VAR": "Value"
+        }
+        ...
+    }
+
+- ``imageAndSymbols`` :
+
+.. code-block:: JSON
+    {
+        ...
+        "imageAndSymbols": {
+            "symbolFileName": "If specified, a symbol file to load at the given (optional) offset",
+            "symbolOffset": "If symbolFileName is specified, the offset used to load",
+            "imageFileName": "If specified, an image file to load at the given (optional) offset",
+            "imageOffset": "If imageFileName is specified, the offset used to load"
+        }
+        ...
+    }
+
+- ``target``: Configuration for target to be attached. Specifies how to connect to the device to debug. Usually OpenOCD exposes the chip as a remote target on port 3333.
+
+.. code-block:: JSON
+    {
+        "target": {
+            "type": "The kind of target debugging to do. This is passed to -target-select (defaults to remote)",
+            "host": "Target host to connect to (defaults to 'localhost', ignored if parameters is set)",
+            "port": "Target port to connect to (defaults to value captured by serverPortRegExp, ignored if parameters is set)",
+            "parameters": "Target parameters for the type of target. Normally something like localhost:12345. (defaults to `${host}:${port}`)",
+            "connectCommands": "Replace all previous parameters to specify an array of commands to establish connection"
+        }
+    }
+
+An example of a modified launch.json file is shown below:
+
+.. code-block:: JSON
+    {
+        "configurations": [
+            {
+            "type": "gdbtarget",
+            "request": "attach",
+            "name": "Eclipse CDT GDB Adapter",
+            "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+            "initCommands": [
+                "set remote hardware-watchpoint-limit {IDF_TARGET_CPU_WATCHPOINT_NUM}",
+                "mon reset halt",
+                "maintenance flush register-cache"
+            ],
+            "gdb": "${command:espIdf.getToolchainGdb}",
+            "target": {
+                "connectCommands": [
+                "set remotetimeout 20",
+                "-target-select extended-remote localhost:3333"
+                ]
+            }
+            }
+        ]
+    }
+
+While the previous example is explicitly using the default values, it can be customized to suit your needs.
+
+There are other, less used arguments documented in the ESP-IDF VS Code extension's package.json gdbtarget debugger contribution.
 
 Navigating through the Code, Call Stack and Threads
 ---------------------------------------------------
@@ -213,3 +321,65 @@ You can start a monitor session to capture fatal error events with **ESP-IDF: La
 
 - **Core Dump** is configured when **Core Dump's Data Destination** is set to either ``UART`` or ``FLASH`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
 - **GDB Stub** is configured when **Panic Handler Behaviour** is set to ``Invoke GDBStub`` using the ``ESP-IDF: SDK Configuration Editor`` extension command or ``idf.py menuconfig`` in a terminal.
+
+
+Other extensions debug configuration
+------------------------------------
+
+While we support the ESP-IDF extension, you can also use other extensions to debug your project. For example, you can use the `Microsoft C/C++ <https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools>`_ extension to debug your project.
+
+To do this, you need to configure the launch.json file in the .vscode directory of your project. Here is an example of a launch.json file:
+
+.. code-block:: JSON
+    {
+        "configurations": [
+            {
+                "name": "GDB",
+                "type": "cppdbg",
+                "request": "launch",
+                "MIMode": "gdb",
+                "miDebuggerPath": "${command:espIdf.getToolchainGdb}",
+                "program": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                "windows": {
+                    "program": "${workspaceFolder}\\build\\${command:espIdf.getProjectName}.elf"
+                },
+                "cwd": "${workspaceFolder}",
+                "environment": [{ "name":"KEY", "value":"VALUE" }],
+                "setupCommands": [
+                        { "text": "set remotetimeout 20" },
+                    ],
+                    "postRemoteConnectCommands": [
+                        { "text": "mon reset halt" },
+                        { "text": "maintenance flush register-cache"},
+                    ],
+                "externalConsole": false,
+                "logging": {
+                    "engineLogging": true
+                }
+            }
+        ]
+    }
+
+Another recommended debug extension is the `Native Debug <https://marketplace.visualstudio.com/items?itemName=webfreak.debug>`_ extension. Here is an example configuration for the launch.json file:
+
+.. code-block:: JSON
+    {
+        "configurations": [
+            {
+                "type": "gdb",
+                "request": "attach",
+                "name": "NativeDebug",
+                "target": "extended-remote :3333",
+                "executable": "${workspaceFolder}/build/${command:espIdf.getProjectName}.elf",
+                "gdbpath": "${command:espIdf.getToolchainGdb}",
+                "cwd": "${workspaceRoot}",
+                "autorun": [
+                    "mon reset halt",
+                    "maintenance flush register-cache",
+                    "thb app_main"
+                ]
+            }
+        ]
+    }
+
+Consider that if you use these extension debugger configuration you need to manually run OpenOCD from ESP-IDF VS Code extension [OpenOCD] status bar button or from terminal.
