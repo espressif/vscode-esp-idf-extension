@@ -121,7 +121,7 @@ You can modify the configuration to suit your needs. Let's describe the configur
 - ``gdb``: GDB executable to be used. By default "${command:espIdf.getToolchainGdb}" will query the extension to find the ESP-IDF toolchain GDB for the current IDF_TARGET of your esp-idf project (esp32, esp32c6, etc.).
 
 .. note::
-     ``{IDF_TARGET_CPU_WATCHPOINT_NUM}`` is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
+     **{IDF_TARGET_CPU_WATCHPOINT_NUM}** is resolved by the extension according to the current ``IDF_TARGET`` of your esp-idf project (esp32, esp32c6, etc.).
 
 Some additional arguments you might use are:
 
@@ -134,11 +134,9 @@ Some additional arguments you might use are:
 .. code-block:: JSON
 
     {
-        ...
         "environment": {
             "VAR": "Value"
         }
-        ...
     }
 
 - ``imageAndSymbols`` :
@@ -146,14 +144,12 @@ Some additional arguments you might use are:
 .. code-block:: JSON
 
     {
-        ...
         "imageAndSymbols": {
             "symbolFileName": "If specified, a symbol file to load at the given (optional) offset",
             "symbolOffset": "If symbolFileName is specified, the offset used to load",
             "imageFileName": "If specified, an image file to load at the given (optional) offset",
             "imageOffset": "If imageFileName is specified, the offset used to load"
         }
-        ...
     }
 
 - ``target``: Configuration for target to be attached. Specifies how to connect to the device to debug. Usually OpenOCD exposes the chip as a remote target on port 3333.
