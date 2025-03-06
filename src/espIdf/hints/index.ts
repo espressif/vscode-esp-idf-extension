@@ -1,4 +1,17 @@
-import * as os from "os";
+// Copyright 2025 Espressif Systems (Shanghai) CO LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import * as yaml from "js-yaml";
 import { readFile, pathExists } from "fs-extra";
 import * as idfConf from "../../idfConfiguration";
@@ -52,12 +65,14 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   > = this._onDidChangeTreeData.event;
 
   private data: ErrorHint[] = [];
+  private buildErrorData: ErrorHint[] = [];
+  private openocdErrorData: ErrorHint[] = [];
 
   public getHintForError(
     errorMsg: string
   ): { hint?: string; ref?: string } | undefined {
     // First try exact match
-    for (const errorHint of this.data) {
+    for (const errorHint of this.buildErrorData) {
       if (errorHint.label === errorMsg && errorHint.children.length > 0) {
         return {
           hint: errorHint.children[0].label,
@@ -71,6 +86,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
   }
 
   async searchError(errorMsg: string, workspace): Promise<boolean> {
+    this.buildErrorData = [];
     const espIdfPath = idfConf.readParameter(
       "idf.espIdfPath",
       workspace
@@ -78,7 +94,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     const version = await utils.getEspIdfFromCMake(espIdfPath);
 
     if (utils.compareVersion(version.trim(), "5.0") === -1) {
-      this.data.push(
+      this.buildErrorData.push(
         new ErrorHint(
           `Error hints feature is not supported in ESP-IDF version ${version}`,
           "error"
@@ -93,7 +109,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
     const openOcdHintsPath = await getOpenOcdHintsYmlPath(workspace);
 
     try {
-      this.data = [];
+      this.buildErrorData = [];
       let meaningfulHintFound = false;
 
       // Process ESP-IDF hints
@@ -140,8 +156,8 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         Logger.info(`${openOcdHintsPath} does not exist.`);
       }
 
-      if (!this.data.length) {
-        this.data.push(
+      if (!this.buildErrorData.length) {
+        this.buildErrorData.push(
           new ErrorHint(`No hints found for ${errorMsg}`, "error")
         );
       }
@@ -185,7 +201,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
         const error = new ErrorHint(errorMsg, "error");
         const hint = new ErrorHint(finalHint, "hint", hintPair.ref);
         error.addChild(hint);
-        this.data.push(error);
+        this.buildErrorData.push(error);
 
         if (!finalHint.startsWith("No hints found for")) {
           meaningfulHintFound = true;
@@ -193,13 +209,13 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
       }
     }
 
-    if (this.data.length === 0) {
+    if (this.buildErrorData.length === 0) {
       for (const hintPair of reHintsPairArray) {
         if (hintPair.re.toLowerCase().includes(errorMsg.toLowerCase())) {
           const error = new ErrorHint(hintPair.re, "error");
           const hint = new ErrorHint(hintPair.hint, "hint", hintPair.ref);
           error.addChild(hint);
-          this.data.push(error);
+          this.buildErrorData.push(error);
 
           if (!hintPair.hint.startsWith("No hints found for")) {
             meaningfulHintFound = true;
@@ -314,15 +330,57 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHint> {
 
   getChildren(element?: ErrorHint): Thenable<ErrorHint[]> {
     if (element) {
-      return Promise.resolve(element.children); // Return children if there's a parent element
+      return Promise.resolve(element.children);
     } else {
-      return Promise.resolve(this.data);
+      return Promise.resolve([...this.buildErrorData, ...this.openocdErrorData]);
     }
   }
 
-  clearErrorHints() {
-    this.data = [];
+  clearErrorHints(clearOpenOCD: boolean = false) {
+    this.buildErrorData = [];
+    if (clearOpenOCD) {
+      this.openocdErrorData = [];
+    }
     this._onDidChangeTreeData.fire(); // Notify the view to refresh
+  }
+
+    /**
+   * Shows an OpenOCD error hint directly without searching in the hints.yml file
+   * @param errorMsg The error message
+   * @param hintMsg The hint message
+   * @param reference Optional URL reference
+   * @returns true if the hint was displayed, false otherwise
+   */
+  public async showOpenOCDErrorHint(
+    errorMsg: string,
+    hintMsg: string,
+    reference?: string
+  ): Promise<boolean> {
+    try {
+      this.openocdErrorData = [];
+      
+      // Create error and hint nodes
+      const error = new ErrorHint(errorMsg, "error");
+      const hint = new ErrorHint(hintMsg, "hint", reference);
+      
+      // Add hint as child of error
+      error.addChild(hint);
+      
+      // Add to the data array
+      this.openocdErrorData.push(error);
+      
+      // Notify that the tree data has changed
+      this._onDidChangeTreeData.fire();
+      
+      return true;
+    } catch (error) {
+      Logger.errorNotify(
+        `Error showing OpenOCD error hint: ${error.message}`,
+        error,
+        "ErrorHintProvider showOpenOCDErrorHint"
+      );
+      return false;
+    }
   }
 }
 
