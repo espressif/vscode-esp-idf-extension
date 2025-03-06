@@ -335,6 +335,7 @@ While we support the ESP-IDF extension, you can also use other extensions to deb
 To do this, you need to configure the launch.json file in the .vscode directory of your project. Here is an example of a launch.json file:
 
 .. code-block:: JSON
+
     {
         "configurations": [
             {
@@ -367,6 +368,7 @@ To do this, you need to configure the launch.json file in the .vscode directory 
 Another recommended debug extension is the `Native Debug <https://marketplace.visualstudio.com/items?itemName=webfreak.debug>`_ extension. Here is an example configuration for the launch.json file:
 
 .. code-block:: JSON
+
     {
         "configurations": [
             {
