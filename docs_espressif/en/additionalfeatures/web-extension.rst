@@ -20,6 +20,7 @@ How to use
 You can also configure a github ESP-IDF project for Codespaces with the ESP-IDF Web extension and the ESP-IDF extension installed by adding a ``.devcontainer/devcontainer.json`` file with the following content:
 
 .. code-block:: JSON
+
   {
     "name": "ESP-IDF Codespaces",
     "build": {
@@ -51,6 +52,7 @@ You can also configure a github ESP-IDF project for Codespaces with the ESP-IDF 
 and a ``.devcontainer/Dockerfile`` file with the following content:
 
 .. code-block::
+
   ARG DOCKER_TAG=latest
   FROM espressif/idf:${DOCKER_TAG}
 
@@ -79,8 +81,9 @@ Press menu **View**, select **Command Palette...** and search for these commands
 
 ``ESP-IDF-Web Disconnect serial port``: Dispose of currently selected serial port. This command is executed when you click the serial port shown in the status bar.
 
-.. note:: 
-  The ``ESP-IDF-Web Flash`` command depends on ``flasher_args.json`` and the ``ESP-IDF-Web Monitor`` command depends on ``project_description.json`` from ESP-IDF project build directory, where the build directory is defined using ``idf.buildPath`` from `ESP-IDF extension VS Code <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_ configuration setting or it will use the currently selected workspace folder ``build`` otherwise (``${workspaceFolder}/build``).
+.. note::
+
+    * The ``ESP-IDF-Web Flash`` command depends on ``flasher_args.json`` and the ``ESP-IDF-Web Monitor`` command depends on ``project_description.json`` from ESP-IDF project build directory, where the build directory is defined using ``idf.buildPath`` from `ESP-IDF extension VS Code <https://marketplace.visualstudio.com/items?itemName=espressif.esp-idf-extension>`_ configuration setting or it will use the currently selected workspace folder ``build`` otherwise (``${workspaceFolder}/build``).
 
 ESP-IDF-Web Settings
 ---------------------
