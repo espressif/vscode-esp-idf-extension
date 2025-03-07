@@ -1,30 +1,32 @@
+.. _troubleshooting-section:
+
 Troubleshooting
-===============================
+===============
+
+:link_to_translation:`zh_CN:[中文]`
 
 .. note::
-  * Use **idf.openOcdDebugLevel** configuration setting to 4 or more to show debug logging in OpenOCD server output.
-  * Use **logLevel** in your ``<project-directory>/.vscode/launch.json`` to 3 or more to show more debug adapter output.
 
-In Visual Studio Code select menu **View** > **Output** > **ESP-IDF**. This output information is useful to know what is happening in the extension.
+    * Set ``idf.openOcdDebugLevel`` to 4 or higher to enable debug logging in the OpenOCD server output.
+    * Set ``logLevel`` in your ``<project-directory>/.vscode/launch.json`` to 3 or higher to display more debug adapter output.
 
-In Visual Studio Code select menu **View** > **Command Palette...** and type **ESP-IDF: Doctor Command** to generate a report of your environment configuration and it will be copied in your clipboard to paste anywhere.
+In Visual Studio Code, go to ``View`` > ``Output`` and select ``ESP-IDF`` from the dropdown. This output provides useful information about the extension's activity.
 
-Check log file which can be obtained from:
+In Visual Studio Code, go to ``View`` > ``Command Palette...`` and type ``ESP-IDF: Doctor Command`` to generate a report of your environment configuration. This report will be copied to your clipboard for easy pasting.
 
-Windows 
-  ``%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log``
-MacOS/Linux
-  ``$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log``
+Check the log file located at:
 
-In Visual Studio Code, select menu **Help** > **Toggle Developer Tools** and copy any error in the Console tab related to this extension.
+- **Windows**: ``%USERPROFILE%\.vscode\extensions\espressif.esp-idf-extension-VERSION\esp_idf_vsc_ext.log``
+- **macOS/Linux**: ``$HOME/.vscode/extensions/espressif.esp-idf-extension-VERSION/esp_idf_vsc_ext.log``
 
-Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder** so make sure your project is using the right settings. The **ESP-IDF: Doctor command** output will show the settings actually being used.
+In Visual Studio Code, go to ``Help`` > ``Toggle Developer Tools`` and copy any errors from the Console tab related to this extension.
 
-Review the `OpenOCD troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ related to the **OpenOCD** output, for application tracing, debug or any OpenOCD related issues.
+Visual Studio Code allows you to configure settings at different levels: **Global (User Settings)**, **Workspace** and **Workspace Folder**. Ensure your project uses the correct settings. The output from ``ESP-IDF: Doctor command`` will show the settings currently in use.
 
-If there is any Python package error, please try to reinstall the required python packages with the **ESP-IDF: Install ESP-IDF Python Packages** command. Please consider that this extension install ESP-IDF, this extension's and ESP-IDF Debug Adapter python packages when running the **ESP-IDF: Configure ESP-IDF Extension** setup wizard.
+Review `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ for information related to OpenOCD output, application tracing, debugging, or any OpenOCD issues.
 
 .. note::
-  * When downloading ESP-IDF using git cloning in Windows if you receive errors like "unable to create symlink", enabling **Developer Mode** while cloning ESP-IDF could help resolve the issue.
 
-If you can't resolve the error, please search in the `github repository issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing errors or open a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
+    If you receive errors like "unable to create symlink" while cloning ESP-IDF on Windows, enabling **Developer Mode** may help resolve the issue.
+
+If you cannot resolve the error, please search the `GitHub Repository Issues <http://github.com/espressif/vscode-esp-idf-extension/issues>`_ for existing issues or create a new issue `here <https://github.com/espressif/vscode-esp-idf-extension/issues/new/choose>`_.
