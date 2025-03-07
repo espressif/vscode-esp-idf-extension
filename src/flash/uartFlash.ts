@@ -34,7 +34,8 @@ export async function flashCommand(
   port: string,
   workspace: Uri,
   flashType: ESP.FlashType,
-  encryptPartitions: boolean
+  encryptPartitions: boolean,
+  partitionToUse?: ESP.BuildType
 ) {
   let continueFlag = true;
   const buildPath = readParameter("idf.buildPath", workspace) as string;
@@ -70,7 +71,7 @@ export async function flashCommand(
       FlashTask.isFlashing = false;
     });
     await customTask.addCustomTask(CustomTaskType.PreFlash);
-    await flashTask.flash(flashType);
+    await flashTask.flash(flashType, partitionToUse);
     await customTask.addCustomTask(CustomTaskType.PostFlash);
     await TaskManager.runTasks();
     if (!cancelToken.isCancellationRequested) {

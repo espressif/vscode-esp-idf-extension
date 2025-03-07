@@ -135,6 +135,7 @@
   "Error encountered while calling idf_size.py": "Erro encontrado ao chamar idf_size.py",
   "Select the available serial port where your device is connected.": "Selecione a porta serial disponível onde seu dispositivo está conectado.",
   "Port has been updated to ": "A porta foi atualizada para ",
+  "{buildFile} doesn't exist. Build first.": "{buildFile} {buildFile} não existe. Crie primeiro.",
   "SDK Configuration editor": "Editor de configuração do SDK",
   "Save": "Salvar",
   "Discard": "Descartar",

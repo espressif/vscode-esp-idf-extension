@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-import { ensureDir, readFile } from "fs-extra";
+import { ensureDir, pathExists, readFile, stat } from "fs-extra";
 import { EOL } from "os";
 import { join } from "path";
 import {
   Disposable,
   Event,
   EventEmitter,
+  l10n,
   ThemeIcon,
   TreeDataProvider,
   TreeItem,
@@ -40,6 +41,8 @@ import {
 } from "../../utils";
 import { CSV2JSON } from "../../views/partition-table/util";
 import { getVirtualEnvPythonPath } from "../../pythonManager";
+import { createFlashModel } from "../../flash/flashModelBuilder";
+import { formatAsPartitionSize } from "./partitionReader";
 
 export class PartitionItem extends TreeItem {
   name: string;
@@ -81,65 +84,70 @@ export class PartitionTreeDataProvider
   public async populatePartitionItems(workspace: Uri) {
     this.partitionItems = Array<PartitionItem>(0);
     try {
-      const modifiedEnv = await appendIdfAndToolsToPath(workspace);
       const serialPort = readParameter("idf.port", workspace) as string;
       const idfPath = readParameter("idf.espIdfPath", workspace);
+      const buildPath = readParameter("idf.buildPath", workspace);
+      const flashBaudRate = readParameter("idf.flashBaudRate", workspace);
+      const modifiedEnv = await appendIdfAndToolsToPath(workspace);
       const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-      const partitionTableOffsetOption = await window.showQuickPick(
-        [
-          {
-            label: `Use sdkconfig offset`,
-            target: "sdkconfig",
-          },
-          {
-            label: `Specify partition table offset`,
-            target: "custom",
-          },
-        ],
-        { placeHolder: "Select partition table offset to use" }
-      );
-      if (!partitionTableOffsetOption) {
+
+      const flasherArgsPath = join(buildPath, "flasher_args.json");
+
+      const flasherArgsExists = await pathExists(flasherArgsPath);
+      if (!flasherArgsExists) {
+        window.showInformationMessage(
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            flasherArgsPath,
+          })
+        );
         return;
       }
-      let partitionTableOffset = "";
-      if (partitionTableOffsetOption.target.indexOf("sdkconfig") !== -1) {
-        partitionTableOffset = await getConfigValueFromSDKConfig(
-          "CONFIG_PARTITION_TABLE_OFFSET",
-          workspace
-        );
-      } else if (partitionTableOffsetOption.target.indexOf("custom") !== -1) {
-        partitionTableOffset = await window.showInputBox({
-          placeHolder: "Enter custom partition table offset",
-          value: "",
-          validateInput: (text) => {
-            return /^(0x[0-9a-fA-F]+|[0-9]+)$/i.test(text)
-              ? null
-              : "The value is not a valid hexadecimal number";
-          },
-        });
-        if (partitionTableOffset === undefined) {
-          return;
-        }
-      }
 
-      ensureDir(join(workspace.fsPath, "partition_table"));
-      const partTableBin = join(
-        workspace.fsPath,
-        "partition_table",
-        "partitionTable.bin"
+      const flasherArgsModel = await createFlashModel(
+        flasherArgsPath,
+        serialPort,
+        flashBaudRate
       );
+      let partitionTableOffset = flasherArgsModel.partitionTable.address;
+
+      const partitionTableItem: PartitionItem = {
+        name: "partition_table",
+        type: "partition_table",
+        subtype: "primary",
+        offset: partitionTableOffset,
+        size: "3K",
+        flag: undefined,
+        error: undefined,
+      };
+
+      const bootloaderFile = join(buildPath, "bootloader", "bootloader.bin");
+      const bootloaderFileExists = await pathExists(bootloaderFile);
+      if (!bootloaderFileExists) {
+        window.showInformationMessage(
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            bootloaderFile,
+          })
+        );
+        return;
+      }
+      const bootloaderStats = await stat(bootloaderFile);
+      const bootloaderSize = formatAsPartitionSize(bootloaderStats.size);
+
+      const bootloaderItem: PartitionItem = {
+        name: "bootloader",
+        type: "bootloader",
+        subtype: "primary",
+        offset: flasherArgsModel.bootloader.address,
+        size: bootloaderSize,
+        flag: undefined,
+        error: undefined,
+      };
+
+      await ensureDir(join(workspace.fsPath, "partition_table"));
       const partTableCsv = join(
         workspace.fsPath,
         "partition_table",
         "partitionTable.csv"
-      );
-
-      const esptoolPath = join(
-        idfPath,
-        "components",
-        "esptool_py",
-        "esptool",
-        "esptool.py"
       );
 
       const genEsp32PartPath = join(
@@ -149,22 +157,21 @@ export class PartitionTreeDataProvider
         "gen_esp32part.py"
       );
 
-      await spawn(
-        pythonBinPath,
-        [
-          esptoolPath,
-          "-p",
-          serialPort,
-          "read_flash",
-          partitionTableOffset,
-          this.PARTITION_TABLE_SIZE,
-          partTableBin,
-        ],
-        {
-          cwd: workspace.fsPath,
-          env: modifiedEnv,
-        }
+      const partTableBin = join(
+        buildPath,
+        "partition_table",
+        "partition-table.bin"
       );
+
+      const partitionTableExists = await pathExists(partTableBin);
+      if (!partitionTableExists) {
+        window.showInformationMessage(
+          l10n.t(`{buildFile} doesn't exist. Build first.`, {
+            partTableBin,
+          })
+        );
+        return;
+      }
 
       await spawn(
         pythonBinPath,
@@ -182,7 +189,11 @@ export class PartitionTreeDataProvider
       );
       const csvData = await readFile(partTableCsv);
       let csvItems = CSV2JSON<PartitionItem>(csvData.toString());
-      this.partitionItems = this.createPartitionItemNode(csvItems);
+      this.partitionItems = this.createPartitionItemNode([
+        bootloaderItem,
+        partitionTableItem,
+        ...csvItems,
+      ]);
     } catch (error) {
       let msg = error.message
         ? error.message
@@ -214,9 +225,9 @@ export class PartitionTreeDataProvider
         arguments: [partitionTableNode],
       };
       partitionTableNode.iconPath = new ThemeIcon("file-binary");
-      partitionTableNode.description = `Offset (${item.offset.toUpperCase()}) size: (${
-        item.size
-      })`;
+      partitionTableNode.description = `Offset (${item.offset
+        .toUpperCase()
+        .replace("0X", "0x")}) size: (${item.size})`;
       partitionItems.push(partitionTableNode);
     }
     return partitionItems;
