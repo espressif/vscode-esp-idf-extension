@@ -212,5 +212,7 @@
   "Error: {0}": "Error: {0}",
   "IDF_TARGET mismatch: SDKConfig value is \"{0}\" but settings value is \"{1}\".": "Desajuste de IDF_TARGET: el valor de SDKConfig es \"{0}\" pero el valor de configuración es \"{1}\".",
   "Set IDF_TARGET": "Establecer IDF_TARGET",
-  "The value {value} is not a number.": "El valor {value} no es un número."
+  "The value {value} is not a number.": "El valor {value} no es un número.",
+  "🔗 Reference Documentation": "🔗 Documentación de Referencia",
+  "Open {0}": "Abrir {0}"
 }
