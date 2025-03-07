@@ -32,7 +32,7 @@ import { pathExists } from "fs-extra";
 import { verifyAppBinary } from "../espIdf/debugAdapter/verifyApp";
 import { OpenOCDManager } from "../espIdf/openOcd/openOcdManager";
 import { Logger } from "../logger/logger";
-import { getToolchainPath } from "../utils";
+import { getConfigValueFromSDKConfig, getToolchainPath } from "../utils";
 import { createNewIdfMonitor } from "../espIdf/monitor/command";
 import { ESP } from "../config";
 
@@ -83,6 +83,14 @@ export class CDTDebugConfigurationProvider
           "mon reset halt",
           "maintenance flush register-cache",
         ];
+        const isAppReproducibleBuildEnabled = await getConfigValueFromSDKConfig(
+          "CONFIG_APP_REPRODUCIBLE_BUILD",
+          folder.uri
+        );
+        if (isAppReproducibleBuildEnabled === "y") {
+          const buildDirPath = readParameter("idf.buildPath", folder) as string;
+          config.initCommands.push(`source ${join(buildDirPath, "prefix_map_gdbinit")}`);
+        }
         if (typeof config.initialBreakpoint === "undefined") {
           config.initCommands.push(`thb app_main`);
         } else if (config.initialBreakpoint) {
