@@ -244,5 +244,7 @@
   "Would you like to reload the window to activate the clangd extension?": "Gostaria de reabrir a janela para ativar a extensão clangd?",
   "Reload": "Reabrir",
   "Later": "Mais tarde",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Falha ao instalar a extensão clangd. Você pode instalá-la manualmente no marketplace de extensões."
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Falha ao instalar a extensão clangd. Você pode instalá-la manualmente no marketplace de extensões.",
+  "🔗 Reference Documentation": "🔗Documentação de Referência",
+  "Open {0}": "Abrir {0}"
 }

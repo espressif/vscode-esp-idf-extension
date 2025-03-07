@@ -244,5 +244,7 @@
   "Would you like to reload the window to activate the clangd extension?": "您是否要重新加载窗口以激活 clangd 扩展？",
   "Reload": "重新加载",
   "Later": "稍后",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。"
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。",
+  "🔗 Reference Documentation": "🔗 参考文档",
+  "Open {0}": "打开 {0}"
 }

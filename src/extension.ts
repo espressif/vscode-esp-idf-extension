@@ -155,7 +155,7 @@ import { checkDebugAdapterRequirements } from "./espIdf/debugAdapter/checkPyReqs
 import { CDTDebugConfigurationProvider } from "./cdtDebugAdapter/debugConfProvider";
 import { CDTDebugAdapterDescriptorFactory } from "./cdtDebugAdapter/server";
 import { IdfReconfigureTask } from "./espIdf/reconfigure/task";
-import { ErrorHintProvider, HintHoverProvider } from "./espIdf/hints/index";
+import { ErrorHintProvider, ErrorHintTreeItem, HintHoverProvider } from "./espIdf/hints/index";
 import { installWebsocketClient } from "./espIdf/monitor/checkWebsocketClient";
 import { TroubleshootingPanel } from "./support/troubleshootPanel";
 import { createCmdsStatusBarItems, statusBarItems } from "./statusBar";
@@ -3771,18 +3771,51 @@ export async function activate(context: vscode.ExtensionContext) {
   }
   // Hints Viewer
   const treeDataProvider = new ErrorHintProvider(context);
-  vscode.window.registerTreeDataProvider("errorHints", treeDataProvider);
-
+  
+  // Create and register the tree view with collapse all button
+  const treeView = vscode.window.createTreeView("errorHints", {
+    treeDataProvider: treeDataProvider,
+    showCollapseAll: true
+  });
+  
+  // Set a title for the tree view
+  treeView.title = "Error Hints";
+  
+  // Add the tree view to disposables
+  context.subscriptions.push(treeView);
+  
+  // Register commands for clearing error hints
+    vscode.commands.registerCommand("espIdf.errorHints.clearAll", () => {
+      treeDataProvider.clearErrorHints(true); // Clear both build and OpenOCD errors
+    })
+  
+    vscode.commands.registerCommand("espIdf.errorHints.clearBuildErrors", () => {
+      treeDataProvider.clearErrorHints(false); // Clear only build errors
+    })
+  
+    vscode.commands.registerCommand("espIdf.errorHints.clearOpenOCDErrors", () => {
+      treeDataProvider.clearOpenOCDErrorsOnly(); // Clear only OpenOCD errors
+    })
+  
+  // Initialize OpenOCD error monitoring
   const openOCDErrorMonitor = OpenOCDErrorMonitor.init(treeDataProvider, workspaceRoot);
   await openOCDErrorMonitor.initialize();
-
+  
+  // Register disposal of the monitor
+  context.subscriptions.push({
+    dispose: () => {
+      openOCDErrorMonitor.dispose();
+    }
+  });
+  
+  // Register command to manually search for errors
   vscode.commands.registerCommand("espIdf.searchError", async () => {
     const errorMsg = await vscode.window.showInputBox({
       placeHolder: "Enter the error message",
     });
     if (errorMsg) {
       treeDataProvider.searchError(errorMsg, workspaceRoot);
-      await vscode.commands.executeCommand("errorHints.focus");
+      await vscode.commands.executeCommand("espIdf.errorHints.focus");
     }
   });
 
@@ -3800,9 +3833,9 @@ export async function activate(context: vscode.ExtensionContext) {
         });
     });
     
-    // Clear existing error hints if no ESP-IDF diagnostics
+    // Only clear build errors if no ESP-IDF diagnostics
     if (espIdfDiagnostics.length === 0) {
-      treeDataProvider.clearErrorHints(false);
+      treeDataProvider.clearErrorHints(false); // Don't clear OpenOCD errors
       return;
     }
     
@@ -3812,22 +3845,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // TODO: Create a variable in globalstate to save configuration if focus should be enabled/disabled when diagnostics update
     if (foundHint) {
-      await vscode.commands.executeCommand("errorHints.focus");
+      await vscode.commands.executeCommand("espIdf.errorHints.focus");
     }
   };
 
-  context.subscriptions.push({
-    dispose: () => {
-      openOCDErrorMonitor.dispose();
-    }
-  });
-
   // Attach a listener to the diagnostics collection
-  context.subscriptions.push(
     vscode.languages.onDidChangeDiagnostics((_event) => {
       processEspIdfDiagnostics();
     })
-  );
 
   // Register the HintHoverProvider
   context.subscriptions.push(
@@ -3967,7 +3992,7 @@ function registerTreeProvidersForIDFExplorer(context: vscode.ExtensionContext) {
     commandTreeDataProvider.registerDataProviderForTree("idfCommands"),
     rainMakerTreeDataProvider.registerDataProviderForTree("espRainmaker"),
     eFuseExplorer.registerDataProviderForTree("espEFuseExplorer"),
-    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer")
+    partitionTableTreeDataProvider.registerDataProvider("idfPartitionExplorer"),
   );
 }
 

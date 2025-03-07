@@ -244,5 +244,7 @@
   "Would you like to reload the window to activate the clangd extension?": "Хотите перезагрузить окно для активации расширения clangd?",
   "Reload": "Перезагрузить",
   "Later": "Позже",
-  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Не удалось установить расширение clangd. Вы можете установить его вручную из маркетплейса расширений."
+  "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Не удалось установить расширение clangd. Вы можете установить его вручную из маркетплейса расширений.",
+  "🔗 Reference Documentation": "🔗 Справочная Документация",
+  "Open {0}": "Открыть {0}"
 }
