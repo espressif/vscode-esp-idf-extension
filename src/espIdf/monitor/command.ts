@@ -42,8 +42,11 @@ export async function createNewIdfMonitor(
     );
     return;
   }
+  const monitorPort = readParameter("idf.monitorPort", workspaceFolder) as string;
   const port = serialPort
     ? serialPort
+    : monitorPort 
+    ? monitorPort
     : (readParameter("idf.port", workspaceFolder) as string);
   if (!port) {
     try {

@@ -35,10 +35,16 @@ export class SerialPort {
   }
 
   private static instance: SerialPort;
-  public promptUserToSelect(workspaceFolder: vscode.Uri) {
-    return SerialPort.shared().displayList(workspaceFolder);
+  public promptUserToSelect(
+    workspaceFolder: vscode.Uri,
+    useMonitorPort: boolean
+  ) {
+    return SerialPort.shared().displayList(workspaceFolder, useMonitorPort);
   }
-  private async displayList(workspaceFolder: vscode.Uri) {
+  private async displayList(
+    workspaceFolder: vscode.Uri,
+    useMonitorPort: boolean
+  ) {
     const msg = vscode.l10n.t(
       "Select the available serial port where your device is connected."
     );
@@ -55,7 +61,11 @@ export class SerialPort {
         { placeHolder: msg }
       );
       if (chosen && chosen.label) {
-        await this.updatePortListStatus(chosen.label, workspaceFolder);
+        await this.updatePortListStatus(
+          chosen.label,
+          workspaceFolder,
+          useMonitorPort
+        );
       }
     } catch (error) {
       const msg = error.message
@@ -71,9 +81,14 @@ export class SerialPort {
     return await this.list(workspaceFolder);
   }
 
-  private async updatePortListStatus(l: string, wsFolder: vscode.Uri) {
+  private async updatePortListStatus(
+    l: string,
+    wsFolder: vscode.Uri,
+    useMonitorPort: boolean
+  ) {
+    const portSetting2Use = useMonitorPort ? "idf.monitorPort" : "idf.port";
     const settingsSavedLocation = await idfConf.writeParameter(
-      "idf.port",
+      portSetting2Use,
       l,
       vscode.ConfigurationTarget.WorkspaceFolder,
       wsFolder

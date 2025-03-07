@@ -168,6 +168,7 @@
   "Show Examples": "Mostrar ejemplos",
   "New Project Wizard": "Asistente para nuevos proyectos",
   "Select Current Project workspace folder": "Seleccione la carpeta del espacio de trabajo del proyecto actual",
+  "Select Monitor Port to Use (COM, tty, usbserial)": "Seleccione el puerto de monitor para usar (com, tty, usbserial)",
   "Select Port to Use (COM, tty, usbserial)": "Seleccione el puerto a utilizar (COM, tty, usbserial)",
   "Set Espressif Device Target (IDF_TARGET)": "Establecer destino del dispositivo Espressif (IDF_TARGET)",
   "SDK Configuration Editor (menuconfig)": "Editor de configuración del SDK (menuconfig)",

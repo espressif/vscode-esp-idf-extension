@@ -56,6 +56,10 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     return {};
   }
   const port = readParameter("idf.port", workspaceFolder) as string;
+  const monitorPort = readParameter(
+    "idf.monitorPort",
+    workspaceFolder
+  ) as string;
   let idfTarget = await getIdfTargetFromSdkconfig(workspaceFolder);
   let flashType = readParameter("idf.flashType", workspaceFolder) as string;
   let projectConf = ESP.ProjectConfiguration.store.get<string>(
@@ -67,7 +71,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     `$(${commandDictionary[CommandKeys.pickWorkspace].iconId})`,
     commandDictionary[CommandKeys.pickWorkspace].tooltip,
     CommandKeys.pickWorkspace,
-    103,
+    104,
     commandDictionary[CommandKeys.pickWorkspace].checkboxState
   );
 
@@ -77,7 +81,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
     }) ESP-IDF v${currentIdfVersion.version}`,
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].tooltip,
     CommandKeys.SelectCurrentIdfVersion,
-    102,
+    103,
     commandDictionary[CommandKeys.SelectCurrentIdfVersion].checkboxState
   );
 
@@ -88,7 +92,7 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
       }) ${flashType}`,
       commandDictionary[CommandKeys.SelectFlashType].tooltip,
       CommandKeys.SelectFlashType,
-      101,
+      102,
       commandDictionary[CommandKeys.SelectFlashType].checkboxState
     );
 
@@ -96,9 +100,23 @@ export async function createCmdsStatusBarItems(workspaceFolder: Uri) {
       `$(${commandDictionary[CommandKeys.SelectSerialPort].iconId}) ${port}`,
       commandDictionary[CommandKeys.SelectSerialPort].tooltip,
       CommandKeys.SelectSerialPort,
-      100,
+      101,
       commandDictionary[CommandKeys.SelectSerialPort].checkboxState
     );
+
+    statusBarItems["monitorPort"] = createStatusBarItem(
+      `$(${
+        commandDictionary[CommandKeys.SelectMonitorSerialPort].iconId
+      }) ${monitorPort}`,
+      commandDictionary[CommandKeys.SelectMonitorSerialPort].tooltip,
+      CommandKeys.SelectMonitorSerialPort,
+      100,
+      commandDictionary[CommandKeys.SelectMonitorSerialPort].checkboxState
+    );
+    if (!monitorPort) {
+      statusBarItems["monitorPort"].text = "";
+      statusBarItems["monitorPort"].hide();
+    }
   }
 
   if (projectConf) {
