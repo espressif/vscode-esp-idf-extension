@@ -35,8 +35,10 @@ import { createFlashModel } from "../flash/flashModelBuilder";
 import { NotificationMode, readParameter } from "../idfConfiguration";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
-import { appendIdfAndToolsToPath, canAccessFile } from "../utils";
+import { canAccessFile } from "../utils";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { configureEnvVariables } from "../common/prepareEnv";
+import { ESP } from "../config";
 
 export async function validateReqs(
   buildDirPath: string,
@@ -76,7 +78,10 @@ export async function mergeFlashBinaries(
       TaskManager.disposeListeners();
     });
   }
-  const idfPath = readParameter("idf.espIdfPath", wsFolder);
+  const currentEnvVars = ESP.ProjectConfiguration.store.get<{
+    [key: string]: string;
+  }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
+  const idfPath = currentEnvVars["IDF_PATH"];
   const port = readParameter("idf.port", wsFolder);
   const flashBaudRate = readParameter("idf.flashBaudRate", wsFolder);
   const buildDirPath = readParameter("idf.buildPath", wsFolder) as string;
@@ -153,13 +158,13 @@ export async function getMergeExecution(
   model: FlashModel,
   wsFolder: Uri
 ) {
-  const modifiedEnv = await appendIdfAndToolsToPath(wsFolder);
+  const modifiedEnv = await configureEnvVariables(wsFolder);
   const mergeArgs = getMergeArgs(esptoolPath, model);
   const options: ProcessExecutionOptions = {
     cwd: buildDir,
     env: modifiedEnv,
   };
-  const pythonBinPath = await getVirtualEnvPythonPath(wsFolder);
+  const pythonBinPath = await getVirtualEnvPythonPath();
   const pythonBinExists = await pathExists(pythonBinPath);
   if (!pythonBinExists) {
     throw new Error(
