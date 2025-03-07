@@ -5,7 +5,7 @@ Source code coverage is data indicating the count and frequency of every program
 
 Your ESP-IDF project should be configured to generate ``gcda/gcno`` coverage files using ``gcov``. Please read `GCOV Code Coverage <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/app_trace.html#gcov-source-code-coverage>`_ to learn more about code coverage with GCOV in ESP-IDF projects.
 
-You can use the **ESP-IDF: Configure Project SDKConfig for Coverage** to set required configuration in the SDK Configuration Editor. 
+You can use the **ESP-IDF: Configure Project SDKConfig for Coverage** to set required configuration in the SDK Configuration Editor.
 
 Code coverage example
 -------------------------------
@@ -14,7 +14,7 @@ Let's use the ESP-IDF `GCOV Example <https://github.com/espressif/esp-idf/tree/m
 
 - Navigate to **View** > **Command Palette**.
 
-- Type **ESP-IDF: Show Examples Projects** and choose ``Use Current ESP-IDF (/path/to/esp-idf)``. 
+- Type **ESP-IDF: Show Examples Projects** and choose ``Use Current ESP-IDF (/path/to/esp-idf)``.
 
 If you don't see the option, please review the current ESP-IDF setup in :ref:`Installation <installation>`.
 
@@ -76,4 +76,4 @@ Visual Studio code support ``"red"``, ``rgb(255,0,120)`` or ``rgba(120,0,0,0.1)`
 .. image:: ../../../media/tutorials/coverage/html_report.png
 
 .. note::
-  * Check the :ref:`Troubleshooting <troubleshooting>` section if you have any issues.
+  * Check the :ref:`Troubleshooting <troubleshooting-section>` section if you have any issues.

@@ -62,7 +62,7 @@
 
     .. warning::
 
-        如果在安装过程中遇到问题，请查看 :ref:`故障排除 <troubleshooting>`。
+        如果在安装过程中遇到问题，请查看 :ref:`故障排除 <troubleshooting-section>`。
 
 
 卸载 ESP-IDF VS Code 扩展

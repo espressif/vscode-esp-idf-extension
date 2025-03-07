@@ -3,7 +3,7 @@ FAQs
 
 **I have an issue or error with the Visual Studio Code extension, what can I do?**
 
-Take a look at the :ref:`Troubleshooting documentation <troubleshooting>` so you can see the error in the extension. You might be able to fix the issue yourself or give enough information for others to help you with the problem.
+Take a look at the :ref:`Troubleshooting documentation <troubleshooting-section>` so you can see the error in the extension. You might be able to fix the issue yourself or give enough information for others to help you with the problem.
 
 Search the `ESP-IDF extension repository <https://github.com/espressif/vscode-esp-idf-extension>`_ for Visual Studio Code first and then this forum, your issue might already be solved.
 
@@ -15,7 +15,7 @@ Check out `ESP-FAQ <https://docs.espressif.com/projects/espressif-esp-faq/en/lat
 
 First of all, have you configure the IDE plugin/extension properly ? Make sure to review the documentation to :ref:`Install ESP-IDF and Tools <installation>`.
 
-There was error in the setup or in your project code itself. Gather the :ref:`Troubleshooting documentation <troubleshooting>` and look for errors in these files. 
+There was error in the setup or in your project code itself. Gather the :ref:`Troubleshooting documentation <troubleshooting-section>` and look for errors in these files.
 
 Chances are that your issue have been posted before in the `ESP-IDF github repository <https://github.com/espressif/vscode-esp-idf-extension>`_ or `ESP-IDF forum <https://esp32.com>`_. If not, you can open a new GitHub issue or open a topic in the forum.
 
@@ -47,7 +47,7 @@ Take a look at `Configure JTAG Interface <https://docs.espressif.com/projects/es
 On Windows, you could try using `IDF-ENV <https://github.com/espressif/idf-env>`_ just running the following command in a Powershell terminal:
 
 .. code-block::
-  
+
   Invoke-WebRequest 'https://dl.espressif.com/dl/idf-env/idf-env.exe' -OutFile .\idf-env.exe; .\idf-env.exe driver install --espressif --ftdi --silabs
 
 Drivers are also part of the `IDF-Installer <https://dl.espressif.com/dl/esp-idf>`_.
@@ -61,7 +61,7 @@ Using the `IDF-ENV <https://github.com/espressif/idf-env>`_ you can manage sever
 First review the `ESP-IDF JTAG Debugging documentation <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#jtag-debugging-setup-openocd>`_ to understand how debugging works and the expected configuration of your device.
 The debugger is connected to OpenOCD. Please take a look at `OpenOCD Troubleshooting FAQ <https://github.com/espressif/openocd-esp32/wiki/Troubleshooting-FAQ>`_ for any OpenOCD errors you might have encountered.
 
-Check your IDE integration log files and post an issue in the respective GitHub repository if the issue is not related to OpenOCD itself. Take a look at the :ref:`Troubleshooting documentation <troubleshooting>` so you can see the error in the extension.
+Check your IDE integration log files and post an issue in the respective GitHub repository if the issue is not related to OpenOCD itself. Take a look at the :ref:`Troubleshooting documentation <troubleshooting-section>` so you can see the error in the extension.
 
 **I have an issue flashing my Espressif device, What should i do?**
 
