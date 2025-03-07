@@ -18,7 +18,7 @@ import { readFile, pathExists } from "fs-extra";
 import * as path from "path";
 import * as idfConf from "../../idfConfiguration";
 import { Logger } from "../../logger/logger";
-import { OutputChannel } from "../../logger/outputChannel";
+import { PreCheck } from "../../utils";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 import { ErrorHintProvider } from "./index";
 
@@ -67,13 +67,31 @@ export class OpenOCDErrorMonitor {
 
   public async initialize(): Promise<void> {
     try {
+        // Check OpenOCD version first
+        const openOCDManager = OpenOCDManager.init();
+        const version = await openOCDManager.version();
+
+        if (!version) {
+            Logger.info(
+              "Could not determine OpenOCD version. Hints file won't be loaded."
+            );
+            return null;
+        }
+
+        // Skip initialization if openOCD version is not supporting hints
+        const minRequiredVersion = "v0.12.0-esp32-20250226";
+        if (!version || !PreCheck.openOCDVersionValidator(minRequiredVersion, version)) {
+            Logger.info(`OpenOCD version ${version} doesn't support hints. Minimum required: ${minRequiredVersion}`);
+            return;
+        }
+
       // Load OpenOCD hints data
       const toolsPath = idfConf.readParameter(
         "idf.toolsPath",
         this.workspaceRoot
       ) as string;
       
-      const openOcdHintsPath = await this.getOpenOcdHintsYmlPath(toolsPath);
+      const openOcdHintsPath = await this.getOpenOcdHintsYmlPath(toolsPath, version);
       
       if (openOcdHintsPath && (await pathExists(openOcdHintsPath))) {
         try {
@@ -114,17 +132,8 @@ export class OpenOCDErrorMonitor {
     }
   }
 
-  private async getOpenOcdHintsYmlPath(toolsPath: string): Promise<string | null> {
+  private async getOpenOcdHintsYmlPath(toolsPath: string, version: string): Promise<string | null> {
     try {
-      const openOCDManager = OpenOCDManager.init();
-      const version = await openOCDManager.version();
-
-      if (!version) {
-        Logger.info(
-          "Could not determine OpenOCD version. Hints file won't be loaded."
-        );
-        return null;
-      }
 
       const hintsPath = path.join(
         toolsPath,
