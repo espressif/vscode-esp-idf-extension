@@ -4312,12 +4312,14 @@ function createIdfTerminal(extensionPath: string) {
     });
     if (process.platform === "win32") {
       if (vscode.env.shell.indexOf("cmd.exe") !== -1) {
-        espIdfTerminal.sendText(path.join(extensionPath, "export.bat"));
+        espIdfTerminal.sendText(`"${path.join(extensionPath, "export.bat")}"`);
       } else if (
         vscode.env.shell.indexOf("powershell") !== -1 ||
         vscode.env.shell.indexOf("pwsh") !== -1
       ) {
-        espIdfTerminal.sendText(path.join(extensionPath, "export.ps1"));
+        espIdfTerminal.sendText(
+          `'${path.join(extensionPath, "export.ps1").replace(/'/g, "''")}'`
+        );
       }
     }
     espIdfTerminal.show();
