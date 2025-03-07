@@ -112,6 +112,8 @@ ESP-IDF 相关设置
       - 强制在 Windows 操作系统中使用 ``/`` 作为路径分隔符，而不是 ``\\``
     * - **idf.svdFilePath**
       - SVD 文件的绝对路径，用于解析芯片在调试器中的外设树视图
+    * - **idf.jtagFlashCommandExtraArgs**
+      - OpenOCD JTAG 闪存额外参数。默认值为 ["verify", "reset"]
 
 扩展将按照以下方式使用上述设置：
 
@@ -121,6 +123,7 @@ ESP-IDF 相关设置
 4. **idf.port** （Windows 系统中为 **idf.portWin**）用作扩展命令的串口值。
 5. **idf.openOcdDebugLevel** 是 OpenOCD 服务器输出的日志级别，范围为 0 到 4。
 6. **idf.openOcdLaunchArgs** 是用于配置 OpenOCD 启动的参数字符串数组。生成的 OpenOCD 启动命令格式如下：``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``。
+7. **idf.jtagFlashCommandExtraArgs** 用于OpenCD JTAG闪存任务。请查看 `上传待调试的应用程序 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/jtag-debugging/index.html#jtag-upload-app-debug>`.
 
 .. note::
 
