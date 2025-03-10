@@ -21,6 +21,6 @@ Build Your Project
 
     .. image:: ../../media/tutorials/basic_use/size_terminal.png
 
-The ESP-IDF build output will provide hints to resolve errors, which can be viewed using the :ref:`Hints Viewer <hints viewer>`.
+The ESP-IDF build output will provide hints to resolve errors, which can be viewed using the :ref:`Hints Viewer <hints_viewer>`.
 
 Next, proceed to :ref:`Flash onto the Device <flash the device>`.
