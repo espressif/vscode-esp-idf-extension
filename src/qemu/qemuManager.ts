@@ -35,6 +35,7 @@ import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { join } from "path";
 
 export enum QemuLaunchMode {
   Debug,
@@ -112,7 +113,9 @@ export class QemuManager extends EventEmitter {
       "idf.qemuExtraArgs",
       workspaceFolder
     ) as string[];
-    let launchArgs = ["idf.py", "-B", buildPath, "qemu"];
+    const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
+    const idfPy = join(idfPathDir, "tools", "idf.py");
+    let launchArgs = [idfPy, "-B", buildPath, "qemu"];
 
     if (mode === QemuLaunchMode.Debug || mode === QemuLaunchMode.DebugMonitor) {
       launchArgs.push("--gdb");
