@@ -980,11 +980,17 @@
             "scope": "window",
             "default": true
           },
-          "idf.qemuTcpPort": {
-            "type": "number",
-            "description": "%param.qemuTcpPort%",
+          "idf.qemuDebugMonitor": {
+            "type": "boolean",
+            "description": "%param.qemuDebugMonitor%",
             "scope": "resource",
-            "default": 5555
+            "default": true
+          },
+          "idf.qemuExtraArgs": {
+            "type": "array",
+            "description": "%param.qemuExtraArgs%",
+            "scope": "resource",
+            "default": []
           },
           "esp.component-manager.url": {
             "type": "string",

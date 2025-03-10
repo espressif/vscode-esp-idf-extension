@@ -115,7 +115,6 @@ import { KconfigLangClient } from "./kconfig";
 import { configureProjectWithGcov } from "./coverage/configureProject";
 import { ComponentManagerUIPanel } from "./component-manager/panel";
 import { verifyAppBinary } from "./espIdf/debugAdapter/verifyApp";
-import { mergeFlashBinaries } from "./qemu/mergeFlashBin";
 import { QemuLaunchMode, QemuManager } from "./qemu/qemuManager";
 import {
   PartitionItem,
@@ -377,37 +376,8 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       UpdateCmakeLists.updateSrcsInCmakeLists(e.fsPath, srcOp.other);
     }
-    await binTimestampEventFunc(e);
   });
   context.subscriptions.push(srcWatchOnChangeDisposable);
-
-  const buildWatcher = vscode.workspace.createFileSystemWatcher(
-    "**/.bin_timestamp",
-    false,
-    false,
-    true
-  );
-
-  const binTimestampEventFunc = async (e: vscode.Uri) => {
-    const buildDirPath = idfConf.readParameter(
-      "idf.buildPath",
-      workspaceRoot
-    ) as string;
-    const qemuBinPath = path.join(buildDirPath, "merged_qemu.bin");
-    const qemuBinExists = await pathExists(qemuBinPath);
-    if (qemuBinExists) {
-      await vscode.workspace.fs.delete(vscode.Uri.file(qemuBinPath));
-    }
-  };
-
-  const buildWatcherDisposable = buildWatcher.onDidChange(
-    binTimestampEventFunc
-  );
-  context.subscriptions.push(buildWatcherDisposable);
-  const buildWatcherCreateDisposable = buildWatcher.onDidCreate(
-    binTimestampEventFunc
-  );
-  context.subscriptions.push(buildWatcherCreateDisposable);
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(async (e) => {
       if (PreCheck.isWorkspaceFolderOpen()) {
@@ -2483,20 +2453,6 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            const buildDir = idfConf.readParameter(
-              "idf.buildPath",
-              workspaceRoot
-            ) as string;
-            const qemuBinExists = await pathExists(
-              path.join(buildDir, "merged_qemu.bin")
-            );
-            if (!qemuBinExists) {
-              progress.report({
-                message: vscode.l10n.t("Merging binaries for flashing"),
-                increment: 10,
-              });
-              await mergeFlashBinaries(workspaceRoot, cancelToken);
-            }
             await qemuManager.commandHandler();
           } catch (error) {
             const msg = error.message
@@ -2531,24 +2487,18 @@ export async function activate(context: vscode.ExtensionContext) {
           cancelToken: vscode.CancellationToken
         ) => {
           try {
-            if (IDFMonitor.terminal) {
-              IDFMonitor.terminal.sendText(ESP.CTRL_RBRACKET);
-            }
-            const buildDirPath = idfConf.readParameter(
-              "idf.buildPath",
-              workspaceRoot
-            ) as string;
-            const qemuBinExists = await pathExists(
-              path.join(buildDirPath, "merged_qemu.bin")
-            );
-            if (!qemuBinExists) {
-              await mergeFlashBinaries(workspaceRoot);
-            }
             if (qemuManager.isRunning()) {
               qemuManager.stop();
               await utils.sleep(1000);
             }
-            await qemuManager.start(QemuLaunchMode.Debug, workspaceRoot);
+            const monitorAfterDebug = idfConf.readParameter(
+              "idf.qemuDebugMonitor",
+              workspaceRoot
+            ) as boolean;
+            let qemuMode = monitorAfterDebug
+              ? QemuLaunchMode.DebugMonitor
+              : QemuLaunchMode.Debug;
+            await qemuManager.start(qemuMode, workspaceRoot);
             const gdbPath = await utils.getToolchainPath(workspaceRoot, "gdb");
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(
               workspaceRoot
@@ -4086,30 +4036,7 @@ function createQemuMonitor() {
           if (isQemuLaunched) {
             qemuManager.stop();
           }
-          const buildDirPath = idfConf.readParameter(
-            "idf.buildPath",
-            workspaceRoot
-          ) as string;
-          const qemuBinExists = await pathExists(
-            path.join(buildDirPath, "merged_qemu.bin")
-          );
-          if (!qemuBinExists) {
-            await mergeFlashBinaries(workspaceRoot);
-          }
-          const qemuTcpPort = idfConf.readParameter(
-            "idf.qemuTcpPort",
-            workspaceRoot
-          ) as string;
           await qemuManager.start(QemuLaunchMode.Monitor, workspaceRoot);
-          if (IDFMonitor.terminal) {
-            await utils.sleep(1000);
-          }
-          const serialPort = `socket://localhost:${qemuTcpPort}`;
-          const noReset = idfConf.readParameter(
-            "idf.monitorNoReset",
-            workspaceRoot
-          ) as boolean;
-          await createNewIdfMonitor(workspaceRoot, noReset, serialPort);
         } catch (error) {
           const msg = error.message
             ? error.message
