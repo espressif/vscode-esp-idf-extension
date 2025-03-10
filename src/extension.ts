@@ -2518,7 +2518,7 @@ export async function activate(context: vscode.ExtensionContext) {
               target: {
                 type: "remote",
                 host: "localhost",
-                port: "1234",
+                port: "3333",
               },
             });
             vscode.debug.onDidTerminateDebugSession(async (session) => {
