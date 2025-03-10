@@ -103,7 +103,7 @@ export class WelcomePanel {
           });
           break;
         case "configureExtension":
-          await commands.executeCommand("espIdf.setup.start");
+          await commands.executeCommand("espIdf.installManager");
           break;
         case "newProject":
           await commands.executeCommand("espIdf.newProject.start");

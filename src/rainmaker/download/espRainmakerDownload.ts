@@ -35,5 +35,5 @@ export class RainmakerCloning extends AbstractCloning {
 export async function getEspRainmaker(workspace?: Uri) {
   const gitPath = (readParameter("idf.gitPath", workspace) as string) || "git";
   const rainmakerInstaller = new RainmakerCloning(gitPath);
-  await rainmakerInstaller.getRepository("idf.espRainmakerPath", workspace);
+  await rainmakerInstaller.getRepository("RMAKER_PATH", workspace);
 }

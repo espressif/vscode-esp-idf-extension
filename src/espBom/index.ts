@@ -27,7 +27,6 @@ import {
   ProcessExecution,
 } from "vscode";
 import {
-  appendIdfAndToolsToPath,
   canAccessFile,
   execChildProcess,
 } from "../utils";
@@ -38,6 +37,7 @@ import { pathExists, lstat, constants } from "fs-extra";
 import { Logger } from "../logger/logger";
 import { TaskManager } from "../taskManager";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function createSBOM(workspaceUri: Uri) {
   try {
@@ -52,7 +52,7 @@ export async function createSBOM(workspaceUri: Uri) {
         `${projectDescriptionJson} doesn't exists for ESP-IDF SBOM tasks.`
       );
     }
-    const modifiedEnv = await appendIdfAndToolsToPath(workspaceUri);
+    const modifiedEnv = await configureEnvVariables(workspaceUri);
     const sbomFilePath = readParameter(
       "idf.sbomFilePath",
       workspaceUri
@@ -142,8 +142,8 @@ export async function createSBOM(workspaceUri: Uri) {
 }
 
 export async function installEspSBOM(workspace: Uri) {
-  const pythonBinPath = await getVirtualEnvPythonPath(workspace);
-  const modifiedEnv = await appendIdfAndToolsToPath(workspace);
+  const pythonBinPath = await getVirtualEnvPythonPath();
+  const modifiedEnv = await configureEnvVariables(workspace);
   try {
     const showResult = await execChildProcess(
       pythonBinPath,
