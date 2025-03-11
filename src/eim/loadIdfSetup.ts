@@ -78,6 +78,12 @@ export async function loadIdfSetup(workspaceFolder: Uri) {
     }
   }
 
+  await writeParameter(
+    "idf.gitPath",
+    idfSetupToUse.gitPath,
+    ConfigurationTarget.Global
+  );
+
   const envVars = await getEnvVariables(idfSetupToUse);
 
   ESP.ProjectConfiguration.store.set(
