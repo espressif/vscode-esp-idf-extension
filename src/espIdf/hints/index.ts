@@ -257,16 +257,27 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
     reHintsPairArray: ReHintPair[]
   ): Promise<boolean> {
     let meaningfulHintFound = false;
+    let errorFullMessage = "";
     
     for (const hintPair of reHintsPairArray) {
       const match = new RegExp(hintPair.re, "i").exec(errorMsg);
-      const regexParts = Array.from(hintPair.re.matchAll(/\(([^)]+)\)/g))
-        .map((m) => m[1].split("|"))
-        .flat()
-        .map((part) => part.toLowerCase());
-        
+      const regexParts = [];
+      // Extract meaningful parts from regex by breaking at top-level pipes
+      // outside of parentheses or use a proper regex parser
+      const mainPattern = hintPair.re.replace(/^.*?'(.*)'.*$/, '$1'); // Extract pattern between quotes if present
+      if (mainPattern) {
+        // Split by top-level pipes, preserving grouped expressions
+        const parts = mainPattern.split(/\|(?![^(]*\))/);
+        for (const part of parts) {
+          // Clean up any remaining parentheses for direct string matching
+          const cleaned = part.replace(/[()]/g, '');
+          if (cleaned.length > 3) { // Avoid very short fragments
+            regexParts.push(cleaned.toLowerCase());
+          }
+        }
+      }
       if (
-        match ||
+        match || hintPair.re.toLowerCase().includes(errorMsg) ||
         regexParts.some((part) => errorMsg.toLowerCase().includes(part))
       ) {
         let finalHint = hintPair.hint;
@@ -292,7 +303,9 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
         const hint = new ErrorHintTreeItem(finalHint, "hint", hintChildren, hintPair.ref);
         
         // Create error with hint as child
-        const error = new ErrorHintTreeItem(errorMsg, "error", [hint]);
+        // Display matched error message 
+        errorFullMessage = hintPair.re;
+        const error = new ErrorHintTreeItem(errorFullMessage, "error", [hint]);
         
         // Add to build error data
         this.buildErrorData.push(error);
