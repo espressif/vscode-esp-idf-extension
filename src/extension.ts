@@ -3769,7 +3769,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const treeDataProvider = new ErrorHintProvider(context);
   
   // Create and register the tree view with collapse all button
-  const treeView = vscode.window.createTreeView("errorHints", {
+  const treeView = vscode.window.createTreeView("idfErrorHints", {
     treeDataProvider: treeDataProvider,
     showCollapseAll: true
   });
@@ -3811,7 +3811,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
     if (errorMsg) {
       treeDataProvider.searchError(errorMsg, workspaceRoot);
-      await vscode.commands.executeCommand("espIdf.errorHints.focus");
+      await vscode.commands.executeCommand("idfErrorHints.focus");
     }
   });
 
@@ -3841,7 +3841,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // TODO: Create a variable in globalstate to save configuration if focus should be enabled/disabled when diagnostics update
     if (foundHint) {
-      await vscode.commands.executeCommand("espIdf.errorHints.focus");
+      await vscode.commands.executeCommand("idfErrorHints.focus");
     }
   };
 

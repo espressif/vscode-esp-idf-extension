@@ -320,7 +320,7 @@ export class OpenOCDErrorMonitor {
       await this.errorHintProvider.showOpenOCDErrorHint(errorMessage, hintMessage, reference);
       
       // Focus the error hints view
-      await vscode.commands.executeCommand("errorHints.focus");
+      await vscode.commands.executeCommand("idfErrorHints.focus");
     } catch (error) {
       Logger.errorNotify(
         `Error showing OpenOCD error hint: ${error.message}`,
