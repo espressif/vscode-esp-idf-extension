@@ -54,7 +54,7 @@ export async function getEnvVariablesFromActivationScript(
       cwd: process.cwd(),
       shell: shellPath,
     });
-    const envVars = envVarsOutput.toString().trim().split(/\r?\n/g);
+    const envVarsArray = envVarsOutput.toString().trim().split(/\r?\n/g);
     Logger.error(
       envVarsOutput.toString().trim(),
       new Error("result activationScript"),
@@ -65,13 +65,13 @@ export async function getEnvVariablesFromActivationScript(
       }
     );
     let envDict: { [key: string]: string } = {};
-    for (const envVar of envVars) {
+    for (const envVar of envVarsArray) {
       let keyIndex = envVar.indexOf("=");
       if (keyIndex === -1) {
         continue;
       }
-      let varKey = envVar.slice(0, keyIndex);
-      let varValue = envVar.slice(keyIndex + 1);
+      let varKey = envVar.slice(0, keyIndex).trim();
+      let varValue = envVar.slice(keyIndex + 1).trim();
       envDict[varKey] = varValue;
     }
 
@@ -97,7 +97,7 @@ export async function getEnvVariablesFromActivationScript(
       process.platform === "win32"
         ? ["Scripts", "python.exe"]
         : ["bin", "python"];
-    envVars["PYTHON"] = join(envVars["IDF_PYTHON_ENV_PATH"], ...pyDir);
+    envDict["PYTHON"] = join(envDict["IDF_PYTHON_ENV_PATH"], ...pyDir);
 
     return envDict;
   } catch (error) {
