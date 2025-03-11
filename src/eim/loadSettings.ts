@@ -54,7 +54,7 @@ export async function getEnvVariablesFromActivationScript(
       cwd: process.cwd(),
       shell: shellPath,
     });
-    const envVars = envVarsOutput.toString().trim().split(EOL);
+    const envVars = envVarsOutput.toString().trim().split(/\r?\n/g);
     Logger.error(
       envVarsOutput.toString().trim(),
       new Error("result activationScript"),
