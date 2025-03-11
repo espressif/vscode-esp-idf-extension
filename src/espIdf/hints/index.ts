@@ -523,8 +523,8 @@ async function getOpenOcdHintsYmlPath(
   workspace: vscode.Uri
 ): Promise<string | null> {
   try {
-    const espIdfPath = idfConf.readParameter(
-      "idf.espIdfPath",
+    const idfToolsPath = idfConf.readParameter(
+      "idf.toolsPath",
       workspace
     ) as string;
 
@@ -539,7 +539,7 @@ async function getOpenOcdHintsYmlPath(
     }
 
     const hintsPath = path.join(
-      espIdfPath,
+      idfToolsPath,
       "tools",
       "openocd-esp32",
       version,
