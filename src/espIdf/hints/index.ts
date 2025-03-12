@@ -355,20 +355,10 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
   public getHintForError(
     errorMsg: string
   ): { hint?: string; ref?: string } | undefined {
+    
     // Check in build errors
     for (const errorHint of this.buildErrorData) {
-      if (errorHint.label === errorMsg && errorHint.children.length > 0) {
-        const hintItem = errorHint.children[0];
-        return {
-          hint: hintItem.label.replace(/^💡 /, ''),
-          ref: hintItem.reference
-        };
-      }
-    }
-    
-    // Check in OpenOCD errors
-    for (const errorHint of this.openocdErrorData) {
-      if (errorHint.label === errorMsg && errorHint.children.length > 0) {
+      if (errorHint.label.toLowerCase().includes(errorMsg.toLowerCase()) && errorHint.children.length > 0) {
         const hintItem = errorHint.children[0];
         return {
           hint: hintItem.label.replace(/^💡 /, ''),
