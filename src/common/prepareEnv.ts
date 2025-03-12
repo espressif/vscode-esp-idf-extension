@@ -43,6 +43,8 @@ export async function configureEnvVariables(
       for (const envVar in currentEnvVars) {
         if (envVar && envVar.toUpperCase() !== "PATH") {
           modifiedEnv[envVar] = currentEnvVars[envVar];
+        } else if (envVar.toUpperCase() === "PATH") {
+          modifiedEnv[pathNameInEnv] = `${currentEnvVars[envVar]}${delimiter}${modifiedEnv[pathNameInEnv]}`;
         }
       }
     } catch (error) {
