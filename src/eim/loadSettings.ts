@@ -55,15 +55,6 @@ export async function getEnvVariablesFromActivationScript(
       shell: shellPath,
     });
     const envVarsArray = envVarsOutput.toString().trim().split(/\r?\n/g);
-    Logger.error(
-      envVarsOutput.toString().trim(),
-      new Error("result activationScript"),
-      "result activationScript",
-      {
-        shellPath: shellPath,
-        args: args,
-      }
-    );
     let envDict: { [key: string]: string } = {};
     for (const envVar of envVarsArray) {
       let keyIndex = envVar.indexOf("=");
@@ -77,14 +68,6 @@ export async function getEnvVariablesFromActivationScript(
 
     let pathNameInEnv: string = Object.keys(process.env).find(
       (k) => k.toUpperCase() == "PATH"
-    );
-    Logger.error(
-      JSON.stringify(envDict),
-      new Error("dictionary activationScript"),
-      "result activationScript",
-      {
-        category: "envDictionary result activationScript",
-      }
     );
 
     if (envDict[pathNameInEnv]) {
