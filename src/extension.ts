@@ -4062,7 +4062,7 @@ function createIdfTerminal(extensionPath: string) {
       ? currentSetup.activationScript
       : path.join(extensionPath, "export.ps1");
     if (process.platform === "win32") {
-      espIdfTerminal.sendText(`'${activationScriptPath.replace(/'/g, "''")}'`);
+      espIdfTerminal.sendText(`. '${activationScriptPath.replace(/'/g, "''")}'`);
     }
     espIdfTerminal.show();
   });
