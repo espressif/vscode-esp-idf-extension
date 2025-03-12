@@ -4211,12 +4211,16 @@ function createIdfTerminal(extensionPath: string) {
     const activationScriptPathExists = await pathExists(
       currentSetup.activationScript
     );
-    const activationScriptPath = activationScriptPathExists
-      ? currentSetup.activationScript
-      : path.join(extensionPath, "export.ps1");
     if (process.platform === "win32") {
+      const activationScriptPath = activationScriptPathExists
+        ? currentSetup.activationScript
+        : path.join(extensionPath, "export.ps1");
       espIdfTerminal.sendText(
         `& '${activationScriptPath.replace(/'/g, "''")}'`
+      );
+    } else if (activationScriptPathExists) {
+      espIdfTerminal.sendText(
+        `. '${currentSetup.activationScript.replace(/'/g, "''")}'`
       );
     }
     espIdfTerminal.show();
