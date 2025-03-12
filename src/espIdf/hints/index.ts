@@ -21,11 +21,15 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { OpenOCDManager } from "../openOcd/openOcdManager";
 
-class ReHintPair {
-  re: string;
-  hint: string;
-  match_to_output: boolean;
-  ref?: string;
+/**
+ * Class representing a pair of regular expression and its corresponding hint.
+ * Used to match error messages and provide helpful guidance.
+ */
+class ReHintPair { 
+  re: string;                 // Regular expression to match error messages
+  hint: string;               // Hint text to show when the regex matches
+  match_to_output: boolean;   // Whether to insert matched groups into the hint
+  ref?: string;               // Link to documentation for openOCD hints
 
   constructor(
     re: string,
@@ -193,7 +197,7 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
       if (await pathExists(idfHintsPath)) {
         try {
           const fileContents = await readFile(idfHintsPath, "utf-8");
-          const hintsData = yaml.load(fileContents);
+          const hintsData = yaml.load(fileContents) as [];
           const reHintsPairArray: ReHintPair[] = this.loadHints(hintsData);
 
           meaningfulHintFound =
@@ -377,35 +381,70 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
     return undefined;
   }
 
-  private loadHints(hintsArray: any): ReHintPair[] {
+ /**
+   * Loads hints from the parsed YAML array and converts them to ReHintPair objects
+   * 
+   * @param hintsArray - Array of hint definitions from YAML
+   * @returns Array of ReHintPair objects ready for matching against error messages
+   * 
+   * Example input:
+   * [
+   *   {
+   *     re: "fatal error: (spiram.h|esp_spiram.h): No such file or directory",
+   *     hint: "{} was removed. Include esp_psram.h instead.",
+   *     match_to_output: true
+   *   },
+   *   {
+   *     re: "error: implicit declaration of function '{}'",
+   *     hint: "Function '{}' has been removed. Please use {}.",
+   *     variables: [
+   *       {
+   *         re_variables: ["esp_random"],
+   *         hint_variables: ["esp_random()", "esp_fill_random()"]
+   *       }
+   *     ]
+   *   }
+   * ]
+   */
+  loadHints(hintsArray: any[]): ReHintPair[] {
     let reHintsPairArray: ReHintPair[] = [];
 
     for (const entry of hintsArray) {
+      // Case 1: Entry has variables
       if (entry.variables && entry.variables.length) {
+        // Handle variable-based entries
         for (const variableSet of entry.variables) {
-          const reVariables = variableSet.re_variables;
-          const hintVariables = variableSet.hint_variables;
-
+          const reVariables = variableSet.re_variables || [];
+          const hintVariables = variableSet.hint_variables || [];
+          
           let re = this.formatEntry(reVariables, entry.re);
           let hint = this.formatEntry(hintVariables, entry.hint);
-
+          
           reHintsPairArray.push(
             new ReHintPair(re, hint, entry.match_to_output)
           );
         }
       } else {
+        // Case 2: Simple entry without variables
         let re = String(entry.re);
         let hint = String(entry.hint);
 
         if (!entry.match_to_output) {
+          // Simple case: no need to insert matched content into hint
           re = this.formatEntry([], re);
           hint = this.formatEntry([], hint);
+          reHintsPairArray.push(new ReHintPair(re, hint, false));
+        } else {
+          // Complex case: need to expand alternatives and insert matches
+          // E.g., "(spiram.h|esp_spiram.h)" should create two separate entries
+          const reHintPairs = this.expandAlternatives(re, hint);
+          for (const pair of reHintPairs) {
+            reHintsPairArray.push(new ReHintPair(pair.re, pair.hint, true));
+          }
         }
-
-        reHintsPairArray.push(new ReHintPair(re, hint, entry.match_to_output));
       }
     }
-
+    
     return reHintsPairArray;
   }
 
@@ -444,15 +483,102 @@ export class ErrorHintProvider implements vscode.TreeDataProvider<ErrorHintTreeI
     return reHintsPairArray;
   }
 
+  /**
+   * Formats an entry string by replacing {} placeholders with values from vars array
+   * 
+   * @param vars - Array of values to insert into placeholders
+   * @param entry - Template string with {} placeholders
+   * @returns Formatted string with placeholders replaced by values
+   * 
+   * Example:
+   * formatEntry(["esp_random", "esp_fill_random"], "Function '{}' has been renamed to '{}'.")
+   * Result: "Function 'esp_random' has been renamed to 'esp_fill_random'."
+   */
   private formatEntry(vars: string[], entry: string): string {
     let i = 0;
-    while (entry.includes("{}")) {
-      entry = entry.replace("{}", "{" + i++ + "}");
+    let formattedEntry = entry;
+    
+    // Replace {} with indexed placeholders {0}, {1}, etc.
+    while (formattedEntry.includes("{}")) {
+      formattedEntry = formattedEntry.replace("{}", "{" + i++ + "}");
     }
-    const result = entry.replace(
+    
+    // Replace indexed placeholders with values from vars array
+    const result = formattedEntry.replace(
       /\{(\d+)\}/g,
       (_, idx) => vars[Number(idx)] || ""
     );
+    
+    return result;
+  }
+
+  /**
+   * Expands regex patterns with alternatives into separate entries
+   * This is critical for match_to_output: true cases where the match needs
+   * to be inserted into the hint
+   * 
+   * @param re - Regular expression string with possible alternatives in parentheses
+   * @param hint - Hint template with {} placeholders for matches
+   * @returns Array of {re, hint} pairs with alternatives expanded
+   * 
+   * Example:
+   * expandAlternatives(
+   *   "fatal error: (spiram.h|esp_spiram.h): No such file or directory", 
+   *   "{} was removed. Include esp_psram.h instead."
+   * )
+   * 
+   * Results in:
+   * [
+   *   {
+   *     re: "fatal error: spiram.h: No such file or directory",
+   *     hint: "spiram.h was removed. Include esp_psram.h instead."
+   *   },
+   *   {
+   *     re: "fatal error: esp_spiram.h: No such file or directory",
+   *     hint: "esp_spiram.h was removed. Include esp_psram.h instead."
+   *   }
+   * ]
+   */
+  private expandAlternatives(re: string, hint: string): Array<{re: string, hint: string}> {
+    const result: Array<{re: string, hint: string}> = [];
+    
+    // Find all alternatives in parentheses with pipe characters
+    // Example: in "(spiram.h|esp_spiram.h)" we'll find alternatives "spiram.h" and "esp_spiram.h"
+    const alternativeMatches = re.match(/\(([^()]*\|[^()]*)\)/g);
+    
+    if (!alternativeMatches) {
+      // No alternatives found, return the original as-is
+      return [{re, hint}];
+    }
+    
+    // Process each alternative group
+    for (const match of alternativeMatches) {
+      const alternatives = match.slice(1, -1).split('|'); // Remove parens and split by pipe
+      
+      if (result.length === 0) {
+        // Initial population of result
+        for (const alt of alternatives) {
+          const newRe = re.replace(match, alt);
+          // For each alternative, create a new hint with the alternative inserted
+          const newHint = hint.replace(/\{\}/, alt);
+          result.push({re: newRe, hint: newHint});
+        }
+      } else {
+        // For subsequent alternative groups, multiply the existing results
+        const currentResults = [...result];
+        result.length = 0;
+        
+        for (const existingEntry of currentResults) {
+          for (const alt of alternatives) {
+            const newRe = existingEntry.re.replace(match, alt);
+            // For each alternative, create a new hint with the alternative inserted
+            const newHint = existingEntry.hint.replace(/\{\}/, alt);
+            result.push({re: newRe, hint: newHint});
+          }
+        }
+      }
+    }
+    
     return result;
   }
 }
