@@ -1,6 +1,8 @@
 ESP-IDF Application Size Analysis
 =================================
 
+:link_to_translation:`zh_CN:[中文]`
+
 The ESP-IDF application size analysis tool provides a detailed breakdown of your application’s memory usage, helping developers optimize storage allocation. To view a visual size analysis:
 
 - Navigate to ``View`` > ``Command Palette``.

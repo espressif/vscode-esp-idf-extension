@@ -1,6 +1,8 @@
 ESP Rainmaker
 =============
 
+:link_to_translation:`en:[English]`
+
 本文将展示如何在 ESP-IDF 扩展中使用 `ESP Rainmaker <https://rainmaker.espressif.com/zh-hans/>`_ 集成功能。
 
 首先需要准备好乐鑫设备和 ESP Rainmaker 账户。更多信息请参考 `此文 <https://rainmaker.espressif.com/zh-hans/docs/get-started/>`_。

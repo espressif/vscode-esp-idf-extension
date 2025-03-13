@@ -1,6 +1,8 @@
 ESP RainMaker
 =============
 
+:link_to_translation:`zh_CN:[中文]`
+
 This tutorial shows you how to use `ESP RainMaker <https://rainmaker.espressif.com>`_ integration in this extension.
 
 You need an Espressif device and an ESP RainMaker account. If you do not have these, please refer `here <https://rainmaker.espressif.com/docs/get-started.html>`_.

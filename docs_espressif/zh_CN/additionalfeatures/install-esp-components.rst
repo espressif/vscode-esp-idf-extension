@@ -1,6 +1,8 @@
 安装 ESP-IDF 组件
 =================
 
+:link_to_translation:`en:[English]`
+
 使用 ``ESP-IDF：乐鑫组件注册表`` 命令开启用户界面，查看 `乐鑫组件注册表 <https://components.espressif.com>`_。
 
 .. image:: ../../../media/tutorials/features/component-registry.png

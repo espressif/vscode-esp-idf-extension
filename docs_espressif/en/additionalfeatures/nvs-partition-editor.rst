@@ -1,6 +1,8 @@
 NVS Partition Editor
 ====================
 
+:link_to_translation:`zh_CN:[中文]`
+
 The ``ESP-IDF: Open NVS Partition Editor`` command allows you to create a NVS partition binary file based on key-value pairs in a CSV file.
 
 The resulting binary file is compatible with the NVS architecture defined in `ESP-IDF Non-Volatile Storage Library <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/storage/nvs_flash.html>`_.

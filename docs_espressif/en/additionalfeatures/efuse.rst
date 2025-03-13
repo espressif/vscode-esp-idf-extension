@@ -1,6 +1,8 @@
 eFuse Explorer
 ==============
 
+:link_to_translation:`zh_CN:[中文]`
+
 This feature requires ESP-IDF ``>=v4.3``.
 
 Espressif chips have several eFuses that store system and user parameters. Each eFuse is a one-bit field that can be programmed to 1 and cannot be reverted to 0. This feature uses the ESP-IDF `espfuse.py <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/efuse.html#espefuse-py>`_ script to read and write eFuses.

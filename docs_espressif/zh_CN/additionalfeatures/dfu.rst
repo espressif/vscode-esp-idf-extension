@@ -1,6 +1,8 @@
 通过 USB 升级设备固件 (DFU)
 ===========================
 
+:link_to_translation:`en:[English]`
+
 准备指南
 ~~~~~~~~
 

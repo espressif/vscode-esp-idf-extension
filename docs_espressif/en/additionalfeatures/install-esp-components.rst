@@ -1,6 +1,8 @@
 Install ESP-IDF Components
 ==========================
 
+:link_to_translation:`zh_CN:[中文]`
+
 The ``ESP-IDF: Show ESP Component Registry`` command launches a UI showing the `ESP Component Registry <https://components.espressif.com>`_.
 
 .. image:: ../../../media/tutorials/features/component-registry.png

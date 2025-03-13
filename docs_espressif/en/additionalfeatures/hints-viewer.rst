@@ -3,6 +3,8 @@
 Hints Viewer
 ============
 
+:link_to_translation:`zh_CN:[中文]`
+
 This feature enhances your development experience by providing helpful hints for errors detected in your code.
 
 The ``idf.py`` tool suggests hints for resolving errors. It uses a database of hints stored in ``$IDF_PATH/tools/idf_py_actions/hints.yml``. Hints will be printed if a match is found for the given error.

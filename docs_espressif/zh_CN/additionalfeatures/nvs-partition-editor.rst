@@ -1,6 +1,8 @@
 NVS 分区编辑器
 ==============
 
+:link_to_translation:`en:[English]`
+
 通过 ``ESP-IDF：打开 NVS 分区编辑器`` 指令，可以根据 CSV 文件中的键值对创建 NVS 分区二进制文件。
 
 生成的二进制文件与 `ESP-IDF 非易失性存储库 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-reference/storage/nvs_flash.html>`_ 中定义的 NVS 架构兼容。

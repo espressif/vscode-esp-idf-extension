@@ -1,6 +1,8 @@
 Partition Table Editor
 ======================
 
+:link_to_translation:`zh_CN:[中文]`
+
 - Go to ``View`` > ``Command Palette``.
 - Type ``ESP-IDF: SDK Configuration Editor`` and select the command.
 
