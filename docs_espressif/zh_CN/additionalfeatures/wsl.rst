@@ -1,6 +1,8 @@
 在 Windows 系统中使用 WSL
 =========================
 
+:link_to_translation:`en:[English]`
+
 本文将展示如何基于 Visual Studio Code 中的 **ESP-IDF** 和 **Remote - WSL** 扩展，在 WSL 中开发项目。
 
 在开始项目之前，请安装以下工具：

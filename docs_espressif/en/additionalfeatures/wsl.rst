@@ -1,6 +1,8 @@
 Using WSL in Windows
 ====================
 
+:link_to_translation:`zh_CN:[中文]`
+
 This tutorial guides you on developing projects using Visual Studio Code with **ESP-IDF extension** and **Remote - WSL** to implement all features of these extensions in WSL.
 
 Install the following tools before starting the project:
