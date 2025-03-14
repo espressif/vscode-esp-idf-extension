@@ -20,7 +20,7 @@
 安装 Arduino-ESP32 组件
 -----------------------
 
-使用 ``ESP-IDF：添加 Arduino ESP32 为 ESP-IDF 组件`` 命令，可以将 `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ 添加为当前目录 (``${CURRENT_DIRECTORY}/components/arduino``) 下的 ESP-IDF 组件。也可以使用 ``ESP-IDF：基于模板创建新项目`` 命令，选择 ``arduino-as-component`` 为模板，创建一个包含 Arduino-ESP32 组件的新项目目录。
+使用 ``ESP-IDF：添加 Arduino ESP32 为 ESP-IDF 组件`` 命令，可以将 `Arduino-ESP32 <https://github.com/espressif/arduino-esp32>`_ 添加为 ESP-IDF 组件，存放在当前目录下 (``${CURRENT_DIRECTORY}/components/arduino``)。也可以使用 ``ESP-IDF：基于模板创建新项目`` 命令，选择 ``arduino-as-component`` 为模板，创建一个包含 Arduino-ESP32 组件的新项目目录。
 
 .. note::
 
