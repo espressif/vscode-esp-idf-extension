@@ -24,6 +24,39 @@ export async function showInfoNotificationWithAction(
 }
 
 /**
+ * Shows an information notification with multiple buttons that execute custom actions when clicked.
+ * @param {string} infoMessage - The information message to display.
+ * @param {Array<{label: string, action: NotificationAction}>} actions - An array of objects, each containing a button label and an action to perform when clicked.
+ * @returns {Promise<void>} - A promise that resolves when the notification is shown and handled.
+ * @example
+ * showInfoNotificationWithMultipleActions(
+ *   "Solution available",
+ *   [
+ *     { label: "View Solution", action: () => openSolution() },
+ *     { label: "Mute for this session", action: () => disableNotifications() }
+ *   ]
+ * );
+ */
+export async function showInfoNotificationWithMultipleActions(
+  infoMessage: string,
+  actions: { label: string; action: NotificationAction }[]
+): Promise<void> {
+  const selectedOption = await vscode.window.showInformationMessage(
+    infoMessage,
+    ...actions.map((action) => action.label)
+  );
+
+  if (selectedOption) {
+    const selectedAction = actions.find(
+      (action) => action.label === selectedOption
+    );
+    if (selectedAction) {
+      await Promise.resolve(selectedAction.action());
+    }
+  }
+}
+
+/**
  * Shows an error notification with a button that opens a link when clicked.
  * @param {string} infoMessage - The waning message to display.
  * @param {string} [buttonLabel="Read Documentation"] - The label for the button (default: "Read Documentation")
