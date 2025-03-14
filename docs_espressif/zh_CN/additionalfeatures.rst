@@ -28,3 +28,4 @@
     单元测试<additionalfeatures/unit-testing>
     处理多个项目<additionalfeatures/multiple-projects>
     在 Windows 系统中使用 WSL<additionalfeatures/wsl>
+    Web Extension<additionalfeatures/web-extension>
