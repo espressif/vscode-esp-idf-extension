@@ -246,5 +246,9 @@
   "Later": "Mais tarde",
   "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "Falha ao instalar a extensão clangd. Você pode instalá-la manualmente no marketplace de extensões.",
   "🔗 Reference Documentation": "🔗Documentação de Referência",
-  "Open {0}": "Abrir {0}"
+  "Open {0}": "Abrir {0}",
+  "💡 Show Hints": "💡 Mostrar Dicas",
+  "Mute for this session": "Silenciar para esta sessão",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Notificações de dicas silenciadas para esta sessão. Você ainda pode acessar dicas manualmente no painel inferior do ESP-IDF",
+  "Possible hint found for the error: {0}": "Possível dica encontrada para o erro: {0}"
 }

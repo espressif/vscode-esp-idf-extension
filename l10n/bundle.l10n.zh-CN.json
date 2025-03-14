@@ -246,5 +246,9 @@
   "Later": "稍后",
   "Failed to install clangd extension. You can install it manually from the Extensions marketplace.": "安装 clangd 扩展失败。您可以从扩展市场手动安装它。",
   "🔗 Reference Documentation": "🔗 参考文档",
-  "Open {0}": "打开 {0}"
+  "Open {0}": "打开 {0}",
+  "💡 Show Hints": "💡 显示提示",
+  "Mute for this session": "为本次会话静音",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "本次会话的提示通知已静音。您仍然可以在 ESP-IDF 底部面板中手动访问提示",
+  "Possible hint found for the error: {0}": "已找到可能的错误提示：{0}"
 }

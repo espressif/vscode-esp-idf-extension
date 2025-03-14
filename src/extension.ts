@@ -43,7 +43,6 @@ import { OutputChannel } from "./logger/outputChannel";
 import {
   showInfoNotificationWithAction,
   showInfoNotificationWithMultipleActions,
-  showQuickPickWithCustomActions,
 } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
