@@ -238,5 +238,9 @@
   "Activate Anyway": "Ativar mesmo assim",
   "No standard ESP-IDF project was found in this workspace. Do you want to activate the ESP-IDF extension anyway?": "Nenhum projeto ESP-IDF padrão foi encontrado neste espaço de trabalho. Deseja ativar a extensão ESP-IDF mesmo assim?",
   "🔗 Reference Documentation": "🔗Documentação de Referência",
-  "Open {0}": "Abrir {0}"
+  "Open {0}": "Abrir {0}",
+  "💡 Show Hints": "💡 Mostrar Dicas",
+  "Mute for this session": "Silenciar para esta sessão",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "Notificações de dicas silenciadas para esta sessão. Você ainda pode acessar dicas manualmente no painel inferior do ESP-IDF",
+  "Possible hint found for the error: {0}": "Possível dica encontrada para o erro: {0}"
 }
