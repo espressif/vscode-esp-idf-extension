@@ -41,7 +41,7 @@ import { ExamplesPlanel } from "./examples/ExamplesPanel";
 import * as idfConf from "./idfConfiguration";
 import { Logger } from "./logger/logger";
 import { OutputChannel } from "./logger/outputChannel";
-import { showInfoNotificationWithAction } from "./logger/utils";
+import { showInfoNotificationWithAction, showInfoNotificationWithMultipleActions, showQuickPickWithCustomActions } from "./logger/utils";
 import * as utils from "./utils";
 import { PreCheck } from "./utils";
 import {
@@ -277,6 +277,9 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(name, telemetryCallback)
     );
   };
+  // Store display hints notification (until VS Code is closed)
+  context.workspaceState.update('idf.showHintsNotification', true);
+
   // init rainmaker cache store
   ESP.Rainmaker.store = RainmakerStore.init(context);
 
@@ -3853,9 +3856,28 @@ export async function activate(context: vscode.ExtensionContext) {
     const errorMsg = espIdfDiagnostics[0].diagnostic.message;
     const foundHint = await treeDataProvider.searchError(errorMsg, workspaceRoot);
 
-    // TODO: Create a variable in globalstate to save configuration if focus should be enabled/disabled when diagnostics update
-    if (foundHint) {
-      await vscode.commands.executeCommand("idfErrorHints.focus");
+    const showHintsNotification = context.workspaceState.get('idf.showHintsNotification')
+    if (foundHint && showHintsNotification) {
+      const actions = [
+        {
+          label: vscode.l10n.t("💡 Show Hints"),
+          action: () => vscode.commands.executeCommand("idfErrorHints.focus")
+        },
+        {
+          label: vscode.l10n.t("Mute for this session"),
+          action: () => {
+            context.workspaceState.update('idf.showHintsNotification', false);
+            vscode.window.showInformationMessage(
+              vscode.l10n.t("Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel")
+            );
+          }
+        }
+      ];
+    
+      await showInfoNotificationWithMultipleActions(
+        vscode.l10n.t(`Possible hint found for the error: {0}`, errorMsg),
+        actions
+      );
     }
   };
 
