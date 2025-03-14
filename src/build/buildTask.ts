@@ -148,7 +148,7 @@ export class BuildTask {
 
       const sdkconfigFile = await getSDKConfigFilePath(this.currentWorkspace);
       if (compilerArgs.indexOf("SDKCONFIG") === -1) {
-        compilerArgs.push(`-DSDKCONFIG=${sdkconfigFile}`);
+        compilerArgs.push(`-DSDKCONFIG='${sdkconfigFile}'`);
       }
 
       const sdkconfigDefaults =
