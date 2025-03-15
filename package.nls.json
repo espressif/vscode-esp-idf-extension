@@ -75,6 +75,7 @@
   "espIdf.selectConfTarget.title": "Select Where to Save Configuration Settings",
   "espIdf.selectCurrentIdfVersion.title": "Select Current ESP-IDF Version",
   "espIdf.selectFlashMethodAndFlash.title": "Select Flash Method",
+  "espIdf.selectMonitorPort.title": "Select Monitor Port to Use (COM, tty, usbserial)",
   "espIdf.selectNotificationMode.title": "Select Output and Notification Mode",
   "espIdf.selectOpenOcdConfigFiles.title": "Select OpenOCD Board Configuration",
   "espIdf.selectPort.title": "Select Port to Use (COM, tty, usbserial)",

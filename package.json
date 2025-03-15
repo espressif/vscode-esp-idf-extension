@@ -674,6 +674,12 @@
             "description": "%param.port%",
             "scope": "resource"
           },
+          "idf.monitorPort": {
+            "type": "string",
+            "default": "",
+            "description": "%param.port%",
+            "scope": "resource"
+          },
           "idf.pythonInstallPath": {
             "type": "string",
             "default": "python",
@@ -1265,6 +1271,12 @@
       {
         "command": "espIdf.selectPort",
         "title": "%espIdf.selectPort.title%",
+        "category": "ESP-IDF",
+        "when": "!isWeb"
+      },
+      {
+        "command": "espIdf.selectMonitorPort",
+        "title": "%espIdf.selectMonitorPort.title%",
         "category": "ESP-IDF",
         "when": "!isWeb"
       },
