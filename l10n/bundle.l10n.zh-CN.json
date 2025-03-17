@@ -208,5 +208,11 @@
   "Warning: Could not fully remove setting {0}: {1}": "警告：无法完全删除设置 {0}：{1}",
   "ESP-IDF settings removed successfully.": "ESP-IDF设置已成功删除。",
   "Failed to remove settings: {0}": "删除设置失败：{0}",
-  "Error: {0}": "错误：{0}"
+  "Error: {0}": "错误：{0}",
+  "🔗 Reference Documentation": "🔗 参考文档",
+  "Open {0}": "打开 {0}",
+  "💡 Show Hints": "💡 显示提示",
+  "Mute for this session": "为本次会话静音",
+  "Hint notifications muted for this session. You can still access hints manually in ESP-IDF bottom panel": "本次会话的提示通知已静音。您仍然可以在 ESP-IDF 底部面板中手动访问提示",
+  "Possible hint found for the error: {0}": "已找到可能的错误提示：{0}"
 }
