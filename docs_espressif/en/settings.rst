@@ -100,6 +100,8 @@ These settings are specific to the ESP32 Chip/Board.
       - Set OpenOCD Debug Level (0-4) Default: 2
     * - **idf.port**
       - Path of selected device port
+    * - **idf.monitorPort**
+      - Optional Path of selected device port for monitor. If undefined, will use **idf.port** instead as monitor port.
     * - **idf.portWin**
       - Path of selected device port in Windows
     * - **idf.enableSerialPortChipIdRequest**

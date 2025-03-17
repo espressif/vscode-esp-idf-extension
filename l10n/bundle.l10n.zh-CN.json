@@ -168,6 +168,7 @@
   "Show Examples": "展示示例项目",
   "New Project Wizard": "新项目向导",
   "Select Current Project workspace folder": "选择当前项目的工作区文件夹",
+  "Select Monitor Port to Use (COM, tty, usbserial)": "选择要使用的监视器端 (COM、tty、usbserial)",
   "Select Port to Use (COM, tty, usbserial)": "选择要使用的端口 (COM、tty、usbserial)",
   "Set Espressif Device Target (IDF_TARGET)": "设置乐鑫设备目标 (IDF_TARGET)",
   "SDK Configuration Editor (menuconfig)": "SDK 配置编辑器 (menuconfig)",
