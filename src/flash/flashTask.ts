@@ -84,7 +84,7 @@ export class FlashTask {
     }
   }
 
-  public async flash(flashType: ESP.FlashType) {
+  public async flash(flashType: ESP.FlashType, partitionToUse?: ESP.BuildType) {
     if (FlashTask.isFlashing) {
       throw new Error("ALREADY_FLASHING");
     }
@@ -110,7 +110,30 @@ export class FlashTask {
     };
     switch (flashType) {
       case "UART":
-        flashExecution = this._flashExecution(pythonBinPath);
+        if (!partitionToUse) {
+          flashExecution = this._flashExecution(pythonBinPath);
+        } else {
+          switch (partitionToUse) {
+            case "app":
+              flashExecution = this._partitionFlashExecution(
+                pythonBinPath,
+                "app"
+              );
+              break;
+            case "bootloader":
+              flashExecution = this._partitionFlashExecution(
+                pythonBinPath,
+                "bootloader"
+              );
+              break;
+            case "partition-table":
+              flashExecution = this._partitionFlashExecution(
+                pythonBinPath,
+                "partitionTable"
+              );
+              break;
+          }
+        }
         break;
       case "DFU":
         flashExecution = await this._dfuFlashing(pythonBinPath);
@@ -169,6 +192,65 @@ export class FlashTask {
       ];
     }
     return new vscode.ProcessExecution(cmd, args, this.processOptions);
+  }
+
+  public _partitionFlashExecution(
+    pythonBinPath: string,
+    sectionToUse: "app" | "bootloader" | "partitionTable"
+  ) {
+    this.flashing(true);
+    const flasherArgs = this.getSingleBinFlasherArgs(
+      this.flashScriptPath,
+      sectionToUse
+    );
+    return new vscode.ProcessExecution(
+      pythonBinPath,
+      flasherArgs,
+      this.processOptions
+    );
+  }
+
+  public getSingleBinFlasherArgs(
+    toolPath: string,
+    sectionToUse: "app" | "bootloader" | "partitionTable",
+    replacePathSep: boolean = false
+  ) {
+    const flasherArgs = [
+      toolPath,
+      "-p",
+      this.model.port,
+      "-b",
+      this.model.baudRate,
+      "--before",
+      this.model.before,
+      "--after",
+      this.model.after,
+    ];
+    if (this.model.chip) {
+      flasherArgs.push("--chip", this.model.chip);
+    }
+    if (typeof this.model.stub !== undefined && !this.model.stub) {
+      flasherArgs.push("--no-stub");
+    }
+    flasherArgs.push(
+      "write_flash",
+      "--flash_mode",
+      this.model.mode,
+      "--flash_freq",
+      this.model.frequency,
+      "--flash_size",
+      this.model.size
+    );
+
+    if (this.model[sectionToUse].encrypted) {
+      flasherArgs.push("--encrypt-files");
+    }
+
+    let binPath = replacePathSep
+      ? this.model[sectionToUse].binFilePath.replace(/\//g, "\\")
+      : this.model[sectionToUse].binFilePath;
+    flasherArgs.push(this.model[sectionToUse].address, binPath);
+    return flasherArgs;
   }
 
   public getFlasherArgs(toolPath: string, replacePathSep: boolean = false) {
