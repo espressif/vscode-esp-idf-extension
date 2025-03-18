@@ -3,8 +3,8 @@ Project Configuration Editor
 
 :link_to_translation:`zh_CN:[中文]`
 
-Table of Contents
------------------
+Project Configuration Table of Contents
+----------------------------------------
 
 .. contents::
    :depth: 2
