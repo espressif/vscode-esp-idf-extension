@@ -25,7 +25,7 @@ Development steps:
 
 You can use the ``idf.qemuDebugMonitor`` configuration setting to enable the monitor to start after QEMU debug session is launched. If you want to pass additional arguments ``idf.qemuExtraArgs`` configuration setting can be used.
 
-An example of ``"idf.customExtraArgs": ["--qemu-extra-args"]`` can be used to pass additional arguments to QEMU directly while ``--flash-file`` or ``--efuse-file`` are idf.py specific arguments as described in **ESP-IDF QEMU Emulator** documentation below.
+An example of ``"idf.qemuExtraArgs": ["--qemu-extra-args"]`` can be used to pass additional arguments to QEMU directly while ``--flash-file`` or ``--efuse-file`` are idf.py specific arguments as described in **ESP-IDF QEMU Emulator** documentation below.
 
 More information about how to use in `ESP-IDF QEMU Emulator <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/qemu.html>`_.
 
