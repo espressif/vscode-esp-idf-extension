@@ -126,6 +126,7 @@
 	"param.exportVars": "Variables que se agregarán a las variables de entorno del sistema",
 	"param.flashBaudRate": "Tasa de baudios de flasheo ESP-IDF",
 	"param.gitPath.title": "Ruta del ejecutable de Git",
+  "param.jtagFlashCommandExtraArgs.title": "Openocd JTAG Flash Argumentos adicionales",
 	"param.launchMonitorOnDebugSession.title": "Iniciar Monitor IDF junto con la sesión de Adaptador de Depuración ESP-IDF",
 	"param.monitorBaudRate": "Tasa de baudios de Monitor IDF ESP-IDF",
 	"param.monitorCustomTimestampFormat": "Formato de marca de tiempo personalizado en Monitor IDF",

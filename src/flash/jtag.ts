@@ -2,13 +2,13 @@
  * Project: ESP-IDF VSCode Extension
  * File Created: Tuesday, 29th September 2020 11:05:15 pm
  * Copyright 2020 Espressif Systems (Shanghai) CO LTD
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,6 +31,9 @@ export class JTAGFlash {
             .toString()
             .replace(TCLClient.DELIMITER, "")
             .trim();
+          if (response === "" && args.some((arg) => arg.includes("exit"))) {
+            resolve(response);
+          }
           if (response !== "0") {
             return reject(
               `Failed to flash the device (JTag), please try again [got response: '${response}', expecting: '0']`

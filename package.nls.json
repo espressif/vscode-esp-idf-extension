@@ -126,6 +126,7 @@
   "param.exportVars": "Variables to be added to system environment variables",
   "param.flashBaudRate": "ESP-IDF flash baud rate",
   "param.gitPath.title": "Git executable path",
+  "param.jtagFlashCommandExtraArgs.title": "OpenOCD JTAG flash extra arguments",
   "param.launchMonitorOnDebugSession.title": "Start IDF monitor along with ESP-IDF Debug Adapter session",
   "param.monitorBaudRate": "ESP-IDF monitor baud rate",
   "param.monitorCustomTimestampFormat": "Custom timestamp format in IDF monitor",

@@ -114,6 +114,8 @@ These settings are specific to the ESP32 Chip/Board.
       - Forced to use ``/`` instead of ``\\`` as path separator for Win32 based OS
     * - **idf.svdFilePath**
       - SVD file absolute path to resolve chip debug peripheral tree view
+    * - **idf.jtagFlashCommandExtraArgs**
+      - OpenOCD JTAG flash extra arguments. Default is ["verify", "reset"].
 
 This is how the extension uses them:
 
@@ -123,6 +125,7 @@ This is how the extension uses them:
 4. **idf.port** (or **idf.portWin** in Windows) is used as the serial port value for the extension commands.
 5. **idf.openOcdDebugLevel** is the log level for OpenOCD server output from 0 to 4.
 6. **idf.openOcdLaunchArgs** is the launch arguments string array for OpenOCD. The resulting OpenOCD launch command looks like this: ``openocd -d${idf.openOcdDebugLevel} -f ${idf.openOcdConfigs} ${idf.openOcdLaunchArgs}``.
+7. **idf.jtagFlashCommandExtraArgs** is used for OpenOCD JTAG flash task. Please review `Upload application for debugging <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/jtag-debugging/index.html#upload-application-for-debugging>`.
 
 .. note::
 
