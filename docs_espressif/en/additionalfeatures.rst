@@ -28,3 +28,4 @@ Additional IDE Features
     Unit Testing<additionalfeatures/unit-testing>
     Working with Multiple Projects<additionalfeatures/multiple-projects>
     Using WSL in Windows<additionalfeatures/wsl>
+    Web Extension<additionalfeatures/web-extension>
