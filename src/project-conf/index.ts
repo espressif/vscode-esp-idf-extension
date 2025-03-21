@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-import { ExtensionContext, Uri } from "vscode";
+import * as path from "path";
+import { ExtensionContext, Uri, StatusBarItem } from "vscode";
 import { ESP } from "../config";
-import { pathExists, readJson, writeJson } from "fs-extra";
+import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
 
 export class ProjectConfigStore {
@@ -58,32 +59,53 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
 
   const projectConfElements: { [key: string]: ProjectConfElement } = {};
 
-  Object.keys(projectConfJson).forEach((elem) => {
-    projectConfElements[elem] = {
-      build: {
-        compileArgs: projectConfJson[elem].build?.compileArgs,
-        ninjaArgs: projectConfJson[elem].build?.ninjaArgs,
-        buildDirectoryPath: projectConfJson[elem].build?.buildDirectoryPath,
-        sdkconfigDefaults: projectConfJson[elem].build?.sdkconfigDefaults,
-        sdkconfigFilePath: projectConfJson[elem].build?.sdkconfigFilePath
-      },
-      env: projectConfJson[elem].env,
-      flashBaudRate: projectConfJson[elem].flashBaudRate,
-      monitorBaudRate: projectConfJson[elem].monitorBaudRate,
-      openOCD: {
-        debugLevel: projectConfJson[elem].openOCD?.debugLevel,
-        configs: projectConfJson[elem].openOCD?.configs,
-        args: projectConfJson[elem].openOCD?.args,
-      },
-      tasks: {
-        preBuild: projectConfJson[elem].tasks?.preBuild,
-        preFlash: projectConfJson[elem].tasks?.preFlash,
-        postBuild: projectConfJson[elem].tasks?.postBuild,
-        postFlash: projectConfJson[elem].tasks?.postFlash,
-      },
-    } as ProjectConfElement;
-  });
+  await Promise.all(
+    Object.keys(projectConfJson).map(async (elem) => {
+      const buildConfig = projectConfJson[elem].build;
+      let buildDirPath: string;
+      const userBuildDir = buildConfig?.buildDirectoryPath;
+      if (userBuildDir) {
+        buildDirPath = (await resolveConfigPaths(
+          workspaceFolder,
+          userBuildDir
+        )) as string;
+      }
 
+      // Ensure directory is created for the resolved path
+      if (buildDirPath) {
+        await ensureDir(buildDirPath);
+      }
+      projectConfElements[elem] = {
+        build: {
+          compileArgs: buildConfig?.compileArgs,
+          ninjaArgs: buildConfig?.ninjaArgs,
+          buildDirectoryPath: buildDirPath,
+          sdkconfigDefaults: (await resolveConfigPaths(
+            workspaceFolder,
+            buildConfig?.sdkconfigDefaults
+          )) as string[],
+          sdkconfigFilePath: (await resolveConfigPaths(
+            workspaceFolder,
+            buildConfig?.sdkconfigFilePath
+          )) as string,
+        },
+        env: projectConfJson[elem].env,
+        flashBaudRate: projectConfJson[elem].flashBaudRate,
+        monitorBaudRate: projectConfJson[elem].monitorBaudRate,
+        openOCD: {
+          debugLevel: projectConfJson[elem].openOCD?.debugLevel,
+          configs: projectConfJson[elem].openOCD?.configs,
+          args: projectConfJson[elem].openOCD?.args,
+        },
+        tasks: {
+          preBuild: projectConfJson[elem].tasks?.preBuild,
+          preFlash: projectConfJson[elem].tasks?.preFlash,
+          postBuild: projectConfJson[elem].tasks?.postBuild,
+          postFlash: projectConfJson[elem].tasks?.postFlash,
+        },
+      } as ProjectConfElement;
+    })
+  );
   return projectConfElements;
 }
 
@@ -98,4 +120,29 @@ export async function saveProjectConfFile(
   await writeJson(projectConfFilePath.fsPath, projectConfElements, {
     spaces: 2,
   });
+}
+
+/**
+ * Resolves config paths to absolute paths if relative, preserves if already absolute.
+ * Handles both single path string or array of paths.
+ */
+function resolveConfigPaths(
+  workspaceFolder: Uri,
+  paths?: string | string[]
+): string | string[] {
+  if (!paths) return undefined;
+
+  if (Array.isArray(paths)) {
+    return paths.map((configPath) => {
+      if (path.isAbsolute(configPath)) {
+        return configPath;
+      }
+      return Uri.joinPath(workspaceFolder, configPath).fsPath;
+    });
+  }
+
+  if (path.isAbsolute(paths)) {
+    return paths;
+  }
+  return Uri.joinPath(workspaceFolder, paths).fsPath;
 }
