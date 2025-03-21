@@ -1,57 +1,77 @@
 Project Configuration Editor
-====================================
+============================
 
-To allow you to have multiple configurations for the same project, you can define several settings to produce different build results. For example, take a look at the `Multiple configuration tutorial <multiple_config>`_ which uses the ESP-IDF CMake build system `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example.
+:link_to_translation:`zh_CN:[中文]`
 
-1. Click menu **View** > **Command Palette...** 
-2. Type **ESP-IDF: Open Project Configuration** and select the command. 
-3. This will launch a Project configuration wizard to manage the project configuration profiles to record the following settings for each configuration:
+Project Configuration Editor allows you to enable multiple configurations for the same project. You can define various settings to generate different build results. For example, refer to `Multiple Configuration Tutorial <multiple_config>`_, which demonstrates how to use the ESP-IDF CMake build system with `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example.
 
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| Setting ID                        | Description                                                                               |
-+===================================+===========================================================================================+
-| **idf.cmakeCompilerArgs**         | Arguments for CMake compilation task                                                      |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.ninjaArgs**                 | Arguments for Ninja build task                                                            |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.buildPath**                 | Custom build directory name for extension commands. (Default: \${workspaceFolder}/build)  |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.sdkconfigFilePath**         | Absolute path for sdkconfig file                                                          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.sdkconfigDefaults**         | List of sdkconfig default values for initial build configuration                          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.customExtraVars**           | Variables to be added to system environment variables                                     |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.flashBaudRate**             | Flash Baud rate                                                                           |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.monitorBaudRate**           | Monitor Baud Rate (Empty by default to use SDKConfig CONFIG_ESP_CONSOLE_UART_BAUDRATE)    |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdDebugLevel**         | Set openOCD Debug Level (0-4) Default: 2                                                  |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdConfigs**            | Configuration Files for OpenOCD. Relative to OPENOCD_SCRIPTS folder                       |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.openOcdLaunchArgs**         | Launch Arguments for OpenOCD before idf.openOcdDebugLevel and idf.openOcdConfigs          |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.preBuildTask**              | Command string to execute before build task                                               |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.postBuildTask**             | Command string to execute after build task                                                |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.preFlashTask**              | Command string to execute before flash task                                               |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
-| **idf.postFlashTask**             | Command string to execute after flash task                                                |
-+-----------------------------------+-------------------------------------------------------------------------------------------+
+1.  Go to ``View`` > ``Command Palette``.
+2.  Type ``ESP-IDF: Open Project Configuration`` and select the command.
+3.  This will launch a project configuration wizard to manage project configuration profiles and record the following settings for each configuration:
 
-4. After defining a profile and the settings for each profile use:
+.. list-table::
+    :header-rows: 1
+    :widths: 30 70
 
-- Click menu **View** > **Command Palette...** 
-- Type **ESP-IDF: Select Project Configuration** command to choose the configuration to override extension configuration settings.
+    * - Setting ID
+      - Description
 
-There are many use cases for having multiple configurations profiles. It allows you to store settings together and easily switch between one and the other. Let's explore one of this use cases here, having a development and production build profiles.
+    * - **idf.cmakeCompilerArgs**
+      - Arguments for the CMake compilation task
+
+    * - **idf.ninjaArgs**
+      - Arguments for the Ninja build task
+
+    * - **idf.buildPath**
+      - Custom build directory name for extension commands (Default: \${workspaceFolder}/build)
+
+    * - **idf.sdkconfigFilePath**
+      - Absolute path for the sdkconfig file
+
+    * - **idf.sdkconfigDefaults**
+      - List of sdkconfig default values for the initial build configuration
+
+    * - **idf.customExtraVars**
+      - Variables to add to system environment variables
+
+    * - **idf.flashBaudRate**
+      - Flash baud rate
+
+    * - **idf.monitorBaudRate**
+      - Monitor baud rate (empty by default to use sdkconfig ``CONFIG_ESP_CONSOLE_UART_BAUDRATE``)
+
+    * - **idf.openOcdDebugLevel**
+      - Set OpenOCD debug level (0–4); default: 2
+
+    * - **idf.openOcdConfigs**
+      - Configuration files for OpenOCD, relative to the OPENOCD_SCRIPTS folder
+
+    * - **idf.openOcdLaunchArgs**
+      - Launch arguments for OpenOCD before **idf.openOcdDebugLevel** and **idf.openOcdConfigs**
+
+    * - **idf.preBuildTask**
+      - Command string to execute before the build task
+
+    * - **idf.postBuildTask**
+      - Command string to execute after the build task
+
+    * - **idf.preFlashTask**
+      - Command string to execute before the flash task
+
+    * - **idf.postFlashTask**
+      - Command string to execute after the flash task
+
+4.  After defining a profile and the settings for each profile, use:
+
+    - Go to ``View`` > ``Command Palette``.
+    - Enter ``ESP-IDF: Select Project Configuration`` to choose the configuration that overrides extension configuration settings.
+
+Multiple configuration profiles have many use cases. They allow you to store settings together and easily switch between them. The following explores one of these use cases: creating **development** and **production** build profiles.
 
 Development and Release Profiles for ESP-IDF Project
--------------------------------------------------------
+----------------------------------------------------
 
-A typical `ESP-IDF Project Structure <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#example-project>`_ is like this:
+A typical `ESP-IDF Project Structure <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#example-project>`_ looks like this:
 
 .. code-block::
 
@@ -71,32 +91,36 @@ A typical `ESP-IDF Project Structure <https://docs.espressif.com/projects/esp-id
 
                 - build/
 
-In the ESP-IDF CMake build system, the project configuration settings are saved using the SDK Configuration Editor which store these values in a ``/path/to/esp-project/sdkconfig`` file. The default case is to create an ``/path/to/esp-project/sdkconfig`` file in the ESP-IDF project root directory and a ``/path/to/esp-project/build`` directory as the build directory path.
+In the ESP-IDF CMake build system, the project configuration settings are saved using the SDK Configuration Editor, which stores these values in the ``/path/to/esp-project/sdkconfig`` file. By default, the build system creates a ``/path/to/esp-project/sdkconfig`` file in the project root directory and a ``/path/to/esp-project/build`` directory as the build directory.
 
-When the current ESP-IDF project is under version control system, the ``/path/to/esp-project/sdkconfig`` can change on any user build which can alter the project expected behavior. For such a reason is better to move those project specific settings to an ``sdkconfig.defaults`` file (or list of files) which is not modified by the build system. ``/path/to/esp-project/sdkconfig`` can be added to the ``.gitignore`` list. This ``sdkconfig.defaults`` can be generated by the **ESP-IDF: Save Default SDKCONFIG file (save-defconfig)** (ESP-IDF v5.0 or higher) command.
+When the current ESP-IDF project is under version control, the ``/path/to/esp-project/sdkconfig`` file can change with each user build, altering the project's expected behavior. Therefore, it is better to move project-specific settings to a ``sdkconfig.defaults`` file (or a list of files) that the build system does not modify. You can add ``/path/to/esp-project/sdkconfig`` to the ``.gitignore`` list. The ``ESP-IDF: Save Default SDKCONFIG File (save-defconfig)`` command (available in ESP-IDF v5.0 or higher) can generate this ``sdkconfig.defaults`` file.
 
 .. note::
-  The ``sdkconfig.defaults`` file is used by the build system to override defaults project settings when creating the ``sdkconfig`` file as described in the ESP-IDF documentation `custom sdkconfig defaults <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#custom-sdkconfig-defaults>`_.
 
-With this extension settings, the default build path (/path/to/esp-project/build), sdkconfig file path and sdkconfig.defaults can be modified from their default location, the one described in the project structure before. With the **ESP-IDF: Project Configuration Editor** you can define multiple locations of the build directory with ``Build Directory Path``, ``SDKConfig File Path`` for the SDKConfig file and ``SDKConfig Defaults`` list of SDKConfig files to create the SDKConfig file in the specified ``SDKConfig File Path`` path. 
+    The ``sdkconfig.defaults`` file is used by the build system to override default project settings when creating the ``sdkconfig`` file, as described in `Custom Sdkconfig Defaults <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#custom-sdkconfig-defaults>`_.
 
-For this example we will create two profiles, **development** and **production**, to create 2 different build directories and 2 different sdkconfig files.
+With these extension settings, you can modify the default build path ``/path/to/esp-project/build``, sdkconfig file path, and ``sdkconfig.defaults`` from their default locations described in the project structure. Using the ``ESP-IDF: Project Configuration Editor``, you can define multiple build directory locations with the ``Build Directory Path``, specify the path for the sdkconfig file, and list ``sdkconfig.defaults`` files to create the sdkconfig file in the specified ``SDKConfig File Path``.
 
-1. Click menu **View** > **Command Palette...** 
-2. Type **ESP-IDF: Save Default SDKCONFIG file (save-defconfig)** select the command to generate a `sdkconfig.defaults` file. This command is added in ESP-IDF v5.0. You can also create this sdkconfig.defaults manually.
-3. Click menu **View** > **Command Palette...** 
-4. Type **ESP-IDF: Open Project Configuration** select the command and create a new profile with name ``production``. Set ``SDKConfig Defaults`` the previous ``sdkconfig.defaults`` file. If you want to separate the build directory of this new **production** profile from the default ``/path/to/esp-project/build`` directory, specify a build directory path using the ``Build Directory Path`` field to something like ``/path/to/esp-project/build_production`` and the ``SDKConfig file path`` field to something like ``/path/to/esp-project/build_production/sdkconfig``.
+In this example, we create two profiles: **development** and **production**, to define separate build directories and sdkconfig files.
 
-5. Create a new profile with name ``development``. You can set the build directory path using the ``Build Directory Path`` field to something like ``/path/to/esp-project/build_dev`` and the ``SDKConfig File Path`` field to something like ``/path/to/esp-project/build_dev/sdkconfig`` to avoid mixing **development** with **production** files.
+1. Go to ``View`` > ``Command Palette``.
 
-6. After creating each profile and the configuration settings for each profile, click the ``Save`` button and use the extension **ESP-IDF: Select Project Configuration** command to choose desired profile.
+2. Type ``ESP-IDF: Save Default SDKCONFIG file (save-defconfig)`` and select the command to generate a ``sdkconfig.defaults`` file. This command is available in ESP-IDF v5.0 or higher. You can also create this ``sdkconfig.defaults`` file manually.
 
-7. When you choose the **production** profile and use the **ESP-IDF: Build your Project** the ``/path/to/esp-project/build_production/sdkconfig`` would be created and the binaries are going to be created in ``/path/to/esp-project/build_production``.
+3. Go to ``View`` > ``Command Palette``.
 
-8. If you choose the **development** profile, the ``/path/to/esp-project/build_dev/sdkconfig`` would be created and the binaries are going to be created in ``/path/to/esp-project/build_dev``.
+4. Type ``ESP-IDF: Open Project Configuration`` and select the command to create a new profile named **production**. Set ``SDKConfig Defaults`` to the existing ``sdkconfig.defaults`` file. If you want to separate the build directory for this new **production** profile from the default ``/path/to/esp-project/build`` directory, specify a custom path in the ``Build Directory Path`` field (e.g., ``/path/to/esp-project/build_production``). Similarly, set the ``SDKConfig File Path`` field to a custom location (e.g., ``/path/to/esp-project/build_production/sdkconfig``).
 
-9. These profiles and each profile settings are going to be saved in the ``/path/to/esp-project/esp_idf_project_configuration.json``.
+5. Create a new profile named **development**. To keep **development** and **production** files separate, set ``Build Directory Path`` to a custom location (e.g., /path/to/esp-project/build_dev) and ``SDKConfig File Path`` to ``/path/to/esp-project/build_dev/sdkconfig``.
 
-The previous production profile could be split into multiple production profiles, as it is done in the `ESP-IDF CMake Multiple configuration example <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ and the `Multiple configuration tutorial <multiple_config>`_ by separating ``sdkconfig.defaults`` into common SDKConfig settings in a ``sdkconfig.prod_common`` file and product specific settings in ``sdkconfig.prod1`` file and ``sdkconfig.prod2`` file respectively. Multiple SDKConfig defaults files can be specified in the project configuration editor profile ``sdkconfig defaults`` field as ``sdkconfig.prod_common;sdkconfig.prod1`` where the values are loaded in order as explained in `here <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html?highlight=sdkconfig%20defaults#custom-sdkconfig-defaults>`_.
+6. After creating each profile and configuring the settings, click the ``Save`` button. Use the ``ESP-IDF: Select Project Configuration`` command to choose the desired profile.
 
-This is just an example of the possibility of this project configuration editor. You can define multiple settings for different kinds of development scenarios such as testing, profiling, etc.
+7. When you choose the **production** profile and use the ``ESP-IDF: Build your Project`` command, the ``/path/to/esp-project/build_production/sdkconfig`` file will be created, and the binaries will be generated in ``/path/to/esp-project/build_production``.
+
+8. If you choose the **development** profile, the ``/path/to/esp-project/build_dev/sdkconfig`` file will be created, and the binaries will be generated in ``/path/to/esp-project/build_dev``.
+
+9. These profiles and their settings will be saved in the ``/path/to/esp-project/esp_idf_project_configuration.json``.
+
+The previous **production** profile can be divided into multiple **production** profiles, as demonstrated in the ESP-IDF CMake `multi_config <https://github.com/espressif/esp-idf/tree/master/examples/build_system/cmake/multi_config>`_ example and `Multiple Configuration Tutorial <multiple_config>`_. This is achieved by splitting the ``sdkconfig.defaults`` file into a common settings file (``sdkconfig.prod_common``) and product-specific settings files (``sdkconfig.prod1`` and ``sdkconfig.prod2``). In the Project Configuration Editor, you can specify multiple ``SDKConfig Defaults`` files using a semicolon-separated format (e.g., ``sdkconfig.prod_common;sdkconfig.prod1``), and these files will be loaded in order as explained `here <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#custom-sdkconfig-defaults>`_.
+
+This is just one example of what the Project Configuration Editor can do. You can also define multiple profiles for other development scenarios, such as testing, profiling, and more.
