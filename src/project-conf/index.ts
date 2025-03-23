@@ -80,11 +80,11 @@ export async function getProjectConfigurationElements(workspaceFolder: Uri) {
           compileArgs: buildConfig?.compileArgs,
           ninjaArgs: buildConfig?.ninjaArgs,
           buildDirectoryPath: buildDirPath,
-          sdkconfigDefaults: (await resolveConfigPaths(
+          sdkconfigDefaults: (resolveConfigPaths(
             workspaceFolder,
             buildConfig?.sdkconfigDefaults
           )) as string[],
-          sdkconfigFilePath: (await resolveConfigPaths(
+          sdkconfigFilePath: (resolveConfigPaths(
             workspaceFolder,
             buildConfig?.sdkconfigFilePath
           )) as string,
