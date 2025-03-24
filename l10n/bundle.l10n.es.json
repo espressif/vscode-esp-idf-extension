@@ -4,7 +4,7 @@
   " has been updated": " ha sido actualizado",
   "File project_description.json cannot be found.": "No se puede encontrar el archivo project_description.json.",
   "Open a folder first.": "Primero abra una carpeta.",
-  "Selected command is not available in Web": "El comando seleccionado no está disponible en Web",
+  "Selected command is not available in Codespaces": "El comando seleccionado no está disponible en Codespaces",
   "Use current folder: {workspace}": "Usar carpeta actual: {workspace}",
   "Choose a container directory...": "Elija un directorio de contenedor...",
   "Select a directory to use": "Seleccione un directorio para usar",

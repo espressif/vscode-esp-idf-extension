@@ -225,7 +225,7 @@ let wsServer: WSServer;
 
 const openFolderFirstMsg = vscode.l10n.t("Open a folder first.");
 const cmdNotForWebIdeMsg = vscode.l10n.t(
-  "Selected command is not available in Web"
+  "Selected command is not available in Codespaces"
 );
 const openFolderCheck = [
   PreCheck.isWorkspaceFolderOpen,
