@@ -20,12 +20,11 @@ import { readdir, stat } from "fs-extra";
 import { extname, join } from "path";
 import { Uri } from "vscode";
 import { getGcovExecutable } from "./coverageService";
-import { readParameter } from "../idfConfiguration";
 import { exec } from "child_process";
-import { appendIdfAndToolsToPath } from "../utils";
 import { IGcovOutput } from "./gcovData";
 import { Logger } from "../logger/logger";
 import { getIdfTargetFromSdkconfig } from "../workspaceConfig";
+import { configureEnvVariables } from "../common/prepareEnv";
 
 export async function getGcdaPaths(workspaceFolder: Uri) {
   const gcdaPaths: Set<string> = new Set();
@@ -64,7 +63,7 @@ export async function getGcovData(workspaceFolder: Uri) {
   }
 
   return new Promise<IGcovOutput[]>(async (resolve, reject) => {
-    const modifiedEnv = await appendIdfAndToolsToPath(workspaceFolder);
+    const modifiedEnv = await configureEnvVariables(workspaceFolder);
     exec(
       command,
       {
