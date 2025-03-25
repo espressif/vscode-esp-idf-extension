@@ -107,8 +107,7 @@ export class IDFSize {
     const currentEnvVars = ESP.ProjectConfiguration.store.get<{
       [key: string]: string;
     }>(ESP.ProjectConfiguration.CURRENT_IDF_CONFIGURATION, {});
-    const idfPathDir = currentEnvVars["IDF_PATH"];
-    return path.join(idfPathDir, "tools");
+    return currentEnvVars["IDF_PATH"];
   }
 
   public async isBuiltAlready() {
@@ -120,7 +119,7 @@ export class IDFSize {
     try {
       const pythonBinPath = await getVirtualEnvPythonPath();
       const buffOut = await spawn(pythonBinPath, args, {
-        cwd: idfPath,
+        cwd: path.join(idfPath, "tools"),
       });
       const buffStr = buffOut.toString();
       const buffObj = JSON.parse(buffStr);
