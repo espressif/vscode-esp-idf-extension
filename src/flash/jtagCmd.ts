@@ -59,6 +59,10 @@ export async function jtagFlashCommand(workspace: Uri) {
     workspace
   );
   let buildPath = readParameter("idf.buildPath", workspace) as string;
+  let openOCDJTagFlashArguments = readParameter(
+    "idf.jtagFlashCommandExtraArgs",
+    workspace
+  ) as string[];
   const customTask = new CustomTask(workspace);
   if (forceUNIXPathSeparator === true) {
     buildPath = buildPath.replace(/\\/g, "/");
@@ -70,8 +74,7 @@ export async function jtagFlashCommand(workspace: Uri) {
       "program_esp_bins",
       buildPath,
       "flasher_args.json",
-      "verify",
-      "reset"
+      ...openOCDJTagFlashArguments
     );
     await customTask.addCustomTask(CustomTaskType.PostFlash);
     await customTask.runTasks(CustomTaskType.PostFlash);

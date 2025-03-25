@@ -125,6 +125,7 @@
 	"param.espRainmakerPath": "Путь до фреймворка ESP-Rainmaker (RMAKER_PATH)",
 	"param.exportVars": "Переменные, добавляемые к переменным системного окружения",
 	"param.flashBaudRate": "Скорость прошивки ESP-IDF",
+  "param.jtagFlashCommandExtraArgs.title": "Openocd jtag flash дополнительные аргументы",
 	"param.gitPath.title": "Путь к исполняемому файлу Git",
 	"param.launchMonitorOnDebugSession.title": "Запуск монитора IDF вместе с сессией Адаптера Отладки ESP-IDF",
 	"param.monitorBaudRate": "Скорость передачи данных монитора ESP-IDF",
