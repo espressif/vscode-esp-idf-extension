@@ -34,10 +34,13 @@ import { statusBarItems } from "../statusBar";
 import { CommandKeys, createCommandDictionary } from "../cmdTreeView/cmdStore";
 import { appendIdfAndToolsToPath, isBinInPath } from "../utils";
 import { IdfToolsManager } from "../idfToolsManager";
+import { getVirtualEnvPythonPath } from "../pythonManager";
+import { join } from "path";
 
 export enum QemuLaunchMode {
   Debug,
   Monitor,
+  DebugMonitor,
 }
 
 export class QemuManager extends EventEmitter {
@@ -104,39 +107,26 @@ export class QemuManager extends EventEmitter {
     }
   }
 
-  public getLaunchArguments(
-    mode: QemuLaunchMode,
-    idfTarget: string,
-    workspaceFolder: Uri
-  ) {
+  public getLaunchArguments(mode: QemuLaunchMode, workspaceFolder: Uri) {
     const buildPath = readParameter("idf.buildPath", workspaceFolder) as string;
-    const qemuFile = Uri.joinPath(Uri.file(buildPath), "merged_qemu.bin");
-    const qemuTcpPort = readParameter(
-      "idf.qemuTcpPort",
+    const extraArgs = readParameter(
+      "idf.qemuExtraArgs",
       workspaceFolder
-    ) as string;
+    ) as string[];
+    const idfPathDir = readParameter("idf.espIdfPath", workspaceFolder) as string;
+    const idfPy = join(idfPathDir, "tools", "idf.py");
+    let launchArgs = [idfPy, "-B", buildPath, "qemu"];
 
-    if (mode === QemuLaunchMode.Debug) {
-      return [
-        "-nographic",
-        "-s",
-        "-S",
-        "-machine",
-        idfTarget,
-        "-drive",
-        `file='${qemuFile.fsPath}',if=mtd,format=raw`,
-      ];
-    } else {
-      return [
-        "-nographic",
-        "-machine",
-        idfTarget,
-        "-drive",
-        `file='${qemuFile.fsPath}',if=mtd,format=raw`,
-        "-monitor stdio",
-        `-serial tcp::${qemuTcpPort},server,nowait`,
-      ];
+    if (mode === QemuLaunchMode.Debug || mode === QemuLaunchMode.DebugMonitor) {
+      launchArgs.push("--gdb");
     }
+    if (extraArgs && Array.isArray(extraArgs) && extraArgs.length > 0) {
+      launchArgs.push(...extraArgs);
+    }
+    if (mode === QemuLaunchMode.Monitor || mode === QemuLaunchMode.DebugMonitor) {
+      launchArgs.push("monitor");
+    }
+    return launchArgs;
   }
 
   public isRunning(): boolean {
@@ -147,7 +137,10 @@ export class QemuManager extends EventEmitter {
     const idfToolsManagerInstance = await IdfToolsManager.createIdfToolsManager(
       idfPath
     );
-    const packages = await idfToolsManagerInstance.getPackageList(["qemu-xtensa", "qemu-riscv32"]);
+    const packages = await idfToolsManagerInstance.getPackageList([
+      "qemu-xtensa",
+      "qemu-riscv32",
+    ]);
     const xtensaPackage = packages.find((pkg) => {
       return pkg.name === "qemu-xtensa";
     });
@@ -194,11 +187,7 @@ export class QemuManager extends EventEmitter {
       );
     }
 
-    const qemuArgs: string[] = this.getLaunchArguments(
-      mode,
-      modifiedEnv.IDF_TARGET,
-      workspaceFolder
-    );
+    const qemuArgs: string[] = this.getLaunchArguments(mode, workspaceFolder);
     if (typeof qemuArgs === "undefined" || qemuArgs.length < 1) {
       throw new Error("No QEMU launch arguments found.");
     }
@@ -218,7 +207,8 @@ export class QemuManager extends EventEmitter {
         }
       });
     }
-    this.qemuTerminal.sendText(`${qemuExecutable} ${qemuArgs.join(" ")}`);
+    const pythonBinPath = await getVirtualEnvPythonPath(workspaceFolder);
+    this.qemuTerminal.sendText(`${pythonBinPath} ${qemuArgs.join(" ")}`);
     this.qemuTerminal.show(true);
     this.updateStatusText("❇️ ESP-IDF: QEMU Server (Running)");
   }

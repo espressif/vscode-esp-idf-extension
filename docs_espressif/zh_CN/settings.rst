@@ -232,8 +232,10 @@ QEMU 相关设置
 
     * - 设置 ID
       - 描述
-    * - **idf.qemuTcpPort**
-      - QEMU 用于串行通信的 TCP 端口
+    * - **idf.qemuDebugMonitor**
+      - 在调试会话中启用 QEMU 显示器
+    * - **idf.qemuExtraArgs**
+      - QEMU 额外的论点
 
 
 日志追踪相关设置

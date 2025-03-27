@@ -234,8 +234,10 @@ QEMU Specific Settings
 
     * - Setting ID
       - Description
-    * - **idf.qemuTcpPort**
-      - QEMU TCP port for serial communication
+    * - **idf.qemuDebugMonitor**
+      - Enable QEMU Monitor on debug session
+    * - **idf.qemuExtraArgs**
+      - QEMU extra arguments
 
 
 Log Tracing Specific Settings
