@@ -2528,7 +2528,7 @@ export async function activate(context: vscode.ExtensionContext) {
     PreCheck.perform([openFolderCheck], async () => {
       await configureClangSettings(workspaceRoot);
     });
-  })
+  });
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
