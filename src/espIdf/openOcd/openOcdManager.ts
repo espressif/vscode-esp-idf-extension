@@ -182,17 +182,12 @@ export class OpenOCDManager extends EventEmitter {
       );
     }
 
-    const openOcdArgs = [];
+    const openOcdArgs: string[] = [];
     const openOcdDebugLevel = idfConf.readParameter(
       "idf.openOcdDebugLevel",
       this.workspace
     ) as string;
     openOcdArgs.push(`-d${openOcdDebugLevel}`);
-
-    openOcdConfigFilesList.forEach((configFile) => {
-      openOcdArgs.push("-f");
-      openOcdArgs.push(configFile);
-    });
 
     const addLaunchArgs = idfConf.readParameter(
       "idf.openOcdLaunchArgs",
@@ -204,6 +199,16 @@ export class OpenOCDManager extends EventEmitter {
         openOcdArgs.push(arg);
       });
     }
+
+    openOcdConfigFilesList.forEach((configFile) => {
+      const isFileAlreadyInArgs = openOcdArgs.some((arg) =>
+        arg.includes(configFile)
+      );
+      if (!isFileAlreadyInArgs) {
+        openOcdArgs.push("-f");
+        openOcdArgs.push(configFile);
+      }
+    });
 
     this.server = spawn("openocd", openOcdArgs, {
       cwd: this.workspace.fsPath,
@@ -250,7 +255,8 @@ export class OpenOCDManager extends EventEmitter {
       if (!signal && code && code !== 0) {
         Logger.error(
           `OpenOCD Exit with non-zero error code ${code}`,
-          new Error("Spawn exit with non-zero" + code), "OpenOCDManager close"
+          new Error("Spawn exit with non-zero" + code),
+          "OpenOCDManager close"
         );
         OutputChannel.appendLine(
           `OpenOCD Exit with non-zero error code ${code}`,
