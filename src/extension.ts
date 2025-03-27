@@ -172,6 +172,7 @@ import {
   HexTreeItem,
   HexViewProvider,
 } from "./cdtDebugAdapter/hexViewProvider";
+import { configureClangSettings } from "./clang";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -1235,10 +1236,12 @@ export async function activate(context: vscode.ExtensionContext) {
           commandDictionary[CommandKeys.SelectFlashType].iconId
         }) ${flashType}`;
       }
-    } else if (e.affectsConfiguration("idf.buildPath")) {
+    } else if (e.affectsConfiguration("idf.buildPath" + winFlag)) {
       updateIdfComponentsTree(workspaceRoot);
+      await configureClangSettings(workspaceRoot);
     } else if (e.affectsConfiguration("idf.customExtraVars")) {
       await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
+      await configureClangSettings(workspaceRoot);
     }
   });
 
@@ -2520,6 +2523,12 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     });
   });
+
+  registerIDFCommand("espIdf.setClangSettings", async () => {
+    PreCheck.perform([openFolderCheck], async () => {
+      await configureClangSettings(workspaceRoot);
+    });
+  })
 
   registerIDFCommand("espIdf.apptrace", () => {
     PreCheck.perform([webIdeCheck, openFolderCheck], async () => {
