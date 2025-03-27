@@ -44,7 +44,7 @@ When the current ESP-IDF project is under version control system, the ``/path/to
 
 With this extension settings, the default build path (``/path/to/esp-project/build``), sdkconfig file path and sdkconfig.defaults can be modified from their default location, the one described in the project structure before.
 
-In this extension you can define the build directory with the ``idf.buildPath`` (``idf.buildPathWin`` fo Windows) configuration setting and the list of sdkconfig default files with ``idf.sdkconfigDefaults`` configuration. The value of these settings will be using by the extension build command.
+In this extension you can define the build directory with the ``idf.buildPath`` (``idf.buildPathWin`` for Windows) configuration setting and the list of sdkconfig default files with ``idf.sdkconfigDefaults`` configuration. These values will be used by the extension build command.
 
 Say you want to make product 1:
 
