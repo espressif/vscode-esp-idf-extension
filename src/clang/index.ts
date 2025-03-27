@@ -42,7 +42,7 @@ export async function configureClangSettings(workspaceFolder: Uri) {
   const espClangPath = await validateEspClangExists(workspaceFolder);
   if (!espClangPath) {
     const error = new Error(
-      l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed")
+      l10n.t("esp-clang not found in PATH. Make sure esp-clang is installed.")
     );
     Logger.errorNotify(
       error.message,
