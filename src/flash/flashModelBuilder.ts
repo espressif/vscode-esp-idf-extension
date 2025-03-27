@@ -29,7 +29,31 @@ export async function createFlashModel(
     app: {
       address: flashArgsJson.app ? flashArgsJson.app.offset : undefined,
       binFilePath: flashArgsJson.app ? flashArgsJson.app.file : undefined,
-      encrypted: flashArgsJson.app ? flashArgsJson.app.encrypted : undefined,
+      encrypted: flashArgsJson.app
+        ? flashArgsJson.app.encrypted.indexOf("true") !== -1
+        : undefined,
+    } as FlashSection,
+    bootloader: {
+      address: flashArgsJson.bootloader
+        ? flashArgsJson.bootloader.offset
+        : undefined,
+      binFilePath: flashArgsJson.bootloader
+        ? flashArgsJson.bootloader.file
+        : undefined,
+      encrypted: flashArgsJson.bootloader
+        ? flashArgsJson.bootloader.encrypted.indexOf("true") !== -1
+        : undefined,
+    } as FlashSection,
+    partitionTable: {
+      address: flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].offset
+        : undefined,
+      binFilePath: flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].file
+        : undefined,
+      encrypted: flashArgsJson["partition-table"]
+        ? flashArgsJson["partition-table"].encrypted.indexOf("true") !== -1
+        : undefined,
     } as FlashSection,
     after: flashArgsJson.extra_esptool_args.after,
     before: flashArgsJson.extra_esptool_args.before,
@@ -53,7 +77,7 @@ export async function createFlashModel(
       flashModel.flashSections.push({
         address: fileKey,
         binFilePath: flashArgsJson.flash_files[fileKey],
-        encrypted: false
+        encrypted: false,
       } as FlashSection);
     }
   });
