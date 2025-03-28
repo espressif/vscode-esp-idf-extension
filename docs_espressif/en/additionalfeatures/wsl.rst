@@ -1,131 +1,132 @@
 Using WSL in Windows
-===================================
+====================
 
-- In this tutorial will show you how to develop your projects based on ``Visual Studio Code`` + ``ESP-IDF Extension`` + ``Remote - WSL`` to implement all features of this extension in WSL.
+:link_to_translation:`zh_CN:[中文]`
 
-- Install the following tools before starting the project:
+This tutorial guides you on developing projects using Visual Studio Code with **ESP-IDF extension** and **Remote - WSL** to implement all features of these extensions in WSL.
 
-1. Windows WSL (steps to install below).
+Install the following tools before starting the project:
+
+1. Windows WSL (see installation steps below)
 2. `Visual Studio Code <https://code.visualstudio.com>`_
 3. `usbipd-win <https://github.com/dorssel/usbipd-win/releases>`_
 
 Installing Ubuntu on Windows (WSL)
------------------------------------
+----------------------------------
 
-- If you don't have WSL installed run:
-
-.. code-block::
-
-  wsl --install
-
-- Update the WSL kernel with
+To install WSL, run:
 
 .. code-block::
 
-  wsl --update
+    wsl --install
 
-- Check the WSL available distributions list with the ``Powershell`` command prompt, as below:
+Update the WSL kernel with:
 
 .. code-block::
 
-  wsl -l -o
+    wsl --update
+
+Check the available WSL distributions using the ``Powershell`` command prompt:
+
+.. code-block::
+
+    wsl -l -o
 
 .. image:: ../../../media/tutorials/using_docker_container/wsl-l-o.png
 
-- So to install a ubuntu distribution in WSL on Windows, please type in the following command:
+To install a Ubuntu distribution in WSL on Windows, type the following command:
 
 .. code-block::
 
-  wsl --install --distribution Ubuntu
+    wsl --install --distribution Ubuntu
 
-usbipd-win in WSL
+``usbipd-win`` in WSL
 ---------------------
 
-- To access the ``USB``, ``serial`` and ``JTAG`` devices which are from the local Windows, ``usbipd-win`` must be installed, else it is impossible to download,monitor and debug on IDF docker image side. the way to install it, it is also same as Windows applications, so it will not be described in detail here.
+To access USB, serial, and JTAG devices from the local Windows system, you must install ``usbipd-win``. Without it, downloading, monitoring, and debugging on the IDF Docker image is not possible. The installation process is similar to other Windows applications and will not be detailed here.
 
-- You still need to do a bit configurations after installing the four tools above:
+After installing all the required tools, configure WSL as follows:
 
 Check Ubuntu on Windows (WSL)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Check the current WSL version is 2
+1.  Verify that the current WSL version is 2.
 
-.. code-block::
+    .. code-block::
 
-  wsl -l -v
+        wsl -l -v
 
-.. image:: ../../../media/tutorials/using_docker_container/wsl-l-v.png
+    .. image:: ../../../media/tutorials/using_docker_container/wsl-l-v.png
 
-2. Please upgrade to version 2, if not
+2.  If the version is not 2, upgrade to version 2.
 
-.. code-block::
+    .. code-block::
 
-  wsl --set-version Ubuntu 2
+        wsl --set-version Ubuntu 2
 
-3. Set the Ubuntu distribution as default:
+3.  Set the Ubuntu distribution as the default.
 
-.. code-block::
+    .. code-block::
 
-  wsl -s Ubuntu
+        wsl -s Ubuntu
 
-4. At last, to check if the commands have taken effect with ``wsl --status`` command.
+4.  Confirm the settings using the ``wsl --status`` command.
 
-.. image:: ../../../media/tutorials/using_docker_container/wsl-status.png
+    .. image:: ../../../media/tutorials/using_docker_container/wsl-status.png
 
 Adding the Required Linux Packages in WSL
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Install `ESP-IDF requirements for Linux <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites>`_.
-
-.. code-block::
-
-  sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
-
-1. Install usbipd in Powershell command prompt:
+Install `ESP-IDF Requirements for Linux <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html#install-prerequisites>`_.
 
 .. code-block::
 
-  winget install usbipd
+    sudo apt-get install git wget flex bison gperf python3-pip python3-venv python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
 
-2. Now configure the USB serial device to be able to connect to the WSL with ``usbipd``:
+1.  Install ``usbipd`` in the Powershell command prompt:
 
-3. Open PowerShell command prompt with administrator rights and then type in the command
+    .. code-block::
 
-.. code-block::
+        winget install usbipd
 
-  usbipd list 
+2.  Configure the USB serial device to connect to WSL using ``usbipd``.
 
-for a list of USB serial devices.
+3.  Open the PowerShell command prompt with administrator rights and then enter the following command to get a list of USB serial devices.
 
-4. To access the specified device from Windows on WSL locally, the device must be bound with **usbipd**. Open PowerShell command prompt with administrator rights and then type in the command:
+    .. code-block::
 
-.. code-block::
+        usbipd list
 
-  usbipd bind --busid <BUSID>
+4.  To access a specified device from Windows on WSL locally, bind the device with ``usbipd``. Open the PowerShell command prompt with administrator rights and enter the following command.
 
-.. note::
-  this command needs to be used only one time,unless the computer has restarted. **1-1** is the device's bus id ``<BUSID>`` I would like to bind.
+    .. code-block::
 
-5. After binding, please attach the specified device to WSL with this command in the Powershell command prompt.
+        usbipd bind --busid <BUSID>
 
-.. code-block::
+    .. note::
 
-  usbipd attach --wsl --busid <BUSID>
+        Use this command only once unless the computer restarts. **1-1** is the device’s ``<BUSID>`` you want to bind.
 
-6. At last, let us check if it works well on both side and type this command on WSL side.
+5.  After binding, attach the specified device to WSL with the following command in the PowerShell command prompt.
 
-.. code-block::
+    .. code-block::
 
-  dmesg | tail
+        usbipd attach --wsl --busid <BUSID>
 
-.. image:: ../../../media/tutorials/using_docker_container/wsl_demsg_tail.png
+6.  Finally, verify the connection on the WSL side by entering the following command.
 
-- As we can see above, **1-1** device has been attached to ``ttyACM0``, that means WSL can access the **1-1** USB device now.
+    .. code-block::
 
-Install Remote WSL extension in Visual Studio Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        dmesg | tail
 
-Install the **Remote - WSL**, **Remote Development** and **ESP-IDF** extensions, as below:
+    .. image:: ../../../media/tutorials/using_docker_container/wsl_demsg_tail.png
+
+As shown above, the **1-1** device is attached to ``ttyACM0``, indicating that WSL can now access the **1-1** USB device.
+
+Install Remote WSL Extension in Visual Studio Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install the **Remote - WSL**, **Remote Development** and **ESP-IDF** extensions as shown below.
 
 .. image:: ../../../media/tutorials/using_docker_container/remote_wsl.png
 
@@ -134,89 +135,89 @@ Install the **Remote - WSL**, **Remote Development** and **ESP-IDF** extensions,
 .. image:: ../../../media/tutorials/using_docker_container/esp-idf.png
 
 Open Project in WSL
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-- Start your development by clicking the ``><`` green button at the left bottom of Visual Studio Code and select **Open Folder in WSL** to start configuring the WSL and open the ``Blink`` example project.
+Start your development by clicking the ``><`` button at the bottom left of Visual Studio Code. Select **Open Folder in WSL** to configure the WSL and open the ``Blink`` example project.
 
-- Configure the ESP-IDF extension inside the WSL as described in the :ref:`Install ESP-IDF and Tools <installation>` documentation.
+Configure the ESP-IDF extension inside WSL as described in :ref:`Install ESP-IDF and Tools <installation>`.
 
 .. note::
-  * Running the setup from WSL could override the Windows host machine configuration settings since it is using the User Settings by default. Consider saving settings to a workspace or workspace folder.
 
-- At this moment, you can start to use the ``Blink`` example project for building, flashing, monitoring, debugging, etc.
+    Running the setup from WSL could override the Windows host machine configuration settings since it uses **User Settings** by default. Consider saving settings to a **workspace** or **workspace folder**.
 
-Building the Project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can now use the ``Blink`` example project for building, flashing, monitoring, debugging, etc.
 
-- Here taking the esp32-c3 as an example, users only need to change the target device from ``esp32`` to ``esp32-c3``, as below:
+Building Your Project
+~~~~~~~~~~~~~~~~~~~~~
+
+For example, to use ESP32-C3, change the target device from ``esp32`` to ``esp32c3`` as shown below:
 
 .. image:: ../../../media/tutorials/using_docker_container/device_target_esp32_c3.png
 
-- Next, start to build the example project, as below:
+Next, start building the example project:
 
 .. image:: ../../../media/tutorials/using_docker_container/container_build.gif
 
 Flashing to your Device
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
-After building, we can use the following ways to download the firmware.
+After building, flash the firmware using one of the following methods.
 
-External USB-Serial
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+External USB-to-Serial
+~~~~~~~~~~~~~~~~~~~~~~
 
-- Based on the description above, users can follow the usbipd instructions section mentioned. here ``Silicon Labs CP210x USB to UART Bridge`` is taken as an example, it has been attached to docker image:
+Follow the ``usbipd`` instructions as described. Here, ``Silicon Labs CP210x USB to UART Bridge`` is used as an example and is attached to the Docker image.
 
 .. image:: ../../../media/tutorials/using_docker_container/wsl_demsg_tail_usb_serial.png
 
-- As you can see, this device has attached to ``ttyUSB0``, so ``idf.port`` also need to change accordingly.
+This device is attached to ``ttyUSB0``, so you need to update ``idf.port`` accordingly.
 
 .. image:: ../../../media/tutorials/using_docker_container/ttyUSB0.png
 
-- But, the container doesn't know the configuration has changed yet at this moment.
+The container does not recognize the configuration change immediately.
 
 .. image:: ../../../media/tutorials/using_docker_container/unkown_ttyUSB0.png
 
-- So users need to reopen the container, that is **Reopen Folder Locally** and then the new configuration wil be reloaded as well.
+Reopen the container by selecting ``Reopen Folder Locally`` to reload the new configuration.
 
 .. image:: ../../../media/tutorials/using_docker_container/container_reopen.gif
 
-- At last, click the ``Flash`` button and start to download the firmware.
+Finally, click the ``Flash`` button to download the firmware.
 
 .. image:: ../../../media/tutorials/using_docker_container/container_flash_uart.gif
 
-Internal USB-serial
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Internal USB-to-Serial
+~~~~~~~~~~~~~~~~~~~~~~
 
-Just as the `External USB-Serial`_, the only difference is the number attached. where the external usb-serial is ``ttyUSBx``, while the internal usb-serial is ``ttyACMx``.
+Similar to `External USB-to-Serial`_, the only difference is the device name attached, where the external USB-to-Serial is ``ttyUSBx``, while the internal USB-to-Serial is ``ttyACMx``.
 
 .. image:: ../../../media/tutorials/using_docker_container/container_flash_uart_internal.gif
 
-USB-JTAG
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+USB-to-JTAG
+~~~~~~~~~~~
 
-Same as `External USB-Serial`_ and `Internal USB-serial`_, but it needs to configure the following extra parameters:
+Same as `External USB-to-Serial`_ and `Internal USB-to-Serial`_, but it needs to configure the following extra parameters:
 
 .. image:: ../../../media/tutorials/using_docker_container/extra_parameters.png
 
-the interface is the same as `Internal USB-serial`_, that is ``ttyACMx``:
+The interface is the same as `Internal USB-to-Serial`_, which is ``ttyACMx``:
 
 .. image:: ../../../media/tutorials/using_docker_container/container_flash_jtag.gif
 
-Additional steps for debugging
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Additional Steps for Debugging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Make sure to copy the `OpenOCD udev rules files <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ into the ``/etc/udev/rules.d`` directory before running OpenOCD and starting a debug session.
+Copy `OpenOCD udev rules files <https://github.com/espressif/openocd-esp32/blob/master/contrib/60-openocd.rules>`_ and paste them to the ``/etc/udev/rules.d`` directory before running OpenOCD and starting a debug session.
 
 Debugging
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
 
-After following `USB-JTAG`_, press ``F5`` to start to debug:
+After configuring `USB-to-JTAG`_, press ``F5`` to start to debugging:
 
 .. image:: ../../../media/tutorials/using_docker_container/container_debug.gif
 
 Precautions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
 
-1. If you want to debug on Windows, you need to unplug the USB cable and re-plug in it again, otherwise the corresponding USB port cannot be found in the Windows device manager.
-2. Docker Desktop For Windows needs to be opened and cannot be closed during container development.
-
+1. To debug on Windows, unplug and re-plug the USB cable to ensure the USB port is recognized in the Windows Device Manager.
+2. Keep Docker Desktop for Windows open during container development.
