@@ -35,4 +35,5 @@ export async function checkSystemInfo(reportedResult: reportObj) {
   reportedResult.systemInfo.systemName = os.release();
   reportedResult.systemInfo.shell = vscode.env.shell;
   reportedResult.systemInfo.vscodeVersion = vscode.version;
+  reportedResult.systemInfo.remoteName = vscode.env.remoteName;
 }

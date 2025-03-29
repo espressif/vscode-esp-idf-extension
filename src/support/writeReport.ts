@@ -34,6 +34,7 @@ export async function writeTextReport(
   output += `System environment variable IDF_PYTHON_ENV_PATH ${EOL} ${reportedResult.systemInfo.envIdfPythonEnvPath} ${EOL}`;
   output += `System environment variable PATH ${EOL} ${reportedResult.systemInfo.envPath} ${EOL}`;
   output += `System environment variable PYTHON ${EOL} ${reportedResult.systemInfo.envPython} ${EOL}`;
+  output += `Visual Studio Code Remote name ${reportedResult.systemInfo.remoteName} ${EOL}`;
   output += `Visual Studio Code version ${reportedResult.systemInfo.vscodeVersion} ${EOL}`;
   output += `Visual Studio Code language ${reportedResult.systemInfo.language} ${EOL}`;
   output += `Visual Studio Code shell ${reportedResult.systemInfo.shell} ${EOL}`;

@@ -78,6 +78,7 @@ export class SystemInfo {
   platform: string;
   systemName: string;
   vscodeVersion: string;
+  remoteName: string;
 }
 
 export class pyPkgVersion {
