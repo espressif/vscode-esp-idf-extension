@@ -21,6 +21,7 @@ import { CancellationToken, Uri, l10n } from "vscode";
 import { readParameter } from "../idfConfiguration";
 import { join } from "path";
 import { getVirtualEnvPythonPath } from "../pythonManager";
+import { EOL } from "os";
 
 export async function addDependency(
   workspace: Uri,
@@ -47,10 +48,17 @@ export async function addDependency(
       dependency,
       "reconfigure"
     );
-    const addDependencyResult = await spawn(pythonBinPath, addDependencyArgs, {
-      cwd: workspace.fsPath,
-      env: modifiedEnv,
-    }, undefined, undefined, cancelToken);
+    const addDependencyResult = await spawn(
+      pythonBinPath,
+      addDependencyArgs,
+      {
+        cwd: workspace.fsPath,
+        env: modifiedEnv,
+      },
+      undefined,
+      undefined,
+      cancelToken
+    );
     Logger.infoNotify(
       `Added dependency ${dependency} to the component "${component}"`
     );
@@ -70,7 +78,7 @@ export async function addDependency(
 export async function createProject(
   workspace: Uri,
   example: string
-): Promise<void> {
+): Promise<Uri> {
   try {
     const idfPathDir = readParameter("idf.espIdfPath");
     const idfPy = join(idfPathDir, "tools", "idf.py");
@@ -84,6 +92,12 @@ export async function createProject(
     ) {
       throw new Error("The paths to idf, idf.py or pythonBin do not exist.");
     }
+
+    const match = example.match(/(?<=:).*/);
+    if (!match) {
+      return;
+    }
+    const projectPath = Uri.joinPath(workspace, match[0]);
 
     const createProjectCommand: string[] = [
       idfPy,
@@ -99,9 +113,26 @@ export async function createProject(
         env: modifiedEnv,
       }
     );
-
     Logger.infoNotify(`Creating project from ${example}"`);
     Logger.info(createProjectResult.toString());
+
+    const marker = "downloaded to ";
+    const markerIndex = createProjectResult.toString().lastIndexOf(marker);
+    if (markerIndex !== -1) {
+      const extractedPathLines = createProjectResult
+        .toString()
+        .substring(markerIndex + marker.length)
+        .trim();
+      const lineBreakIndex = extractedPathLines.lastIndexOf(EOL);
+      const extractedPath = extractedPathLines
+        .toString()
+        .substring(0, lineBreakIndex)
+        .trim();
+      Logger.info(`Extracted path ${extractedPath}`);
+      return Uri.file(extractedPath);
+    }
+
+    return projectPath;
   } catch (error) {
     const throwableError = new Error(
       `${l10n.t(

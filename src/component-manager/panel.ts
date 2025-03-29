@@ -150,16 +150,7 @@ export class ComponentManagerUIPanel {
             cancellable: false,
           },
           async () => {
-            await createProject(selectedFolder[0], message.example);
-            const match = message.example.match(/(?<=:).*/);
-            if (!match) {
-              return;
-            }
-            let projectName =
-              (process.platform === "win32" ? "\\" : "/") + match[0];
-            const projectPath = vscode.Uri.file(
-              selectedFolder[0].fsPath + projectName
-            );
+            const projectPath = await createProject(selectedFolder[0], message.example);
             await vscode.commands.executeCommand(
               "vscode.openFolder",
               projectPath,
