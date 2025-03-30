@@ -21,7 +21,7 @@ import { ExtensionContext, Uri, window } from "vscode";
 import { ESP } from "../config";
 import { pathExists, readJson, writeJson, ensureDir } from "fs-extra";
 import { ProjectConfElement } from "./projectConfiguration";
-import * as process from 'process';
+import * as process from "process";
 import { Logger } from "../logger/logger";
 export class ProjectConfigStore {
   private static self: ProjectConfigStore;
@@ -207,10 +207,14 @@ export async function getProjectConfigurationElements(
         buildConfig?.sdkconfigFilePath
       ) as string | undefined;
       const compileArgs = buildConfig?.compileArgs
-        ?.map((arg: string) => substituteVariablesInString(arg, workspaceFolder))
+        ?.map((arg: string) =>
+          substituteVariablesInString(arg, workspaceFolder)
+        )
         .filter(isDefined);
       const ninjaArgs = buildConfig?.ninjaArgs
-        ?.map((arg: string) => substituteVariablesInString(arg, workspaceFolder))
+        ?.map((arg: string) =>
+          substituteVariablesInString(arg, workspaceFolder)
+        )
         .filter(isDefined);
 
       // Ensure build directory exists AFTER resolving the path
@@ -250,7 +254,9 @@ export async function getProjectConfigurationElements(
         openOCDConfig?.configs
       ) as string[] | undefined;
       const openOCDArgs = openOCDConfig?.args
-        ?.map((arg: string) => substituteVariablesInString(arg, workspaceFolder))
+        ?.map((arg: string) =>
+          substituteVariablesInString(arg, workspaceFolder)
+        )
         .filter(isDefined);
 
       // --- Process Tasks ---
@@ -275,17 +281,17 @@ export async function getProjectConfigurationElements(
       projectConfElements[confName] = {
         build: {
           compileArgs: compileArgs ?? [],
-          ninjaArgs: ninjaArgs ?? [],  
-          buildDirectoryPath: buildDirectoryPath, 
-          sdkconfigDefaults: sdkconfigDefaults,   
-          sdkconfigFilePath: sdkconfigFilePath,   
+          ninjaArgs: ninjaArgs ?? [],
+          buildDirectoryPath: buildDirectoryPath,
+          sdkconfigDefaults: sdkconfigDefaults,
+          sdkconfigFilePath: sdkconfigFilePath,
         },
         env: processedEnv ?? {},
         flashBaudRate: rawConfig.flashBaudRate,
         monitorBaudRate: rawConfig.monitorBaudRate,
         openOCD: {
           debugLevel: openOCDConfig?.debugLevel,
-          configs: openOCDConfigs, 
+          configs: openOCDConfigs,
           args: openOCDArgs ?? [],
         },
         tasks: {

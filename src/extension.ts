@@ -481,9 +481,9 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   projectConfigManager = new ProjectConfigurationManager(
-      workspaceRoot,
-      context,
-      statusBarItems
+    workspaceRoot,
+    context,
+    statusBarItems
   );
 
   context.subscriptions.push(projectConfigManager);
@@ -521,7 +521,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
- 
   vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
 
   registerIDFCommand("espIdf.createFiles", async () => {
@@ -1180,13 +1179,15 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const projectConfCommandDisposable = vscode.commands.registerCommand(
-    "espIdf.projectConf", 
+    "espIdf.projectConf",
     async () => {
       PreCheck.perform([openFolderCheck], async () => {
-        if(projectConfigManager) {
+        if (projectConfigManager) {
           await projectConfigManager.selectProjectConfiguration();
         } else {
-          vscode.window.showErrorMessage("Project Configuration Manager not initialized.");
+          vscode.window.showErrorMessage(
+            "Project Configuration Manager not initialized."
+          );
         }
       });
     }
