@@ -173,6 +173,7 @@ import {
 } from "./cmdTreeView/cmdStore";
 import { IdfSetup } from "./views/setup/types";
 import { asyncRemoveEspIdfSettings } from "./uninstall";
+import { ProjectConfigurationManager } from "./project-conf/ProjectConfigurationManager";
 
 // Global variables shared by commands
 let workspaceRoot: vscode.Uri;
@@ -250,6 +251,8 @@ const minIdfVersionCheck = async function (
     `Selected command needs ESP-IDF v${minVersion} or higher`,
   ] as utils.PreCheckInput;
 };
+
+let projectConfigManager: ProjectConfigurationManager | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Always load Logger first
@@ -477,6 +480,14 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  projectConfigManager = new ProjectConfigurationManager(
+      workspaceRoot,
+      context,
+      statusBarItems
+  );
+
+  context.subscriptions.push(projectConfigManager);
+
   vscode.debug.onDidTerminateDebugSession((e) => {
     if (isOpenOCDLaunchedByDebug && !isDebugRestarted) {
       isOpenOCDLaunchedByDebug = false;
@@ -510,137 +521,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(sdkDeleteWatchDisposable);
 
-  const projConfFilePath = vscode.Uri.joinPath(workspaceRoot, "esp_idf_project_configuration.json").fsPath;
-  let previousConfigVersions = [];
-
-  const multiConfigWatcher = vscode.workspace.createFileSystemWatcher(
-    projConfFilePath,
-    false,
-    false,
-    false
-  );
-
-
-  const previousProjConf = ESP.ProjectConfiguration.store.get<string>(ESP.ProjectConfiguration.SELECTED_CONFIG);
-
-  // Initial read of the file
-  try {
-    const configData = JSON.parse(utils.readFileSync(projConfFilePath));
-    previousConfigVersions = Object.keys(configData);
-    vscode.window.showInformationMessage(`Loaded ${previousConfigVersions.length} versions: ${previousConfigVersions.join(', ')}`);
-  } catch (error) {
-    vscode.window.showErrorMessage(`Error parsing config file: ${error.message}`);
-  }
-  
-  const multiConfigWatchDisposable = multiConfigWatcher.onDidChange(
-    async () => {
-      try {
-        const configData = JSON.parse(utils.readFileSync(projConfFilePath));
-        const currentVersions = Object.keys(configData);
-  
-        // Find added versions
-        const addedVersions = currentVersions.filter(v => !previousConfigVersions.includes(v));
-        // Find removed versions
-        const removedVersions = previousConfigVersions.filter(v => !currentVersions.includes(v));
-        
-        if (addedVersions.length > 0) {
-          vscode.window.showInformationMessage(`New versions added: ${addedVersions.join(', ')}`);
-        }
-        if (removedVersions.length > 0) {
-          vscode.window.showInformationMessage(`Versions removed: ${removedVersions.join(', ')}`);
-        }
-        
-        // Update previous versions for next comparison
-        previousConfigVersions = currentVersions;
-  
-        // Get the current selected configuration
-        const currentSelectedConfig = ESP.ProjectConfiguration.store.get<string>(ESP.ProjectConfiguration.SELECTED_CONFIG);
-        
-        // Important: Update the configuration object in the store if the selected config still exists
-        if (currentSelectedConfig && currentVersions.includes(currentSelectedConfig)) {
-          // Update the configuration data in the store
-          ESP.ProjectConfiguration.store.set(
-            currentSelectedConfig,
-            configData[currentSelectedConfig]
-          );
-          
-          // Refresh UI and related settings
-          if (statusBarItems["projectConf"]) {
-            statusBarItems["projectConf"].dispose();
-          }
-          statusBarItems["projectConf"] = createStatusBarItem(
-            `$(${
-              commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-            }) ${currentSelectedConfig}`,
-            commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-            CommandKeys.SelectProjectConfiguration,
-            99,
-            commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-          );
-          await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-          await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
-          ConfserverProcess.dispose();
-        } else if (!currentVersions.includes(currentSelectedConfig)) {
-          // Handle the case where the selected config no longer exists
-          let statusBarItemName = "Invalid Configuration";
-          let statusBarItemTooltip =
-            "Invalid configuration path. Click to modify project configuration";
-          statusBarItems["projectConf"] = createStatusBarItem(
-            `$(${
-              commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-            }) ${statusBarItemName}`,
-            statusBarItemTooltip,
-            "espIdf.projectConfigurationEditor",
-            99,
-            commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-          );
-        }
-      } catch (error) {
-        vscode.window.showErrorMessage(`Error parsing config file: ${error.message}`);
-      }
-    }
-  );
-  const multiConfigDeleteWatchDisposable = multiConfigWatcher.onDidDelete(
-    () => {
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.SELECTED_CONFIG,
-        previousProjConf
-      );
-      if (statusBarItems["projectConf"]) {
-        statusBarItems["projectConf"].dispose();
-      }
-      statusBarItems["projectConf"] = createStatusBarItem(
-        `$(${
-          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-        }) ${previousProjConf}`,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-        CommandKeys.SelectProjectConfiguration,
-        99,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-      );
-     }
-  )
-  const multiConfigCreateWatchDisposable = multiConfigWatcher.onDidCreate(
-    () => {
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.SELECTED_CONFIG,
-        previousProjConf
-      );
-      if (statusBarItems["projectConf"]) {
-        statusBarItems["projectConf"].dispose();
-      }
-      statusBarItems["projectConf"] = createStatusBarItem(
-        `$(${
-          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-        }) ${previousProjConf}`,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-        CommandKeys.SelectProjectConfiguration,
-        99,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-      );
-     }
-  )
-  context.subscriptions.push(multiConfigWatchDisposable, multiConfigDeleteWatchDisposable, multiConfigCreateWatchDisposable);
  
   vscode.window.onDidCloseTerminal(async (terminal: vscode.Terminal) => {});
 
@@ -1299,62 +1179,21 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  registerIDFCommand("espIdf.projectConf", async () => {
-    PreCheck.perform([openFolderCheck], async () => {
-      const projectConfigurations = await getProjectConfigurationElements(
-        workspaceRoot
-      );
-      if (!projectConfigurations) {
-        const emptyOption = await vscode.window.showInformationMessage(
-          vscode.l10n.t("No project configuration found"),
-          "Open editor"
-        );
-        if (emptyOption === "Open editor") {
-          vscode.commands.executeCommand("espIdf.projectConfigurationEditor");
+  const projectConfCommandDisposable = vscode.commands.registerCommand(
+    "espIdf.projectConf", 
+    async () => {
+      PreCheck.perform([openFolderCheck], async () => {
+        if(projectConfigManager) {
+          await projectConfigManager.selectProjectConfiguration();
+        } else {
+          vscode.window.showErrorMessage("Project Configuration Manager not initialized.");
         }
-        return;
-      }
-      const selectConfigMsg = vscode.l10n.t("Select configuration to use:");
-      let quickPickItems = Object.keys(projectConfigurations).map((k) => {
-        return {
-          description: k,
-          label: `Configuration ${k}`,
-          target: k,
-        };
       });
-      const option = await vscode.window.showQuickPick(quickPickItems, {
-        placeHolder: selectConfigMsg,
-      });
-      if (!option) {
-        const noOptionMsg = vscode.l10n.t("No option selected.");
-        Logger.infoNotify(noOptionMsg);
-        return;
-      }
-      ESP.ProjectConfiguration.store.set(
-        ESP.ProjectConfiguration.SELECTED_CONFIG,
-        option.target
-      );
-      ESP.ProjectConfiguration.store.set(
-        option.target,
-        projectConfigurations[option.target]
-      );
-      if (statusBarItems["projectConf"]) {
-        statusBarItems["projectConf"].dispose();
-      }
-      statusBarItems["projectConf"] = createStatusBarItem(
-        `$(${
-          commandDictionary[CommandKeys.SelectProjectConfiguration].iconId
-        }) ${option.target}`,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].tooltip,
-        CommandKeys.SelectProjectConfiguration,
-        99,
-        commandDictionary[CommandKeys.SelectProjectConfiguration].checkboxState
-      );
-      await getIdfTargetFromSdkconfig(workspaceRoot, statusBarItems["target"]);
-      await utils.setCCppPropertiesJsonCompileCommands(workspaceRoot);
-      ConfserverProcess.dispose();
-    });
-  });
+    }
+  );
+
+  // Add the disposable to context subscriptions
+  context.subscriptions.push(projectConfCommandDisposable);
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     const winFlag = process.platform === "win32" ? "Win" : "";
